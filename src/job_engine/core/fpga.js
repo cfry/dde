@@ -1,4 +1,4 @@
-import {Dexter} from "./robot.js"
+//import {Dexter} from "./robot.js" //dde4 Dexter is now global
 
 class FPGA {
     static command_reg_val({
@@ -45,91 +45,130 @@ class FPGA {
             //eval(name + " = " + i)
             FPGA[name] = i
         }
+        this.init_fpga_command_reg()
     }
-}
-FPGA.w_oplet_address_names =[
-    "BASE_POSITION",  // 0
-    "END_POSITION",  // 1
-    "PIVOT_POSITION",  // 2
-    "ANGLE_POSITION",  // 3
-    "ROT_POSITION",  // 4
-    "ACCELERATION_MAXSPEED",  // 5
-    "BASE_SIN_CENTER",  // 6
-    "BASE_COS_CENTER",  // 7
-    "END_SIN_CENTER",  // 8
-    "END_COS_CENTER",  // 9
-    "PIVOT_SIN_CENTER",  // 10
-    "PIVOT_COS_CENTER",  // 11
-    "ANGLE_SIN_CENTER",  // 12
-    "ANGLE_COS_CENTER",  // 13
-    "ROT_SIN_CENTER",  // 14
-    "ROT_COS_CENTER",  // 15
-    "PID_DELTATNOT",  // 16
-    "PID_DELTAT",  // 17
-    "PID_D",  // 18
-    "PID_I",  // 19
-    "PID_P",  // 20
-    "PID_ADDRESS",  // 21
-    "BOUNDRY_BASE",  // 22
-    "BOUNDRY_END",  // 23
-    "BOUNDRY_PIVOT",  // 24
-    "BOUNDRY_ANGLE",  // 25
-    "BOUNDRY_ROT",  // 26
-    "SPEED_FACTORA",  // 27
-    "SPEED_FACTORB",  // 28
-    "FRICTION_BASE",  // 29
-    "FRICTION_END",  // 30
-    "FRICTION_PIVOT",  // 31
-    "FRICTION_ANGLE",  // 32
-    "FRICTION_ROT",  // 33
-    "MOVE_TRHESHOLD",  // 34
-    "F_FACTOR",  // 35
-    "MAX_ERROR",  // 36
-    "FORCE_BIAS_BASE",  // 37
-    "FORCE_BIAS_END",  // 38
-    "FORCE_BIAS_PIVOT",  // 39
-    "FORCE_BIAS_ANGLE",  // 40
-    "FORCE_BIAS_ROT",  // 41
-    "COMMAND_REG",  // 42
-    "DMA_CONTROL",  // 43
-    "DMA_WRITE_DATA",  // 44
-    "DMA_WRITE_PARAMS",  // 45
-    "DMA_WRITE_ADDRESS",  // 46
-    "DMA_READ_PARAMS",  // 47
-    "DMA_READ_ADDRESS",  // 48
-    "REC_PLAY_CMD",  // 49
-    "REC_PLAY_TIMEBASE",  // 50
-    "MAXSPEED_XYZ",  // 51
-    "DIFF_FORCE_BETA",  // 52
-    "DIFF_FORCE_MOVE_THRESHOLD",  // 53
-    "DIFF_FORCE_MAX_SPEED",  // 54
-    "DIFF_FORCE_SPEED_FACTOR_ANGLE",  // 55
-    "DIFF_FORCE_SPEED_FACTOR_ROT",  // 56
-    "DIFF_FORCE_ANGLE_COMPENSATE",  // 57
-    "FINE_ADJUST_BASE",  // 58
-    "FINE_ADJUST_END",  // 59
-    "FINE_ADJUST_PIVOT",  // 60
-    "FINE_ADJUST_ANGLE",  // 61
-    "FINE_ADJUST_ROT",  // 62
-    "RECORD_LENGTH",  // 63
-    "END_EFFECTOR_IO",  // 64
-    "SERVO_SETPOINT_A",  // 65
-    "SERVO_SETPOINT_B",  // 66
-    "BASE_FORCE_DECAY",  // 67
-    "END_FORCE_DECAY",  // 68
-    "PIVOT_FORCE_DECAY",  // 69
-    "ANGLE_FORCE_DECAY",  // 70
-    "ROTATE_FORCE_DECAY",  // 71
-    "PID_SCHEDULE_INDEX",  // 72
-    "GRIPPER_MOTOR_CONTROL",  // 73
-    "GRIPPER_MOTOR_OFF_WIDTH",  // 74
-    "GRIPPER_MOTOR_ON_WIDTH",  // 75
-    "START_SPEED",  // 76
-    "ANGLE_END_RATIO",  // 77
-    "RESET_PID_AND_FLUSH_QUEUE",  // 78
-    "XYZ_FORCE_TIMEBASE",  // 79
-    "DIFFERENTIAL_FORCE_TIMEBASE",  // 80
-    "PID_TIMEBASE"]
+
+    static init_fpga_command_reg () {
+        Dexter.set_fpga_command_reg = function({
+                                                   CapCalibrateBase = false,
+                                                   CapCalibrateEnd = false,
+                                                   CapCalibratePivot = false,
+                                                   MoveEnable = false,
+                                                   GoMove = false,
+                                                   EnableLoop = false,
+                                                   AClrLoop = false,
+                                                   CalRun = false,
+                                                   ResetMotorPosition = false,
+                                                   ResetForce = false,
+                                                   CapCalAngle = false,
+                                                   CapCalRot = false,
+                                                   AngleEnable = false,
+                                                   RotEnable = false} = {}) {
+            let val = FPGA.command_reg_val({
+                CapCalibrateBase: CapCalibrateBase,
+                CapCalibrateEnd: CapCalibrateEnd,
+                CapCalibratePivot: CapCalibratePivot,
+                MoveEnable: MoveEnable,
+                GoMove: GoMove,
+                EnableLoop: EnableLoop,
+                AClrLoop: AClrLoop,
+                CalRun: CalRun,
+                ResetMotorPosition: ResetMotorPosition,
+                ResetForce: ResetForce,
+                CapCalAngle: ResetForce,
+                CapCalRot: CapCalRot,
+                AngleEnable: AngleEnable,
+                RotEnable:RotEnable
+            })
+            return make_ins("w", FPGA.COMMAND_REG, val )
+        }
+    }
+    static w_oplet_address_names = [
+        "BASE_POSITION",  // 0
+        "END_POSITION",  // 1
+        "PIVOT_POSITION",  // 2
+        "ANGLE_POSITION",  // 3
+        "ROT_POSITION",  // 4
+        "ACCELERATION_MAXSPEED",  // 5
+        "BASE_SIN_CENTER",  // 6
+        "BASE_COS_CENTER",  // 7
+        "END_SIN_CENTER",  // 8
+        "END_COS_CENTER",  // 9
+        "PIVOT_SIN_CENTER",  // 10
+        "PIVOT_COS_CENTER",  // 11
+        "ANGLE_SIN_CENTER",  // 12
+        "ANGLE_COS_CENTER",  // 13
+        "ROT_SIN_CENTER",  // 14
+        "ROT_COS_CENTER",  // 15
+        "PID_DELTATNOT",  // 16
+        "PID_DELTAT",  // 17
+        "PID_D",  // 18
+        "PID_I",  // 19
+        "PID_P",  // 20
+        "PID_ADDRESS",  // 21
+        "BOUNDRY_BASE",  // 22
+        "BOUNDRY_END",  // 23
+        "BOUNDRY_PIVOT",  // 24
+        "BOUNDRY_ANGLE",  // 25
+        "BOUNDRY_ROT",  // 26
+        "SPEED_FACTORA",  // 27
+        "SPEED_FACTORB",  // 28
+        "FRICTION_BASE",  // 29
+        "FRICTION_END",  // 30
+        "FRICTION_PIVOT",  // 31
+        "FRICTION_ANGLE",  // 32
+        "FRICTION_ROT",  // 33
+        "MOVE_TRHESHOLD",  // 34
+        "F_FACTOR",  // 35
+        "MAX_ERROR",  // 36
+        "FORCE_BIAS_BASE",  // 37
+        "FORCE_BIAS_END",  // 38
+        "FORCE_BIAS_PIVOT",  // 39
+        "FORCE_BIAS_ANGLE",  // 40
+        "FORCE_BIAS_ROT",  // 41
+        "COMMAND_REG",  // 42
+        "DMA_CONTROL",  // 43
+        "DMA_WRITE_DATA",  // 44
+        "DMA_WRITE_PARAMS",  // 45
+        "DMA_WRITE_ADDRESS",  // 46
+        "DMA_READ_PARAMS",  // 47
+        "DMA_READ_ADDRESS",  // 48
+        "REC_PLAY_CMD",  // 49
+        "REC_PLAY_TIMEBASE",  // 50
+        "MAXSPEED_XYZ",  // 51
+        "DIFF_FORCE_BETA",  // 52
+        "DIFF_FORCE_MOVE_THRESHOLD",  // 53
+        "DIFF_FORCE_MAX_SPEED",  // 54
+        "DIFF_FORCE_SPEED_FACTOR_ANGLE",  // 55
+        "DIFF_FORCE_SPEED_FACTOR_ROT",  // 56
+        "DIFF_FORCE_ANGLE_COMPENSATE",  // 57
+        "FINE_ADJUST_BASE",  // 58
+        "FINE_ADJUST_END",  // 59
+        "FINE_ADJUST_PIVOT",  // 60
+        "FINE_ADJUST_ANGLE",  // 61
+        "FINE_ADJUST_ROT",  // 62
+        "RECORD_LENGTH",  // 63
+        "END_EFFECTOR_IO",  // 64
+        "SERVO_SETPOINT_A",  // 65
+        "SERVO_SETPOINT_B",  // 66
+        "BASE_FORCE_DECAY",  // 67
+        "END_FORCE_DECAY",  // 68
+        "PIVOT_FORCE_DECAY",  // 69
+        "ANGLE_FORCE_DECAY",  // 70
+        "ROTATE_FORCE_DECAY",  // 71
+        "PID_SCHEDULE_INDEX",  // 72
+        "GRIPPER_MOTOR_CONTROL",  // 73
+        "GRIPPER_MOTOR_OFF_WIDTH",  // 74
+        "GRIPPER_MOTOR_ON_WIDTH",  // 75
+        "START_SPEED",  // 76
+        "ANGLE_END_RATIO",  // 77
+        "RESET_PID_AND_FLUSH_QUEUE",  // 78
+        "XYZ_FORCE_TIMEBASE",  // 79
+        "DIFFERENTIAL_FORCE_TIMEBASE",  // 80
+        "PID_TIMEBASE"
+    ]
+
+} //end FPGA class
 
 /* obsolete, now down by FPGA.init()
 FPGA.BASE_POSITION = 0
@@ -217,39 +256,7 @@ FPGA.PID_TIMEBASE = 81
 
 */
 
-Dexter.set_fpga_command_reg = function({
-    CapCalibrateBase = false,
-    CapCalibrateEnd = false,
-    CapCalibratePivot = false,
-    MoveEnable = false,
-    GoMove = false,
-    EnableLoop = false,
-    AClrLoop = false,
-    CalRun = false,
-    ResetMotorPosition = false,
-    ResetForce = false,
-    CapCalAngle = false,
-    CapCalRot = false,
-    AngleEnable = false,
-    RotEnable = false} = {}) {
-    let val = FPGA.command_reg_val({
-        CapCalibrateBase: CapCalibrateBase,
-        CapCalibrateEnd: CapCalibrateEnd,
-        CapCalibratePivot: CapCalibratePivot,
-        MoveEnable: MoveEnable,
-        GoMove: GoMove,
-        EnableLoop: EnableLoop,
-        AClrLoop: AClrLoop,
-        CalRun: CalRun,
-        ResetMotorPosition: ResetMotorPosition,
-        ResetForce: ResetForce,
-        CapCalAngle: ResetForce,
-        CapCalRot: CapCalRot,
-        AngleEnable: AngleEnable,
-        RotEnable:RotEnable
-        })
-    return make_ins("w", FPGA.COMMAND_REG, val )
-}
+
 globalThis.FPGA = FPGA
 
 /*

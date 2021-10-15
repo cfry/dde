@@ -17,7 +17,7 @@ require("codemirror/addon/fold/brace-fold.js")
 require("codemirror/addon/fold/comment-fold.js")
 */
 
-import {dde_init_dot_js_initialize, file_exists, load_files,
+import {convert_backslashes_to_slashes, dde_init_dot_js_initialize, file_exists, load_files,
         persistent_initialize, persistent_get, persistent_set,
         write_file}    from "../job_engine/core/storage.js"
 import {decode_quotes, function_param_names_and_defaults_lit_obj, is_alphanumeric, is_comment, is_digit, is_letter,

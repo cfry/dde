@@ -1,5 +1,5 @@
 /* forward and reverse stepping ignores the marks. */
-var MiState = class MiState {
+class MiState {
     //since this is called from job.set_up_do_list, it's "this" isn't properly bound
     //so must use class name instead of "this".
     static run_next_instruction(job_instance=MiState.job_instance, program_counter_increment=null){ //called from set_up_next_do
@@ -277,6 +277,7 @@ var MiState = class MiState {
         }
     }
 }
-MiState.init()
+globalThis.MiState = MiState
+//MiState.init()
 
 

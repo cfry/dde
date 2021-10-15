@@ -1,4 +1,4 @@
-export class Metrics {
+class Metrics {
     static state = {"Eval button clicks": 0,
                     "Step button clicks": 0,
                     "Job button clicks": 0,
@@ -67,3 +67,5 @@ export class Metrics {
         out("degrees * 60 * 60 == arcseconds")
     }
 }
+
+globalThis.Metrics = Metrics

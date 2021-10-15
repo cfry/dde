@@ -3,22 +3,22 @@
 import {RobotStatus} from "./robot_status.js"
 //import {Job} from "./job.js" now global
 //import {Instruction, make_ins} from "./instruction.js" //now global
-//import {shouldnt, date_integer_to_long_string,
-//        is_iterator, is_string_an_identifier, last,
-//        return_first_arg, starts_with_one_of, stringify_value,
-//        value_of_path} from "./utils.js"
+import {shouldnt, date_integer_to_long_string,
+        is_iterator, is_string_an_identifier, last,
+        return_first_arg, starts_with_one_of, stringify_value,
+        value_of_path} from "./utils.js"
 //import {file_exists, node_server_supports_editor,
 //        persistent_get, read_file} from "./storage"
 //import {Socket} from "./socket.js"
 //import {serial_connect, serial_disconnect, serial_send}from "./serial.js"
 
 //import {Vector} from "../math/Vector.js" //now global
-//import {Kin} from "../math/Kin.js"
+//import {Kin} from "../math/Kin.js" //now global
 
 import {show_window_values} from "./out.js"
 
 
-var Robot = class Robot {
+class Robot {
     constructor (args){
        if(!is_string_an_identifier(args.name)) {
            dde_error('You have attempted to make a new Robot with an invalid name of: "' + args.name +
@@ -327,7 +327,7 @@ Robot.all_names = []
 Robot.robot_status_labels = [] //overridden by Serial and Dexter, needed by Show robot status history button
 
 /*simulate vs non-simulate makes no difference so set simulate to false */
-export var Brain = class Brain extends Robot { /*no associated hardware */
+class Brain extends Robot { /*no associated hardware */
     constructor({name = "b1"}={}){
         super(arguments[0])
         this.name = name
@@ -380,7 +380,7 @@ globalThis.Brain = Brain
 
 Brain.all_names = []
 
-export var Human = class Human extends Brain { /*no associated hardware */
+class Human extends Brain { /*no associated hardware */
     constructor({name = "h1"}={}){
         super(arguments[0])
         this.name = name
@@ -561,7 +561,7 @@ globalThis.Human = Human
 
 Human.all_names = []
 
-export var Serial = class Serial extends Robot {
+class Serial extends Robot {
     constructor({name = "s1", simulate = null, //get sim val from Jobs menu item check box.
                  sim_fun = return_first_arg, path = "required", connect_options={},
                  capture_n_items = 1, item_delimiter="\n", trim_whitespace=true,
@@ -931,7 +931,7 @@ Serial.prototype.string_instruction = function(instruction_string){
 /*anticipate classes for Dexter2, etc.
 //the pose matrix includes info on position and orientation
 * */
-export var Dexter = class Dexter extends Robot {
+class Dexter extends Robot {
     constructor({name = null,
                  simulate = null,
                  ip_address = null,
@@ -952,8 +952,8 @@ export var Dexter = class Dexter extends Robot {
            dde_error("While construction a Dexter robot named: " + name +
                      "<br/>Sorry, you can't name a Dexter with a single upper case letter.")
         }
-        if(!ip_address) { ip_address = persistent_get("default_dexter_ip_address") }
-        if(!port)       { port       = persistent_get("default_dexter_port") }
+        if(!ip_address) { }//ip_address = persistent_get("default_dexter_ip_address") } //todo dde4 comment in when persistent_get is working
+        if(!port)       { }//port       = persistent_get("default_dexter_port") }       //todo dde4 comment in when persistent_get is working
 
         let keyword_args = {name: name,
                             simulate: simulate,

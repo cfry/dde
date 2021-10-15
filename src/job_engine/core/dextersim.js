@@ -1,17 +1,17 @@
 /* Created by Fry on 3/30/16.*/
 //whole file loaded in  env only as is tcp
 
-import {Robot, Dexter} from "./robot.js"
-import {Socket}        from "./socket.js"
-import {Instruction}   from "./instruction.js"
+//import {Robot, Dexter} from "./robot.js" //dde4 not needed as Robot, Dexter now global
+//import {Socket}        from "./socket.js" //dde4 Socket is now global
+//import {Instruction}   from "./instruction.js" //dde4 Instruction is now global
 import {shouldnt}      from "./utils.js"
 import {make_folder, make_full_path}  from "./storage"
 
-import {Kin}           from "../math/Kin.js"
-import {Vector}        from "../math/Vector.js"
-import {Simqueue}      from "./simqueue.js"
+//import {Kin}           from "../math/Kin.js"    //dde4 Kin is now global
+//import {Vector}        from "../math/Vector.js" //dde4 Vector is now global
+//import {Simqueue}      from "./simqueue.js"     //dde4 SimQueue is now global
 
-export var DexterSim = class DexterSim{
+class DexterSim{
     constructor(robot_name){ //called once per DDE session per robot_name by create_or_just_init
         this.robot_name = robot_name
         this.robot      = Robot[robot_name] //mostly used by predict_move_dur
@@ -542,8 +542,10 @@ export var DexterSim = class DexterSim{
             }
         }
     }
+
+    static robot_name_to_dextersim_instance_map = {}
+    static set_interval_id = null
     
 }
 
-DexterSim.robot_name_to_dextersim_instance_map = {}
-DexterSim.set_interval_id      = null
+globalThis.DexterSim = DexterSim

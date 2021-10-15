@@ -46,34 +46,7 @@ export var SimUtils = class SimUtils{
         else { return false }
     }
 
-    //job_or_robot name format is really "Job.j1"  or "Dexter.dex1", ie same as the menu item in the Simulate pane
-    //input angles are in arcseconds
-    /* never called as of Dec, 2020 or before
-    static render_once(robot_status,  robot_name, force_render=false){ //inputs in arc_seconds
-        let job_or_robot_to_sim = job_or_robot_to_simulate_name()
-        if (force_render ||
-           (job_or_robot_to_sim == robot_name) ||
-           (job_or_robot_to_sim == "All")){
 
-            //used by render_once_but_only_if_have_prev_args
-            SimUtils.prev_robot_status = robot_status
-            SimUtils.prev_robot_name   = robot_name
-
-            let j1 = robot_status[Dexter.J1_MEASURED_ANGLE]
-            let j2 = robot_status[Dexter.J2_MEASURED_ANGLE]
-            let j3 = robot_status[Dexter.J3_MEASURED_ANGLE]
-            let j4 = robot_status[Dexter.J4_MEASURED_ANGLE]
-            let j5 = robot_status[Dexter.J5_MEASURED_ANGLE]
-            j1 = j1 * -1 //fix for j1 wrong sign
-            j5 = j5 * -1 //fix for j5 wrong sign
-            sim.J1.rotation.y = arc_seconds_to_radians(j1)
-            sim.J2.rotation.z = arc_seconds_to_radians(j2)
-            sim.J3.rotation.z = arc_seconds_to_radians(j3)
-            sim.J4.rotation.z = arc_seconds_to_radians(j4)
-            sim.J5.rotation.y = arc_seconds_to_radians(j5)
-            sim.renderer.render(sim.scene, sim.camera)
-        }
-    } */
     //ds_inst is an instance of DexterSim class.
     //robot_name example: "Dexter.dexter0"
     static render_multi(ds_instance, new_angles_dexter_units, robot_name, dur_in_ms=0){ //inputs in arc_seconds

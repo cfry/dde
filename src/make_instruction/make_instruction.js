@@ -1,11 +1,11 @@
-import Socket from "../job_engine/core/socket.js" //used for string instruction processing
+//import Socket from "../job_engine/core/socket.js" //dde4 Socket is now global. used for string instruction processing
 import  * as esprima  from "../../node_modules/esprima/dist/esprima.js"
 import {ends_with_one_of, fn_is_keyword_fn, replace_substrings,
         starts_with_one_of, trim_end} from "../job_engine/core/utils.js"
 import {to_source_code} from "../job_engine/core/to_source_code.js"
 import {file_exists, write_file, make_full_path} from "../job_engine/core/storage.js"
 
-export var MakeInstruction = class MakeInstruction{
+class MakeInstruction{
    //utilities
 
 
@@ -1576,6 +1576,8 @@ export var MakeInstruction = class MakeInstruction{
     }
 
 } //end MakeInstruction class
+
+globalThis.MakeInstruction = MakeInstruction
 
 
 

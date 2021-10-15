@@ -2,14 +2,13 @@
 //https://www.hacksparrow.com/tcp-socket-programming-in-node-js.html
 //import net from "net" //dde4 todo  can't load the net pkg but don't need it on the browser side, only server side
 
-import {Robot} from "./robot.js"
-import {Instruction, make_ins} from "./instruction.js"
-import {DexterSim} from "./dextersim.js"
+// import {Robot} from "./robot.js"        //dde4 Robot is now global
+//import {DexterSim} from "./dextersim.js" //dde4 DexterSim is now global
 //import {_nbits_cf, _arcsec, _um} = from "./units.js" //don't do this. These units and all the rest are
 //already global vars.
 
 //never create an instance
-export var Socket = class Socket{
+class Socket{
     //returns a net_soc_inst or null if none in Socket.robot_name_to_soc_instance_map
     //this is reverse lookup in robot_name_to_soc_instance_map
     static net_soc_inst_to_robot_name(net_soc_inst){
@@ -680,22 +679,25 @@ export var Socket = class Socket{
             }
         }
     }*/
+    static connect_timeout_seconds = 1
+    static PAYLOAD_START = 7 * 4 //7th integer array index, times 4 bytes per integer
+    static PAYLOAD_LENGTH = 6 //6th integer array index
+
+////Socket.resend_count = null
+
+    static robot_name_to_soc_instance_map = {}
+    static DEGREES_PER_DYNAMIXEL_320_UNIT = 0.29   //range of motion sent is 0 to 1023
+    static DEGREES_PER_DYNAMIXEL_430_UNIT = 360 / 4096
+    static J6_OFFSET_SERVO_UNITS = 512
+    static DEXTER_UNITS_PER_SECOND_FOR_SLEEP = 1000000 //ie microseconds
 }
+
+globalThis.Socket = Socket
 
 //Socket.robot_is_waiting_for_reply = {} //robot_name to boolean map.
 //Socket.max_dur_to_wait_for_reply_ms = 200
 
-Socket.connect_timeout_seconds = 1
-Socket.PAYLOAD_START = 7 * 4 //7th integer array index, times 4 bytes per integer
-Socket.PAYLOAD_LENGTH = 6 //6th integer array index
 
-////Socket.resend_count = null
-
-Socket.robot_name_to_soc_instance_map = {}
-Socket.DEGREES_PER_DYNAMIXEL_320_UNIT = 0.29   //range of motion sent is 0 to 1023
-Socket.DEGREES_PER_DYNAMIXEL_430_UNIT = 360 / 4096
-Socket.J6_OFFSET_SERVO_UNITS = 512
-Socket.DEXTER_UNITS_PER_SECOND_FOR_SLEEP = 1000000 //ie microseconds
 
 /*dexter0.joints = []
              joint_instances

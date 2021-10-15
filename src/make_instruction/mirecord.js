@@ -3,7 +3,7 @@ import "./nouislider.css"
 import "./nouislider_fry.css"
 import "./nouislider.js"
 
-var MiRecord = class MiRecord {
+class MiRecord {
     static instruction_suffix_html(loc){
         let the_do_list = MiState.get_do_list_smart()
         let top_or_not = ""
@@ -1496,7 +1496,8 @@ var MiRecord = class MiRecord {
               src.substring(name_poses[1])
         return '\n' + src
     }
-
+    static start_time_in_ms = null
 }
 
-MiRecord.start_time_in_ms = null
+globalThis.MiRocord = MiRecord
+

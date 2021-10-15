@@ -1,5 +1,5 @@
 /* Created by Fry on 3/11/16.*/
-var job_examples = [
+export var job_examples = [
 `new Job({
     name: "my_job",
     do_list: [

@@ -31,7 +31,7 @@ import {is_iterator, is_string_an_identifier, last,
         milliseconds_to_human_string, replace_substrings,
         shallow_copy_lit_obj, shouldnt,
         stringify_value_sans_html} from "./utils.js"
-import {speak} from "./out.js"
+//import {speak} from "./out.js" //dde4 speak is now global
 import {_nbits_cf, _arcsec, _um} from "./units.js"
 import {linux_error_message} from "./linux_error_message.js"
 //import {write_to_stdout, close_readline} from "./stdio.js" //todo imports readline which requries fs which errors

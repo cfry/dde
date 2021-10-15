@@ -44,7 +44,7 @@ export var Midi = class Midi {
     }
 }
 
-Note = class Note{
+class Note{
     constructor({time=0,       //in beats
                  dur=1,   //in beats
                  pitch=60,     //middle C
@@ -600,7 +600,9 @@ Note = class Note{
         return note_copy
     }
 } //end Note class
+
 Note.pitch_class_names       = ["C", "C#", "D","D#","E","F","F#","G","G#","A","A#","B"]
 Note.pitch_class_names_flat  = ["C", "Db", "D","Eb","E","F","Gb","G","Ab","A","Bb","B"]
 Note.diatonic_intervals      = [0, 2, 4, 5, 7, 9, 11]
 
+globalThis.Note = Note

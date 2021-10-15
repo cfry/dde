@@ -7,6 +7,7 @@ import css      from "rollup-plugin-import-css";
 
 
 export default {
+    inlineDynamicImports: true, //needed to support dynamic imports in my code
     input: './src/general/ready.js',
     plugins: [
         nodeResolve({

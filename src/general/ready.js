@@ -47,9 +47,6 @@ import "codemirror/addon/fold/foldgutter.js"
 import "codemirror/addon/fold/brace-fold.js"
 import "codemirror/addon/fold/comment-fold.js"
 
-
-import Midi from "webmidi";
-
 import "./styles.css"
 
 import {warning} from "../job_engine/core/utils.js" //defines dde_error as global
@@ -66,6 +63,7 @@ import {calibrate_build_tables} from "../job_engine/low_level_dexter/calibrate_b
 import {convert_backslashes_to_slashes} from "../job_engine/core/storage.js"
 import "../job_engine/core/out.js" //makes get_output, show_window, beep, etc global
 import "../job_engine/core/job.js" //globally defines Job
+import {job_examples} from "./job_examples.js" //just an array of strings of Job defs used for Job menu/insert menu item
 import "../job_engine/core/gcode.js" //Gcode now global
 import {date_to_human_string, date_to_mmm_dd_yyyy, is_digit} from "../job_engine/core/utils.js"
 import "../job_engine/core/fpga.js" //globally defines FPGA
@@ -88,6 +86,7 @@ import "./series.js"    //now Series is global
 //import {PatchDDE}   from "./patch_dde.js" //todo still needed?
 
 import "./dde_video"  //makes DDEVideo global
+import "../simulator/simulate.js" //makes class Simulate global
 import "../job_engine/core/html_db.js" //makes: html_db, make_html, make_dom_elt global
 import "./inspect.js" //defines inspect globally
 import "../test_suite/test_suite.js" //globally defines TestSuite class. Does not load the test files
@@ -98,8 +97,20 @@ import {insert_color}      from "./output.js" //todo sets lots of things in wind
 import {RobotStatusDialog} from "./robot_status_dialog.js"
 import {run_instruction}   from "./run_instruction.js"
 import {DexterUtils}       from "./dexter_utils.js" //makes global var for class: DexterUtils
-import {Metrics}           from "./metrics.js" //todo can't really work until file save and read.
+import "./metrics.js" //globally defines class Metrics //todo can't really work until file save and read.
+
+import "./dexter_user_interface2.js" //define class dui2 globally.
 import "./splash_screen.js" //makes SplashScreen global
+
+import "../make_instruction/make_instruction.js" //defines class MakeInstruction globally
+import "../make_instruction/miparser.js"         //defines class MiParser globally
+import "../make_instruction/mistate.js"          //defines class MiState globally
+import "../make_instruction/mirecord.js"         //defines class MiRecord globally
+
+//Music
+import Midi from "webmidi";
+import "../music/note.js"   //defines global Note
+import "../music/phrase.js" //defines global Phrase
 
 import package_json        from "../../package.json"
 
@@ -192,7 +203,7 @@ export function on_ready() {
         //window.Root      = Root //should work but doesn't jan 13, 2019
 
 
-        //Coor.init()//todo dde4 can't import Coor.js yet
+        Coor.init()
         //see also ./core/index.js that has this same code
         Dexter.make_ins = make_ins
         Dexter.calibrate_build_tables = calibrate_build_tables
@@ -209,6 +220,9 @@ export function on_ready() {
 
         Job.class_init()
         Dexter.class_init()
+        new Dexter({name: "dexter0"}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
+          //the only thing dde_init.js really MUST do is define dexter0, so just stick
+          //it here and now user can screw up dde_init.js and still win.
         setTimeout(function(){
             window.document.title = "Dexter Development Environment " + dde_version
             //dde_version_id.innerHTML      = dde_version //do this by hand because these matic values are NOT getting display in this doc's version on hdrobotic.com/software
@@ -1408,7 +1422,8 @@ show_window({
                       calibrate_id.onclick         = function() { init_calibrate() }//defines 2 jobs and brings up calibrate dialog box
 
                       dui2_id.onclick              = function() {
-                          Job.define_and_start_job(__dirname + "/user_tools/dexter_user_interface2.js")
+                          //Job.define_and_start_job(__dirname + "/user_tools/dexter_user_interface2.js")
+                          dui2.make_job()
                       }
                       ping_dexter_id.onclick       = function() { ping_a_dexter(); DocCode.open_doc(ping_doc_id) }
 

@@ -9,8 +9,8 @@
 //var x_px_to_meters, meters_to_x_px //utility fns defined below
 
 //_________make HTML fns
-if(!window.dui2) {
-var dui2 = class dui2 {
+
+class dui2 {
     constructor(){
        dui2.instances.push(this)
     }
@@ -1472,16 +1472,18 @@ var dui2 = class dui2 {
         SW.selector_set_in_ui("#" + this.show_window_elt_id + " [name=direction_checkbox] [disabled]", disabled_value) //SW.selector_set_in_ui fixes bad design of checkboxes by accepting "false" and false to mean unchecked.
     }
 
+    static instances = []
+    static xy_background_color = "#fe8798" //   #ff7e79 is too orange
+
 } //end of class dui2
 
-dui2.instances = []
-dui2.xy_background_color = "#fe8798" //   #ff7e79 is too orange
+globalThis.dui2 = dui2
 
-} //end of top level if
 
 //effectively a "warning" but doesn't print the file name.
-out('Warning: Using this dialog with "real" selected will move Dexter.' +
-    '<br/>Please clear the area and move Dexter slowly.',
-    "#e50")
+//out('Warning: Using this dialog with "real" selected will move Dexter.' +
+//    '<br/>Please clear the area and move Dexter slowly.',
+ //   "#e50")
 
-dui2.make_job() //in DDE, makes a job using the default_robot in the Misc pane select.
+//dui2.make_job() //in DDE, makes a job using the default_robot in the Misc pane select and
+//starts the job, which calls dui2.init and pops up the show_window

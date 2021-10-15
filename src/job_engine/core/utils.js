@@ -702,6 +702,7 @@ export function similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg
         return true
     }
 }
+globalThis.similar = similar
 
 //return 0 if very dissimilar, 1 if the same (or very similar)
 //now working only for num1 and num2, min, max being non neg

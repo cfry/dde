@@ -34,14 +34,10 @@
     //https://stackoverflow.com/questions/9251837/how-to-remove-all-listeners-in-an-element
 import * as THREE from 'three'
 import THREE_GLTFLoader from 'three-gltf-loader'
-import OrbitControls  from 'three-orbitcontrols'
-import {STLLoader}    from 'three-stl-loader' //(THREE)
+import OrbitControls    from 'three-orbitcontrols'
+import {STLLoader}      from 'three-stl-loader' //(THREE)
 //import * as FBXLoader from 'three-fbx-loader' //todo dde4 errors with
    //FBXLoader is not defined while loading node_modules/three-fbx-loader.index.js
-
-
-
-import {replace_substrings} from "../job_engine/core/utils.js"
 
 class DDEVideo {
     static clear_out_sim_graphics_pane_id(){
@@ -124,8 +120,8 @@ class DDEVideo {
             return
             //do not attempt to save the elt persistently. We just don't return to this if we launch dde.
         }
-        content = replace_substrings(content, "__dirname", __dirname)
-        if((content == "Simulate Dexter") && init_sim_in_process){
+        //content = content.replaceAll(content, "__dirname", __dirname)//dde4 todo comment in once file system works
+        if((content == "Simulate Dexter") && this.init_sim_in_process){
             return
         }
         else {
@@ -134,7 +130,7 @@ class DDEVideo {
         try {
         if (content === "Simulate Dexter") {
                 this.init_sim_in_process = true
-                sim_pane_content_id.innerHTML = make_sim_html();
+                sim_pane_content_id.innerHTML = Simulate.make_sim_html();
                 //    '<div style="white-space:nowrap;"> ' + //Simulate Job/Robot: <select id="job_or_robot_to_simulate_id">' +
                 //     '<b>Move Dur: </b><span id="sim_pane_move_dur_id"></span> s' +
                 //     ' <button onclick="SimBuild.init()">Load SimBuild</button> ' +
@@ -156,8 +152,8 @@ class DDEVideo {
                 //     '<b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
                 //     '<b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>' +
                 //     '<div id="sim_graphics_pane_id"></div>'
-                DocCode.open_doc(simulate_pane_doc_id)
-                init_simulation()
+                //DocCode.open_doc(simulate_pane_doc_id) //dde4 todo comment in when doc is loaded
+                Simulate.init_simulation()
                 //sim.renderer.render(sim.scene, sim.camera);
                 setTimeout(function() {
                              SimUtils.render_multi_with_prev_args_maybe()},
@@ -167,10 +163,10 @@ class DDEVideo {
         }
         else if (content === "create_dexter_marker"){
             sim_pane_content_id.innerHTML ='<div id="sim_graphics_pane_id"></div>'
-            init_simulation()
+            Simulate.init_simulation()
             let xyz = arg1
             let rotzyz = (arg2 ? arg2 : [0, 0, 0])
-            create_marker_mesh(xyz, rotzyz)
+            Simulate.create_marker_mesh(xyz, rotzyz)
             sim.renderer.render(sim.scene, sim.camera)
             //SimUtils.render_once_with_prev_args_maybe()
             content_is_good = true
@@ -243,7 +239,7 @@ class DDEVideo {
 
                     the_controls.update();
                 //clear_out_sim_graphics_pane_id()
-                //stl_init_viewer()
+                //Simulate.stl_init_viewer()
                 function animate() {
                     requestAnimationFrame( animate );
                     // r equired if controls.enableDamping or controls.autoRotate are set to true
@@ -276,7 +272,7 @@ class DDEVideo {
         }
         else if (content.endsWith(".fbx")){
             this.clear_out_sim_graphics_pane_id()
-            stl_init_viewer()
+            Simulate.stl_init_viewer()
             // from https://github.com/ckddbs/three-fbx-loader/commit/b3bc39bef2a4253abf2acc780870a03f5f9cd510
             var loader = new FBXLoader()
             //loader.load(content, function (object) { sim.scene.add(object)})
@@ -324,7 +320,7 @@ class DDEVideo {
         }
         else if (content.endsWith(".gltf")){
     //      clear_out_sim_graphics_pane_id()
-    //      stl_init_viewer()
+    //      Simulate.stl_init_viewer()
             // from https://github.com/ckddbs/three-fbx-loader/commit/b3bc39bef2a4253abf2acc780870a03f5f9cd510
             //https://threejs.org/docs/#examples/en/loaders/GLTFLoader
             var loader = new THREE_GLTFLoader()
@@ -421,7 +417,7 @@ class DDEVideo {
                   "<div contenteditable='false' style='height:300px; width:800px; padding:5%; background-color:white; overflow:scroll;'>"
 
                 content = read_file(content)
-                content = replace_substrings(content, "<", "&lt;")
+                content = content.replaceAll("<", "&lt;")
                 //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
                 sim_pane_content_id.innerHTML = div_html + "<pre>" + content + "</pre></div>"
                 content_is_good = true

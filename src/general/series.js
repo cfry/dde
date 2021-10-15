@@ -5,9 +5,11 @@ import {copy_missing_fields, is_string_a_integer, is_string_a_float, is_string_a
         is_hour_colon_minute, is_hour_colon_minute_colon_second, is_valid_new_date_arg,
         is_string_a_color_rgb, rgb_string_to_integer_array} from "../job_engine/core/utils.js"
 
-import {init_units, unit_abbrev_to_full_name} from "../job_engine/core/units.js"
+import {init_units, series_name_to_unity_unit, unit_abbrev_to_full_name} from "../job_engine/core/units.js"
 //import {Robot, Brain, Dexter, Human, Serial}  from '../job_engine/core/robot.js' //now global
 //import {html_db} from "../job_engine/core/html_db.js" //now html_db is global
+
+import {Js_info} from "./js_info.js"
 
 class Series {
     constructor({id="required", array=null, in_series_fn=null, replace_sel_fn=null,

@@ -1,4 +1,4 @@
-var MiParser = class MiParser {
+class MiParser {
     //_______utils_________
     //return string of src code for arg_name in prop_array (from ast) OR returnn undefined meaning couldn't find it
     static find_arg_val_src_in_prop_array(arg_name, prop_array, src){
@@ -337,4 +337,6 @@ var MiParser = class MiParser {
         return args_array
     }
 }
+
+globalThis.MiParser = MiParser
 

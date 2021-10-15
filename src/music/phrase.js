@@ -5,7 +5,7 @@
 import {trim_all} from "../job_engine/core/utils.js"
 
 
-Phrase = class Phrase{
+class Phrase{
     constructor({notes="",
                 time=0, //in beats. used only for start time of first note if initializing notes from a string
                 dur=null,   //in beats, null means compute dur from time and end of last note
@@ -379,6 +379,8 @@ Phrase = class Phrase{
 Phrase.default_channel  = 1
 Phrase.default_velocity = 0.5
 Phrase.default_seconds_per_beat = 1
+
+globalThis.Phrase = Phrase
 
 
 

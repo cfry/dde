@@ -720,7 +720,7 @@ function inspect_format_2D_array(item){
 
 function inspect_prop_val_string_exceptions(container_object, prop_name, prop_val, prop_val_string){
     if(prop_name == "pitch") {
-        if(typeof(prop_val) == "number") { return prop_val + " (" + Note.pitch_to_name(prop_val) + ")" }
+        if((typeof(prop_val) == "number") && globalThis["Note"]) { return prop_val + " (" + Note.pitch_to_name(prop_val) + ")" }
         else { return prop_val_string }
     }
     else if ((container_object instanceof Job) && (prop_name == "do_list")){

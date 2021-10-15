@@ -1,5 +1,5 @@
 import {is_string_a_literal_array, is_string_a_literal_string, last,
-    replace_substrings, similar, string_to_literal,
+    replace_substrings, similar, string_to_literal, stringify_value,
     stringify_value_sans_html, spaces, value_of_path}
     from "../job_engine/core/utils.js"
 
@@ -252,7 +252,7 @@ class TestSuite{
         //just in case we previously called run_all in this session do:
         //this.suites = [] //bad: causes ref man tests not to run, //warning, wipes out any user defined test suites. Maybe not good.
         console.log("Starting to load testsuite files.") //todo dde4 needs work. dynamically import?
-        load_files(__dirname + "/test_suite/math_testsuite.js")
+       /* load_files(__dirname + "/test_suite/math_testsuite.js")
         load_files(__dirname + "/test_suite/utils_testsuite.js")
         load_files(__dirname + "/test_suite/move_all_joints_testsuite.js")
         load_files(__dirname + "/test_suite/RobotStatus_testsuite.js")
@@ -265,8 +265,13 @@ class TestSuite{
         load_files(__dirname + "/test_suite/fpga_testsuite.js")
         load_files(__dirname + "/test_suite/loop_testsuite.js")
         load_files(__dirname + "/test_suite/when_stopped_testsuite.js")
-        if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }
-        if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
+        */
+        import('./math_testsuite.js')
+            .then(module => {
+                "just loaded math testsuite"
+            })
+       // if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }       //dde4 todo comment in when doc is loaded
+       // if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) } //dde4 todo comment in when doc is loaded
         let report_prefix = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
             '<span style="color:magenta;">test_suite_reporting *should* indicate<br/>"failures: unknown=2, known=1"</span><br/>'
         this.set_state_and_resume({reports: report_prefix, suites: TestSuite.suites})
