@@ -415,8 +415,6 @@ export function on_ready() {
 
     //init_simulation() now in video.js show_in_misc_pane
 
-   // DocCode.init_doc() //todo this needs read_file to read in all the doc html files. It also relies now on __dirname which is undefined.
-
     //dde_version_id.innerHTML      = dde_version //todo comment back in once doc is loaded
     //dde_release_date_id.innerHTML = dde_release_date //todo comment back in once doc is loaded
 

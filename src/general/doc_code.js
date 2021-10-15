@@ -6,23 +6,7 @@ import Mark from '../../node_modules/mark.js/dist/mark.es6.js'
 // also note I'm using the latest version of mark.js (4 years old of 8.1.11) and still get errors
   //note that jquery is a DevDependency for mark.js so shouldn't be needed here.
 import {last, replace_substrings, value_of_path} from "../job_engine/core/utils.js"
-import {install_user_guide}      from "../doc/user_guide.js"
-import {install_ref_man}         from "../doc/ref_man.js"
 import {Js_info}                 from "./js_info.js"
-
-//Articles
-import {install_overview}        from "../doc/dde_overview/Dexter_Development_Environment.js"
-import {install_browser_vs_dde}  from "../doc/browser_vs_dde.js"
-import {install_mental_model_of_memory} from "../doc/mental_model_of_memory.js"
-import {install_how_to_think}    from "../doc/how_to_think.js"
-import {install_music}           from "../doc/music.js"
-import {install_dexter_kinematics} from "../doc/dexter_kinematics.js"
-//end of Articles
-
-import {install_release_notes}   from "../doc/release_notes.js"
-import {install_known_issues}    from "../doc/known_issues.js"
-import {install_glossary}        from "../doc/glossary.js"
-import {install_build_dexter_wire_harness_assembly} from "../doc/build_dexter/build_dexter_wire_harness_assembly.js"
 
 class DocCode {
     //these two referenced by ready.js, eval.js and doc_code.js
@@ -490,25 +474,6 @@ foo
         else {
             parent_details_elt.insertAdjacentHTML(position, html)
         }
-    }
-
-//see https://v8.dev/features/dynamic-import
-//ultimately "HTML Modules" might work well but is just a proposal as of aug 2021
-    static init_doc(){
-        install_user_guide()
-        install_ref_man()
-        doc_pane_content_id.innerHTML += '<details id="articles_id"><summary class="doc_top_level_summary" style="font-size:18px;">Articles</summary>\n'
-            install_overview()
-            install_browser_vs_dde()
-            install_mental_model_of_memory()
-            install_how_to_think()
-            install_music()
-            install_dexter_kinematics()
-            install_glossary()
-        doc_pane_content_id.innerHTML += '</details>' //closing the details for Articles
-        install_build_dexter_wire_harness_assembly()
-        install_release_notes()
-        install_known_issues()
     }
 
     static show_configurations_image(){
