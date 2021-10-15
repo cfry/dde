@@ -6,7 +6,6 @@ import Mark from '../../node_modules/mark.js/dist/mark.es6.js'
 // also note I'm using the latest version of mark.js (4 years old of 8.1.11) and still get errors
   //note that jquery is a DevDependency for mark.js so shouldn't be needed here.
 import {last, replace_substrings, value_of_path} from "../job_engine/core/utils.js"
-import {install_getting_started} from "../doc/getting_started.js"
 import {install_user_guide}      from "../doc/user_guide.js"
 import {install_ref_man}         from "../doc/ref_man.js"
 import {Js_info}                 from "./js_info.js"
@@ -496,7 +495,6 @@ foo
 //see https://v8.dev/features/dynamic-import
 //ultimately "HTML Modules" might work well but is just a proposal as of aug 2021
     static init_doc(){
-        install_getting_started()
         install_user_guide()
         install_ref_man()
         doc_pane_content_id.innerHTML += '<details id="articles_id"><summary class="doc_top_level_summary" style="font-size:18px;">Articles</summary>\n'
