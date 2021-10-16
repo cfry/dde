@@ -245,7 +245,7 @@ class DocCode {
     }
 
     static blink_if_doc_pane_hidden(){
-        if(!doc_pane_showing()){
+        if(!this.doc_pane_showing()){
             this.blink_vertical_splitter()
         }
     }
