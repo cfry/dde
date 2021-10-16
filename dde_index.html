@@ -664,7 +664,7 @@
                       </div>
                         <button id="find_doc_button_id" title="Find documentation on text to the left&#013;or, if none, selected text anywhere." style="vertical-align:55%;">Find</button>&nbsp;
                     </div>
-                    <div id="doc_pane_content_id" contentEditable="false" style="width:97%; height:90%;padding:5px;overflow:scroll;">
+                    <div id="doc_pane_content_id" contentEditable="false" style="width:97%; height:90%;padding:5px;overflow:scroll;" w3-include-html="dde_doc.html">
                     </div>
                 </div> <!--doc_pane -->
                 <div id="misc_pane_id" style="background-color:black">
@@ -724,6 +724,8 @@
 <link rel="stylesheet" href="./build/bundle.css" type="text/css" />
 <script type="module" src="./build/bundle.js" defer></script>
 <script type="module" src="./build/bundleje.js" defer></script>
+<script src="third_party/w3.js"></script>
+<script>w3.includeHTML()</script>
 
 <!-- <script type="module" src="./src/general/ready.js" defer></script> -->
 

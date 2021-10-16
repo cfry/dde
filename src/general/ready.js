@@ -415,8 +415,6 @@ export function on_ready() {
 
     //init_simulation() now in video.js show_in_misc_pane
 
-   // DocCode.init_doc() //todo this needs read_file to read in all the doc html files. It also relies now on __dirname which is undefined.
-
     //dde_version_id.innerHTML      = dde_version //todo comment back in once doc is loaded
     //dde_release_date_id.innerHTML = dde_release_date //todo comment back in once doc is loaded
 
@@ -427,8 +425,12 @@ export function on_ready() {
 
     $('#js_textarea_id').focus() //same as Editor.myCodeMirror.focus()  but  myCodeMerror not inited yet
 
-    doc_prev_id.onclick        = DocCode.open_doc_prev
-    doc_next_id.onclick        = DocCode.open_doc_next
+    doc_prev_id.onclick = function() {
+        DocCode.open_doc_prev()
+    }
+    doc_next_id.onclick = function() {
+        DocCode.open_doc_next()
+    }
     find_doc_button_id.onmousedown = function() {
         DocCode.previous_active_element = document.activeElement
         DocCode.selected_text_when_eval_button_clicked = Editor.get_any_selection()
@@ -437,8 +439,12 @@ export function on_ready() {
             DocCode.find_doc()
             event.target.blur()
     }
-    find_doc_input_id.onclick = DocCode.onclick_for_click_help
-    find_doc_input_id.onchange = DocCode.find_doc
+    find_doc_input_id.onclick = function(event) {
+        DocCode.onclick_for_click_help(event)
+    }
+    find_doc_input_id.onchange = function() {
+        DocCode.find_doc()
+    }
     $("#find_doc_input_id").jqxComboBox({ source: [], width: '150px', height: '25px',}); //create
 
 
@@ -455,7 +461,9 @@ export function on_ready() {
                         Editor.show_identifier_info(full_src, pos)
     })
 
-   output_div_id.onclick = DocCode.onclick_for_click_help
+    output_div_id.onclick = function(event) {
+        DocCode.onclick_for_click_help(event)
+    }
 
    //handles the button clicks and menu selects that chrome Apps prevent in HTML where they belong
 
