@@ -3672,7 +3672,7 @@ Jobs either run to completion, error, or are stopped by the user via:
  </ul>
  You can stop all jobs by:
  <ul>
-   <li>Clicking the stop sign icon <img src='stop_sign.png'/>in the output pane</li>
+   <li>Clicking the stop sign icon <img src='/src/general/stop_sign.png'/>in the output pane</li>
    <li>Calling <code>Job.stop_all_jobs()</code></li>
 </ul>
 
@@ -4423,11 +4423,11 @@ new Job({name: "my_job",
               the user clicking on the Job's button while it is running.
               This can be the status_code of a finished Job.<br/>
               <b>interrupted_by_stop_button</b> An interruption caused
-              by the user clicking the <img src='stop_sign.png'/> button.
+              by the user clicking the <img src='/src/general/stop_sign.png'/> button.
               Often you want the same behavior here as clicking the Job's button,
               but by making separate conditions, we allow for the possibility of
               the Job button permitting the when_stopped instruction to run
-              but clicking the <img src='stop_sign.png'/> button
+              but clicking the <img src='/src/general/stop_sign.png'/> button
               <i>not</i>
               running the when_stopped instruction.
               The final status_code of the job will be <code>"interrupted"</code>.<br/>
@@ -6580,8 +6580,8 @@ can be used for any joint of any move joints instruction.
 It can also be used for the x, y, and z positions of any move_to instruction.
 <p></p>
 <b id="dexter_positive_joint_direction_diagrams_id">Dexter Positive Joint Direction Diagrams</b><br/>
-<img src="doc/coor_images/Positive_Joint_Directions_J15.PNG" width="304"/><br/>
-<img src="doc/coor_images/Positive_Joint_Directions_J234.PNG"/>
+<img src="/src/doc/coor_images/Positive_Joint_Directions_J15.PNG" width="304"/><br/>
+<img src="/src/doc/coor_images/Positive_Joint_Directions_J234.PNG"/>
 </details>
 
 <details id="Dexter.move_all_joints_relative_doc_id" class="doc_details"><summary>move_all_joints_relative</summary>
@@ -6717,10 +6717,10 @@ causes Link 5 to be horizontal pointing forwards.<br/>
         J5_direction settings. Impossible settings cause an error.<br/>
         If config is null, then the config set by the previous instruction in DDE
         that set config is used.<br/>
-    <img width="350" src="doc/coor_images/Coordinate_System_Iso.PNG" alt="Coordinate_System picture."/><br/>
-    <img width="350" src="doc/coor_images/Coordinate_System_Top.PNG" alt="Coordinate_System picture."/><br/>
-    <img width="350" src="doc/coor_images/Direction_Vector.PNG"      alt="Coordinate_System picture."/><br/>
-    <img width="350" src="doc/coor_images/Tooltip_Location.PNG"      alt="Coordinate_System picture."/><br/>
+    <img width="350" src="/src/doc/coor_images/Coordinate_System_Iso.PNG" alt="Coordinate_System picture."/><br/>
+    <img width="350" src="/src/doc/coor_images/Coordinate_System_Top.PNG" alt="Coordinate_System picture."/><br/>
+    <img width="350" src="/src/doc/coor_images/Direction_Vector.PNG"      alt="Coordinate_System picture."/><br/>
+    <img width="350" src="/src/doc/coor_images/Tooltip_Location.PNG"      alt="Coordinate_System picture."/><br/>
     <button onclick="show_configurations_image()">Show Configurations Image</button>
     <p></p>
     <b>workspace_pose</b> If not passed in or <code>null</code>, this
