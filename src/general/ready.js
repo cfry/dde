@@ -52,6 +52,7 @@ import "./styles.css"
 import {warning} from "../job_engine/core/utils.js" //defines dde_error as global
 import "../job_engine/core/je_and_browser_code.js" //defines SW and out globally
 
+import "./dde_db.js" //defines class DDE_DB globally
 import "../job_engine/math/Coor.js"    //now sets global Coor
 import "../job_engine/math/Vector.js"  //now global
 import "../job_engine/math/Convert.js" //now global
@@ -1606,33 +1607,25 @@ show_window({
            }
        })
 
-      font_size_id.onclick = function(){
-                               $(".CodeMirror").css("font-size", this.value + "px")
-                               persistent_set("editor_font_size", this.value)
-                             }
-     // $("#font_size_id").keyup(function(event){ //in dde3
-      font_size_id.onkeyup = (function(event){ //for dde4 todo: dde4 test
-              if(event.keyCode == 13){
-                  $(".CodeMirror").css("font-size", this.value + "px")
-                  persistent_set("editor_font_size", this.value)
-              }
-      })
-
-         //persistent_initialize() //todo dde4  needs file system
+      DDE_DB.init(on_ready_after_db_init)
+         //persistent_initialize() //now performed by DDE_DB.init
          //called before loading dde_init.js by design.
-         //Metrics.init() //todo dde4 needs file system
+         //Metrics.init() //now performed by DDE_DB.init
+
+} //end of on_ready definition.
+   function on_ready_after_db_init(){
          //set_dde_window_size_to_persistent_values() //obsolete now that main.js does this
 
-        // let val = persistent_get("save_on_eval") //todo dde4 needs file system
-        // $("#save_on_eval_id").jqxCheckBox({ checked: val}) //todo dde4 needs file system
+        let val = DDE_DB.persistent_get("save_on_eval") //todo dde4 needs file system
+        $("#save_on_eval_id").jqxCheckBox({ checked: val}) //todo dde4 needs file system
 
          //if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
          //    save_on_eval_id.setAttribute("checked", val)
          //}
          //similar to animate ui
-         save_on_eval_id.onclick = function(event){
+         save_on_eval_id.onclick = function(event){ //todo dde4 broken because when you click, get error
              let val = $("#save_on_eval_id").val()
-             persistent_set("save_on_eval", val)
+             DDE_DB.persistent_set("save_on_eval", val)
              event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
          }
 
@@ -1640,7 +1633,7 @@ show_window({
              let old_val = $("#save_on_eval_id").val()
              let new_val = !old_val
              $("#save_on_eval_id").val(new_val)
-             persistent_set("save_on_eval", new_val)
+             DDE_DB.persistent_set("save_on_eval", new_val)
              event.stopPropagation()
          }
 
@@ -1689,9 +1682,25 @@ show_window({
          // adjust_animation() //todo dde4 needs file system //to the peristent flag
 
 
-         const editor_font_size = 17 ////todo dde4 needs file system  persistent_get("editor_font_size")
+         const editor_font_size = DDE_DB.persistent_get("editor_font_size") //17
          $(".CodeMirror").css("font-size", editor_font_size + "px")
          font_size_id.value = editor_font_size
+
+         //font_size_id.onclick = function(){
+         //  $(".CodeMirror").css("font-size", this.value + "px")
+         //  DDE_DB.persistent_set("editor_font_size", this.value)
+         //}
+         font_size_id.onchange = function(){
+              $(".CodeMirror").css("font-size", this.value + "px")
+              DDE_DB.persistent_set("editor_font_size", this.value)
+         }
+         // $("#font_size_id").keyup(function(event){ //in dde3
+         font_size_id.onkeyup = (function(event){ //for dde4 todo: dde4 test
+           if(event.keyCode == 13){
+               $(".CodeMirror").css("font-size", this.value + "px")
+               DDE_DB.persistent_set("editor_font_size", this.value)
+           }
+         })
 
 
          //init_ros_id.onclick = function(){
