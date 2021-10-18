@@ -1,9 +1,11 @@
 
-import {Robot}       from './robot.js'
-import {Instruction} from './instruction.js'
+//import {Robot}       from './robot.js'
+import './instruction.js' //even though Instruction is global,
+ //we import it here, just to make sure its loaded,
+ //before the below code is loaded.
 
 
-export class Control{
+class Control{
     static is_control_instruction(arg){
         if(!this.instruction_classes_in_control) {
             this.init_classes_in_control()
@@ -68,5 +70,7 @@ Control.debugger = Robot.debugger
 Control.step_instructions = Robot.step_instructions
 Control.error = Robot.error
 Control.if_any_errors = Robot.if_any_errors
+
+globalThis.Control = Control
 
 

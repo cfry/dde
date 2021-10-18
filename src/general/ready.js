@@ -71,6 +71,8 @@ import "../job_engine/core/fpga.js" //globally defines FPGA
 
 import "../job_engine/core/simqueue.js" //Simqueue now global
 import "../job_engine/core/instruction.js" //globally defines Instruction, make_ins
+import "../job_engine/core/instruction_io.js" //sets Instruction.Dexter to the dexter instruction class
+import("../job_engine/core/instruction_control.js")
 import "../job_engine/core/robot.js" //now global Robot, Brain, Serial, Human, Dexter
 
 import "./doc_code.js" //makes DocCode global
@@ -88,6 +90,7 @@ import "./series.js"    //now Series is global
 
 import "./dde_video"  //makes DDEVideo global
 import "../simulator/simulate.js" //makes class Simulate global
+import "../simulator/simutils.js" //makes class SimUtils global
 import "../job_engine/core/html_db.js" //makes: html_db, make_html, make_dom_elt global
 import "./inspect.js" //defines inspect globally
 import "../test_suite/test_suite.js" //globally defines TestSuite class. Does not load the test files
@@ -150,7 +153,7 @@ function play_simulation_demo(){
 
 //call this on startup after peristent loaded AND after user clicks the menu item checkbox
 function adjust_animation(){
-    let animate_dur = (persistent_get("animate_ui") ? 300 : 0)
+    let animate_dur = (DDE_DB.persistent_get("animate_ui") ? 300 : 0)
     $('#js_menubar_id').jqxMenu({ animationShowDuration: animate_dur })
     $('#js_menubar_id').jqxMenu({ animationHideDuration: animate_dur })
 }
@@ -249,7 +252,7 @@ export function on_ready() {
     $('#outer_splitter_id').on('resize',
         function (event) {
             let new_size = event.args.panels[0].size
-            //persistent_set("left_panel_width", new_size) //todo dde4
+            DDE_DB.persistent_set("left_panel_width", new_size)
             event.stopPropagation()
         })
 
@@ -263,7 +266,7 @@ export function on_ready() {
     $('#left_splitter_id').on('resize',
         function (event) {
             let new_size = event.args.panels[0].size
-            //persistent_set("top_left_panel_height", new_size) //todo dde4
+            DDE_DB.persistent_set("top_left_panel_height", new_size)
             event.stopPropagation() //must have or outer_splitter_id on resize is called
         })
 
@@ -275,7 +278,7 @@ export function on_ready() {
     $('#right_splitter_id').on('resize',
         function (event) {
             let new_size = event.args.panels[0].size
-            //persistent_set("top_right_panel_height", new_size) //todo dde4
+            DDE_DB.persistent_set("top_right_panel_height", new_size)
             event.stopPropagation() //must have or outer_splitter_id on resize is called
         })
 
@@ -481,7 +484,7 @@ export function on_ready() {
    step_button_id.onclick = function(event){
                                event.stopPropagation()
                                //open_dev_tools() //can't work in dde4 from browser.
-                               warning('If the Chrome dev tools window is not open, click right in the editor pane and choose "Inspect", then click "Step" again.')
+                               warning('If the Chrome dev tools window is not open,<br/>click right in the editor pane and choose "Inspect",<br/>then click "Step" again.')
                                setTimeout(function(){
                                               Editor.eval_button_action(true) //cause stepping
                                           }, 500)
@@ -503,7 +506,7 @@ export function on_ready() {
        }
    }
 
-  easter_egg_joke_id.onclick = Metrics.easter_egg_joke //todo needs file system access to save persistent state
+  easter_egg_joke_id.onclick = Metrics.easter_egg_joke
 
   misc_pane_expand_checkbox_id.onclick = DDEVideo.toggle_misc_pane_size
 
@@ -1614,16 +1617,16 @@ show_window({
 
 } //end of on_ready definition.
    function on_ready_after_db_init(){
-         //set_dde_window_size_to_persistent_values() //obsolete now that main.js does this
+         //set_dde_window_size_to_persistent_values() //todd dde4 (can work now) obsolete now that main.js does this
 
-        let val = DDE_DB.persistent_get("save_on_eval") //todo dde4 needs file system
-        $("#save_on_eval_id").jqxCheckBox({ checked: val}) //todo dde4 needs file system
+        let val = DDE_DB.persistent_get("save_on_eval")
+        $("#save_on_eval_id").jqxCheckBox({ checked: val})
 
          //if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
          //    save_on_eval_id.setAttribute("checked", val)
          //}
          //similar to animate ui
-         save_on_eval_id.onclick = function(event){ //todo dde4 broken because when you click, get error
+         save_on_eval_id.onclick = function(event){ //todo dde4 broken because when you click, get error due to css and image file for checkbox
              let val = $("#save_on_eval_id").val()
              DDE_DB.persistent_set("save_on_eval", val)
              event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
@@ -1637,13 +1640,13 @@ show_window({
              event.stopPropagation()
          }
 
-         //val = persistent_get("default_out_code") //todo dde4 needs file system
-         //if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
-         //    format_as_code_id.setAttribute("checked", val)
-         //}
+         val = DDE_DB.persistent_get("default_out_code")
+         if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
+             format_as_code_id.setAttribute("checked", val)
+         }
          format_as_code_id.onclick = function(event) {
                                          let val = format_as_code_id.checked
-                                         persistent_set("default_out_code", val)
+                                         DDE_DB.persistent_set("default_out_code", val)
          }
 
          //this must be before dde_init_dot_js_initialize() so that when a robot is defined, it can go on the menu
@@ -1659,11 +1662,11 @@ show_window({
              //do this here so it will be ready by the time Py.init needs it.
          Dexter.default = (Dexter.dexter0 ?  Dexter.dexter0 : null )
          //initialize the checkbox state
-         //$("#animate_ui_checkbox_id").jqxCheckBox({ checked: persistent_get("animate_ui")}) //todo dde4 needs file system
+         $("#animate_ui_checkbox_id").jqxCheckBox({ checked: DDE_DB.persistent_get("animate_ui")})
 
          animate_ui_checkbox_id.onclick = function(event) {
              let val = $("#animate_ui_checkbox_id").val()
-             persistent_set("animate_ui", val)
+             DDE_DB.persistent_set("animate_ui", val)
              event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
              //AND causes the onclick for simulate_id to NOT be run.
              adjust_animation()
@@ -1673,13 +1676,13 @@ show_window({
              let old_val = $("#animate_ui_checkbox_id").val()
              let new_val = !old_val
              $("#animate_ui_checkbox_id").val(new_val)
-             persistent_set("animate_ui", new_val)
+             DDE_DB.persistent_set("animate_ui", new_val)
 
              event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
              //AND causes the onclick for simulate_id to NOT be run.
              adjust_animation()
          }
-         // adjust_animation() //todo dde4 needs file system //to the peristent flag
+         adjust_animation()
 
 
          const editor_font_size = DDE_DB.persistent_get("editor_font_size") //17
@@ -1712,20 +1715,20 @@ show_window({
 
 
 
-         //simulate_radio_true_id.onclick  = function(){ //todo dde4 needs file system
-         //      persistent_set("default_dexter_simulate", true);   event.stopPropagation()
-         // }
-          simulate_radio_false_id.onclick = function(){ persistent_set("default_dexter_simulate", false);  event.stopPropagation()}
-          simulate_radio_both_id.onclick  = function(){ persistent_set("default_dexter_simulate", "both"); event.stopPropagation()}
+         simulate_radio_true_id.onclick  = function(){ //todo dde4 needs file system
+               DDE_DB.persistent_set("default_dexter_simulate", true);   event.stopPropagation()
+          }
+          simulate_radio_false_id.onclick = function(){ DDE_DB.persistent_set("default_dexter_simulate", false);  event.stopPropagation()}
+          simulate_radio_both_id.onclick  = function(){ DDE_DB.persistent_set("default_dexter_simulate", "both"); event.stopPropagation()}
 
-          const sim_val = true //todo dde4 needs file system  persistent_get("default_dexter_simulate")
+          const sim_val = DDE_DB.persistent_get("default_dexter_simulate")
           if      (sim_val === true)   { simulate_radio_true_id.checked  = true }
           else if (sim_val === false)  { simulate_radio_false_id.checked = true }
           else if (sim_val === "both") { simulate_radio_both_id.checked  = true }
 
-          //set_left_panel_width(persistent_get("left_panel_width")) //todo dde4 needs file system
-          //set_top_left_panel_height(persistent_get("top_left_panel_height")) //todo dde4 needs file system
-          // set_top_right_panel_height(persistent_get("top_right_panel_height")) //todo dde4 needs file system
+          set_left_panel_width(DDE_DB.persistent_get("left_panel_width"))
+          set_top_left_panel_height(DDE_DB.persistent_get("top_left_panel_height"))
+          set_top_right_panel_height(DDE_DB.persistent_get("top_right_panel_height"))
 
 
 
@@ -1734,13 +1737,12 @@ show_window({
               SplashScreen.show()
           }
           //setTimeout(check_for_latest_release, 200) //todo dde4 this can *almost* work. but needs get_page_async, defined in storage, and nearly everything in that file needs the file system
-          //setTimeout(function(){ out("For help on using DDE, click <b style='color:blue;font-size:20px;'>?</b> in the upper right <b style='font-size:24px;'>&#x279A;</b> .") }, 400)
 
           setTimeout(function() { SplashScreen.show_maybe() }, 400)
           DocCode.close_all_details() //doc pane just show top level items.
-          //setTimeout(function(){ //dde4 todo needs file system
-          //    DDEVideo.show_in_misc_pane(persistent_get("misc_pane_content"))
-          //}, 200)
+          setTimeout(function(){ //dde4 todo needs file system
+              DDEVideo.show_in_misc_pane(DDE_DB.persistent_get("misc_pane_content"))
+          }, 200)
 
 } //end of on_ready
 

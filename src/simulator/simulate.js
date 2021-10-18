@@ -9,9 +9,12 @@ from http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 
 */
 
-import * as THREE from '../../node_modules/three/build/three.module.js'
+//import * as THREE from '../../node_modules/three/build/three.module.js'
+import * as THREE from 'three/build/three.module.js'
 import THREE_Text2D from 'three-text2d'
-import THREE_GLTFLoader from 'three-gltf-loader' //using the examples folder like this is depricated three/examples/js/loaders/GLTFLoader.js')
+//import THREE_GLTFLoader from 'three-gltf-loader' //using the examples folder like this is depricated three/examples/js/loaders/GLTFLoader.js')
+//see: https://github.com/johh/three-gltf-loader
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 class Simulate {
     static make_sim_html() {
@@ -72,7 +75,7 @@ class Simulate {
           this.canSize  =
           {
             width: misc_pane_id.clientWidth-50,
-            height: persistent_get("dde_window_height")-persistent_get("top_right_panel_height") - 220
+            height: DDE_DB.persistent_get("dde_window_height") - DDE_DB.persistent_get("top_right_panel_height") - 220
           };
 
           try{
@@ -87,7 +90,7 @@ class Simulate {
             this.createCamera()
             this.createLights()
             if(this.sim.hi_rez) { this.createMeshGLTF() }
-            else           { this.createMeshBoxes() }
+            else                { this.createMeshBoxes() }
           }
           catch(err){
                   console.log("init_simulation errored with: " + err.stack)
@@ -127,7 +130,7 @@ class Simulate {
         const color = 0xFFFFFF;
         const intensity = 0.75;
         const light = new THREE.AmbientLight ( color, intensity );
-        sim.scene.add ( light );
+        this.sim.scene.add ( light );
 
       //directional light
         const dcolor = 0xFFFFFF;
@@ -138,8 +141,8 @@ class Simulate {
         dlight.target.name = "directional_light_target"
         dlight.target.position.set ( 0, 0, 0 );
         dlight.castShadow = true;
-        sim.scene.add ( dlight );
-        sim.scene.add ( dlight.target );
+        this.sim.scene.add ( dlight );
+        this.sim.scene.add ( dlight.target );
 
         dlight.shadow.camera.left	= -1.5;
         dlight.shadow.camera.right	=  1.5;
@@ -198,9 +201,11 @@ class Simulate {
                              - 0.12425 //the distance from the edge of the table that Dexter is placed
         this.sim.table.add(this.sim.J0)
 
-        let loader = new THREE_GLTFLoader()
-
-        loader.load(__dirname + "/HDIMeterModel.gltf", //select_val,
+        let loader = new GLTFLoader //THREE_GLTFLoader()
+        console.log("cur file simulate.js: " + window.location.pathname)
+        loader.load(//__dirname + "/HDIMeterModel.gltf", //select_val, //fails
+                    //"./HDIMeterModel.gltf", //fails
+                    "./src/simulator/HDIMeterModel.gltf",
                     this.fix_up_gltf_and_add,
                     this.undefined,
                     function (err) {
@@ -516,39 +521,41 @@ class Simulate {
         this.sim.rotationY_at_mouseDown = 0
 
         sim_graphics_pane_id.addEventListener("mousedown", function(event) {
-            this.sim.button = event.button
-            this.sim.mouseDown              = true
-            this.sim.shiftDown              = event.shiftKey
-            this.sim.altDown                = event.altKey
-            this.sim.mouseX_at_mouseDown    = event.clientX
-            this.sim.mouseY_at_mouseDown    = event.clientY
-            this.sim.tableX_at_mouseDown    = this.sim.table.position.x
-            this.sim.tableY_at_mouseDown    = this.sim.table.position.y
-            this.sim.zoom_at_mouseDown      = this.sim.camera.zoom
-            this.sim.rotationX_at_mouseDown = this.sim.table.rotation.x
-            this.sim.rotationY_at_mouseDown = this.sim.table.rotation.y
+            //must use Simulate, not "this" for referncing "sim".
+            Simulate.sim.button = event.button
+            Simulate.sim.mouseDown              = true
+            Simulate.sim.shiftDown              = event.shiftKey
+            Simulate.sim.altDown                = event.altKey
+            Simulate.sim.mouseX_at_mouseDown    = event.clientX
+            Simulate.sim.mouseY_at_mouseDown    = event.clientY
+            Simulate.sim.tableX_at_mouseDown    = Simulate.sim.table.position.x
+            Simulate.sim.tableY_at_mouseDown    = Simulate.sim.table.position.y
+            Simulate.sim.zoom_at_mouseDown      = Simulate.sim.camera.zoom
+            Simulate.sim.rotationX_at_mouseDown = Simulate.sim.table.rotation.x
+            Simulate.sim.rotationY_at_mouseDown = Simulate.sim.table.rotation.y
         }, false);
 
         sim_graphics_pane_id.addEventListener('mousemove', function(event) {
-            if (this.sim.mouseDown){
-                this.sim.mouseX = event.clientX;
-                this.sim.mouseY = event.clientY;
-                this.sim_handle_mouse_move()
-                this.sim.renderer.render(this.sim.scene, this.sim.camera);
+            //must use Simulate, not "this" for referncing "sim".
+            if (Simulate.sim.mouseDown){
+                Simulate.sim.mouseX = event.clientX;
+                Simulate.sim.mouseY = event.clientY;
+                Simulate.sim_handle_mouse_move()
+                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
             }
         }, false);
 
         sim_graphics_pane_id.addEventListener("mouseup", function(event) {
-            this.sim.mouseDown = false
-            this.sim.shiftDown = false
-            this.sim.altDown   = false
+            Simulate.sim.mouseDown = false
+            Simulate.sim.shiftDown = false
+            Simulate.sim.altDown   = false
         }, false);
     }
 
     static draw_table(parent, table_width, table_length, table_height){
         var geometryt    = new THREE.BoxGeometry(table_length, table_height, table_width);
         var materialt    = new THREE.MeshPhongMaterial( { color: 0xFFFFFF} ); //normal material shows different color for each cube face, easier to see the 3d shape.
-        this.sim.table        = new THREE.Mesh(geometryt, materialt)
+        this.sim.table   = new THREE.Mesh(geometryt, materialt)
         this.sim.table.name = "table"
         this.sim.table.receiveShadow = true;
 
@@ -583,7 +590,7 @@ class Simulate {
         var line = new THREE.LineSegments( geometry, material ); //new THREE.Line( geometry, material, THREE.LinePieces);
         line.name = "table_line_segments"
         this.sim.table.add(line);
-
+        /* below is dde3 code that errors in dde4
         let x_text_mesh = new THREE_Text2D.MeshText2D(">> +X", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true })
         x_text_mesh.name = "x_axis_label"
         x_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
@@ -642,9 +649,13 @@ class Simulate {
         table_bottom_text_mesh.rotation.z = 0 //Math.PI / -2 //-1.5708
         table_bottom_text_mesh.rotation.y = -Math.PI / -2 //was +Math
         this.sim.table.add(table_bottom_text_mesh)
+       */
 
-
-
+        //todo dde4 something like the below applied to the labels of text above
+        //might work for dde4
+        //see https://threejs.org/docs/#examples/en/geometries/TextGeometry
+        //note that helvetiker_regular.typeface.json is in
+        //dde4 node_modules/three/examples/fonts/helvetiker_regular.typeface.json
         /*THREE_font_loader.load( 'user_tools/helvetiker_regular.typeface.json', function ( font ) {
             let text_geometry = new THREE.TextGeometry( 'Hello three.js and something much longer to see!', {
                 font: font,
@@ -828,31 +839,31 @@ class Simulate {
         this.sim.rotationY_at_mouseDown = 0
 
         sim_graphics_pane_id.addEventListener("mousedown", function(event) {
-            this.sim.mouseDown              = true
-            this.sim.shiftDown              = event.shiftKey
-            this.sim.altDown                = event.altKey
-            this.sim.mouseX_at_mouseDown    = event.clientX
-            this.sim.mouseY_at_mouseDown    = event.clientY
-            //this.sim.tableX_at_mouseDown    = this.sim.table.position.x
-            //this.sim.tableY_at_mouseDown    = this.sim.table.position.y
-            this.sim.zoom_at_mouseDown      = this.sim.camera.zoom
-            this.sim.rotationX_at_mouseDown = this.sim.table.rotation.x
-            this.sim.rotationY_at_mouseDown = this.sim.table.rotation.y
+            Simulate.sim.mouseDown              = true
+            Simulate.sim.shiftDown              = event.shiftKey
+            Simulate.sim.altDown                = event.altKey
+            Simulate.sim.mouseX_at_mouseDown    = event.clientX
+            Simulate.sim.mouseY_at_mouseDown    = event.clientY
+            //Simulate.sim.tableX_at_mouseDown    = this.sim.table.position.x
+            //Simulate.sim.tableY_at_mouseDown    = this.sim.table.position.y
+            Simulate.sim.zoom_at_mouseDown      = Simulate.sim.camera.zoom
+            Simulate.sim.rotationX_at_mouseDown = Simulate.sim.table.rotation.x
+            Simulate.sim.rotationY_at_mouseDown = Simulate.sim.table.rotation.y
         }, false);
 
         sim_graphics_pane_id.addEventListener('mousemove', function(event) {
-            if (this.sim.mouseDown){
-                this.sim.mouseX = event.clientX;
-                this.sim.mouseY = event.clientY;
-                this.stl_sim_handle_mouse_move()
-                this.sim.renderer.render(this.sim.scene, this.sim.camera);
+            if (Simulate.sim.mouseDown){
+                Simulate.sim.mouseX = event.clientX;
+                Simulate.sim.mouseY = event.clientY;
+                Simulate.stl_sim_handle_mouse_move()
+                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
             }
         }, false);
 
         sim_graphics_pane_id.addEventListener("mouseup", function(event) {
-            this.sim.mouseDown = false
-            this.sim.shiftDown = false
-            this.sim.altDown   = false
+            Simulate.sim.mouseDown = false
+            Simulate.sim.shiftDown = false
+            Simulate.sim.altDown   = false
         }, false);
     }
 //from https://stackoverflow.com/questions/27095251/how-to-rotate-a-three-perspectivecamera-around-on-object

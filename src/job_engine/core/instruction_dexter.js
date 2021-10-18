@@ -1,4 +1,4 @@
-import {Instruction} from "./instruction.js"
+//import {Instruction} from "./instruction.js" //DDE4 Now global
 
 Instruction.Dexter = class Dexter extends Instruction{}
 

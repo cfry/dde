@@ -206,10 +206,10 @@ class Editor {
 
 //called by both the eval button and the step button
     static eval_button_action (step=false){ //used by both clicking on the eval button and Cmd-e
-        //if(step) { Metrics.increment_state("Step button clicks") } //todo dde4 needs file acesss
-        //else     { Metrics.increment_state("Eval button clicks") } //todo dde4 needs file acesss
+        if(step) { Metrics.increment_state("Step button clicks") }
+        else     { Metrics.increment_state("Eval button clicks") }
         if(step instanceof CodeMirror) { step = false } //means Cmd E was typed in the editor and we don't want to step in this case
-        if(Editor.current_file_path != "new buffer") { //&& persistent_get("save_on_eval")) //todo needs file access
+        if((Editor.current_file_path != "new buffer") && DDE_DB.persistent_get("save_on_eval")){ //todo needs file access
             if (window.HCA && (Editor.view === "HCA")){
                 HCA.save_current_file()
                 Editor.eval_button_action_aux(step)

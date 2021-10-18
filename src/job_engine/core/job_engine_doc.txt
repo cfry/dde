@@ -38,7 +38,7 @@ SIMULATION
 
  To make simulate=false be the default for all
  subsequently defined DEXTER'S, add to dde_init.js:
- persistent_set("default_dexter_simulate", false)
+ DB_DDE.persistent_set("default_dexter_simulate", false)
  You'd have to stick this line in dde_init before
  the definition of any Dexter's for it to affect them.
  Once this is done, each time you boot DDE or the job_engine,

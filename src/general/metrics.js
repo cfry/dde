@@ -1,32 +1,33 @@
 class Metrics {
-    static state = {"Eval button clicks": 0,
-                    "Step button clicks": 0,
-                    "Job button clicks": 0,
-                    "Make Instruction inserts": 0}
-    static init(){
-        if(file_exists("dde_metrics.json")){
-            this.state = JSON.parse(read_file("dde_metrics.json"))
-        }
-    }
+    /* //now done by DDE_DB.init
+        static state = {"Eval button clicks": 0,
+                        "Step button clicks": 0,
+                        "Job button clicks":  0,
+                        "Make Instruction inserts": 0}
+
+         static init(){
+            if(file_exists("dde_metrics.json")){
+                this.state = JSON.parse(read_file("dde_metrics.json"))
+            }
+        }*/
+
     static increment_state(key){
-        if(this.state[key]) {
-            this.state[key] += 1
-        }
-        else {
-            this.state[key] = 1
-        }
-        this.save()
+        let old_val = DDE_DB.metrics_get(key)
+        DDE_DB.metrics_set(key, old_val + 1)
         if(DDEVideo.misc_pane_menu_selection === "Reward Board"){ //refresh
             DDEVideo.show_in_misc_pane("Reward Board")
         }
     }
+    /* not needed
     static save(){
-        write_file("dde_metrics.json", JSON.stringify(this.state))
-    }
+        //write_file("dde_metrics.json", JSON.stringify(this.state))
+        DDE_DB.metrics_set_all(this.set)
+    }*/
     static make_html(){
         let mid_html = "<div style='padding:15px;color:#00ff8f;font-weight:bold;font-size:18px;'>"
-        for(let key in this.state){
-            let item = "<div>" + key + ": " + this.state[key] + "</div>"
+        for(let key in DDE_DB.metrics){
+            let val = DDE_DB.metrics_get(key)
+            let item = "<div>" + key + ": " + val + "</div>"
             mid_html += item
         }
         mid_html += "</div>"

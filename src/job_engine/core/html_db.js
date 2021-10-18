@@ -1,4 +1,4 @@
-import {shouldnt, warning_or_error, intersection, replace_substrings} from "./utils.js"
+import {is_letter, intersection, shouldnt, warning_or_error, replace_substrings} from "./utils.js"
 
 class html_db{
    static is_html_tag(tag){

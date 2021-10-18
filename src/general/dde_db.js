@@ -1,5 +1,5 @@
 class DDE_DB{
-   static persisent_values_initial_object =
+   static persistent_values_initial_object =
        {"save_on_eval":     false,
        "default_out_code": false,
        "files_menu_paths": [], //todo [add_default_file_prefix_maybe("dde_init.js")],
@@ -39,7 +39,7 @@ class DDE_DB{
 
    static init(db_init_cb){
        DDE_DB.db_init_cb = db_init_cb //called after persistent_values is grabbed from DB.
-       DDE_DB.persistent_values = DDE_DB.persisent_values_initial_object //very temporary until real db values grabbed
+       DDE_DB.persistent_values = DDE_DB.persistent_values_initial_object //very temporary until real db values grabbed
        DDE_DB.metrics = DDE_DB.metrics_initial_object                    //very temporary until real db values grabbed
        let request = window.indexedDB.open("dde_db", 1);
        request.onerror = function(event) {
@@ -63,12 +63,12 @@ class DDE_DB{
            //grab data from db and populate
            const dos_metrics_request = objectStore.get("metrics")
            dos_metrics_request.onsuccess = () => {
-               const data = dos_metrics_request.result;
+               let data = dos_metrics_request.result;
                DDE_DB.metrics = data
            }
            const dos_request = objectStore.get("persistent_values")
            dos_request.onsuccess = () => {
-               const data = dos_request.result
+               let data = dos_request.result
                DDE_DB.persistent_values = data
                DDE_DB.db_init_cb.call()
            }
@@ -121,6 +121,23 @@ class DDE_DB{
             }
             dos_put_request.onerror = function(event) {
                 console.log("ERROR: DDE_DB could not store metrics: " + key + " of " + value)
+            }
+        }
+    }
+    static metrics_set_all(metrics_state_obj){
+        for(let key in metrics_state_obj){
+            this.metrics[key] = metrics_state_obj[key]
+        }
+        const dde_object_store = DDE_DB.db.transaction(['dde_object_store'], "readwrite").objectStore('dde_object_store');
+        const dos_request = dde_object_store.get("metrics");
+        dos_request.onsuccess = function(event) {
+            const dos_put_request = dde_object_store.put(metrics_state_obj, "metrics");
+            // When this new request succeeds, run the displayData() function again to update the display
+            dos_put_request.onsuccess = function(event) {
+                console.log("DDE_DB successfully stored all metrics: " + metrics_state_obj)
+            }
+            dos_put_request.onerror = function(event) {
+                console.log("ERROR: DDE_DB could not store metrics: " + metrics_state_obj)
             }
         }
     }

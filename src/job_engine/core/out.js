@@ -1,12 +1,11 @@
 //__________out  and helper fns_______
 //out itself is now defined in je_and_browser_code as it is called in the browser
-import {persistent_get} from "./storage.js"
 import {month_names, replace_substrings, starts_with_one_of, stringify_value}
        from "./utils.js"
 //require("./je_and_browser_code.js") //don't set SW from this.
 function format_text_for_code(text, code=null){
     if (code === null) {
-        code = persistent_get("default_out_code")
+        code = DDE_DB.persistent_get("default_out_code")
         if ((code === undefined) || (code === null) || (code == false)) { code = false }
     }
     if (code) { //cut off timing info: too confusing to see it.

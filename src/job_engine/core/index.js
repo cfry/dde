@@ -44,7 +44,7 @@ function node_on_ready() {
     }
     //new Dexter({name: "dexter0"})
 
-    persistent_initialize()
+    DDE_DB.init()
     dde_init_dot_js_initialize()
     Job.class_init()
     Dexter.class_init()
@@ -128,7 +128,6 @@ import {adjust_path_to_os, append_to_file,
     get_latest_path, get_page_async,
     is_folder, load_files,
     make_folder, make_full_path, make_unique_path,
-    persistent_get, persistent_initialize, persistent_remove, persistent_save,
     read_file, read_file_async, write_file, write_file_async} from './storage.js'
 
 import {Root} from "./object_system.js"
@@ -229,9 +228,6 @@ global.is_folder = is_folder
 global.load_files = load_files
 global.make_unique_path = make_unique_path
 global.make_folder = make_folder
-global.persistent_get = persistent_get
-global.persistent_remove = persistent_remove
-global.persistent_save = persistent_save
 global.read_file = read_file
 global.write_file = write_file
 

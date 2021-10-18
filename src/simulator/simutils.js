@@ -1,7 +1,7 @@
 /**
  * Created by Fry on 3/30/16.
  */
-export var SimUtils = class SimUtils{
+class SimUtils{
 /*from http://stackoverflow.com/questions/30271693/converting-between-cartesian-coordinates-and-spherical-coordinates
  this.radius = sqrt((x*x) + (y*y) + (z*z));
  this.inclination = arccos(z / this.radius);
@@ -110,7 +110,7 @@ export var SimUtils = class SimUtils{
                 //}
                 let angle_degrees = Socket.dexter_units_to_degrees(j_angle, joint + 1)
                 if(((joint === 1) || (joint === 2) || (joint === 3)) &&
-                    sim.hi_rez) {
+                    Simulate.sim.hi_rez) {
                     angle_degrees *= -1
                 }
                 new_angles.push(angle_degrees)
@@ -120,42 +120,42 @@ export var SimUtils = class SimUtils{
 
                 switch(joint) {
                     case 0:
-                        sim.J1.rotation.y = rads * -1
+                        Simulate.sim.J1.rotation.y = rads * -1
                         sim_pane_j1_id.innerHTML = j_angle_degrees_rounded
                         break;
                     case 1:
-                        sim.J2.rotation.z = rads
+                        Simulate.sim.J2.rotation.z = rads
                         sim_pane_j2_id.innerHTML = j_angle_degrees_rounded * -1
                         break;
                     case 2:
-                        sim.J3.rotation.z = rads
+                        Simulate.sim.J3.rotation.z = rads
                         sim_pane_j3_id.innerHTML = j_angle_degrees_rounded * -1
                         break;
                     case 3:
-                        sim.J4.rotation.z = rads
+                        Simulate.Simulate.sim.J4.rotation.z = rads
                         sim_pane_j4_id.innerHTML = j_angle_degrees_rounded * -1
                         break;
                     case 4:
-                        sim.J5.rotation.y = rads * -1
+                        Simulate.sim.J5.rotation.y = rads * -1
                         xyz = Kin.J_angles_to_xyz(new_angles, rob.pose)[0] //needed in case 6 and below
                         sim_pane_j5_id.innerHTML = j_angle_degrees_rounded
                         break;
                     case 5:
-                        if(sim.J6) {
-                            sim.J6.rotation.z = rads
+                        if(Simulate.sim.J6) {
+                            Simulate.sim.J6.rotation.z = rads
                         }
                         sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
                         break;
                     case 6:
-                        if(sim.J7) { //330 degrees = 0.05 meters
+                        if(Simulate.sim.J7) { //330 degrees = 0.05 meters
                            let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
                            new_xpos *= 10
                            //out("J7 angle_degrees: " + angle_degrees + " new xpos: " + new_xpos)
-                           sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
+                           Simulate.sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
                            //all below fail to change render
-                           //sim.J7.position.x = new_pos
-                           //sim.J7.updateMatrix() //no effect
-                           //sim.j7.updateWorldMatrix(true, true)
+                           //Simulate.sim.J7.position.x = new_pos
+                           //Simulate.sim.J7.updateMatrix() //no effect
+                           //Simulate.sim.j7.updateWorldMatrix(true, true)
                                 // prev new_pos value;
                                 // ((angle_degrees * 0.05) / 330 ) * -1 //meters of new location
                                 // but has the below problems
@@ -213,31 +213,31 @@ export var SimUtils = class SimUtils{
             angle_degrees = angles_in_degrees[0] //Joint 1
             j_angle_degrees_rounded = Math.round(angle_degrees)
             rads = degrees_to_radians(angle_degrees)
-            sim.J1.rotation.y = rads * -1
+            Simulate.sim.J1.rotation.y = rads * -1
             sim_pane_j1_id.innerHTML = j_angle_degrees_rounded
 
             angle_degrees = angles_in_degrees[1] //Joint 2
             j_angle_degrees_rounded = Math.round(angle_degrees)
             rads = degrees_to_radians(angle_degrees)
-            sim.J2.rotation.z = rads * -1
+            Simulate.sim.J2.rotation.z = rads * -1
             sim_pane_j2_id.innerHTML = j_angle_degrees_rounded
 
             angle_degrees = angles_in_degrees[2] //Joint 3
             j_angle_degrees_rounded = Math.round(angle_degrees)
             rads = degrees_to_radians(angle_degrees)
-            sim.J3.rotation.z = rads * -1
+            Simulate.sim.J3.rotation.z = rads * -1
             sim_pane_j3_id.innerHTML = j_angle_degrees_rounded
 
             angle_degrees = angles_in_degrees[3] //Joint 4
             j_angle_degrees_rounded = Math.round(angle_degrees)
             rads = degrees_to_radians(angle_degrees)
-            sim.J4.rotation.z = rads * -1
+            Simulate.sim.J4.rotation.z = rads * -1
             sim_pane_j4_id.innerHTML = j_angle_degrees_rounded
 
             angle_degrees = angles_in_degrees[4] //Joint 5
             j_angle_degrees_rounded = Math.round(angle_degrees)
             rads = degrees_to_radians(angle_degrees)
-            sim.J5.rotation.y = rads * -1
+            Simulate.sim.J5.rotation.y = rads * -1
             sim_pane_j5_id.innerHTML = j_angle_degrees_rounded
 
             let xyz = Kin.J_angles_to_xyz(angles_in_degrees, rob_pose)[0] //needed in case 6 and below
@@ -258,7 +258,7 @@ export var SimUtils = class SimUtils{
             else      { str_length = 5}
             sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length)
 
-            sim.renderer.render(sim.scene, sim.camera)
+            Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
     }
 
     //same level as render_multi but for one of j6 or j7.
@@ -408,8 +408,8 @@ export var SimUtils = class SimUtils{
         let angle_degrees = ds_instance.compute_measured_angle_degrees(6)
         let rads = degrees_to_radians(angle_degrees)
         let j_angle_degrees_rounded = Math.round(angle_degrees)
-        if(sim.J6) {
-            sim.J6.rotation.z = rads
+        if(Simulate.sim.J6) {
+            Simulate.sim.J6.rotation.z = rads
         }
         sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
     }
@@ -418,22 +418,22 @@ export var SimUtils = class SimUtils{
         let angle_degrees = ds_instance.compute_measured_angle_degrees(7)
         let rads = degrees_to_radians(angle_degrees)
         let j_angle_degrees_rounded = Math.round(angle_degrees)
-        if(sim.J7) { //330 degrees = 0.05 meters
+        if(Simulate.sim.J7) { //330 degrees = 0.05 meters
             let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
             new_xpos *= 10
             //out("J7 angle_degrees: " + angle_degrees + " new xpos: " + new_xpos)
-            sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
+            Simulate.sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
             //all below fail to change render
-            //sim.J7.position.x = new_pos
-            //sim.J7.updateMatrix() //no effect
-            //sim.j7.updateWorldMatrix(true, true)
+            //Simulate.sim.J7.position.x = new_pos
+            //Simulate.sim.J7.updateMatrix() //no effect
+            //Simulate.sim.j7.updateWorldMatrix(true, true)
             // prev new_pos value;
             // ((angle_degrees * 0.05) / 330 ) * -1 //meters of new location
             // but has the below problems
             // x causes no movement, but at least inited correctly
             // y sends the finger to move to outer space upon init, but still visible, however moving j7 doesn't move it
             // z causes the finger to be somewhat dislocated upon dui init, however moving j7 doesn't move it
-            //sim.J7.rotation.y = rads
+            //Simulate.sim.J7.rotation.y = rads
         }
         sim_pane_j7_id.innerHTML = j_angle_degrees_rounded
         if(SimBuild.template_object) {
@@ -448,7 +448,7 @@ export var SimUtils = class SimUtils{
             this.render_once(SimUtils.prev_robot_status,
                              SimUtils.prev_robot_name)
         }
-        else { sim.renderer.render(sim.scene, sim.camera) } //just the initial condition, dex straight up
+        else { Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera) } //just the initial condition, dex straight up
     }
 
     //called from video.js
@@ -457,7 +457,7 @@ export var SimUtils = class SimUtils{
             this.render_multi(SimUtils.prev_robot_status,
                 SimUtils.prev_robot_name)
         }
-        else { sim.renderer.render(sim.scene, sim.camera) } //just the initial condition, dex straight up
+        else { Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera) } //just the initial condition, dex straight up
     }
 
     static is_shown(){
@@ -490,11 +490,14 @@ export var SimUtils = class SimUtils{
             }
         }
     }
+    static prev_joint_angles = [0, 0, 0, 0, 0, 0, 0]
+    static prev_robot_status = null
+    static prev_robot_name   = null
+    static ms_per_frame      = 33 //30 frames per second
 }
-SimUtils.prev_joint_angles = [0, 0, 0, 0, 0, 0, 0]
-SimUtils.prev_robot_status = null
-SimUtils.prev_robot_name   = null
-SimUtils.ms_per_frame      = 33 //30 frames per second
+
+
+globalThis.SimUtils = SimUtils
 
 
 

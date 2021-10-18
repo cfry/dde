@@ -9,7 +9,7 @@ class SplashScreen {
     static show_splash_screen_cb(vals){
         if(vals.clicked_button_value == "splash_screen_dont_show_checkbox"){
             let boolean_to_save = vals.splash_screen_dont_show_checkbox
-            persistent_set("dont_show_splash_screen_on_launch", boolean_to_save)
+            DDE_DB.persistent_set("dont_show_splash_screen_on_launch", boolean_to_save)
             if(vals["splash_screen_dont_show_checkbox"]) {
                 out("The Welcome Dialog box will not come up when you launch DDE.<br/>" +
                     "You can still see the Welcome Dialog box by clicking<br/>" +
@@ -51,7 +51,7 @@ class SplashScreen {
                 let text = an_option_elt.innerHTML
                 all_options.push(text)
             }
-            persistent_set("splash_screen_tutorial_labels", all_options)
+            DDE_DB.persistent_set("splash_screen_tutorial_labels", all_options)
         }
     }
 
@@ -89,7 +89,7 @@ class SplashScreen {
          <span style="vertical-align:top;">&bull; Select a tutorial from: </span><br/>*/
 
     static show_maybe(){
-        if(true //!persistent_get("dont_show_splash_screen_on_launch") //todo dde4 needs file system
+        if(!DDE_DB.persistent_get("dont_show_splash_screen_on_launch")
            ){
             this.show()
         }
@@ -106,16 +106,16 @@ class SplashScreen {
 //what with some staying the same and wanting to preserve their checkmarks
     static splash_screen_tutorial_options_html(){
         let result = ""
-        //let labels = persistent_get("splash_screen_tutorial_labels")//todo dde4 needs file system //might have checkmarks in them.
+        let labels = DDE_DB.persistent_get("splash_screen_tutorial_labels")
         for(let name_and_tooltip of this.splash_screen_tutorial_names_and_tooltips){
            let name = name_and_tooltip[0]
            let label = null
-           /*for(let a_label of labels) { //todo dde4 comment back in once we get the above persistent_get call working
+           for(let a_label of labels) {
                if(a_label.endsWith(name)){
                    label = a_label //might have a checkmark
                    break;
                }
-           }*/
+           }
            if(!label) { label = "&nbsp;&nbsp;&nbsp;" + name } //default is no checkmark
            result += "<option class='splash_screen_item' " +
                       "title='" + name_and_tooltip[1] +

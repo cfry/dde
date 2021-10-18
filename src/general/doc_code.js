@@ -104,7 +104,7 @@ class DocCode {
             ///how can in know how many pixels down from the top it is when
             //it doesn't know how wide the collpased pane will be when it opens up?
         }
-        //else if(persistent_get("animate_ui")) { //todo comment in when persitent_get defined.
+        //else if(DDE_DB.persistent_get("animate_ui")) { //todo comment in when persitent_get defined.
         //     this.open_doc_called_since_doc_pane_collapsed = false
         //    $('#doc_pane_content_id').animate({scrollTop: details_elt.offsetTop - 40}, 800) //WORKS! 800 is milliseconds for the animation to take.
         //}

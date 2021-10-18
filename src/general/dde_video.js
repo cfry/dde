@@ -82,7 +82,7 @@ class DDEVideo {
                 // not want to "refresh" the content, and since that always happens
                 //if we did $('#misc_pane_menu_id').jqxComboBox('val', the_prev_val),
                 //just leave it as "Choose File"
-                let prev_val = persistent_get("misc_pane_content")
+                let prev_val = DDE_DB.persistent_get("misc_pane_content")
                 this.set_misc_pane_menu_selection(prev_val)
                 return
             }
@@ -153,7 +153,7 @@ class DDEVideo {
                 //     '<b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>' +
                 //     '<div id="sim_graphics_pane_id"></div>'
                 //DocCode.open_doc(simulate_pane_doc_id) //dde4 todo comment in when doc is loaded
-                Simulate.init_simulation()
+                Simulate.init_simulation_maybe()
                 //sim.renderer.render(sim.scene, sim.camera);
                 setTimeout(function() {
                              SimUtils.render_multi_with_prev_args_maybe()},
@@ -452,7 +452,7 @@ class DDEVideo {
             content_is_good = false
         }
         if(content_is_good){
-            persistent_set("misc_pane_content", content)
+            DDE_DB.persistent_set("misc_pane_content", content)
         }
     }
 
@@ -480,12 +480,12 @@ class DDEVideo {
         let top_width  = $('#right_splitter_id').jqxSplitter('panels')[0].size //the height of the Doc pane
         let keep_going = false
         if(left_width > 0) {
-            let new_size = (persistent_get("animate_ui") ? left_width - 6 : 0)
+            let new_size = (DDE_DB.persistent_get("animate_ui") ? left_width - 6 : 0)
             $('#outer_splitter_id').jqxSplitter({panels: [{ size: new_size}]})
             keep_going = true
         }
         if(top_width > 0) {
-            let new_size = (persistent_get("animate_ui") ? top_width - 2 : 0)
+            let new_size = (DDE_DB.persistent_get("animate_ui") ? top_width - 2 : 0)
             $('#right_splitter_id').jqxSplitter({panels: [{ size: new_size}]})
             keep_going = true
         }
@@ -504,12 +504,12 @@ class DDEVideo {
         let top_width  = $('#right_splitter_id').jqxSplitter('panels')[0].size
         let keep_going = false
         if(left_width < orig_left_splitter_pane_size) {
-            let new_size = (persistent_get("animate_ui") ? left_width + 6 : orig_left_splitter_pane_size)
+            let new_size = (DDE_DB.persistent_get("animate_ui") ? left_width + 6 : orig_left_splitter_pane_size)
             $('#outer_splitter_id').jqxSplitter({panels: [{ size: new_size}]})
             keep_going = true
         }
         if(top_width < orig_top_splitter_pane_size) {
-            let new_size = (persistent_get("animate_ui") ? top_width + 2 : orig_top_splitter_pane_size)
+            let new_size = (DDE_DB.persistent_get("animate_ui") ? top_width + 2 : orig_top_splitter_pane_size)
             $('#right_splitter_id').jqxSplitter({panels: [{ size: new_size}]})
             keep_going = true
         }

@@ -138,7 +138,7 @@ function render_html(str){
     let str_for_title = replace_substrings(str, '"', "&quot;")
     //let title = 'Rendering HTML: <span title="' + str_for_title + '">' + title_suffix + '</span>'
     //show_window({title: title, content: str})
-    out_eval_result(str, color="#000000", str_for_title, src_label="The result of rendering HTML")
+    out_eval_result(str, "#000000", str_for_title, "The result of rendering HTML")
 }
 
 //part 2 of 3 is in eval.js,  window.addEventListener('message'  under the message name of "eval"
