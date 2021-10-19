@@ -47,7 +47,6 @@ import "codemirror/addon/fold/foldgutter.js"
 import "codemirror/addon/fold/brace-fold.js"
 import "codemirror/addon/fold/comment-fold.js"
 
-import "./styles.css"
 import "shepherd.js/dist/css/shepherd.css"
 
 

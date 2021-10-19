@@ -94,7 +94,7 @@ dui_tour.addSteps([
                 header.insertBefore(progress, currentStepElement.querySelector('.shepherd-cancel-icon'));
                 //out("after sim")
                 //Job.define_and_start_job(__dirname + '/user_tools/dexter_user_interface2.js')
-                dui_tour.start()
+                dui2.make_job()
               }
         },
   },
