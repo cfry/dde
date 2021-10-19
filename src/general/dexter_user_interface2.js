@@ -9,6 +9,7 @@
 //var x_px_to_meters, meters_to_x_px //utility fns defined below
 
 //_________make HTML fns
+import {value_of_path} from "../job_engine/core/utils.js"
 
 class dui2 {
     constructor(){
@@ -88,7 +89,7 @@ class dui2 {
     }
 
     //this is the top level code in this file that is called when the user chooses Jobs menu, Dexter UI item.
-    static make_job(explicitly_start_job=false){
+    static make_job(){
         let dex = (window.default_robot ? Dexter.default : Dexter.dexter0)
         let name = ((platform === "dde") ? "dui2_for_" + dex.name : "dexter_user_interface2") //the job engine Job name must match the file name (sans .js")
         if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
@@ -109,10 +110,7 @@ class dui2 {
                                       ]
                         })
            // dex.instruction_callback = this.dui_instruction_callback //used for "run_forward" , complicated to get this to work so now run_forward does something simpler
-            if(explicitly_start_job) {
-                new_job.start()
-            }
-           // else {} //this job will get started anyway via define_and_start_job which is called by dui2_id.onclick
+            new_job.start()
         }
     }
     static show_window_elt_id_to_dui_instance(sw_elt_id){

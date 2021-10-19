@@ -373,13 +373,13 @@ class Socket{
         if(job_instance.keep_history) {
             job_instance.sent_instructions_strings.push(str)
         }
-        const arr_buff = Socket.string_to_array_buffer(str)
+       // const arr_buff = Socket.string_to_array_buffer(str) //don't do in dde4. Plus Buffer is a Node.js data  structure, not in JS per se
         const sim_actual = Robot.get_simulate_actual(rob.simulate)
         if((sim_actual === true) || (sim_actual === "both")){
             let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
             if(sim_inst) {
                 setTimeout( function() { //eqiv to net_soc_inst.write(arr_buff) below.
-                    DexterSim.send(robot_name, arr_buff)
+                    DexterSim.send(robot_name, str) //dde3 used to use arr_buff for the 2nd arg.
                 }, 1)}
             else {
                 Socket.close(robot_name, true) //both are send args
@@ -393,7 +393,7 @@ class Socket{
             if(net_soc_inst && (net_soc_inst.readyState === "open")) {
                 try {
                     //console.log("Socket.send about to send: " + str)
-                    net_soc_inst.write(arr_buff) //if doesn't error, success and we're done with send
+                    net_soc_inst.write(arr_buff) //dde4 todo: needs to send str (not arr_buff) to server. //if doesn't error, success and we're done with send
                     //console.log("Socket.send just sent:     " + str)
                     //this.stop_job_if_socket_dead(job_id, robot_name)
                     return
@@ -453,11 +453,11 @@ class Socket{
         //console.log("Socket.on_receive passed data:        " + data)
         let robot_status
         let oplet
-        if(Array.isArray(data)) {  //todo return from sim same data type as Dexter returns.   //a status array passed in from the simulator
+        if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
             robot_status = data
             oplet = robot_status[Dexter.INSTRUCTION_TYPE]
         }
-        else { //a Uint8Array when called from the robot.
+        else { //a Uint8Array when called from the robot. //todo dde4 needs work for getting data from server
             let view1 = new Int32Array(data.buffer) //array_buff1.bytelength / 4); //weird google syntax for getting length of a array_buff1
             robot_status = []
             for(var i = 0; i < view1.length; i++){

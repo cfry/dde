@@ -1,3 +1,5 @@
+import {value_of_path} from "../job_engine/core/utils.js"
+
 import Plotly from '/plotly.js-dist'
 
 var Plot = class Plot{

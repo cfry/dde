@@ -153,7 +153,7 @@ class DDEVideo {
                 //     '<b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>' +
                 //     '<div id="sim_graphics_pane_id"></div>'
                 //DocCode.open_doc(simulate_pane_doc_id) //dde4 todo comment in when doc is loaded
-                Simulate.init_simulation_maybe()
+                Simulate.init_simulation()
                 //sim.renderer.render(sim.scene, sim.camera);
                 setTimeout(function() {
                              SimUtils.render_multi_with_prev_args_maybe()},

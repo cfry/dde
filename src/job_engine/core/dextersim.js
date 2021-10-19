@@ -104,17 +104,28 @@ class DexterSim{
         return str.substring(0, end_index)
     }
 
-
+    //this fn obsoleted by dde4 and str's getting sent from Socket, not arr_buff's
     static array_buffer_to_oplet_array(arr_buff){
         let str = this.array_buffer_to_string(arr_buff)
+    }
+
+    static str_to_oplet_array(str) {
         let split_str = str.split(" ")
         let oplet_array = []
         let oplet
         for(let i = 0; i <  split_str.length; i++) {
             let substr = split_str[i]
-            if(i == Instruction.INSTRUCTION_TYPE) { oplet = substr}
+            if(i == Instruction.INSTRUCTION_TYPE) {
+                oplet = substr[0] //dde4: substr is someimes "g;" so get rid of the semicolon.
+                oplet_array.push(oplet)
+                if(substr.endsWith(";")) { break; }
+                else                     { continue; }
+            }
             else if ((oplet == "W") && (i == Instruction.INSTRUCTION_ARG2)) { //this is the payload of Dexter.write_file
-                let raw_string = arr_buff.toString() //can't use str because that ends at first semicolon, and payload might have semicolons in it.
+                //let raw_string = arr_buff.toString() //can't use str because that ends at first semicolon, and payload might have semicolons in it.
+                //don't do the above, str can now have semicolons in it beecause its not filtered by  array_buffer_to_string
+                //cutting everything after semicolon off.
+
                 let ending_semicolon_pos = raw_string.lastIndexOf(";") //note that the payload might have semicolons in it so don't choose those by using LASTindexOf
                 let W_pos = raw_string.indexOf(" W ")
                 let start_payload_length_pos = W_pos + 5 //5 skips over the "W f " (oplet and write_kind letter and spaces)
@@ -131,6 +142,9 @@ class DexterSim{
                 let num_maybe = parseFloat(substr) //most are ints but some are floats
                 if(Number.isNaN(num_maybe)) { oplet_array.push(substr) } //its a string
                 else                        { oplet_array.push(num_maybe) } //its an actual number
+                if(substr.includes(";")) { break; } //this clause new in dde4. Allows input str to have a semicolon,
+                 //and to use that semicolon in a W oplet's payload, while also
+                 //ignoring chars after the semicolon. //todo dde4 needs testing
             }
         }
         return oplet_array
@@ -148,8 +162,9 @@ class DexterSim{
 
     //called from Socket.send
     //typically adds instruction to ds_instance.instruction_queue
-    static send(robot_name, arr_buff){
-        let instruction_array = this.array_buffer_to_oplet_array(arr_buff) //instruction_array is in dexter_units
+    static send(robot_name, str){ //use to take arr_buff as 2nd arg in dde3
+        let instruction_array = //obsolete in dde4:  this.array_buffer_to_oplet_array(arr_buff) //instruction_array is in dexter_units
+                                this.str_to_oplet_array(str)
         //out("Sim.send passed instruction_array: " + instruction_array + " robot_name: " + robot_name)
         let ds_instance = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
         /*if(!ds_instance) {

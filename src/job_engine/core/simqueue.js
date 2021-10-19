@@ -650,4 +650,4 @@ class Simqueue{
     }
 }
 
-globalThis.Simqueue
+globalThis.Simqueue = Simqueue

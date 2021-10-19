@@ -612,7 +612,7 @@ function menu_background_color(){
 function button_background_color(){
     return $("#eval_id").css("background-color") // ie "rgb(123, 45, 67))
 }
-//beware property_name muxt be camel cased (lower case first char, no dashes
+//beware property_name must be camel cased (lower case first char, no dashes
 //so background_color mush be represented as backgroundColor.
 function set_css_property(selector, property_name, new_value){
     let sss = document.styleSheets
@@ -637,6 +637,7 @@ function set_css_properties(css_string){
     sty.innerHTML = css_string
     head.append(sty);
 }
+globalThis.set_css_properties = set_css_properties
 
 function set_window_frame_background_color(new_color){
     $(".window_frame").css("background-color", new_color)

@@ -13,6 +13,9 @@ import {Readable} from "../../node_modules/stream/index.js"
 //import fs from "../../node_modules/fs" // Use node filesystem
 import * as ssh2_client from "../../node_modules/ssh2/lib/client.js"
 
+import {value_of_path} from "../job_engine/core/utils.js"
+
+
 export var SSH = class SSH {
     //not passing in a command will fundamentally default to ls -l, but there's a complex wrapper around it for the default case.
     static run_command({command=null, computer=null, computer_name=null, username=null, password=null, callback=SSH.format_output}={}){

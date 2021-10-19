@@ -1,6 +1,6 @@
 /* Created by Fry on 3/29/16. */
 
-import {RobotStatus} from "./robot_status.js"
+//import {RobotStatus} from "./robot_status.js" //in dde4 RobotStatus is global
 //import {Job} from "./job.js" now global
 //import {Instruction, make_ins} from "./instruction.js" //now global
 import {shouldnt, date_integer_to_long_string,
@@ -2641,12 +2641,12 @@ Dexter.prototype.set_link_lengths_using_job = function(job_to_start){
 */
 
 Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
-    let path = dde_apps_folder + "/dexter_file_systems/"  + this.name + "/Defaults.make_ins"
+    /*let path = dde_apps_folder + "/dexter_file_systems/"  + this.name + "/Defaults.make_ins"
     if(file_exists(path)) {
         let content = read_file(path)
         this.set_link_lengths_from_file_content(content)
     }
-    else {
+    else {*/ //todo dde4 comment in when have access to robot.
         this.Link1 = Dexter.LINK1
         this.Link2 = Dexter.LINK2
         this.Link3 = Dexter.LINK3
@@ -2668,7 +2668,7 @@ Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
         this.J5_angle_max = Dexter.J5_ANGLE_MAX
         this.J6_angle_max = Dexter.J6_ANGLE_MAX
         this.J7_angle_max = Dexter.J7_ANGLE_MAX
-    }
+    // } //todo dde4 comment in when have access to robot.
     this.link_lengths_set_from_dde_computer = true
     if(job_to_start) {
         this.start_aux(job_to_start)

@@ -91,7 +91,7 @@ Instruction.Dexter.move_all_joints = class move_all_joints extends Instruction.D
         return "{instanceof: move_all_joints " + this.array_of_angles + "}"
     }
     to_source_code(args){
-        args = jQuery.extend({}, args)
+        args = Object.assign({}, args)
         args.value = this.array_of_angles
         args.indent = ""
         return args.indent + "Dexter.move_all_joints(" + to_source_code(args) + ")"
@@ -149,7 +149,7 @@ Instruction.Dexter.pid_move_all_joints = class pid_move_all_joints extends Instr
         return "{instanceof: pid_move_all_joints " + this.array_of_angles + "}"
     }
     to_source_code(args){
-        args        = jQuery.extend({}, args)
+        args        = Object.assign({}, args)
         args.value  = this.array_of_angles
         args.indent = ""
         return args.indent + "Dexter.pid_move_all_joints(" + to_source_code(args) + ")"
@@ -213,7 +213,7 @@ Instruction.Dexter.move_all_joints_relative = class move_all_joints_relative ext
         return "{instanceof: move_all_joints_relative " + this.delta_angles + "}"
     }
     to_source_code(args){
-        args        = jQuery.extend({}, args)
+        args        = Object.assign({}, args)
         args.value  = this.delta_angles
         args.indent = ""
         return args.indent + "Dexter.move_all_joints_relative(" + to_source_code(args) + ")"
@@ -352,7 +352,7 @@ Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
     toString(){ return "{instanceof: move_to " + this.xyz + "}" }
 
     to_source_code(args){
-        args        = jQuery.extend({}, args)
+        args        = Object.assign({}, args)
         args.indent = ""
 
         args.value  = this.xyz
@@ -482,7 +482,7 @@ Instruction.Dexter.pid_move_to = class pid_move_to extends Instruction.Dexter{
     toString(){ return "{instanceof: pid_move_to " + this.xyz + "}" }
 
     to_source_code(args){
-        args        = jQuery.extend({}, args)
+        args        = Object.assign({}, args)
         args.indent = ""
 
         args.value  = this.xyz
@@ -556,7 +556,7 @@ Instruction.Dexter.move_to_relative = class move_to_relative extends Instruction
         return "{instanceof: move_to_relative " + this.delta_xyz + "}"
     }
     to_source_code(args){
-        let prop_args        = jQuery.extend({}, args)
+        let prop_args        = Object.assign({}, args)
         prop_args.indent     = ""
         prop_args.value      = this.delta_xyz
         return args.indent + "Dexter.move_to_relative(" + to_source_code(prop_args) + ")"
@@ -690,7 +690,7 @@ Instruction.Dexter.move_to_straight = class move_to_straight extends Instruction
         return "{instanceof: move_to_straignt " + this.xyz + "}"
     }
     to_source_code(args){
-        args        = jQuery.extend({}, args)
+        args        = Object.assign({}, args)
         args.indent = ""
 
         args.value  = this.xyz

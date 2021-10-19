@@ -57,7 +57,6 @@ class Simulate {
     static sim = {hi_rez: true} //used to store sim "global" vars
 
 //var THREE_font_loader = new THREE.FontLoader();
-    static pPosition = false
 
     static init_simulation_done = false
 
@@ -206,7 +205,7 @@ class Simulate {
         loader.load(//__dirname + "/HDIMeterModel.gltf", //select_val, //fails
                     //"./HDIMeterModel.gltf", //fails
                     "./src/simulator/HDIMeterModel.gltf",
-                    this.fix_up_gltf_and_add,
+                    function(gltf_object3D) { Simulate.fix_up_gltf_and_add(gltf_object3D) }, //modified for dde4
                     this.undefined,
                     function (err) {
                         console.error( err );
@@ -307,11 +306,10 @@ class Simulate {
        the_mesh.position.x = xyz[1] * -1
        the_mesh.position.y = xyz[2]   //input z goes to Y in Three. in THREE is up, so grab the z from the input
        the_mesh.position.z = xyz[0] * -1
-       the_mesh.rotation.x = this.degrees_to_radians(rotxyz[1]) * -1
-       the_mesh.rotation.y = this.degrees_to_radians(rotxyz[2])
-       the_mesh.rotation.z = this.degrees_to_radians(rotxyz[0])
+       the_mesh.rotation.x = SimUtils.degrees_to_radians(rotxyz[1]) * -1
+       the_mesh.rotation.y = SimUtils.degrees_to_radians(rotxyz[2])
+       the_mesh.rotation.z = SimUtils.degrees_to_radians(rotxyz[0])
        this.sim.table.add(the_mesh)
-
     }
 
 //the orig simulator with crude geometry boxes.
@@ -498,17 +496,7 @@ class Simulate {
         }
     }
 
-    // 2 * Math.PI  radians == 360 degrees
-    // (2 * Math.PI) / 360  == 0.017453292519943295  radians per degree
-    // 0.00000484813681109536 radians per arc_second
-    //not called in dde4
-    static arc_seconds_to_radians(arc_seconds){
-        return 0.00000484813681109536 * arc_seconds
-    }
 
-    static degrees_to_radians(degrees){
-        return (Math.PI * degrees ) / 180
-    }
 
     //set up drag mouse to rotate table
     static init_mouse(){
@@ -823,10 +811,13 @@ class Simulate {
     //  if (this.sim.mouseDown){
     //      this.stl_sim_handle_mouse_move()
     //  }
-        this.updateRotation();
-        this.updatePosition();
-        this.sim.renderer.render(this.sim.scene, this.sim.camera);
-        requestAnimationFrame(this.gltf_render)
+        //Must use Simulate. and not this.  below because requestAnimationFrame
+        //calls its arg fn without a "this" of Simulate
+        //so must make gltf_render not need a "this".
+        Simulate.updateRotation();
+        Simulate.updatePosition();
+        Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+        requestAnimationFrame(Simulate.gltf_render)
     }
 
     static stl_init_mouse(){

@@ -1,3 +1,5 @@
+import {dui_tour} from "../tutorials/dexter_ui_tutorial.js"
+
 class SplashScreen {
     static the_checkmark_char = "\u2713" //unicode check
 
@@ -140,9 +142,14 @@ class SplashScreen {
     static start_dui_tutorial(){
         //Job.define_and_start_job(__dirname + '/user_tools/dexter_user_interface2.js') //now done after
         //user selects simulate or real so that the robt/job picks up the radio button value.
-        setTimeout(function() {
-                    load_files(__dirname + "/tutorials/dexter_ui_tutorial.js")},
-                    500)
+        //setTimeout(function() {
+        //            load_files(__dirname + "/tutorials/dexter_ui_tutorial.js")},
+        //            500)
+        //doc: https://shepherdjs.dev/docs/tutorial-02-usage.html  orig tan color: #ffcdb0
+        //set_css_properties(".shepherd_step {background-color:#ffdfc0; width:300px;}")
+        //set_css_properties(".shepherd-modal-overlay-container.shepherd-modal-is-visible{opacity:0.4}")
+        //set_css_properties(".shepherd_step_dui_wide {width:400px}")
+        dui_tour.start()
     }
 
     static splash_screen_tutorial_names_and_tooltips = [
@@ -202,6 +209,6 @@ class SplashScreen {
 }
 
 globalThis.SplashScreen = SplashScreen //I use to export this, but
-//hs problems because the callback to the show_window is "SplashScreen.show_splash_screen_cb"
+//has problems because the callback to the show_window is "SplashScreen.show_splash_screen_cb"
 //so SplashScreen gets looked up in a global context in the show Window submit code.
 //so easier to make it global

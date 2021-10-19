@@ -221,7 +221,7 @@ var Picture = class Picture{
                 canvas_elt.width  = imgWidth
                 canvas_elt.height = imgHeight
                 if(transforms.rotate !== 0){
-                    ctx.rotate(degrees_to_radians(transforms.rotate))
+                    ctx.rotate(SimUtils.degrees_to_radians(transforms.rotate))
                 }
                 if((transforms.scale_x !== 1) || (transforms.scale_y !== 1)){
                     ctx.scale(transforms.scale_x, transforms.scale_y)

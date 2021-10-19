@@ -7,7 +7,7 @@
 //import * as fsPath  from "../../../node_modules/fs-path/lib/index.js" //todo require is not defined
 //import fs      from "../../../node-modules/fs" //can't import this, can't even install it. when I insstall it I get a README of "this pkg name not in use."
 //import {Robot, Brain, Dexter, Human, Serial}  from "./robot.js" //now all global
-import {shouldnt, starts_with_one_of, replace_substrings} from "./utils.js"
+import {shouldnt, starts_with_one_of, replace_substrings, value_of_path} from "./utils.js"
 //import {Job}     from "./job.js" //now global //because loading a file with new Job in it needs this.
 
 

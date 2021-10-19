@@ -22,11 +22,12 @@ _mil:   [ 0.0000254,"thou"],
 },
 
 angle_units: {
-_rev:    [ 360,			"revolution"],
-_rad:    [ 180/Math.PI,	"radian"],
-_deg:    [ 1,			"degree"],
-_arcmin: [ 1/60,		"arcminute"],
-_arcsec: [ 1/3600,		"arcsecond"]
+_rev:      [ 360,			"revolution"],
+_rad:      [ 180/Math.PI,	"radian"],
+_deg:      [ 1,			    "degree"],
+_arcmin:   [ 1/60,		    "arcminute"],
+_arcsec:   [ 1/3600,		"arcsecond"],
+_nbits_cf: [ 7754.73550222, "bits_per_degree"] //(nbits*seconds/degree)
 },
 
 duration_units: {
@@ -140,10 +141,6 @@ export function pluralize_full_unit_name(unit_name){
     else if (unit_name.includes(" ")) { return unit_name }
     else                              { return unit_name + "s" }
 }
-
-export var _nbits_cf = 7754.73550222 //(nbits*seconds/degree)
-export var _arcsec   = 1/3600
-export var _um       = 0.000001
 
 export function init_units(){
     for(let series_name_core in units_data) {

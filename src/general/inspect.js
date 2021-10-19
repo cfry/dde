@@ -68,7 +68,7 @@ globalThis.inspect = inspect
 //if in_stack_position is null, then use the length of inspect_stacks[stack_number]
 //as the stack_postion of the new item, ie push it on the end.
 //called by job.js
-export function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace, collapse=false, increase_max_display_length=false, src){
+function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace, collapse=false, increase_max_display_length=false, src){
     if(!item && (item != 0) && (typeof(stack_number) == "number") && (typeof(in_stack_position) == "number")) {
           item = inspect_stacks[stack_number][in_stack_position]
     }
@@ -115,6 +115,8 @@ export function inspect_out(item, stack_number, in_stack_position, html_elt_to_r
     else {  out_eval_result(new_inspect_html, undefined, src) }
     return item
 }
+//called outside of this file, sometimes as onclick methods in HTML buttons.
+globalThis.inspect_out = inspect_out
 
 function looks_like_an_existing_file_path(item){
     return ((typeof(item) == "string") &&

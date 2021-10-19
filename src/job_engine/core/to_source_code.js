@@ -102,7 +102,7 @@ function to_source_code_array(args){
     let inst_array = args.value
     let the_indent = ((args.indent === undefined) ? "" : args.indent)
     let result = the_indent + "make_ins("
-    let prop_args = Object.assign({}, args) //jQuery.extend({}, args)
+    let prop_args = Object.assign({}, args) //Object.assign({}, args)
     prop_args.indent = ""
     for(let prop_index in inst_array) {
         prop_args.value = inst_array[prop_index]
@@ -138,7 +138,7 @@ function to_source_code_lit_obj(args){
         for (var prop_index = 0; prop_index < prop_names.length; prop_index++) {
             let prop_name   = prop_names[prop_index]
             let prop_val    = value[prop_name]
-            let prop_args   = Object.assign({}, args) //jQuery.extend({}, args) //copy the args
+            let prop_args   = Object.assign({}, args) //Object.assign({}, args) //copy the args
             prop_args.value = prop_val
             prop_args.indent = "" //((prop_index == 0) ? "" : (indent + " "))
             let prop_indent = ((prop_index == 0) ? "" : (indent + " "))

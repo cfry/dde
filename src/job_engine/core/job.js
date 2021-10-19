@@ -32,7 +32,7 @@ import {is_iterator, is_string_an_identifier, last,
         shallow_copy_lit_obj, shouldnt,
         stringify_value_sans_html} from "./utils.js"
 //import {speak} from "./out.js" //dde4 speak is now global
-import {_nbits_cf, _arcsec, _um} from "./units.js"
+//import {_nbits_cf, _arcsec, _um} from "./units.js" //dde4 now has all units global
 import {linux_error_message} from "./linux_error_message.js"
 //import {write_to_stdout, close_readline} from "./stdio.js" //todo imports readline which requries fs which errors
 
@@ -2374,7 +2374,7 @@ Job.prototype.handle_start_object = function(cur_do_item){
                 else if (typeof(cb_param) === "string") {
                     if ((start_args === undefined) || (start_args === null)) { start_args = {} }
                     if (typeof(start_args) == "object") {
-                       start_args =  jQuery.extend({}, start_args) //shallow copy
+                       start_args =  Object.assign({}, start_args) //shallow copy
                        start_args[cb_param] = cb_fn
                     }
                     else {
@@ -3208,7 +3208,7 @@ Job.prototype.to_source_code = function(args={}){
                                       //in which case use orig_args even if orig_args arg is false
        let prop_val = props_container[prop_name]
        if (!similar(prop_val, Job.job_default_params[prop_name])){ //I could *almost* use == instead pf similar but doesn't work for user_data of an empty lit obj
-            let prop_args = jQuery.extend({}, args)
+            let prop_args = Object.assign({}, args)
             prop_args.value = prop_val
             let user_data_val_prefix = ""
             if (prop_name == "user_data") {
@@ -3240,7 +3240,7 @@ Job.prototype.to_source_code = function(args={}){
     let on_first = true
     for(let i = 0; i < do_list_val.length; i++){
        let on_last = (i == do_list_val.length - 1)
-       let prop_args = jQuery.extend({}, arguments[0])
+       let prop_args = Object.assign({}, arguments[0])
        prop_args.value = do_list_val[i]
        prop_args.indent = (on_first ? "" : props_indent + "          ")
        let instr_src = to_source_code(prop_args)

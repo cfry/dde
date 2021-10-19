@@ -1,4 +1,4 @@
-var SimBuild = class Simbuild{
+class SimBuild{
     static j7_prev_angle = 0
     static j7_threshold = 20 //20 or below means gripper should be closed
     static is_gripper_open = false
@@ -130,3 +130,5 @@ var SimBuild = class Simbuild{
         //this.set_position(new_obj, [0, 0, 0])
     }
 }
+
+globalThis.SimBuild = SimBuild

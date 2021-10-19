@@ -411,7 +411,13 @@ class Instruction {
             let instruction_class_name = Object.getPrototypeOf(instruction).constructor.name
             if(instruction_class_name == "Instruction") { return true } //can run on any robot
             let instruction_superclass_name = Object.getPrototypeOf(Object.getPrototypeOf(instruction)).constructor.name; //often "Control"
-            if(instruction_superclass_name == job_robot_class_name) { //ie "Dexter", "Serial"
+            if(instruction_superclass_name === job_robot_class_name) { //ie "Dexter", "Serial"
+                return true
+            }
+            //added cause for dde4 because job_robot_class_name can be "Dexter$1"
+            //wben instruction_superclass_name is "Dexter"
+            else if((instruction_superclass_name.length === (job_robot_class_name.length - 2)) &&
+                    job_robot_class_name.startsWith(instruction_superclass_name)){
                 return true
             }
             else {
@@ -708,7 +714,7 @@ Instruction.error = class error extends Instruction{
     }
     to_source_code(args){
         let this_indent = args.indent
-        args        = jQuery.extend({}, arguments[0])
+        args        = Object.assign({}, arguments[0])
         args.value  = this.reason
         args.indent = ""
         return this_indent + "Control.error(" + to_source_code(args) + ")"
@@ -792,7 +798,7 @@ Instruction.go_to = class go_to extends Instruction{
 
     to_source_code(args){
         let this_indent = args.indent
-        args        = jQuery.extend({}, arguments[0])
+        args        = Object.assign({}, arguments[0])
         args.value  = this.instruction_location
         args.indent = ""
         return this_indent + "Control.go_to(" + to_source_code(args) + ")"
@@ -844,15 +850,15 @@ Instruction.grab_robot_status = class grab_robot_status extends Instruction{
     }
     to_source_code(args){
         let this_indent = args.indent
-        args        = jQuery.extend({}, args)
+        args        = Object.assign({}, args)
         args.value  = this.user_data_variable
         args.indent = ""
         let ud_src  = to_source_code(args)
-        args        = jQuery.extend({}, args)
+        args        = Object.assign({}, args)
         args.value  = this.start_index
         args.indent = ""
         let si_src  = to_source_code(args)
-        args        = jQuery.extend({}, args)
+        args        = Object.assign({}, args)
         args.value  = this.end_index
         args.indent = ""
         let ei_src  = to_source_code(args)
@@ -885,7 +891,7 @@ Instruction.human_recognize_speech = class human_recognize_speech extends Instru
     }
     to_source_code(args){
         let this_indent = args.indent
-        args        = jQuery.extend({}, arguments[0])
+        args        = Object.assign({}, arguments[0])
         args.indent = ""
         args.value = this.args
         return this_indent + "Human.recognize_speech(" + to_source_code(args) + ")"
@@ -2904,7 +2910,7 @@ Instruction.stop_job = class stop_job extends Instruction{
     }
     to_source_code(args){
         let indent = ((args && args.indent) ? args.indent : "")
-        let props_args = args        = jQuery.extend({}, arguments[0])
+        let props_args = args        = Object.assign({}, arguments[0])
         props_args.indent = ""
         props_args.value = this.instruction_location
         let loc_src = to_source_code(props_args)

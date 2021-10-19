@@ -48,8 +48,13 @@ import "codemirror/addon/fold/brace-fold.js"
 import "codemirror/addon/fold/comment-fold.js"
 
 import "./styles.css"
+import "shepherd.js/dist/css/shepherd.css"
+
+
+
 
 import {warning} from "../job_engine/core/utils.js" //defines dde_error as global
+import {init_units} from "../job_engine/core/units.js"
 import "../job_engine/core/je_and_browser_code.js" //defines SW and out globally
 
 import "./dde_db.js" //defines class DDE_DB globally
@@ -69,11 +74,17 @@ import "../job_engine/core/gcode.js" //Gcode now global
 import {date_to_human_string, date_to_mmm_dd_yyyy, is_digit} from "../job_engine/core/utils.js"
 import "../job_engine/core/fpga.js" //globally defines FPGA
 
-import "../job_engine/core/simqueue.js" //Simqueue now global
-import "../job_engine/core/instruction.js" //globally defines Instruction, make_ins
-import "../job_engine/core/instruction_io.js" //sets Instruction.Dexter to the dexter instruction class
-import("../job_engine/core/instruction_control.js")
+//robots!
+import "../job_engine/core/instruction.js"          //globally defines Instruction, make_ins
+import "../job_engine/core/instruction_dexter.js"   //sets Instruction.Dexter to the dexter instruction class
+import "../job_engine/core/instruction_io.js"       //makes class IO global
+import("../job_engine/core/instruction_control.js") //makes  class Control global
 import "../job_engine/core/robot.js" //now global Robot, Brain, Serial, Human, Dexter
+
+import "../job_engine/core/socket.js"       //defines class Socket as global
+import "../job_engine/core/dextersim.js"    //defines class DexterSim as global
+import "../job_engine/core/simqueue.js"     //defines class Simqueue as global
+import "../job_engine/core/robot_status.js" //defines class RobotStatus as global
 
 import "./doc_code.js" //makes DocCode global
 
@@ -91,16 +102,19 @@ import "./series.js"    //now Series is global
 import "./dde_video"  //makes DDEVideo global
 import "../simulator/simulate.js" //makes class Simulate global
 import "../simulator/simutils.js" //makes class SimUtils global
+import "../simulator/simbuild.js" //makes class SimBuild global
+
 import "../job_engine/core/html_db.js" //makes: html_db, make_html, make_dom_elt global
-import "./inspect.js" //defines inspect globally
+import "./inspect.js" //defines inspect & inspect_out globally
 import "../test_suite/test_suite.js" //globally defines TestSuite class. Does not load the test files
 import "../job_engine/core/to_source_code.js" //defined to_source_code globally
 //const {google} = require('googleapis'); //todo  do I use this?
 
 import {insert_color}      from "./output.js" //todo sets lots of things in window. Should change to globalThis
-import {RobotStatusDialog} from "./robot_status_dialog.js"
+                                 //dde4: now globally defines set_css_properties
+import "./robot_status_dialog.js" //defines class RobotStatusDialog as global
 import {run_instruction}   from "./run_instruction.js"
-import {DexterUtils}       from "./dexter_utils.js" //makes global var for class: DexterUtils
+import "./dexter_utils.js" //makes global var for class: DexterUtils
 import "./metrics.js" //globally defines class Metrics //todo can't really work until file save and read.
 
 import "./dexter_user_interface2.js" //define class dui2 globally.
@@ -205,7 +219,6 @@ export function on_ready() {
         platform         = "dde" //"node" is the other possibility, which happens when we're in the job_engine
         //serial_port_init() //now does nothing, No longer necessary to use serial port.
         //window.Root      = Root //should work but doesn't jan 13, 2019
-
 
         Coor.init()
         //see also ./core/index.js that has this same code
@@ -423,6 +436,7 @@ export function on_ready() {
     //dde_release_date_id.innerHTML = dde_release_date //todo comment back in once doc is loaded
 
     Series.init_series()
+    init_units() //has to be after init_series call.
     FPGA.init() //does not depend on Series.
 
     Gcode.init() //must be after init_series which calls init_units()

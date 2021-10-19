@@ -149,6 +149,19 @@ div.CodeMirror-cursors {
     -webkit-animation: blink 0.56s steps(1) infinite;
 }
 
+.shepherd_step {
+   background-color:#ffdfc0;
+   width:300px;
+}
+
+.shepherd-modal-overlay-container.shepherd-modal-is-visible{
+   opacity:0.4;
+}
+
+.shepherd_step_dui_wide {
+  width:400px;
+}
+
 /*
 .vsplitbar {
     width: 10px;

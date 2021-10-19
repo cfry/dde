@@ -1,3 +1,6 @@
+import {value_of_path} from "../job_engine/core/utils.js"
+
+
 export var PatchDDE = class PatchDDE {
     /*won't work in LTS due to old JS.
      static dde_2_to_3_loaded = false

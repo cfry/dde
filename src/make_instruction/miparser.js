@@ -1,3 +1,5 @@
+import {value_of_path} from "../job_engine/core/utils.js"
+
 class MiParser {
     //_______utils_________
     //return string of src code for arg_name in prop_array (from ast) OR returnn undefined meaning couldn't find it

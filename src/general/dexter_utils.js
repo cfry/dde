@@ -6,7 +6,7 @@ import {last} from "../job_engine/core/utils.js"
 //in dde, the below code was not a class, it was just top level fns.
 //for dde4, I bound it into the class DexterUtils
 //and changed the file name from robot_utilities to dexter_utils.js
-export class DexterUtils {
+class DexterUtils {
     static output_is_not_connected_message(ip_address){
         DocCode.open_doc(data_connection_doc_id)
         warning(ip_address + " is not connected.")
@@ -339,7 +339,11 @@ export class DexterUtils {
                         "<br/>but that isn't a dexter instance or dexter name.") }
         let a_option = document.createElement("option")
         a_option.innerText = dex_name
-        default_dexter_name_id.prepend(a_option)
+        if(globalThis["default_dexter_name_id"]) {
+            default_dexter_name_id.prepend(a_option)
+        }
+        //else default_dexter_name_id not available because that pane isn't up in MiscPane, so
+        //just forget about doing anything.
     }
 
     //_______Dexter Start Options dialog________
@@ -435,4 +439,4 @@ export class DexterUtils {
     }
 }
 
-//globalThis.DexterUtils = DexterUtils
+globalThis.DexterUtils = DexterUtils

@@ -46,6 +46,18 @@ class SimUtils{
         else { return false }
     }
 
+    // 2 * Math.PI  radians == 360 degrees
+    // (2 * Math.PI) / 360  == 0.017453292519943295  radians per degree
+    // 0.00000484813681109536 radians per arc_second
+    //not called in dde4
+    static arc_seconds_to_radians(arc_seconds){
+        return 0.00000484813681109536 * arc_seconds
+    }
+
+    static degrees_to_radians(degrees){
+        return (Math.PI * degrees ) / 180
+    }
+
 
     //ds_inst is an instance of DexterSim class.
     //robot_name example: "Dexter.dexter0"
@@ -116,7 +128,7 @@ class SimUtils{
                 new_angles.push(angle_degrees)
 
                /* let j_angle_degrees_rounded = Math.round(angle_degrees)
-                let rads = degrees_to_radians(angle_degrees)
+                let rads = SimUtils.degrees_to_radians(angle_degrees)
 
                 switch(joint) {
                     case 0:
@@ -212,31 +224,31 @@ class SimUtils{
 
             angle_degrees = angles_in_degrees[0] //Joint 1
             j_angle_degrees_rounded = Math.round(angle_degrees)
-            rads = degrees_to_radians(angle_degrees)
+            rads = SimUtils.degrees_to_radians(angle_degrees)
             Simulate.sim.J1.rotation.y = rads * -1
             sim_pane_j1_id.innerHTML = j_angle_degrees_rounded
 
             angle_degrees = angles_in_degrees[1] //Joint 2
             j_angle_degrees_rounded = Math.round(angle_degrees)
-            rads = degrees_to_radians(angle_degrees)
+            rads = SimUtils.degrees_to_radians(angle_degrees)
             Simulate.sim.J2.rotation.z = rads * -1
             sim_pane_j2_id.innerHTML = j_angle_degrees_rounded
 
             angle_degrees = angles_in_degrees[2] //Joint 3
             j_angle_degrees_rounded = Math.round(angle_degrees)
-            rads = degrees_to_radians(angle_degrees)
+            rads = SimUtils.degrees_to_radians(angle_degrees)
             Simulate.sim.J3.rotation.z = rads * -1
             sim_pane_j3_id.innerHTML = j_angle_degrees_rounded
 
             angle_degrees = angles_in_degrees[3] //Joint 4
             j_angle_degrees_rounded = Math.round(angle_degrees)
-            rads = degrees_to_radians(angle_degrees)
+            rads = SimUtils.degrees_to_radians(angle_degrees)
             Simulate.sim.J4.rotation.z = rads * -1
             sim_pane_j4_id.innerHTML = j_angle_degrees_rounded
 
             angle_degrees = angles_in_degrees[4] //Joint 5
             j_angle_degrees_rounded = Math.round(angle_degrees)
-            rads = degrees_to_radians(angle_degrees)
+            rads = SimUtils.degrees_to_radians(angle_degrees)
             Simulate.sim.J5.rotation.y = rads * -1
             sim_pane_j5_id.innerHTML = j_angle_degrees_rounded
 
@@ -339,7 +351,7 @@ class SimUtils{
             ma_du[joint_number - 1] = j_angle         //set it for all to see
             //undate the graphics of the simulation
             let angle_degrees = Socket.dexter_units_to_degrees(j_angle, joint_number)
-            let rads = degrees_to_radians(angle_degrees)
+            let rads = SimUtils.degrees_to_radians(angle_degrees)
             let j_angle_degrees_rounded = Math.round(angle_degrees)
             switch(joint_number) {
                 case 6:
@@ -406,7 +418,7 @@ class SimUtils{
 
     static render_j6(ds_instance){
         let angle_degrees = ds_instance.compute_measured_angle_degrees(6)
-        let rads = degrees_to_radians(angle_degrees)
+        let rads = SimUtils.degrees_to_radians(angle_degrees)
         let j_angle_degrees_rounded = Math.round(angle_degrees)
         if(Simulate.sim.J6) {
             Simulate.sim.J6.rotation.z = rads
@@ -416,7 +428,7 @@ class SimUtils{
 
     static render_j7(ds_instance, xyz){ //xyz only needs to be passed in if using SimBuild
         let angle_degrees = ds_instance.compute_measured_angle_degrees(7)
-        let rads = degrees_to_radians(angle_degrees)
+        let rads = SimUtils.degrees_to_radians(angle_degrees)
         let j_angle_degrees_rounded = Math.round(angle_degrees)
         if(Simulate.sim.J7) { //330 degrees = 0.05 meters
             let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.

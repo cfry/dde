@@ -1,7 +1,8 @@
 //Robot Status Class (as distinguished from the robot_status 1D array of 60 elts.
 //import {Dexter} from './robot.js' //dde4 not needed because Dexter is now global
+import {value_of_path} from "./utils.js"
 
-export var RobotStatus = class RobotStatus{
+class RobotStatus{
     //below work for g0 and g1
     constructor({robot_status="required"}){
         this.robot_status = robot_status //for g0, the array has degrees, etc.
@@ -471,3 +472,4 @@ export var RobotStatus = class RobotStatus{
     }
 
 }
+globalThis.RobotStatus = RobotStatus
