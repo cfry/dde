@@ -253,7 +253,7 @@ class Simulate {
         Lprv.copy ( linkPrv.matrix );
 
         let nLprv = new THREE.Matrix4();
-        nLprv.getInverse ( Lprv );
+        nLprv.copy(Lprv).invert();
 
         //	The link's position WRT base.
         let link = children[i];
