@@ -172,12 +172,15 @@ class DDEVideo {
             content_is_good = true
         }
         else if(content === "Dexter Photo"){
-            let file_name = __dirname + "/doc/HD+Robotics-8517.jpg" //Dexter and Kent
+            let file_name = "src/doc/HD+Robotics-8517.jpg"
+                    //"../doc/HD+Robotics-8517.jpg"
+                    //__dirname +
+                    //"/general/doc/HD+Robotics-8517.jpg" //Dexter and Kent
             sim_pane_content_id.innerHTML = "<img src='" + file_name + "' style='width:100%;'/>"
             content_is_good = true
         }
         else if(content === "Dexter Architecture"){
-            let file_name = __dirname + "/doc/dexter_architecture.jpg"
+            let file_name = "src/doc/dexter_architecture.jpg"
             sim_pane_content_id.innerHTML = "<img src='" + file_name + "' style='width:100%;'/>"
             content_is_good = true
         }
@@ -399,7 +402,7 @@ class DDEVideo {
                  content.endsWith(".bmp") ||
                  content.endsWith(".svg")
         ){
-            if(file_exists(content)){
+            if(globalThis.file_exists && file_exists(content)){
                 let div_html = "<img style='width:100%;' src='" + content + "'/>"
                 sim_pane_content_id.innerHTML = div_html
                 content_is_good = true
@@ -412,7 +415,7 @@ class DDEVideo {
                  content.endsWith(".js")   ||
                  content.endsWith(".json") ||
                  content.endsWith(".dde")){
-            if(file_exists(content)){
+            if(globalThis.file_exists && file_exists(content)){
                 let div_html =
                   "<div contenteditable='false' style='height:300px; width:800px; padding:5%; background-color:white; overflow:scroll;'>"
 
@@ -427,7 +430,7 @@ class DDEVideo {
             }
         }
 
-        else if(file_exists(content)) { //content could be: (content.endsWith(".html") || content.endsWith(".htm") ||
+        else if(globalThis.file_exists && file_exists(content)) { //content could be: (content.endsWith(".html") || content.endsWith(".htm") ||
              //some random other file that hopefully can be displayed as html.
              //but if we get an error, the below catch will catch it.
             let div_html =
@@ -464,17 +467,19 @@ class DDEVideo {
 //the top level fn. determines if we are to grow or to shrink misc_pane.
 //referenced by on_ready
     static toggle_misc_pane_size(){
-        if(!global.orig_left_splitter_pane_size){
-            global.orig_left_splitter_pane_size = //global var
+        if(!DDEVideo.orig_left_splitter_pane_size){
+            DDEVideo.orig_left_splitter_pane_size = //global var
                 $('#outer_splitter_id').jqxSplitter('panels')[0].size
-            global.global.orig_top_splitter_pane_size = //global var
+            DDEVideo.orig_top_splitter_pane_size = //global var
                 $('#right_splitter_id').jqxSplitter('panels')[0].size
-            global.misc_pane_should_increase = true //global var
+            DDEVideo.misc_pane_should_increase = true //global var
         }
-        if (global.misc_pane_should_increase) { increase_misc_pane_size() }
-        else  {  decrease_misc_pane_size() }
+        if (DDEVideo.misc_pane_should_increase) { DDEVideo.increase_misc_pane_size() }
+        else  {  DDEVideo.decrease_misc_pane_size() }
     }
 
+    //use DDEVideo instead of "this" below as this fn is called recursively
+    //perhaps withot the correct subject.
     static increase_misc_pane_size(){
         let left_width = $('#outer_splitter_id').jqxSplitter('panels')[0].size //the width of the Editor & output pane
         let top_width  = $('#right_splitter_id').jqxSplitter('panels')[0].size //the height of the Doc pane
@@ -490,11 +495,11 @@ class DDEVideo {
             keep_going = true
         }
         if(keep_going){
-            setTimeout(increase_misc_pane_size, 3)
+            setTimeout(DDEVideo.increase_misc_pane_size, 3)
         }
         else { //we're done
-            global.misc_pane_should_increase = false //next time we toggle, shrink
-            console.log("done with increase. now misc_pane_should_increase: " + misc_pane_should_increase)
+            DDEVideo.misc_pane_should_increase = false //next time we toggle, shrink
+            console.log("done with increase. now misc_pane_should_increase: " + DDEVideo.misc_pane_should_increase)
         }
     }
 
@@ -503,22 +508,22 @@ class DDEVideo {
         let left_width = $('#outer_splitter_id').jqxSplitter('panels')[0].size
         let top_width  = $('#right_splitter_id').jqxSplitter('panels')[0].size
         let keep_going = false
-        if(left_width < orig_left_splitter_pane_size) {
-            let new_size = (DDE_DB.persistent_get("animate_ui") ? left_width + 6 : orig_left_splitter_pane_size)
+        if(left_width < DDEVideo.orig_left_splitter_pane_size) {
+            let new_size = (DDE_DB.persistent_get("animate_ui") ? left_width + 6 : DDEVideo.orig_left_splitter_pane_size)
             $('#outer_splitter_id').jqxSplitter({panels: [{ size: new_size}]})
             keep_going = true
         }
-        if(top_width < orig_top_splitter_pane_size) {
-            let new_size = (DDE_DB.persistent_get("animate_ui") ? top_width + 2 : orig_top_splitter_pane_size)
+        if(top_width < DDEVideo.orig_top_splitter_pane_size) {
+            let new_size = (DDE_DB.persistent_get("animate_ui") ? top_width + 2 : DDEVideo.orig_top_splitter_pane_size)
             $('#right_splitter_id').jqxSplitter({panels: [{ size: new_size}]})
             keep_going = true
         }
         if(keep_going){
-            setTimeout(decrease_misc_pane_size, 4)
+            setTimeout(DDEVideo.decrease_misc_pane_size, 4)
         }
         else { //we're done
-            global.misc_pane_should_increase = true //next time we toggle, shrink
-            global.orig_left_splitter_pane_size = null //and reset the min size for when we shrink after that
+            DDEVideo.misc_pane_should_increase = true //next time we toggle, shrink
+            DDEVideo.orig_left_splitter_pane_size = null //and reset the min size for when we shrink after that
 
         }
     }

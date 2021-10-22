@@ -90,7 +90,7 @@ var Lesson = class Lesson{
             }
         }
         else if(typeof(location) === "string"){ //we've got a details-summary string.
-            insert_html_into_doc_pane(html, location, position)
+            DocCode.insert_html_into_doc_pane(html, location, position)
         }
         //else we're not installing this html anywhere, just return it.
         return html

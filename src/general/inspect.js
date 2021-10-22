@@ -7,7 +7,8 @@ import {a_or_an, get_class_name,
         from "../job_engine/core/utils.js"
 import {file_exists, make_full_path, read_file} from "../job_engine/core/storage.js"
 
-var inspect_stacks = [] //Outer array has one array per inspector_display.
+//needs to be global as the Plot button in inspecting Jobs and arrays needs it.
+globalThis.inspect_stacks = [] //Outer array has one array per inspector_display.
                         //the inner array is the objects displayed in that inspector
                         // in order. So first one is the original item that
                         //that inspector_display was created for.
@@ -146,12 +147,12 @@ function make_plot_button_html_maybe(stack_number, in_stack_position){
                      " inspect_stacks[" + stack_number + "][" + in_stack_position + "])'>Plot</button>"
         }
         else if (item instanceof Job){
-            result = " <button title='Show a graph of the Job move points.'" +
+            result = " <button title='Show a graph of this Job's move points in xyz coordinates.'" +
                      " style='cursor:pointer;font-size:12px;padding:2px;height:20px;'" +
                      " onclick='Plot.show(undefined," +
                      " inspect_stacks[" + stack_number + "][" + in_stack_position + "].three_d_points_for_plotting())'>Plot</button>" +
 
-                     " <button title='Show graphs of all Jobs points.'" +
+                     " <button title='Show graphs of all Jobs' move points.'" +
                      " style='cursor:pointer;font-size:12px;padding:2px;height:20px;'" +
                      " onclick='Plot.show(undefined," +
                      ` "Job")'>Plot Jobs</button>`

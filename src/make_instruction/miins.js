@@ -1,4 +1,9 @@
-var MiIns = class MiIns {
+import {ends_with_one_of, fn_is_keyword_fn, function_param_names_and_defaults_array,
+        get_class_of_instance, get_class_name,
+        replace_substrings, starts_with_one_of, trim_end, value_of_path}
+       from "../job_engine/core/utils.js"
+
+class MiIns {
     constructor (){
         this.superclass_name = ""
         this.instance_name   = ""
@@ -170,8 +175,9 @@ var MiIns = class MiIns {
     //make instructions: only make a call_obj with its names in place, no args added
     static make_from_instruction_name_no_args(instruction_name){
         let family_class = this.instruction_name_to_family_class(instruction_name)
-        let new_class_name = get_class_name(family_class)
-        let new_inst = window.eval("new " + new_class_name)
+        //let new_class_name = get_class_name(family_class)
+        //let new_inst = window.eval("new " + new_class_name) //dde4 causes probelms because of a name of MiIns$1
+        let new_inst = new family_class()
         new_inst.superclass_name = this.instruction_name_to_superclass_name(instruction_name)
         new_inst.instance_name   = this.instruction_name_to_instance_name(instruction_name)
         new_inst.class_name      = this.instruction_name_to_class_name(instruction_name)
@@ -380,7 +386,9 @@ var MiIns = class MiIns {
                     merge_in_special_defaults().
                     merge_in_prev_defaults()
     }
-}
+} //end class MiIns
+globalThis.MiIns = MiIns
+
 //obsolete
 MiIns.special_defaults = new MiIns() //empty here but specialized for each subclass maybe
 
@@ -645,4 +653,3 @@ MiIns.subclasses = [MiIns.array_family, MiIns.function_family, MiIns.human_famil
                     MiIns.move_all_joints_family, MiIns.move_to_family,
                     MiIns.new_family, MiIns.serial_family]
 
-import {ends_with_one_of, fn_is_keyword_fn, get_class_of_instance, replace_substrings, starts_with_one_of, trim_end} from "../job_engine/core/utils.js"

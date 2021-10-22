@@ -9,10 +9,11 @@
 //import * as process from "../../../node_modules/process/index.js" //todo module is not defined
 //import {Instruction} from "./instruction.js" //now global
 //import {Robot, Brain, Dexter, Human, Serial} from './robot.js' //now global
-
+import * as espree from "espree"; //replaces esprima
 
 //import {isBase64} from "../../../node_modules/is-base64/is-base64.js"
 //importing from is_base64 npm module doesn't work, so code inlined below
+
 function isBase64(v, opts) {
     if (v instanceof Boolean || typeof v === 'boolean') {
         return false
@@ -420,7 +421,8 @@ export function get_class_of_instance(instance){
 
 
 //______color_______
-export function rgb(r, g, b){return "rgb("+r+", "+g+", "+b+")"} //this string used in css
+function rgb(r, g, b){return "rgb("+r+", "+g+", "+b+")"} //this string used in css
+globalThis.rgb = rgb //documented for users, as in Plot example
 
 // "rgb(2, 3, 123)" => [2, 3, 123]
 export function rgb_string_to_integer_array(str){
@@ -888,7 +890,8 @@ export function function_name(fn_or_src){
 
 //returns a string
 export function function_params(fn, include_parens=true){
-    let src = fn.toString()
+    let src = fn.toString() //dde4, when fn is the class obj for Job, returns src with "Job$1" in it.
+    src = src.replaceAll("Job$1", "Job")
     let open_pos = src.indexOf("(")
     let close_pos = Editor.find_matching_delimiter(src, open_pos)
     /*close_pos = src.indexOf("){") //beware, with default args, there can be syntax in params, but this will at least mostly work
@@ -1044,14 +1047,18 @@ export function function_param_names_and_defaults_array(fn, grab_key_vals=false)
         }
         else if(fn == "new Array") { return [["...elts", ""]] }
         else if(fn.startsWith("new ")) {
-            fn_val = value_of_path(fn.substring(4))
+            let class_name = fn.substring(4) //warning, could be "Job$1"
+            if(class_name.endsWith("$1")) {  //happens when called from MiRecord, clicking the Record button
+               class_name = class_name.substring(0, class_name.length - 2) //cut off the "$1". Kludge from dde4 rollup, etc.
+            }
+            let fn_val = value_of_path(class_name)
             if (typeof(fn_val) != "function") {
                 dde_error("function_param_names_and_defaults_array called with non function: " + fn)
             }
             else { fn = fn_val }
         }
         else {
-            fn_val = value_of_path(fn)
+            let fn_val = value_of_path(fn)
             if (typeof(fn_val) != "function") {
                 dde_error("function_param_names_and_defaults_array called with non function: " + fn)
             }
@@ -1060,7 +1067,8 @@ export function function_param_names_and_defaults_array(fn, grab_key_vals=false)
     }
     if(fn.name == "Array") { return [["...elts", ""]]}
     let param_string = "function foo(" + function_params(fn, false) + "){}"
-    let ast = esprima.parse(param_string, {range: true, raw: true})
+    //espree doc at https://github.com/eslint/espree
+    let ast = espree.parse(param_string, {range: true, ecmaVersion: "latest"}) //, raw: true})
     let params_ast = ast.body[0].params
     let result = []
     for (let param_ast of params_ast){
@@ -1080,8 +1088,6 @@ export function function_param_names_and_defaults_array(fn, grab_key_vals=false)
                     if(grab_key_vals){
                         for(let prop of param_ast.left.properties){
                             let ass_pat_ast = prop.value
-                            let name
-                            let val_src
                             if(ass_pat_ast.type == "Identifier"){ //there's no default value
                                 name = ass_pat_ast.name
                                 val_src = "undefined"
@@ -1105,8 +1111,6 @@ export function function_param_names_and_defaults_array(fn, grab_key_vals=false)
                 if(grab_key_vals){
                     for(let prop of param_ast.properties){
                     	let ass_pat_ast = prop.value
-                        let name
-                        let val_src
                     	if(ass_pat_ast.type == "Identifier"){ //there's no default value
                             name = ass_pat_ast.name
                             val_src = param_names_get_default_val_src(param_string, ass_pat_ast)

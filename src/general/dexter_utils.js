@@ -292,7 +292,8 @@ class DexterUtils {
     //ping.sys.probe(host, function(isAlive){ out(host + " connected: " + isAlive) }
 
     //_______default robot_______
-    static make_dexter_default_menu_html(selected_robot_full_name=""){
+    //for dde3
+    /*static make_dexter_default_menu_html(selected_robot_full_name=""){
         var result = "<span style='font-size:10px;'>Dexter.default: </span>" +
             "<select id='default_dexter_name_id' onchange='DexterUtils.onchange_dexter_default(event)' style='font-size:14px;width:130px;'" +
             " title='Supplies the robot for instructions prefixed\n" +
@@ -302,8 +303,28 @@ class DexterUtils {
             for(let name of window[robot_class_name].all_names){
                 let full_name = robot_class_name + "." + name
                 let sel_attr = ((full_name == selected_robot_full_name) ? " selected='selected' " : "")
-                result += "<option " + sel_attr + ">" + full_name + "</option>"
+                result += "<option " + sel_attr + ">" +
+                             full_name + //in dde3, just the name is shown but full_name was in this code for some weired reason
+                          "</option>"
             }
+        }
+        result += "</select>"
+        return result
+    }*/
+
+    //for dde4
+    static make_dexter_default_menu_html(selected_robot_full_name=""){
+        var result = "<span style='font-size:10px;'>Dexter.default: </span>" +
+            "<select id='default_dexter_name_id' onchange='DexterUtils.onchange_dexter_default(event)' style='font-size:14px;width:130px;'" +
+            " title='Supplies the robot for instructions prefixed\n" +
+            "with a robot class (like Dexter or Serial)\n" +
+            "but no robot instance.')>"
+        for(let name of Dexter.all_names){
+            let full_name = "Dexter" + "." + name
+            let sel_attr = ((full_name === selected_robot_full_name) ? " selected='selected' " : "")
+            result += "<option " + sel_attr + ">" +
+                      name + //in dde3, just the name is shown but full_name was in this code for some weired reason
+                      "</option>"
         }
         result += "</select>"
         return result

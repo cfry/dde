@@ -1,8 +1,9 @@
-import {value_of_path} from "../job_engine/core/utils.js"
+import Plotly from 'plotly.js-dist'
 
-import Plotly from '/plotly.js-dist'
 
-var Plot = class Plot{
+import {is_array_of_numbers, is_2D_array_of_numbers, value_of_path} from "../job_engine/core/utils.js"
+
+class Plot{
    //static default_plot_div_id = "plot_id"
    static init(){     
    }
@@ -306,6 +307,9 @@ var Plot = class Plot{
        Plotly.newPlot(graphDiv, data, layout, config)
    }
 }
+
+globalThis.Plot = Plot
+globalThis.Plotly = Plotly //let users roll their own with raw Plotly
 /*
 Plot.show(undefined, [2, 4, 6, 8])
 Plot.show(undefined, [[0, 1, 2, 3],     [2, 3.456, 3, 2]], {title: "my cool plot"})

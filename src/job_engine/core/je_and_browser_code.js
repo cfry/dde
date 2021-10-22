@@ -566,6 +566,9 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
     static submit_window(event){
         // descriptions of x & y's: http://stackoverflow.com/questions/6073505/what-is-the-difference-between-screenx-y-clientx-y-and-pagex-y
         let subject_elt = this
+        if(this.classList.contains("modebar-btn")) { //user clicked on an icon at the top of a Plot window
+            return //so don't do stopPropagation, let its normal processing happen
+        }
         event.stopPropagation();
         let result = {offsetX:event.offsetX,  offsetY:event.offsetY, //relative to the elt clocked on
             x:event.x,              y:event.y, //relative to the parent of the elt clicked on

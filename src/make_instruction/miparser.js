@@ -1,4 +1,7 @@
-import {value_of_path} from "../job_engine/core/utils.js"
+import * as espree from "espree"; //replaces esprima
+
+import {function_param_names_and_defaults_array, starts_with_one_of,
+        value_of_path} from "../job_engine/core/utils.js"
 
 class MiParser {
     //_______utils_________
@@ -21,12 +24,12 @@ class MiParser {
     static string_to_ast(src){
         if (src[0] == "{") { //esprima doesn't like so hack it
             let new_src = "var foo947 = " + src
-            let st = esprima.parse(new_src, {range: true, loc: true})
+            let st = espree.parse(new_src, {range: true, loc: true,  ecmaVersion: "latest"})
             let new_st = st.body[0].declarations[0].init
             return new_st
         }
         else {
-            return esprima.parse(src, {range: true, loc: true})
+            return espree.parse(src, {range: true, loc: true, ecmaVersion: "latest"})
         }
     }
 

@@ -1,7 +1,8 @@
 //import Socket from "../job_engine/core/socket.js" //dde4 Socket is now global. used for string instruction processing
-import  * as esprima  from "../../node_modules/esprima/dist/esprima.js"
-import {ends_with_one_of, fn_is_keyword_fn, replace_substrings,
-        starts_with_one_of, trim_end} from "../job_engine/core/utils.js"
+//import  * as esprima  from "../../node_modules/esprima/dist/esprima.js" //not used
+import {ends_with_one_of, fn_is_keyword_fn, function_param_names_and_defaults_array,
+        get_class_of_instance, is_digit, replace_substrings,
+        starts_with_one_of, trim_end, value_of_path} from "../job_engine/core/utils.js"
 import {to_source_code} from "../job_engine/core/to_source_code.js"
 import {file_exists, write_file, make_full_path} from "../job_engine/core/storage.js"
 

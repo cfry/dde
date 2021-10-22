@@ -120,9 +120,12 @@ import "./dexter_user_interface2.js" //define class dui2 globally.
 import "./splash_screen.js" //makes SplashScreen global
 
 import "../make_instruction/make_instruction.js" //defines class MakeInstruction globally
+import "../make_instruction/miins.js"            //defines class MiIns globally
 import "../make_instruction/miparser.js"         //defines class MiParser globally
 import "../make_instruction/mistate.js"          //defines class MiState globally
 import "../make_instruction/mirecord.js"         //defines class MiRecord globally
+
+import "./plot.js" //globally defines class Plot
 
 //Music
 import Midi from "webmidi";
@@ -144,15 +147,18 @@ var js_cmds_index = -1
 
 
 
-//can't work from browser
+
 function open_dev_tools(){
-    let dde_ipc    //todo  = require('electron').ipcRenderer
-    dde_ipc.sendSync('open_dev_tools')
+    //let dde_ipc
+    //dde_ipc.sendSync('open_dev_tools') //can't work from dde4 browser.
+    warning("To open Chrome's dev tools (debugger),<br/>click-right on DDE and choose <b>Inspect</b>.")
 }
 
 function close_dev_tools(){
-    let dde_ipc    //todo  = require('electron').ipcRenderer
-    dde_ipc.sendSync('close_dev_tools')
+    //let dde_ipc    //todo  = require('electron').ipcRenderer
+    //dde_ipc.sendSync('close_dev_tools')
+    warning("To close Chrome's dev tools (debugger)<br/>close its window from its title bar,<br/>" +
+            "or, if its a pane attached to DDE,<br/>click the X in the upper right of that pane.")
 }
 
 function undebug_job() {

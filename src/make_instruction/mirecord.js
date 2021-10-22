@@ -1,7 +1,10 @@
 // In DDE3, both "./nouislider.css" and "./nouislider_fry.css", from the below lines, are included before general "styles.css". We might want to make sure that this css inclusion order is maintained.
-import "./nouislider.css"
+import "./nouislider.css" //necessary in dde3 and dde4
 import "./nouislider_fry.css"
-import "./nouislider.js"
+import noUiSlider from 'nouislider';
+
+import {is_array_of_numbers, is_string_a_integer, is_string_a_literal_string} from "../job_engine/core/utils.js"
+
 
 class MiRecord {
     static instruction_suffix_html(loc){
@@ -1499,5 +1502,5 @@ class MiRecord {
     static start_time_in_ms = null
 }
 
-globalThis.MiRocord = MiRecord
+globalThis.MiRecord = MiRecord
 
