@@ -5,10 +5,6 @@
 //import  {Kin}     from "../math/Kin.js" //now global
 
 //import  {to_source_code} from "./to_source_code.js" //now to_source_code is global //for debugging only
-import  {shouldnt, copy_missing_fields, Duration, is_generator_function,
-         is_iterator, is_non_neg_integer, last,
-         return_first_arg, starts_with_one_of, stringify_value_aux, stringify_value_sans_html,
-         trim_comments_from_front, value_of_path} from "./utils.js"
 
 
 class Instruction {
@@ -31,7 +27,7 @@ class Instruction {
        else { return instr.toString() }
     }
     toString(){
-        return "{instanceof: " + stringify_value_aux(this.constructor) + "}"
+        return "{instanceof: " + Utils.stringify_value_aux(this.constructor) + "}"
     }
 
     //excludes at_sign instructions but includes "a" and "a!
@@ -142,7 +138,7 @@ class Instruction {
        else if (typeof(item) === "function")     {return true }
        else if (Array.isArray(item))             { return true }
        else if(Instruction.is_oplet_array(item)) { return false }
-       else if (is_iterator(item))               { return true }
+       else if (Utils.is_iterator(item))               { return true }
        else if (item instanceof Instruction){
            if(item.inserting_instruction)        { return true }
            else { return false }
@@ -199,7 +195,7 @@ class Instruction {
        return ( Instruction.is_no_op_instruction(item) ||
                 (item instanceof Instruction) ||
                 Instruction.is_oplet_array(item) ||
-                is_iterator(item) ||
+                Utils.is_iterator(item) ||
                 (typeof(item) === "string") ||
                 (typeof(item) === "function") ||
                 Instruction.is_start_object(item)
@@ -290,8 +286,8 @@ class Instruction {
             else if (ins instanceof Instruction.debugger) { return "red" }    //red
             else                                          { return "#e6b3ff" }//lavender
         }
-        else if (is_generator_function(ins))              { return "#ccffcc" } //green
-        else if (is_iterator(ins))                        { return "#aaffaa" } //lighter green
+        else if (Utils.is_generator_function(ins))              { return "#ccffcc" } //green
+        else if (Utils.is_iterator(ins))                        { return "#aaffaa" } //lighter green
         else if (typeof(ins) == "function")               { return "#b3e6ff" } //blue
         else if (Instruction.is_start_object(ins))        { return "#ffd492"}  //tan
         else if (ins === null)                            { return "#aaaaaa" } //gray
@@ -325,10 +321,10 @@ class Instruction {
             }
             return name + " with " + props
         }
-        else if (is_generator_function(ins)) {
+        else if (Utils.is_generator_function(ins)) {
             return "generator function " + ins.toString().substring(0, 70)
         }
-        else if (is_iterator(ins)){
+        else if (Utils.is_iterator(ins)){
             return "iterator " + ins.toString().substring(0, 70)
         }
         else if (typeof(ins)  == "function")       { return ins.toString().substring(0, 80) }
@@ -337,12 +333,12 @@ class Instruction {
             else { return ins.toString().substring(0, 80)  }
         }
 
-        else if (Array.isArray(ins))        { return stringify_value(ins) }
+        else if (Array.isArray(ins))        { return Utils.stringify_value(ins) }
         else { shouldnt("Instruction.text_for_do_list_item got unknown instruction type: " + ins) }
     }
     static text_for_do_list_item_for_stepper(ins){
         if(Instruction.is_oplet_array(ins)) {
-            let text = JSON.stringify(ins.slice(4)) //we want 1 line here, not the multi-lines that stringify_value(ins) puts out
+            let text = JSON.stringify(ins.slice(4)) //we want 1 line here, not the multi-lines that Utils.stringify_value(ins) puts out
             return "<span title='" + Robot.instruction_type_to_function_name(ins[Instruction.INSTRUCTION_TYPE]) + "'>" + text + "</span>"
         }
         else if (ins instanceof Instruction) {
@@ -353,15 +349,15 @@ class Instruction {
             }
             return name + " with " + props
         }
-        else if (is_generator_function(ins)) {
+        else if (Utils.is_generator_function(ins)) {
             return "generator function " + ins.toString().substring(0, 70)
         }
-        else if (is_iterator(ins)){
+        else if (Utils.is_iterator(ins)){
             return "iterator " + ins.toString().substring(0, 70)
         }
         else if (typeof(ins) == "function") { return ins.toString().substring(0, 80) }
         else if (ins == null) { return 'null' }
-        else if (Array.isArray(ins)) { return stringify_value(ins) }
+        else if (Array.isArray(ins)) { return Utils.stringify_value(ins) }
         else { shouldnt("Instruction.text_for_do_list_item_for_stepper got unknown instruction type: " + ins) }
     }
 
@@ -469,7 +465,7 @@ Instruction.valid_w_addresses = [5,
 */
 
 Instruction.is_valid_w_address = function(addr) {
-  return is_non_neg_integer(addr)
+  return Utils.is_non_neg_integer(addr)
 }
 
 Instruction.w_address_names = [
@@ -1428,7 +1424,7 @@ export var human_enter_instruction_handler = function(vals){
         let last_ins = job_instance.enter_instruction_recording.pop()
         if (last_ins){
             recorded_instructions_count_id.innerHTML = "" + job_instance.enter_instruction_recording.length
-            out("Human.enter_instruction erased the last previously recorded instruction of:<br/>" + stringify_value(last_ins),
+            out("Human.enter_instruction erased the last previously recorded instruction of:<br/>" + Utils.stringify_value(last_ins),
                 "purple")
         }
         else {
@@ -1478,7 +1474,7 @@ export var human_enter_instruction_handler = function(vals){
           if (vals.immediate_do == ""){
               prefix = "Human.enter_instruction captured Dexter's joint angles for instruction:"
           }
-          out(prefix + "<br/>" + stringify_value(args_array), "purple")
+          out(prefix + "<br/>" + Utils.stringify_value(args_array), "purple")
           job_instance.enter_instruction_recording.push(args_array)
           //don't to the above set_in_ui because the win is now closed, but the new count will show up when the window redisplays
       }
@@ -1499,7 +1495,7 @@ var human_enter_instruction_job_source_to_save = function(job_instance){
     for (let ins of job_instance.enter_instruction_recording){
         let ins_src = "make_ins("
         for (let i = Dexter.INSTRUCTION_TYPE; i < ins.length; i++){
-            let val = stringify_value_sans_html(ins[i])
+            let val = Utils.stringify_value_sans_html(ins[i])
             let arg_prefix = ((i == Dexter.INSTRUCTION_TYPE) ? "" : ", ")
             ins_src += arg_prefix + val
 
@@ -2145,7 +2141,7 @@ Instruction.include_job = class include_job extends Instruction{
                             do_list_array_to_use = file_value
                         }
                         else if (file_value === undefined){ // if first expr in file is var foo = arrayof_instructions, use that
-                            file_src = trim_comments_from_front(file_src)
+                            file_src = Utils.trim_comments_from_front(file_src)
                             if(file_src.startsWith("var ")){
                                 let equal_sign_pos = file_src.indexOf("=")
                                 if(equal_sign_pos == -1){
@@ -2221,12 +2217,12 @@ Instruction.include_job = class include_job extends Instruction{
                 if(the_start_loc == null) { the_start_loc = 0 }
                 if(the_end_loc   == null) { the_end_loc   = do_list_array_to_use.length }
             }
-            if(!is_non_neg_integer(the_start_loc)){
+            if(!Utils.is_non_neg_integer(the_start_loc)){
                 dde_error("Control.include_job passed start_loc of: " + this.start_loc +
                           "<br/>but that resolved to: " +  the_start_loc +
                           "<br/>which is not a non-negative integer.")
             }
-            else if(!is_non_neg_integer(the_end_loc)){
+            else if(!Utils.is_non_neg_integer(the_end_loc)){
                 dde_error("Control.include_job passed end_loc of: " + this.end_loc +
                           "<br/>but that resolved to: " +  the_end_loc +
                           "<br/>which is not a non-negative integer.")
@@ -2296,7 +2292,7 @@ Instruction.loop = class loop extends Instruction{
         if(this.resolved_times_to_loop === null){ //first time only
             this.iter_index = -1
             if      (typeof(this.times_to_loop) == "boolean")  { this.resolved_times_to_loop = this.times_to_loop} //leave iter_total at Infinity
-            else if (is_non_neg_integer(this.times_to_loop))   { this.resolved_times_to_loop = this.times_to_loop; this.iter_total = this.resolved_times_to_loop}
+            else if (Utils.is_non_neg_integer(this.times_to_loop))   { this.resolved_times_to_loop = this.times_to_loop; this.iter_total = this.resolved_times_to_loop}
             else if (Array.isArray(this.times_to_loop))        { this.resolved_times_to_loop = this.times_to_loop; this.iter_total = this.resolved_times_to_loop.length}
             else if (typeof(this.times_to_loop) == "object")   {
                 this.times_to_loop_object = this.times_to_loop
@@ -2307,7 +2303,7 @@ Instruction.loop = class loop extends Instruction{
                fn_result = this.times_to_loop.call(job_instance, this.iter_index, undefined, undefined, undefined)
                if      (typeof(fn_result) == "boolean")        { this.resolved_times_to_loop = this.times_to_loop } //leave iter_total at Infinity
                else if (typeof(fn_result) == "number"){
-                   if(is_non_neg_integer(fn_result))           { this.resolved_times_to_loop = fn_result; this.iter_total = this.resolved_times_to_loop}
+                   if(Utils.is_non_neg_integer(fn_result))           { this.resolved_times_to_loop = fn_result; this.iter_total = this.resolved_times_to_loop}
                    else {
                        job_instance.stop_for_reason("errored", "Control.loop passed times_to_loop that returned a number: " +  fn_result +
                                                        "\n but it isn't a non-negative integer.")
@@ -2343,7 +2339,7 @@ Instruction.loop = class loop extends Instruction{
             return null
         }
         else if (this.resolved_times_to_loop === true){ iter_val = true } //loop forever or until body_fn returns Control.break instruction
-        else if(is_non_neg_integer(this.resolved_times_to_loop)){
+        else if(Utils.is_non_neg_integer(this.resolved_times_to_loop)){
             iter_val = this.iter_index
         }
         else if (this.times_to_loop_object){ //must be before Array.isArray(this.resolved_times_to_loop)
@@ -2489,7 +2485,7 @@ Instruction.send_to_job = class send_to_job extends Instruction{
             //params.where_to_insert = "next_top_level"
             dde_error("Instruction send_to_job was not supplied with a 'where_to_insert' instruction location.")
         }
-        copy_missing_fields(params, this)
+        Utils.copy_missing_fields(params, this)
         this.inserting_instruction = true
     }
 
@@ -2640,7 +2636,7 @@ Instruction.sent_from_job = class sent_from_job extends Instruction{
         if (!params.where_to_insert) { //the defaults listed above don't actually work
             params.where_to_insert = "next_top_level"
         }
-        copy_missing_fields(params, this)
+        Utils.copy_missing_fields(params, this)
         this.inserting_instruction = true
     }
 
@@ -2861,7 +2857,7 @@ Instruction.start_job = class start_job extends Instruction{
     to_source_code(args){
         return args.indent + "Control.start_job(" +
             to_source_code({value: this.job_name})  +
-            (similar(this.start_options, {}) ? "" : (", " + to_source_code({value: this.start_options}))) +
+            (Utils.similar(this.start_options, {}) ? "" : (", " + to_source_code({value: this.start_options}))) +
             ((this.if_started == "ignore")   ? "" : (", " + to_source_code({value: this.if_started}))) +
             ")"
     }

@@ -14,7 +14,10 @@ import * as espree from "espree"; //replaces esprima
 //import {isBase64} from "../../../node_modules/is-base64/is-base64.js"
 //importing from is_base64 npm module doesn't work, so code inlined below
 
-function isBase64(v, opts) {
+class Utils {
+
+//_______base64_______
+static isBase64(v, opts) {
     if (v instanceof Boolean || typeof v === 'boolean') {
         return false
     }
@@ -43,22 +46,40 @@ function isBase64(v, opts) {
     return (new RegExp('^' + regex + '$', 'gi')).test(v)
 }
 
-//import {microseconds}              from "../../../node_modules/nano-time/index.js"
-//importing microseconds from this module just doesn't work, so
-//I'm inlining the code from the nano-time npm module here:
-function nanoseconds() {
-    let loadNs = process.hrtime();
-    let loadMs = new Date().getTime();
-    let diffNs = process.hrtime(loadNs);
-    return BigInt(loadMs).times(1e6).add(BigInt(diffNs[0]).times(1e9).plus(diffNs[1])).toString();
+//note that the JS fns atob and btoa are defined in DDE proper
+//but are not in node.js so they don't work on the Job Engine.
+//So these are defined and will work on both DDE and Job Engine under node.
+static base64_to_binary_string(str) {
+    return Buffer.from(str, 'base64').toString('binary')
 }
 
-function microseconds() {
-    return BigInt(nanoseconds()).divide(1e3).toString();
-}
-//_____done with defining microseconds, called below
 
-export function prepend_file_message_maybe(message){
+static binary_to_base64_string(str) {
+    return Buffer.from(str, 'binary').toString('base64')
+}
+
+//normal base64 chars are only letters, digits, plus_sign and slash
+//but *some* base64 has \n every 76 chars, and sometimes there's a
+//trailing newline.
+static is_string_base64(a_string, permit_trailing_newline=false) {
+    if(typeof(a_string) === "string") {
+        if(this.isBase64(a_string)) { return true }
+        else if(permit_trailing_newline  &&
+            (last(a_string) == "\n") &&
+            (this.is_integer(a_string.length - 1) / 4)) {
+            //normal base64 length is a multiple of 4. since these strings can be long,
+            //I don't want to unnecessarily make a long string
+            a_string = a_string.substr(0, (a_string.length - 1))
+            return this.isBase64(a_string)
+        }
+        else { return false }
+    }
+    else { return false } //this.isBase64(null) => true which is bad, but
+    // that's in the pkg I'm using, so I do the extra check to ensure non-strings return false
+}
+//end base64
+
+static prepend_file_message_maybe(message){
     if (message.startsWith("while loading file:")) { return message }
     else if (globalThis.loading_file) {
         return "while loading file: " + globalThis.loading_file + "<br/>" + message
@@ -66,8 +87,8 @@ export function prepend_file_message_maybe(message){
     else { return message }
 }
 
-function dde_error(message){
-    let out_string = prepend_file_message_maybe(message)
+static dde_error(message){
+    let out_string = Utils.prepend_file_message_maybe(message)
     console.log("dde_error: " + out_string)
     var err = new Error();
     var stack_trace = err.stack
@@ -80,12 +101,10 @@ function dde_error(message){
         SW.append_to_output(out_string)
     }
     throw new Error(message)
-}
+}  //global
 
-globalThis.dde_error = dde_error //not documented, but just used so many places in DDE.
-                                 //we should probably encourage advances dde users to use it.
 
-export function warning(message, temp=false){
+static warning(message, temp=false){
     if(message){
         let out_string
         let stack_trace = "Sorry, a stack trace is not available."
@@ -100,13 +119,18 @@ export function warning(message, temp=false){
             }
             catch(an_err) {}
         }
-        out_string = "<details><summary><span class='warning_css_class'>Warning: " + prepend_file_message_maybe(message) +
+        out_string = "<details><summary><span class='warning_css_class'>Warning: " + Utils.prepend_file_message_maybe(message) +
             "</span></summary>" + stack_trace + "</details>"
         out(out_string, undefined, temp)
     }
+} //global (used a lot)
+
+static warning_or_error(message, error=false){
+    if(error) { dde_error(message) }
+    else      { warning(message) }
 }
 
-export function shouldnt(message){
+static shouldnt(message){
     console.log(message)
     if(window.contact_doc_id) {
         DocCode.open_doc(contact_doc_id)
@@ -115,40 +139,35 @@ export function shouldnt(message){
                     "This means there is a bug in DDE.<br/>" +
                     "Please send a bug report. See User_Guide/Contact.<br/>" +
                     "Include this whole message.<br/>" +
-                     prepend_file_message_maybe(message))
-}
+                     Utils.prepend_file_message_maybe(message))
+} //global (used a lot)
 
-export function warning_or_error(message, error=false){
-    if(error) { dde_error(message) }
-    else      { warning(message) }
-}
-
-export function version_equal(version_string1, version_string2=dde_version){
+static version_equal(version_string1, version_string2=dde_version){
     return semver.eq(version_string1, version_string2)
 }
 
 
-export function version_less_than(version_string1, version_string2=dde_version){
+static version_less_than(version_string1, version_string2=dde_version){
     return semver.lt(version_string1, version_string2)
 }
 
-export function version_more_than(version_string1, version_string2=dde_version){
+static version_more_than(version_string1, version_string2=dde_version){
     return semver.gt(version_string1, version_string2)
 }
 
 
-export function dde_version_between(min=null, max=null, action="error"){ //"error", "warn", "boolean"
+static dde_version_between(min=null, max=null, action="error"){ //"error", "warn", "boolean"
     if (!["error", "warn", "boolean"].includes(action)) {
-        dde_error("dde_version_between passed an invalid value for 'action' of: " + action +
+        dde_error("Utils.dde_version_between passed an invalid value for 'action' of: " + action +
                   ' It must be "error", "warn", or "boolean", with the default of "error". ')
     }
     if (min == null){
         if (max == null) {
-            dde_error("dde_version_between given a null min and max." +
+            dde_error("Utils.dde_version_between given a null min and max." +
                       "<br/>You must supply at least one on these.")
         }
         //only max
-        else if(version_more_than(max) || version_equal(max)) { return true }
+        else if(this.version_more_than(max) || this.version_equal(max)) { return true }
         else if (action == "warn"){
             warning("You are running DDE version: " + dde_version +
                      "<br/>but this code requires version: " + max + " or less.")
@@ -163,7 +182,7 @@ export function dde_version_between(min=null, max=null, action="error"){ //"erro
     //min is present
     else if (max == null) {
         //only min
-        if (version_less_than(min) || version_equal(min)) { return true }
+        if (this.version_less_than(min) || this.version_equal(min)) { return true }
         else if (action == "warn"){
             warning("You are running DDE version: " + dde_version +
                     "<br/>but this code requires version: " + min + " or more.")
@@ -176,8 +195,8 @@ export function dde_version_between(min=null, max=null, action="error"){ //"erro
         else { return false }
     }
     //both min and max are present
-    else if (version_equal(min) || version_equal(max) ||
-             (version_less_than(min) && version_more_than(max))) { return true }
+    else if (this.version_equal(min) || this.version_equal(max) ||
+             (this.version_less_than(min) && this.version_more_than(max))) { return true }
     else if (action == "warn"){
         warning("You are running DDE version: " + dde_version +
                 "<br/>but this code requires a version between " + min + " and " + max + " inclusive.")
@@ -191,55 +210,55 @@ export function dde_version_between(min=null, max=null, action="error"){ //"erro
 }
 
 
-var primitive_types = ["undefined", "boolean", "string", "number"] //beware; leave out null because
+static primitive_types = ["undefined", "boolean", "string", "number"] //beware; leave out null because
   //for some strange reason, null is of type "object"
 
-export function is_primitive(data){
+static is_primitive(data){
     if (data === null) { return true }
-    return primitive_types.includes(typeof(data))
+    return this.primitive_types.includes(typeof(data))
 }
 
 
 //only checks first char
-export function is_digit(char){
+static is_digit(char){
     if(char.match(/^[0-9]/)) {  return true; }
     else { return false; } 
 }
 
 
-export function is_alphanumeric(char) {
+static is_alphanumeric(char) {
     var letterNumber = /^[0-9a-zA-Z]+$/;
     if(char.match(letterNumber)) {  return true; }
     else { return false; }
 }
 
 
-export function is_letter(char) {
+static is_letter(char) {
     var letter = /^[a-zA-Z]+$/;
     if(char.match(letter)) {  return true; }
     else { return false; }
 }
 
-export function is_letter_or_underscore(char) {
+static is_letter_or_underscore(char) {
     var letter = /^[a-zA-Z_]+$/;
     if(char.match(letter)) {  return true; }
     else { return false; }
 }
 
 
-export function is_integer(num) {
+static is_integer(num) {
     return (typeof num === 'number') && (num % 1 === 0);
 }
 
-export function is_non_neg_integer(anything){
+static is_non_neg_integer(anything){
     return Number.isInteger(anything) && (anything > -1)
 }
 
-export function is_NaN_null_or_undefined(arg) {
+static is_NaN_null_or_undefined(arg) {
     return (isNaN(arg) || (arg === null) || (arg === undefined) )
 }
 
-export function is_string_a_integer(a_string){
+static is_string_a_integer(a_string){
     if(typeof(a_string) == "string") {
         let pat = /^-?[0-9]+$/;
         if(a_string.match(pat)) {  return true; }
@@ -248,7 +267,7 @@ export function is_string_a_integer(a_string){
     else { return false; }
 }
 
-export function is_string_a_float(a_string){
+static is_string_a_float(a_string){
     if(typeof(a_string) == "string") {
         let pat = /^-?[0-9]+\.[0-9]+$/;
         if(a_string.match(pat)) {  return true; }
@@ -257,24 +276,24 @@ export function is_string_a_float(a_string){
     else { return false }
 }
 
-export function is_string_a_number(a_string){
-    return is_string_a_integer(a_string) || is_string_a_float(a_string)
+static is_string_a_number(a_string){
+    return this.is_string_a_integer(a_string) || this.is_string_a_float(a_string)
 }
 
 //returns true for strings of the format "rgb(0, 100, 255)" ie the css color specifier
-export function is_string_a_color_rgb(a_string){
+static is_string_a_color_rgb(a_string){
     return a_string.startsWith("rgb(") && a_string.endsWith(")") && a_string.includes(",") //not perfect but quick and pretty good
 }
 
 //this will count reserved words (ie "break" as an identifier, which
 //isn't what JS thinks of as a valid user variable or fn name identifier
-export function is_string_an_identifier(a_string){
+static is_string_an_identifier(a_string){
   let the_regex = /^[_$a-zA-Z\xA0-\uFFFF][_$a-zA-Z0-9\xA0-\uFFFF]*$/
   return the_regex.test(a_string)
 }
 
 //not perfect as could be escape sequences, internal quotes, but pretty good
-export function is_string_a_literal_string(a_string){
+static is_string_a_literal_string(a_string){
     if (a_string.length < 2) { return false }
     else if (a_string.startsWith('"') && a_string.endsWith('"')) { return true }
     else if (a_string.startsWith("'") && a_string.endsWith("'")) { return true }
@@ -282,44 +301,26 @@ export function is_string_a_literal_string(a_string){
     else { return false }
 }
 
-export function is_string_a_path(path_string_maybe){
+static is_string_a_path(path_string_maybe){
    if(typeof(path_string_maybe) !== "string") { return false }
    else {
        let arr = path_string_maybe.split(".")
        for(let ident of arr) {
-           if (!is_string_an_identifier(ident)) { return false}
+           if (!this.is_string_an_identifier(ident)) { return false}
        }
        return true
    }
 }
 
 //not perfect as could be escape sequences, internal quotes, but pretty good
-export function is_string_a_literal_array(a_string){
+static is_string_a_literal_array(a_string){
     if (a_string.startsWith('[') && a_string.endsWith(']')) { return true }
     else { return false }
 }
 
-//normal base64 chars are only letters, digits, plus_sign and slash
-//but *some* base64 has \n every 76 chars, and sometimes there's a
-//trailing newline.
-export function is_string_base64(a_string, permit_trailing_newline=false) {
-   if(typeof(a_string) === "string") {
-       if(isBase64(a_string)) { return true }
-       else if(permit_trailing_newline  &&
-               (last(a_string) == "\n") &&
-               (is_integer(a_string.length - 1) / 4)) {
-          //normal base64 length is a multiple of 4. since these strings can be long,
-          //I don't want to unnecessarily make a long string
-           a_string = a_string.substr(0, (a_string.length - 1))
-           return isBase64(a_string)
-       }
-       else { return false }
-   }
-   else { return false } //isBase64(null) => true which is bad, but
-    // that's in the pkg I'm using, so I do the extra check to ensure non-strings return false
-}
 
-export function is_whitespace(a_string){
+
+static is_whitespace(a_string){
     return a_string.trim().length == 0
 }
 
@@ -327,7 +328,7 @@ export function is_whitespace(a_string){
 //the empty string is considered a comment as is all whitespace strings
 //and strings of prefix whitespace followed by // follwoed by no newline
 //and whitespace /* some text */ whitespace
-export function is_comment(a_string){
+static is_comment(a_string){
     a_string = a_string.trim()
     if(a_string.length == 0) { return true }
     else if (a_string.startsWith("//") &&
@@ -342,7 +343,7 @@ export function is_comment(a_string){
 }
 
 
-export function is_literal_object(value){
+static is_literal_object(value){
     if(value === null) { return false } // because typeof(null) == "object")
     else if(typeof(value) == "object") {
         return (Object.getPrototypeOf(value) === Object.getPrototypeOf({}))
@@ -351,7 +352,7 @@ export function is_literal_object(value){
 }
 
 
-export function is_generator_function(obj){
+static is_generator_function(obj){
     if(obj && obj.constructor && (obj.constructor.name == "GeneratorFunction")){
         return true
     }
@@ -360,8 +361,8 @@ export function is_generator_function(obj){
 
 
 //Beware: this *might* only catch iterators made by generator functions.
-export function is_iterator(obj){
-    if(obj && obj.constructor && is_generator_function(obj.constructor)){
+static is_iterator(obj){
+    if(obj && obj.constructor && Utils.is_generator_function(obj.constructor)){
         return true
     }
     else {
@@ -392,13 +393,13 @@ export function is_iterator(obj){
 
 //see http://stackoverflow.com/questions/30758961/how-to-check-if-a-variable-is-an-es6-class-declaration
 //so in other words, ES6 doesn't have classes!
-export function is_class(obj){
+static is_class(obj){
     return ((typeof(obj) == "function") && obj.toString().startsWith("class "))
 }
 
 
 //returns string or null if no class name
-export function get_class_name(a_class){
+static get_class_name(a_class){
     if (typeof(a_class) == "function"){
         const src = a_class.toString()
         if (src.startsWith("class ")){
@@ -414,18 +415,17 @@ export function get_class_name(a_class){
     return null
 }
 
-export function get_class_of_instance(instance){
+static get_class_of_instance(instance){
     return instance.constructor
 }
 
 
 
 //______color_______
-function rgb(r, g, b){return "rgb("+r+", "+g+", "+b+")"} //this string used in css
-globalThis.rgb = rgb //documented for users, as in Plot example
+static rgb(r, g, b){return "rgb("+r+", "+g+", "+b+")"} //global this string used in css
 
 // "rgb(2, 3, 123)" => [2, 3, 123]
-export function rgb_string_to_integer_array(str){
+static rgb_string_to_integer_array(str){
     str = str.substring(4, str.length - 1)
     let result = str.split(",")
     result[0] = parseInt(result[0])
@@ -434,120 +434,39 @@ export function rgb_string_to_integer_array(str){
     return result
 }
 
-
-export function integer_array_to_rgb_string(arr3){
+//not called oct 23, 2921
+static integer_array_to_rgb_string(arr3){
     return "rgb(" + arr3[0] + ", " + arr3[1] + ", " + arr3[2] + ")"
 }
 
-//________Date________
-export function is_valid_new_date_arg(string_or_int){
-    const timestamp = Date.parse(string_or_int)
-    if (Number.isNaN(timestamp)) { return false }
-    else { return true }
-}
-
-
-export function is_hour_colon_minute(a_string){
-    return a_string.match(/^\d\d:\d\d$/)
-}
-
-
-export function is_hour_colon_minute_colon_second(a_string){
-    return a_string.match(/^\d\d:\d\d:\d\d$/)
-}
-
-
-//date_int is ms from jan 1, 1970 as returned by Date.now()
-export function date_integer_to_long_string(date_int=Date.now()){
-    let date_obj = new Date(date_int)
-    let result = date_obj.toString()
-    let ms = date_obj.getMilliseconds()
-    result +=  " " + ms + "ms"
-    return result
-}
-
-
-//integer milliseconds in, output "123:23:59:59:999" ie
-// days:hours:minutes:seconds:milliseconds
-export function milliseconds_to_human_string(total_ms=Date.now(), include_total_days=true){
-   let remain_ms   = total_ms % 1000
-   let total_secs  = (total_ms - remain_ms) / 1000
-
-   let remain_secs = total_secs % 60
-   let total_mins = (total_secs - remain_secs) / 60
-
-   let remain_mins = total_mins % 60
-   let total_hours = (total_mins - remain_mins) / 60
-
-   let remain_hours = total_hours % 24
-   let total_days   = (total_hours - remain_hours) / 24
-   return (include_total_days ? total_days + ":" : "") +
-          pad_integer(remain_hours, 2) + ":" +
-          pad_integer(remain_mins, 2) + ":" +
-          pad_integer(remain_secs, 2) + ":" +
-          pad_integer(remain_ms, 3)
-}
-
-//lots of inputs, returns "Mar 23, 2017" format
-export function date_to_mmm_dd_yyyy(date){ //can't give the default value here because on DDE launch,
-//this method is called and for some weird reason, that call errors, but doesn't
-//if I set an empty date below.
-    if(!(date instanceof Date)) { date = new Date(date) }
-    const d_string = date.toString()
-    const mmm = d_string.substring(4, 8)
-    return mmm + " " + date.getDate() + ", " + date.getFullYear()
-}
-
-export function date_to_human_string(date=new Date()){
-    let result = date_to_mmm_dd_yyyy(date)
-    return result +  " " + milliseconds_to_human_string(undefined, false)
-}
-
-
-
-//pad_integer(123, 5, "x") => "xx123"
-export function pad_integer(int, places=3, pad_char="0"){
+//Utils.pad_integer(123, 5, "x") => "xx123"
+static pad_integer(int, places=3, pad_char="0"){
     let result = "" + int
     if (result.length < places) { result = pad_char.repeat(places - result.length) + result}
     return result
 }
 
-
 //used in computing numbers to display in the robot_status dialog
-export function to_fixed_smart(num, digits=0){
+static to_fixed_smart(num, digits=0){
     if(typeof(num) === "number") {
         try{ return num.toFixed(digits)}
         catch(err){
-            warning("to_fixed_smart called with non_number: " + num)
+            warning("Utils.to_fixed_smart called with non_number: " + num)
             return "" + num
         }
     }
     else { return num } //presume its a string like "N/A" and leave it alone.
 }
 
-/* unused jan 2019
-export function is_json_date(a_string){
-    if((a_string.length > 19) && (a_string.length < 30)) {//impresise
-        return (is_string_a_integer(a_string.substring(0, 4)) &&
-        (a_string[4] == "-") &&
-        (a_string[7] == "-") &&
-        (a_string[10] == "T") &&
-        (a_string[13] == ":"))
-    }
-    else return false
-}
-*/
 
-//_____end Date_______
-
-export function starts_with_one_of(a_string, possible_starting_strings){
+static starts_with_one_of(a_string, possible_starting_strings){
     for (let str of possible_starting_strings){
         if (a_string.startsWith(str)) { return true }
     }
     return false
 }
 
-export function ends_with_one_of(a_string, possible_ending_strings){
+static ends_with_one_of(a_string, possible_ending_strings){
     for (let str of possible_ending_strings){
         if (a_string.endsWith(str)) return true
     }
@@ -556,9 +475,9 @@ export function ends_with_one_of(a_string, possible_ending_strings){
 
 
 //the default for Robot Serial.sim_fun
-export function return_first_arg(arg){ return arg }
+static return_first_arg(arg){ return arg }
 
-export function typed_array_name(item){
+static typed_array_name(item){
     if(Array.isArray(item)) { return "Array" }
     else if (item instanceof Int8Array)         { return "Int8Array" }
     else if (item instanceof Uint8Array)        { return "Uint8Array" }
@@ -573,7 +492,7 @@ export function typed_array_name(item){
 }
 
 //returns null or the last elt of an array or a string
-export function last(arg){
+static last(arg){
     let len = arg.length
     if (len == 0)                     { return undefined }
     else if (typeof(arg) == "string") { return arg[len - 1 ] }
@@ -581,21 +500,20 @@ export function last(arg){
     else if (arg instanceof NodeList) { return arg[len - 1] }
     else if (arg instanceof HTMLCollection) { return arg[len - 1] }
     else                              { dde_error("last passed unhandled type of arg: " + arg) }
-}
+} //global
 
-globalThis.last = last //used a bunch of places that are hard to declare
 
-export function flatten(arr, result=[]){
+static flatten(arr, result=[]){
     if (Array.isArray(arr)){
         for (let elt of arr){
-            flatten(elt, result)
+            this.flatten(elt, result)
         }
     }
     else { result.push(arr) }
     return result
 }
 
-export function is_array_of_numbers(a_array){
+static is_array_of_numbers(a_array){
     if(!Array.isArray(a_array)) { return false }
     else {
         for(let num of a_array){
@@ -607,11 +525,11 @@ export function is_array_of_numbers(a_array){
     }
 }
 
-export function is_2D_array_of_numbers(a_array){
+static is_2D_array_of_numbers(a_array){
     if(!Array.isArray(a_array)) { return false }
     else {
         for(let inner_array of a_array){
-            if(!is_array_of_numbers(inner_array)) {
+            if(!Utils.is_array_of_numbers(inner_array)) {
                 return false
             }
         }
@@ -620,7 +538,7 @@ export function is_2D_array_of_numbers(a_array){
 }
 
 //used by inspector for printing 2D arrays
-export function is_array_of_same_lengthed_arrays(array){
+static is_array_of_same_lengthed_arrays(array){
   if (array.length < 2) { return false }
   let len = null
   for(let arr of array) {
@@ -631,7 +549,7 @@ export function is_array_of_same_lengthed_arrays(array){
   return true
 }
 
-export function intersection(arr1, arr2){
+static intersection(arr1, arr2){
     let result = []
     for(let elt of arr1) {
         if (arr2.includes(elt)) { result.push(elt) }
@@ -639,7 +557,7 @@ export function intersection(arr1, arr2){
     return result
 }
 
-export function similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg1_already_seen=[], arg2_already_seen=[]){
+static similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg1_already_seen=[], arg2_already_seen=[]){
     //I started to do a infinite circularity test but its trick to do quickly and maybe unnecessary because
     //if say 2 arrays both have themselves as the 3rd elt, and the 2 arrays are eq to begin with, that
     //will get caught in the very first === so no infinite recursion.
@@ -667,7 +585,7 @@ export function similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg
                     //for instance similar(2.1, 2, 0.1) =>  "true" with the addition of EPSILON but doesn't without it.
         }
     }
-    else if(is_primitive(arg1)) { return false } //if one of the args is primitive, then if it was similar to th other,
+    else if(Utils.is_primitive(arg1)) { return false } //if one of the args is primitive, then if it was similar to th other,
         // that other arg must have been primitve and same value.
         // but arg1 !== arg2 at this point so  arg1 must not be similar to arg2
     else if (Array.isArray(arg1)){
@@ -683,7 +601,7 @@ export function similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg
                 arg1_already_seen.push(arg1)
                 arg2_already_seen.push(arg2)
                 for (let i = 0; i < arg1.length; i++) {
-                    if (!similar(arg1[i], arg2[i], tolerance, tolerance_is_percent, arg1_already_seen, arg2_already_seen)){
+                    if (!Utils.similar(arg1[i], arg2[i], tolerance, tolerance_is_percent, arg1_already_seen, arg2_already_seen)){
                          return false
                     }
                 }
@@ -697,18 +615,18 @@ export function similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg
     else { //arg1 and arg2 should be of type "object" but neither is null (due to primitive checks above)
         var props1 = Object.getOwnPropertyNames(arg1)
         var props2 = Object.getOwnPropertyNames(arg2)
-        if (!similar(props1, props2)) { return false }
+        if (!Utils.similar(props1, props2)) { return false }
         for (let prop of props1){
-            if (!similar(arg1[prop], arg2[prop], tolerance, tolerance_is_percent)) { return false}
+            if (!Utils.similar(arg1[prop], arg2[prop], tolerance, tolerance_is_percent)) { return false}
         }
         return true
     }
-}
-globalThis.similar = similar
+} //global used in test suites a lot
+
 
 //return 0 if very dissimilar, 1 if the same (or very similar)
 //now working only for num1 and num2, min, max being non neg
-export function number_similarity(num1, num2, min=null, max=null){
+static number_similarity(num1, num2, min=null, max=null){
     if (num1 == num2) { return 1 }
     if (num1 > num2) {  //swap: ensure that num1 is less than num2.
         let temp = num1;
@@ -755,7 +673,7 @@ export function number_similarity(num1, num2, min=null, max=null){
 //arrays can be arrays, or can be a random objects.
 //all must be of the same type and have elts of the same names with the same values
 //compared with ===
-export function same_elts(...arrays){
+static same_elts(...arrays){
     if(arrays.length < 2) {return true}
     var first = arrays[0]
     if (Array.isArray(first)) {
@@ -785,7 +703,7 @@ export function same_elts(...arrays){
     }
 }
 
-export function line_starting_with(text, starting_with, include_starting_with){
+static line_starting_with(text, starting_with, include_starting_with){
     var lines = text.split("\n")
     for (var line of lines){
         if (line.startsWith(starting_with)){
@@ -800,27 +718,27 @@ export function line_starting_with(text, starting_with, include_starting_with){
     return null //didn't find a line.
 }
 
-export function encode_quotes(text){
+static encode_quotes(text){
     text = text.split("'").join("ssqq")
     text = text.split('"').join("ddqq")
     text = text.split('\n').join("nnll")
     return text
 }
 
-export function decode_quotes(text){
+static decode_quotes(text){
     text = text.split("ssqq").join("'")
     text = text.split('ddqq').join('"')
     text = text.split('nnll').join('\n')
     return text
 }
 
-var contant_spaces = "                                                                              "
-export function spaces(number_of_spaces_desired){
-    return contant_spaces.substring(0, number_of_spaces_desired)
+static constant_spaces = "                                                                              "
+static spaces(number_of_spaces_desired){
+    return this.constant_spaces.substring(0, number_of_spaces_desired)
 }
 
 //from http://eddmann.com/posts/ten-ways-to-reverse-a-string-in-javascript/ which tests this to be fastest
-export function reverse_string(s) {
+static reverse_string(s) {
     var o = '';
     for (var i = s.length - 1; i >= 0; i--)
         o += s[i];
@@ -829,7 +747,7 @@ export function reverse_string(s) {
 
 //returns an array of width an height of a_string with the given font_size
 //font size is either a number or a string with a px suffix
-export function compute_string_size(a_string, font_size=12, extra_width = 0){
+static compute_string_size(a_string, font_size=12, extra_width = 0){
     if(typeof(font_size) == "number") { font_size = font_size + "px"}
     //at this point, font_size is a string with a px suffix
     compute_string_size_id.style["font-size"] = font_size
@@ -839,7 +757,7 @@ export function compute_string_size(a_string, font_size=12, extra_width = 0){
 
 //avoids calling eval. If the path isn't defined, this fn returns undefined.
 //arg can either be a string with dots or an array of strings that are path elts.
-export function value_of_path(path_string){
+static value_of_path(path_string){
     let path = path_string
     if (typeof(path) == "string"){ path = path.split(".") }
     else if(Array.isArray(path)) { } //ok as is
@@ -856,7 +774,7 @@ export function value_of_path(path_string){
         if (result === undefined) {break}
     }
     return result
-}
+} //global (used a lot)
 
 //returns null if fn_src doesn't look like a fn def.
 //returns "" if its an anonymous fn
@@ -865,7 +783,7 @@ export function value_of_path(path_string){
 //th happen to be bound to a keyword arg to a fn,
 //In such cases, some.fn.name might yield the name its bound to,
 //not the name its given in its source code.
-export function function_name(fn_or_src){
+static function_name(fn_or_src){
     if (typeof(fn_or_src) == "string"){
         if (!fn_or_src.startsWith("function ")) {return null}
         else{
@@ -889,7 +807,7 @@ export function function_name(fn_or_src){
 }
 
 //returns a string
-export function function_params(fn, include_parens=true){
+static function_params(fn, include_parens=true){
     let src = fn.toString() //dde4, when fn is the class obj for Job, returns src with "Job$1" in it.
     src = src.replaceAll("Job$1", "Job")
     let open_pos = src.indexOf("(")
@@ -915,7 +833,7 @@ export function function_params(fn, include_parens=true){
 //keyword calls & fns have just one block of {} in the params
 //with no space between the ( and the {.
 //ie foo({a:2})
-function call_src_is_keyword_call(a_string){
+static call_src_is_keyword_call(a_string){
   let open_pos = a_string.indexOf("(")
   if (open_pos == -1) { return false }
   let brace_pos = a_string.indexOf("{")
@@ -923,7 +841,7 @@ function call_src_is_keyword_call(a_string){
 }
 
 //if fn is a class, look at the args of its constructor. If no constructor, return false
-export function fn_is_keyword_fn(fn){
+static fn_is_keyword_fn(fn){
     let a_string = fn.toString()
     if(a_string.startsWith("class ")){
         let constructor_pos = a_string.indexOf("constructor")
@@ -937,8 +855,8 @@ export function fn_is_keyword_fn(fn){
 }
 
 //returns a string
-export function function_params_for_keyword_call(fn, include_parens=true){
-    let result = function_params(fn, include_parens)
+static function_params_for_keyword_call(fn, include_parens=true){
+    let result = this.function_params(fn, include_parens)
     if (result.endsWith("={})")) {
         result = result.substring(0, result.length - 4)
         if(include_parens) { result += ")" }
@@ -955,18 +873,18 @@ export function function_params_for_keyword_call(fn, include_parens=true){
 //we really only care about the text between the first paren and the first ")}", exclusive
 //returns an array of strings, the names of the params
 //function(a, {b=2, c=3}){ return 99}   returns ["a", "b", "c"]
-export function function_param_names(fn){
-    var params_full_string = function_params(fn, false)
-    return params_string_to_param_names(params_full_string)
+static function_param_names(fn){
+    var params_full_string = this.function_params(fn, false)
+    return this.params_string_to_param_names(params_full_string)
 }
 
 
 //used only by this file
 //params_full_string can either be wrapped in parens or not
-function params_string_to_param_names(params_full_string){
+static params_string_to_param_names(params_full_string){
     if (params_full_string.startsWith("(")) {params_full_string = params_full_string.substring(1)}
     if (params_full_string.endsWith(")"))   {params_full_string = params_full_string.substring(0, params_full_string.length - 1)}
-    params_full_string = remove_comments(params_full_string)
+    params_full_string = this.remove_comments(params_full_string)
     var params_and_defaults_array = params_full_string.split(",")
     var param_names = []
     for(var param_and_default of params_and_defaults_array){
@@ -1003,8 +921,8 @@ function params_string_to_param_names(params_full_string){
 
 //for function foo({a:1}={}){} => {a:1},
 //other cases returns an array of inner arrays of param_name, param_default_val
-export function function_param_names_and_defaults(fn){
-    let params_full_string = function_params(fn, false)
+static function_param_names_and_defaults(fn){
+    let params_full_string = this.function_params(fn, false)
     let params_string = params_full_string
     if (params_full_string.startsWith("{")){
         if (params_full_string.endsWith("= {}") ||
@@ -1026,7 +944,7 @@ export function function_param_names_and_defaults(fn){
         }
         return [param_names, "{}"]
     }
-    else { return params_string_to_param_names_and_defaults(params_full_string) }
+    else { return this.params_string_to_param_names_and_defaults(params_full_string) }
 }
 
 
@@ -1040,7 +958,7 @@ export function function_param_names_and_defaults(fn){
 // the arg will be a string, ie "{a=3, b=4}"
 //but if its true we have an arg for each of the actual keywords and
 //the values will be the defaults for that keyword
-export function function_param_names_and_defaults_array(fn, grab_key_vals=false){
+static function_param_names_and_defaults_array(fn, grab_key_vals=false){
     if(typeof(fn) == "string") {
         if(["function", "function*"].includes(fn)){
             return [["name", ""], ["...params", ""], ["body", ""]]
@@ -1053,20 +971,20 @@ export function function_param_names_and_defaults_array(fn, grab_key_vals=false)
             }
             let fn_val = value_of_path(class_name)
             if (typeof(fn_val) != "function") {
-                dde_error("function_param_names_and_defaults_array called with non function: " + fn)
+                dde_error("Utils.function_param_names_and_defaults_array called with non function: " + fn)
             }
             else { fn = fn_val }
         }
         else {
             let fn_val = value_of_path(fn)
             if (typeof(fn_val) != "function") {
-                dde_error("function_param_names_and_defaults_array called with non function: " + fn)
+                dde_error("Utils.function_param_names_and_defaults_array called with non function: " + fn)
             }
             else { fn = fn_val }
         }
     }
     if(fn.name == "Array") { return [["...elts", ""]]}
-    let param_string = "function foo(" + function_params(fn, false) + "){}"
+    let param_string = "function foo(" + this.function_params(fn, false) + "){}"
     //espree doc at https://github.com/eslint/espree
     let ast = espree.parse(param_string, {range: true, ecmaVersion: "latest"}) //, raw: true})
     let params_ast = ast.body[0].params
@@ -1081,7 +999,7 @@ export function function_param_names_and_defaults_array(fn, grab_key_vals=false)
             case "AssignmentPattern": //ie has an equal sign
                 if (param_ast.left.type == "Identifier"){ //ie a = 2
                     name = param_ast.left.name
-                    val_src = param_names_get_default_val_src(param_string, param_ast.right)
+                    val_src = Utils.param_names_get_default_val_src(param_string, param_ast.right)
                     result.push([name, val_src])
                 }
                 else if (param_ast.left.type == "ObjectPattern"){  //ie {a:2} = {}
@@ -1094,7 +1012,7 @@ export function function_param_names_and_defaults_array(fn, grab_key_vals=false)
                             }
                             else{ //should be ass_pat_ast.type == "AssignmentPattern"
                                 name = ass_pat_ast.left.name
-                                val_src = param_names_get_default_val_src(param_string,
+                                val_src = this.param_names_get_default_val_src(param_string,
                                     ass_pat_ast.right)
                             }
                             result.push([name, val_src])
@@ -1102,7 +1020,7 @@ export function function_param_names_and_defaults_array(fn, grab_key_vals=false)
                     }
                     else {
                         name = "" //no real param name
-                        val_src = param_names_get_default_val_src(param_string, param_ast.left)
+                        val_src = this.param_names_get_default_val_src(param_string, param_ast.left)
                         result.push([name, val_src])
                     }
                 }
@@ -1113,11 +1031,11 @@ export function function_param_names_and_defaults_array(fn, grab_key_vals=false)
                     	let ass_pat_ast = prop.value
                     	if(ass_pat_ast.type == "Identifier"){ //there's no default value
                             name = ass_pat_ast.name
-                            val_src = param_names_get_default_val_src(param_string, ass_pat_ast)
+                            val_src = this.param_names_get_default_val_src(param_string, ass_pat_ast)
                         }
                         else{ //should be ass_pat_ast.type == "AssignmentPattern"
                             name = ass_pat_ast.left.name
-                            val_src = param_names_get_default_val_src(param_string,
+                            val_src = this.param_names_get_default_val_src(param_string,
                                                                           ass_pat_ast.right)
                         }
                         result.push([name, val_src])
@@ -1125,7 +1043,7 @@ export function function_param_names_and_defaults_array(fn, grab_key_vals=false)
                 }
                 else {
                     name = "" //no real param name
-                    val_src = param_names_get_default_val_src(param_string,
+                    val_src = this.param_names_get_default_val_src(param_string,
                                                               param_ast)
                     result.push([name, val_src])
                 }
@@ -1142,11 +1060,11 @@ export function function_param_names_and_defaults_array(fn, grab_key_vals=false)
 
 
 //only called in this file.
-function param_names_get_default_val_src(full_string, ast){
+static param_names_get_default_val_src(full_string, ast){
     return full_string.substring(ast.range[0], ast.range[1])
 }
 
-function remove_comments(a_string) {
+static remove_comments(a_string) {
     while(true){
         let start_index = a_string.indexOf("/*")
         let end_index
@@ -1180,10 +1098,10 @@ function remove_comments(a_string) {
 //only called in this file.
 //params_full_string can either be wrapped in parens or not
 //returns an array of 2 elt arrays, name and default val.
-function params_string_to_param_names_and_defaults(params_full_string){
+static params_string_to_param_names_and_defaults(params_full_string){
     if (params_full_string.startsWith("(")) {params_full_string = params_full_string.substring(1)}
     if (params_full_string.endsWith(")"))   {params_full_string = params_full_string.substring(0, params_full_string.length - 1)}
-    params_full_string = remove_comments(params_full_string).trim()
+    params_full_string = this.remove_comments(params_full_string).trim()
     if (params_full_string.startsWith("{")) {params_full_string = params_full_string.substring(1)}
     if (params_full_string.endsWith("}"))   {params_full_string = params_full_string.substring(0, params_full_string.length - 1)}
 
@@ -1223,8 +1141,8 @@ function params_string_to_param_names_and_defaults(params_full_string){
 //returns {param_name: "default_val", ...} ie the values are src, not actual js vals
 //with the returned value, you can call Object.keys(returned_lit_obj)
 //and get back the names of the args in their proper order.
-export function function_param_names_and_defaults_lit_obj(fn){
-    let params_full_string = function_params(fn, false)
+static function_param_names_and_defaults_lit_obj(fn){
+    let params_full_string = this.function_params(fn, false)
     //let params_string = params_full_string
     if (params_full_string.startsWith("{")){
         if (params_full_string.endsWith("= {}") ||
@@ -1253,7 +1171,7 @@ export function function_param_names_and_defaults_lit_obj(fn){
         return [param_names, "{}"]
     }
     else {*/
-        let array_of_arrays = params_string_to_param_names_and_defaults(params_full_string)
+        let array_of_arrays = this.params_string_to_param_names_and_defaults(params_full_string)
         let result = {}
         for (let name_val of array_of_arrays) {
             result[name_val[0]] = name_val[1]
@@ -1264,7 +1182,7 @@ export function function_param_names_and_defaults_lit_obj(fn){
 
 
 //not general purpose
-export function shallow_copy(obj){ //copies only enumerable, own properites. Used in
+static shallow_copy(obj){ //copies only enumerable, own properites. Used in
                             //copying Job's user_data at start
     let result = obj
     if(result === null) {} //typeof returns "object" for null
@@ -1281,23 +1199,23 @@ export function shallow_copy(obj){ //copies only enumerable, own properites. Use
     return result //might be a Date, I hope that's not mungable
 }
 
-export function shallow_copy_lit_obj(obj){ //copies only enumerable, own properites. Used in
+static shallow_copy_lit_obj(obj){ //copies only enumerable, own properites. Used in
     //copying Job's user_data at start
     let result = {}
     for(let name of Object.keys(obj)){
-        result[name] = shallow_copy(obj[name])
+        result[name] = this.shallow_copy(obj[name])
     }
     return result
 }
 
 //used to fix broken ES6 not allowing a keyword obj with destructuring.
                              //defaults   keyword_args
-export function copy_missing_fields(source_arg, target_obj){
+static copy_missing_fields(source_arg, target_obj){
     for(var name of Object.getOwnPropertyNames(source_arg)){
         if (!target_obj.hasOwnProperty(name)){
             var new_val = source_arg[name]
             if (new_val == "required"){
-                shouldnt("copy_missing_fields passed target object: " + target_obj +
+                shouldnt("Utils.copy_missing_fields passed target object: " + target_obj +
                         " that was missing required field of: " + name)
             }
             else { target_obj[name] = new_val }
@@ -1340,18 +1258,18 @@ function process_constructor_keyword_args(defaults, args, the_this){
 
 //does not trim the beginning of the string. Used by trim_string_for_eval
 //note regex "s" matches spaces, newlines, tab at least, ie all whitespace
-export function trim_end(str){
+static trim_end(str){
     return str.replace(/\s+$/g, "")
 }
 
 //removes prefix, & suffix whitespace AND replaces multiple
 //redundant interior whitespace with a single space.
-export function trim_all(str){
+static trim_all(str){
     str = str.trim()
     return str.replace(/\s+/g,' ')
 }
 
-export function trim_string_quotes(a_string){
+static trim_string_quotes(a_string){
     if(a_string.length < 2) {return a_string}
     const first_char = a_string[0]
     if (["'", '"', "`"].includes(first_char)){
@@ -1365,14 +1283,14 @@ export function trim_string_quotes(a_string){
 //returns a string that starts with the first char of src
 //by trimming whitespace and comments from the front of src
 //used by Control.include_job
-export function trim_comments_from_front(src){
+static trim_comments_from_front(src){
     src = src.trimLeft()
     if(src.startsWith("//")) {
         let end = src.indexOf("\n")
         if(end == -1){ return "" } //src was a one-liner comment
         else {
             src = src.substring(end + 1)
-            return trim_comments_from_front(src)
+            return this.trim_comments_from_front(src)
         }
     }
     else if(src.startsWith("/*")) {
@@ -1382,13 +1300,13 @@ export function trim_comments_from_front(src){
         }
         else {
             src = src.substring(end + 2)
-            return trim_comments_from_front(src)
+            return this.trim_comments_from_front(src)
         }
     }
     else { return src }
 }
 
-export function show_string_char_codes(a_string){
+static show_string_char_codes(a_string){
     console.log(a_string + " has " + a_string.length + " chars of:")
     for(let char of a_string){
         console.log(char + "=>" + char.charCodeAt())
@@ -1396,7 +1314,7 @@ export function show_string_char_codes(a_string){
 }
 
 //only used in this file
-function regexp_escape_special_chars(str){
+static regexp_escape_special_chars(str){
     return str.replace(/[-\/\\^$*+?.()|\[\]{}]/g, '\\$&')
 }
 
@@ -1404,12 +1322,12 @@ function regexp_escape_special_chars(str){
 //the first arg to new RegExp is a regexp pattern that treats
 //lots of punctuation chars like parens specially.
 //To turn off that special treatment, pass in a 4th arg of false
-export function replace_substrings(orig_string, substring_to_replace, replacement, substring_to_replace_treated_specially=true){
+static replace_substrings(orig_string, substring_to_replace, replacement, substring_to_replace_treated_specially=true){
     if(!substring_to_replace_treated_specially) {
-        substring_to_replace = regexp_escape_special_chars(substring_to_replace)
+        substring_to_replace = this.regexp_escape_special_chars(substring_to_replace)
     }
     return orig_string.replace(new RegExp(substring_to_replace, 'g'), replacement);
-}
+} //global (used a lot)
 
 
 //not used Jan 2019 except in testsuite
@@ -1427,7 +1345,7 @@ export function replace_substrings(orig_string, substring_to_replace, replacemen
 //but it won't be shorter. So calls should have the largest digits_before_point expected,
 //and should only set allow_for_negative to false when they know the num args in
 // a displayed result set will never have a neg number.
-export function format_number(num, digits_before_point=6, digits_after_point=3, allow_for_negative=true){
+static format_number(num, digits_before_point=6, digits_after_point=3, allow_for_negative=true){
     let result = num.toFixed(digits_after_point)
     let min_chars_before_point = digits_before_point + (allow_for_negative ? 1 : 0)
     let point_pos = result.indexOf(".")
@@ -1440,7 +1358,7 @@ export function format_number(num, digits_before_point=6, digits_after_point=3, 
     return result
 }
 
-export function array_to_html_table(values_array, labels_array=null, header_array=null, zeropad=3){
+static array_to_html_table(values_array, labels_array=null, header_array=null, zeropad=3){
     if(labels_array == null) {
         labels_array = Array.from(Array(values_array.length).keys())
     }
@@ -1449,7 +1367,7 @@ export function array_to_html_table(values_array, labels_array=null, header_arra
         result += "<tr><th>" + header_array[0] + "</th><th>" + header_array[1] + "</th></tr>"
     }
     for(let i = 0; i < values_array.length; i++){
-        let numstr = format_number(values_array[i])
+        let numstr = this.format_number(values_array[i])
         numstr = replace_substrings(numstr, " ", "&nbsp;")
         result += "<tr><td>" + labels_array[i] + "</td><td style='font-family:monospace;'>" + numstr + "</td></tr>"
     }
@@ -1457,18 +1375,18 @@ export function array_to_html_table(values_array, labels_array=null, header_arra
     return result
 }
 
-// ordinal_string(0) => "0th"   ordinal_string(1) => "1st"
-// ordinal_string(11) => "11th" ordinal_string(21) => "21st"
-export function ordinal_string(n){
+// Utils.ordinal_string(0) => "0th"   Utils.ordinal_string(1) => "1st"
+// Utils.ordinal_string(11) => "11th" Utils.ordinal_string(21) => "21st"
+static ordinal_string(n){
     let suffix = ["st","nd","rd"][((n+90)%100-10)%10-1]||"th"
     return n + suffix
 }
 
 //used by users in calling  DXF.init_drawing for its dxf_filepath arg
-export function text_to_lines(text) { return txt.text_to_lines(text) }
+static text_to_lines(text) { return txt.text_to_lines(text) }
 
 //fry's get a js string into literal source code. Used in printout out a TestSuite test
-export function string_to_literal(a_string){
+static string_to_literal(a_string){
     if      (a_string.includes("\n")) {return '`' + a_string + '`'} //let's hope any backquotes in a_string are escaped!
     else if (!a_string.includes('"')) { return '"' + a_string + '"'}
     else if (!a_string.includes("'")) { return "'" + a_string + "'"}
@@ -1480,19 +1398,19 @@ export function string_to_literal(a_string){
 }
 
 //not used jan 2019
-function is_first_letter_upper_case(a_string){
+static is_first_letter_upper_case(a_string){
     return ((a_string.length > 0) && (a_string[0] == a_string[0].toUpperCase()))
 }
 
 //not used jan 2019
-function is_first_letter_lower_case(a_string){
+static is_first_letter_lower_case(a_string){
     return ((a_string.length > 0) && (a_string[0] == a_string[0].toLowerCase()))
 }
 
 //not used jan 2019
-function make_first_char_upper_case(a_string){
+static  make_first_char_upper_case(a_string){
     if(a_string.length == 0) { return "" }
-    if (is_first_letter_upper_case(a_string)) { return a_string }
+    if (this.is_first_letter_upper_case(a_string)) { return a_string }
     else {
         let first_char = a_string[0].toUpperCase()
         return first_char + a_string.substring(1)
@@ -1500,7 +1418,7 @@ function make_first_char_upper_case(a_string){
 }
 
 //retuns "a" or "an" depending on first letter of str
-export function a_or_an(str="", capitalize=false){
+static a_or_an(str="", capitalize=false){
   if(str.length == 0) {
        if(capitalize ) { return "A" }
        else { return "a" }
@@ -1517,23 +1435,20 @@ export function a_or_an(str="", capitalize=false){
 
  //uses html to format newlines
 //use for printing ANY possible value from JS so that a human (usually a programmer) can make sense of it.
-//Use stringify_value_sans_html  for evalable string (but still not perfrect
+//Use this,stringify_value_sans_html  for evalable string (but still not perfrect
 //returns a string.
 //called on the eval result by eval part 2, and by show_output if the input is not already a string
 //and by Js_info
-export function stringify_value(value){
-    //if (Object.isNewObject(value)) { inspect_new_object(value) }
-    //else {
-        var result = stringify_value_aux (value)
+static stringify_value(value){
+        var result = this.stringify_value_aux (value)
         //if (typeof(value) != "string"){
         //    result = "<code>" + result + "</code>"
         //}
         return result
-    //}
 }
 
 
-export function stringify_value_aux(value, job, depth=0){
+static stringify_value_aux(value, job, depth=0){
     if (depth > 2) { return "***" } //stops infinite recustion in circular structures.
     var result
     if      (value === undefined)       { return "undefined" }
@@ -1563,20 +1478,20 @@ export function stringify_value_aux(value, job, depth=0){
         //but hopuflly value.prototype WILL have a path (as is likely). For now don't worry about
         //unnamed objs 2 levels down.
         else {
-        //inspect_new_object(value) //causes infinite loop in electron dde
-        result = inspect_stringify_new_object_clickable_path(value) //causes infinite loop in electron dd
+        //Inspect.inspect_new_object(value) //causes infinite loop in electron dde
+        result = Inspect.inspect_stringify_new_object_clickable_path(value) //causes infinite loop in electron dd
         //just let result be the string of the path.
         }
     }
-    else if (depth > 2) { return "***" } //the below clauses call stringify_value_aux meaning
+    else if (depth > 2) { return "***" } //the below clauses call this.stringify_value_aux meaning
         //they can get into infinite recursion, so cut that off here.
-    else if (typed_array_name(value)){ //any type of array
+    else if (this.typed_array_name(value)){ //any type of array
         let len = Math.min(value.length, 100)  //large arrays will cause problems
         result = "[<br/>"
         for (let i = 0; i < len; i++){ //don't use "for ... in here as it gets some wrong stuff
             let sep = ((i == len - 1) ? "<br/>" : ",<br/>")
             var elt_val = value[i]
-            var elt_val_string = stringify_value_aux(elt_val, job, depth + 1)
+            var elt_val_string = this.stringify_value_aux(elt_val, job, depth + 1)
             //if (Array.isArray(elt_val)) sep = sep + "<br/>" //put each sub-array on its own line
             result += " " + elt_val_string + sep
         }
@@ -1600,7 +1515,7 @@ export function stringify_value_aux(value, job, depth=0){
                if (Object.isNewObject(prop_val)){
                   val_str = stringify_new_object_clickable_path(prop_val)
                }
-               else { val_str = stringify_value_aux(prop_val) }
+               else { val_str = this.stringify_value_aux(prop_val) }
                result += "&nbsp;" + prop + ": " +  val_str + "<br/>"
             }
         }
@@ -1610,13 +1525,13 @@ export function stringify_value_aux(value, job, depth=0){
         let prop_val = value["prototype"]
         let val_str = (Object.isNewObject(prop_val)?
                         stringify_new_object_clickable_path(prop_val):
-                        stringify_value_aux(prop_val))
+                        this.stringify_value_aux(prop_val))
         result = "{prototype: "   + val_str + "<br/>" +
                    "&nbsp;name: " + ((value.name == undefined) ? "undefined" : JSON.stringify(value.name)) + "<br/>"
         for(let prop in value){
            if (value.hasOwnProperty(prop) && (prop != "name") && (prop != "prototype")){
                prop_val = value[prop]
-               val_str = Object.isNewObject(prop_val)? stringify_new_object_clickable_path(prop_val): stringify_value_aux(prop_val)
+               val_str = Object.isNewObject(prop_val)? stringify_new_object_clickable_path(prop_val): this.stringify_value_aux(prop_val)
                result += "&nbsp;" + prop + ": " +  val_str + "<br/>"
            }
         }
@@ -1661,14 +1576,14 @@ export function stringify_value_aux(value, job, depth=0){
             }
             else {
                 try{
-                  result += prop_name + ": " + stringify_value_aux(prop_val, job, depth + 1) + ",<br/>"
+                  result += prop_name + ": " + this.stringify_value_aux(prop_val, job, depth + 1) + ",<br/>"
                 }
                 catch(e) {} //doing window["caches"] errors so just forget about this prop and maybe others.
             }
         }
         result += "}"
         if (result == "{}") {  //as is the case with iterators
-            if (is_iterator(value)) {
+            if (Utils.is_iterator(value)) {
               result = value.toString() //not great as might make "[object Generator]" or "[object Array Iterator]" but better than {}
             }
             else {
@@ -1676,7 +1591,7 @@ export function stringify_value_aux(value, job, depth=0){
                      var result = value.toString()
                      if (result == "[object Object]"){
                          if (value.constructor == Object) { result = "{}" }
-                         else { result = "{instanceof: " + stringify_value_aux(value.constructor, job, depth + 1) + "}" }
+                         else { result = "{instanceof: " + this.stringify_value_aux(value.constructor, job, depth + 1) + "}" }
                      }
                  }
                  catch(e) {return "{}" }
@@ -1698,9 +1613,9 @@ export function stringify_value_aux(value, job, depth=0){
     return result
 }
 
-//crude but guarentees fidelity with stringify_value, but that might not be what I really want.
-export function stringify_value_sans_html(value){
-    let result = stringify_value(value)
+//crude but guarentees fidelity with Utils.stringify_value, but that might not be what I really want.
+static stringify_value_sans_html(value){
+    let result = this.stringify_value(value)
     //result = replace_substrings(result, "<co"  + "de>", "") //screws up inspetion of this fn (while inspecting 'window') having '<co  de>' in it. //
     result = result.replace(/<code>/g,   "")
     //result = replace_substrings(result, "</co" + "de>", "") //
@@ -1710,7 +1625,7 @@ export function stringify_value_sans_html(value){
     return result
 }
 
-export function stringify_value_cheap(val){
+static stringify_value_cheap(val){
     if(typeof(value) == "string") { return val }
     try { val = JSON.stringify(val)
         return val
@@ -1720,9 +1635,9 @@ export function stringify_value_cheap(val){
     }
 }
 
-/////// CSV ///////
+//________CSV ________
 //documented but not called jan 2019
-export function array_to_csv(an_array){
+static array_to_csv(an_array){
     let result = ""
     for(let i = 0; i < an_array.length; i++){
         let row = an_array[i]
@@ -1737,14 +1652,14 @@ export function array_to_csv(an_array){
 }
 
 //documented but not called jan 2019
-export function csv_to_array(a_string){
+static csv_to_array(a_string){
     let result = []
     let row_strings = a_string.split("\n")
     for (let row_string of row_strings){
         let row_array = []
         let cell_strings = row_string.split(",")
         for (let cell_string of cell_strings){
-            if (is_string_a_number(cell_string)) {
+            if (this.is_string_a_number(cell_string)) {
                 cell_string = parseFloat(cell_string)
             }
             row_array.push(cell_string)
@@ -1753,117 +1668,10 @@ export function csv_to_array(a_string){
     }
     return result
 }
-///// End CSV //////
-
-function inspect_new_object(new_object_or_path, add_to_stack=true){ //called from Insert menu item and stringify_value
-    // still causes jquery infinite error if the below is commented in.
-    //if (typeof(new_object_or_path) == "string")  { return new_object_or_path }
-    //else { return value_of_path(new_object_or_path) }
-
-    let new_object = (typeof(new_object_or_path) == "string") ?
-                        value_of_path(new_object_or_path) :
-                        new_object_or_path
-    let prop_val = new_object["prototype"]
-    let val_str
-    if (prop_val == undefined)             { val_str = "undefined" }
-    else if (Object.isNewObject(prop_val)) { val_str = inspect_stringify_new_object_clickable_path(prop_val) }
-    else                                   { val_str = stringify_value_aux(prop_val) }
-    let the_name = new_object.name
-    if ((the_name == undefined) && (new_object == Root)) { the_name = '"Root"' }
-    else if (the_name == undefined) { the_name = "undefined" }
-    else { the_name = '"' + the_name + '"' }
-    result = "{prototype: " + val_str  + "<br/>" +
-             "&nbsp;name: " + the_name + "<br/>"
-    for(let prop in new_object){
-        if (new_object.hasOwnProperty(prop) && (prop != "name") && (prop != "prototype")){
-            prop_val = new_object[prop]
-            if (prop_val == undefined)             { val_str = "undefined" }
-            else if (Object.isNewObject(prop_val)) { val_str = inspect_stringify_new_object_clickable_path(prop_val) }
-            else                                   { val_str = stringify_value_aux(prop_val) }
-            result += "&nbsp;" + prop + ": " +  val_str + "<br/>"
-        }
-    }
-    result += "}"
-    if(add_to_stack){ //do this before computing opacity
-        inspect_stack.push(new_object)
-        inspect_stack_pos = inspect_stack.length - 1
-    }
-    let prev_opacity = (inspect_stack_pos >= 1) ? 1 : 0.3
-    let next_opacity = (inspect_stack_pos < (inspect_stack.length - 1)) ? 1 : 0.3
-    result = "<div id='inspector_id' style='background-color:#ffd9b4;'>" +
-             "&nbsp;<span             id='inspect_previous_value_id' title='Inspect previous value.' style='color:blue;font-weight:900; opacity:" + prev_opacity + ";'>&lt;</span>" +
-             "&nbsp;&nbsp;&nbsp;<span id='inspect_next_value_id'     title='Inspect next value.'     style='color:blue;font-weight:900; opacity:" + next_opacity + ";'>&gt;</span>" +
-             "<b style='padding-left:100px;'><i>Inspector</i></b><br/>"  +
-             result + "</div>"
-
-    setTimeout(function(){out(result, "black", true)}, 200) //give the regular return value
-      //a chance to be rendered, so that the temp browser will be rendered AFTER it,
-      //because otherewise the temp browser will be erased by the regular result output.
-      //but beware, after the browser html is renderend, we need to set the onclicks,
-      //which has a timeout too that must be longer than this timeout.
-}
-
-var inspect_stack = []
-var inspect_stack_pos = -1
-function inspect_previous_value(){
-    if(inspect_stack_pos > 0) {
-        inspect_stack_pos -= 1
-        inspect_new_object(inspect_stack[inspect_stack_pos], false)
-    }
-}
-
-function inspect_next_value(){
-        if(inspect_stack_pos < (inspect_stack.length - 1)) {
-            inspect_stack_pos += 1
-            inspect_new_object(inspect_stack[inspect_stack_pos], false)
-        }
-}
-
-function inspect_stringify_new_object_clickable_path(new_obj){
-    let path = new_obj.objectPath()
-    let id_string = path.replace(/\./g, "_") + "_path_id"
-    let result = '<span id="' + id_string + '" style="color:blue; text-decoration:underline;">' + path + '</span/>'
-    inspect_set_new_object_onclick(id_string, path)
-    return result
-}
-
-function inspect_set_new_object_onclick(id_string, path){
-    setTimeout(function(){ //we need to wait until the html is actually rendered.
-        let fn = function(){ inspect_new_object(path) }
-        let elts = window[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
-        // this is a very broken data struture that I can't even test for except with length
-        if (elts == undefined) {
-           //at least often this is not an error. One case it happens is when
-           //printing a Job, its orig_args object that has
-           //a default_workspace_pose with a paren of Roob.Coor.Table that
-           //is yet to have an id for it. But that's harmless and
-           //doesn't prevent you from clicking through to inspect it,
-           //so don't print this warning message as nothing's wrong.
-           //console.log("In inspect_set_new_object_onclick, didn't find: " +  id_string)
-        }
-        else if (elts.length){
-            for(let i = 0; i < elts.length; i++) {
-                elts[i].onclick = fn
-            }
-        }
-        else { elts.onclick = fn } //only one
-        if(window.inspect_previous_value_id){
-            inspect_previous_value_id.onclick = inspect_previous_value
-        }
-        else { //will happen when inspecting the first obj
-            //console.log("inspect_previous_value_id not bound in inspect_set_new_object_onclick.")
-        }
-        if(window.inspect_next_value_id) {
-            inspect_next_value_id.onclick     = inspect_next_value
-        }
-        else { //will happen when inspecting the first obj
-            //console.log("inspect_next_value_id not bound in inspect_set_new_object_onclick.")
-        }
-    }, 1000)
-}
+//______End CSV ______
 
 //not called jan 2019
-function scale_to_micron_factor(scale){
+static scale_to_micron_factor(scale){
     if (typeof(scale) == "number") { return scale }
     else {
         let num =  {"microns":     1,
@@ -1879,7 +1687,7 @@ function scale_to_micron_factor(scale){
     }
 }
 
-export function limit_to_range(value, min=null, max=null){
+static limit_to_range(value, min=null, max=null){
     let result = value
     if (min){ result = Math.max(result, min) }
     if (max){ result = Math.min(result, max) }
@@ -1887,150 +1695,21 @@ export function limit_to_range(value, min=null, max=null){
 }
 
 //dxf uses objects but dde standardizes on arrays
-export function point_object_to_array(xyz_obj){
+static point_object_to_array(xyz_obj){
     return [xyz_obj.x, xyz_obj.y, xyz_obj.z]
 }
 
-export function scale_point(xyz, scale) {
+static scale_point(xyz, scale) {
     return [Math.round(xyz[0] * scale),
             Math.round(xyz[1] * scale),
             Math.round(xyz[2] * scale)]
 }
 
 //not called jan 2019
-function point_equal(a, b) { return (a[0] == b[0]) && (a[1] == b[1]) && (a[2] == b[2]) }
-
-export class Duration {
-    //DO NOT default minutes to anything as we need null there so that the first arg will be interprested as ms
-    constructor(string_or_hours=0, minutes=0, seconds=0, milliseconds=0){ //First arg can be "12:34" for hours:mins,
-                                                                         // "12:34:56" for hours:mins:secs,
-                                                                         // or 123 for hours
-        if (typeof(string_or_hours) == "string") { //presume "12:34"(hours and mins) or "12:34:56" hours, mins, secs
-            if (is_hour_colon_minute(string_or_hours) || is_hour_colon_minute_colon_second(string_or_hours)){
-                var [h, m, s] = string_or_hours.split(":")
-                var secs = parseInt(h) * 60 * 60
-                secs += parseInt(m) * 60
-                if (s) { secs += parseInt(s) }
-                this.milliseconds = secs * 1000 //to get milliseconds
-                return
-            }
-        }
-        else if (typeof(string_or_hours) == "number"){
-                let secs = (string_or_hours * 60 * 60) + (minutes * 60) + seconds
-                this.milliseconds = (secs * 1000) + milliseconds
-                return
-        }
-        throw new Error("new Duration passed arg: " + string_or_hours + " which is not a number or a string of the format 12:34 or 12:34:56 ")
-    }
-    toString() { return this.to_source_code }
-
-    to_source_code(){
-        let total_ms  = this.milliseconds
-        let ms        = total_ms  % 1000
-        let total_sec = (total_ms - ms)   / 1000
-        let sec       = total_sec % 60
-        let total_min = (total_sec - sec) / 60
-        let min       = total_min % 60
-        let hour      = (total_min - min) / 60
-        return "new Duration(" + hour + ", " + min + ", " + sec + ", " + ms + ")"
-    }
-
-    to_seconds(){ return this.milliseconds / 1000 }
-}
-
-globalThis.Duration = Duration
-
-
-
-
-export var month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September','October', 'November', 'December']
-
-/*
-nn = performance.now(); parseInt(microseconds()); performance.now() - nn;
-and
-nn = performance.now(); time_in_us(); performance.now() - nn;
-take very close to the same time, ie very clsoe to 0.1 ms normally,
-or very close to  0.2 ms. (its bi-modal)
-Note: nn = performance.now(); performance.now() - nn;
-usually measures as 0 ms but occassionally 0.1ms
-https://stackoverflow.com/questions/313893/how-to-measure-time-taken-by-a-function-to-execute/15641427
-Number.MAX_SAFE_INTEGER is
-9007199254740991
-whereas, time_in_us() returns (as of may3, 2020)
-1588518775923001
-so our JS integers are in good shape to handle this capacity.
-Conclusion: time_in_us gives us 0.1ms  or 0.2ms res, not consistently.
-*/
-
-export function time_in_us() { return parseInt(microseconds()) }
-
-//input -> output
-// 12       12
-// 12.3     12.3
-// "1:34"     94
-// "1:34.5"   94.5
-// "1:2:3"    1 hour, 2 minutes, 3 seconds ie 3600 + 120 + 3
-// else error
-export function string_to_seconds(dur){
-    if(typeof(dur) === "number") { return dur }
-    else if(typeof(dur) == "string"){
-        let num_strings = dur.split(":")
-        if(num_strings.length == 0)  { dde_error("string_to_seconds passed empty string for dur of: " + dur) }
-        else if (num_strings.length == 1) {
-           if(is_string_a_number(num_strings[0])) {
-               return parseFloat(num_strings[0])
-           }
-           else { dde_error("string_to_seconds passed string that is not a number: " + dur) }
-        }
-        else if(num_strings.length == 2) {
-            if(!is_string_a_integer(num_strings[0]) ||
-                !is_string_a_number(num_strings[1])) {
-                dde_error("string_to_seconds passed string that does not contain valid numbers: " + dur)
-            }
-            else {
-                let result = parseInt(num_strings[0]) * 60
-                result +=  parseFloat(num_strings[1])
-                return result
-            }
-        }
-        else if(num_strings.length == 3) {
-            if(!is_string_a_integer(num_strings[0]) ||
-               !is_string_a_integer(num_strings[0]) ||
-               !is_string_a_number(num_strings[2])) {
-                dde_error("string_to_seconds passed string that does not contain valid numbers: " + dur)
-            }
-            else {
-                let result = parseInt(num_strings[0]) * 60 * 60
-                result    += parseInt(num_strings[0]) * 60
-                result    += parseFloat(num_strings[2])
-                return result
-            }
-        }
-        else {
-          dde_error("string_to_seconds passed string that does not 1 to 3 numbers: " + dur)
-        }
-    }
-    else {
-        dde_error("string_to_seconds passed non number, non string: " + dur)
-    }
-}
-
-
-//note that the JS fns atob and btoa are defined in DDE proper
-//but are not in node.js so they don't work on the Job Engine.
-//So these are defined and will work on both DDE and Job Engine under node.
-export function base64_to_binary_string(str) {
-    return Buffer.from(str, 'base64').toString('binary')
-}
-
-
-export function binary_to_base64_string(str) {
-    return Buffer.from(str, 'binary').toString('base64')
-}
-
+static point_equal(a, b) { return (a[0] == b[0]) && (a[1] == b[1]) && (a[2] == b[2]) }
 
 //user fn but not called in dde, jan 2019
-export function make_ins_arrays(default_oplet, instruction_arrays=[]){
+static make_ins_arrays(default_oplet, instruction_arrays=[]){
     let result = []
     for(let instr of instruction_arrays) {
         if((instr.length > 0) && (Robot.is_oplet(instr[0], false))) {//instr ok as is
@@ -2042,10 +1721,184 @@ export function make_ins_arrays(default_oplet, instruction_arrays=[]){
             result.push(make_ins(...new_array))
         }
         else {
-            dde_error("make_ins_arrays called with no default oplet and an instruction args array without an oplet: " + instr)
+            dde_error("Utils.make_ins_arrays called with no default oplet and an instruction args array without an oplet: " + instr)
         }
     }
     return result
 }
 
+//________Date________
+    static is_valid_new_date_arg(string_or_int){
+        const timestamp = Date.parse(string_or_int)
+        if (Number.isNaN(timestamp)) { return false }
+        else { return true }
+    }
+
+
+    static is_hour_colon_minute(a_string){
+        return a_string.match(/^\d\d:\d\d$/)
+    }
+
+
+    static is_hour_colon_minute_colon_second(a_string){
+        return a_string.match(/^\d\d:\d\d:\d\d$/)
+    }
+
+
+//date_int is ms from jan 1, 1970 as returned by Date.now()
+    static date_integer_to_long_string(date_int=Date.now()){
+        let date_obj = new Date(date_int)
+        let result = date_obj.toString()
+        let ms = date_obj.getMilliseconds()
+        result +=  " " + ms + "ms"
+        return result
+    }
+
+
+//integer milliseconds in, output "123:23:59:59:999" ie
+// days:hours:minutes:seconds:milliseconds
+    static milliseconds_to_human_string(total_ms=Date.now(), include_total_days=true){
+        let remain_ms   = total_ms % 1000
+        let total_secs  = (total_ms - remain_ms) / 1000
+
+        let remain_secs = total_secs % 60
+        let total_mins = (total_secs - remain_secs) / 60
+
+        let remain_mins = total_mins % 60
+        let total_hours = (total_mins - remain_mins) / 60
+
+        let remain_hours = total_hours % 24
+        let total_days   = (total_hours - remain_hours) / 24
+        return (include_total_days ? total_days + ":" : "") +
+            Utils.pad_integer(remain_hours, 2) + ":" +
+            Utils.pad_integer(remain_mins, 2) + ":" +
+            Utils.pad_integer(remain_secs, 2) + ":" +
+            Utils.pad_integer(remain_ms, 3)
+    }
+
+//lots of inputs, returns "Mar 23, 2017" format
+    static date_to_mmm_dd_yyyy(date){ //can't give the default value here because on DDE launch,
+//this method is called and for some weird reason, that call errors, but doesn't
+//if I set an empty date below.
+        if(!(date instanceof Date)) { date = new Date(date) }
+        const d_string = date.toString()
+        const mmm = d_string.substring(4, 8)
+        return mmm + " " + date.getDate() + ", " + date.getFullYear()
+    }
+
+    static date_to_human_string(date=new Date()){
+        let result = this.date_to_mmm_dd_yyyy(date)
+        return result +  " " + Utils.milliseconds_to_human_string(undefined, false)
+    }
+
+//________TIME related functions below here_______
+//import {microseconds}              from "../../../node_modules/nano-time/index.js"
+//importing microseconds from this module just doesn't work, so
+//I'm inlining the code from the nano-time npm module here:
+static nanoseconds() {
+    let loadNs = process.hrtime();
+    let loadMs = new Date().getTime();
+    let diffNs = process.hrtime(loadNs);
+    return BigInt(loadMs).times(1e6).add(BigInt(diffNs[0]).times(1e9).plus(diffNs[1])).toString();
+}
+
+static microseconds() {
+    return BigInt(this.nanoseconds()).divide(1e3).toString();
+}
+//_____done with defining microseconds, called below
+static month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September','October', 'November', 'December']
+
+    /*
+    nn = performance.now(); parseInt(microseconds()); performance.now() - nn;
+    and
+    nn = performance.now(); Utils.time_in_us(); performance.now() - nn;
+    take very close to the same time, ie very clsoe to 0.1 ms normally,
+    or very close to  0.2 ms. (its bi-modal)
+    Note: nn = performance.now(); performance.now() - nn;
+    usually measures as 0 ms but occassionally 0.1ms
+    https://stackoverflow.com/questions/313893/how-to-measure-time-taken-by-a-function-to-execute/15641427
+    Number.MAX_SAFE_INTEGER is
+    9007199254740991
+    whereas, this.time_in_us() returns (as of may3, 2020)
+    1588518775923001
+    so our JS integers are in good shape to handle this capacity.
+    Conclusion: this.time_in_us gives us 0.1ms  or 0.2ms res, not consistently.
+    */
+
+static time_in_us() { return parseInt(microseconds()) }
+
+//input -> output
+// 12       12
+// 12.3     12.3
+// "1:34"     94
+// "1:34.5"   94.5
+// "1:2:3"    1 hour, 2 minutes, 3 seconds ie 3600 + 120 + 3
+// else error
+static string_to_seconds(dur){
+    if(typeof(dur) === "number") { return dur }
+    else if(typeof(dur) == "string"){
+        let num_strings = dur.split(":")
+        if(num_strings.length == 0)  { dde_error("Utils.string_to_seconds passed empty string for dur of: " + dur) }
+        else if (num_strings.length == 1) {
+            if(this.is_string_a_number(num_strings[0])) {
+                return parseFloat(num_strings[0])
+            }
+            else { dde_error("Utils.string_to_seconds passed string that is not a number: " + dur) }
+        }
+        else if(num_strings.length == 2) {
+            if(!this.is_string_a_integer(num_strings[0]) ||
+                !this.is_string_a_number(num_strings[1])) {
+                dde_error("Utils.string_to_seconds passed string that does not contain valid numbers: " + dur)
+            }
+            else {
+                let result = parseInt(num_strings[0]) * 60
+                result +=  parseFloat(num_strings[1])
+                return result
+            }
+        }
+        else if(num_strings.length == 3) {
+            if(!this.is_string_a_integer(num_strings[0]) ||
+                !this.is_string_a_number(num_strings[2])) {
+                dde_error("Utils.string_to_seconds passed string that does not contain valid numbers: " + dur)
+            }
+            else {
+                let result = parseInt(num_strings[0]) * 60 * 60
+                result    += parseInt(num_strings[0]) * 60
+                result    += parseFloat(num_strings[2])
+                return result
+            }
+        }
+        else {
+            dde_error("Utils.string_to_seconds passed string that does not 1 to 3 numbers: " + dur)
+        }
+    }
+    else {
+        dde_error("Utils.string_to_seconds passed non number, non string: " + dur)
+    }
+    /* unused jan 2019
+   static is_json_date(a_string){
+       if((a_string.length > 19) && (a_string.length < 30)) {//impresise
+           return (is_string_a_integer(a_string.substring(0, 4)) &&
+           (a_string[4] == "-") &&
+           (a_string[7] == "-") &&
+           (a_string[10] == "T") &&
+           (a_string[13] == ":"))
+       }
+       else return false
+   }
+   */
+}
+} //end class Utils
+
+globalThis.Utils = Utils
+
+globalThis.dde_error = Utils.dde_error //not documented, but just used so many places in DDE.
+                                 //we should probably encourage advances dde users to use it.
+globalThis.warning       = Utils.warning
+globalThis.shouldnt      = Utils.shouldnt
+globalThis.rgb           = Utils.rgb //documented for users, as in Plot example
+globalThis.last          = Utils.last //used a bunch of places that are hard to declare
+globalThis.replace_substrings = Utils.replace_substrings
+globalThis.similar       = Utils.similar
+globalThis.value_of_path = Utils.value_of_path
 

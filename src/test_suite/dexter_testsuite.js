@@ -1,3 +1,4 @@
+import "./test_suite.js" //must be here as TestSuite must be defined before loading the below
 
 new TestSuite("Dexter.joint_to_servo_number",
     ["Dexter.joint_to_servo_number(6)", "3"],

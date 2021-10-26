@@ -1,14 +1,13 @@
 /*cv.imread can read from an img tag or a canvas tag.
 But looks like cv.imshow can only show to a canvas tag.
 */
-import {is_integer, number_similarity, value_of_path} from "../job_engine/core/utils.js"
 
 //var cv = "cv is not initialized. Call Picture.init()"
 //var RotatingCalipers = "RotatingCalipers is not initialized. Call Picture.init()"
 import * as cv from "../../node_modules/opencv.js/opencv.js"
 import * as RotatingCalipers from "rotating-calipers/rotating-calipers.js"
 
-var Picture = class Picture{
+class Picture{
    //the width and height are for the show_window made (if any)
    //iF the picture pixels are more than the window dimensions, the window will scroll.
    static init({width=320, height=240}={}){
@@ -210,7 +209,7 @@ var Picture = class Picture{
         if(typeof(content) == "string") { //got a file path
             let img = new Image() //Don't pass in width and height because we want the width and height to come from the content  file name. canvas_elt.width, canvas_elt.height) //img_id  //new Image()
             //if(transform_style.length > 0) {img.style.transform = transform_style }
-            if(is_string_base64(content, true)) { //permit newline at end of content
+            if(Utils.is_string_base64(content, true)) { //permit newline at end of content
                 content = "data:image/jpg;base64," + content
             }
             img.src = content //"/images/2c.jpg";
@@ -562,7 +561,7 @@ var Picture = class Picture{
                 case "grey": dde_error('Picture.make_mat called with type of "grey". Please use "gray" instead.')
                     break;
                 default:
-                    if(is_integer(type)) {} //ok as is
+                    if(Utils.is_integer(type)) {} //ok as is
                     else {
                         dde_error("make_mat called with invalid type string of: " + type)
                     }
@@ -1147,9 +1146,9 @@ var Picture = class Picture{
       for(let i = 0; i < point_count; i++){
           let pt1 = key_pts_reasonable_array1[i]
           let pt2 = key_pts_reasonable_array1[i]
-          let sim_size = number_similarity(pt1.size, pt2.size)
-          let sim_x    = number_similarity(pt1.x, pt2.x)
-          let sim_y    = number_similarity(pt2.y, pt2.y)
+          let sim_size = Utils.number_similarity(pt1.size, pt2.size)
+          let sim_x    = Utils.number_similarity(pt1.x, pt2.x)
+          let sim_y    = Utils.number_similarity(pt2.y, pt2.y)
           let sim = (sim_size + sim_x + sim_y) / 3
           result += sim
       }
@@ -1237,4 +1236,6 @@ function show_window_callback_for_canvas_click(vals){
            "background:rgb(" + pix[0] + "," + pix[1] + "," + pix[2] + ")';></div>"
     )
 }
+
+globalThis.Picture = Picture
 

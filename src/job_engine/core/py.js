@@ -6,7 +6,6 @@ https://ourcodeworld.com/articles/read/286/how-to-execute-a-python-script-and-re
 https://stackoverflow.com/questions/65876022/npm-python-shell-persistent-process-from-javascript
 */
 
-import {replace_substrings} from "./utils.js"
 import {spawn} from '/child_process'
 
 export class Py{
@@ -28,7 +27,7 @@ export class Py{
             text = "<span style='color:" + color + ";'>" + text + "</span>"
         }
         text = format_text_for_code(to_source_code({value: text}))
-        text = replace_substrings(text, "\n", "<br/>")
+        text = Utils.replace_substrings(text, "\n", "<br/>")
         let src_formatted = ""
         let src_formatted_suffix = "" //but could be "..."
         if(src) {
@@ -42,8 +41,8 @@ export class Py{
                 src_formatted = src_formatted.substring(0, 50)
                 src_formatted_suffix = "..."
             }
-            src_formatted = replace_substrings(src_formatted, "<", "&lt;")
-            src = replace_substrings(src, "'", "&apos;")
+            src_formatted = Utils.replace_substrings(src_formatted, "<", "&lt;")
+            src = Utils.replace_substrings(src, "'", "&apos;")
             src_formatted = " <code title='" + src + "'>&nbsp;" + src_formatted + src_formatted_suffix + "&nbsp;</code>"
         }
         //if (src_formatted == "") { console.log("_____out_eval_result passed src: " + src + " with empty string for src_formatted and text: " + text)}
@@ -176,7 +175,7 @@ export class Py{
         if(last(python_source_code) === "\n") {
             python_source_code = python_source_code.substring(0, python_source_code.length - 1) //will be added back later
         }
-        let proccessed_src = replace_substrings(python_source_code, "\n", "{nL}")
+        let proccessed_src = Utils.replace_substrings(python_source_code, "\n", "{nL}")
         let existing_cb_id = this.register_callback(callback)
         proccessed_src = existing_cb_id + " " + proccessed_src + "\n" //needs \n for python readline() to complete
         this.process.stdin.write(proccessed_src);
@@ -194,7 +193,7 @@ export class Py{
     //path should end in .py
     static load_file(path, as_name = null, callback=Py.default_callback){
        path = make_full_path(path, false) //don't adjust to OS, keep as slashes.
-       path = replace_substrings(path, "\\", "/", false)
+       path = Utils.replace_substrings(path, "\\", "/", false)
        this.eval("sys.path",
                  function(json_obj){
                      let folder_array = json_obj.result

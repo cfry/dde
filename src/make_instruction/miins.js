@@ -1,7 +1,3 @@
-import {ends_with_one_of, fn_is_keyword_fn, function_param_names_and_defaults_array,
-        get_class_of_instance, get_class_name,
-        replace_substrings, starts_with_one_of, trim_end, value_of_path}
-       from "../job_engine/core/utils.js"
 
 class MiIns {
     constructor (){
@@ -89,7 +85,7 @@ class MiIns {
     }
 
     get_family_class(){
-        let the_class = get_class_of_instance(this)
+        let the_class = Utils.get_class_of_instance(this)
         return the_class
     }
 
@@ -175,7 +171,7 @@ class MiIns {
     //make instructions: only make a call_obj with its names in place, no args added
     static make_from_instruction_name_no_args(instruction_name){
         let family_class = this.instruction_name_to_family_class(instruction_name)
-        //let new_class_name = get_class_name(family_class)
+        //let new_class_name = Utils.get_class_name(family_class)
         //let new_inst = window.eval("new " + new_class_name) //dde4 causes probelms because of a name of MiIns$1
         let new_inst = new family_class()
         new_inst.superclass_name = this.instruction_name_to_superclass_name(instruction_name)
@@ -241,7 +237,7 @@ class MiIns {
 
     static make_from_instruction_name_only_no_args(instruction_name){
         let family_class = this.instruction_name_to_family_class(instruction_name)
-        let new_class_name = get_class_name(family_class)
+        let new_class_name = Utils.get_class_name(family_class)
         let new_inst = window.eval("new " + new_class_name)
         new_inst.superclass_name = this.instruction_name_to_superclass_name(instruction_name)
         new_inst.instance_name   = this.instruction_name_to_instance_name(instruction_name)
@@ -284,7 +280,7 @@ class MiIns {
     //may be defined in subclasses. This def for "normal" fns without a family
     merge_in_from_instruction_def(){
         let instruction_name = this.get_instruction_name()
-        let arg_name_val_src_pairs = function_param_names_and_defaults_array(instruction_name, true)
+        let arg_name_val_src_pairs = Utils.function_param_names_and_defaults_array(instruction_name, true)
         for(let arg_name_val_pair of arg_name_val_src_pairs){
             let arg_name    = arg_name_val_pair[0]
             if((arg_name == "robot") &&
@@ -301,7 +297,7 @@ class MiIns {
 
     merge_in_from_instruction_def_only_if_empty(){
         let instruction_name = this.get_instruction_name()
-        let arg_name_val_src_pairs = function_param_names_and_defaults_array(instruction_name, true)
+        let arg_name_val_src_pairs = Utils.function_param_names_and_defaults_array(instruction_name, true)
         for(let arg_name_val_pair of arg_name_val_src_pairs){
             let arg_name    = arg_name_val_pair[0]
             if((arg_name == "robot") &&

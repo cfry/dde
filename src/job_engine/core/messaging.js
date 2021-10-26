@@ -1,8 +1,6 @@
 import https from '/https'
 import  querystring from '/querystring'
-import  {function_param_names, replace_substrings, time_in_us} from "./utils.js"
 
-import {stringify_value, value_of_path} from "./utils.js"
 import {speak, stringify_for_speak} from "./out.js"
 
 export var Messaging = class Messaging{}
@@ -101,7 +99,7 @@ Messaging.add_to_cache_maybe = function(mess_obj, cache_array){
 //depends on Messaging.mess_objs_that_made_round_trip ordered oldest first.
 //deletes all the elements at the beginning of the array that are too old.
 Messaging.clean_out_cached_mess_objs = function(cache_array){
-    let now_us = time_in_us()
+    let now_us = Utils.time_in_us()
     let times_less_than_to_delete = now_us - Messaging.delete_cached_mess_objs_older_than_us //mess_obj that are over 3 minutes old  will be deleted
     for(let i = 0; i < cache_array.length; i++){
         let mess_obj = cache_array[i]
@@ -357,7 +355,7 @@ Messaging.send = function(mess_obj){
        Messaging.tentative_last_send_to = mess_obj.to
 
        if(!mess_obj.send_time_us) { //only add sent_time_us once to mess_obj, ie the first time its used
-          Messaging.last_send_time_us = time_in_us() //in microseconds  //Note: Date.now() is in miilliseconds
+          Messaging.last_send_time_us = Utils.time_in_us() //in microseconds  //Note: Date.now() is in miilliseconds
           mess_obj.send_time_us = Messaging.last_send_time_us
        }
        if(mess_obj.get_result && !mess_obj.hasOwnProperty("result")) { //if it has a result, tht means
@@ -589,8 +587,8 @@ Messaging.chat = function({message="test message", //color="black", code=null,
     //fill in defaults. Careful: Smarter ways to do this generate garbage.
     if(!mess_obj.message)   { mess_obj.message   = message }
     if (typeof(mess_obj.message) != "string"){ //if its not a string, its some data structure so make it fixed width to demonstrate code. Plus the json pretty printing doesn't work unless if its not fixed width.
-        if(window["stringify_value"]) { mess_obj.message = stringify_value(mess_obj.message) }
-        else { mess_obj.message = stringify_value_cheap(mess_obj.message) } //hits in browser
+        if(Utils.stringify_value) { mess_obj.message = Utils.stringify_value(mess_obj.message) }
+        else { mess_obj.message = Utils.stringify_value_cheap(mess_obj.message) } //hits in browser
     }
     //if(!mess_obj.color) { mess_obj.color = color }
     //if(!mess_obj.code)  { mess_obj.code  = code }
@@ -790,8 +788,8 @@ Messaging.out = function({val="test message", color="black", temp=false, code=nu
     //fill in defaults. Careful: Smarter ways to do this generate garbage.
     if(!mess_obj.val)   { mess_obj.val   = val }
     if (typeof(mess_obj.val) != "string"){ //if its not a string, its some data structure so make it fixed width to demonstrate code. Plus the json pretty printing doesn't work unless if its not fixed width.
-        if(window["stringify_value"]) { mess_obj.val = stringify_value(mess_obj.val) }
-        else { mess_obj.val = stringify_value_cheap(mess_obj.val) } //hits in browser
+        if(Utils.stringify_value) { mess_obj.val = Utils.stringify_value(mess_obj.val) }
+        else { mess_obj.val = Utils.stringify_value_cheap(mess_obj.val) } //hits in browser
     }
     if(!mess_obj.color) { mess_obj.color = color }
     if(!mess_obj.temp)  { mess_obj.temp  = temp }
@@ -811,7 +809,7 @@ Messaging.out_receive = function(mess_obj){
 }
 
 Messaging.ping_callback = function(mess_obj){
-    let now_us = time_in_us()
+    let now_us = Utils.time_in_us()
     let start_time_us = mess_obj.send_time_us
     let send_to_receive_dur = mess_obj.result - start_time_us
     let receive_to_send_dur = now_us - mess_obj.result
@@ -842,7 +840,7 @@ Messaging.ping = function({callback="Messaging.ping_callback",
 }
 
 Messaging.ping_receive = function(mess_obj){
-    mess_obj.result = time_in_us()
+    mess_obj.result = Utils.time_in_us()
 }
 
 Messaging.speak = function({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0,
@@ -899,7 +897,7 @@ Messaging.start_job = function({job_name=null, start_options={}, if_started="ign
                 "but that file doesn't define any jobs.")
         }
     }
-    else if(is_string_an_identifier(mess_obj.job_name)){  //job def is on receiver
+    else if(Utils.is_string_an_identifier(mess_obj.job_name)){  //job def is on receiver
          mess_obj.job_name = job_name
     }
     else {
@@ -945,7 +943,7 @@ Messaging.start_job_receive = function(mess_obj){
             return
         }
     }
-    else if(is_string_an_identifier(job_name)) {
+    else if(Utils.is_string_an_identifier(job_name)) {
         job_instance = Job[job_name]
     }
     else {
@@ -1027,7 +1025,7 @@ Messaging.stop_job = function({job_name,
     if(!mess_obj.job_name) { //required.
         dde_error("Attempt to send Messaging.start_job but no job_name provided for the Job.")
     }
-    else if (!is_string_an_identifier(mess_obj.job_name)) {
+    else if (!Utils.is_string_an_identifier(mess_obj.job_name)) {
         dde_error("In Messaging.stop_job, " + mess_obj.job_name +
                   "<br/>is not the right syntax for a Job name.")
     }
@@ -1054,7 +1052,7 @@ Messaging.stop_job = function({job_name,
 Messaging.stop_job_receive = function(mess_obj){
     let job_name = mess_obj.job_name
     let job_instance
-    if(is_string_an_identifier(job_name)){
+    if(Utils.is_string_an_identifier(job_name)){
         job_instance = Job[job_name]
         if(!(job_instance instanceof Job)) {
             mess_obj.result  = "Error: Messaging.stop_job_receive passed job_name of: " + mess_obj.job_name +
@@ -1306,7 +1304,7 @@ Messaging.receive_callback = function(res){
         data_string += data.toString()
     })
     res.on("end", function(){
-        let dur = time_in_us() - Messaging.last_send_time_us //only used in debugging
+        let dur = Utils.time_in_us() - Messaging.last_send_time_us //only used in debugging
         if(Messaging.is_logged_in) {
             Messaging.debug("Messaging is auto_refreshing for: " + Messaging.user)
             Messaging.receive()
@@ -1425,7 +1423,7 @@ Messaging.new_message_to_source = function(){
         let mess_obj_src = to_source_code({value: mess_obj})
         mess_obj_src = mess_obj_src.substring(1) // cut off the opening curly
         mess_obj_src = "{\n " + mess_obj_src
-        mess_obj_src = replace_substrings(mess_obj_src, "\n ", "\n        ")
+        mess_obj_src = Utils.replace_substrings(mess_obj_src, "\n ", "\n        ")
         result += mess_obj_src
     }
     result += ")"
@@ -1434,7 +1432,7 @@ Messaging.new_message_to_source = function(){
 
 Messaging.mess_type_to_mess_obj = function(mess_type, main_arg_string=null, include_type=false){
     let fn = Messaging[mess_type]
-    let mess_obj = function_param_names_and_defaults_lit_obj(fn)
+    let mess_obj = Utils.function_param_names_and_defaults_lit_obj(fn)
     let params = Object.keys(mess_obj)
     for(let param of params) {
         eval("mess_obj[param] = " + mess_obj[param]) //reduces "null" to null, ""foo"" to "foo"
@@ -1453,7 +1451,7 @@ Messaging.mess_type_to_mess_obj = function(mess_type, main_arg_string=null, incl
 
 Messaging.mess_type_to_main_arg_name = function(mess_type){
     let fn = Messaging[mess_type]
-    let mess_obj = function_param_names_and_defaults_lit_obj(fn)
+    let mess_obj = Utils.function_param_names_and_defaults_lit_obj(fn)
     let params = Object.keys(mess_obj)
     return params[0]
 }
@@ -1473,7 +1471,7 @@ Messaging.mess_obj_to_main_arg_name = function (mess_obj){
 Messaging.template_for_mess_type = function(mess_type){
     let result = ""
     let fn = Messaging[mess_type]
-    let lit_obj = function_param_names_and_defaults_lit_obj(fn)
+    let lit_obj = Utils.function_param_names_and_defaults_lit_obj(fn)
     let param_names = Messaging.params_for_mess_obj_to_source(mess_type)
     if(param_names.length > 1){ //takes more than just one main_arg
         result = "{"
@@ -1792,7 +1790,7 @@ Messaging.show_dialog_cb = function(vals){
                 if(comma_pos == -1) { return } //give up, bad syntax
             }
             let old_main_arg_value = message.substring(colon_pos + 1, comma_pos).trim()
-            if(starts_with_one_of(old_main_arg_value, '"', "'", "`")) { //strip off quotes or we get too many off them when calling mess_obj_to_source
+            if(Utils.starts_with_one_of(old_main_arg_value, '"', "'", "`")) { //strip off quotes or we get too many off them when calling mess_obj_to_source
                 old_main_arg_value = old_main_arg_value.substring(1, old_main_arg_value.length - 1)
             }
             let new_mess_obj = Messaging.mess_type_to_mess_obj(type, old_main_arg_value)
@@ -1947,7 +1945,7 @@ Messaging.smart_append_to_sent_messages = function(mess_obj,
             else {
                 summary_suffix = mess_obj.message.substring(0, first_newline_pos)
                 body_suffix    = mess_obj.message.substring(first_newline_pos + 1)
-                body_suffix    = replace_substrings(body_suffix, "\n", "<br/>")
+                body_suffix    = Utils.replace_substrings(body_suffix, "\n", "<br/>")
             }
         }
         else {
@@ -1999,7 +1997,7 @@ Messaging.edit_button_action = function(type, get_result){
         }
     }
     else { src = event.srcElement.parentNode.firstElementChild.innerText }
-    src = replace_substrings(src, "<br/>", "\n")
+    src = Utils.replace_substrings(src, "<br/>", "\n")
 
     let result_pos = src.indexOf("result:")
     if(result_pos !== -1) {
@@ -2112,7 +2110,7 @@ MessStat.extract_send_time = function(res){
     let start_time_us = path.substring(start_pos, end_pos)
     start_time_us = parseInt(start_time_us)
     return start_time_us
-    //let dur_in_us = time_in_us() - start_time_us
+    //let dur_in_us = Utils.time_in_us() - start_time_us
     //return dur_in_us
 }*/
 MessStat.extract_property_value = function(res, property_name){
@@ -2160,7 +2158,7 @@ MessStat.record_send_cb_time = function(res, is_send_good){
         let send_time_us = MessStat.extract_property_value(res, "send_time_us")
         let mess_data = MessStat.find_array_for_time(send_time_us)
         if(mess_data) {
-            mess_data.send_cb_time = time_in_us()
+            mess_data.send_cb_time = Utils.time_in_us()
             mess_data.is_send_good = is_send_good
         }
         else {
@@ -2187,7 +2185,7 @@ MessStat.avg_dur = function(window_size = 5){
     else { return accum_dur / number_of_mess_data_found }
 }
 
-MessStat.avg_dur_fill_in_send_cb_time = function(now_in_us=time_in_us(), window_size = 5){
+MessStat.avg_dur_fill_in_send_cb_time = function(now_in_us=Utils.time_in_us(), window_size = 5){
     if(Math.min(MessStat.time_array.length == 0)) { return MessStat.default_avg_dur }
     else {
         let accum_dur = 0
@@ -2284,12 +2282,12 @@ MessStat.non_get_result_report_object = function(){
 }
 MessStat.non_get_result_report_inner_data = function(){
     let report_object_str = to_source_code({value: MessStat.non_get_result_report_object()})
-    report_object_str = replace_substrings(report_object_str, "\n", "<br/>")
+    report_object_str = Utils.replace_substrings(report_object_str, "\n", "<br/>")
     report_object_str = report_object_str.substring(1, report_object_str.length - 1)  //cut off { ... }
     return report_object_str + "<input name='non_get_result_inspect' type='button' value='inspect'/>"
 }
 
-MessStat.fill_in_non_get_result_durs = function(now_in_us=time_in_us()){
+MessStat.fill_in_non_get_result_durs = function(now_in_us=Utils.time_in_us()){
     for(let mess_data of MessStat.time_array){
         let send_cb_time = mess_data.send_cb_time
         if(!send_cb_time) { send_db_time = now_in_us }
@@ -2360,7 +2358,7 @@ MessStat.show_report_cb = function(vals){
         MessStat.report_refresh()
     }
     else if (vals.clicked_button_value == "non_get_result_inspect"){
-        MessStat.fill_in_non_get_result_durs(time_in_us())
+        MessStat.fill_in_non_get_result_durs(Utils.time_in_us())
         inspect(MessStat.time_array)
     }
     else if (vals.clicked_button_value == "get_result_fifo_inspect"){

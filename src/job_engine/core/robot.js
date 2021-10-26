@@ -3,12 +3,9 @@
 //import {RobotStatus} from "./robot_status.js" //in dde4 RobotStatus is global
 //import {Job} from "./job.js" now global
 //import {Instruction, make_ins} from "./instruction.js" //now global
-import {shouldnt, date_integer_to_long_string,
-        is_iterator, is_string_an_identifier, last,
-        return_first_arg, starts_with_one_of, stringify_value,
-        value_of_path} from "./utils.js"
-//import {file_exists, node_server_supports_editor,
-//         read_file} from "./storage"
+
+import {file_exists, node_server_supports_editor,
+        read_file} from "./storage"
 //import {Socket} from "./socket.js"
 //import {serial_connect, serial_disconnect, serial_send}from "./serial.js"
 
@@ -20,7 +17,7 @@ import {show_window_values} from "./out.js"
 
 class Robot {
     constructor (args){
-       if(!is_string_an_identifier(args.name)) {
+       if(!Utils.is_string_an_identifier(args.name)) {
            dde_error('You have attempted to make a new Robot with an invalid name of: "' + args.name +
                      '".<br/>Robot names should start with a letter and be followed only by letters, digits, or underscores.')
        }
@@ -563,7 +560,7 @@ Human.all_names = []
 
 class Serial extends Robot {
     constructor({name = "s1", simulate = null, //get sim val from Jobs menu item check box.
-                 sim_fun = return_first_arg, path = "required", connect_options={},
+                 sim_fun = Utils.return_first_arg, path = "required", connect_options={},
                  capture_n_items = 1, item_delimiter="\n", trim_whitespace=true,
                  parse_items = true, capture_extras = "error", /*"ignore", "capture", "error"*/
                  instruction_callback = Job.prototype.set_up_next_do }={}){
@@ -647,14 +644,14 @@ class Serial extends Robot {
         if (rob1.name            != rob2.name)             { return false }
         if (rob1.simulate        != rob2.simulate)         { return false }
         if (rob1.path            != rob2.path)             { return false }
-        if (!similar(rob1.connect_options, rob2.connect_options))  { return false }
+        if (!Utils.similar(rob1.connect_options, rob2.connect_options))  { return false }
         if (rob1.capture_n_items != rob2.capture_n_items)  { return false }
         if (rob1.item_delimiter  != rob2.item_delimiter)   { return false }
         if (rob1.trim_whitespace != rob2.trim_whitespace)  { return false }
         if (rob1.parse_items     != rob2.parse_items)      { return false }
         if (rob1.capture_extras  != rob2.capture_extras)   { return false }
-        if (!similar(rob1.instruction_callback, rob2.instruction_callback)) { return false }
-        if (!similar(rob1.sim_fun, rob2.sim_fun))            { return false }
+        if (!Utils.similar(rob1.instruction_callback, rob2.instruction_callback)) { return false }
+        if (!Utils.similar(rob1.sim_fun, rob2.sim_fun))            { return false }
         return true
     }
 
@@ -790,7 +787,7 @@ class Serial extends Robot {
             job_instance.stop_for_reason("errored",
                 "Serial.robot_done_with_instruction received a robot_status array: " +
                 robot_status + "<br/> of length: " + robot_status.length +
-                " that is less than the : " + (Serial.DATA0 - 1) + " required.<br/>" + stringify_value(robot_status))
+                " that is less than the : " + (Serial.DATA0 - 1) + " required.<br/>" + Utils.stringify_value(robot_status))
             if (job_instance.wait_until_instruction_id_has_run === ins_id){ //we've done it!
                 job_instance.wait_until_instruction_id_has_run = null //but don't increment PC
             }
@@ -1612,7 +1609,7 @@ class Dexter extends Robot {
     }
 
     move_all_joints_fn(angle_array=Dexter.HOME_ANGLES, set_default_speed_first = true){
-        let is_home_angles = similar(angle_array, Dexter.HOME_ANGLES)
+        let is_home_angles = Utils.similar(angle_array, Dexter.HOME_ANGLES)
         let do_list = []
         if(set_default_speed_first) { do_list.push(make_ins("S", "MaxSpeed", 25)) }
         do_list.push(Dexter.move_all_joints(angle_array))
@@ -3322,8 +3319,8 @@ Dexter.robot_status_to_html_table = function(ds){
         //setting table class and using css to set fonts in th and td cells fails
         //let cs = " style='font-size:10pt;' " //cell style
         let oplet = ds[Dexter.INSTRUCTION_TYPE]
-        let long_start_time_string = date_integer_to_long_string(ds[Dexter.START_TIME])
-        let long_stop_time_string = date_integer_to_long_string(ds[Dexter.STOP_TIME])
+        let long_start_time_string = Utils.date_integer_to_long_string(ds[Dexter.START_TIME])
+        let long_stop_time_string  = Utils.date_integer_to_long_string(ds[Dexter.STOP_TIME])
         let result =
         "<table class='robot_status_table'>" +
         "<tr><th></th>                        <th>JOB_ID</th>                           <th>INSTRUCTION_ID</th>                                                            <th>START_TIME</th>                                                         <th>STOP_TIME</th>                                                                              <th>INSTRUCTION_TYPE</th> </tr>" +
@@ -3368,7 +3365,7 @@ Dexter.sent_instructions_to_html = function(sent_ins){
     result += "</table>"
     return "<details style='display:inline-block;'><summary></summary>" + result + "</details>"
 }
-//called from utils stringify_value
+//called from Utils.stringify_value
 Dexter.make_show_rs_history_button_html = function(job_id){
     return "<button class='onclick_via_data' data-onclick='Dexter.show_rs_history,," + job_id + "'>Show robot status history</button>"
 

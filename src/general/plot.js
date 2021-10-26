@@ -1,8 +1,5 @@
 import Plotly from 'plotly.js-dist'
 
-
-import {is_array_of_numbers, is_2D_array_of_numbers, value_of_path} from "../job_engine/core/utils.js"
-
 class Plot{
    //static default_plot_div_id = "plot_id"
    static init(){     
@@ -84,9 +81,9 @@ class Plot{
    static is_3d_array(data) {
      return Array.isArray(data) && 
             data.length === 3   &&
-            is_array_of_numbers(data[0]) &&
-            is_array_of_numbers(data[1]) &&
-            is_array_of_numbers(data[2])
+            Utils.is_array_of_numbers(data[0]) &&
+            Utils.is_array_of_numbers(data[1]) &&
+            Utils.is_array_of_numbers(data[2])
    }
    
    //called by inspect to know if it can plot an arry
@@ -98,7 +95,7 @@ class Plot{
    }
 
    static is_heat_map_suitable_data(data){
-       return is_2D_array_of_numbers(data)
+       return Utils.is_2D_array_of_numbers(data)
    }
 
    //if there is a title in layout. we should keep it rther than move it to show_window_header. sp return true

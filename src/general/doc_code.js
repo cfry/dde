@@ -5,7 +5,6 @@ import Mark from '../../node_modules/mark.js/dist/mark.es6.js'
 
 // also note I'm using the latest version of mark.js (4 years old of 8.1.11) and still get errors
   //note that jquery is a DevDependency for mark.js so shouldn't be needed here.
-import {last, replace_substrings, value_of_path} from "../job_engine/core/utils.js"
 import {Js_info}                 from "./js_info.js"
 
 class DocCode {
@@ -167,8 +166,8 @@ class DocCode {
                 else {src = "function " + src}
 
             }
-            src = replace_substrings(src, "\n", "<br/>")
-            src = replace_substrings(src, " ", "&nbsp;")
+            src = Utils.replace_substrings(src, "\n", "<br/>")
+            src = Utils.replace_substrings(src, " ", "&nbsp;")
             out(src)
         }
         Editor.myCodeMirror.focus()

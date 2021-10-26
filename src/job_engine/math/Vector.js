@@ -6,7 +6,6 @@
 
 //import {Convert} from "./Convert.js" //now global
 import {sind, cosd, tand, asind, acosd, atand, atan2d} from "./Trig_in_Degrees.js"
-import {is_NaN_null_or_undefined} from "../core/utils.js"
 
 var dde_github_issues = "https://github.com/cfry/dde/issues"
 
@@ -1053,15 +1052,15 @@ class Vector{
 
     static is_NaN_null_or_undefined(vector){
         let dim = Vector.matrix_dimensions(vector)
-        if(dim[0] == 1 && dim[1] == 0){return is_NaN_null_or_undefined(vector)}
+        if(dim[0] == 1 && dim[1] == 0){return Utils.is_NaN_null_or_undefined(vector)}
         if(dim[0] == 1){
             for(let i = 0; i < dim[1]; i++){
-                if(is_NaN_null_or_undefined(vector[i])){return true}
+                if(Utils.is_NaN_null_or_undefined(vector[i])){return true}
             }
         }else{
             for(let i = 0; i < dim[0]; i++){
                 for(let j = 0; j < dim[1]; j++){
-                    if(is_NaN_null_or_undefined(vector[i][j])){return true}
+                    if(Utils.is_NaN_null_or_undefined(vector[i][j])){return true}
                 }
             }
         }

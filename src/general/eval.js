@@ -1,8 +1,5 @@
 import {out_eval_result} from "../job_engine/core/out.js"
-import {replace_substrings, starts_with_one_of, stringify_value} from "../job_engine/core/utils.js"
 //import {Robot, Brain, Dexter, Human, Serial} from '../job_engine/core/robot.js' //now all globals
-
-import {inspect_is_primitive} from "./inspect.js"
 
 var prefix_to_evaled_src = "try{" //referenced in eval code AND in error handler way below
 
@@ -133,9 +130,9 @@ export function eval_js_part1(step=false){
 function render_html(str){
     let title_suffix = str.substring(0, 50) //14
     if(str.length > title_suffix.length) { title_suffix += "..." }
-    title_suffix = replace_substrings(title_suffix, "<", "&lt;")
-    title_suffix = replace_substrings(title_suffix, '"', "&quot;")
-    let str_for_title = replace_substrings(str, '"', "&quot;")
+    title_suffix = Utils.replace_substrings(title_suffix, "<", "&lt;")
+    title_suffix = Utils.replace_substrings(title_suffix, '"', "&quot;")
+    let str_for_title = Utils.replace_substrings(str, '"', "&quot;")
     //let title = 'Rendering HTML: <span title="' + str_for_title + '">' + title_suffix + '</span>'
     //show_window({title: title, content: str})
     out_eval_result(str, "#000000", str_for_title, "The result of rendering HTML")
@@ -174,7 +171,7 @@ export function eval_js_part2(command, call_eval_part3_if_no_error=true){ //2nd 
         //lex vars in this eventListener, ie name, result, etc. which is good.
         result.duration = Date.now() - start_time
         if (value === null){ //calling null.error_type will error so do this first.
-            result.value_string = stringify_value(value)
+            result.value_string = Utils.stringify_value(value)
         }
         else if ((typeof(value) == "object") && value.error_type){
             result = value
@@ -185,7 +182,7 @@ export function eval_js_part2(command, call_eval_part3_if_no_error=true){ //2nd 
 
         }
         else{
-            result.value_string = stringify_value(value)
+            result.value_string = Utils.stringify_value(value)
             //result.command = command
         }
     }
@@ -216,14 +213,14 @@ function eval_js_part3(result){
         var stack_trace = result.full_error_message
         var first_newline = stack_trace.indexOf("\n")
         if (first_newline != -1) { stack_trace = stack_trace.substring(first_newline + 1) }
-        stack_trace = replace_substrings(stack_trace, "\n", "<br/>")
+        stack_trace = Utils.replace_substrings(stack_trace, "\n", "<br/>")
         string_to_print = "<details><summary><span class='dde_error_css_class'>" + string_to_print +
                           "</span></summary>" + stack_trace + "</details>"
         out_eval_result(string_to_print, undefined, result.command)
     }
     else if (result.value_string == '"dont_print"') {}
     else {
-        if (inspect_is_primitive(result.value)) {
+        if (Inspect.inspect_is_primitive(result.value)) {
             let str = result.value_string
             if ((str.length > 2) &&
                 (str[0] == '"') &&
@@ -231,7 +228,7 @@ function eval_js_part3(result){
                 !str.includes("'")
                 ) {
                 str = "'" + str.substring(1, str.length - 1) + "'"
-                str = replace_substrings(str , '\\\\"', '"')
+                str = Utils.replace_substrings(str , '\\\\"', '"')
             }
             string_to_print =  str +
                             " <span style='padding-left:50px;font-size:10px;'>" + result.duration + " ms</span>" //beware, format_text_for_code depends on this exact string
@@ -295,7 +292,7 @@ export function eval_and_start(){
          }
      }
      sel_text = sel_text.trim()
-     if(starts_with_one_of(sel_text, ["function ", "function(", "function*"])) {
+     if(Utils.starts_with_one_of(sel_text, ["function ", "function(", "function*"])) {
              sel_text = "(" + sel_text + ")"
      } //necessary because
        //without the parens, evaling an anonymous fn, named fn or gen def by itself errors (or returns undefined),

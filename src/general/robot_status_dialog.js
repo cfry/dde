@@ -5,8 +5,6 @@
       update_robot_status_table_maybe only called from Dexter.robot_done_with_instruction
 */
 
-import {to_fixed_smart, date_integer_to_long_string} from "../job_engine/core/utils.js"
-
 class RobotStatusDialog{
 //only called from the menu bar Jobs/show robot status item
 //makes a new window, but not if one is already up.
@@ -113,7 +111,7 @@ class RobotStatusDialog{
             let sm = robot.rs.status_mode()
             let sm_inner_text = STATUS_MODE_id.innerText
             let actual_sm_now_shown
-            if(is_string_a_integer(sm_inner_text)) {
+            if(Utils.is_string_a_integer(sm_inner_text)) {
                 actual_sm_now_shown = parseInt(sm_inner_text)
             }
             else {
@@ -137,7 +135,7 @@ class RobotStatusDialog{
                     if ((label != null) && !label.startsWith("UNUSED")){
                         let val      = (robot_status ? robot_status[i] : "N/A") //its possible that a robot will have been defined, but never actually run when this fn is called.
                         if((typeof(val) == "number") && (i >= 10)) { //display as a real float
-                            val = to_fixed_smart(val, 3) //val.toFixed(3)
+                            val = Utils.to_fixed_smart(val, 3) //val.toFixed(3)
                         }
                         let elt_name = label + "_id"
                         if(RobotStatus.is_other_status_mode(sm)) {
@@ -148,8 +146,8 @@ class RobotStatusDialog{
                 }
                 if(robot_status){
                     JOB_ID_id.innerHTML = this.make_job_id_td_innerHTML(robot_status[Dexter.JOB_ID])
-                    START_TIME_id.title = date_integer_to_long_string(robot_status[Dexter.START_TIME])
-                    STOP_TIME_id.title  = date_integer_to_long_string(robot_status[Dexter.STOP_TIME])
+                    START_TIME_id.title = Utils.date_integer_to_long_string(robot_status[Dexter.START_TIME])
+                    STOP_TIME_id.title  = Utils.date_integer_to_long_string(robot_status[Dexter.STOP_TIME])
                     INSTRUCTION_TYPE_id.title = Robot.instruction_type_to_function_name(robot_status[Dexter.INSTRUCTION_TYPE])
                     if(window["MEASURED_X_id"]) {
                         let xyz
@@ -292,7 +290,7 @@ class RobotStatusDialog{
     }
 
     static format_measured_meters(angle) {
-        if (typeof(angle) === "number") { return to_fixed_smart(angle, 3) + "m" }
+        if (typeof(angle) === "number") { return Utils.to_fixed_smart(angle, 3) + "m" }
         else { return angle }
     }
 
@@ -340,7 +338,7 @@ class RobotStatusDialog{
             }
             else if (field === "TIME"){
                 result += "<td title='" +
-                    date_integer_to_long_string(val) +
+                    Utils.date_integer_to_long_string(val) +
                     "' id='" + field + "_id'>" +
                     val + "</td>"
             }
@@ -353,7 +351,7 @@ class RobotStatusDialog{
                 result += "<td><span style='float:right;'>N/A</span></td>"
             }
             else if (row_header != "") { //body of table, expect floating point numbers, float right
-                val = to_fixed_smart(val, 3)
+                val = Utils.to_fixed_smart(val, 3)
                 result += "<td>" +
                     "<span id='" + field + "_id' style='font-family:monospace;float:right;'>" + val + val_units + "</span>" +
                     //degree_html + not playing nicely with float right so skip for now.

@@ -1,8 +1,5 @@
 //import Socket from "../job_engine/core/socket.js" //dde4 Socket is now global. used for string instruction processing
 //import  * as esprima  from "../../node_modules/esprima/dist/esprima.js" //not used
-import {ends_with_one_of, fn_is_keyword_fn, function_param_names_and_defaults_array,
-        get_class_of_instance, is_digit, replace_substrings,
-        starts_with_one_of, trim_end, value_of_path} from "../job_engine/core/utils.js"
 import {to_source_code} from "../job_engine/core/to_source_code.js"
 import {file_exists, write_file, make_full_path} from "../job_engine/core/storage.js"
 
@@ -15,7 +12,7 @@ class MakeInstruction{
     //the few items you can make with MakeInstruction that
     //aren't valid on a do_list
     static src_looks_like_valid_instruction(src){
-       if(starts_with_one_of(src, ["new Dexter(", "new Serial(", "new Job("])){
+       if(Utils.starts_with_one_of(src, ["new Dexter(", "new Serial(", "new Job("])){
            return false
        }
        else if(src.startsWith("function")){
@@ -370,7 +367,7 @@ class MakeInstruction{
     static update_instruction_name_and_args(call_obj_or_instruction_name, show_doc=true){
         let old_call_object = this.make_call_obj_from_ui() //beware, this might have new instruction name, but we're just using this for its args
         //MiIns.prev_defaults.merge_in(old_call_object)
-        let old_fam_class = get_class_of_instance(old_call_object)
+        let old_fam_class = Utils.get_class_of_instance(old_call_object)
         old_fam_class.save_prev_call_obj_of_name(old_call_object)
         let instruction_name, call_obj
         if (call_obj_or_instruction_name === undefined) {
@@ -798,7 +795,7 @@ class MakeInstruction{
         if(this.dialog_contains_move_all_joints_with_joints()){
             return ["joint1", "joint2", "joint3","joint4","joint5","joint6","joint7"]
         }
-        let arg_name_val_src_pairs = function_param_names_and_defaults_array(instruction_name, true)
+        let arg_name_val_src_pairs = Utils.function_param_names_and_defaults_array(instruction_name, true)
         let param_names = []
         for(let pair of arg_name_val_src_pairs) { param_names.push(pair[0]) }
         let mt_separate_xyzs = this.dialog_contains_move_to_with_separate_xyzs()
@@ -811,7 +808,7 @@ class MakeInstruction{
             param_names.unshift("x")
 
         }
-        if(starts_with_one_of(instruction_name, ["Dexter.", "Serial."]) && (last(param_names) == "robot")) {
+        if(Utils.starts_with_one_of(instruction_name, ["Dexter.", "Serial."]) && (last(param_names) == "robot")) {
             param_names.pop() //user should be using robot instance as subject, not as last arg
             //else { shouldnt("no last 'robot' param_name in dialog_to_instruction_src with instruction: " + instruction_name +
             //                " and param_names: " + param_names)  }
@@ -849,9 +846,9 @@ class MakeInstruction{
         let maj_with_joints  = this.dialog_contains_move_all_joints_with_joints()
         if(maj_with_joints) { result += "[" }
         let fn = call_obj.get_instruction_class()
-        let fn_is_keyword = fn_is_keyword_fn(fn)
+        let fn_is_keyword = Utils.fn_is_keyword_fn(fn)
         if(fn_is_keyword) { result += "{\n" }
-        let arg_name_val_src_pairs = function_param_names_and_defaults_array(instruction_name, true)
+        let arg_name_val_src_pairs = Utils.function_param_names_and_defaults_array(instruction_name, true)
         let param_names = Object.getOwnPropertyNames(call_obj.args_obj)
         let src_before_undefined = result
         //we want do_list to go at the end, so, if present, move it to the end of param_names.
@@ -893,7 +890,7 @@ class MakeInstruction{
                     if(!arg_val_is_default || mi_insert_default_args_id.checked)  {
                        if((param_name == "do_list") && (arg_val_src !== "[]")){
                            arg_val_src = "\n " + arg_val_src.trim().substring(1) //cut off initial [ and make first instruction src look lie the other instruction sources
-                           arg_val_src = replace_substrings(arg_val_src, "\n", "\n        ") //indent instruction sources
+                           arg_val_src = Utils.replace_substrings(arg_val_src, "\n", "\n        ") //indent instruction sources
                            arg_val_src = "[" + arg_val_src //add back initial [
                        }
                        result += "    " + param_name + ": " + arg_val_src
@@ -910,7 +907,7 @@ class MakeInstruction{
             }
         }
         //get rid of extra whitespace and comma at the end, otherwise option-click fails on parsing, even though now js ok with extra comma.
-        src_before_undefined = trim_end(src_before_undefined)
+        src_before_undefined = Utils.trim_end(src_before_undefined)
         if(src_before_undefined.endsWith(",")) {
             src_before_undefined = src_before_undefined.substring(0, src_before_undefined.length - 1)
         }
@@ -945,7 +942,7 @@ class MakeInstruction{
                     let elt_ast = elts_array[i]
                     let elt_src = arg_val_src.substring(elt_ast.range[0], elt_ast.range[1])
                     try{
-                        if(starts_with_one_of(elt_src, ["function(", "function (", "function*"])){
+                        if(Utils.starts_with_one_of(elt_src, ["function(", "function (", "function*"])){
                             elt_src = "(" + elt_src + ")" //fixes JS design bug
                         }
                         let do_list_item = window.eval(elt_src)
@@ -1010,7 +1007,7 @@ class MakeInstruction{
         elt = window[id]
         let the_body_src  = elt.value.trim()
         the_body_src = "\n" + the_body_src
-        the_body_src = replace_substrings(the_body_src, "\n", "\n    ")
+        the_body_src = Utils.replace_substrings(the_body_src, "\n", "\n    ")
 
         let result = ((the_name_src == "") ? instruction_name: instruction_name + " " + the_name_src )
         result += "(" + the_params_src + "){" + the_body_src + "\n}\n"
@@ -1069,7 +1066,7 @@ class MakeInstruction{
            //which merges in prev values, etc. which we don't want.
         let inst_src = this.dialog_to_instruction_src()
         if(!this.src_looks_like_valid_instruction(inst_src)){
-            if(starts_with_one_of(inst_src, "new Dexter(", "new Serial(")){
+            if(Utils.starts_with_one_of(inst_src, "new Dexter(", "new Serial(")){
                 warning("You've created a Robot in the Make Instruction dialog.<br/>" +
                     "A Robot isn't valid as a Job's do_list item.<br/>" +
                     "You can, however, Eval it and Insert it into the editor.")
@@ -1198,7 +1195,7 @@ class MakeInstruction{
         if(MiRecord.record_dialog_open &&
            (instruction_name === "new Job") &&
            do_list.startsWith("[[") &&
-           (is_digit(do_list[2]) || (do_list[2] === "-"))
+           (Utils.is_digit(do_list[2]) || (do_list[2] === "-"))
             ) { //insert a recording. high level and low level job. might pop up dialog
             MiRecord.insert_recording()
         }
@@ -1231,7 +1228,7 @@ class MakeInstruction{
 
     static show_insert_job_dialog(){
         let job_name = window[this.arg_name_to_dom_elt_id("name")].value
-        if(!is_string_a_literal_string(job_name) || (job_name.length <= 2)) {
+        if(!Utils.is_string_a_literal_string(job_name) || (job_name.length <= 2)) {
             this.set_border_color_of_arg("name", "red")
             dde_error("The job name in the Make Instruction dialog<br/>must be a non-empty string.<br/>" +
                       'Example: <code>"my_job"</code>')
@@ -1496,10 +1493,10 @@ class MakeInstruction{
                 //so just use the orig src.
             else { do_list_src = to_source_code({value: result_do_list, one_line_per_array_elt:true, array_elt_max_chars: 100})}
             if(mi_job_instrs_wrapper_data_id.checked){
-                //do_list_src = replace_substrings(do_list_src, "\n", "\n ") //indent 2nd thru nth lines just one space for the outer close square bracket
+                //do_list_src = Utils.replace_substrings(do_list_src, "\n", "\n ") //indent 2nd thru nth lines just one space for the outer close square bracket
             }
             else {
-                do_list_src = replace_substrings(do_list_src, "\n", "\n        ") //indent 2nd thru nth lines
+                do_list_src = Utils.replace_substrings(do_list_src, "\n", "\n        ") //indent 2nd thru nth lines
             }
             do_list_src = do_list_src.trim() //get rid of extra whitespace at end
 

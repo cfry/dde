@@ -1,8 +1,3 @@
-import {is_string_a_literal_array, is_string_a_literal_string, last,
-    replace_substrings, similar, string_to_literal, stringify_value,
-    stringify_value_sans_html, spaces, value_of_path}
-    from "../job_engine/core/utils.js"
-
 
 class TestSuite{
     constructor(name="rename_me", ...tests){
@@ -116,7 +111,7 @@ class TestSuite{
         let sep    = ", "
         for (let i = 0; i < a_test.length; i++){
             if (i == a_test.length - 1) { sep = "" }
-            result += string_to_literal(a_test[i]) + sep
+            result += Utils.string_to_literal(a_test[i]) + sep
         }
         return result + "]"
     }
@@ -222,12 +217,12 @@ class TestSuite{
             return true
         }
         else if (TestSuite.in_test_suite_def()){
-            if (is_string_a_literal_array(sel_text)){ //we have a test
+            if (Utils.is_string_a_literal_array(sel_text)){ //we have a test
                 //console.log("got lit array")
                 TestSuite.eval_and_run_selected_test(sel_text, arrow_key_orientation, arrow_key_direction, run_item)
                 return true
             }
-            else if (is_string_a_literal_string(sel_text)){ //we have a test src or expected val
+            else if (Utils.is_string_a_literal_string(sel_text)){ //we have a test src or expected val
                 //console.log("got lit string")
                 TestSuite.eval_and_run_selected_string(sel_text, arrow_key_orientation, arrow_key_direction, run_item)
                 return true
@@ -266,12 +261,9 @@ class TestSuite{
         load_files(__dirname + "/test_suite/loop_testsuite.js")
         load_files(__dirname + "/test_suite/when_stopped_testsuite.js")
         */
-        import('./math_testsuite.js')
-            .then(module => {
-                "just loaded math testsuite"
-            })
-       // if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }       //dde4 todo comment in when doc is loaded
-       // if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) } //dde4 todo comment in when doc is loaded
+        //import('./math_testsuite.js').then(module => {"just loaded math testsuite"})
+       //// if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }       //dde4 todo comment in when doc is loaded
+       //// if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) } //dde4 todo comment in when doc is loaded
         let report_prefix = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
             '<span style="color:magenta;">test_suite_reporting *should* indicate<br/>"failures: unknown=2, known=1"</span><br/>'
         this.set_state_and_resume({reports: report_prefix, suites: TestSuite.suites})
@@ -699,12 +691,12 @@ class TestSuite{
                         "</span> " + desc_html + "<br/>"
                 }
                 else { //unexpected error
-                    let src_result_str = stringify_value(src_result)
+                    let src_result_str = Utils.stringify_value(src_result)
                     let src_result_html = "<span style='color:red;'>" + src_result_str + "</span>"
                     error_message = test_number_html +
                         "&nbsp;<code>" + src +
                         "</code> <i>returned</i>: "                    + ((src_result_str.length > 20) ? "<br/>" : "") + "<code>" + src_result_html  +
-                        "</code>, <i>but expected</i>: " + ((src_result_str.length > 20) ? "<br/>" : "") + "<code>" + stringify_value(expected_result) +
+                        "</code>, <i>but expected</i>: " + ((src_result_str.length > 20) ? "<br/>" : "") + "<code>" + Utils.stringify_value(expected_result) +
                         "</code> " + desc_html + "<br/>"
                 }
             }
@@ -902,7 +894,7 @@ class TestSuite{
             let result
             if (sel_text == "") { result = `["", ""]` }
             else {
-                let sel_str = string_to_literal(sel_text)
+                let sel_str = Utils.string_to_literal(sel_text)
                 let full_str = "try{" + sel_text + "} catch(err){ TestSuite.error }"
                 let expected_result = window.eval(full_str)
                 let expected_str
@@ -911,8 +903,8 @@ class TestSuite{
                     expected_str = '"TestSuite.error"'
                 }
                 else {
-                    expected_str = stringify_value_sans_html(expected_result)
-                    expected_str = string_to_literal(expected_str)
+                    expected_str = Utils.stringify_value_sans_html(expected_result)
+                    expected_str = Utils.string_to_literal(expected_str)
                 }
                 result = "[" + sel_str + ", " + expected_str + "]"
             }
@@ -1040,7 +1032,7 @@ class TestSuite{
         if(a_global.includes("(")){
             a_global = a_global.substring(0, a_global.indexOf("("))
         }
-        if(is_string_an_identifier(a_global) &&
+        if(Utils.is_string_an_identifier(a_global) &&
            !this.globals.includes(a_global)  && //not already recorded
            !["undefined", "null", "true", "false", "eval", "console",
                     "this", "confirm", "NaN", "constructor", "Object", "window",

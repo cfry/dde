@@ -1,7 +1,6 @@
 //after using this fn to define a global constant,
 //foo: [ 42 doesn't error. however
 //it doesn't set it either, just keeps the old value.
-import {replace_substrings} from "./utils.js"
 //import {Instruction} from "./instruction.js" //now global
 
 var units_data = {
@@ -135,7 +134,7 @@ _BTU:    [ 1055.06,	  "British Thermal Unit"]
 }
 
 export function pluralize_full_unit_name(unit_name){
-    unit_name = replace_substrings(unit_name, "-", "_") //becuase dash looks like a minus sign to JavaScript.
+    unit_name = Units.replace_substrings(unit_name, "-", "_") //becuase dash looks like a minus sign to JavaScript.
     if      (unit_name == "foot")     { return "feet" }
     else if (unit_name == "inch")     { return "inches" }
     else if (unit_name.includes(" ")) { return unit_name }

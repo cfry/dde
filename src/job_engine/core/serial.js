@@ -28,8 +28,6 @@ temboo IOT js connectivity requires setting up a local js server to use.
 //keep map between them on the UI side
 */
 
-import {stringify_value} from "./utils.js"
-
 //import SerialPort from '../../../node_modules/serialport/lib/index.js' //"To use SerialPort, you must call serial_port_init() first."
 //import * as SerialPort from '../../../node_modules/serialport/lib/index.js' //todo require is not defined
 
@@ -354,7 +352,7 @@ function onReceiveCallback_low_level(info_from_board, port_path){ //if there's a
         //so that 1 string contains two calls to println worth of chars.
         let new_str   = info_from_board.toString() //gets the "new" chars. the resulting sring is the proper length for the new chars.
         let new_array = [...info_from_board] //array of integers
-        let new_str_formatted = replace_substrings(new_str, "\n", "<br/>")
+        let new_str_formatted = Utils.replace_substrings(new_str, "\n", "<br/>")
         out("onReceiveCallback_low_level got " + number_of_new_chars_on_end + " bytes of data:<br/>" + new_str_formatted + ".")
     }
     else {

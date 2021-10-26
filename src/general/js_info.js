@@ -1,11 +1,5 @@
 //Created by Fry on 3/22/16.
 
-import {function_name, function_params, function_params_for_keyword_call,
-    is_class, is_non_neg_integer,
-    is_string_an_identifier, is_string_a_literal_string, is_whitespace,
-    last, starts_with_one_of, stringify_value, value_of_path}
-    from "../job_engine/core/utils.js"
-
 import {pluralize_full_unit_name, series_name_to_unity_unit,
         unit_abbrev_to_full_name} from "../job_engine/core/units.js"
 
@@ -37,7 +31,7 @@ export class Js_info {
                         return "" + fn_name
                 }
             }
-            let is_identifier = ((typeof(fn_name) == "string") && is_string_an_identifier(fn_name))
+            let is_identifier = ((typeof(fn_name) == "string") && Utils.is_string_an_identifier(fn_name))
             let bounds_of_identifier
             if(!is_identifier)  { bounds_of_identifier = null }
             else if (!full_src) { bounds_of_identifier = null }
@@ -80,8 +74,6 @@ export class Js_info {
             }
             else if (fn_name == "Job"){
                 let val = value_of_path(fn_name)
-                //return "new " + Js_info.wrap_fn_name(fn_name) +
-                //    function_params_for_keyword_call(val)
                 let result = "new " + Js_info.wrap_fn_name(fn_name) + "({"
                 let arg_index = 0
                 for(let key in Job.job_default_params) {
@@ -190,7 +182,7 @@ export class Js_info {
                 let val = Job.prototype.start
                 let job_name = fn_name.substring(3, fn_name.length - 5)
                 return Js_info.wrap_fn_name("Job")  + job_name +
-                    Js_info.wrap_fn_name("start") + function_params(val)
+                    Js_info.wrap_fn_name("start") + Utils.function_params(val)
             }
             else if (fn_name.indexOf(".") != -1){
                 path = fn_name.split(".")
@@ -247,14 +239,14 @@ export class Js_info {
             else if (JSON[fn_name]) { //["parse", "stringify"].indexOf(fn_name) != -1)
                 return "JSON." + Js_info.make_atag("JSON", fn_name) + "(" + Js_info.get_param_string(fn) + ")"
             }
-            else if (is_whitespace(fn_name)){
+            else if (Utils.is_whitespace(fn_name)){
                 return "<span style='color:blue;'>whitespace</span> (contiguous spaces, tabs, newlines) separates code fragments."
             }
 
             else if (fn_name == "start"){
                 let val = Job.prototype.start
                 return "new " + Js_info.wrap_fn_name(fn_name)  + //"</span>" +
-                    function_params(val)
+                    Utils.function_params(val)
             }
             else if (window[fn_name]){
                 fn = window[fn_name]
@@ -356,7 +348,7 @@ export class Js_info {
                     let lit_string_info_maybe = Js_info.get_lit_string_info_maybe(fn_name, full_src, pos)
                     if(lit_string_info_maybe) { return lit_string_info_maybe }
                     else {
-                        let is_identifier = ((typeof(fn_name) == "string") && is_string_an_identifier(fn_name))
+                        let is_identifier = ((typeof(fn_name) == "string") && Utils.is_string_an_identifier(fn_name))
                         let bounds_of_identifier = (is_identifier ? Editor.bounds_of_identifier(full_src, pos) : null )
                         if(bounds_of_identifier && (full_src[bounds_of_identifier[1]] == "(")) {
                             return "<span style='color:blue;'>" + fn_name + "</span> looks like the name of a function in a call, but it is undefined."
@@ -365,27 +357,27 @@ export class Js_info {
                     }
                 }
                 else if (typeof(val) == "function"){
-                    if (is_class(val)){
+                    if (Utils.is_class(val)){
                             if(doc_id_elt) {
-                                   return `new <a href='#' onclick="DocCode.open_doc('` + doc_id_string + `')">` + Js_info.wrap_fn_name(fn_name)  + "</a>" + function_params(val)
+                                   return `new <a href='#' onclick="DocCode.open_doc('` + doc_id_string + `')">` + Js_info.wrap_fn_name(fn_name)  + "</a>" + Utils.function_params(val)
                             }
-                            else { return "new <span style='color:blue;'>" + Js_info.wrap_fn_name(fn_name)  + "</span>" + function_params(val) }
+                            else { return "new <span style='color:blue;'>" + Js_info.wrap_fn_name(fn_name)  + "</span>" + Utils.function_params(val) }
                     }
                     else {
-                        return `<a href='#' onclick="DocCode.open_doc_show_fn_def('` + doc_id_string + "', '" + fn_name + `')">` + fn_name + "</a>" + function_params(val)
+                        return `<a href='#' onclick="DocCode.open_doc_show_fn_def('` + doc_id_string + "', '" + fn_name + `')">` + fn_name + "</a>" + Utils.function_params(val)
 
                         if(doc_id_elt) {
-                               return `function <a href='#' onclick="DocCode.open_doc('` + doc_id_string + `')">` + fn_name + "</a>" + function_params(val)
+                               return `function <a href='#' onclick="DocCode.open_doc('` + doc_id_string + `')">` + fn_name + "</a>" + Utils.function_params(val)
                         }
-                        else { return "function <span style='color:blue;'>" + fn_name  + "</span>" + function_params(val) }
+                        else { return "function <span style='color:blue;'>" + fn_name  + "</span>" + Utils.function_params(val) }
 
                     }
                 }
                 else{
                     if(doc_id_elt) {
-                           return `<a href='#' onclick="DocCode.open_doc('` + doc_id_string + `')">` + fn_name + "</a> = " + stringify_value(val)
+                           return `<a href='#' onclick="DocCode.open_doc('` + doc_id_string + `')">` + fn_name + "</a> = " + Utils.stringify_value(val)
                     }
-                    else { return "<span style='color:blue;'>" + fn_name + "</span> = " + stringify_value(val) }
+                    else { return "<span style='color:blue;'>" + fn_name + "</span> = " + Utils.stringify_value(val) }
                 }
             }
     }
@@ -487,9 +479,9 @@ export class Js_info {
 
     static strip_path_prefix_maybe(fn_name){
         if(fn_name === ".") { return fn_name } //its not really a prefix, is the operator between 2 path parts that says "get tvalue of the 2nd part from the first part.
-        if(is_string_a_literal_string(fn_name)) { return fn_name }
+        if(Utils.is_string_a_literal_string(fn_name)) { return fn_name }
         else if (!fn_name.includes(".")) { return fn_name }
-        else if (starts_with_one_of(fn_name, ["Brain.", "Control.", "Dexter.", "FPGA.", "Human.", "IO.", "Job.", "Math.",
+        else if (Utils.starts_with_one_of(fn_name, ["Brain.", "Control.", "Dexter.", "FPGA.", "Human.", "IO.", "Job.", "Math.",
                                               "Number.", "Object.", "Series.", "Robot.", "Serial."
                                               ])) {
             return fn_name
@@ -576,14 +568,14 @@ export class Js_info {
                 class_fn_name_array = fn_name.split(".")
                 class_name   =  class_fn_name_array[0] //destructuring to an array doesn't work here.
                 new_fn_name  =  class_fn_name_array[1]//cannot re-use "fn_name" here, it destroys the code horribly
-                param_string = function_params(fn)
+                param_string = Utils.function_params(fn)
                 return Js_info.make_atag(class_name, new_fn_name) + param_string + " => number"
             case "series_math_id":
                 fn = value_of_path(fn_name)
                 class_fn_name_array = fn_name.split(".")
                 class_name   =  class_fn_name_array[0] //destructuring to an array doesn't work here.
                 new_fn_name  =  class_fn_name_array[1]//cannot re-use "fn_name" here, it destroys the code horribly
-                param_string = function_params(fn)
+                param_string = Utils.function_params(fn)
                 return Js_info.make_atag(class_name, new_fn_name) + param_string + " => number"
             case "series_trigonometry_id":
                 //return "<span style='color:blue;'>" + fn_name + "</span> is a trig function."
@@ -591,7 +583,7 @@ export class Js_info {
                 class_fn_name_array = fn_name.split(".")
                 class_name   =  class_fn_name_array[0] //destructuring to an array doesn't work here.
                 new_fn_name  =  class_fn_name_array[1]//cannot re-use "fn_name" here, it destroys the code horribly
-                param_string = function_params(fn)
+                param_string = Utils.function_params(fn)
                 return Js_info.make_atag(class_name, new_fn_name) + param_string + " => number"
             case "series_number_constant_id":
                 //return "<span style='color:blue;'>" + fn_name + "</span> is a trig function."
@@ -637,18 +629,18 @@ export class Js_info {
                 return 'foo ' + Js_info.make_atag("assignment", fn_name) + ' 2'
             case "series_output_id":
                 let fn1 = value_of_path(fn_name)
-                return "function " + Js_info.wrap_fn_name(fn_name) + function_params(fn1)
+                return "function " + Js_info.wrap_fn_name(fn_name) + Utils.function_params(fn1)
             case "series_window_id":
                 let fn11 = value_of_path(fn_name)
-                return "function " + Js_info.wrap_fn_name(fn_name) + function_params(fn11)
+                return "function " + Js_info.wrap_fn_name(fn_name) + Utils.function_params(fn11)
             case "series_file_id":
                 let fn2       = value_of_path(fn_name)
                 let prefix    = ((typeof(fn2) == "function") ? "function " : "global variable ")
-                let fn_params = ((typeof(fn2) == "function") ? function_params(fn2) : " = " + fn2) //good for "operating_system" global var
+                let fn_params = ((typeof(fn2) == "function") ? Utils.function_params(fn2) : " = " + fn2) //good for "operating_system" global var
                 return prefix + Js_info.wrap_fn_name(fn_name) + fn_params
             case "series_object_system_id":
                 let fn3 = value_of_path(fn_name) //js chrome is confused about scope of let in switch statements so have to pick different names for fn
-                return "function " + Js_info.wrap_fn_name(fn_name) + function_params(fn3)
+                return "function " + Js_info.wrap_fn_name(fn_name) + Utils.function_params(fn3)
             case "series_job_name_id":
                 if (fn_name.endsWith(".start")){
                     var before_start = fn_name.substring(0, fn_name.length - 5)
@@ -658,7 +650,7 @@ export class Js_info {
                 else { return "<code style='color:blue;'>" + fn_name + "</code> => instance of Job"}
             case "series_job_method_id":
                 let fn13 = value_of_path(fn_name)
-                return "function " + Js_info.wrap_fn_name(fn_name) + function_params(fn13)
+                return "function " + Js_info.wrap_fn_name(fn_name) + Utils.function_params(fn13)
             case "series_note_id":
                 let fn_note = value_of_path("Note.prototype." + fn_name)
                 return "new Note()." + Js_info.wrap_fn_name(fn_name, "Note." + fn_name + "_doc_id") + function_params(fn_note)
@@ -668,7 +660,7 @@ export class Js_info {
 
             case "series_robot_instruction_id":
                 let fn4 = value_of_path(fn_name)
-                return "function " + Js_info.wrap_fn_name(fn_name) + function_params(fn4)
+                return "function " + Js_info.wrap_fn_name(fn_name) + Utils.function_params(fn4)
             case "series_oplet_id":
                 const oplet_full_name = Dexter.instruction_type_to_function_name(fn_name)
                 var full_name_tag = Js_info.wrap_fn_name(oplet_full_name)
@@ -682,7 +674,7 @@ export class Js_info {
                 return 'Job.a_job_name.robot.robot_status[<code style="color:blue;">' + fn_name + '</code>]'
             case "series_dexter_utility_id":
                 let fn40 = value_of_path(fn_name)
-                return "<span style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</span>' + function_params(fn40)
+                return "<span style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</span>' + Utils.function_params(fn40)
             case "series_dexter_constant_id": //fn_name looks like 'Dexter.link0'
                 let the_constant_val = Dexter[fn_name.split(".")[1]]
                 let dc_units = ""
@@ -696,13 +688,13 @@ export class Js_info {
                 return "<code style='color:blue;'>"     + fn_name + "</code>" //=> " + the_constant_val + dc_units
             case "series_robot_subclass_id":
                 let fn5 = value_of_path(fn_name)
-                return "new <code style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</code>' + function_params_for_keyword_call(fn5)
+                return "new <code style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</code>' + Utils.function_params_for_keyword_call(fn5)
             case "series_robot_name_id":
                 return "<code style='color:blue;'>"     + fn_name + "</code> => instance of Robot"
             case "series_serial_id":
                 let fn6 = value_of_path(fn_name)
                 if (typeof(fn6) == "function"){
-                    return "<code style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</code>' + function_params(fn6)
+                    return "<code style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</code>' + Utils.function_params(fn6)
                 }
                 else { //hits for serial_port_path_to_info_map
                     return "<code style='color:blue;'>" + fn_name + '</code>'
@@ -710,10 +702,10 @@ export class Js_info {
             case "series_object_system_id":
                 //if (fn_name.startsWith("Object"){}
                 let fn7 = value_of_path(fn_name)
-                return "<code style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</code>' + function_params(fn7)
+                return "<code style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</code>' + Utils.function_params(fn7)
             case "series_temperature_id":
                 let fn8 = value_of_path(fn_name)
-                return "<code style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</code>' + function_params(fn8)
+                return "<code style='color:blue;'>" + Js_info.wrap_fn_name(fn_name) + '</code>' + Utils.function_params(fn8)
             case "series_html_tag_id":
                 let prop_names = html_db.properties_for_tag(fn_name)
                 let props_str  = ""
@@ -975,7 +967,7 @@ Js_info.fn_name_to_info_map = {
 //pos is the index of  "m" in make_ins, not where the mouse was clicked.
 Js_info.makeins_w_info = function(fn_name, full_src=null, pos){
   if(!full_src) { return false }
-  else if(!is_non_neg_integer(pos)) { return false }
+  else if(!Utils.is_non_neg_integer(pos)) { return false }
   else if(fn_name !== "make_ins") { return false }
   else if (full_src.startsWith("make_ins('w',", pos) ||
            full_src.startsWith('make_ins("w",', pos)) {
@@ -985,7 +977,7 @@ Js_info.makeins_w_info = function(fn_name, full_src=null, pos){
       let close_paren_pos = full_src.indexOf(")", second_comma_pos)
       if (close_paren_pos == -1) { return false }
       let first_arg_src = full_src.substring(first_comma_pos + 1, second_comma_pos).trim()
-      if(!is_string_a_integer(first_arg_src)) { return false }
+      if(!Utils.is_string_a_integer(first_arg_src)) { return false }
       let first_arg_num = parseInt(first_arg_src)
       let first_arg_name = Instruction.w_address_number_to_name(first_arg_num)
       let suffix = full_src.substring(second_comma_pos + 1, close_paren_pos + 1).trim()

@@ -1,8 +1,9 @@
 import WebMidi from "./webmidi"
-import {is_digit, limit_to_range} from "../job_engine/core/utils.js"
+
+globalThis.WebMidi = WebMidi
 
 
-export var Midi = class Midi {
+class Midi {
     static describe_midi_event(event){
         var in_or_out = event.target.constructor.name
         const str =
@@ -43,6 +44,8 @@ export var Midi = class Midi {
         }
     }
 }
+
+globalThis.Midi = Midi
 
 class Note{
     constructor({time=0,       //in beats
@@ -110,7 +113,7 @@ class Note{
         let base_pitch_index = 0
         for(let i = 0; i < a_string.length; i++) {
             let char = a_string[i]
-            if (is_digit(char)  || (char == ".") || (char == "/")) {
+            if (Utils.is_digit(char)  || (char == ".") || (char == "/")) {
                 dur_string += char
                 base_pitch_index += 1
             }
@@ -139,7 +142,7 @@ class Note{
         let octave_string = "4"
         if(octave_index < a_string.length) {
             let octave_string_maybe = a_string[octave_index]
-                if (is_digit(octave_string_maybe)) { //good we're done with octave
+                if (Utils.is_digit(octave_string_maybe)) { //good we're done with octave
                     octave_string = octave_string_maybe
                     octave_index += 1
                 }
@@ -149,7 +152,7 @@ class Note{
                     if (octave_index >= a_string.length) {
                         dde_error("got bad octave for note: " + a_string)
                     }
-                    else if (is_digit(a_string[octave_index])) {
+                    else if (Utils.is_digit(a_string[octave_index])) {
                         octave_string += a_string[octave_index]
                         octave_index += 1
                     }
@@ -168,7 +171,7 @@ class Note{
        let base_pitch_index = 0
        for(let i = 0; i < a_string.length; i++) {
            let char = a_string[i]
-           if (is_digit(char)  || (char == ".") || (char == "/")) {
+           if (Utils.is_digit(char)  || (char == ".") || (char == "/")) {
                 dur_string += char
                 base_pitch_index += 1
            }
@@ -253,8 +256,8 @@ class Note{
         if (typeof(pitch_name) == "number") { return pitch_name }
         else {
             if (pitch_name.startsWith("R")) { return -1 } //rest, It might have an octave on it
-            if(!is_digit(last(pitch_name))) { pitch_name += "4" } //the oct of middle C
-            return WebMidi.guessNoteNumber(pitch_name)
+            if(!Utils.is_digit(last(pitch_name))) { pitch_name += "4" } //the oct of middle C
+            return WebMidi.guessNoteNumber(pitch_name) //in dde4, WebMidi2.5.3, with "C4" return 72,  but in dde3, webmidi 2.2.0, returns 60
         }
     }
 
@@ -557,7 +560,7 @@ class Note{
             max       = Note.pitch_name_to_number(max)
         }
         if (prop_name != "time") {
-            new_value = limit_to_range(new_value, min, max)
+            new_value = Utils.limit_to_range(new_value, min, max)
          }
         if (prop_name == "octave") { //C4 is middle C, is 60
              new_value = (new_value + 1) * 12
@@ -580,7 +583,7 @@ class Note{
             prop_name = "pitch"
         }
         let new_value = this[prop_name] + increment
-        if (prop_name != "time") { new_value = limit_to_range(new_value, min, max) }
+        if (prop_name != "time") { new_value = Utils.limit_to_range(new_value, min, max) }
         note_copy[prop_name] = new_value
         return note_copy
     }
@@ -590,11 +593,11 @@ class Note{
         let note_copy = this.copy()
         if (prop_name == "time_and_dur") {
             note_copy.time     *= factor
-            note_copy.dur = limit_to_range(this.dur * factor, min, max)
+            note_copy.dur = Utils.limit_to_range(this.dur * factor, min, max)
         }
         else {
             let new_value = this[prop_name] * factor
-            if (prop_name != "time") { new_value = limit_to_range(new_value, min, max) }
+            if (prop_name != "time") { new_value = Utils.limit_to_range(new_value, min, max) }
             note_copy[prop_name] = new_value
         }
         return note_copy

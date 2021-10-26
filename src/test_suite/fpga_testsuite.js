@@ -1,3 +1,5 @@
+import "./test_suite.js" //must be here as TestSuite must be defined before loading the below
+
 new TestSuite("FPGA",
     [`FPGA.command_reg_val({
                 CapCalibrateBase: true,

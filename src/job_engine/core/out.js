@@ -1,7 +1,6 @@
 //__________out  and helper fns_______
 //out itself is now defined in je_and_browser_code as it is called in the browser
-import {month_names, replace_substrings, starts_with_one_of, stringify_value}
-       from "./utils.js"
+
 //require("./je_and_browser_code.js") //don't set SW from this.
 function format_text_for_code(text, code=null){
     if (code === null) {
@@ -11,10 +10,9 @@ function format_text_for_code(text, code=null){
     if (code) { //cut off timing info: too confusing to see it.
         let timing_index = text.indexOf(" <span style='padding-left:50px;font-size:10px;'>")
         if (timing_index !== -1) { text = text.substring(0, timing_index) }
-        text = replace_substrings(text, "<",   "&lt;")
-        text = replace_substrings(text, ">",   "&gt;")
-        //text = replace_substrings(text, "\n",  "<br/>")
-        text = replace_substrings(text, "\\\\n", "\n")
+        text = Utils.replace_substrings(text, "<",   "&lt;")
+        text = Utils.replace_substrings(text, ">",   "&gt;")
+        text = Utils.replace_substrings(text, "\\\\n", "\n")
         text = "<pre><code>" + text + "</code></pre>"
     }
     return text
@@ -48,7 +46,7 @@ export function out_eval_result(text, color="#000000", src, src_label="The resul
         }
         for(let temp_elt of existing_temp_elts){ temp_elt.remove() }
 
-        if (starts_with_one_of(text, ['"<svg ', '"<circle ', '"<ellipse ', '"<foreignObject ', '"<line ', '"<polygon ', '"<polyline ', '"<rect ', '"<text '])) {
+        if (Utils.starts_with_one_of(text, ['"<svg ', '"<circle ', '"<ellipse ', '"<foreignObject ', '"<line ', '"<polygon ', '"<polyline ', '"<rect ', '"<text '])) {
             text = text.replace(/\</g, "&lt;") //so I can debug calls to svg_svg, svg_cirle ettc
         }
         if (color && (color != "#000000")){
@@ -68,8 +66,8 @@ export function out_eval_result(text, color="#000000", src, src_label="The resul
                 src_formatted = src_formatted.substring(0, 55)
                 src_formatted_suffix = "..."
             }
-            src_formatted = replace_substrings(src_formatted, "<", "&lt;")
-            src = replace_substrings(src, "'", "&apos;")
+            src_formatted = Utils.replace_substrings(src_formatted, "<", "&lt;")
+            src = Utils.replace_substrings(src, "'", "&apos;")
             src_formatted = " <code title='" + src + "'>&nbsp;" + src_formatted + src_formatted_suffix + "&nbsp;</code>"
         }
         //if (src_formatted == "") { console.log("_____out_eval_result passed src: " + src + " with empty string for src_formatted and text: " + text)}
@@ -119,7 +117,7 @@ export function stringify_for_speak(value, recursing=false){
         var mins  = value.getMinutes()
         if (mins == 0) { mins = "oclock, exactly" }
         else if(mins < 10) { mins = "oh " + mins }
-        result    = month_names[mon] + ", " + day + ", " + year + ", " + hours + ", " + mins
+        result    = Utils.month_names[mon] + ", " + day + ", " + year + ", " + hours + ", " + mins
         //don't say seconds because this is speech after all.
     }
     else if (Array.isArray(value)){
@@ -228,14 +226,14 @@ function show_window({content = `<input type="submit" value="Done"/>`,
         var content = arguments[0] //all the rest of the args will be bound to their defaults by the js calling method.
     }
     if (typeof(content) !== "string"){
-        content = stringify_value(content)
+        content = Utils.stringify_value(content)
     }
     //onsole.log("show_window before callback")
     if (typeof(callback) === "function"){
         let fn_name = callback.name
         if (fn_name && (fn_name != "")) {
             if(fn_name == "callback") { //careful, might be just JS being clever and not the actual name in the fn def
-                fn_name = function_name(callback.toString()) //extracts real name if any
+                fn_name = Utils.function_name(callback.toString()) //extracts real name if any
                 if ((fn_name == "") || (fn_name == null)) { //nope, no actual name in fn
                     callback = callback.toString() //get the src of the anonymous fn
                 }

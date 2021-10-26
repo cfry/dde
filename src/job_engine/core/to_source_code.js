@@ -1,7 +1,5 @@
 import "./object_system.js"
-import {typed_array_name} from "./utils.js"
 //import {Instruction} from "./instruction.js" //now global
-import {function_name, replace_substrings} from "./utils.js"
 
 
 export function to_source_code({value, indent="", function_names=false, newObject_paths=false,
@@ -37,7 +35,7 @@ export function to_source_code({value, indent="", function_names=false, newObjec
             if (newObject_paths) { return value.objectPath }
             else                 { return value.sourceCode() }
         }
-        else if (typed_array_name(value)){ //any type of array
+        else if (Utils.typed_array_name(value)){ //any type of array
             //console.log("calling to_source_code_array")
             return to_source_code_array(arguments[0])
         }
@@ -145,7 +143,7 @@ function to_source_code_lit_obj(args){
             let quote_char = ""
             if (prop_name.indexOf(" ") != -1){
                 quote_char = '"'
-                if (prop_name.indexOf('"') != -1) { prop_name = replace_substrings(prop_name, '"',  '\\"') }
+                if (prop_name.indexOf('"') != -1) { prop_name = Utils.replace_substrings(prop_name, '"',  '\\"') }
             }
             let trailing_comma = ((prop_index == (prop_names.length - 1)) ? "" : ", ")
             result += prop_indent + quote_char + prop_name + quote_char + ": " + to_source_code(prop_args) +
@@ -156,13 +154,13 @@ function to_source_code_lit_obj(args){
 }
 
 function to_source_code_function(args){
-    let fn_name = function_name(args.value)
+    let fn_name = Utils.function_name(args.value)
     if (args.function_names && (fn_name !== null) && (fn_name !== "")) {
         return args.indent + fn_name
     }
     else {
         let src = args.value.toString()
-        return replace_substrings(src, "\n", args.indent + "\n")
+        return Utils.replace_substrings(src, "\n", args.indent + "\n")
     }
 }
 

@@ -1,3 +1,5 @@
+import "./test_suite.js" //must be here as TestSuite must be defined before loading the below
+
 new TestSuite("make_html_auto",
     ['make_html("b")', '"<b/>"'],
     ['make_html("b", {id: "b_id"})', `'<b id="b_id"/>'`],

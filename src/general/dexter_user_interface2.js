@@ -9,7 +9,6 @@
 //var x_px_to_meters, meters_to_x_px //utility fns defined below
 
 //_________make HTML fns
-import {value_of_path} from "../job_engine/core/utils.js"
 
 class dui2 {
     constructor(){
@@ -462,7 +461,7 @@ class dui2 {
     static convert_key_and_sign(key){
         let shift_joint_keys = ")!@#$%^&*("
         let keyint = shift_joint_keys.indexOf(key)  //if keyint is not -1, then we have a SHIFT_integer keystroke, ie a decriment of a joint angle
-        if(is_digit(key))      { return [parseInt(key), 1] } //positive joint angle
+        if(Utils.is_digit(key))      { return [parseInt(key), 1] } //positive joint angle
         else if(keyint !== -1) { return [keyint, -1] } //the shift of an int, ie a negative joint angle
         else if (key === "r")  { return [key, 1]    }
         else if (key === "v")  { return [key, -1]   }
@@ -1139,7 +1138,7 @@ class dui2 {
         let prev_prev_newline_pos = full_src.lastIndexOf("\n", prev_newline_pos - 1)
         if(prev_prev_newline_pos === -1) {return null} //no more instructions backward
         let the_line_text = full_src.substring(prev_prev_newline_pos, prev_newline_pos)
-        if (is_whitespace(the_line_text)) { //got a blank line
+        if (Utils.is_whitespace(the_line_text)) { //got a blank line
             Editor.select_javascript(prev_prev_newline_pos, prev_prev_newline_pos)
             return this.step_backward_button_click_action(dui_instance)
         }

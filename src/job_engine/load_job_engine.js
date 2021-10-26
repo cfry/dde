@@ -16,17 +16,7 @@ import {convertArrayBufferToString, convertStringToArrayBuffer,
     serial_disconnect_all} from "./core/serial.js"
 
 
-import {array_to_html_table, array_to_csv, csv_to_array,
-     base64_to_binary_string, binary_to_base64_string, is_string_base64,
-     Duration, flatten, fn_is_keyword_fn, format_number,
-    integer_array_to_rgb_string,
-    is_array_of_numbers, is_2D_array_of_numbers, make_ins_arrays,
-    ordinal_string, patch_until,
-    return_first_arg, rgb,
-    same_elts, shouldnt, show_string_char_codes, string_to_seconds,
-    time_in_us, trim_comments_from_front,
-    version_equal, version_less_than, version_more_than, dde_version_between}
-    from "./core/utils.js"
+import "./core/utils.js"
 
 import {adjust_path_to_os, append_to_file,
      choose_file, choose_save_file, choose_file_and_get_content, choose_folder,

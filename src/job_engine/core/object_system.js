@@ -8,8 +8,6 @@ Object.defineProperty(Object.prototype, 'name', {
     value : "rootObject"
 })
 */
-import {shouldnt, function_param_names, is_iterator, last,
-        starts_with_one_of, stringify_value_sans_html, value_of_path} from "./utils.js"
 
 function ob_sys_is_class(obj){
     return ((typeof(obj) == "function") && obj.toString().startsWith("class "))
@@ -496,7 +494,7 @@ Object.defineProperty(Object.prototype, 'sourceCode',{
                             val_string = val.sourceCode(false, indent + "  ")
                         }
                     }
-                    else { val_string = stringify_value_sans_html(val) }
+                    else { val_string = Utils.stringify_value_sans_html(val) }
                     result += indent + prop_name + ": " + val_string + ((prop_name == last_prop_name)?
                                                                            "\n" +
                                                                            indent +
@@ -539,7 +537,7 @@ Object.defineProperty(Object.prototype, 'sourceCode',{
                             }
                             else { val_string = val.sourceCode({include_this: true, include_subobjects: true, indent: indent + "  ", at_top_level: false}) }
                         }
-                        else { val_string = stringify_value_sans_html(val) }
+                        else { val_string = Utils.stringify_value_sans_html(val) }
                         result += indent + prop_name + ": " + val_string + ((prop_name == last(non_subobject_prop_names))?
                             "\n" +
                             indent.substring(2) +

@@ -4,8 +4,6 @@
 
 // This file has dom manipulation code having to do with blocks
 
-import {shouldnt, function_param_names_and_defaults_lit_obj, is_string_a_integer, value_of_path}
-        from "../job_engine/core/utils.js"
 import {make_dom_elt} from "../job_engine/core/html_db.js"
 
 var block_left_triangle  = "&#9664;" //used for open delimiter for path
@@ -825,7 +823,7 @@ function clean_up_arg_names(block_elt){
         let block_type = dom_elt_block_type(block_elt)
         let meth = block_type.block_elt_to_method(block_elt)
         let param_key_vals
-        if(meth) { param_key_vals = function_param_names_and_defaults_lit_obj(meth) }
+        if(meth) { param_key_vals = Utils.function_param_names_and_defaults_lit_obj(meth) }
         else if (block_type.params) { param_key_vals = Object.keys(block_type.params) }
         if (param_key_vals) { //otherwise the below will error, but we still need to clean up bad last comma, if any
             let param_names = Object.keys(param_key_vals)
@@ -859,7 +857,7 @@ function clean_up_arg_names(block_elt){
             let arg_name_elt = html_db.dom_elt_child_of_class(arg_name_val, "arg_name")
             let arg_name     = block_to_js(arg_name_elt)
             if(arg_name.startsWith("arg") &&
-                is_string_a_integer(arg_name.substring(3))) {
+                Utils.is_string_a_integer(arg_name.substring(3))) {
                 let new_arg_name = "arg" + i
                 if(arg_name != new_arg_name) {
                     let arg_val = html_db.dom_elt_descendant_of_classes(arg_name_elt,

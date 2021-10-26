@@ -1,3 +1,5 @@
+import "./test_suite.js" //must be here as TestSuite must be defined before loading the below
+
 new TestSuite("make_mat rgba",
     ["Picture.init()", "undefined"],
     ["var tsmat1 = Picture.make_mat()", "undefined"],

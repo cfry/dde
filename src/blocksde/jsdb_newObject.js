@@ -6,10 +6,6 @@
    thatrepresents the block_type.
 */
 
-import {shouldnt, compute_string_size, function_param_names_and_defaults,
-    is_literal_object, is_string_an_identifier, is_string_a_number,
-    replace_substrings, value_of_path} from "../job_engine/core/utils.js"
-
 import {newObject, Root} from "../job_engine/core/object_system.js"
 import {make_dom_elt} from "../job_engine/core/html_db.js"
 
@@ -112,7 +108,7 @@ newObject({
         else if (Array.isArray(value)){
             return Root.jsdb.literal.array.make_dom_elt(undefined, undefined, value)
         }
-        else if (is_literal_object(value)) { //questionable
+        else if (Utils.is_literal_object(value)) { //questionable
             return Root.jsdb.literal.object.make_dom_elt(undefined, undefined, value)
         }
         else if(typeof(src) == "string"){
@@ -386,7 +382,7 @@ newObject({prototype: Root.jsdb.literal,
     compute_width(val, font_size, extra_width=0) {
         //f (typeof(val) != "string") { val = (val).toString() }
         //return ((val.length + 2) * 7) + "px" //just slightly bigger than necesary but making either constant 1 smaller makes it too small
-        return compute_string_size(val, font_size, extra_width)[0]
+        return Utils.compute_string_size(val, font_size, extra_width)[0]
     },
     quote_button_action(event){
         let input_elt = event.target //type="button"
@@ -571,14 +567,14 @@ newObject({prototype: Root.jsdb.literal,
             between_name_and_value = (between_name_and_value ? between_name_and_value : this.between_name_and_value)
             for(let param_name of names){
                 let param_name_elt
-                if      (is_string_a_number(param_name))  {
+                if      (Utils.is_string_a_number(param_name))  {
                       let num = parseFloat(param_name)
                       param_name_elt = Root.jsdb.literal.number.make_dom_elt(undefined, undefined, num)}
                 else if (param_name == "true")  { param_name_elt = Root.jsdb.literal.boolean.make_dom_elt(undefined, undefined, true)}
                 else if (param_name == "false") { param_name_elt = Root.jsdb.literal.boolean.make_dom_elt(undefined, undefined, false)}
                 else if (param_name == "null")  { param_name_elt = Root.jsdb.one_of.null_undefined.make_dom_elt(undefined, undefined, null)}
                 else if (typeof(param_name) == "string") {
-                    if(is_string_an_identifier(param_name)) {
+                    if(Utils.is_string_an_identifier(param_name)) {
                            param_name_elt = Root.jsdb.identifier.identifiers.make_dom_elt(undefined, undefined, param_name)
                     }
                     else { param_name_elt = Root.jsdb.literal.string.make_dom_elt(undefined, undefined, param_name) }
@@ -1134,7 +1130,7 @@ newObject({prototype: Root.jsdb,
     compute_width(val, font_size, extra_width=0) {
         //f (typeof(val) != "string") { val = (val).toString() }
         //return ((val.length + 2) * 7) + "px" //just slightly bigger than necesary but making either constant 1 smaller makes it too small
-        return compute_string_size(val, font_size, extra_width)[0]
+        return Utils.compute_string_size(val, font_size, extra_width)[0]
     },
     to_js: function(block_elt){
         let arg_val = html_db.dom_elt_descendant_of_classes(block_elt,
@@ -1208,7 +1204,7 @@ newObject({prototype: Root.jsdb,
     compute_width(val, font_size, extra_width=0) {
         //f (typeof(val) != "string") { val = (val).toString() }
         //return ((val.length + 2) * 7) + "px" //just slightly bigger than necesary but making either constant 1 smaller makes it too small
-        return compute_string_size(val, font_size, extra_width)[0]
+        return Utils.compute_string_size(val, font_size, extra_width)[0]
     },
     onchange(event){
         Root.jsdb.identifier.identifiers.add_item_maybe(event.target.value)
@@ -1411,7 +1407,7 @@ newObject({prototype: Root.jsdb.identifier,
     compute_width(val, font_size, extra_width=0) {
         //f (typeof(val) != "string") { val = (val).toString() }
         //return ((val.length + 2) * 7) + "px" //just slightly bigger than necesary but making either constant 1 smaller makes it too small
-        return compute_string_size(val, font_size, extra_width)[0]
+        return Utils.compute_string_size(val, font_size, extra_width)[0]
     },
     to_js: function(block_elt){
         let arg_val = html_db.dom_elt_descendant_of_classes(block_elt,
@@ -1478,7 +1474,7 @@ newObject({prototype: Root.jsdb.identifier,
     compute_width(val, font_size, extra_width=0) {
         //f (typeof(val) != "string") { val = (val).toString() }
         //return ((val.length + 2) * 7) + "px" //just slightly bigger than necesary but making either constant 1 smaller makes it too small
-        return compute_string_size(val, font_size, extra_width)[0]
+        return Utils.compute_string_size(val, font_size, extra_width)[0]
     },
     to_js: function(block_elt){
         let arg_val = html_db.dom_elt_descendant_of_classes(block_elt,
@@ -2477,7 +2473,7 @@ newObject({prototype: Root.jsdb,
                 let param_val_elt
                 let name_is_editable_string = true
                 let between_name_and_val = "="
-                if(is_literal_object(param_val)) {
+                if(Utils.is_literal_object(param_val)) {
                     if(param_name == "") {
                         param_name_elt = ""
                         name_is_editable_string = false //if param_name is "", then no param name will be dispalyed so need to set editable to false

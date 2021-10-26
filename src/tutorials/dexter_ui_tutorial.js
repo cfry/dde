@@ -9,7 +9,7 @@ set_css_properties(".shepherd_step_dui_wide {width:400px}")
 //var Shepherd = require("shepherd.js") //in dde4, Shephard is global
 
 //import Shepherd from "shepherd.js" //fails "shepherd" //fails "shepherd.js/dist/js/shepherd.esm.js"    //failed "shepherd.js"
-import Shepherd from "shepherd.js";
+import Shepherd from "shepherd.js"
 //globalThis.Shepherd = Shepherd
 export var dui_tour = new Shepherd.Tour({
   tourName: "Dexter UI",

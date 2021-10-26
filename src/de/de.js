@@ -183,7 +183,7 @@ assignment           = scope:(("variable" / "local") ws)? loc:(path / variable) 
                         }
                         
 fn_def               = "to" ws name_and_args:sentence ws_or_not eb:exprs_block{
-                            name_and_args = replace_substrings(name_and_args, ": ", "=")
+                            name_and_args = Utils.replace_substrings(name_and_args, ": ", "=")
                             let result = "function " + name_and_args + eb 
                             console.log("got fn_def: " + result)
                             return result
@@ -307,7 +307,7 @@ keyword_exprs_block  = keyword:("try" / "finally" / "otherwise") ws eb:exprs_blo
                        
                    
                      
-path     "path"      = variable ("/" variable)+           { return replace_substrings(text(), "/", ".") }
+path     "path"      = variable ("/" variable)+           { return Utils.replace_substrings(text(), "/", ".") }
 variable "variable"  = !reserved_word [a-zA-Z_]i [a-zA-Z0-9_]*  { 
                          console.log("got variable: " + text())
                          return text() 
@@ -341,7 +341,7 @@ string_double_quote = '"' chars:[^"]* '"' { return '"' + chars.join("") + '"' }
                        
 var parser = peg.generate(
 `start     =  path      
-path     "path"      = variable ("/" variable)+           { return replace_substrings(text(), "/", ".") }
+path     "path"      = variable ("/" variable)+           { return Utils.replace_substrings(text(), "/", ".") }
 variable "variable"  = [a-z]i [a-z0-9]*                   { return text() }
 
 `

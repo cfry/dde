@@ -1,13 +1,12 @@
 // In DDE3, "shepherd.js/dist/css/shepherd.css", from the below line, is included before general "styles.css". We might want to make sure that this css inclusion order is maintained.
-import {value_of_path} from "../job_engine/core/utils.js"
 
 import "shepherd.js/dist/css/shepherd.css"
-import Shepherd from "/shepherd.js"
+import Shepherd from "shepherd.js"
 
 set_css_properties(".shepherd_step {background-color:#ffcdb0; width:300px;}")
 set_css_properties(".shepherd-modal-overlay-container.shepherd-modal-is-visible{opacity:0.4}")
 
-var Lesson = class Lesson{
+class Lesson{
     /*always returns the constructed HTML, and, if there's a location, sticks it somewhere
     name=null, //but can be any string
     steps=[], //array of html strings, most commonly constructed by calls to make_button_html
@@ -112,15 +111,15 @@ var Lesson = class Lesson{
         let full_label = ""
         full_label += icon
         if(start !== undefined) { //I want to capture if its 0
-            start = string_to_seconds(start)
+            start = Utils.string_to_seconds(start)
             if(end) {
-                end = string_to_seconds(end)
+                end = Utils.string_to_seconds(end)
                 full_label += " " + start + " - " + end
             }
             else { full_label += " " + start }
         }
         else if (end !== undefined) {
-            end = string_to_seconds(end)
+            end = Utils.string_to_seconds(end)
             full_label += " - " + end
         }
         full_label += " " + label
@@ -131,10 +130,10 @@ var Lesson = class Lesson{
             if(!arg0.includes("?")) { //the usual
                 arg0 += "?"
                 if(autoplay)  { arg0 += "autoplay=1&" }
-                if(start !== undefined) { start = string_to_seconds(start) //we want to capture 0
+                if(start !== undefined) { start = Utils.string_to_seconds(start) //we want to capture 0
                             arg0 += "start=" + start + "&"
                 }
-                if(end !== undefined)   { end   = string_to_seconds(end)
+                if(end !== undefined)   { end   = Utils.string_to_seconds(end)
                             arg0 += "end=" + end
                 }
             }
@@ -145,7 +144,7 @@ var Lesson = class Lesson{
             let args_src_arr = []
             for(let arg of args){
                 let src = to_source_code({value: arg}) //wraps double quotes around strings.
-                src = replace_substrings(src, '"', "'") //use double quotes for inner action, but could use single quotes instead
+                src = Utils.replace_substrings(src, '"', "'") //use double quotes for inner action, but could use single quotes instead
                 args_src_arr.push(src)
             }
             click_args = args_src_arr.join(", ")
@@ -156,6 +155,7 @@ var Lesson = class Lesson{
                           ">" +
                           full_label + "</button>"  //note: lots of trouble stepping thru this code,
                           //and displaying it in the output pane. But works if put into its own show_window.
+        console.log(html_result)
         return html_result
     }
 
@@ -384,6 +384,8 @@ var Lesson = class Lesson{
         return options
     }
 }
+
+globalThis.Lesson = Lesson
 /*
 Lesson.make_button_html({label: "Introduction", start: 15, end: "1:30", args: "https://www.youtube.com/embed/Al2NUrO4HAU"})
 

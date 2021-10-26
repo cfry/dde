@@ -1,18 +1,11 @@
 //This file is loaded both in the Job Engine and in the Jobs Browser
 //copied from utils.js so that we don't have to have any requires in this file
 
-import {init_inspect} from "../../general/inspect.js" //a bit weird as inspect is really a dde thing.
-       //only used by SW.clear_output
-
-import {function_name, function_param_names, is_string_a_integer, is_string_a_number,
-       last, prepend_file_message_maybe, replace_substrings,
-       stringify_value_cheap, value_of_path, warning} from "./utils.js"
-
 function out(val="", color="black", temp=false, code=null){
     let text = val
     if (typeof(text) != "string"){ //if its not a string, its some data structure so make it fixed width to demonstrate code. Plus the json pretty printing doesn't work unless if its not fixed width.
-        if(window["stringify_value"]) { text = stringify_value(text) }
-        else { text = stringify_value_cheap(val) } //hits in browser
+        if(window["stringify_value"]) { text = Utils.stringify_value(text) }
+        else { text = Utils.stringify_value_cheap(val) } //hits in browser
     }
     if(window.platform == "node") { //console.log(val)
         let out_obj = {kind: "out_call", val: text, color: color, temp: temp, code: code} //code isn't actually used in the browser
@@ -684,7 +677,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
                 if      (val == "false") {val = false}
                 else if (val == "true")  {val = true}
                 else if (val == "null")  {val = null}
-                else if (is_string_a_number(val)) { val = parseFloat(val) } //for "123", returns an int
+                else if (Utils.is_string_a_number(val)) { val = parseFloat(val) } //for "123", returns an int
                 result[in_name] = val //in_name could be bound to "window_callback_string"
             }
             else if (in_type == "text"){
@@ -782,10 +775,10 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
             //cb is probably "function () ..." ie a string of a fn src code
             if (!cb) { //cb could have been a named fn such that when evaled didn't return the fn due to bad js design
                 if(callback_fn_string.startsWith("function ")){
-                    let fn_name = function_name(callback_fn_string)
+                    let fn_name = Utils.function_name(callback_fn_string)
                     if ((typeof(fn_name) == "string") && (fn_name.length > 0)) { cb = window.fn_name }
-                    else { //we've got an anonyous function source cde def
-                        cb = eval("(" + callback_fn_string + ")") //need extra parens are veal will error because JS is wrong
+                    else { //we've got an anonyous function source code def
+                        cb = eval("(" + callback_fn_string + ")") //need extra parens here. Will error without them due to poor JS design
                         if(typeof(cb) != "function"){
                             dde_error("show_window got a callback that doesn't look like a function.")
                         }
@@ -863,7 +856,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
         }
         try {
             if ((typeof(window_title_index_or_elt) == "string") &&
-                is_string_a_integer(window_title_index_or_elt)) {
+                Utils.is_string_a_integer(window_title_index_or_elt)) {
                 window_title_index_or_elt = parseInt(window_title_index_or_elt)
             }
             if (typeof(window_title_index_or_elt) == "string") {
@@ -1027,7 +1020,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
     static clear_output(){
         output_div_id.innerText = ""
         if(window["init_inspect"]) {
-            init_inspect();
+            Inspect.init_inspect();
         }
         return "dont_print"
     }
@@ -1053,7 +1046,6 @@ catch(e){ //else we're in the job engine
 
     global.dde_error = dde_error
     global.warning = warning
-    global.prepend_file_message_maybe = prepend_file_message_maybe
     global.out = out
 
 }

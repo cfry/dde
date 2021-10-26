@@ -3,9 +3,6 @@ import "./nouislider.css" //necessary in dde3 and dde4
 import "./nouislider_fry.css"
 import noUiSlider from 'nouislider';
 
-import {is_array_of_numbers, is_string_a_integer, is_string_a_literal_string} from "../job_engine/core/utils.js"
-
-
 class MiRecord {
     static instruction_suffix_html(loc){
         let the_do_list = MiState.get_do_list_smart()
@@ -15,7 +12,7 @@ class MiRecord {
             if(loc < the_do_list.length){
                 top_or_not = this.instruction_props_html(loc)
                 let instr  = the_do_list[loc]
-                if (is_array_of_numbers(instr)){
+                if (Utils.is_array_of_numbers(instr)){
                     instr = Vector.round(instr, 3)
                 }
                 instr_html = to_source_code({value: instr}).substr(0, 60)
@@ -146,7 +143,7 @@ class MiRecord {
             ((a_job.data_array_transformer == "P") ||
              (a_job.orig_args.data_array_transformer == "P"))){
            for(let inst of the_do_list){ //warning: expensive if its a long job
-               if(!is_array_of_numbers(inst)) { return false }
+               if(!Utils.is_array_of_numbers(inst)) { return false }
            }
            return true
         }
@@ -322,7 +319,7 @@ class MiRecord {
     static job_in_mi_dialog(){
         if(!this.is_job_in_mi_dialog()) { return null }
         let job_name = MakeInstruction.arg_name_to_src_in_mi_dialog("name")
-        if (!is_string_a_literal_string(job_name)) { return false }
+        if (!Utils.is_string_a_literal_string(job_name)) { return false }
         job_name = job_name.substring(1, job_name.length - 1)
         if(job_name.length == 0) { return false }
         let job_instance = Job[job_name]
@@ -364,7 +361,7 @@ class MiRecord {
         }
         let job_name = MakeInstruction.arg_name_to_src_in_mi_dialog("name")
         job_name = job_name.trim()
-        if (is_string_a_literal_string(job_name)) {
+        if (Utils.is_string_a_literal_string(job_name)) {
             job_name = job_name.substring(1, job_name.length - 1)
             if(job_name.length == 0) {
                 sim_pane_content_id.scrollTop = 0
@@ -568,7 +565,7 @@ class MiRecord {
            let count_text = ((i == 0) ? " of " + recorded_do_list.length : "")
            do_list_src += instr_src + comma_or_not + " // " + i + count_text + "\n" + suffix
         }
-        //do_list_src = replace_substrings(do_list_src, "],", "],\n")
+        //do_list_src = Utils.replace_substrings(do_list_src, "],", "],\n")
         do_list_src += "]"
         let do_list_elt_id = MakeInstruction.arg_name_to_dom_elt_id("do_list")
         window[do_list_elt_id].value = do_list_src
@@ -655,7 +652,7 @@ class MiRecord {
             return false
         }
         let job_name = MakeInstruction.arg_name_to_src_in_mi_dialog("name")
-        if (!is_string_a_literal_string(job_name) || (job_name.length < 3)) {
+        if (!Utils.is_string_a_literal_string(job_name) || (job_name.length < 3)) {
             warning("The name field of the Job has invalid syntax.<br/>" +
                 'It should look like <code>"my_job"</code> (including the quotes.)')
             return false
@@ -1091,7 +1088,7 @@ class MiRecord {
        }
        else if(this.is_job_in_mi_dialog()){  //similar to MiRecord.prepare_for_play, but gets us a non-zero max_loc quicker
            let job_name = MakeInstruction.arg_name_to_src_in_mi_dialog("name")
-           if (!is_string_a_literal_string(job_name) || (job_name.length < 3)) {
+           if (!Utils.is_string_a_literal_string(job_name) || (job_name.length < 3)) {
                warning("The name field of the Job has invalid syntax.<br/>" +
                    'It should look like <code>"my_job"</code> (including the quotes.)')
                return false
@@ -1451,7 +1448,7 @@ class MiRecord {
                     let length_of_prefix = new_high_level_job_name.length + 1 //+1 for the underscore
                     let existing_job_name_suffix = existing_job_name.substring(length_of_prefix)
                     if((existing_job_name_suffix.length > 0) &&
-                       is_string_a_integer(existing_job_name_suffix) &&
+                        Utils.is_string_a_integer(existing_job_name_suffix) &&
                         (existing_job_name_suffix[0] !== "-")){
                      let the_int = parseInt(existing_job_name_suffix)
                      max_existing_low_level_job_number = Math.max(the_int, max_existing_low_level_job_number)

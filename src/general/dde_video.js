@@ -58,12 +58,14 @@ class DDEVideo {
 //neigher of these are good for DDE users, they're system level.
 //Users should use: show_in_misc_pane
     static misc_pane_menu_selection //workaround for $("#misc_pane_menu_id").jqxComboBox('val') jqxwidget bug
-//this does NOT do the action of the selection, just changes the text shown in the menu.
+    //this does NOT do the action of the selection, just changes the text shown in the menu.
+
     static set_misc_pane_menu_selection(label){
         this.misc_pane_menu_selection = label
         $('#misc_pane_menu_id').jqxComboBox('val', label)
     }
 
+    //in code below' don't use "this'.
     static show_in_misc_pane(content, arg1 = "", arg2){
     //if Choose File is called from outside dialog, and user cancels, we don't want to
     //change the combo_box value OR persistent save it.
@@ -74,7 +76,7 @@ class DDEVideo {
             if(content) {
                 $("#misc_pane_menu_id").jqxComboBox('unselectItem', "Choose File") //must do!
                // just let it fall through ////old: return show_in_misc_pane(content) //$('#misc_pane_menu_id').jqxComboBox('val', content) //causes show_in_misc_pane to be called with the chosen value
-                this.set_misc_pane_menu_selection(content)
+                DDEVideo.set_misc_pane_menu_selection(content)
 
             }
             else { //user canceled from choose file dialog so don't persistent-save the value.
@@ -83,18 +85,18 @@ class DDEVideo {
                 //if we did $('#misc_pane_menu_id').jqxComboBox('val', the_prev_val),
                 //just leave it as "Choose File"
                 let prev_val = DDE_DB.persistent_get("misc_pane_content")
-                this.set_misc_pane_menu_selection(prev_val)
+                DDEVideo.set_misc_pane_menu_selection(prev_val)
                 return
             }
         }
         //let orig_content = $('#misc_pane_menu_id').jqxComboBox('val') //warning: this doesn't always get the
         //content showing in the combo box. Bug in jqxwidgets. So just always set it.
-        if(content !== this.misc_pane_menu_selection) {
+        if(content !== DDEVideo.misc_pane_menu_selection) {
             let label = content
             if((typeof(content) === "string") && content.startsWith("<")) {
                 label = "HTML"
             }
-            this.set_misc_pane_menu_selection(label)
+            DDEVideo.set_misc_pane_menu_selection(label)
         }
             //$('#misc_pane_menu_id').jqxComboBox('val', content) //this will cause combon box's onchange event, defined in ready.js to call show_in_misc_pane again,
             // but this new time, content WILL equal what's in the combo-box val so tis clause doesn't hit
@@ -106,7 +108,7 @@ class DDEVideo {
 
         if(MakeInstruction.is_shown()) { //so that in case this or some later call to show_in_misc_pane
                                          // is "Make Instruction", we know what content to fill it with
-            this.prev_make_instruction_src = MakeInstruction.dialog_to_instruction_src()
+            DDEVideo.prev_make_instruction_src = MakeInstruction.dialog_to_instruction_src()
         }
         let content_is_good = false //presume bad until proven otherwise, esp because some of the time we don't find out
         // if it's bad until after a callback, and we don't want to save a bad value.
@@ -121,15 +123,15 @@ class DDEVideo {
             //do not attempt to save the elt persistently. We just don't return to this if we launch dde.
         }
         //content = content.replaceAll(content, "__dirname", __dirname)//dde4 todo comment in once file system works
-        if((content == "Simulate Dexter") && this.init_sim_in_process){
+        if((content == "Simulate Dexter") && DDEVideo.init_sim_in_process){
             return
         }
         else {
-            this.init_sim_in_process = false
+            DDEVideo.init_sim_in_process = false
         }
         try {
         if (content === "Simulate Dexter") {
-                this.init_sim_in_process = true
+            DDEVideo.init_sim_in_process = true
                 sim_pane_content_id.innerHTML = Simulate.make_sim_html();
                 //    '<div style="white-space:nowrap;"> ' + //Simulate Job/Robot: <select id="job_or_robot_to_simulate_id">' +
                 //     '<b>Move Dur: </b><span id="sim_pane_move_dur_id"></span> s' +
@@ -152,7 +154,7 @@ class DDEVideo {
                 //     '<b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
                 //     '<b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>' +
                 //     '<div id="sim_graphics_pane_id"></div>'
-                //DocCode.open_doc(simulate_pane_doc_id) //dde4 todo comment in when doc is loaded
+                DocCode.open_doc(simulate_pane_doc_id)
                 Simulate.init_simulation()
                 //sim.renderer.render(sim.scene, sim.camera);
                 setTimeout(function() {
@@ -167,7 +169,7 @@ class DDEVideo {
             let xyz = arg1
             let rotzyz = (arg2 ? arg2 : [0, 0, 0])
             Simulate.create_marker_mesh(xyz, rotzyz)
-            sim.renderer.render(sim.scene, sim.camera)
+            Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
             //SimUtils.render_once_with_prev_args_maybe()
             content_is_good = true
         }
@@ -185,16 +187,11 @@ class DDEVideo {
             content_is_good = true
         }
         else if (content === "Reference Manual"){
-            let div_html = `<div contenteditable='false' 
-                                style='height:100%; width:100%; padding:5%; background-color:#DDDDDD; overflow:scroll;'>` +
-                "<div style='font-size:18px; font-weight:700;'>Reference Manual</div>"
-            content = read_file(__dirname + "/doc/ref_man.html")
-            //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
-            sim_pane_content_id.innerHTML = div_html + content + "</div>"
+            sim_pane_content_id.innerHTML = reference_manual_id.outerHTML
             content_is_good = true
         }
         else if (content === "Make Instruction"){
-            let src = ((arg1 === "") ? this.prev_make_instruction_src : arg1)
+            let src = ((arg1 === "") ? DDEVideo.prev_make_instruction_src : arg1)
                                //instr, show_doc, set_misc_pane_menu_label
             MakeInstruction.show(src,   true,     false) //if arg value is undefined, show the default move_all_joints, otherwise, its previous state
                   //must pass set_misc_pane_menu_label as false or will get infinite loop.
@@ -274,11 +271,11 @@ class DDEVideo {
             }
         }
         else if (content.endsWith(".fbx")){
-            this.clear_out_sim_graphics_pane_id()
+            DDEVideo.clear_out_sim_graphics_pane_id()
             Simulate.stl_init_viewer()
             // from https://github.com/ckddbs/three-fbx-loader/commit/b3bc39bef2a4253abf2acc780870a03f5f9cd510
-            var loader = new FBXLoader()
-            //loader.load(content, function (object) { sim.scene.add(object)})
+            let loader = new FBXLoader()
+            //loader.load(content, function (object) { Simulate.sim.scene.add(object)})
             loader.load(content,
                         function (object) {
                             // object3d is a THREE.Group (THREE.Object3D)
@@ -305,7 +302,7 @@ class DDEVideo {
                                                        pos.y * 0.001,
                                                        pos.z * 0.001)
                                     */
-                                    sim.scene.add(child)
+                                    Simulate.sim.scene.add(child)
                                 }
                             } );
 
@@ -363,7 +360,7 @@ class DDEVideo {
 
             loader.load(content,
                 function (gltf) {
-    //              sim.scene.add(gltf.scene)
+    //              Simulate.sim.scene.add(gltf.scene)
                     let root = gltf.scene;
                     let c0 = root.children[0]
                     c0.scale.set(0.001, 0.001, 0.001);
@@ -373,8 +370,8 @@ class DDEVideo {
                         if ( c.constructor.name === 'Object3D' ) {
                             objs.push(c); } } );
                     c0.children = objs;
-                //	sim.scene.add(root)
-                    sim.table.add(root)
+                //	Simulate.sim.scene.add(root)
+                    Simulate.sim.table.add(root)
 
                     //	Set link parent-child relationships.
                     //
@@ -402,14 +399,10 @@ class DDEVideo {
                  content.endsWith(".bmp") ||
                  content.endsWith(".svg")
         ){
-            if(globalThis.file_exists && file_exists(content)){
-                let div_html = "<img style='width:100%;' src='" + content + "'/>"
-                sim_pane_content_id.innerHTML = div_html
-                content_is_good = true
-            }
-            else {
-                warning("Could not find file: " + content + "<br/>to show in the Misc pane.")
-            }
+            let div_html = "<img style='width:100%;' src='" + content + "'/>"
+            sim_pane_content_id.innerHTML = div_html
+            content_is_good = true
+
         }
         else if (content.endsWith(".txt")  ||
                  content.endsWith(".js")   ||

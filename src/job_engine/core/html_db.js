@@ -1,4 +1,3 @@
-import {is_letter, intersection, shouldnt, warning_or_error, replace_substrings} from "./utils.js"
 
 class html_db{
    static is_html_tag(tag){
@@ -13,7 +12,7 @@ class html_db{
            let length_to_examine = Math.min(15, str.length) //"blockquote.length == 10
            for(let i = 1; i < length_to_examine; i++){
                let char = str[i]
-               if(!is_letter(char)){
+               if(!Utils.is_letter(char)){
                  let tag = str.substring(1, i)
                  tag = tag.toLowerCase()
                  if(this.is_html_tag(tag)) { return true }
@@ -33,7 +32,7 @@ class html_db{
 
     //"border" "color" "content" "height" "width"
    static intersection_of_html_and_css_properties(){
-       return intersection(html_db.html_properties, html_db.css_properties)
+       return Utils.intersection(html_db.html_properties, html_db.css_properties)
    }
    static is_html_property(prop_name){
        if (prop_name.startsWith("data-")) { return true }
@@ -621,7 +620,7 @@ function make_html(tag, properties, innerHTML="", ending="auto", error=false){
     for (let attr in html_props){
         let val = html_props[attr]
         if ((typeof(val) == "string") && val.includes('"')) {
-            val = replace_substrings(val, '"', '\"')
+            val = Utils.replace_substrings(val, '"', '\"')
         }
         result += " " + attr + '="' + val + '"'
     }

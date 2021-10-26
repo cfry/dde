@@ -3,8 +3,7 @@
  */
 //import request from '../../node_modules/request' //todo needed only for non-working speech reco
 import {persistent_get, persistent_save, persistent_set, persistent_values} from "../job_engine/core/storage"
-import {function_name, is_string_a_integer, is_string_a_number, starts_with_one_of,
-        stringify_value, value_of_path} from "../job_engine/core/utils.js"
+
 //import {write_to_stdout} from "../job_engine/core/stdio.js" //todo imports readline which requries fs which errors
 
 //since I can't actually change window width, height, x, y programmatically,
@@ -39,7 +38,7 @@ window.get_in_ui = function(path_string){
                 the_loc.hasAttributes() &&
                 the_loc.attributes.hasOwnProperty(path_elt)) {
                 let result = the_loc.getAttribute(path_elt)
-                if ((typeof(result) === "string") && (is_string_a_number(result))) {
+                if ((typeof(result) === "string") && (Utils.is_string_a_number(result))) {
                     return parseFloat(result)
                 }
                 else { return result }
@@ -47,14 +46,14 @@ window.get_in_ui = function(path_string){
             } //necessary for "active" attributes like cx in svg ellipse, in order to actually get the real value of  "cx" property
             else if(the_loc[path_elt] !== undefined) { //hits when path_elt is "value"
                 let result = the_loc[path_elt]
-                if ((typeof(result) === "string") && (is_string_a_number(result))) {
+                if ((typeof(result) === "string") && (Utils.is_string_a_number(result))) {
                     return parseFloat(result)
                 }
                 else { return result }
             }
             else {
                 let result = the_loc.getAttribute(path_elt)
-                if ((typeof(result) === "string") && (is_string_a_number(result))) {
+                if ((typeof(result) === "string") && (Utils.is_string_a_number(result))) {
                     return parseFloat(result)
                 }
                 else { return result }
@@ -702,12 +701,12 @@ export function insert_color(){
     let hex_color_name_maybe = Series.color_name_to_hex(orig_color) //if orig_color == "green" then this wil return something like "#00FF00"
     if (hex_color_name_maybe) { orig_color = hex_color_name_maybe}
     if (orig_color == "") { orig_color = "#FFFFFF" } //white
-    if (starts_with_one_of(orig_color, ["'", '"'])) {
+    if (Utils.starts_with_one_of(orig_color, ["'", '"'])) {
         window.insert_color_cb_add_quotes =  orig_color[0]
         orig_color = orig_color.substring(1, orig_color.length - 1) //assume it has ending quote too
     }
     else { window.insert_color_cb_add_quotes = false }
-    if (starts_with_one_of(orig_color, ["#", "rgb"])) {
+    if (Utils.starts_with_one_of(orig_color, ["#", "rgb"])) {
         window.insert_color_cb_remove_sharp_sign = false
     }
     //else { orig_color = "#" + orig_color

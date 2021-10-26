@@ -1,5 +1,3 @@
-import {value_of_path} from "../job_engine/core/utils.js"
-
 
 export var PatchDDE = class PatchDDE {
     /*won't work in LTS due to old JS.
@@ -277,7 +275,7 @@ export var PatchDDE = class PatchDDE {
     }
 
     static patch_until(before_source=null, version, equal_and_after_source=null){
-        if (version_less_than(dde_version, version)) { return eval(before_source) }
+        if (this.version_less_than(dde_version, version)) { return eval(before_source) }
         else { //if version is more than or equal to the current dde_version, do this clause
             if (equal_and_after_source) { return eval(equal_and_after_source) }
         }

@@ -2,9 +2,6 @@
  * Created by Fry on 8/6/17.
  */
 
-import {trim_all} from "../job_engine/core/utils.js"
-
-
 class Phrase{
     constructor({notes="",
                 time=0, //in beats. used only for start time of first note if initializing notes from a string
@@ -74,7 +71,7 @@ class Phrase{
 
     fill_in_notes_from_string(notes_string){
         let time_of_next_note = this.time //in beats
-        const array_of_note_strings = trim_all(notes_string).split(" ")
+        const array_of_note_strings = Utils.trim_all(notes_string).split(" ")
         this.notes = []
         for (let note_string of array_of_note_strings) {
             note_string = note_string.trim()

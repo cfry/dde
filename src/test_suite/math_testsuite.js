@@ -1,3 +1,5 @@
+import "./test_suite.js" //must be here as TestSuite must be defined before loading the below
+
 //these TestSuites from the files in the "math" folder
 
 //from Coor.js

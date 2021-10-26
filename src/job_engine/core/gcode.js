@@ -1,5 +1,4 @@
 //import Vector from "../math/Vector.js" //now global
-import {is_string_a_number} from "./utils.js"
 
 class Gcode{
   static init(){ //called from ready.js
@@ -22,7 +21,7 @@ class Gcode{
             arg = arg.trim()
             let letter = arg[0]  //typically M, G, X, Y, X, E, F
             let num = arg.substring(1)
-            if (is_string_a_number(num)){
+            if (Utils.is_string_a_number(num)){
                 num = parseFloat(num)
             }
             litobj[letter] = num //allowed to be a string, just in case somethign wierd, but is
@@ -83,12 +82,12 @@ class Gcode{
         let subsubvals = subval.split("x")
         let val = []
         for(let subsubval of subsubvals){
-            if (is_string_a_number(subsubval)) { val.push(parseFloat(subsubval))}
+            if (Utils.is_string_a_number(subsubval)) { val.push(parseFloat(subsubval))}
             else { return subval } //its just a string with an x in the middle of it.
         }
         return val
     }
-    else if (is_string_a_number(subval)){
+    else if (Utils.is_string_a_number(subval)){
         return parseFloat(subval)
     }
     else { //maybe have a number with units ie 12.3mm, but we don't have just a number, we might have just a string

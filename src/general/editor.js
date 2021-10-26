@@ -20,9 +20,6 @@ require("codemirror/addon/fold/comment-fold.js")
 import {convert_backslashes_to_slashes, dde_init_dot_js_initialize, file_exists, load_files,
         persistent_initialize, persistent_get, persistent_set,
         write_file}    from "../job_engine/core/storage.js"
-import {decode_quotes, function_param_names_and_defaults_lit_obj, is_alphanumeric, is_comment, is_digit, is_letter,
-        is_letter_or_underscore, is_whitespace,  ordinal_string, reverse_string,
-        value_of_path} from "../job_engine/core/utils.js"
 import beautify from "js-beautify"
 
 import {eval_js_part1} from "./eval.js"
@@ -1154,7 +1151,7 @@ Clear its content?
         if (insertion_pos == null) { insertion_pos = "replace_selection" }
         if (["replace_selection", "selection_start", "selection_end", "start", "end", "whole"].includes(insertion_pos) ||
             (typeof(insertion_pos) == "number")) {
-            text = decode_quotes(text) //replace all ddqq with a double quote
+            text = Utils.decode_quotes(text) //replace all ddqq with a double quote
             //var ta = document.getElementById("js_textarea_id")
             var orig_text = Editor.get_javascript()
             var orig_cursor_start = Editor.selection_start()
@@ -1201,12 +1198,12 @@ Clear its content?
 
     //only used in ui as of feb, 2016. no support in sandbox
     static wrap_around_selection(prefix, suffix, if_no_selection_text){
-        prefix = decode_quotes(prefix) //replace all ddqq with a double quote
-        suffix = decode_quotes(suffix) //replace all ddqq with a double quote
+        prefix = Utils.decode_quotes(prefix) //replace all ddqq with a double quote
+        suffix = Utils.decode_quotes(suffix) //replace all ddqq with a double quote
         if(if_no_selection_text == undefined){
             if_no_selection_text = ""
         }
-        if_no_selection_text = decode_quotes(if_no_selection_text)
+        if_no_selection_text = Utils.decode_quotes(if_no_selection_text)
         var orig_text = Editor.get_javascript()
         var s = Editor.selection_start()
         var e = Editor.selection_end()
@@ -1249,7 +1246,7 @@ Clear its content?
             else if (char == '\n') { //bad
                 break;
             }
-            else if (is_alphanumeric(char) || (char == " ") || (char == ".")){
+            else if (Utils.is_alphanumeric(char) || (char == " ") || (char == ".")){
                  //allow the dot in Editor.foo". JS also allows spaces between fn name and open paren ie "dexster.foo  ("
                 null //keep looping
             }
@@ -1288,10 +1285,10 @@ Clear its content?
         let first_non_whitespace_char = full_src[first_non_whitespace_pos]
         let next_newline_pos = Editor.find_forwards(full_src, (cur_pos_is_newline ? cur_pos + 1 : cur_pos), "\n")
         let cur_pos_to_next_newline_str = full_src.substring(cur_pos, next_newline_pos)
-        if(is_whitespace(cur_pos_to_next_newline_str)){ //skip over this
+        if(Utils.is_whitespace(cur_pos_to_next_newline_str)){ //skip over this
             return Editor.start_and_end_of_instruction_on_line(full_src, next_newline_pos + 1)
         }
-        else if (is_comment(cur_pos_to_next_newline_str)) { //skip over this
+        else if (Utils.is_comment(cur_pos_to_next_newline_str)) { //skip over this
             return Editor.start_and_end_of_instruction_on_line(full_src, next_newline_pos + 1)
         }
         else if(full_src.startsWith( "/*", first_non_whitespace_pos)){
@@ -1959,7 +1956,7 @@ Clear its content?
     static find_forward_whitespace (full_src, cursor_pos=0){
         for(let i = cursor_pos; i < full_src.length; i++){
             let char = full_src[i]
-            if(is_whitespace(char)) { return i }
+            if(Utils.is_whitespace(char)) { return i }
         }
         return full_src.length
     }
@@ -1967,7 +1964,7 @@ Clear its content?
     //skips over // comments
     static find_backward_delimiter (full_src, cursor_pos){
         full_src = full_src.substring(0, cursor_pos)
-        full_src = reverse_string(full_src)
+        full_src = Utils.reverse_string(full_src)
         var result = Editor.find_forward_delimiter(full_src, 0)
         result = full_src.length - result - 1
         return result
@@ -1976,7 +1973,7 @@ Clear its content?
     //returns non-neg integer or null
     static find_backward_open_delimiter (full_src, cursor_pos){
         full_src = full_src.substring(0, cursor_pos)
-        full_src = reverse_string(full_src)
+        full_src = Utils.reverse_string(full_src)
         let result = Editor.find_forward_open_delimiter(full_src, 0) //could be null
         if(typeof(result) == "number") { result = full_src.length - result - 1 }
         return result
@@ -2117,7 +2114,7 @@ Clear its content?
 
     static skip_forward_over_whitespace (full_src, cursor_pos){
         for (let pos = cursor_pos; pos < full_src.length; pos++){
-            if (!is_whitespace(full_src[pos])) { return pos }
+            if (!Utils.is_whitespace(full_src[pos])) { return pos }
         }
         return full_src.length
     }
@@ -2394,8 +2391,8 @@ Clear its content?
             if (ending_brace != -1){
                 for (var i = pos_of_char_in_identifier + 1; i < full_src.length; i++){
                     var char = full_src[i]
-                    if(is_whitespace(char)){ } //keep looping//got first char of identifier
-                    else if(is_letter_or_underscore(char)){ //got first char of first identifier in obj lit.
+                    if(Utils.is_whitespace(char)){ } //keep looping//got first char of identifier
+                    else if(Utils.is_letter_or_underscore(char)){ //got first char of first identifier in obj lit.
                         var ident_bounds = Editor.bounds_of_identifier(full_src, i )
                         if (ident_bounds) {
                             if (full_src[ident_bounds[1]] == ":"){
@@ -2457,9 +2454,9 @@ Clear its content?
         //clicked beyond the end of the last char, and the "pos" found in such cases will
         //be the length of full_src, hence full_src[pos] will fail. So
         //just call it whitespace.
-        else if (is_whitespace(full_src[pos])){
+        else if (Utils.is_whitespace(full_src[pos])){
             if (pos == 0){ return true }
-            else { return is_whitespace(full_src[pos - 1])}
+            else { return Utils.is_whitespace(full_src[pos - 1])}
         }
         else { return false }
     }
@@ -2473,10 +2470,10 @@ Clear its content?
         }
         if (pos >= full_src.length){ //if we've clicked beyond the end of the buffer, back up one.
             pos = pos - 1
-            if (is_whitespace(full_src[pos])){ return "  " } //1 whitespace on end and clicking off  the end is a whitespace click
+            if (Utils.is_whitespace(full_src[pos])){ return "  " } //1 whitespace on end and clicking off  the end is a whitespace click
         }
         var cur_char = full_src[pos]
-        if (is_whitespace(cur_char) && (pos > 0) && !is_whitespace(full_src[pos -1 ])){
+        if (Utils.is_whitespace(cur_char) && (pos > 0) && !Utils.is_whitespace(full_src[pos -1 ])){
             pos = pos -1 // we probably have a situation like "foo   "  and the user clicked right after "foo",
                          //so pretend they really clicked on the last o of foo.
             cur_char = full_src[pos]
@@ -2490,7 +2487,7 @@ Clear its content?
         else if (cur_char == ")") { return ")"}
         else if (cur_char == "[") { return "["}
         else if (cur_char == "]") { return "]"}
-        else if ((cur_char == ".")  && (pos > 0) && !is_digit(full_src[pos - 1])){ return "." } //NOT a decimal point
+        else if ((cur_char == ".")  && (pos > 0) && !Utils.is_digit(full_src[pos - 1])){ return "." } //NOT a decimal point
         //looking for the "--" decrementor operator
         else if ((cur_char == "-") && (full_src.length > 1) &&
             (((pos < (full_src.length - 1)) && (full_src[pos + 1] == "-")) || //we're on first "-" of "--"
@@ -2620,7 +2617,7 @@ Clear its content?
                 let result = "This is the " // "Context: "
                 let prefix
                 if(typeof(arg_index) == "number"){
-                    result += ordinal_string(arg_index + 1)
+                    result += Utils.ordinal_string(arg_index + 1)
                 }
                 else { result += "keyword" }
                 result += " argument"
@@ -2636,7 +2633,7 @@ Clear its content?
                     return fn_name + " is not a function."
                 }
                 else {
-                    let lit_obj = function_param_names_and_defaults_lit_obj(fn)
+                    let lit_obj = Utils.function_param_names_and_defaults_lit_obj(fn)
                     if(lit_obj){
                         let fn_param_names = Object.keys(lit_obj)
                         let param_name = ((typeof(arg_index) == "number") ?
@@ -2683,7 +2680,7 @@ Editor.context_help_for_make_ins_oplet = function(full_src, cursor_pos, identifi
     if((fn_name == "make_ins") &&
         (arg_index === 0)) {
         let oplet
-        if (is_string_a_literal_string(identifier) && (identifier.length == 3)) {oplet = identifier[1] }
+        if (Utils.is_string_a_literal_string(identifier) && (identifier.length == 3)) {oplet = identifier[1] }
         else if ((typeof(identifier) == "string")  && (identifier.length == 1)) {
                oplet = identifier
             identifier = '"' + oplet + '"'
@@ -2700,7 +2697,7 @@ Editor.context_help_for_make_ins_oplet = function(full_src, cursor_pos, identifi
 
     static context_help_for_make_ins_w(full_src, cursor_pos, identifier, fn_name, arg_index){
         let w_oplet_help = ""
-        if((fn_name == "make_ins") && (arg_index === 1) && is_string_a_integer(identifier)){
+        if((fn_name == "make_ins") && (arg_index === 1) && Utils.is_string_a_integer(identifier)){
             let first_arg_end_pos = full_src.lastIndexOf("," , cursor_pos)
             if(first_arg_end_pos >= 0) {
                 let first_arg_start_pos = full_src.lastIndexOf("(" , first_arg_end_pos) + 1
@@ -2875,7 +2872,7 @@ Editor.context_help_for_make_ins_oplet = function(full_src, cursor_pos, identifi
         //selection could be [asdf] or 123 or 123,456 or foo or bar()
         //if it looks like numbers, wrap [] around them
         if (sel[0] !== "[") {
-            if (is_digit(sel[0])) {
+            if (Utils.is_digit(sel[0])) {
                 sel = "[" + sel
                 if (sel[sel.length - 1] !== "]") { sel = sel + "]" }
             }

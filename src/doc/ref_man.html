@@ -13,7 +13,7 @@
         and converts 2 dimensional arrays into strings.
         These functions are simple, not meant to handle complex data or lots
         of variants.
-            <details class="doc_details"><summary>array_to_csv</summary>
+            <details class="doc_details"><summary>Utils.array_to_csv</summary>
             Converts a two dimensional array into a string that has
             its rows separated by the newline character, \n and
             the "cells" within each row separated by commas.<br/>
@@ -22,18 +22,18 @@
             with the outer arrays representing rows, and
             the inner arrays representing cells.<br/>
             <i>Example:</i>
-            <pre><code>array_to_csv([["head one", "head two"],
+            <pre><code>Utils.array_to_csv([["head one", "head two"],
               [10, 20], [100, 200]])    </code></pre> =>
             <samp>&#96;head one,head two\n10,20\n100,200&#96;</samp> <br/>
             Note that there are no quotes around the string values of "head one" and "head two".
-            If this string is read in by <code>csv_to_array</code>,
+            If this string is read in by <code>Utils.csv_to_array</code>,
             "head one" and "head two" will be strings and the other values
             will be numbers.
             <p></p>
             You can use DDE's <a href="#" onclick="DocCode.open_doc(write_file_doc_id, event)">write_file</a>
-            to write the result of calling <code>array_to_csv</code> to a file.
+            to write the result of calling <code>Utils.array_to_csv</code> to a file.
             </details>
-            <details class="doc_details"><summary>csv_to_array</summary>
+            <details class="doc_details"><summary>Utils.csv_to_array</summary>
                 Converts a string of csv format into a two dimensional array.
                 If the string has a newline char, \n, then newline is used
                 for the row separator, otherwise \r is used.
@@ -45,7 +45,7 @@
                 <b>a_string</b> The string is expected to have newlines or \r separate rows
                 and commas or tab characters separate cells within a row.<br/>
                 <i>Example:</i>
-                <code>csv_to_array(&#96;head one,head two\n10,20\n100,200&#96;)</code> <br/>=>
+                <code>Utils.csv_to_array(&#96;head one,head two\n10,20\n100,200&#96;)</code> <br/>=>
                 <samp>[["head one", "head two"], [10, 20], [100, 200]])</samp>
                 Note that the numbers in the csv are converted to JS numbers,
                 and the other values are left as strings.
@@ -1648,7 +1648,7 @@ Picture defaults alpha to 255.<br/>
 These two mat types can get you through a lot of image processing.
 </details>
 
-<details id="is_string_base64_doc_id" class="doc_details"><summary>is_string_base64</summary>
+<details id="Utils.is_string_base64_doc_id" class="doc_details"><summary>is_string_base64</summary>
     Returns <code>true</code> if the passed in string is base64 format, often
     used in tranferring image data on the web.
     The primary characters of Base64 strings are:<br/>
@@ -1667,9 +1667,9 @@ These two mat types can get you through a lot of image processing.
     matches base 64. Some situations permit trailing newlines,
     so setting this to true is convenient in those cases.
     <i>Examples:</i><br/>
-    <code>is_string_base64("abc=")</code> => <samp>true</samp><br/>
-    <code>is_string_base64("abc")</code> => <samp>false</samp><br/>
-    <code>is_string_base64(4321)</code> => <samp>false</samp><br/>
+    <code>Utils.is_string_base64("abc=")</code> => <samp>true</samp><br/>
+    <code>Utils.is_string_base64("abc")</code> => <samp>false</samp><br/>
+    <code>Utils.is_string_base64(4321)</code> => <samp>false</samp><br/>
 </details>
 
 <i>Low-Level Methods ...</i>
@@ -8079,7 +8079,7 @@ If <code>true</code>, no data is sent or received over the actual serial port.<b
 If <code>null</code>, the actual value for simulate comes from the Misc pane header simulate radio buttons,
 just like for Dexter robots.<br/>
 
-<b>sim_fun</b> A function. Default <code> return_first_arg</code>.
+<b>sim_fun</b> A function. Default <code> Utils.return_first_arg</code>.
 Used only when <code title="unEVALable code fragment"> simulate: true</code><br/>
 When a Serial.string.instruction is simulated, its argument,
 <code title="unEVALable code fragment"> instruction_string</code> is
@@ -8092,7 +8092,7 @@ We're not expecting
 the sim_fun to do exactly what the Serial hardware would do. In fact if it could,
 there would be no need for the hardware! Rather sim_fun should perform as a diagnostic
 for at least one case or perhaps a few cases of instruction strings.
-The default value of <code title="unEVALable code fragment"> return_first_arg</code> just returns its input to help you verify that
+The default value of <code title="unEVALable code fragment"> Utils.return_first_arg</code> just returns its input to help you verify that
 the basic communication path is working.<br/>
 
 <b>path</b> A string. Required. The label for the device connected to a serial port on the computer running DDE 
@@ -8947,28 +8947,28 @@ If include_this is true, the returned source, when evaled, will return a copy of
     of the format: <code>"1.2.3"</code> indicating the running version number of DDE.<br/>
     <i>Example:</i> <code>dde_version</code>
     </details>
-    <details id="version_equal_doc_id"class="doc_details"><summary>version_equal</summary>
+    <details id="Utils.version_equal_doc_id"class="doc_details"><summary>version_equal</summary>
      Compare semantic version numbers.<br/>
     <i>Parameters:</i><br/>
     <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
     <b>version_string2</b> Default: <code>dde_version</code><br/>
-    <i>Example:</i> <code>version_equal("1.0.2")</code> => <samp>false</samp>
+    <i>Example:</i> <code>Utils.version_equal("1.0.2")</code> => <samp>false</samp>
     </details>
-    <details id="version_less_than_doc_id"class="doc_details"><summary>version_less_than</summary>
+    <details id="Utils.version_less_than_doc_id"class="doc_details"><summary>version_less_than</summary>
         Compare semantic version numbers.<br/>
     <i>Parameters:</i><br/>
     <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
     <b>version_string2</b> Default: <code>dde_version</code><br/>
-    <i>Example:</i> <code>version_less_than("1.0.2")</code> => <samp>true</samp>
+    <i>Example:</i> <code>Utils.version_less_than("1.0.2")</code> => <samp>true</samp>
     </details>
-    <details id="version_more_than_doc_id"class="doc_details"><summary>version_more_than</summary>
+    <details id="Utils.version_more_than_doc_id"class="doc_details"><summary>version_more_than</summary>
         Compare semantic version numbers.<br/>
     <i>Parameters:</i><br/>
     <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
     <b>version_string2</b> Default: <code>dde_version</code><br/>
-    <i>Example:</i> <code>version_more_than("1.0.2")</code> => <samp>false</samp>
+    <i>Example:</i> <code>Utils.version_more_than("1.0.2")</code> => <samp>false</samp>
     </details>
-    <details id="dde_version_between_doc_id"class="doc_details"><summary>dde_version_between</summary>
+    <details id="Utils.dde_version_between_doc_id"class="doc_details"><summary>dde_version_between</summary>
      A call to this method is meant to go above code that you want to declare the
      version of DDE that it can safely run in.<br/>
      <i>Parameters:</i><br/>
@@ -8991,7 +8991,7 @@ If include_this is true, the returned source, when evaled, will return a copy of
         </code>false</code> if it is not.
         <p></p>
         <i>Examples:</i><br/>
-        <code>dde_version_between("0.1.0", "100.1.1")</code> => <samp>true</samp>
+        <code>Utils.dde_version_between("0.1.0", "100.1.1")</code> => <samp>true</samp>
     </details>
     <details id="quit_dde_doc_id"class="doc_details"><summary>quit_dde</summary>
         Exits DDE immediately. Make sure you have files saved first!<br/>
@@ -11206,9 +11206,9 @@ DocCode.insert_html_into_doc_pane(&#96;&lt;details id="foo_doc_id" style="font-s
                  end: "0:15", //zero minutes and 15 seconds.
                  args: ["https://www.youtube.com/embed/Al2NUrO4HAU"]
                  }),
-            Lesson.make_button_html({label: "Dexter Picture",
-                 args: [replace_substrings(__dirname, "\\", "/", false) +
-                        "/doc/HD+Robotics-8517.jpg"]
+            Lesson.make_button_html({
+                 label: "Dexter Picture",
+                 args: ["/src/doc/HD+Robotics-8517.jpg"]
                  }),
              Lesson.make_button_html({label: "compute 2 + 3",
              icon: "",
@@ -11403,12 +11403,16 @@ Here we point out just a few that are especially easy and useful for teaching.
 
     <details class="doc_details"><summary>Insert into Output pane</summary>
         Calling the <a href="#" onclick="DocCode.open_doc(out_doc_id)"><code>out</code></a> function lets you put HTML or plain text
-        in any color, into the Output pane, either temporarily or until DDE is closed.
+        in any color, into the Output pane, either temporarily or until DDE is closed.<br/>
+        <i>Example:</i><br/>
+        <code> out("&lt;h1 style='color:blue;'>Wake up!&lt;/h1>") </code>
     </details>
     <details class="doc_details"><summary>Text to Speech</summary>
         Calling the <a href="#" onclick="DocCode.open_doc(speak_doc_id)"><code>speak</code></a>
         function performs text-to-speech
-        with a bunch of settings for varying the voice.
+        with a bunch of settings for varying the voice.<br/>
+        <i>Example:</i><br/>
+        <code> speak("Wake up") </code>
     </details>
     <details class="doc_details"><summary>Pop up dialog box</summary>
         Calling the <a href="#" onclick="DocCode.open_doc(show_window_doc_id)"><code>show_window</code></a> function displays a dialog box
@@ -11420,7 +11424,9 @@ Here we point out just a few that are especially easy and useful for teaching.
         Once the human clicks the <button>Continue</button> button,
         the next instruction is run in the job. It and all subsequent instructions
         can access the values filled in. <code>Human.show_window</code> is particularly useful for coordinating activites
-        between humans and robots.
+        between humans and robots.<br/>
+        <i>Example:</i><br/>
+        <code> show_window("&lt;h1 style='color:blue;'>Wake up!&lt;/h1>") </code>
     </details>
 </details>
 </details> <!-- end of Lesson -->

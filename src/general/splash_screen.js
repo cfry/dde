@@ -1,4 +1,5 @@
-import {dui_tour} from "../tutorials/dexter_ui_tutorial.js"
+import {dui_tour}      from "../tutorials/dexter_ui_tutorial.js"
+import {learn_js_tour} from "../tutorials/learn_js_tour.js"
 
 class SplashScreen {
     static the_checkmark_char = "\u2713" //unicode check
@@ -152,6 +153,10 @@ class SplashScreen {
         dui_tour.start()
     }
 
+    static start_learn_js_tutorial(){
+        learn_js_tour.start()
+    }
+
     static splash_screen_tutorial_names_and_tooltips = [
         ["Move Dexter",               "Control Dexter or a simulation&#013;via an interactive dialog&#013;and learn Kinematics in the process.&#013;Also at: Jobs menu/Dexter UI",
                                       "SplashScreen.start_dui_tutorial()"],
@@ -160,7 +165,7 @@ class SplashScreen {
         //["Learning JavaScript",       "Learn JS by stepping through code.",
         //    "DocCode.open_doc(learning_js_doc_id)"],
         ["Learn JavaScript",           "The basics of entering, running and debugging JavaScript.",
-                                       "SplashScreen.close_window_with_help(); DocCode.open_doc(learning_js_doc_id); load_files(__dirname + '/tutorials/learn_js_tour.dde')"],
+                                       "SplashScreen.close_window_with_help(); DocCode.open_doc(learning_js_doc_id); SplashScreen.start_learn_js_tutorial()"],
        // ["Tooltips",                  "Hover the mouse on a widget to learn about it.",
         //                              "DocCode.open_doc(tooltips_doc_id)"] ,
         //["Run JavaScript",            "Use the Eval button to evaluate JavaScript.",

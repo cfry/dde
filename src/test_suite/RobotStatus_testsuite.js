@@ -1,3 +1,5 @@
+import "./test_suite.js" //must be here as TestSuite must be defined before loading the below
+
 new TestSuite("robot_status_g0",
     [`new Job({
          name: "rs_test_job_g0",

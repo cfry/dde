@@ -1,8 +1,5 @@
 import * as espree from "espree"; //replaces esprima
 
-import {function_param_names_and_defaults_array, starts_with_one_of,
-        value_of_path} from "../job_engine/core/utils.js"
-
 class MiParser {
     //_______utils_________
     //return string of src code for arg_name in prop_array (from ast) OR returnn undefined meaning couldn't find it
@@ -117,9 +114,9 @@ class MiParser {
     // Each lit_obj has properties of arg_name and  arg_val_src.
     static extract_args_from_ast_normal(ast, instruction_name, src, get_defaults_from_def=false){
         let fn = value_of_path(instruction_name)
-        let default_arg_name_val_src_pairs = function_param_names_and_defaults_array(fn, true)
+        let default_arg_name_val_src_pairs = Utils.function_param_names_and_defaults_array(fn, true)
         let args_array = []
-        if(starts_with_one_of(instruction_name, ["Dexter.", "Serial."]) &&
+        if(Utils.starts_with_one_of(instruction_name, ["Dexter.", "Serial."]) &&
             (default_arg_name_val_src_pairs.length > 0) &&
             (last(default_arg_name_val_src_pairs)[0] == "robot")){
             default_arg_name_val_src_pairs.pop() //get rid of "robot"
@@ -201,7 +198,7 @@ class MiParser {
             }
             //now the_args_ast is an array of the individual args.
             let fn = value_of_path(instruction_name)
-            let arg_name_val_src_pairs = function_param_names_and_defaults_array(fn)
+            let arg_name_val_src_pairs = Utils.function_param_names_and_defaults_array(fn)
             for(let j = 1; j < 8; j++){
                 let arg_name = "joint" + j
                 let arg_ast = the_args_ast[j - 1]
@@ -273,7 +270,7 @@ class MiParser {
         else { return this.extract_args_from_ast_normal(ast, instruction_name, src) }
         //now args_array is an array of the individual args & vals from the src
         let fn = value_of_path(instruction_name)
-        let arg_name_val_src_pairs = function_param_names_and_defaults_array(fn, true)
+        let arg_name_val_src_pairs = Utils.function_param_names_and_defaults_array(fn, true)
         arg_name_val_src_pairs.shift() //get rid of the first "xyz" param
         arg_name_val_src_pairs.pop()  //get rid of "robot" last arg
         try{
@@ -322,7 +319,7 @@ class MiParser {
         if (body_array.length == 0) { arg_val_src = "" }
         else { arg_val_src = src.substring(body_array[0].range[0], last(body_array).range[1])} //excludes curley braces
         arg_val_src = arg_val_src.trim() //we don't know what whitesapce is at beginning. This gets rid of it
-        arg_val_src = replace_substrings(arg_val_src, "\n    ", "\n") //so the body text area lines will start with the most outdented  code normally
+        arg_val_src = Utils.replace_substrings(arg_val_src, "\n    ", "\n") //so the body text area lines will start with the most outdented  code normally
         args_array.push({name: arg_name, arg_val_src: arg_val_src})
         return args_array
     }

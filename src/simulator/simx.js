@@ -63,10 +63,10 @@ export var SimX = class SimX{
     }
     static get_object(object_or_name){
         if(typeof(object_or_name) === "string") {
-            return sim.table.getObjectByName(object_or_name)
+            return Simulate.sim.table.getObjectByName(object_or_name)
         }
         else if(typeof(object_or_name) === "number"){
-            return sim.table.getObjectById(object_or_name)
+            return Simulate.sim.table.getObjectById(object_or_name)
         }
         else if (this.is_object(object_or_name)) {
             return object_or_name
@@ -99,7 +99,7 @@ export var SimX = class SimX{
         let obj = this.get_object(object_or_name)
         let xyz_three_arr = this.position_dde_to_three(xyz)
         let xyz_three_vec3 = this.array_to_Vector3(xyz_three_arr)
-        let xyz_three_vec3_table = sim.table.localToWorld(xyz_three_vec3)
+        let xyz_three_vec3_table = Simulate.sim.table.localToWorld(xyz_three_vec3)
         let xyz_three_vec3_world = obj.localToWorld(xyz_three_vec3)
 
         let bbox = this.get_bounding_box(obj)
@@ -174,7 +174,7 @@ export var SimX = class SimX{
         //this.set_orientation(obj, orientation) //keep as dde_coordinates
         // todo set_orientation now causes the obj to become invisible.
         this.set_color(obj, color)
-        sim.J0.add(obj) //sim.table.add(obj)
+        Simulate.sim.J0.add(obj) //sim.table.add(obj)
         SimUtils.render_once_with_prev_args_maybe()
         SimX.objects.push(obj)
         return obj
@@ -196,7 +196,7 @@ export var SimX = class SimX{
         this.set_position(obj, position)
         this.set_orientation(obj, orientation)
         this.set_color(obj, color)
-        sim.J0.add(obj)
+        Simulate.sim.J0.add(obj)
         SimUtils.render_once_with_prev_args_maybe()
         SimX.objects.push(obj)
         return obj

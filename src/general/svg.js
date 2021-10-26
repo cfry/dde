@@ -2,8 +2,6 @@
  * Created by Fry on 11/7/16.
  */
 
- import {last} from "../job_engine/core/utils.js"
-
 function svg_svg({id="", html_class="", style="", width=500, height=500, viewBox="", child_elements=[]}={}){
     let result = '<svg' +
          ' id="'      + id  +

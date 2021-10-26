@@ -9,7 +9,6 @@ import {setKeepPosition, setOpenLoop} from "./Dexter_Modes.js"
 //import {Vector}    from "./Vector.js" //now global
 //import {Kin}       from "./Kin.js"    //now global
 
-import {point_object_to_array, scale_point} from "../core/utils.js"
 import {read_file} from "../core/storage.js"
 //import {Instruction, make_ins} from "../core/instruction.js"
 //import {Dexter}    from "../core/robot.js"
@@ -29,13 +28,13 @@ var DXF = new function() {
     	for(let i = 0; i < dxf_entities.length; i++){
             	ent = dxf_entities[i]
             	if (ent.type == "LINE"){
-                	a = point_object_to_array(ent.vertices[0])
-               		b = point_object_to_array(ent.vertices[1])
+                	a = Utils.point_object_to_array(ent.vertices[0])
+               		b = Utils.point_object_to_array(ent.vertices[1])
                 	points.push(a)
                     points.push(b)
                 }else if (ent.type == "POLYLINE"){
-                	a = point_object_to_array(ent.vertices[0])
-               		b = point_object_to_array(ent.vertices[1])
+                	a = Utils.point_object_to_array(ent.vertices[0])
+               		b = Utils.point_object_to_array(ent.vertices[1])
                 	points.push(a)
                     points.push(b)
                 }else if (ent.type == "LWPOLYLINE"){

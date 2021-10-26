@@ -5,8 +5,6 @@ function on_load(){
     //init_block()
 }*/
 
-import {shouldnt, is_string_an_identifier, is_string_a_path, value_of_path}
-        from "../job_engine/core/utils.js"
 import {make_dom_elt, make_html} from "..//job_engine/core/html_db.js"
 
 
@@ -272,7 +270,7 @@ export class Workspace{
         src = Workspace.inst.shortcut_to_longcut(src)
         let block_obj
         let block_elt
-        if (is_string_an_identifier(src)){
+        if (Utils.is_string_an_identifier(src)){
             if(src == "return") {
                 block_obj = Root.jsdb.rword_expr.return
             }
@@ -288,7 +286,7 @@ export class Workspace{
             }
             else { block_obj = Root.jsdb.leafObjectNamed(src) }
         }
-        else if (is_string_a_path(src)) { //if src's val is a fn, then make a call to it.
+        else if (Utils.is_string_a_path(src)) { //if src's val is a fn, then make a call to it.
             let val_of_path = value_of_path(src)
             if(typeof(val_of_path) === "function") {
                 let fn_name_path_array = src.split(".")

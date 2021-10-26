@@ -1,5 +1,6 @@
+import "../general/lesson.js"
 
-Lesson.make_tour({name: "Learn JavaScript", steps: [
+export var learn_js_tour = Lesson.make_tour({name: "Learn JavaScript", steps: [
   [`There are many ways to control Dexter.
     The most flexible way is to use JavaScript and
     DDE's JS libraries.
@@ -82,7 +83,7 @@ Lesson.make_tour({name: "Learn JavaScript", steps: [
        When you click the <b>Step</b> button, an
       additional window (Developer Tools) will appear on the screen.
       <ul>
-      <li>Use its stepper buttons <img src="doc/coor_images/stepper_buttons.png" width="100"/>
+      <li>Use its stepper buttons <img src="/src/doc/coor_images/stepper_buttons.png" width="100"/>
       to evaluate its highlighted code.</li>
       <li>See the tooltips on each button for how much
       code is evaled by each button.</li>
@@ -110,6 +111,6 @@ Lesson.make_tour({name: "Learn JavaScript", steps: [
      [`There's a lot to JavaScript. But by understanding how to eval and
          debug code, you're well on your way!`
      ]
-]}).start()
+]})
 
 

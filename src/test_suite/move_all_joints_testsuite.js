@@ -1,3 +1,5 @@
+import "./test_suite.js" //must be here as TestSuite must be defined before loading the below
+
 new TestSuite("move_all_joints",
     ['new Job({name: "j1", do_list: [Dexter.move_all_joints(0,0,30,0,0,0,0)]})'],
     ['Job.j1.robot.angles', '[0,0,30,0,0,0,0]'],

@@ -4,7 +4,6 @@
 //import {Robot, Dexter} from "./robot.js" //dde4 not needed as Robot, Dexter now global
 //import {Socket}        from "./socket.js" //dde4 Socket is now global
 //import {Instruction}   from "./instruction.js" //dde4 Instruction is now global
-import {shouldnt}      from "./utils.js"
 import {make_folder, make_full_path}  from "./storage"
 
 //import {Kin}           from "../math/Kin.js"    //dde4 Kin is now global
@@ -126,12 +125,12 @@ class DexterSim{
                 //don't do the above, str can now have semicolons in it beecause its not filtered by  array_buffer_to_string
                 //cutting everything after semicolon off.
 
-                let ending_semicolon_pos = raw_string.lastIndexOf(";") //note that the payload might have semicolons in it so don't choose those by using LASTindexOf
-                let W_pos = raw_string.indexOf(" W ")
+                let ending_semicolon_pos = str.lastIndexOf(";") //note that the payload might have semicolons in it so don't choose those by using LASTindexOf
+                let W_pos = str.indexOf(" W ")
                 let start_payload_length_pos = W_pos + 5 //5 skips over the "W f " (oplet and write_kind letter and spaces)
                 //but now we must skip over the payload length, which is an int of variable length
-                let start_payload_pos = raw_string.indexOf(" ", start_payload_length_pos) + 1 //skip over palyoad length and the space after it
-                let payload = raw_string.substring(start_payload_pos, ending_semicolon_pos) //excludes final semicolon
+                let start_payload_pos = str.indexOf(" ", start_payload_length_pos) + 1 //skip over palyoad length and the space after it
+                let payload = str.substring(start_payload_pos, ending_semicolon_pos) //excludes final semicolon
                 oplet_array.push(payload)
                 break;
             }

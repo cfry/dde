@@ -30,7 +30,7 @@ class SimBuild{
     //let ee_vec3_world = sim.LINK5.localToWorld(ee_vec3)
     //let ee_arr_world = SimX.Vector3_to_array(ee_vec3_world)
     //return ee_arr_world
-        let ee_obj = sim.LINK5
+        let ee_obj = Simulate.sim.LINK5
         ee_obj.updateMatrixWorld();
         let ee_vec3_world = new THREE.Vector3()
         ee_obj.getWorldPosition(ee_vec3_world)
@@ -107,7 +107,7 @@ class SimBuild{
             new_obj = obj
         }
         SimX.set_position(new_obj, [0, 0, 0])
-        sim.LINK5.add(new_obj)
+        Simulate.sim.LINK5.add(new_obj)
         this.gripper_now_holding_object = new_obj
     }
 
@@ -124,7 +124,7 @@ class SimBuild{
             the_obj.updateMatrix()
             the_obj.updateMatrixWorld()
             */
-            sim.table.attach(this.gripper_now_holding_object)
+            Simulate.sim.table.attach(this.gripper_now_holding_object)
             this.gripper_now_holding_object = null
         }
         //this.set_position(new_obj, [0, 0, 0])

@@ -27,10 +27,7 @@ import {serial_disconnect_all} from "./serial.js"
 //import {Coor} from '../math/Coor.js' //now global
 //import {Instruction, make_ins} from "./instruction.js" //now global
 import {load_files} from "./storage.js"
-import {is_iterator, is_string_an_identifier, last,
-        milliseconds_to_human_string, replace_substrings,
-        shallow_copy_lit_obj, shouldnt,
-        stringify_value_sans_html} from "./utils.js"
+
 //import {speak} from "./out.js" //dde4 speak is now global
 //import {_nbits_cf, _arcsec, _um} from "./units.js" //dde4 now has all units global
 import {linux_error_message} from "./linux_error_message.js"
@@ -130,7 +127,7 @@ class Job{
             "<br/>which not a function or an oplet.")
     }
     if (name === "") { } //ok as a name, it will be computed.
-    else if(!is_string_an_identifier(name)){ //not ok as a name
+    else if(!Utils.is_string_an_identifier(name)){ //not ok as a name
         dde_error('You have attempted to make a new Job with an invalid name of: "' + name + '".<br/>Job names should start with a letter and be followed by only letters, digits or underscores.')
     }
     if (!Job.is_plausible_when_stopped_value(when_stopped)) {
@@ -486,7 +483,7 @@ class Job{
             this.keep_history            = this.orig_args.keep_history
             this.show_instructions       = this.orig_args.show_instructions
             this.inter_do_item_dur       = this.orig_args.inter_do_item_dur
-            this.user_data               = shallow_copy_lit_obj(this.orig_args.user_data)
+            this.user_data               = Utils.shallow_copy_lit_obj(this.orig_args.user_data)
             this.default_workspace_pose  = this.orig_args.default_workspace_pose
             this.program_counter         = this.orig_args.program_counter //see robot_done_with_instruction as to why this isn't 0,
                                            //its because the robot.start effectively calls set_up_next_do(1), incrementing the PC
@@ -509,7 +506,7 @@ class Job{
                     let new_val = options[key]
                     //if (key == "program_counter") { new_val = new_val - 1 } //don't do. You set the pc to the pos just before the first instr to execute.
                     //if      (key == "do_list")    { continue; } //flattening & setting already done by init_do_list
-                    if      (key == "user_data")  { new_val = shallow_copy_lit_obj(new_val) }
+                    if      (key == "user_data")  { new_val = Utils.shallow_copy_lit_obj(new_val) }
                     else if (key == "name")       {} //don't allow renaming of the job
                     else if ((key == "when_stopped") &&
                              !Job.is_plausible_when_stopped_value(new_val)) {
@@ -789,7 +786,7 @@ class Job{
 
     select_instruction_maybe(cur_do_item){
         if(this.show_instructions && this.do_list_syntax_array){
-            console.log("    now processing instruction: " + stringify_value(cur_do_item))
+            console.log("    now processing instruction: " + Utils.stringify_value(cur_do_item))
             const orig_instruction_index = this.orig_args.do_list.indexOf(cur_do_item)
             if(orig_instruction_index != -1){
                 const range = this.instruction_text_range(orig_instruction_index)
@@ -1151,12 +1148,12 @@ class Job{
         return result
     }
 
-    //called in utils stringify_value    used for original_do_list
+    //called in Utils.stringify_value    used for original_do_list
     static non_hierarchical_do_list_to_html(a_do_list){
         var result = "<table><tr><th title='The instruction_id is the order of the instruction in the do_list.\nSame as the program counter at send time.'>ID</th>" +
                                 "<th title='The instruction type and its arguments'>Instruction</th></tr>"
         for(var i = 0; i < a_do_list.length; i++){
-            result +=  "<tr><td>" + i + "</td><td>" + stringify_value(a_do_list[i]) + "</td><td></tr>"
+            result +=  "<tr><td>" + i + "</td><td>" + Utils.stringify_value(a_do_list[i]) + "</td><td></tr>"
         }
         result += "</table>"
         return "<details><summary>original do_list</summary>" + result + "</details>"
@@ -1294,7 +1291,7 @@ class Job{
         else if ((stat_code === "errored") || (stat_code === "interrupted")) {
             stat_code = "<span style='color:#cc0000;'>" + stat_code + "</span>"
         }
-        let dur_string = milliseconds_to_human_string(this.stop_time - this.start_time)
+        let dur_string = Utils.milliseconds_to_human_string(this.stop_time - this.start_time)
         let result = "Job <i>name</i>: "        + this.name                  + ", <i>job_id</i>: " + this.job_id + ", <i>simulate</i>: " + this.robot.simulate + "<br/>" +
                      "<i>start_time</i>: "      + this.time_to_string(this.start_time) +
                      ", <i>stop_time</i>:  "    + this.time_to_string(this.stop_time)  +
@@ -1303,7 +1300,7 @@ class Job{
                      "<i>stop_reason</i>: "     + this.stop_reason           + ", <i>wait_reason</i>: " + this.wait_reason + "<br/>" +
                      "<i>wait_until_instruction_id_has_run</i>: " + this.wait_until_instruction_id_has_run + "<br/>" +
                      "<i>highest_completed_instruction_id</i>: " + this.highest_completed_instruction_id + "<br/>" +
-                     "<i>user_data</i>: " + stringify_value(this.user_data) + ",<br/>" +
+                     "<i>user_data</i>: " + Utils.stringify_value(this.user_data) + ",<br/>" +
                       Job.non_hierarchical_do_list_to_html(this.orig_args.do_list) +
                       this.do_list_to_html() +
                       Dexter.sent_instructions_to_html(this.sent_instructions) +
@@ -1326,7 +1323,7 @@ class Job{
            else if (elt instanceof Instruction)              { result.push(elt) }
            else if (typeof(elt) === "string")                { result.push(elt) }
            else if (typeof(elt) === "function")              { result.push(elt) }
-           else if (is_iterator(elt))                        { result.push(elt) }
+           else if (Utils.is_iterator(elt))                        { result.push(elt) }
            else if (Instruction.is_start_object(elt))        { result.push(elt) }
            else { throw(TypeError("Invalid do_list item at index: " + i + "<br/>of: " + elt)) }
        }
@@ -2191,7 +2188,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             //note that a user normally wouldn't directly put an array on the do_list,
             //but Job.insert_instruction very likely would to put > 1 instruction on
         }
-        else if (is_iterator(cur_do_item)){ //generator. must be before "function" because an iterator is also of type "function".
+        else if (Utils.is_iterator(cur_do_item)){ //generator. must be before "function" because an iterator is also of type "function".
             var next_obj = cur_do_item.next()
             var do_items = next_obj.value
             let have_item_to_insert
@@ -2241,7 +2238,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         }
         else {
             this.stop_for_reason("errored", "Job: " + this.name + " got illegal do_item on do_list of: " +
-                                            stringify_value(cur_do_item))
+                                 Utils.stringify_value(cur_do_item))
             //It's over, Jim, So don't take a breath, by calling set_up_next_do(0),
             //just kill it quickly before anything else can happen.
             //we don't want to increment the pc,
@@ -2325,8 +2322,8 @@ Job.prototype.handle_function_call_or_gen_next_result = function(cur_do_item, do
         this.set_up_next_do(1)
     }
     else {
-        this.stop_for_reason("errored", "do_item function: " + stringify_value(cur_do_item) +
-            " returned invalid value: "     + stringify_value(do_items))
+        this.stop_for_reason("errored", "do_item function: " + Utils.stringify_value(cur_do_item) +
+            " returned invalid value: "     + Utils.stringify_value(do_items))
         //its over. Don't take a breath with set_up_next_do, kill it off.
         //don't increment pc
         this.do_next_item()
@@ -3207,7 +3204,7 @@ Job.prototype.to_source_code = function(args={}){
     for(let prop_name of prop_names){ //if job has never been run, do_list will be undefined,
                                       //in which case use orig_args even if orig_args arg is false
        let prop_val = props_container[prop_name]
-       if (!similar(prop_val, Job.job_default_params[prop_name])){ //I could *almost* use == instead pf similar but doesn't work for user_data of an empty lit obj
+       if (!Utils.similar(prop_val, Job.job_default_params[prop_name])){ //I could *almost* use == instead pf similar but doesn't work for user_data of an empty lit obj
             let prop_args = Object.assign({}, args)
             prop_args.value = prop_val
             let user_data_val_prefix = ""

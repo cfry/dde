@@ -91,6 +91,7 @@ import eslint from "eslint" //fry for eslint version 5
         "svg_rect":       false,
         "svg_text":       false,
         "TestSuite":      false,
+        "Utils":          false,
         "Vector":         false,
         "write_file":     false
     },

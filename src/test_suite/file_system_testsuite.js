@@ -1,3 +1,4 @@
+import "./test_suite.js" //must be here as TestSuite must be defined before loading the below
 
 new TestSuite("file_system",
     [`new Job({name: "file_sys_test",

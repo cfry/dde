@@ -1,6 +1,5 @@
 import * as esprima from "../../node_modules/esprima/dist/esprima.js"
-import {shouldnt, function_param_names_and_defaults_array, value_of_path}
-       from "../job_engine/core/utils.js"
+
 import {make_dom_elt} from "../job_engine/core/html_db.js"
 
 export var JS2B = class JS2B{
@@ -178,7 +177,7 @@ export var JS2B = class JS2B{
       let meth_src = JS2B.get_src(callee)
       let meth     = value_of_path(meth_src)
       let param_arrays = null
-      if(meth) { param_arrays = function_param_names_and_defaults_array(meth) }
+      if(meth) { param_arrays = Utils.function_param_names_and_defaults_array(meth) }
       let arg_blocks = []
       for(let i = 0; i < st.arguments.length; i++){
           let arg_ast = st.arguments[i]

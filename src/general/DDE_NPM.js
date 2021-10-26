@@ -42,7 +42,7 @@ export var DDE_NPM = class DDE_NPM {
                        save: true
                       })
             .then(function(){
-                let pkg_name_underscores = replace_substrings(pkg_name, "-", "_")
+                let pkg_name_underscores = Utils.replace_substrings(pkg_name, "-", "_")
                 out("npm package: " + pkg_name + " successfully installed. To use it, eval: <br/>" +
                     '<code>var ' + pkg_name_underscores + ' = require(DDE_NPM.folder + "' + pkg_name + '") </code>')
             })
@@ -234,7 +234,7 @@ export var DDE_NPM = class DDE_NPM {
            path_prefix = "DDE_NPM.folder + "
        }
        let full_arg = path_prefix + '"' + pkg_name + '"'
-       let var_name = replace_substrings(pkg_name, "-", "_")
+       let var_name = Utils.replace_substrings(pkg_name, "-", "_")
        let insertion = 'var ' + var_name + ' = require(' + full_arg + ")\n"
        Editor.insert(insertion)
        /*this.list("add_on", function(arr){

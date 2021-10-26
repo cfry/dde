@@ -1,9 +1,6 @@
 /**
  * Created by Fry on 3/20/16.
  */
-import {copy_missing_fields, is_string_a_integer, is_string_a_float, is_string_a_number, is_string_a_literal_string,
-        is_hour_colon_minute, is_hour_colon_minute_colon_second, is_valid_new_date_arg,
-        is_string_a_color_rgb, rgb_string_to_integer_array} from "../job_engine/core/utils.js"
 
 import {init_units, series_name_to_unity_unit, unit_abbrev_to_full_name} from "../job_engine/core/units.js"
 //import {Robot, Brain, Dexter, Human, Serial}  from '../job_engine/core/robot.js' //now global
@@ -15,7 +12,7 @@ class Series {
     constructor({id="required", array=null, in_series_fn=null, replace_sel_fn=null,
                  menu_insertion_string="required", menu_sel_start=true, menu_sel_end=null,
                  sample="required"}={}){
-        copy_missing_fields(arguments[0], this)
+        Utils.copy_missing_fields(arguments[0], this)
     }
 
     static init_series(){
@@ -108,8 +105,8 @@ class Series {
     //might rerun true if there isn't a position in the series but its stilll in the series, ie for floats, ints
     item_in_series(sel_text){
         if (this.in_series_fn){
-            if ((this.id == "series_date_id") && (is_string_a_number(sel_text))){
-                return false //tricky. I have the in_series_fn for series_date_id as is_valid_new_date_arg
+            if ((this.id == "series_date_id") && (Utils.is_string_a_number(sel_text))){
+                return false //tricky. I have the in_series_fn for series_date_id as Utils.is_valid_new_date_arg
                              //and a number is a valid new Date() arg, (represents ms)
                              //but if series_date_id happens to be the Series.last, then this would mean selecting
                              //a number treats it as a date, which is rarely wanted. So I stop that here.
@@ -603,14 +600,14 @@ Series.instances = [
         menu_insertion_string:"&",       menu_sel_start:true, menu_sel_end:null, sample:"&"}),
 
     //NUMBERS
-    new Series({id:"series_integer_id",     in_series_fn:is_string_a_integer, replace_sel_fn: Series.replacement_series_integer,
-        menu_insertion_string:"12",         menu_sel_start:true, menu_sel_end:null, sample:"12",
+    new Series({id:"series_integer_id",     in_series_fn: Utils.is_string_a_integer, replace_sel_fn: Series.replacement_series_integer,
+        menu_insertion_string:"12",         menu_sel_start: true, menu_sel_end: null, sample:"12",
         get_sample: function(old_series, old_sel_text){
             if (old_series.id == "series_float_id"){ this.sample = old_sel_text.split(".")[0]}
             return this.sample
         }}),
-    new Series({id:"series_float_id",       in_series_fn:is_string_a_float,   replace_sel_fn: Series.replacement_series_float,
-        menu_insertion_string:"-0.02",      menu_sel_start:true, menu_sel_end:null, sample:"-0.01",
+    new Series({id:"series_float_id",       in_series_fn: Utils.is_string_a_float,   replace_sel_fn: Series.replacement_series_float,
+        menu_insertion_string:"-0.02",      menu_sel_start: true, menu_sel_end:null, sample: "-0.01",
         get_sample: function(old_series, old_sel_text){
                         if (old_series.id == "series_integer_id"){
                             let [this_sample_int_string, remainder] = this.sample.split(".")
@@ -651,8 +648,8 @@ Series.instances = [
     new Series({id:"series_assignment_id",  array: ["=", "+=", "-=", "*=", "/=", "%="],
         menu_insertion_string:"foo = 2",    menu_sel_start:4, menu_sel_end:5, sample:"="}),
     //STRINGS
-    new Series({id:"series_literal_string_id", in_series_fn:is_string_a_literal_string, replace_sel_fn: Series.replacement_series_literal_string,
-        menu_insertion_string:'"hello world"', menu_sel_start:true, menu_sel_end:null, sample:'"hello world"'}),
+    new Series({id:"series_literal_string_id", in_series_fn: Utils.is_string_a_literal_string, replace_sel_fn: Series.replacement_series_literal_string,
+        menu_insertion_string:'"hello world"', menu_sel_start: true, menu_sel_end: null, sample: '"hello world"'}),
     new Series({id:"series_string_id",         array: ["charAt", "concat", "endsWith", "lastIndexOf", "length", "match",
                                                        "repeat", "replace", "search", "slice", "split", "startsWith",
                                                        "toLowerCase", "toUpperCase", "trim"],
@@ -665,15 +662,15 @@ Series.instances = [
     new Series({id:"series_forEach_id",        array:["forEach", "map", "filter", "reduce", "reduceRight"],
         menu_insertion_string:"[3, 5, 7].forEach(function(elt) {out(elt)})", menu_sel_start:10, menu_sel_end:17, sample:"forEach"}),
     //DATE
-    new Series({id:"series_time_id",        in_series_fn:is_hour_colon_minute,              replace_sel_fn: Series.replacement_series_hour_colon_minute,
-        menu_insertion_string:'"18:45"',    menu_sel_start:1, menu_sel_end:6, sample:"18:45",
+    new Series({id:"series_time_id",        in_series_fn: Utils.is_hour_colon_minute, replace_sel_fn: Series.replacement_series_hour_colon_minute,
+        menu_insertion_string:'"18:45"',    menu_sel_start: 1, menu_sel_end: 6, sample: "18:45",
         get_sample: function(old_series, old_sel_text){
                         if (old_series.id == "series_hours_minutes_seconds_id"){ this.sample = old_sel_text.substring(0, 5)}
                         return this.sample
                     }
     }),
-    new Series({id:"series_hours_minutes_seconds_id", in_series_fn:is_hour_colon_minute_colon_second, replace_sel_fn: Series.replacement_series_hour_colon_minute_colon_second,
-        menu_insertion_string:'"13:30:05"', menu_sel_start:1, menu_sel_end:9, sample:"13:30:05",
+    new Series({id:"series_hours_minutes_seconds_id", in_series_fn: Utils.is_hour_colon_minute_colon_second, replace_sel_fn: Series.replacement_series_hour_colon_minute_colon_second,
+        menu_insertion_string: '"13:30:05"', menu_sel_start: 1, menu_sel_end: 9, sample: "13:30:05",
         get_sample: function(old_series, old_sel_text){
                         if (old_series.id == "series_time_id"){ this.sample = old_sel_text + ":00"}
                         return this.sample
@@ -698,7 +695,7 @@ Series.instances = [
                         return this.sample
                     }
     }),
-    new Series({id:"series_date_id",        in_series_fn:is_valid_new_date_arg, replace_sel_fn: Series.replacement_series_date,
+    new Series({id:"series_date_id",        in_series_fn: Utils.is_valid_new_date_arg, replace_sel_fn: Series.replacement_series_date,
         menu_insertion_string:'new Date("Nov 06 2016")', menu_sel_start:10, menu_sel_end:21, sample:"Nov 06 2016"}),
 
     new Series({id:"series_if_id",          array: ["if", "else if", "else"],
@@ -721,13 +718,13 @@ Series.instances = [
         menu_insertion_string:'"black"',    menu_sel_start:1, menu_sel_end:-1, sample:"black",
         get_sample: function(old_series, old_sel_text){
                         if (old_series.id == "series_color_rgb_id"){
-                            let old_int_array = rgb_string_to_integer_array(old_sel_text)
+                            let old_int_array = Utils.rgb_string_to_integer_array(old_sel_text)
                             let best_color_name = null
                             let best_int_array  = null
                             let best_score      = null
                             for(let poss_color_name in color_name_to_rgb_map){
                                 let poss_color_rgb = color_name_to_rgb_map[poss_color_name]
-                                let pos_int_array  = rgb_string_to_integer_array(poss_color_rgb)
+                                let pos_int_array  = Utils.rgb_string_to_integer_array(poss_color_rgb)
                                 let poss_score = Math.abs(old_int_array[0] - pos_int_array[0])
                                 poss_score    += Math.abs(old_int_array[1] - pos_int_array[1])
                                 poss_score    += Math.abs(old_int_array[2] - pos_int_array[2])
@@ -742,8 +739,8 @@ Series.instances = [
                         return this.sample
                     }
     }),
-    new Series({id:"series_color_rgb_id",   in_series_fn:is_string_a_color_rgb, replace_sel_fn: Series.replacement_series_color_rgb,
-        menu_insertion_string:"rgb(0, 100, 255)",         menu_sel_start:true, menu_sel_end:null, sample:"rgb(0, 100, 255)",
+    new Series({id:"series_color_rgb_id",   in_series_fn: Utils.is_string_a_color_rgb, replace_sel_fn: Series.replacement_series_color_rgb,
+        menu_insertion_string:"rgb(0, 100, 255)",         menu_sel_start: true, menu_sel_end: null, sample: "rgb(0, 100, 255)",
         get_sample: function(old_series, old_sel_text){
                         if (old_series.id == "series_color_name_id"){
                             let hex_color = color_name_to_hex_map[old_sel_text]

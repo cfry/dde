@@ -7,7 +7,6 @@
 //import * as fsPath  from "../../../node_modules/fs-path/lib/index.js" //todo require is not defined
 //import fs      from "../../../node-modules/fs" //can't import this, can't even install it. when I insstall it I get a README of "this pkg name not in use."
 //import {Robot, Brain, Dexter, Human, Serial}  from "./robot.js" //now all global
-import {shouldnt, starts_with_one_of, replace_substrings, value_of_path} from "./utils.js"
 //import {Job}     from "./job.js" //now global //because loading a file with new Job in it needs this.
 
 
@@ -108,7 +107,7 @@ export function persistent_save(){
     if(persistent_values.dde_window_height <= 20)  { persistent_values.dde_window_height = the_defaults.dde_window_height }
     //const path = add_default_file_prefix_maybe("dde_persistent.json") //todo needs file system
     var content = JSON.stringify(persistent_values)
-    content = replace_substrings(content, ",", ",\n") //easier to read & edit
+    content = Utils.replace_substrings(content, ",", ",\n") //easier to read & edit
     content = content.replace('"files_menu_paths":[', '"files_menu_paths":[\n') //just insert newline to improve formatting of the file
     content = "//This file content must live in Documents/dde_apps/dde_persistent.json\n" +
               "//Upon DDE launch, this file is loaded before Documents/dde_apps/dde_init.js\n" +
@@ -877,7 +876,6 @@ function is_root_path(path){
         return ((first_char >= "A") && (first_char <= "Z"))
     }
     else { return false }
-    //return starts_with_one_of(path, ["/", "C:", "D:", "E:", "F:", "G:"]) //C: etc. is for Windows OS.
 }
 
 //returns instance of Dexter or null if path is not a dexter path or if no defined dexter at that path
@@ -1080,7 +1078,7 @@ export function load_files(...paths) {
             window["loading_file"] = prev_loading_file
         }
         catch(err){
-            let file_mess = prepend_file_message_maybe(err.message) //do before undefining loading_file
+            let file_mess = Utils.prepend_file_message_maybe(err.message) //do before undefining loading_file
             window["loading_file"] = undefined //must do before calling dde_error or
                                                //it won't get done BUT need dde_error to print out the loading file message.
             dde_error(file_mess)
@@ -1187,7 +1185,7 @@ export function folder_name_version_extension(path){
     }
     else {
         let ver_maybe = names_ver.substring(last_underscore_pos + 1)
-        if(is_string_a_integer(ver_maybe)) {
+        if(Utils.is_string_a_integer(ver_maybe)) {
             ver = parseInt(ver_maybe)
             if(ver >= 0) {
                 name = names_ver.substring(0, last_underscore_pos)
