@@ -47,6 +47,8 @@ import "codemirror/addon/fold/comment-fold.js"
 
 import "shepherd.js/dist/css/shepherd.css"
 
+import "./styles.css"
+
 import "../job_engine/core/utils.js" //defines as global class Utils, and a few of its methods such as  dde_error, rgb
 import "../job_engine/core/duration.js"
 
