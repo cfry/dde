@@ -57,7 +57,7 @@
     "shepherd.js": "^8.3.1",
     "simple-get": "^3.1.0",
     "stream": "^0.0.2",
-    "three": "^0.131.3",
+    "three": "^0.118.3",
     "three-fbx-loader": "^1.0.3",
     "three-gltf-loader": "^1.111.0",
     "three-orbitcontrols": "^2.110.3",

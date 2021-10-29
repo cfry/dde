@@ -332,7 +332,7 @@ class DDEVideo {
                 Lprv.copy ( linkPrv.matrix );
 
                 let nLprv = new THREE.Matrix4();
-                nLprv.copy(Lprv).invert();
+                nLprv.getInverse ( Lprv );
 
                 //	The link's position WRT base.
                 let link = children[i];
