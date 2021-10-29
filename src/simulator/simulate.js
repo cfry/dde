@@ -579,7 +579,6 @@ class Simulate {
         line.name = "table_line_segments"
         this.sim.table.add(line);
 
-  /* mot working in dde4
         let x_text_mesh = new THREE_Text2D.MeshText2D(">> +X", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true })
         x_text_mesh.name = "x_axis_label"
         x_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
@@ -638,7 +637,7 @@ class Simulate {
         table_bottom_text_mesh.rotation.z = 0 //Math.PI / -2 //-1.5708
         table_bottom_text_mesh.rotation.y = -Math.PI / -2 //was +Math
         this.sim.table.add(table_bottom_text_mesh)
-      */
+
         //todo dde4 something like the below applied to the labels of text above
         //might work for dde4
         //see https://threejs.org/docs/#examples/en/geometries/TextGeometry
