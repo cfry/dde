@@ -1,8 +1,8 @@
 /* Created by Fry on 2/4/16. */
 //https://www.hacksparrow.com/tcp-socket-programming-in-node-js.html
-//import net from "net" //dde4 todo  can't load the net pkg but don't need it on the browser side, only server side
+//import net from "net" //dde4 only needs net pkg on server, not on the browser side.
 
-// import {Robot} from "./robot.js"        //dde4 Robot is now global
+//import {Robot} from "./robot.js"        //dde4 Robot is now global
 //import {DexterSim} from "./dextersim.js" //dde4 DexterSim is now global
 //import {_nbits_cf, _arcsec, _um} = from "./units.js" //don't do this. These units and all the rest are
 //already global vars.
@@ -39,7 +39,7 @@ class Socket{
                 DexterSim.create_or_just_init(robot_name, sim_actual) //harmless if done a 2nd time. returns without callbaack
             }
             let net_soc_inst = Socket.robot_name_to_soc_instance_map[robot_name]
-            if(net_soc_inst && (net_soc_inst.readyState === "closed")) { //we need to init all the "on" event handlers
+            if(net_soc_inst && (net_soc_inst.readyState === WebSocket.CLOSED)) {//WebSocket.CLOSED == 3 //"closed")) { //we need to init all the "on" event handlers
                 this.close(robot_name, true)
                 net_soc_inst = null
             }
@@ -47,8 +47,11 @@ class Socket{
             if(!net_soc_inst){
                 //out(job_instance.name + " Socket.init net_soc_inst for " + robot_name + " doesn't yet exist or is closed.")
                 try {
-                    net_soc_inst = new net.Socket()
-                    net_soc_inst.setKeepAlive(true)
+                    //net_soc_inst = new net.Socket()
+                    //net_soc_inst.setKeepAlive(true)
+                    let ws_url = "ws://" + rob.ip_address + ":" + rob.port
+                    net_soc_inst  = new WebSocket(ws_url);
+
                     //out(job_instance.name + " Just after created, net_soc_inst.readyState: " + net_soc_inst.readyState)
                     /* on error *could* be called, but its duration from a no-connection is
                        highly variable so I have below a setTimeout to kill the connection
@@ -66,17 +69,21 @@ class Socket{
                 // I must define the below just once (on actual new socket init, because  calling
                 // net_soc_inst.on("data", function(data) {...} actually gives the socket 2 versions of the callback
                 // and so each will be called once, giving us a duplication that causes a difficult to find bug.
-                net_soc_inst.on("data", function(data) {
-                    Socket.on_receive(data, undefined, rob)
-                })
-                net_soc_inst.on("connect", function(){
+                //net_soc_inst.on("data", function(data) { //dde3
+                //    Socket.on_receive(data, undefined, rob)
+                //})
+                net_soc_inst.onmessage = function(event) {
+                    let msg = event.data
+                    Socket.on_receive(msg, undefined, rob)
+                }
+                net_soc_inst.onopen = function(event){
                     out(job_instance.name + " Succeeded connection to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port, "green")
                     //clearTimeout(st_inst)
                     Socket.robot_name_to_soc_instance_map[robot_name] = net_soc_inst
                     //the 3 below closed over vars are just used in the one call to when this on connect happens.
                     Socket.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect)
-                })
-                net_soc_inst.on("error", function(err){
+                }
+                net_soc_inst.onerror = function(err){
                     console.log("Probably while running " + job_instance.name + " Socket.init on error while waiting for ack from instruction: " + instruction_to_send_on_connect  +
                         " with err: " + err.message)
                     //clearTimeout(st_inst)
@@ -115,17 +122,21 @@ class Socket{
                             Socket.init(rob_name, job_instance, instruction_to_send_on_connect)
                         }, timeout_dur)
                     }
-                }) //end of on("error"
+                } //end of on("error"
+                net_soc_inst.onclose = function(err){
+                    console.log("websocket closed.")
+
+                }
                 setTimeout(function() {
                     if(!net_soc_inst) { } //presume the job completed and so nothing to do
                     else if (job_instance.is_done()) {} //presume the job completed and so nothing to do
-                    else if(net_soc_inst.readyState === "open") {} //connection worked, leave it alone
+                    else if(net_soc_inst.readyState === WebSocket.OPEN) {} // WebSocket.OPEN == 1 //"open") {} //connection worked, leave it alone
                     else { //connection failed
                         job_instance.stop_for_reason("errored_from_dexter_connect", "Connection to Dexter." + robot_name +
                                                      "\n failed after 2 seconds.")
                     }
                 }, 2000)
-                net_soc_inst.connect(rob.port, rob.ip_address)
+               // net_soc_inst.connect(rob.port, rob.ip_address) //not needed in dde4
             } //ending the case where we need to make a new net_soc_inst
 
             /*out(job_instance.name + "Socket.init before connect, net_soc_inst.readyState: " + net_soc_inst.readyState)
@@ -390,10 +401,11 @@ class Socket{
         }
         if ((sim_actual === false) || (sim_actual === "both")) {
             let net_soc_inst = Socket.robot_name_to_soc_instance_map[robot_name]
-            if(net_soc_inst && (net_soc_inst.readyState === "open")) {
+            if(net_soc_inst && (net_soc_inst.readyState === WebSocket.OPEN)) {
                 try {
                     //console.log("Socket.send about to send: " + str)
-                    net_soc_inst.write(arr_buff) //dde4 todo: needs to send str (not arr_buff) to server. //if doesn't error, success and we're done with send
+                    //net_soc_inst.write(arr_buff) //dde3
+                    net_soc_inst.send(array_buff) //dde4
                     //console.log("Socket.send just sent:     " + str)
                     //this.stop_job_if_socket_dead(job_id, robot_name)
                     return
@@ -632,7 +644,8 @@ class Socket{
                 const net_soc_inst = Socket.robot_name_to_soc_instance_map[robot_name]
                 if(net_soc_inst){
                     net_soc_inst.removeAllListeners()
-                    net_soc_inst.destroy()
+                    //net_soc_inst.destroy() //dde3 only
+                    net_soc_inst.close()
                     delete Socket.robot_name_to_soc_instance_map[robot_name]
                 }
             }

@@ -126,7 +126,7 @@ new Job({
 })
 
 //________Job Example 4c: Nested Generators
-var nexted_gen = function* (){
+var nested_gen = function* (){
     var complex_iterator = complex_gen()
     for(var instru of complex_iterator){
         yield instru
@@ -158,26 +158,49 @@ new Job({name: "jd", do_list: [yield_and_return_gen]})
 new Job({
     name: "job_a",
     do_list: [
-        IO.out("hello"),
+        IO.out("a sez: hello"),
         Control.sync_point("midway", ["job_a", "job_b"]),
-        IO.out("goodbye")
+        IO.out("a sez: goodbye")
     ]})
 
 new Job({
     name: "job_b",
     robot: new Brain({name: "brain1"}),
     do_list: [
-        IO.out("hello"),
+        IO.out("b sez: hello"),
         Control.wait_until(10),
         Control.sync_point("midway", ["job_a", "job_b"]),
-        IO.out("goodbye")
+        IO.out("b sez: goodbye")
     ]})
 Job.job_a.start(); Job.job_b.start() //execute both at once.
 //job_a will wait at its "midway" point until job_b gets to 
 //its "midway" point, then they both proceed.
 
+/////////Job Example 5b: Syncing Jobs with Dexter moves.
+//job_d waits for job_c to complete its Dexter moves.
+new Job({
+    name: "job_c",
+    do_list: [
+        IO.out("c sez: hello"),
+        Dexter.move_all_joints(0, 40),
+        Dexter.move_all_joints(0, 0),
+        Dexter.empty_instruction_queue(),
+        Control.sync_point("midway", ["job_c", "job_d"]),
+        IO.out("c sez: goodbye")
+    ]})
 
-/////////Job Example 5b: One job controlling another
+new Job({
+    name: "job_d",
+    robot: new Brain({name: "brain1"}),
+    do_list: [
+        IO.out("d sez: hello"),   
+        Control.sync_point("midway", ["job_c", "job_d"]),
+        IO.out("d sez: goodbye")
+    ]})
+Job.job_c.start(); Job.job_d.start()
+
+
+/////////Job Example 5c: One job controlling another
 //Control instructions increase the flexibility of Jobs.
 //They can add instructions to other jobs (send_to_job)
 // as well as pause (suspend) and resume (unsuspend) jobs.
@@ -198,8 +221,8 @@ new Job({
     name: "j5", 
     robot: Robot.my_dex2,
     do_list: [
-        Control.send_to_job(
-            do_list_item: Dexter.move_to([0.1, 0.2, 0.3]),
+        Control.send_to_job({
+            do_list_item: IO.out("in j4, instruction sent from j5."),
             where_to_insert: {job: "j4", offset: "after_program_counter"},
             unsuspend: true,
             wait_until_done: true}),
@@ -207,46 +230,6 @@ new Job({
     ]})
 Job.j5.start()
 
-////////Job Example 5c: Instructing another job and getting its data
-//In DDE, its easy for a job to get the state of another job.
-//Job.other_job_name.program_counter or Job.other_job_name.user_data
-//or any other part of the job. But if you want to send an instruction
-//to another job, then get the effect of that instruction has had,
-// use sent_to_job with a status_variable_name, etc as below
-//and you can bring that remote data into the user_data of the requesting job.
-//First we create the job that is being controlled by, and supplying
-//data to another job:
-new Job({name: "j6", robot: new Dexter(), do_list: []})
-//we'll let j7 start j6
-
-//Now for our requesting job:
-new Job({
-    name: "j7",
-    do_list: [
-        Control.send_to_job({
-            do_list_item: Dexter.move_all_joints([0, 0, 135, 45, 0]),
-            where_to_insert: {job: "j6", offset: "program_counter"},
-            start: true, //starts j6
-            wait_until_done: true,
-            status_variable_name: "that_j6_task",
-            //and any number of values you want to get from j6
-            j6_joint_5_pos: function(){return this.robot.joint_xyz(5)},
-            j6_angle_number_2: function(){return this.robot.joint_angle(2)}
-        })
-    ]})
-Job.j7.start()
-/* Job.j7.user_data.j6_joint_5_pos and
-   Job.j7.user_data.j6_angle_number_2 both
-   contain info snatched from job j6.
-If you use 
-Control.send_to_job({
-    where_to_insert: {job: "to_job", offset: "end"},
-    wait_until_done: true, 
-    ...
-}
-then the job with the sent_to_job instruction will wait until
-the whole of the to_job is done before proceeding                           
-*/
 
 ////// Job Example 5d: Prepending to the do_list when calling start.
 
@@ -295,7 +278,7 @@ function print_job_1_dialog(){
     )
 }
 
-new Job({name: "print_job_1", robot: new Dexter(),
+new Job({name: "print_job_1",
     do_list:[
         Dexter.move_all_joints([0, 45, 90, -45, 0]),
         function(){print_job_1_dialog()},
@@ -332,8 +315,10 @@ new Job({
     ]})                           
 
 //////// Job Example 7b: Dependent Jobs
+//The depedent_job waits for the user to respond
+//to the Human.task in my_job.
 new Job({
-    name: "dependent_job", //robot type defaults to Brain
+    name: "dependent_job",
     do_list: [
         Control.sync_point("load_filament", ["my_job"]),
         IO.out("dependent_job last instruction")
@@ -371,7 +356,7 @@ new Job({
         IO.out("material_job last instruction")
     ]})
 Job.material_job.start()
-// Job.material_job.user_data
+// Job.material_job.user_data //evals to the chosen material.
 
 //////// Job Example 7d: human enters a number
 new Job({
@@ -390,7 +375,7 @@ new Job({
         IO.out("number_job last instruction")
     ]})
 Job.number_job.start()
-// Job.number_job.user_data
+// Job.number_job.user_data //evals to the entered number.
 
 //////// Job Example 7e: human enters text
 new Job({
@@ -406,10 +391,10 @@ new Job({
         IO.out("text_job last instruction")
     ]})
 Job.text_job.start()
-// Job.text_job.user_data
+// Job.text_job.user_data //evals to the entered text.
 
 //////// Job Example 7f: Notify
-//Tell human something without pausing execution.
+//Tell human something without pausing the Job's execution.
 new Job({
     name: "notify_job",
     robot: new Human({name: "Joe_Jones"}),
@@ -454,7 +439,7 @@ J7: <input type="range"  name="j7_range"  value="33"  min="0"    max="296" data-
 
 new Job({
     name: "dexter_simple_ui",
-    when_do_list_done="wait",
+    when_do_list_done: "wait",
     do_list: [dexter_simple_ui_init
 ]})
 `,
@@ -717,7 +702,7 @@ wait for another instruction, loop, or call a callback function.
 //______job_ws1_____Wait for a new instruction to be added
 //Click the Job's button in the Output pane header to stop it.
 new Job({name: "job_ws1", 
-         when_do_list_done="wait",
+         when_do_list_done: "wait",
          do_list: [IO.out("hey")]})
 Job.job_ws1.start()
 //Select and eval the below to add an instruction to the started job_ws1
@@ -726,10 +711,12 @@ Job.insert_instruction(IO.out("you2"), {job: "job_ws1", offset: "end"})
 //Click the Job's button to stop it or Eval:
 Job.insert_instruction(Control.stop_job(), {job: "job_ws1", offset: "end"})
          
-//______job_ws2_____You can even avoid a do_list completely.
+//______job_ws2_____You can even avoid a do_list completely,
+//where all of its instructions are added after the Job is running
+//by outside-of-job code.
 new Job({
     name: "job_ws2", 
-    when_do_list_done="wait"
+    when_do_list_done: "wait"
 })
 Job.job_ws2.start()
 //Eval the below to add and run an instruction:
@@ -737,14 +724,19 @@ Job.insert_instruction(IO.out("joe1"), {job: "job_ws2", offset: "end"})
 
 
 //______job_ws3______Call a callback function when the job finishes
+//The function that is the value of when_stopped will be called
+//after the Job runs its last instruction.
 new Job({
     name: "job_ws3", 
     when_stopped: function(){out("I've had it.")},
     do_list: [IO.out("I'm running.")]
 })
 
-//______job_ws4______Call a callback function when the job finishes
-//but also perform the when_stopped action due to stop_job's 3rd (true) arg.
+//______job_ws4______when_stopped and Control.stop.
+//The Control.stop_job will prevent instructions after it from running.
+//Its 3rd arg (here 'true') will cause the when_stopped function
+//to run. Actually since the default of the 3rd arg is 'true'
+//this will happen unless you make that 3rd arg 'false'.
 new Job({
     name: "job_ws4", 
     when_stopped: function(){out("I'm dead.")},
@@ -833,7 +825,7 @@ new Job({
         IO.out("end of job")
     ]})
 
-////13b: loop with times_to_loop = 3
+////13b: loop with computed times_to_loop of 2 + 3.
 new Job({
     name: "my_job",
     do_list: [

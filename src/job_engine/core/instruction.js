@@ -985,7 +985,7 @@ Instruction.human_task = class human_task extends Instruction{
     }
 }
 
-export var human_task_handler = function(vals){
+function human_task_handler (vals){
     var job_instance = Job[vals.job_name]
     if(vals.clicked_button_value == "Continue Job") { } //the dialog closes automatically
     else if (vals.clicked_button_value == "Stop Job"){
@@ -1008,6 +1008,8 @@ export var human_task_handler = function(vals){
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
      //this lets the do_next_item handle finishing the job properly
 }
+
+globalThis.human_task_handler = human_task_handler
 
 Instruction.human_enter_choice = class human_enter_choice extends Instruction{
     constructor ({task="",
@@ -1104,7 +1106,7 @@ Instruction.human_enter_choice = class human_enter_choice extends Instruction{
     }
 }
 
-export var human_enter_choice_handler = function(vals){
+function human_enter_choice_handler(vals){
     var job_instance = Job[vals.job_name]
     if(vals.clicked_button_value == "Continue Job") { //means the choices are in a menu, not individual buttons
         //job_instance.user_data[vals.user_data_variable_name] = vals.choice
@@ -1133,9 +1135,10 @@ export var human_enter_choice_handler = function(vals){
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
     //this lets the do_next_item handle finishing the job properly
 }
+globalThis.human_enter_choice_handler = human_enter_choice_handler
 
 
-var human_enter_choice_set_var = function (job_instance, choice_string, choices_string, user_data_variable_name){
+function human_enter_choice_set_var(job_instance, choice_string, choices_string, user_data_variable_name){
     let choices = JSON.parse(choices_string)
     let choice_array
     for(let a_choice_array of choices) {
@@ -1227,7 +1230,7 @@ Instruction.human_enter_filepath = class human_filepath extends Instruction{
     }
 }
 
-export function human_enter_filepath_handler(vals){
+function human_enter_filepath_handler(vals){
     var job_instance = Job[vals.job_name]
     if(vals.clicked_button_value == "Continue Job") { //means the choices are in a menu, not individual buttons
         job_instance.user_data[vals.user_data_variable_name] = vals.choice
@@ -1251,6 +1254,8 @@ export function human_enter_filepath_handler(vals){
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
     //this lets the do_next_item handle finishing the job properly
 }
+
+globalThis.human_enter_filepath_handler = human_enter_filepath_handler
 
 
 Instruction.human_enter_instruction = class human_enter_instruction extends Instruction{
@@ -1379,7 +1384,7 @@ Instruction.human_enter_instruction = class human_enter_instruction extends Inst
     }
 }
 
-export var human_enter_instruction_handler = function(vals){
+function human_enter_instruction_handler(vals){
     var job_instance = Job[vals.job_name]
     var hei_instance = job_instance.do_list[job_instance.program_counter]
     if(vals.clicked_button_value == "Stop Job"){
@@ -1487,6 +1492,8 @@ export var human_enter_instruction_handler = function(vals){
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
     //this lets the do_next_item handle finishing the job properly
 }
+
+globalThis.human_enter_instruction_handler = human_enter_instruction_handler
 
 
 var human_enter_instruction_job_source_to_save = function(job_instance){
@@ -1605,7 +1612,7 @@ Instruction.human_enter_number = class human_enter_number extends Instruction{
     }
 }
 
-export var human_enter_number_handler = function(vals){
+function human_enter_number_handler(vals){
     var job_instance = Job[vals.job_name]
     if (vals.clicked_button_value != "Continue Job"){
         job_instance.stop_for_reason("interrupted", "In human_enter_number, user stopped this job.")
@@ -1643,6 +1650,8 @@ export var human_enter_number_handler = function(vals){
         }
     }
 }
+
+globalThis.human_enter_number_handler = human_enter_number_handler
 
 
 //beware: Human.enter_position returns an array of Dexter.follow_me AND an instance of this class.
@@ -1707,7 +1716,7 @@ Instruction.human_enter_position = class human_enter_position extends Instructio
     }
 }
 
-export var human_enter_position_handler = function(vals){
+function human_enter_position_handler(vals){
     var job_instance = Job[vals.job_name]
     if (vals.clicked_button_value != "Continue Job"){
         job_instance.stop_for_reason("interrupted", "In human_enter_position, user stopped this job.")
@@ -1739,6 +1748,8 @@ export var human_enter_position_handler = function(vals){
         job_instance.set_up_next_do(1)
     }
 }
+
+globalThis.human_enter_position_handler = human_enter_position_handler
 
 
 Instruction.human_enter_text = class human_enter_text extends Instruction{
@@ -1820,7 +1831,7 @@ Instruction.human_enter_text = class human_enter_text extends Instruction{
     }
 }
 
-export var human_enter_text_handler = function(vals){
+function human_enter_text_handler(vals){
     var job_instance = Job[vals.job_name]
     if (vals.clicked_button_value != "Continue Job"){
         job_instance.stop_for_reason("interrupted", "In human_enter_text, user stopped this job.")
@@ -1844,6 +1855,8 @@ export var human_enter_text_handler = function(vals){
     job_instance.set_up_next_do(1) //even for the case where we're stopping the job,
     //this lets the do_next_item handle finishing the job properly
 }
+
+globalThis.human_enter_text_handler = human_enter_text_handler
 
 
 Instruction.human_notify = class human_notify extends Instruction{
@@ -1943,7 +1956,7 @@ Instruction.human_notify = class human_notify extends Instruction{
     }
 }
 
-export var human_notify_handler = function(vals){
+function human_notify_handler(vals){
     let job_instance = Job[vals.job_name]
     if ((vals.clicked_button_value === "Stop Job") && job_instance.is_active()){
         job_instance.stop_for_reason("interrupted", "In human_notify, user stopped this job.")
@@ -1961,6 +1974,8 @@ export var human_notify_handler = function(vals){
         }
     }
 }
+
+globalThis.human_notify_handler = human_notify_handler
 
 
 Instruction.human_notify.window_x = 0
@@ -1999,7 +2014,7 @@ Instruction.human_show_window = class human_show_window extends Instruction{
     }
 }
 
-export var human_show_window_handler = function(vals){
+function human_show_window_handler(vals){
     console.log("top of human_show_window_handler with is_submit of: " + vals.is_submit)
     const job_instance  = Job[vals.job_name]
     //delete vals.the_job_name
@@ -2034,6 +2049,8 @@ export var human_show_window_handler = function(vals){
         }
     }
 }
+
+globalThis.human_show_window_handler = human_show_window_handler
 
 
 Instruction.if_any_errors = class if_any_errors extends Instruction{
@@ -2610,12 +2627,12 @@ Instruction.destination_send_to_job_is_done = class destination_send_to_job_is_d
                     var val = fn.call(job_instance)
                     from_job_instance.user_data[user_var] = val  //this.params is really the to_job_instance.
                 }
-                else {
-                    job_instance.stop_for_reason("errored", "In job: " + job_instance.name +
-                        " Instruction.destination_send_to_job_is_done.do_item got user var: " + user_var +
-                        " whose value: " + fn + " is not a function.")
-                    return
-                }
+                //else { //just ignore. there's lots of flags.
+                //    job_instance.stop_for_reason("errored", "In job: " + job_instance.name +
+                //        " Instruction.destination_send_to_job_is_done.do_item got user var: " + user_var +
+                //        " whose value: " + fn + " is not a function.")
+                //    return
+                //}
             }
         }
         from_job_instance.send_to_job_receive_done(this.params)
@@ -2991,67 +3008,49 @@ Instruction.sync_point = class sync_point extends Instruction{
         //it will always be in_sync and proceed. Empty job_names also useful for send_to_job
         //where_to_insert labels.
         //also job_names may or may not contain the name of the current job. It doesn't matter.
-        constructor (name, job_names=[]) {
-            super()
-            if (!name){
-                dde_error("Instruction sync_point has not been passed a name.")
-            }
-            this.name = name
-            this.job_names = job_names
-            this.inserted_empty_instruction_queue = false
+    constructor (name, job_names=[]) {
+        super()
+        if (!name){
+            dde_error("Instruction sync_point has not been passed a name.")
         }
+        this.name = name
+        this.job_names = job_names
+    }
     do_item (job_instance){
-        if ((job_instance.robot instanceof Dexter) &&
-            (this.inserted_empty_instruction_queue == false) &&
-            (this.job_names.length > 0) &&
-            ((this.job_names.length > 1)  || //must contain a job other than itself
-            (this.job_names[0] != job_instance.name))){ //the one job name its got is not job_instance so we've got to flush the instruction_queue
-            let instruction_array = Dexter.empty_instruction_queue()
-            //   job_instance.do_list.splice(job_instance.program_counter, 0, instruction_array); //before really testing th sync point, first empty the queue. We only need to do this the first time this do_item is called.
-            //   job_instance.added_items_count.splice(this.program_counter, 0, 0);
-            //job_instance.insert_single_instruction(instruction_array) //don't call because this inserts AFTER PC, not at it.
-            //Job.insert_instruction(instruction_array, {job: job_instance, offset: "program_counter"})
-            this.send(instruction_array)
-            this.inserted_empty_instruction_queue = true
-            job_instance.set_up_next_do(0) //go and do this empty_instruction_queue instruction, and when it finally returns, do the sync_point proper that is the next instruction
-        }
-        else {
-            for(let job_name of this.job_names){
-                if (job_name != job_instance.name){ //ignore self
-                    var j_inst = Job[job_name]
-                    if(!j_inst){
-                        job_instance.stop_for_reason("errored",
-                            "Job." + job_instance.name +
-                            " has a sync_point instruction that has a job-to-sync-with named: " + job_name +
-                            " which is not defined.")
-                        return;
-                    }
-                    else if(!j_inst.is_active()) { //perhaps not_started, perhaps done (but might be restarted).
-                        let wait_reason = "Job." + j_inst.name + " to get to sync_point named: " + this.name +
-                                          "\nbut that Job has status: " + j_inst.status_code
-                        job_instance.set_status_code("waiting", wait_reason)
-                        job_instance.set_up_next_do(0)
-                        return
-                    }
-                    else {
-                        if (j_inst.at_or_past_sync_point(this.name)){ continue; } //good. j_inst is at the sync point.
-                        //beware that j_inst *could* be at a sync point of a different name, and if so,
-                        //let's hope there's a 3rd job that it will sync with to get it passed that sync point.
-                        else { //j_inst didn't get to sync point yet
-                            let wait_reason = "Job." + j_inst.name + " to get to sync_point named: " + this.name
-                            job_instance.set_status_code("waiting", wait_reason)
-                            job_instance.set_up_next_do(0)
-                            return; //we have not acheived sync, so just pause job_instance, in hopes
-                                    //that another job will be the last job to reach sync and cause job_instance
-                                    //to proceed.
-                        }
-                    }
-                }
+        for(let job_name of this.job_names){
+            let j_inst = Job[job_name]
+            if(!j_inst){
+                job_instance.stop_for_reason("errored",
+                    "Job." + job_instance.name +
+                    " has a sync_point instruction that has a job-to-sync-with named: " + job_name +
+                    " which is not defined.")
+                return;
             }
-            //made it through all job_names, so everybody's in sync, but each job has to unfreeze itself.
-            job_instance.set_status_code("running")
-            job_instance.set_up_next_do(1)
+            else if(!j_inst.is_active()) { //perhaps not_started, perhaps done (but might be restarted).
+                let wait_reason = "Job." + j_inst.name + " to get to sync_point named: " + this.name +
+                    "\nbut that Job has status: " + j_inst.status_code
+                job_instance.set_status_code("waiting", wait_reason)
+                job_instance.set_up_next_do(0)
+                return
+            }
+            else if (j_inst.at_or_past_sync_point(this.name)){ } //continue looping
+            //Good. j_inst is at the sync point.
+            //Will always hit when j_inst.name == job_instance.name as job_instance
+            //will be at this sync point.
+            //beware that j_inst *could* be at a sync point of a different name, and if so,
+            //let's hope there's a 3rd job that it will sync with to get it passed that sync point.
+            else { //j_inst didn't get to sync point yet. Pause all synced jobs.
+                let wait_reason = "Job." + j_inst.name + " to get to sync_point named: " + this.name
+                job_instance.set_status_code("waiting", wait_reason)
+                job_instance.set_up_next_do(0)
+                return; //we have not acheived sync, so just pause job_instance, in hopes
+                        //that another job will be the last job to reach sync and cause job_instance
+                        //to proceed.
+            }
         }
+        //made it through all job_names, so everybody's in sync, but each job has to unfreeze itself.
+        job_instance.set_status_code("running")
+        job_instance.set_up_next_do(1)
     }
     to_source_code(args){
         return args.indent + "Control.sync_point("   +

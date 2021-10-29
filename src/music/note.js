@@ -1,4 +1,4 @@
-import WebMidi from "./webmidi"
+import WebMidi from "../../node_modules/webmidi/src/webmidi.js"
 
 globalThis.WebMidi = WebMidi
 

@@ -2527,7 +2527,7 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
     }
     else if(!this.Link1) { //no values set since dde launch
         if(sim_actual !== true) { //ie "real"
-            if(node_server_supports_editor(this)) {
+            if(false) { //node_server_supports_editor(this)) { //todo dde4 uncomment, etc.
                 this.set_link_lengths_using_node_server(job_to_start_when_done)
             }
             else {
@@ -2544,7 +2544,7 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
     //already set the Link lengths once, but ...
     else if((sim_actual !== true) && //ie real
             (this.link_lengths_set_from_dde_computer === true)) { //the only time we read link_lengths_set_from_dde_computer
-        if(node_server_supports_editor(this)) {
+        if(false) { //node_server_supports_editor(this)) {//todo dde4 uncomment, etc.
             this.set_link_lengths_using_node_server(job_to_start_when_done)
         }
         else {

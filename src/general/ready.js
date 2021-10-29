@@ -144,9 +144,8 @@ import "../make_instruction/mirecord.js"         //defines class MiRecord global
 import "./plot.js" //globally defines class Plot
 
 //Music
-import Midi from "webmidi";
-import "../music/note.js"   //defines global Note
-import "../music/phrase.js" //defines global Phrase
+import "../music/note.js" //defines as globals: class Note, class Midi, WebMidi
+import "../music/phrase.js" //defines global class Phrase
 
 import "./lesson.js" //defines global Lesson
 
@@ -260,7 +259,7 @@ export function on_ready() {
 
         Job.class_init()
         Dexter.class_init()
-        new Dexter({name: "dexter0"}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
+        new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 3000}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
           //the only thing dde_init.js really MUST do is define dexter0, so just stick
           //it here and now user can screw up dde_init.js and still win.
         setTimeout(function(){

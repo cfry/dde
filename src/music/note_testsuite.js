@@ -1,5 +1,6 @@
 new TestSuite("Note",
      ["Midi.init()"],
+     ["WebMidi.noteNameToNumber('C4')", "60"],
     ["new Note()", `new Note({
 channel: 1,
 time: 0,

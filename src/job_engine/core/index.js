@@ -139,7 +139,9 @@ import Job    from "./job.js"
 
 import {Robot, Brain, Dexter, Human, Serial} from "./robot.js"
 import {RobotStatus} from "./robot_status.js"
-import {Instruction, make_ins,
+import "./instruction.js" /* makes global:
+    Instruction,
+    make_ins,
     human_task_handler,
     human_enter_choice_handler,
     human_enter_filepath_handler,
@@ -148,8 +150,10 @@ import {Instruction, make_ins,
     human_enter_instruction_handler,
     human_enter_text_handler,
     human_notify_handler,
-    human_show_window_handler,
-    } from "./instruction.js"
+    human_show_window_handler
+    */
+
+
 import {Control} from "./instruction_control.js"
 import {IO}      from "./instruction_io.js"
 import "./je_and_browser_code.js" // must be before loading out.js as it defines SW used by out.js

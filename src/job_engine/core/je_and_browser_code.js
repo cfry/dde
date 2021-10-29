@@ -1026,29 +1026,3 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
     }
 } // end class SW
 globalThis.SW = SW //used a bunch in the ref man for SW.append_in_ui and other misc places in dde
-
- //ie we have a platform global var meaning we're runnningthis in node, not in the browser, which doesn't have module defined.
-// module.exports.SW = SW //"module" not available in browser
-//window.SW = SW
-
-try { //if globalThis is defined, we're in DDE or the browser
-    globalThis.SW = SW
-
-
-    globalThis.dde_error = dde_error
-    globalThis.warning = warning
-    globalThis.prepend_file_message_maybe = prepend_file_message_maybe
-    globalThis.out = out
-
-}
-catch(e){ //else we're in the job engine
-    global.SW = SW
-
-    global.dde_error = dde_error
-    global.warning = warning
-    global.out = out
-
-}
-
-//global.SW = SW
-//var {function_name, is_string_a_number} = require("./utils.js") //see top of file for why this is commented out

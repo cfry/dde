@@ -2569,7 +2569,7 @@ and Midi has not been inited, but there will be a slight delay in that case.<br/
 <code title="not in TestSuite">Midi.init()</code><br/>
 
 If Midi has previously been inited, this calls <code>Midi.all_notes_off</code>.
-This can also be called by choosing Insert menu/Sound/Midi.init().<br/>
+This can also be called by choosing Insert menu/Music/Midi.init().<br/>
 <i>Parameters:</i> None.
 <p></p>
 <b id="Midi.all_notes_off_doc_id">Midi.all_notes_off</b> Turns off
@@ -2592,7 +2592,7 @@ Often the first note or two will get lost so do it a few times
 and you should hear Middle C played on the instrument you have
 selected in GarageBand. <br/>
 <code>Midi.init</code> can also be called by choosing
-Insert menu/Sound/Midi.init().
+Insert menu/Music/Midi.init().
 <p></p>
 If you don't hear a sound, check the MIDI connections in
 GarageBand: menu bar/GarageBand/Preferences.<br/>
@@ -3294,7 +3294,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         Since the default velocity is 0.5, the returned phrase
         will have all of its note at a velocity of 1 (the maximum).
       </details>
-      For more extended examples of using Phrases see Insert menu/Examples/Music.
+      For more extended examples of using Phrases see Insert menu/Music.
       </details> <!-- end of Phrase methods -->
 
 </details> <!-- end Phrase -->
@@ -5714,6 +5714,8 @@ The method takes 1 arg, "stop_reason" that behaves as documented above.
    a lot of flexibility. This can increase the overall speed of a cooperating
    robot group over merely "all pause at each same-named sync_points" 
    because it allows those jobs that <i>can</i> proceed to do so.
+    <p></p>
+    See Jobs menu/Insert Example/Sync Jobs.
 </details>
 
 <details id="Control.send_to_job_doc_id" class="doc_details"><summary>send_to_job</summary>
