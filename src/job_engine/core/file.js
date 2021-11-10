@@ -8,4 +8,4 @@ class File {
     }
 
 }
-globalThis = File
+globalThis.File = File

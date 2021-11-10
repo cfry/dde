@@ -1,5 +1,5 @@
 import {dui_tour}      from "../tutorials/dexter_ui_tutorial.js"
-import {learn_js_tour} from "../tutorials/learn_js_tour.js"
+import {define_learn_js_tour} from "../tutorials/learn_js_tour.js"
 
 class SplashScreen {
     static the_checkmark_char = "\u2713" //unicode check
@@ -154,7 +154,7 @@ class SplashScreen {
     }
 
     static start_learn_js_tutorial(){
-        learn_js_tour.start()
+        define_learn_js_tour().start()
     }
 
     static splash_screen_tutorial_names_and_tooltips = [

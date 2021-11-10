@@ -3,20 +3,24 @@
 import "shepherd.js/dist/css/shepherd.css"
 import Shepherd from "shepherd.js"
 
-set_css_properties(".shepherd_step {background-color:#ffcdb0; width:300px;}")
-set_css_properties(".shepherd-modal-overlay-container.shepherd-modal-is-visible{opacity:0.4}")
 
 class Lesson{
+   //called from ready.js. Can't just be at top level as set_css_properties will be unbound.
+   static init(){
+       set_css_properties(".shepherd_step {background-color:#ffcdb0; width:300px;}")
+       set_css_properties(".shepherd-modal-overlay-container.shepherd-modal-is-visible{opacity:0.4}")
+   }
+
     /*always returns the constructed HTML, and, if there's a location, sticks it somewhere
-    name=null, //but can be any string
-    steps=[], //array of html strings, most commonly constructed by calls to make_button_html
-    location = null, //null, "doc_pane_top_level", dom elt, string-that-evals-to_don_elt, doc_pane_details_summary_string, "show_window" to make a new show_window
-    position = "beforeend", //one of "beforebegin", "afterbegin", "beforeend", "afterend"
-    html_wrapper="details", //typically "details", "fieldset", "div" or null for  none.
-    open = false,
-    add_spinner=true,
-    default_method="DDEVideo.show_in_misc_pane"}){ //for text & html "steps".
-   */
+     name=null, //but can be any string
+     steps=[], //array of html strings, most commonly constructed by calls to make_button_html
+     location = null, //null, "doc_pane_top_level", dom elt, string-that-evals-to_don_elt, doc_pane_details_summary_string, "show_window" to make a new show_window
+     position = "beforeend", //one of "beforebegin", "afterbegin", "beforeend", "afterend"
+     html_wrapper="details", //typically "details", "fieldset", "div" or null for  none.
+     open = false,
+     add_spinner=true,
+     default_method="DDEVideo.show_in_misc_pane"}){ //for text & html "steps".
+    */
     static make_button_column({name=null,
                                steps=[],
                                location = null,

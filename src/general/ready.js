@@ -226,6 +226,7 @@ export function on_ready() {
         //const os = require('os');
         console.log("top of on_ready")
         //console.log("__dirname:"  + __dirname) //todo dde4 causes error
+        console.log("top of ready with package_json: " + package_json)
 
         /*operating_system = os.platform().toLowerCase() //for Ubuntu, ths returns "linux"
         if      (operating_system == "darwin")       { operating_system = "mac" }
@@ -470,6 +471,7 @@ export function on_ready() {
     FPGA.init() //does not depend on Series.
 
     Gcode.init() //must be after init_series which calls init_units()
+    Lesson.init() //sets css properties for steptorials.
 
     $('#js_textarea_id').focus() //same as Editor.myCodeMirror.focus()  but  myCodeMerror not inited yet
 
@@ -697,7 +699,6 @@ export function on_ready() {
  update_id.onclick = function(){ check_for_latest_release() }
 
  //Edit menu  (see editor.js for the Edit menu items
- //Editor.init_editor() I moved this up
 
 //Insert menu
     js_example_1_id.onclick=function(){

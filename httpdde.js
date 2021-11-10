@@ -219,12 +219,15 @@ function serve_show_window_call_callback(browser_socket, mess_obj){
 }
 
 function serve_file(q, req, res){
-	//var filename = SHARE_FOLDER + "/www/" + q.pathname  //this is in orig dexter file, but replaced for  dde4 with server laptop by the below 3 lines
-    let maybe_slash = (q.pathname.startsWith("/") ? "" : "/")
-    let cur_dir = process.cwd()
-    let filename = cur_dir + maybe_slash +  q.pathname
-
-
+    let filename
+    if(fs.existsSync(SHARE_FOLDER)) { //running on Dexter
+       filename = SHARE_FOLDER + "/www/" + q.pathname  //this is in orig dexter file, but replaced for  dde4 with server laptop by the below clause
+    }
+    else { //not running on dexter
+        let maybe_slash = (q.pathname.startsWith("/") ? "" : "/")
+        let cur_dir = process.cwd()
+        filename = cur_dir + maybe_slash +  q.pathname
+    }
     console.log("serving" + q.pathname)
     fs.readFile(filename, function(err, data) {
         if (err) { console.log(filename, "not found")
