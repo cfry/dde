@@ -4,6 +4,9 @@ new TestSuite("robot_status_g0",
     [`new Job({
          name: "rs_test_job_g0",
          do_list: [Dexter.empty_instruction_queue(),
+                   function() { //without this the pid_angles will throw off the measured angles 
+                      DexterSim.robot_name_to_dextersim_instance_map["dexter0"].pid_angles_dexter_units = [0,0,0,0,0,0,0]
+                   },
                    Dexter.move_all_joints(5, 6, 7),
                    Control.wait_until(5), //needs 5 secs to reach commanded angles before requesting robot status for measnured angles
                    IO.out("after wait"),
@@ -22,10 +25,6 @@ new TestSuite("robot_status_g0",
     ["Job.rs_test_job_g0.robot.rs.a2d_coses()", "[0, 0, 0, 0, 0]"],
     ["Job.rs_test_job_g0.robot.rs.raw_encoder_angles()", "TestSuite.error"],
     ["Job.rs_test_job_g0.robot.rs.eye_numbers()", "TestSuite.error"]   
-)
-
-new TestSuite("junkts",
-   ["out(123)"]
 )
 
 

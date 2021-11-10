@@ -6800,10 +6800,14 @@ a straight line between the starting and ending locations.
     the move is complete. Same as move_to.<br/>
 <b>config</b>  Default: <code>Dexter.RIGHT_UP_OUT</code> The configuration of the joints at the end of the move.
     Same as move_to.<br/>
-<b>tool_speed</b> The maximum speed that Dexter's end effector will move.
-                  Default: 5 millimeters per second. Not in move_to.<br/>
-<b>resolution</b> How short to make the straight lines that connect the
-starting xyz to the ending xyz. Default: 0.5 millimeters.<br/>
+<b>tool_speed</b> Incindates the maximum speed that Dexter's end effector can move.
+    It is specified in meters per second.
+    The default is  0.005 (meaning 5 millimeters per second.)
+    This parameter is not in the instruction  Dexter.move_to.<br/>
+<b>resolution</b> How short to make the straight lines that connect the starting xyz to the ending xyz.
+    This is specified in meters. The  default is 0.0005
+    (meaning 0.5 millimeters). This parameter is not in the instruction
+    Dexter.move_to.<br/>
 <b>j6_angle</b>  Default <code>[0]</code> The degrees move move Joint 6 to.
 If it is wrapped in an array, move relative by that amount.<br/>
 <b>j7_angle</b>  Default <code>[0]</code> The degrees move move Joint 7 to.

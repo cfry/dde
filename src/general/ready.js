@@ -1,7 +1,6 @@
 console.log("top of ready.js")
 
 //import os from 'os' //todo causes Failed to resolve module specifier "os". bug  //probably only useful in server code,  not browser code.
-
 //import $  from "jquery" //jqxwdigets tech suppport sez this is no longer necessary
 //and not having it still makes $ available.
 import "jqwidgets-scripts/jqwidgets/styles/jqx.base.css"
@@ -47,6 +46,9 @@ import "codemirror/addon/fold/comment-fold.js"
 
 import "shepherd.js/dist/css/shepherd.css"
 
+import * as Espree from "../../node_modules/espree/lib/espree.js"//"espree", "espree/lib/espree.js"
+globalThis.Espree = Espree //todo Espree.parse is not defined
+
 import "./styles.css"
 
 import "../job_engine/core/utils.js" //defines as global class Utils, and a few of its methods such as  dde_error, rgb
@@ -83,9 +85,15 @@ import "../job_engine/core/dextersim.js"    //defines class DexterSim as global
 import "../job_engine/core/simqueue.js"     //defines class Simqueue as global
 import "../job_engine/core/robot_status.js" //defines class RobotStatus as global
 
+import "../job_engine/core/file.js" //defines class File as global
+import "./dex.js" //makes Dex global
+
 import "./doc_code.js" //makes DocCode global
 
-import {eval_js_part2} from "./eval.js" //needed for the cmd type in evaluation
+import {eval_js_part2, latest_eval_button_click_source} from "./eval.js"
+    //eval_js_part2 needed for the cmd type in evaluation and
+    //latest_eval_button_click_source needed for make_dde_status_report
+
 import "./svg.js" //defines svg_svg & friends as globals.
 
 //in the general folder, as is ready.js
@@ -259,7 +267,7 @@ export function on_ready() {
 
         Job.class_init()
         Dexter.class_init()
-        new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 3000}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
+        new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 3001}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
           //the only thing dde_init.js really MUST do is define dexter0, so just stick
           //it here and now user can screw up dde_init.js and still win.
         setTimeout(function(){
@@ -531,6 +539,14 @@ export function on_ready() {
        DocCode.previous_active_element = document.activeElement
        DocCode.selected_text_when_eval_button_clicked = Editor.get_any_selection()
    };
+
+   run_button_id.onclick = function(){
+       Dex.run_button_handler()
+   }
+
+   wrap_instruction_id.onclick = function() {
+       Dex.wrap_instruction_handler()
+   }
 
    js_debugger_checkbox_id.onclick = function(event) {
        event.stopPropagation()
@@ -1863,6 +1879,8 @@ function make_dde_status_report(){
         output
     return result
 }
+globalThis.make_dde_status_report = make_dde_status_report
+   //documented in User Guide. We want this to be easy to call.
 
 /* never called
 function quit_dde(){

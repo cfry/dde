@@ -367,6 +367,7 @@ class Socket{
     }
 
     static send(robot_name, oplet_array_or_string){ //can't name a class method and instance method the same thing
+        console.log("top of Socket.send with: " + robot_name +  " " + oplet_array_or_string)
         let rob = Robot[robot_name]
         let oplet_array_or_string_du = Socket.instruction_array_degrees_to_arcseconds_maybe(oplet_array_or_string, rob)
         let job_id = Instruction.extract_job_id(oplet_array_or_string)
@@ -403,9 +404,9 @@ class Socket{
             let net_soc_inst = Socket.robot_name_to_soc_instance_map[robot_name]
             if(net_soc_inst && (net_soc_inst.readyState === WebSocket.OPEN)) {
                 try {
-                    //console.log("Socket.send about to send: " + str)
+                    console.log("Socket.send about to send str: " + str)
                     //net_soc_inst.write(arr_buff) //dde3
-                    net_soc_inst.send(array_buff) //dde4
+                    net_soc_inst.send(str) //dde4
                     //console.log("Socket.send just sent:     " + str)
                     //this.stop_job_if_socket_dead(job_id, robot_name)
                     return
@@ -462,12 +463,34 @@ class Socket{
     //
     static on_receive(data, payload_string_maybe, dexter_instance){
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
-        //console.log("Socket.on_receive passed data:        " + data)
+        console.log("top of Socket.on_receive.")
+        console.log("Socket.on_receive passed data:        " + data)
         let robot_status
         let oplet
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
             robot_status = data
             oplet = robot_status[Dexter.INSTRUCTION_TYPE]
+            this.on_receive_aux(robot_status, oplet, payload_string_maybe, dexter_instance)
+        }
+        else if (data instanceof Blob) {//dde4 what comes back from  websocket
+            //from https://javascript.info/blob
+            // get arrayBuffer from blob
+            console.log("on_receive got blob")
+            let fileReader = new FileReader();
+            fileReader.readAsArrayBuffer(data);
+            fileReader.onload = function(event) {
+                let arrayBuffer = fileReader.result;
+                let view1 = new Int32Array(arrayBuffer)
+                let robot_status = []
+                for(var i = 0; i < view1.length; i++){
+                    var elt_int32 = view1[i]
+                    robot_status.push(elt_int32)
+                }
+                let oplet = robot_status[Dexter.INSTRUCTION_TYPE]
+                oplet = String.fromCharCode(oplet)
+                console.log("on_receive onload cb made rs: " + robot_status + " and got oplet; " + oplet)
+                Socket.on_receive_aux(robot_status, oplet, payload_string_maybe, dexter_instance)
+            };
         }
         else { //a Uint8Array when called from the robot. //todo dde4 needs work for getting data from server
             let view1 = new Int32Array(data.buffer) //array_buff1.bytelength / 4); //weird google syntax for getting length of a array_buff1
@@ -478,7 +501,10 @@ class Socket{
             }
             let opcode = robot_status[Dexter.INSTRUCTION_TYPE]
             oplet  = String.fromCharCode(opcode)
+            this.on_receive_aux(robot_status, oplet, payload_string_maybe, dexter_instance)
         }
+    }
+    static on_receive_aux(robot_status, oplet, payload_string_maybe, dexter_instance){
         //console.log("Socket.on_receive passed DU robot status: " + robot_status)
         //the simulator automatically does this so we have to do it here in non-simulation
         //out("on_receive got back oplet of " + oplet)
@@ -643,7 +669,7 @@ class Socket{
            if((rob.active_jobs_using_this_robot().length == 0) || force_close){
                 const net_soc_inst = Socket.robot_name_to_soc_instance_map[robot_name]
                 if(net_soc_inst){
-                    net_soc_inst.removeAllListeners()
+                   // net_soc_inst.removeAllListeners() //works in ddde3, errors in dde4
                     //net_soc_inst.destroy() //dde3 only
                     net_soc_inst.close()
                     delete Socket.robot_name_to_soc_instance_map[robot_name]

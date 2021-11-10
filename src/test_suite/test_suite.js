@@ -1,4 +1,4 @@
-
+console.log("top of test_suite.js")
 class TestSuite{
     constructor(name="rename_me", ...tests){
         this.name  = name
@@ -262,7 +262,7 @@ class TestSuite{
         load_files(__dirname + "/test_suite/when_stopped_testsuite.js")
         */
         //import('./math_testsuite.js').then(module => {"just loaded math testsuite"})
-       //// if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }       //dde4 todo comment in when doc is loaded
+        if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }       //dde4 todo comment in when doc is loaded
        //// if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) } //dde4 todo comment in when doc is loaded
         let report_prefix = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
             '<span style="color:magenta;">test_suite_reporting *should* indicate<br/>"failures: unknown=2, known=1"</span><br/>'
@@ -1105,6 +1105,7 @@ class TestSuite{
 // make_test_suites_in_doc()
 
 globalThis.TestSuite = TestSuite
+console.log("bottom of test_suite.js just set globalThis.TestSuite to: " + globalThis.TestSuite)
 
 
 //TestSuite.run("test_system")
