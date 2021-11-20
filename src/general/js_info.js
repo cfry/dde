@@ -250,7 +250,7 @@ export class Js_info {
             }
             else if (window[fn_name]){
                 fn = window[fn_name]
-                if (fn && fn.toString().includes("[native code]")){ //catches at least a high percent of built0in js fns
+                if (fn && fn.toString && fn.toString().includes("[native code]")){ //catches at least a high percent of built0in js fns
                     let url = "https://developer.mozilla.org/en-US/docs/Web/API/Window/" + fn_name
                     return Js_info.make_atag("window", fn_name, url) + "(" + Js_info.get_param_string(fn) + ")"
                 }

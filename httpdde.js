@@ -1,6 +1,8 @@
 import http from "http"
 import url from 'url'; //url parsing
-import formidable from 'formidable'
+import pkg from 'formidable'; //I have formidable v 2. see https://stackoverflow.com/questions/65368903/node-formidable-why-does-require-work-but-import-does-not
+const {formidable} = pkg;
+
 import fs from 'fs'; //file system
 import net from 'net'; //network
 import ws from 'ws' ; //websocket
@@ -218,17 +220,39 @@ function serve_show_window_call_callback(browser_socket, mess_obj){
     job_process.stdin.write(code + "\n") //need the newline so that stdio.js readline will be called
 }
 
+//not used for dde getting file content from the server.
+//use a path of /edit?edit=/foo/bar.js instead and that
+//bypasses serve_file.
 function serve_file(q, req, res){
+    console.log("top of serve_file")
     let filename
     if(fs.existsSync(SHARE_FOLDER)) { //running on Dexter
        filename = SHARE_FOLDER + "/www/" + q.pathname  //this is in orig dexter file, but replaced for  dde4 with server laptop by the below clause
     }
-    else { //not running on dexter
+    //dde4 works except for editing a file
+      else { //dde4 not running on dexter
+        filename = q.pathname
+
+        console.log("serve_file passed pathname: " + q.pathname)
         let maybe_slash = (q.pathname.startsWith("/") ? "" : "/")
         let cur_dir = process.cwd()
+        console.log("serve_file got cur_dir: " + cur_dir)
         filename = cur_dir + maybe_slash +  q.pathname
+
     }
-    console.log("serving" + q.pathname)
+    /*else { //dde4 not running on dexter
+        filename = q.pathname
+        console.log("serve_file passed pathname: " + filename)
+        if(filename.startsWith("/")) {
+            let cur_dir = process.cwd()
+            console.log("serve_file got cur_dir: " + cur_dir)
+            filename = cur_dir +  filename
+        }
+        else { //filename does NOT start with slash
+            filename = "/" + filename
+        }
+    }*/
+    console.log("serving " + filename) //dde4 changed the 2nd arg to filename
     fs.readFile(filename, function(err, data) {
         if (err) { console.log(filename, "not found")
             res.writeHead(404, {'Content-Type': 'text/html'})
@@ -262,52 +286,72 @@ var http_server = http.createServer(function (req, res) {
   if (q.pathname === "/init_jobs") {
       serve_init_jobs(q, req, res)
   }
+
+  //get directory listing
   else if (q.pathname === "/edit" && q.query.list ) { 
     let listpath = q.query.list
-    console.log("File list:"+listpath)
+    //if(!listpath.endsWith("/")) {//fixed in DDEFile/get_folder //dde4 at least on Mac, listpath initially does not end in slash which breaks the below concat of listpath + items[i].name
+    //    listpath = listpath + "/"
+    //}
+    //console.log("File list:"+listpath)
     fs.readdir(listpath, {withFileTypes: true}, 
       function(err, items){ //console.log("file:" + JSON.stringify(items))
+        if(err) { console.log("error in http.createServer: " + err.message) } //dde4 added for insurance
+        else    { console.log("http.createServer got item count of: " + items.length) }
         let dir = []
         if (q.query.list != "/") { //not at root
           let now = new Date()
           dir.push({name: "..", size: "", type: "dir", date: now.getTime()})
           }
-        for (i in items) { //console.log("file:", JSON.stringify(items[i]))
-          if (items[i].isFile()) { 
+        for (let i in items) { //dde4 added "let "  //console.log("file:", JSON.stringify(items[i]))
+           //console.log("getting stats for i: " + i + " item: " + items[i] + " name: " + items[i].name)
+          if (items[i].isFile()) {
             let size = "unknown"
             let permissions = "unknown"
             let stats = {size: "unknown"}
+            let date = 0 //dde4 necessary for catch clause of date
             try { //console.log("file:", listpath + items[i].name)
               stats = fs.statSync(listpath + items[i].name)
               size = stats["size"]
               date = stats["mtimeMs"]
+              //if(!date) { date = 0 } //dde4 added to fix bug when no mtimeMs
               permissions = (stats.mode & parseInt('777', 8)).toString(8)
             } catch (e) {console.log("couldn't stat "+items[i].name+":"+e) }
             dir.push({name: items[i].name, size: size, type: "file", permissions: permissions, date: date})
-            } //size is used to see if the file is too big to edit.
+          } //size is used to see if the file is too big to edit.
           else if (items[i].isDirectory()) {
             dir.push({name: items[i].name, size: "", type: "dir"})
             } //directories are not currently supported. 
-          }
+        }
         console.log('\n\nAbout to stringify 5\n');
         res.write(JSON.stringify(dir))
         res.end()
       })
     }
+    //use url/edit?edit=/foo.bar.js" to GET contents of a file
+    //use url/edit?download=/foo.bar.js" to store the file
+    //on the user's disc.
+    ///foo.bar.js is the location of the file on the server.
+    //If browser is set up to auto downlaod to the downloads filer,
+    //it will otherwise browser can be set to ask the user
+    //where the file should go. The Filename including full path,
+    // comes back with the data from the server.
+    //and the browser may chose to prepend "downloads" folder and
+    //save just the downloads/filename.txt there.
   else if (q.pathname === "/edit" && q.query.edit || q.query.download) { 
     let filename = q.query.edit || q.query.download
-    console.log("serving" + filename)
+    console.log("serving for edit filename: " + filename)
     fs.readFile(filename, function(err, data) {
         if (err) {
             res.writeHead(404, {'Content-Type': 'text/html'})
             return res.end("404 Not Found "+err)
         }
         let stats = fs.statSync(filename)
-        console.log(("permissions:" + (stats.mode & parseInt('777', 8)).toString(8)))
+        //console.log(("permissions:" + (stats.mode & parseInt('777', 8)).toString(8)))
         let line = 0;
         for (let i = 0; i < data.length; i++) { 
             if (10==data[i]) line++
-            if ( isBinary(data[i]) ) { console.log("binary data:" + data[i] + " at:" + i + " line:" + line)
+            if ( isBinary(data[i]) ) { //console.log("binary data:" + data[i] + " at:" + i + " line:" + line)
                 res.setHeader("Content-Type", "application/octet-stream")
                 break
                 }
@@ -315,6 +359,7 @@ var http_server = http.createServer(function (req, res) {
         if (q.query.download) 
             res.setHeader("Content-Disposition", "attachment; filename=\""+path.basename(filename)+"\"")
         res.writeHead(200)
+        //console.log("server writing out data: " + data)
         res.write(data)
         return res.end()
       })
@@ -328,25 +373,30 @@ var http_server = http.createServer(function (req, res) {
       });
       return
       }
+      //use POST for updating the content of an existing file
+      //below the first causeofan||(or)is for formindable v 1.2.2  and the 2nd is for formidable v "^2.0.1"
     else if (q.pathname === "/edit" && req.method == 'POST' ) { //console.log("edit post headers:",req.headers)
         const form = formidable({ multiples: false });
         form.once('error', console.error);
         const DEFAULT_PERMISSIONS = parseInt('644', 8)
         var stats = {mode: DEFAULT_PERMISSIONS}
         form.on('file', function (filename, file) {  //console.log("edit post file:",file)
-          topathfile = file.name
-          try { console.log("copy", file.path, "to", topathfile)
+          //console.log("filename: " + filename + " file: " + JSON.stringify(file))
+          let topathfile = (file.name || file.originalFilename) // dde4 we need the "let"
+          try { console.log("copy", (file.path || file.filepath),
+                            "to", topathfile)
             stats = fs.statSync(topathfile) 
-            console.log(("had permissions:" + (stats.mode & parseInt('777', 8)).toString(8)))
+            //console.log(("had permissions:" + (stats.mode & parseInt('777', 8)).toString(8)))
           } catch {} //no biggy if that didn't work
-          topath = topathfile.split('/').slice(0,-1).join('/')+'/'
+          let topath = topathfile.split('/').slice(0,-1).join('/')+'/' //dde4 needs "let"
           try { console.log(`make folder:${topath}.`)
             fs.mkdirSync(topath, {recursive:true})
           } catch(err) { console.log(`Can't make folder:${topath}.`, err)
             res.writeHead(400)
             return res.end(`Can't make folder ${topath}:`, err)
           }
-          fs.copyFile(file.path, topathfile, function(err) {
+          fs.copyFile((file.path || file.filepath),  //or  file.filepath
+             topathfile, function(err) {
             let new_mode = undefined
             if (err) { console.log("copy failed:", err)
               res.writeHead(400)
@@ -357,14 +407,14 @@ var http_server = http.createServer(function (req, res) {
               try { //sync ok because we will recheck the actual file
                 let new_stats = fs.statSync(topathfile)
                 new_mode = new_stats.mode
-                console.log(("has permissions:" + (new_mode & parseInt('777', 8)).toString(8)))
+                //console.log(("has permissions:" + (new_mode & parseInt('777', 8)).toString(8)))
               } catch {} //if it fails, new_mode will still be undefined
               if (stats.mode != new_mode) { //console.log("permssions wrong")
                 //res.writeHead(400) //no point?
                 return res.end("Permissions error")
                 }
-              fs.unlink(file.path, function(err) {
-                if (err) console.log(file.path, 'not cleaned up', err);
+              fs.unlink((file.path || file.filepath), function(err) {
+                if (err) console.log((file.path || file.filepath), 'not cleaned up', err);
                 }); 
               res.end('ok');
               }
@@ -375,6 +425,7 @@ var http_server = http.createServer(function (req, res) {
         //res.end('ok');
       // });
       }
+      //use for creating a new file
       else if (q.pathname === "/edit" && req.method == 'PUT' ) { console.log('edit put')
         const form = formidable({ multiples: true });
         form.parse(req, (err, fields, files) => { //console.log('fields:', fields);

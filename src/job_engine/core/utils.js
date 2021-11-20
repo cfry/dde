@@ -352,12 +352,21 @@ static is_literal_object(value){
 }
 
 
+//see https://davidwalsh.name/javascript-detect-async-function
+static is_async_function(obj){
+    if(obj && obj.constructor && (obj.constructor.name == "AsyncFunction")){
+        return true
+    }
+    else { return false }
+}
+
 static is_generator_function(obj){
     if(obj && obj.constructor && (obj.constructor.name == "GeneratorFunction")){
         return true
     }
     else { return false }
 }
+
 
 
 //Beware: this *might* only catch iterators made by generator functions.
@@ -1727,6 +1736,24 @@ static make_ins_arrays(default_oplet, instruction_arrays=[]){
     return result
 }
 
+   static permissions_integer_string_to_letter_string(integer_string, is_dir=false){
+      if(integer_string === undefined) { return "---" }
+      let result = (is_dir? "d" : "-")
+            //in the binary rep,  leftmost  means r
+            //                    middle    means w
+            //                    rightmost means x
+                           //000,  001,   010,   011    100    101    110   111
+                           // 0,    1,     2,     3,     4,     5,     6,    7
+      let int_to_let_map = ["---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"]
+      for(let i = 0; i <  integer_string.length; i++){
+          let char = integer_string[i]
+          let int  = parseInt(char)
+          let letters = int_to_let_map[int]
+          result += letters
+      }
+      return result
+   }
+
 //________Date________
     static is_valid_new_date_arg(string_or_int){
         const timestamp = Date.parse(string_or_int)
@@ -1754,6 +1781,34 @@ static make_ins_arrays(default_oplet, instruction_arrays=[]){
         return result
     }
 
+    //like date_integer_to_long_string but removes ms and "(Eastern Standard Time)"
+    static date_number_to_medium_string(date_int=Date.now()){
+        let date_obj = new Date(date_int)
+        let result = date_obj.toString()
+        let paren_pos = result.indexOf("(")
+        if(paren_pos !== -1) {
+            result = result.substring(0, paren_pos)
+        }
+        return result
+    }
+
+    //returns 2021/1/31 23:11:5
+    static date_or_number_to_ymdhms(date_or_number){
+        let date
+        if(typeof(date_or_number) === "number"){
+            date = new Date(date_or_number)
+        }
+        else if (!date_or_number) {
+            date = new Date(0)
+        }
+        else { date = date_or_number}
+        return date.getFullYear() + "/" +
+               (date.getMonth() + 1) + "/" +
+               date.getDate() + " " +
+               date.getHours() + ":" +
+               date.getMinutes() + ":" +
+               date.getSeconds()
+    }
 
 //integer milliseconds in, output "123:23:59:59:999" ie
 // days:hours:minutes:seconds:milliseconds

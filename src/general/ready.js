@@ -85,7 +85,7 @@ import "../job_engine/core/dextersim.js"    //defines class DexterSim as global
 import "../job_engine/core/simqueue.js"     //defines class Simqueue as global
 import "../job_engine/core/robot_status.js" //defines class RobotStatus as global
 
-import "../job_engine/core/file.js" //defines class File as global
+import "../job_engine/core/dde_file.js" //defines class File as global
 import "./dex.js" //makes Dex global
 
 import "./doc_code.js" //makes DocCode global
@@ -163,7 +163,7 @@ globalThis.dde_version      = "not inited"
 globalThis.dde_release_date = "not inited"
 
 globalThis.operating_system = "not inited" //"mac", "win" or "linux"(for Ubuntu)  bound in both ui and sandbox by ready
-var dde_apps_folder  = null
+globalThis.dde_apps_folder  = "not inited"
 
 globalThis.platform = "not inited"
 
@@ -234,7 +234,8 @@ export function on_ready() {
         */
         set_operating_system()
         //const remote = require("electron").remote
-        window.dde_apps_folder //todo = convert_backslashes_to_slashes(remote.getGlobal("dde_apps_folder"))
+        //window.dde_apps_folder //todo = convert_backslashes_to_slashes(remote.getGlobal("dde_apps_folder"))
+        DDEFile.init() //sets the global dde_apps_folder
         //console.log("In renderer dde_apps_folder: " + window.dde_apps_folder)
         //console.log("In renderer appPath: "      + remote.app.getAppPath())//probably not in dde4
         //console.log("In renderer __dirname: "    + __dirname)//dde4 todo
@@ -613,60 +614,83 @@ export function on_ready() {
          }
      }
      else {
-         Editor.open_on_dde_computer() //Editor.open
+         //Editor.open_on_dde_computer() //Editor.open
+         /*DDEFile.choose_file({folder:   undefined,
+                              title:    undefined,
+                              callback: "DDEFile.choose_file_to_edit_handler"})*/
+         Editor.edit_file_no_path()
      }
  }
  Editor.set_menu_string(open_id, "Open...", "o")
 
- open_from_dexter_id.onclick = Editor.open_from_dexter_computer
+ //open_from_dexter_id.onclick = Editor.open_from_dexter_computer
 
- open_system_file_id.onclick = Editor.open_system_file
+ //open_system_file_id.onclick = Editor.open_system_file
 
  load_file_id.onclick=function(e) {
      if (window.HCA && (Editor.view === "HCA")){
          HCA.load_node_definition()
      }
      else { //presume JS
-         const path = choose_file({title: "Choose a file to load"})
-         if (path){
-             if(path.endsWith(".py")){
-                Py.load_file_ask_for_as_name(path)
-             }
-             else {
-                 out(load_files(path))
-             }
-         }
+         //const path = choose_file({title: "Choose a file to load"})
+         //if (path){
+         //    if(path.endsWith(".py")){
+         //       Py.load_file_ask_for_as_name(path)
+         //    }
+         //    else {
+                 DDEFile.choose_file({folder:   undefined,
+                                      title:    "Load file from: ",
+                                      callback: "DDEFile.choose_file_to_load_handler" })
+         //    }
+         //}
      }
  }
 
  load_and_start_job_id.onclick = function(){
-     const path = choose_file({title: "Choose a file to load"})
-     if (path){
-         Job.define_and_start_job(path)
-     }
+     //const path = choose_file({title: "Choose a file to load"})
+     //if (path){ Job.define_and_start_job(path) }
+     DDEFile.choose_file({folder:   undefined,
+                          title:    "Load and start Job: ",
+                          callback: "DDEFile.load_and_start_job_handler" })
  }
 
  //DDE_NPM.init() //todo big changes due to import???
  //install_npm_pkg_id.onclick = DDE_NPM.show_ui
 
+ download_file_id.onclick=function(){
+     DDEFile.choose_file({folder:   undefined,
+                          title:    "Download file: ",
+                          callback: "DDEFile.download_file_handler" })
+ }
+
+upload_file_id.onclick=function(){
+     DDEFile.choose_file_to_upload()
+}
+
  insert_file_content_id.onclick=function(e) {
-     const path = choose_file({title: "Choose a file to insert into DDE's editor"})
-     if (path){
-         const content = read_file(path)
-         Editor.insert(content)
-     }
+     //const path = choose_file({title: "Choose a file to insert into DDE's editor"})
+     //if (path){
+     //    const content = read_file(path)
+     //    Editor.insert(content)
+     //}
+     DDEFile.choose_file({folder:   undefined,
+         title:    "Insert file content: ",
+         callback: "DDEFile.insert_file_content_handler" })
  }
  insert_file_path_into_editor_id.onclick=function(e){
-     const path = choose_file({title: "Choose a file to insert into DDE's editor"})
-     if (path){
-         Editor.insert('"' + path + '"')
-     }
+     //const path = choose_file({title: "Choose a file to insert into DDE's editor"})
+     //if (path){ Editor.insert('"' + path + '"') }
+     DDEFile.choose_file_save_as({path:   undefined,
+                                  title:    "Insert file path:",
+                                  callback: "DDEFile.insert_file_path_handler" })
  }
+
  insert_file_path_into_cmd_input_id.onclick=function(e){
-     const path = choose_file({title: "Choose a file to insert into DDE's editor"})
-     if (path){
-         Editor.insert_into_cmd_input('"' + path + '"')
-     }
+     //const path = choose_file({title: "Choose a file to insert into DDE's editor"})
+     //if (path){ Editor.insert_into_cmd_input('"' + path + '"')}
+     DDEFile.choose_file_save_as({path:   undefined,
+                                  title:    "Insert file path into cmd input:",
+                                  callback: "DDEFile.insert_file_path_into_cmd_handler" })
  }
 
  save_id.onclick = function() {
@@ -1763,7 +1787,7 @@ window_modify_id.onclick=function(){Editor.insert(
          //         init_ros_service_if_url_changed()
          //} //must occur after dde_init_doc_js_initialize  init_ros_service($("#dexter_url").val())
          // rde.ping() //rde.shell("date") //will show an error message
-         //Editor.restore_files_menu_paths_and_last_file() //todo dde4 needs file system
+         Editor.restore_files_menu_paths_and_last_file() //todo dde4 needs file system
           //simulate_help_id.onclick=function(){ DocCode.open_doc(simulate_doc_id) }
 
 

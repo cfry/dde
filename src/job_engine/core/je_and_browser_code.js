@@ -580,7 +580,9 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
         }
         else if (subject_elt.tagName == "A"){
             if (subject_elt.href.endsWith("#")){
-                result.clicked_button_value = subject_elt.innerHTML
+                if(subject_elt.name)     { result.clicked_button_value = subject_elt.name   }
+                else if (subject_elt.id) { result.clicked_button_value = subject_elt.id     }
+                else                     { result.clicked_button_value = subject_elt.innerHTML  }
             }
             else { //we've got a real url. The only thing to do with it is open a window, so
                 //don't even go through the handler fn, just do it.

@@ -18,7 +18,6 @@ require("codemirror/addon/fold/comment-fold.js")
 */
 
 import {convert_backslashes_to_slashes, dde_init_dot_js_initialize, file_exists, load_files,
-        persistent_initialize, persistent_get, persistent_set,
         write_file}    from "../job_engine/core/storage.js"
 import beautify from "js-beautify"
 
@@ -33,7 +32,7 @@ class Editor {
     static view = "JS"
 
     static init_editor(){
-        console.log("top of init_editor")
+        //console.log("top of init_editor")
         this.myCodeMirror = CodeMirror.fromTextArea(js_textarea_id, //myCodeMirror declared as global in ready.js
             {lineNumbers: true,
             //lineWrapping: true,
@@ -157,7 +156,7 @@ class Editor {
     }
 
     static handle_codemirror_mouse_click(mouse_event){
-        console.log("got codemirror mouse click" + mouse_event)
+        //console.log("got codemirror mouse click" + mouse_event)
         if(mouse_event && mouse_event.altKey){
             var line_char = Editor.myCodeMirror.coordsChar({left: mouse_event.x, top: mouse_event.y})
             Editor.myCodeMirror.getDoc().setCursor(line_char)
@@ -206,21 +205,15 @@ class Editor {
         if(step) { Metrics.increment_state("Step button clicks") }
         else     { Metrics.increment_state("Eval button clicks") }
         if(step instanceof CodeMirror) { step = false } //means Cmd E was typed in the editor and we don't want to step in this case
-        if((Editor.current_file_path != "new buffer") && DDE_DB.persistent_get("save_on_eval")){ //todo needs file access
+        if((Editor.current_file_path != "new buffer") && DDE_DB.persistent_get("save_on_eval")){
             if (window.HCA && (Editor.view === "HCA")){
                 HCA.save_current_file()
                 Editor.eval_button_action_aux(step)
                 return
             }
             else {
-                //Editor.save_current_file(function(err) {
-                //    if(err) {
-                //        dde_error("In Editor.eval_button_action, got error while auto-saving file of: " + err.message)
-                //    }
-                //    else {
+                Editor.save_current_file()
                 Editor.eval_button_action_aux(step)
-                //    }
-                //} //todo needs file access
             }
         }
         else { Editor.eval_button_action_aux(step) }
@@ -361,20 +354,20 @@ class Editor {
             }
             file_name_id.selectedIndex = 0
             if(path != "new buffer"){
-                let paths = persistent_get("files_menu_paths")
+                let paths = DDE_DB.persistent_get("files_menu_paths")
                 paths.unshift(path) //push on to top of menu
                 if (paths.length > 20) { paths = paths.slice(0, 20) }
-                persistent_set("files_menu_paths", paths)
+                DDE_DB.persistent_set("files_menu_paths", paths)
             }
         }
         else {
             file_name_id.selectedIndex = existing_index
              //so that on reboot, dde will come up with this file on top of menu and in editor buffer
-            let paths = persistent_get("files_menu_paths")
+            let paths = DDE_DB.persistent_get("files_menu_paths")
             let path_index = paths.indexOf(path)
             paths.splice(path_index, 1)
             paths.unshift(path) //push on to top of menu
-            persistent_set("files_menu_paths", paths)
+            DDE_DB.persistent_set("files_menu_paths", paths)
         }
     }
 
@@ -391,7 +384,7 @@ class Editor {
     // This implies that user is a first time user, OR at least
     // hasn't saved any files so they haven't used DDE much at all.
     static files_menu_paths_empty_or_contains_only_dde_init (){
-        const paths =  persistent_get("files_menu_paths")
+        const paths =  DDE_DB.persistent_get("files_menu_paths")
         if(paths.length == 0) { return true }
         else if ((paths.length == 1) &&
                 ((paths[0] == "dde_init.js") ||
@@ -401,20 +394,20 @@ class Editor {
         else { return false }
     }
 
-    static restore_files_menu_paths_and_last_file (){ //called by on ready
-        if(file_exists("") && file_exists("dde_persistent.json")){ //Documents/dde_apps
-            const paths =  persistent_get("files_menu_paths")
+    static async restore_files_menu_paths_and_last_file (){ //called by on ready
+            const paths =  DDE_DB.persistent_get("files_menu_paths")
             let existing_paths = []
             var html = ""
             for(let path of paths){
-                if(file_exists(path)) {
+                let f_exists = await DDEFile.file_exists(path)
+                if(f_exists) {
                     existing_paths.push(path) //don't put non-existent files on the menu
                     let inner_path = Editor.path_to_files_menu_path(path)
                     html += '<option>' + inner_path + "</option>"
                 }
             }
             if (existing_paths.length !== paths.length) {
-                persistent_set("files_menu_paths", existing_paths)
+                DDE_DB.persistent_set("files_menu_paths", existing_paths)
             }
             file_name_id.innerHTML = html
             if(Editor.files_menu_paths_empty_or_contains_only_dde_init()){
@@ -438,10 +431,6 @@ class Editor {
                     Editor.edit_new_file()
                 }
             }
-        }
-        else {
-            warning("could not find the file: dde_apps/dde_perisistent.json")
-        }
     }
 
     static get_any_selection(){
@@ -671,7 +660,7 @@ class Editor {
     //can't be a closure, can't be in a class'es namespace. yuck.
     static open_on_dexter_computer_show_window_cb(vals) {
         let file_path = vals.open_on_dexter_computer_file_path_id
-        persistent_set("last_open_dexter_file_path", file_path) //does not include "dexter:" in it.
+        DDE_DB.persistent_set("last_open_dexter_file_path", file_path) //does not include "dexter:" in it.
         file_path = vals.dexter_name + ":" + file_path //we cannot close over dexter_name because show_window can't take a closure for a callback
         Editor.edit_file(file_path)
     }
@@ -682,7 +671,7 @@ class Editor {
                               'when determining where to get the file content.<br/>' +
                               'If you want content from Dexter, select<br/>' +
                               'the <b>real</b> button in the Misc pane header.</i><br/>' +
-                              '<input id="open_on_dexter_computer_file_path_id" value="' + persistent_get("last_open_dexter_file_path") + '" style="width:350px;font-size:16px;margin-top:10px;"/>\n' +
+                              '<input id="open_on_dexter_computer_file_path_id" value="' + DDE_DB.persistent_get("last_open_dexter_file_path") + '" style="width:350px;font-size:16px;margin-top:10px;"/>\n' +
                               '<p></p><center><input type="submit" value="Open"/></center>\n' +
                               '<input name="dexter_name" style="display:none;" value="' + dex_name + '"/>',
 
@@ -769,13 +758,13 @@ class Editor {
             else {} //if there is no new buffer, silently do nothing as I call Editor.remove("new buffer") sometimes legitimately when there is no new buffer
         }
         else {
-            let files = persistent_get("files_menu_paths")
+            let files = DDE_DB.persistent_get("files_menu_paths")
             //let the_file_to_remove = file_name_id.value
             //the_file_to_remove = Editor.files_menu_path_to_path(the_file_to_remove)
             let i = files.indexOf(path_to_remove)
             if (i != -1) {
                 files.splice(i, 1)
-                persistent_set("files_menu_paths", files)
+                DDE_DB.persistent_set("files_menu_paths", files)
                 Editor.restore_files_menu_paths_and_last_file()
             }
         }
@@ -848,22 +837,41 @@ Clear its content?
 //content is passed when we're editing a file by clicking on SSH dir listing file
 //and content is the new content to edit
 
-
+   //called from menu item
+   static edit_file_no_path(){
+       if(!Editor.current_buffer_needs_saving ||
+           (Editor.get_javascript().trim().length === 0)
+       ){
+           DDEFile.choose_file({folder:   undefined,
+               title:    undefined,
+               callback: "DDEFile.choose_file_to_edit_handler"})
+       }
+       else {
+           warning("You can't go to a new file until you either<br/>" +
+                   "delete the contents of the current buffer<br/>" +
+                   "indicating you don't care about it, or<br/> " +
+                   "you choose file menu's <b>Save As</b> to save it in a named file.")
+       }
+   }
 //path is the new path to edit,
 // content is the new content that is being edited if any.
 //usually content is not passed as that's gotten from path,
 //but in the ssh context, it sometimes is passed.
-    static edit_file (path, content){ //path could be "new buffer"
+    static edit_file (path, content, dont_save_cur_buff_even_if_its_changed=false){ //path could be "new buffer"
         let new_path = convert_backslashes_to_slashes(path) //must store only slashes in files menu
         let cur_path = Editor.current_file_path
         let cur_content = Editor.get_javascript()
-        if(!Editor.current_buffer_needs_saving){
+        if(dont_save_cur_buff_even_if_its_changed ||
+           !Editor.current_buffer_needs_saving ||
+           (cur_content.trim().length === 0)){
             Editor.remove_new_buffer_from_files_menu() //does nothing if "new buffer" is not on files menu
-                       //this only does something if cur_path is "new buffer" and its empty.
-            if(content)                        { Editor.edit_file_aux(new_path, content) }
-            else if(new_path === "new buffer") { Editor.edit_file_aux(new_path, "") }
+                       //this only does something if cur_path is "new buffer"
+            if(typeof(content) === "string")     { Editor.edit_file_aux(new_path, content) }
+            else if(new_path   === "new buffer") { Editor.edit_file_aux(new_path, "") }
             else {
-                read_file_async(path, undefined, function(err, new_content) { //file_content will convert to windows format if needed
+                DDEFile.edit_file(path, true) //dont save cur buff even if its changed, but get the new content
+                  //and call edit_file with content and 3rd arg true.
+                /*read_file_async(path, undefined, function(err, new_content) { //file_content will convert to windows format if needed
                     if(err) {
                         Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
                         dde_error(err.message)
@@ -872,25 +880,34 @@ Clear its content?
                         new_content = new_content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
                         Editor.edit_file_aux(new_path, new_content)
                     }
-                })}
+                })*/
+            }
         }
          //cur buffer needs saving
         else if(cur_path === "new buffer") { //Editor.current_file_path is null  when we first launch dde.
             Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
             if (path === "new buffer"){
-                if (Editor.get_javascript().trim().length == 0) { } //nothing to do as our cur buf is empty and we've chosen a new buff.
-                else { Editor.show_clear_new_buffer_choice() }  //either we make the cur buff empty or we do nothing.
+                if (cur_content.trim().length === 0) {  //nothing to do as our cur buf is empty and we've chosen a new buff.
+                    DDEFile.edit_file(new_path, true)
+                }
+                else { //Editor.show_clear_new_buffer_choice()
+                  warning("You can't go to a new file until you either<br/>" +
+                          "delete the contents of the current buffer<br/>" +
+                          "indicating you don't care about it, or<br/> " +
+                          "you choose file menu's <b>Save As</b> to save it in a named file.")
+
+                }  //either we make the cur buff empty or we do nothing.
             }
             //cur buff is a new buffer, and the target path is not
-            else if (Editor.get_javascript().trim().length == 0) { //don't ask about deleting the new buf, just do it;
+            else if (cur_content.trim().length == 0) { //don't ask about deleting the new buf, just do it;
                 Editor.remove_new_buffer_from_files_menu() //get rid of the current "new buffer"
                 const path_already_in_menu = Editor.set_files_menu_to_path(new_path)
                 if (!path_already_in_menu) { Editor.add_path_to_files_menu(new_path) }
-                if(content) {
+                if(typeof(content) === "string") {
                     Editor.edit_file_aux(new_path, content)
                 }
                 else {
-                    read_file_async(path, undefined, function(err, new_content) { //file_content will convert to windows format if needed
+                    /*read_file_async(path, undefined, function(err, new_content) { //file_content will convert to windows format if needed
                         if(err) {
                             Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
                             dde_error(err.message)
@@ -899,7 +916,9 @@ Clear its content?
                             new_content = new_content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
                             Editor.edit_file_aux(new_path, new_content)
                         }
-                    })}
+                    })*/
+                    DDEFile.edit_file(new_path, false)
+                }
             }
             //cur is new buffer, but it needs saving, we're trying to edit a new file.
             //should we save the buffer first?
@@ -908,13 +927,14 @@ Clear its content?
                     "Click OK to save it before editing the other file.\n" +
                     "Click Cancel to not save it before editing the other file.")
                 if(save_it) {
-                    let file_to_save_buffer_to = choose_save_file()
+                    Editor.save_as()
+                    /*let file_to_save_buffer_to = choose_save_file()
                     if(file_to_save_buffer_to) {
-                        write_file_async(file_to_save_buffer_to, cur_content) //since this is async, we must already have the path and content to save as the 'cur' may have changed.
+                        DDEFile.write_file_async(file_to_save_buffer_to, cur_content) //since this is async, we must already have the path and content to save as the 'cur' may have changed.
                         out(file_to_save_buffer_to + " saved.")
                         Editor.add_path_to_files_menu(file_to_save_buffer_to)
                         Editor.remove_new_buffer_from_files_menu()
-                    }
+                    }*/
                     //else (user hit cancel in choose_save_file dialog).
                     //     we just leave existing new buffer up and not saved.
                 }
@@ -922,9 +942,9 @@ Clear its content?
                     Editor.remove_new_buffer_from_files_menu() //the only time "new buffer"
                     //should be on the files menu, is if it is the currently selected one.
                     //user can choose File menu, "new" to get a fresh "new buffer".
+                    DDEFile.edit_file(path, true) //eventually calls Editor.edit_file(path, actual_content, true)
                 }
-                //
-                read_file_async(new_path, undefined, function(err, new_content) { //file_content will convert to windows format if needed
+                /*read_file_async(new_path, undefined, function(err, new_content) { //file_content will convert to windows format if needed
                     if(err) {
                         Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
                         dde_error(err.message)
@@ -933,20 +953,20 @@ Clear its content?
                         new_content = new_content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
                         Editor.edit_file_aux(new_path, new_content)
                     }
-                })
+                })*/
             }
         }
 
         else {  //cur path is NOT a new buffer, and it needs saving
             let save_it
-            if (persistent_get("save_on_eval")) { save_it = true }
+            if (DDE_DB.persistent_get("save_on_eval")) { save_it = true }
             else {
                 save_it =  confirm(Editor.current_file_path + "\n has unsaved changes.\n" +
                                     "Click OK to save it before editing the other file.\n" +
                                     "Click Cancel to not save it before editing the other file.")
             }
             if(save_it) {
-                write_file_async(cur_path, cur_content) //since this is async, we must already have the path and content to save as the 'cur' may have changed.
+                DDEFile.write_file_async(cur_path, cur_content) //since this is async, we must already have the path and content to save as the 'cur' may have changed.
                 out(cur_path + " saved.")
             }
             //cur buffer has been delt with, now on to the new
@@ -960,7 +980,7 @@ Clear its content?
                     Editor.edit_file_aux(new_path, content)
                 }
                 else {
-                    read_file_async(new_path, undefined, function(err, new_content) { //file_content will conver to windows format if needed
+                    /*read_file_async(new_path, undefined, function(err, new_content) { //file_content will conver to windows format if needed
                         if(err) {
                             Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
                             dde_error(err.message)
@@ -969,12 +989,15 @@ Clear its content?
                             new_content = new_content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
                             Editor.edit_file_aux(new_path, new_content)
                         }
-                    })
+                    })*/
+                    DDEFile.edit_file(path, true) //already saved current
                 }
             }
         }
     }
 
+    //saving of current buff, if needed has already happened.
+    //just display the new content in the editor
     static edit_file_aux (path, content){
         Editor.set_javascript(content)
         Editor.current_file_path = path
@@ -997,14 +1020,14 @@ Clear its content?
 //so by passing in a callback that doesn't start the actual eval
 //until after the file is properly saved, we can keep our content,
 //quit the infinite loop, relaunch DDE and have our old content, just as we want it.
-    static save_current_file (callback){
+    static save_current_file(){
         //out("Saved: " + Editor.current_file_path)
-        write_file_async(Editor.current_file_path, Editor.get_javascript(), undefined, callback)
+        DDEFile.write_file_async(Editor.current_file_path, Editor.get_javascript())
         Editor.unmark_as_changed()
     }
 
 //called by the File menu "Save" item and Cmd-s keystroke
-    static save () {
+    static save() {
         if (Editor.current_file_path == "new buffer"){ Editor.save_as() }
         else {
             Editor.save_current_file();
@@ -1045,9 +1068,16 @@ Clear its content?
 }*/
 
     static save_as(){
-        const title     = 'save "' + Editor.current_file_path + '" as'
-        const default_path = ((Editor.current_file_path == "new buffer") ? dde_apps_folder : Editor.current_file_path)
-        const path = choose_save_file({title: title, defaultPath: default_path}) //sychronous! good
+        const title     = "Save as:"
+        let default_path
+        if(Editor.current_file_path == "new buffer") { default_path = dde_apps_folder + "/junk.js" }
+        else if (!Editor.current_file_path)          { default_path = dde_apps_folder + "/junk.js"}
+        else if(Editor.current_file_path)            { default_path = Editor.current_file_path }
+        else { Utils.shouldnt("In Editor.save_as with: Editor.current_file_path: " + Editor.current_file_path)}
+        DDEFile.choose_file_save_as({path: default_path,
+                                     title: title,
+                                     callback: "DDEFile.choose_file_save_as_handler"})
+        /*const path = choose_save_file({title: title, defaultPath: default_path}) //sychronous! good
         if(path) { //path will be undefined IF user canceled the dialog
             let content = Editor.get_javascript()
             write_file_async(path, content)
@@ -1056,22 +1086,30 @@ Clear its content?
             Editor.remove("new buffer") //if any
             Editor.myCodeMirror.focus()
             Editor.unmark_as_changed()
-        }
+            */
+    }
+    //called from DDEFile.
+    static after_successful_save_as(path){
+        Editor.add_path_to_files_menu(path)
+        Editor.current_file_path = path
+        Editor.remove("new buffer") //if any
+        Editor.myCodeMirror.focus()
+        Editor.unmark_as_changed()
     }
 
 //can't be a closure, can't be in a class'es namespace. yuck.
     static save_on_dexter_computer_show_window_cb(vals) {
-    let path = vals.open_on_dexter_computer_file_path_id
-    persistent_set("last_open_dexter_file_path", path)
-    path = "Dexter." + vals.dexter_name + ":" + path //we cannot close over dexter_name because show_window can't take a closure for a callback
-    let content = Editor.get_javascript()
-    write_file_async(path, content)
-    Editor.add_path_to_files_menu(path)
-    Editor.current_file_path = path
-    Editor.remove("new buffer") //if any
-        Editor.myCodeMirror.focus()
-    Editor.unmark_as_changed()
-}
+        let path = vals.open_on_dexter_computer_file_path_id
+        DDE_DB.persistent_set("last_open_dexter_file_path", path)
+        path = "Dexter." + vals.dexter_name + ":" + path //we cannot close over dexter_name because show_window can't take a closure for a callback
+        let content = Editor.get_javascript()
+        write_file_async(path, content)
+        Editor.add_path_to_files_menu(path)
+        Editor.current_file_path = path
+        Editor.remove("new buffer") //if any
+            Editor.myCodeMirror.focus()
+        Editor.unmark_as_changed()
+    }
 
 //dex_name can be of format "dexter0"  or "Dexter.dexter0"
     static save_on_dexter_computer (dex_name){
@@ -1085,7 +1123,7 @@ Clear its content?
              'on the saved file to get<br/>' +
              'read/write/execute the way you want it.<br/>' +
              'Use the Output pane header <b>ssh</b> tool.<br/>' +
-            '<input id="open_on_dexter_computer_file_path_id" value="' + persistent_get("last_open_dexter_file_path") + '" style="width:350px;font-size:16px;margin-top:10px;"/>\n' +
+            '<input id="open_on_dexter_computer_file_path_id" value="' + DDE_DB.persistent_get("last_open_dexter_file_path") + '" style="width:350px;font-size:16px;margin-top:10px;"/>\n' +
             '<p></p><center><input type="submit" value="Save"/></center>\n' +
             '<input name="dexter_name" style="display:none;" value="' + dex_name + '"/>',
 

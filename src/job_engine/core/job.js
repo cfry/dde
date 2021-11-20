@@ -246,10 +246,10 @@ class Job{
 
     //return an array of job instances that are defined in path_name.
     //warning might be a empty array
-    static instances_in_file(path_name){
+    static async instances_in_file(path_name){
         let base_id_before_new_defs = Job.job_id_base
         let result = []
-        try{ load_files(path_name) }
+        try{ await DDEFile.load_file(path_name) }
         catch(err) {
             dde_error("In Job.instances_in_file, evaling the content of path name: " + path_name +
                       " errored with: " + err.message)
@@ -349,8 +349,8 @@ class Job{
     //in the first place. So Job.instances_in_file and define_and_start_job really should take
     //a callback, but that causes some problems with where these fns are used. ARGGG
     //relavent in Messaging, dexter_user_interface2, instruction start_job, and maybe a few more places.
-    static define_and_start_job(job_file_path){
-        let job_instances = Job.instances_in_file(job_file_path)
+    static async define_and_start_job(job_file_path){
+        let job_instances = await Job.instances_in_file(job_file_path)
         if(job_instances.length == 0) {
             warning("Could not find a Job definition in the file: " + job_file_path)
             if((platform === "node") && !window.keep_alive_value){
