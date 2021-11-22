@@ -117,7 +117,7 @@ import "../job_engine/core/to_source_code.js" //defined to_source_code globally
 import {insert_color}  from "./output.js" //todo sets lots of things in window. Should change to globalThis
                                  //dde4: now globally defines set_css_properties
 
-//import "./picture1.js" //todo dde4, has problems loading opencv.js
+import "./picture1.js" //todo dde4, has problems loading opencv.js
 
 import "../test_suite/math_testsuite.js" //imports test_suite.js which globally defines class TestSuite
 import "../test_suite/utils_testsuite.js"
