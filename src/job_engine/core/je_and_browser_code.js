@@ -662,11 +662,13 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
                       //file system, since you're running in the job engine.
                       //but maybe this is good for something.
                         val = file0.name
+                        /* while true, this is commonly printed out when user chooses File menu/upload
+                           in which case, this message is just distracting.
                         out("Warning: choosing files in the browser<br/>" +
                             "only gets you the file name and extension, not its directory,<br/>" +
                             "due to browser security restrictions.<br/>" +
                             "This mechanism can only get local file names, not ones from Dexter.",
-                            "#e50")
+                            "#e50")*/
                     }
                     else {val = null}
                 }

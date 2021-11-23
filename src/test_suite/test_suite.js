@@ -262,8 +262,8 @@ class TestSuite{
         load_files(__dirname + "/test_suite/when_stopped_testsuite.js")
         */
         //import('./math_testsuite.js').then(module => {"just loaded math testsuite"})
-        if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }       //dde4 todo comment in when doc is loaded
-       //// if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) } //dde4 todo comment in when doc is loaded
+        if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }
+        if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
         let report_prefix = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
             '<span style="color:magenta;">test_suite_reporting *should* indicate<br/>"failures: unknown=2, known=1"</span><br/>'
         this.set_state_and_resume({reports: report_prefix, suites: TestSuite.suites})

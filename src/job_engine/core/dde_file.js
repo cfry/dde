@@ -27,6 +27,18 @@ class DDEFile {
         this.dde_apps_folder_url = this.protocol_and_host() + "//" +
                                    dde_apps_folder
     }
+    static ensure_ending_slash(str){
+        str = str.trim()
+        if(str.endsWith("/")) { return str }
+        else { return str+ "/" }
+    }
+
+    static ensure_no_ending_slash(str){
+        str = str.trim()
+        if(str.endsWith("/")) { return str.substring(0, str.length - 1) }
+        else { return str }
+    }
+
     static async folder_listing(path=dde_apps_folder){
        if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path }
        if(!path.endsWith("/")) { path = path + "/" } //httpd.js requires ending slash
@@ -350,6 +362,8 @@ class DDEFile {
         }
     }
 
+
+    //content can be a string or a blob, and a "file" object is a blob.
     static async write_file_async(path, content, encoding="utf8"){
         if (path === undefined){
             if (Editor.current_file_path == "new buffer"){
@@ -538,7 +552,15 @@ class DDEFile {
                      init_elt_id: "filename_to_save_to_id"})
     }
 
-    //_______Upload File_________
+    //_______OVERALL Upload File code below here_________
+    static choose_file_to_upload(){
+        show_window({title: "Choose file to upload",
+            content: "<input id='dde_upload_file_id' type='file'/>" +
+            "<p/><input name='upload_file' type='button' value='Upload'/>",
+            x:100, y:100, width:300, height:120,
+            callback: "DDEFile.choose_file_to_upload_handler"
+        })
+    }
 
     static choose_file_to_upload_handler(vals){
         if(vals.clicked_button_value === "close_button") {}
@@ -551,6 +573,8 @@ class DDEFile {
         }
     }
 
+    //now choose the place to upload to and do it.
+
     static file_upload_handler(vals){
         //out("top of file_upload_handler with: " + vals.clicked_button_value)
         let filename_to_save_to = vals.filename_to_save_to_id
@@ -559,8 +583,8 @@ class DDEFile {
             filename_to_save_to_id.focus() //doesn't work
         }
         else if (vals.clicked_button_value === "save_as"){
-            let window_index = vals.window_index
-            SW.close_window(window_index)
+            //let window_index = vals.window_index
+            //SW.close_window(window_index) //ita already closed by submit button
             let slash_maybe = (DDEFile.current_folder_to_save_to.endsWith("/") ? "" : "/")
             let path_to_save_to = DDEFile.current_folder_to_save_to + slash_maybe + filename_to_save_to //DDEFile.this.current_folder_to_save_to ends with slash
             //let content = Editor.get_javascript()
@@ -587,14 +611,156 @@ class DDEFile {
 
 
 
-    static choose_file_to_upload(){
-        show_window({title: "Choose file to upload",
-                     content: "<input id='dde_upload_file_id' type='file'/>" +
-                              "<p/><input name='upload_file' type='button' value='Upload'/>",
-                     x:100, y:100, width:300, height:120,
-                     callback: "DDEFile.choose_file_to_upload_handler"
+
+    //________Overall Folder Upload___________
+
+    //choose folder to upload_______
+
+    static choose_folder_to_upload(){
+        show_window({title: "Choose a folder to upload",
+            content: "First click the <b>Choose Files</b> button and select a source folder.<p/>" +
+                     "<input id='dde_upload_folder_id' type='file' webkitdirectory multiple value='Choose folder'/><p/>" +
+                     "Then click <b>Upload Folder</b> and select the destination folder.<p/>" +
+                     "<input name='upload_folder' type='button' value='Upload Folder'/>",
+            x:100, y:100, width:450, height:190,
+            callback: "DDEFile.choose_folder_to_upload_handler"
         })
     }
+
+    static choose_folder_to_upload_handler(vals){
+        if(vals.clicked_button_value === "close_button") {}
+        else if (vals.clicked_button_value === "upload_folder"){
+            let files = dde_upload_folder_id.files
+            let title = "Upload the files of folder to:"
+            let last_folder_name
+            for(let fi of files) {  //wierdly files[0] won't work here.
+                let webkit_rel_path = fi.webkitRelativePath
+                last_folder_name = webkit_rel_path.substring(0, webkit_rel_path.indexOf("/"))
+                title = "Upload the files of folder <b>" + last_folder_name + "</b> to:"
+                break;
+            }
+            let path = dde_apps_folder + "/" + last_folder_name
+            DDEFile.choose_folder_to_upload_to({path: path,
+                title:    title,
+                callback: "DDEFile.choose_folder_to_upload_to_handler"})
+        }
+    }
+
+
+    //_____choose folder to upload to_____
+
+    static async choose_folder_to_upload_to_handler(vals){
+        if(vals.clicked_button_value === "close_button") {}
+        else if(vals.clicked_button_value === "upload") { //does the real work
+            let files = dde_upload_folder_id.files //a file is a blob
+            out("Uploading " + files.length + " files from " + vals.orig_folder_name)
+            for(let file of files){
+                let path_to_save_to = vals.path_sans_last_folder_name_with_last_slash + vals.last_folder_name + "/" + file.name
+                await DDEFile.write_file_async(path_to_save_to, file)
+                out(path_to_save_to + " uploaded.")
+            }
+            out(vals.orig_folder_name + " folder upload complete.")
+        }
+        else if (!vals.clicked_button_value.endsWith("/")){
+            warning("You must choose a folder, not a file.\nFolder names end in slash.")
+        }
+        else { //navigate to new folder to upload to
+            let window_index = vals.window_index
+            SW.close_window(window_index)
+            let title = "Upload the files of folder to:"
+            let files = dde_upload_folder_id.files
+            for(let fi of files) {  //wierdly files[0] won't work here.
+                //let webkit_rel_path = fi.webkitRelativePath
+                //let orig_folder_name = webkit_rel_path.substring(0, webkit_rel_path.indexOf("/"))
+                let orig_folder_name = vals.orig_folder_name
+                title = "Upload files of folder " + orig_folder_name + " to:"
+                break;
+            }
+            let last_folder_name = vals.last_folder_name
+            let path_to_save_to = DDEFile.ensure_ending_slash(vals.clicked_button_value)
+                                  + last_folder_name
+            DDEFile.choose_folder_to_upload_to({path: path_to_save_to,
+                title:    title,
+                callback: "DDEFile.choose_folder_to_upload_to_handler",
+                orig_folder_name: vals.orig_folder_name})
+        }
+    }
+
+    static async choose_folder_to_upload_to({path=dde_apps_folder,
+                                             title=null,
+                                             x=50, y=50, width=700, height=450,
+                                             callback="DDEFile.choose_folder_to_upload_to_handler",
+                                             orig_folder_name = null}){
+
+        if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path }
+
+        if (!path.endsWith("/")) { path = path + "/" } //ensure last slash, needed on path below
+        /*let last_slash = path.lastIndexOf("/")
+        let first_path = path.substring(0, last_slash + 1) //inclusive trailing slash
+        let last_path  = path.substring(last_slash + 1)
+        let filename = path.substring(last_slash + 1)
+        */
+
+        let path_sans_last_slash = (path.endsWith("/") ? path.substring(0, (path.length - 1)) : path)
+        let last_slash = path_sans_last_slash.lastIndexOf("/")
+        let path_sans_last_folder_name_with_last_slash = path_sans_last_slash.substring(0, last_slash + 1)
+        let last_folder_name =  path_sans_last_slash.substring(last_slash + 1)
+        //this.current_folder_to_save_to = path
+        if (orig_folder_name === null) { orig_folder_name = last_folder_name}
+        title = "Upload files from <b>" + orig_folder_name + "</b> to:"
+
+        let fold_info = await this.folder_listing(path_sans_last_folder_name_with_last_slash)
+        let array_of_objs = await fold_info.json()
+        let html = "<table><tr><th>Name</th><th>Size(bytes)</th><th>Last Modified Date</th><th>Permissions</th></tr>\n"
+        for(let obj of array_of_objs) {
+            let name = obj.name
+            if(name !== "..") {
+                let is_dir = false
+                if((obj.type === "dir") && (!(name.endsWith("/")))){
+                    name = name + "/"
+                    is_dir = true
+                }
+                let new_path = path + name
+                let name_html = "<a href='#' name='" + path_sans_last_folder_name_with_last_slash + name + "'>" + name + "</a>"
+                let date_ms = obj.date //might be a float, possibly undefined.
+                let date_str = Utils.date_or_number_to_ymdhms(date_ms)
+
+                let perm_str = Utils.permissions_integer_string_to_letter_string(obj.permissions, is_dir)
+                let row = "<tr>" +
+                    "<td>" + name_html + "</td>" +
+                    "<td>" + obj.size + "</td>" +
+                    "<td>" + date_str + "</td>" +
+                    "<td>" + perm_str + "</td>" +
+                    "</tr>\n"
+                html += row
+            }
+        }
+        html += "</table>"
+        let breadcrumbs_html = "/"
+        let folds = path_sans_last_folder_name_with_last_slash.split("/")
+        let building_fold = "/"
+        for(let fold of folds){
+            if(fold !== "") { //first and last elts of folds are empty strings
+                building_fold += fold + "/"
+                let the_html = "<a href='#'  name='" + building_fold + "'>" + fold + "</a>"
+                breadcrumbs_html += the_html + "/"
+            }
+        }
+        let path_to_save_to = path_sans_last_folder_name_with_last_slash + last_folder_name
+        let upload_tooltip = "Click to upload the files to\n" + path_sans_last_folder_name_with_last_slash +
+                              "\nwith a last_folder of the folder in the type-in to the left."
+
+        html = "<input style='margin-left:10px' name='last_folder_name' value='" + last_folder_name + "'/>" +
+               "<input type='submit' title='" + upload_tooltip + "' style='margin-left:10px; margin-bottom:5px;' name='upload' value='upload'/>" +
+               "<input type='hidden' name='path_sans_last_folder_name_with_last_slash' value='" + path_sans_last_folder_name_with_last_slash + "'/>" +
+               "<input type='hidden' name='orig_folder_name' value='" + orig_folder_name + "'/>" +
+            html
+        show_window({title: "<span style='font-size:17px;'> " + title + " " + breadcrumbs_html + "</span>",
+            content: html,
+            x: x, y: y, width: width, height: height,
+            callback: callback})
+    }
+    //end overall Upload______
 
 }
 globalThis.DDEFile = DDEFile

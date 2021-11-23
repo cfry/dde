@@ -657,15 +657,18 @@ export function on_ready() {
  //DDE_NPM.init() //todo big changes due to import???
  //install_npm_pkg_id.onclick = DDE_NPM.show_ui
 
- download_file_id.onclick=function(){
-     DDEFile.choose_file({folder:   undefined,
-                          title:    "Download file: ",
-                          callback: "DDEFile.download_file_handler" })
- }
+     download_file_id.onclick=function(){
+         DDEFile.choose_file({folder:   undefined,
+                              title:    "Download file: ",
+                              callback: "DDEFile.download_file_handler" })
+     }
 
-upload_file_id.onclick=function(){
-     DDEFile.choose_file_to_upload()
-}
+    upload_file_id.onclick=function(){
+         DDEFile.choose_file_to_upload()
+    }
+    upload_folder_id.onclick=function(){
+         DDEFile.choose_folder_to_upload()
+    }
 
  insert_file_content_id.onclick=function(e) {
      //const path = choose_file({title: "Choose a file to insert into DDE's editor"})
@@ -717,7 +720,8 @@ upload_file_id.onclick=function(){
      }
  } //was: Editor.save_on_dde_computer //only for saving on dde computer
 
- save_to_dexter_as_id.onclick = Editor.save_to_dexter_as
+ //obsolete with dde4
+ //save_to_dexter_as_id.onclick = Editor.save_to_dexter_as
 
  remove_id.onclick = function(){ Editor.remove() } //don't simply use Editor.remove as ther value  for onclick because we want to default its arg as the Editor.remove method does
  update_id.onclick = function(){ check_for_latest_release() }
