@@ -159,6 +159,8 @@ import "./lesson.js" //defines global Lesson
 
 import package_json        from "../../package.json"
 
+import {w3} from "../third_party/w3.js"
+
 globalThis.dde_version      = "not inited"
 globalThis.dde_release_date = "not inited"
 
@@ -227,7 +229,7 @@ export function on_ready() {
         console.log("top of on_ready")
         //console.log("__dirname:"  + __dirname) //todo dde4 causes error
         console.log("top of ready with package_json: " + package_json)
-
+        w3.includeHTML()
         /*operating_system = os.platform().toLowerCase() //for Ubuntu, ths returns "linux"
         if      (operating_system == "darwin")       { operating_system = "mac" }
         else if (operating_system.startsWith("win")) { operating_system = "win" }
