@@ -51,3 +51,10 @@ new TestSuite("make_mat gray",
     ["Picture.mat_gray(tsmat1, 17, 23)", "66"]
 )
 
+new TestSuite("RotatingCalipers",
+    ["(new RotatingCalipers([[133,148],[202,147],[196,82],[249,185]])).convexHull()",
+    "[[249,185],[196,82],[133,148]]"],
+
+    ["(new RotatingCalipers([[133,148],[202,147],[196,82],[249,185]])).minAreaEnclosingRectangle().vertices",
+    "[[172.33723356685047,224.44783127142642],[119.33723356685051,121.44783127142642],[196.00000000000003,82],[248.99999999999997,185]]"]
+)
