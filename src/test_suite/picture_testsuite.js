@@ -58,3 +58,8 @@ new TestSuite("RotatingCalipers",
     ["(new RotatingCalipers([[133,148],[202,147],[196,82],[249,185]])).minAreaEnclosingRectangle().vertices",
     "[[172.33723356685047,224.44783127142642],[119.33723356685051,121.44783127142642],[196.00000000000003,82],[248.99999999999997,185]]"]
 )
+
+new TestSuite("Additional Picture class",
+    ["Picture.mats_similarity_by_detect_blobs({mat_in1: Picture.make_mat(),mat_in2: Picture.make_mat()})",
+    "0.5"]
+)
