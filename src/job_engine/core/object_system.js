@@ -14,7 +14,7 @@ function ob_sys_is_class(obj){
 }
 
 export var Root = {name: "Root"} //"root" is an old node,js global that's been depricated but still defined. I decidd to steer clear of it by using capitalied Root.
-
+globalThis.Root = Root
 //window.Root = Root //if I don't to this, value_of_path fails since window["rootObjject"] fails
 //rootObject.name = "rootObject" //errors if I do this. the error happens in Jquery on something
                                //that looks very unlrelated, in ready, when seting the operating_system variable.
@@ -119,6 +119,8 @@ export function newObject(...property_objects){
         return result
     }
 }
+
+globalThis.newObject = newObject
 
 Object.defineProperty(Object, 'isNewObject',{
     enumerable : false,
@@ -360,7 +362,7 @@ Object.defineProperty(Object.prototype, 'normal_keys_aux',{
 
 
 //result array has Root first
-Object.defineProperty(Object.prototype, 'ancestors',{
+Object.defineProperty(Object.prototype, 'ancestors',{ //dde4 but was 'ancestors' in dde4
     value : function(include_self=false){
                 if(this == Root){
                     if(include_self) { return [this] }

@@ -24,7 +24,7 @@ export default {
     ],
     output: {
         name: "dde4", //https://gist.github.com/Rich-Harris/d472c50732dab03efeb37472b08a3f32
-        file: 'build/bundle.js',
+        file: 'dde/build/bundle.js',
         format: 'es', //could also be 'es' 'iife' and 'umd'
         sourcemap: true, // aug 31 2021: using true and bundle.js is 5.3Mbytes. Using 'inline' its 18Mbytes
         assetFileNames: "[name]-[hash][extname]",

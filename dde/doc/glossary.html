@@ -1,0 +1,101 @@
+<summary class="doc_articles_level_summary">Dexter Glossary</summary>
+ <div style='font-size:16px;'>
+<h3>Dexter Glossary</h3>
+The most useful terms for the Dexter platform.
+
+<details class="doc_details"><summary>Automatic Tool Changer (ATC)</summary>
+A "Hand" that mounts on the end of Dexter's last link that
+can grab any end-effector that has a cooresponding ATC handle.
+This enables Dexter to easily grab many different end-effectors.
+Dexter's ATC can pass both electrical signals and power
+to an end-effector, and receive electrical signals from
+sensors in an end-effector.
+</details>
+<details class="doc_details"><summary>arcsecond</summary>
+A unit of angle, meaning one 3600th of a degree. This is about
+the resolution of a Dexter joint. There are 1,296,000 arcseconds in 360 degrees.
+</details>
+<details class="doc_details"><summary>Cartesian Coordinate System</summary>
+</details>
+<details class="doc_details"><summary>config (for Dexter's joint angles)</summary>
+The position of Dexter's end effector does not fully describe its physical state.
+There can be several different ways in which Dexter's joints can be bent to
+arrive at an end position, and the <i>config</i> determines that. It is an array
+of 3 integers, all either 0 or 1. The first number means LEFT (0) or RIGHT (1).
+The second means DOWN (0) or UP (1).
+The third means IN (0) or OUT (1).
+See the Reference Manual for Dexter.move_to for more info.
+</details>
+<details class="doc_details"><summary>do_list</summary>
+    The property of a Job instance that holds the array of <b>instruction</b>s
+    to be executed by the <b>Job</b>. Usually the instructions are run
+    in order, though various control instructions can skip over,
+    conditionally run, or even loop through, do_list items.
+    The do_list is the essence of a Job.
+</details>
+<details class="doc_details"><summary>end-effector</summary>
+A tool held by Dexter for performing a specific function such as
+a gripper for holding things or a laser for cutting things.
+See ATC.
+</details>
+<details class="doc_details"><summary>instruction</summary>
+    Generally, an item on a <b>Job</b>'s <b>do_list</b> describing a
+    small action such as <code>Dexter.move_to</code> a location.
+    Some do_list items are literally an instance of DDE's <i>Instruction</i> class,
+    while others, like functions and arrays, are common JavaScript types.
+</details>
+<details class="doc_details"><summary>Job</summary>
+    The data structure that describes the process of making (or doing) something.
+    Jobs have many properties, all of which have defaults. 
+    The most important ones are:
+    <ul><li><b>name</b></li>
+        <li><b>do_list</b></li>
+        <li><b>robot</b></li>
+    </ul>
+</details>
+<details class="doc_details"><summary>J5_direction</summary>
+An array of 2 or 3 numbers that indicates the orientation of Dexter's joint 5 (or its last link).
+See the Reference Manual for Dexter.move_to for more info.
+</details>
+<details class="doc_details"><summary>kinemetics</summary>
+    The relationship between the joint angles and the position
+    of a robot. Forward kinematics is the computation for tranforming
+    joint angles into end effector location (in Cartesian coorinates).
+    Inverse kinematics is the computation for tranforming Cartesian
+    coordinates of an end effector into joint angles. These
+    computations are complex, especially for Robots with
+    5 or more axes.
+</details>
+<details class="doc_details"><summary>micron</summary>
+A unit of length, meaning one milionth of a meter.
+</details>
+<details class="doc_details"><summary>pose</summary>
+A 4 x 4 matrix of numbers used to efficiently describe Dexter's physical state.
+</details>
+<details class="doc_details"><summary>position</summary>
+A 3 x 3 matrix of numbers describing Dexter's state.
+The first row is the <b>xyz</b> location of the end effector.
+The second row is the <b>J5_direction</b> of the end effector.
+the thrid row is the <b>config</b>.
+</details>
+<details class="doc_details"><summary>robot</summary>
+    A machine that can execute instructions. The fundamental definition
+    of a robot is its <b>instruction</b> set, i.e. the instructions that
+    it is capable of executing. A <b>Job</b> feeds instructions from its <b>do_list</b>
+    to its robot to run.
+</details>
+<details class="doc_details"><summary>SI Units</summary>
+The International scientific units standard.
+Generally, Dexter uses these except for angles
+instead of the SI radians, we use degrees. DDE has
+a easy way to convert numbers between different units.
+</details>
+
+<details class="doc_details"><summary>xyz</summary>
+A location expressed as a 3 element array of numbers
+in cartesian coordinates. Often xyz refers to the
+location of Dexter's end effector relative to
+the location of joint 1. If you are behind Dexter with its processor board to the right,
+positive X is to your right, positive Y is straight ahead, and postive Z is up.
+</details>
+</div>

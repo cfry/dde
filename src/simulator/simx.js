@@ -7,9 +7,9 @@ export var SimX = class SimX{
     static deg_to_rad(deg) {return deg / _rad}
 
     static ensure_simulate(){
-        let sim_val = persistent_get("default_dexter_simulate")
+        let sim_val = DDE_DB.persistent_get("default_dexter_simulate")
         if((sim_val !== true) || (sim_val !== "both")) {
-            persistent_set("default_dexter_simulate", true)
+            DDE_DB.persistent_set("default_dexter_simulate", true)
         }
         if(!simulate_radio_true_id.checked) {
             simulate_radio_true_id.checked = true

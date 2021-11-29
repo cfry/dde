@@ -286,6 +286,29 @@ var http_server = http.createServer(function (req, res) {
   if (q.pathname === "/init_jobs") {
       serve_init_jobs(q, req, res)
   }
+  else if (q.pathname === "/edit" && q.query.info ) {
+      let path = q.query.info
+      console.log("Getting info for: " + path)
+      let str_to_write
+      if(fs.existsSync(path)) {
+          let stat = fs.statSync(path)
+          let kind
+          if     (stat.isFile())            { kind = "file" }
+          else if(stat.isDirectory())       { kind = "folder" }
+          else if(stat.isSocket())          { kind = "socket" }
+          else if(stat.isFIFO())            { kind = "fifo" }
+          else if(stat.isCharacterDevice()) { kind = "character_device" }
+          else                              { kind = "other" }
+          stat.kind = kind
+          let permissions = (stat.mode & parseInt('777', 8)).toString(8)
+          stat.permissions = permissions
+          str_to_write = JSON.stringify(stat)
+      }
+      else { str_to_write = "null"}
+      console.log("info: " + str_to_write)
+      res.write(str_to_write)
+      res.end()
+  }
 
   //get directory listing
   else if (q.pathname === "/edit" && q.query.list ) { 
@@ -308,7 +331,7 @@ var http_server = http.createServer(function (req, res) {
           if (items[i].isFile()) {
             let size = "unknown"
             let permissions = "unknown"
-            let stats = {size: "unknown"}
+            let stats = {size: "unknown"} //dde4 not used so delete this line and move "let" to 3 lines below
             let date = 0 //dde4 necessary for catch clause of date
             try { //console.log("file:", listpath + items[i].name)
               stats = fs.statSync(listpath + items[i].name)

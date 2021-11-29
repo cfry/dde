@@ -1105,7 +1105,7 @@ class TestSuite{
 // make_test_suites_in_doc()
 
 globalThis.TestSuite = TestSuite
-console.log("bottom of test_suite.js just set globalThis.TestSuite to: " + globalThis.TestSuite)
+//onsole.log("bottom of test_suite.js just set globalThis.TestSuite to: " + globalThis.TestSuite)
 
 
 //TestSuite.run("test_system")

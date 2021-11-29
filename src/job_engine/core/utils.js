@@ -5,7 +5,8 @@
  //const semverEq = require('semver/functions/eq')
  //for semver 7, semver.Lt, semver.Gt, and maybe semverEq ???
  //in DDE3, used semver verison "^5.7.1"  I should switch dde4 to using semver 7.
-
+//can't get semver to work in dde4, so using alternative:
+import { compare as compare_semversions } from 'compare-versions';
 //import * as process from "../../../node_modules/process/index.js" //todo module is not defined
 //import {Instruction} from "./instruction.js" //now global
 //import {Robot, Brain, Dexter, Human, Serial} from './robot.js' //now global
@@ -143,16 +144,19 @@ static shouldnt(message){
 } //global (used a lot)
 
 static version_equal(version_string1, version_string2=dde_version){
-    return semver.eq(version_string1, version_string2)
+    //return semver.eq(version_string1, version_string2)
+    return compare_semversions(version_string1, version_string2, "=")
 }
 
 
 static version_less_than(version_string1, version_string2=dde_version){
-    return semver.lt(version_string1, version_string2)
+    //return semver.lt(version_string1, version_string2)
+    return compare_semversions(version_string1, version_string2, "<")
 }
 
 static version_more_than(version_string1, version_string2=dde_version){
-    return semver.gt(version_string1, version_string2)
+    //return semver.gt(version_string1, version_string2)
+    return compare_semversions(version_string1, version_string2, ">")
 }
 
 
@@ -1943,6 +1947,16 @@ static string_to_seconds(dur){
    }
    */
 }
+   //see https://gomakethings.com/how-to-get-all-parent-elements-with-vanilla-javascript/
+   //fry modified, but same core algorithm
+   //used in DocCode.open_doc
+   static get_dom_elt_ancestors(dom_elt) {
+        let result = [];
+        for ( ; dom_elt && dom_elt !== document; dom_elt = dom_elt.parentNode ) {
+            result.push(dom_elt)
+        }
+        return result
+    }
 } //end class Utils
 
 globalThis.Utils = Utils

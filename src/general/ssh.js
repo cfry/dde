@@ -64,7 +64,7 @@ export var SSH = class SSH {
            this.config.the_host_name.startsWith("Dexter.") &&
             simulate_radio_false_id.checked === false){
             simulate_radio_false_id.checked = true
-            persistent_set("default_dexter_simulate", false) //must do!
+            DDE_DB.persistent_set("default_dexter_simulate", false) //must do!
             warning("In order to use SSH to a dexter computer,<br/>the 'real' button in the Misc pane header must be checked.<br/>It has been switched to checked.")
         }
         if (!command){
@@ -901,7 +901,7 @@ computer_choices_options_html +
 `</div><br/>
 User Name: <input id="ssh_auth_dialog_user_name_id" style="font-size:16px;"/><br/>
 Password: &nbsp;&nbsp;<input id="ssh_auth_dialog_pas_id" type="` +
-(persistent_get("ssh_show_password")? "text": "password") +
+(DDE_DB.persistent_get("ssh_show_password")? "text": "password") +
 `" style="font-size:16px;"/><p/>
 Show password? <input type="checkbox"  id="ssh_auth_dialog_show_pas_id" ` +
 (persistent_get("ssh_show_password")? "checked": "") +

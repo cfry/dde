@@ -766,7 +766,7 @@ Series.instances = [
                                                   "folder_listing", 'folder_separator', "is_folder",
                                                   'load_files',  'make_folder', 'read_file', 'write_file',
                                                   'operating_system',
-                                                  'persistent_set', 'persistent_get', 'persistent_remove', 'persistent_clear'],
+                                                  'DDE_DB.persistent_set', 'DDE_DB.persistent_get', 'DDE_DB.persistent_remove'],
         menu_insertion_string: 'load_files(["foo.js"])', menu_sel_start:0, menu_sel_end:10, sample: "load_files"}),
     new Series({id:"series_object_system_id", array: ['Root', 'newObject', 'callPrototypeConstructor', 'Object.isNewObject',
                                                         'subObjects', 'isSubObject', 'isA',

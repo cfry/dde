@@ -14,7 +14,7 @@ export default {
         json()
     ],
     output: {
-        file: 'build/bundleje.js',
+        file: 'dde/build/bundleje.js',
         format: 'es', //could also be 'iife' and 'umd'
         sourcemap: true
     }

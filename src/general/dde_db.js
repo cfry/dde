@@ -104,6 +104,29 @@ class DDE_DB{
            }
         }
    }
+
+    static persistent_remove(key, value){
+        delete this.persistent_values[key]
+        const dde_object_store = DDE_DB.db.transaction(['dde_object_store'], "readwrite").objectStore('dde_object_store');
+        const dos_request = dde_object_store.get("persistent_values");
+        dos_request.onsuccess = function(event) {
+            // Get the old value that we want to update
+            let data = event.target.result;
+            // Update the value
+            delete data[key]
+            // Create another request that inserts the item back into the database
+            const dos_put_request = dde_object_store.put(data, "persistent_values");
+            // When this new request succeeds, run the displayData() function again to update the display
+            dos_put_request.onsuccess = function(event) {
+                console.log("DDE_DB successfully removed persistent_value: " + key)
+            }
+            dos_put_request.onerror = function(event) {
+                console.log("ERROR: DDE_DB could not remove persistent_value: " + key)
+            }
+        }
+    }
+
+
     static metrics_set(key, value){
         this.metrics[key] = value
         const dde_object_store = DDE_DB.db.transaction(['dde_object_store'], "readwrite").objectStore('dde_object_store');

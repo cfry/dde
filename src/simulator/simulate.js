@@ -204,7 +204,7 @@ class Simulate {
         console.log("cur file simulate.js: " + window.location.pathname)
         loader.load(//__dirname + "/HDIMeterModel.gltf", //select_val, //fails
                     //"./HDIMeterModel.gltf", //fails
-                    "./src/simulator/HDIMeterModel.gltf",
+                    "simulator_server_files/HDIMeterModel.gltf",
                     function(gltf_object3D) { Simulate.fix_up_gltf_and_add(gltf_object3D) }, //modified for dde4
                     this.undefined,
                     function (err) {

@@ -2,25 +2,23 @@
  * Created by Fry on 4/17/16.
  */
 //import request from '../../node_modules/request' //todo needed only for non-working speech reco
-import {persistent_get, persistent_save, persistent_set, persistent_values} from "../job_engine/core/storage"
 
 //import {write_to_stdout} from "../job_engine/core/stdio.js" //todo imports readline which requries fs which errors
 
 //since I can't actually change window width, height, x, y programmatically,
 //probably have to give up on this.
 window.addEventListener('resize', function(event){
-    persistent_values.dde_window_x      = window.screenX
-    persistent_values.dde_window_y      = window.screenY
-    persistent_values.dde_window_width  = window.outerWidth
-    persistent_values.dde_window_height = window.outerHeight
-    persistent_save()
+    DDE_DB.persistent_values.dde_window_x      = window.screenX //todo dde4 coment these back in
+    DDE_DB.persistent_values.dde_window_y      = window.screenY
+    DDE_DB.persistent_values.dde_window_width  = window.outerWidth
+    DDE_DB.persistent_set("dde_window_height",   window.outerHeight) //causes them all to be saved.
 });
 
 //todo dde4: though this is documented to work, it doesn't and probably wont
 //due to security reasons. Probably have to give up on this.
 window.set_dde_window_size_to_persistent_values = function(){
-    window.moveTo(persistent_get("dde_window_x"), persistent_get("dde_window_y"))
-    window.resizeTo(persistent_get("dde_window_width"), persistent_get("dde_window_height"))
+    window.moveTo(DDE_DB.persistent_get("dde_window_x"), DDE_DB.persistent_get("dde_window_y"))
+    window.resizeTo(DDE_DB.persistent_get("dde_window_width"), DDE_DB.persistent_get("dde_window_height"))
 }
 
 //_________show_window and helper fns__________

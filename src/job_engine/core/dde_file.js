@@ -2,6 +2,7 @@ import {eval_js_part2} from "../../general/eval.js"
 
 class DDEFile {
     static dde_apps_folder_url
+
     static host(){
         return window.location.host //ex: "192.168.1.142:5000", "localhost:80"
     }
@@ -293,6 +294,29 @@ class DDEFile {
         }
     }
 
+    //path can be a file, a folder, or a non-existant path.
+    //returns null, if non-existant, else
+    //a JSON object with the fields documented in
+    static async path_info(path){
+        if(!path.startsWith("/")) {
+            path = dde_apps_folder + "/" + path
+        }
+        let full_url = this.protocol_and_host() + "/edit?info=" + path
+        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
+        //think that this url is a root url for some strange reason.
+        //see httpdde.js, serve_file()
+        let file_info_response = await fetch(full_url)
+        if(!file_info_response.ok) { return null } //ie file doesn't exist
+        else {
+            let content = await file_info_response.text()
+            let json_obj = JSON.parse(content)
+            let is_dir = json_obj.kind === "folder"
+            let perm_str = Utils.permissions_integer_string_to_letter_string(json_obj.permissions, is_dir)
+            json_obj.perissions_letters = perm_str
+            return json_obj
+        }
+    }
+
     static async file_exists(path){
         if(!path.startsWith("/")) {
             path = dde_apps_folder + "/" + path
@@ -305,7 +329,13 @@ class DDEFile {
         return file_info_response.ok  //should be a boolean
     }
 
+
+
     //utilities
+    static convert_backslashes_to_slashes(a_string){
+        return a_string.replace(/\\/g, "/")
+    }
+
     static is_root_path(path){
         if(path.startsWith("/")) { return true }
         else if ((path.length > 1) && (path[1] == ":")){ //WinOS junk. Maybe unnecessary in dde4

@@ -73,11 +73,11 @@ class DocCode {
         this.open_doc_elt_and_ancestors(details_elt)
         if(record) {
             if(record instanceof Event){
-                debugger;
-                let pars = Element.ancestors(record.target) // the following fails in dde4 $(record.target).parents()
+                //let pars = Element.ancestors(record.target) // the following fails in dde4 $(record.target).parents()
+                let pars = Utils.get_dom_elt_ancestors(record.target)
                 for (let par of pars){
                     if (par && par.id && (par.id !== "") &&
-                        (par.id !== last(this.doc_pane_elt_id_history))){
+                        (par.id !== this.doc_pane_elt_id_history.at(-1))){ //let last elt
                         this.doc_pane_elt_id_history.push(par)
                         break;
                     }

@@ -249,13 +249,26 @@ Array.prototype.arcsec = function(){
 }
 
 //TEMPERATURE
-export function deg_c_to_c(deg_c){ return deg_c }
-export function deg_f_to_c(deg_f){ return (deg_f-32)*5/9 }
-export function deg_c_to_f(deg_c){ return deg_c*9/5+32 }
-export function deg_k_to_c(deg_k){ return deg_k-273.15 }
-export function deg_c_to_k(deg_c){ return deg_c+273.15 }
-export function deg_f_to_k(deg_f){ return deg_c_to_k(deg_f_to_c(deg_f)) }
-export function deg_k_to_f(deg_k){ return deg_c_to_f(deg_k_to_c(deg_k)) }
+function deg_c_to_c(deg_c){ return deg_c }
+globalThis.deg_c_to_c = deg_c_to_c
+
+function deg_f_to_c(deg_f){ return (deg_f-32)*5/9 }
+globalThis.deg_f_to_c = deg_f_to_c
+
+function deg_c_to_f(deg_c){ return deg_c*9/5+32 }
+globalThis.deg_c_to_f = deg_c_to_f
+
+function deg_k_to_c(deg_k){ return deg_k-273.15 }
+globalThis.deg_k_to_c = deg_k_to_c
+
+function deg_c_to_k(deg_c){ return deg_c+273.15 }
+globalThis.deg_c_to_k = deg_c_to_k
+
+function deg_f_to_k(deg_f){ return deg_c_to_k(deg_f_to_c(deg_f)) }
+globalThis.deg_f_to_k = deg_f_to_k
+
+function deg_k_to_f(deg_k){ return deg_c_to_f(deg_k_to_c(deg_k)) }
+globalThis.deg_k_to_f = deg_k_to_f
 
 function make_temperature_series(){
     return new Series({id:"series_temperature_id",  array: ["deg_c_to_c", "deg_f_to_c", "deg_c_to_f",

@@ -1,3 +1,4 @@
+debugger;
 console.log("top of ready.js")
 
 //import os from 'os' //todo causes Failed to resolve module specifier "os". bug  //probably only useful in server code,  not browser code.
@@ -49,6 +50,15 @@ import "shepherd.js/dist/css/shepherd.css"
 import * as Espree from "../../node_modules/espree/lib/espree.js"//"espree", "espree/lib/espree.js"
 globalThis.Espree = Espree //todo Espree.parse is not defined
 
+//see https://stackoverflow.com/questions/65547827/how-to-import-npm-semver-on-an-ionic-project-with-angular
+// but that fails
+//import * as semver from "semver" //yields circular dependencies
+//import {semver} from "semver" //yields circular dependencies
+//import semver from "semver" //yields circular dependencies
+//from https://github.com/Financial-Times/g-deploy/blob/main/src/util.ts
+//but still fails
+//import { parse as semver } from "semver"; //yields circular dependencies
+
 import "./styles.css"
 
 import "../job_engine/core/utils.js" //defines as global class Utils, and a few of its methods such as  dde_error, rgb
@@ -66,7 +76,6 @@ import "../job_engine/math/DXF.js"     //now global
 
 import {calibrate_build_tables} from "../job_engine/low_level_dexter/calibrate_build_tables.js"
 
-import {convert_backslashes_to_slashes} from "../job_engine/core/storage.js"
 import "../job_engine/core/out.js" //makes get_output, show_window, beep, etc global
 import "../job_engine/core/job.js" //globally defines Job
 import {job_examples} from "./job_examples.js" //just an array of strings of Job defs used for Job menu/insert menu item
@@ -86,6 +95,9 @@ import "../job_engine/core/simqueue.js"     //defines class Simqueue as global
 import "../job_engine/core/robot_status.js" //defines class RobotStatus as global
 
 import "../job_engine/core/dde_file.js" //defines class File as global
+import "../job_engine/core/object_system.js"//defined globals: Root, newObject
+
+
 import "./dex.js" //makes Dex global
 
 import "./doc_code.js" //makes DocCode global
@@ -117,8 +129,8 @@ import "../job_engine/core/to_source_code.js" //defined to_source_code globally
 import {insert_color}  from "./output.js" //todo sets lots of things in window. Should change to globalThis
                                  //dde4: now globally defines set_css_properties
 
+import "../test_suite/test_suites.js"
 //import "./picture1.js" //todo dde4, has problems loading opencv.js
-
 import "../test_suite/math_testsuite.js" //imports test_suite.js which globally defines class TestSuite
 import "../test_suite/utils_testsuite.js"
 import "../test_suite/move_all_joints_testsuite.js"
@@ -152,8 +164,9 @@ import "../make_instruction/mirecord.js"         //defines class MiRecord global
 import "./plot.js" //globally defines class Plot
 
 //Music
-import "../music/note.js" //defines as globals: class Note, class Midi, WebMidi
+import "../music/note.js"   //defines as globals: class Note, class Midi, WebMidi
 import "../music/phrase.js" //defines global class Phrase
+import "./gamepad.js"       //defined global class GamePad
 
 import "./lesson.js" //defines global Lesson
 
@@ -224,7 +237,7 @@ function set_operating_system() {
 }
 
 export function on_ready() {
-
+        debugger;
         //const os = require('os');
         console.log("top of on_ready")
         //console.log("__dirname:"  + __dirname) //todo dde4 causes error
@@ -235,6 +248,7 @@ export function on_ready() {
         else if (operating_system.startsWith("win")) { operating_system = "win" }
         */
         set_operating_system()
+        //globalThis.semver = semver
         //const remote = require("electron").remote
         //window.dde_apps_folder //todo = convert_backslashes_to_slashes(remote.getGlobal("dde_apps_folder"))
         DDEFile.init() //sets the global dde_apps_folder
@@ -1692,7 +1706,6 @@ window_modify_id.onclick=function(){Editor.insert(
                }
            }
        })
-
       DDE_DB.init(on_ready_after_db_init)
          //persistent_initialize() //now performed by DDE_DB.init
          //called before loading dde_init.js by design.
@@ -1930,7 +1943,6 @@ on_ready()
 /*
 var {get_output} = require("./core/out.js")
 //var {Root} = require("./core/object_system.js") //should work but doesn't jan 13, 2019
-var {convert_backslashes_to_slashes} = require("./core/storage.js")
 var Coor  = require("./math/Coor.js")
 var calibrate_build_tables = require("./low_level_dexter/calibrate_build_tables.js")
 var Job   = require("./core/job.js")

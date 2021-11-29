@@ -17,8 +17,8 @@ require("codemirror/addon/fold/brace-fold.js")
 require("codemirror/addon/fold/comment-fold.js")
 */
 
-import {convert_backslashes_to_slashes, dde_init_dot_js_initialize, file_exists, load_files,
-        write_file}    from "../job_engine/core/storage.js"
+import {dde_init_dot_js_initialize, file_exists, load_files
+       } from "../job_engine/core/storage.js"
 import beautify from "js-beautify"
 
 import {eval_js_part1} from "./eval.js"
@@ -858,7 +858,7 @@ Clear its content?
 //usually content is not passed as that's gotten from path,
 //but in the ssh context, it sometimes is passed.
     static edit_file (path, content, dont_save_cur_buff_even_if_its_changed=false){ //path could be "new buffer"
-        let new_path = convert_backslashes_to_slashes(path) //must store only slashes in files menu
+        let new_path = DDEFile.convert_backslashes_to_slashes(path) //must store only slashes in files menu
         let cur_path = Editor.current_file_path
         let cur_content = Editor.get_javascript()
         if(dont_save_cur_buff_even_if_its_changed ||

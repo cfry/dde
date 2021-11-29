@@ -84,7 +84,7 @@ export function define_learn_js_tour() {
        When you click the <b>Step</b> button, an
       additional window (Developer Tools) will appear on the screen.
       <ul>
-      <li>Use its stepper buttons <img src="/src/doc/coor_images/stepper_buttons.png" width="100"/>
+      <li>Use its stepper buttons <img src="doc/coor_images/stepper_buttons.png" width="100"/>
       to evaluate its highlighted code.</li>
       <li>See the tooltips on each button for how much
       code is evaled by each button.</li>

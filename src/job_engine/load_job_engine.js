@@ -25,7 +25,7 @@ import {adjust_path_to_os, append_to_file,
      get_latest_path, get_page_async,
      is_folder, load_files,
      make_folder, make_full_path, make_unique_path,
-     persistent_get, persistent_remove, persistent_save,
+     persistent_get, persistent_remove,
      read_file, read_file_async, write_file, write_file_async}
      from "./core/storage.js"
 
