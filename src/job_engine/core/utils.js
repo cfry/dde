@@ -1957,6 +1957,11 @@ static string_to_seconds(dur){
         }
         return result
     }
+
+   static available_memory(){
+        return performance.memory.jsHeapSizeLimit -
+            performance.memory.usedJSHeapSize
+   }
 } //end class Utils
 
 globalThis.Utils = Utils

@@ -9,6 +9,7 @@ import ws from 'ws' ; //websocket
 import path from 'path';
 import { spawn } from 'child_process'
 import ModbusRTU from "modbus-serial"
+import os from "os" //dde4 added
 //dde4 replaced the below requires with the above imports
 /*
 var http = require('http'); 
@@ -47,9 +48,30 @@ var mimeTypes = {
   };
 
 const SHARE_FOLDER = '/srv/samba/share';
-const DDE_APPS_FOLDER = SHARE_FOLDER + '/dde_apps/';
-const DDE_INSTALL_FOLDER = '/root/Documents/dde'; //where DDE is installed on Dexter
+const DDE_APPS_FOLDER = SHARE_FOLDER + '/dde_apps/'; //todo dde4 proably shouldn't end in slash
+const DDE_INSTALL_FOLDER = '/root/Documents/dde'; //where DDE is installed on Dexter  //todo dde4 this changes
 
+function running_on_dexter() { //dde4 added
+    return fs.existsSync(SHARE_FOLDER)
+}
+
+function make_full_path(path){ //dde4 added
+    if(path.startsWith("/")) {} //keep path as is
+    else if ((path === "dde_apps") || path.startsWith("dde_apps/")){
+        if(running_on_dexter()) {
+            path = SHARE_FOLDER + "/" + path
+        }
+        else {
+            let prefix = os.homedir() + "/documents/"
+            console.log("in make_full_path, NOT running_on_dexter, prefix: " + prefix)
+            path = prefix + path
+        }
+    }
+    else {
+        path = SHARE_FOLDER + "/" + path
+    }
+    return path
+}
 //const { spawn } = require('child_process'); //see top of file
  
 var job_name_to_process = {};
@@ -286,9 +308,11 @@ var http_server = http.createServer(function (req, res) {
   if (q.pathname === "/init_jobs") {
       serve_init_jobs(q, req, res)
   }
-  else if (q.pathname === "/edit" && q.query.info ) {
+  else if (q.pathname === "/edit" && q.query.info ) { //added dde4
       let path = q.query.info
-      console.log("Getting info for: " + path)
+      console.log("Getting info for orig path: " + path)
+      path = make_full_path(path)
+      console.log("Getting info for full path: " + path)
       let str_to_write
       if(fs.existsSync(path)) {
           let stat = fs.statSync(path)
@@ -299,12 +323,13 @@ var http_server = http.createServer(function (req, res) {
           else if(stat.isFIFO())            { kind = "fifo" }
           else if(stat.isCharacterDevice()) { kind = "character_device" }
           else                              { kind = "other" }
-          stat.kind = kind
-          let permissions = (stat.mode & parseInt('777', 8)).toString(8)
+          stat.kind        = kind
+          stat.full_path   = path
+          let permissions  = (stat.mode & parseInt('777', 8)).toString(8)
           stat.permissions = permissions
-          str_to_write = JSON.stringify(stat)
+          str_to_write     = JSON.stringify(stat)
       }
-      else { str_to_write = "null"}
+      else { str_to_write = "null"} //path is non-existant
       console.log("info: " + str_to_write)
       res.write(str_to_write)
       res.end()
@@ -317,6 +342,7 @@ var http_server = http.createServer(function (req, res) {
     //    listpath = listpath + "/"
     //}
     //console.log("File list:"+listpath)
+    listpath = make_full_path(listpath)
     fs.readdir(listpath, {withFileTypes: true}, 
       function(err, items){ //console.log("file:" + JSON.stringify(items))
         if(err) { console.log("error in http.createServer: " + err.message) } //dde4 added for insurance

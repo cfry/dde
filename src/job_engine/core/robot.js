@@ -1906,6 +1906,22 @@ Dexter.prototype.reboot_joints_fn = function (){
     }).start()
 }
 
+Dexter.reboot_dexter_default_cb = function(){
+    Job.reboot_dexter.stop_for_reason("completed", "Dexter done rebooting.")
+    out("Dexter." + Dexter.default.name + " rebooted.")
+}
+
+//the job will "hang" on running because the make_ins instruction will
+//not get a robot status back.
+Dexter.prototype.reboot_dexter = function(callback=Dexter.reboot_dexter_default_cb) {
+    new Job({name: "reboot_dexter",
+        robot: this,
+        do_list: [
+            function() { setTimeout(callback, (3 * 60 * 1000)) }, //3 minutes timeout to start next job
+            make_ins("r 0 ` reboot")
+        ]
+    }).start()
+}
 
 
 //Dexter.make_ins = make_ins this is below due to loading order issues

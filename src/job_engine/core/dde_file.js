@@ -1,7 +1,53 @@
 import {eval_js_part2} from "../../general/eval.js"
 
 class DDEFile {
-    static dde_apps_folder_url
+    //utilities
+    static convert_backslashes_to_slashes(a_string){
+        return a_string.replace(/\\/g, "/")
+    }
+
+    static is_root_path(path){
+        if(path.startsWith("/")) { return true }
+        else if ((path.length > 1) && (path[1] == ":")){ //WinOS junk. Maybe unnecessary in dde4
+            let first_char = path[0]
+            return ((first_char >= "A") && (first_char <= "Z"))
+        }
+        else { return false }
+    }
+
+    static add_default_file_prefix_maybe(path){
+        path = DDEFile.convert_backslashes_to_slashes(path)
+        if (this.is_root_path(path)) { return path }
+        else if ((path === "dde_apps") || path.startsWith("dde_apps/")) { return path }
+        else if (path == "new buffer") { return path } //needed by Editor.edit_file
+        else { return "dde_apps/" + path }
+    }
+    /*    else if (path.includes(":")) { return path }
+        else if (path.startsWith("dde_apps/")) {
+            path = path.substring(8)
+            return dde_apps_folder + path
+        }
+        else if(path.startsWith("./")) {  //return "dde_apps/" + path.substring(2)
+            return dde_apps_folder + path.substring(1)
+        }
+        else if (path.startsWith("../")) {
+            let core_path = path.substring(3)
+            let last_slash_pos = dde_apps_folder.lastIndexOf("/")
+
+            let up_from_dde_apps = dde_apps_folder.substring(0, last_slash_pos + 1)
+            new_path = up_from_dde_apps + core_path
+            return new_path
+        }
+        else { return dde_apps_folder + "/" + path }
+    }*/
+
+    /*static make_full_path(path){
+        path = this.add_default_file_prefix_maybe(path)
+        //if (adjust_to_os) { path = adjust_path_to_os(path) }
+        return path
+    }*/
+
+
 
     static host(){
         return window.location.host //ex: "192.168.1.142:5000", "localhost:80"
@@ -15,11 +61,58 @@ class DDEFile {
     static protocol_and_host(){ //includes port
         return window.location.protocol +  // "http:" or "https:"
                "//" +
-               window.location.host
+               this.host()
     }
 
+    static extract_domain_from_url(url){
+        let [protocol, empty, domain] = url.split("/")
+        return domain
+    }
+
+   //url_or_path does not have a query portion. That will get created
+   //from the path of the url that is returned by this function
+    /* ultimately not useful due to the way url's are constructed with paths in query strings.
+    static make_url(url_or_path) {
+       if(url_or_path.startsWith("http://") ||
+          url_or_path.startsWith("https://")){
+          let url_split_array = url.split("/")
+          let [protocol, empty, domain, path_start] = url_split_array
+          if(domain.startsWith("Dexter.")) {
+             let dexter_instance
+             try{
+                dexter_instance = Utils.value_of_path(domain)
+             }
+             catch(err){
+                 dde_error("in make_url(" + url_or_path + ") the domain: " +
+                            domain + " looks like a Dexter instance, but isn't.")
+             }
+             let domain = dexter_instance.ip_address
+             let url = protocol + "//" + domain + "/"
+             let path = ""
+             if (path_start === "sroot") {
+                  //path = url_split_array.slice(4).join("/")
+             }
+             else {
+                if(this.is_server_on_dexter()){
+
+                }
+                else {
+                   if(path_start === "dde_apps") {
+
+                   }
+
+                }
+                 path += url_split_array.slice(3).join("/")
+             }
+             url += path
+         }
+
+       }
+    }*/
+
+    //static dde_apps_folder_url
     static init(){
-        if(this.is_server_on_dexter()){
+        /*if(this.is_server_on_dexter()){
             dde_apps_folder = "/srv/samba/share/dde_apps"
         }
         else {
@@ -27,6 +120,7 @@ class DDEFile {
         }
         this.dde_apps_folder_url = this.protocol_and_host() + "//" +
                                    dde_apps_folder
+        */
     }
     static ensure_ending_slash(str){
         str = str.trim()
@@ -40,9 +134,13 @@ class DDEFile {
         else { return str }
     }
 
-    static async folder_listing(path=dde_apps_folder){
-       if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path }
-       if(!path.endsWith("/")) { path = path + "/" } //httpd.js requires ending slash
+    //______end Utilites______
+
+    static async folder_listing(path="dde_apps"){
+       //if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path }
+       //if(!path.endsWith("/")) { path = path + "/" } //httpd.js requires ending slash
+       path = this.add_default_file_prefix_maybe(path)
+       path = this.ensure_ending_slash(path) //httpd.js requires ending slash
        let url = this.protocol_and_host() + "/edit?list=" + path
        let fold_info = await fetch(url)
        //out("fold_info: " + fold_info)
@@ -106,9 +204,8 @@ class DDEFile {
 
 
     static async download_file(path){
-        if(!path.startsWith("/")) {
-            path = dde_apps_folder + "/" + path
-        }
+        //if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path}
+        path = this.add_default_file_prefix_maybe(path)
         let full_url = this.protocol_and_host() + "/edit?edit=" + path
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
@@ -190,12 +287,16 @@ class DDEFile {
 
     //folder is a string like "/foo/bar" or "/foo/bar/"
     //choose file to edit, etc depending on callback
-    static async choose_file({folder=dde_apps_folder,
+    static async choose_file({folder="dde_apps",
                               title="Choose a file from:",
                               x=50, y=50, width=700, height=450,
                               callback=DDEFile.choose_file_to_edit_handler}){
-        if(!folder.startsWith("/")) { folder = dde_apps_folder + "/" + path }
-        if(!folder.endsWith("/")) { folder = folder + "/" }
+        //if(!folder.startsWith("/")) { folder = dde_apps_folder + "/" + path }
+        //if(!folder.endsWith("/")) { folder = folder + "/" }
+        folder = this.add_default_file_prefix_maybe(folder)
+        folder = this.ensure_ending_slash(folder)
+        let full_folder_info_obj = await DDEFile.path_info(folder)
+        let full_folder = full_folder_info_obj.full_path
         let fold_info = await this.folder_listing(folder)
         let array_of_objs = await fold_info.json()
         let html = "<table><tr><th>Name</th><th>Size(bytes)</th><th>Last Modified Date</th><th>Permissions</th></tr>\n"
@@ -207,7 +308,7 @@ class DDEFile {
                     name = name + "/"
                     is_dir = true
                 }
-                let path = folder + name
+                let path = full_folder + name
                 let name_html = "<a href='#' name='" + path + "'>" + name + "</a>"
                 let date_ms = obj.date //might be a float, possibly undefined.
                 let date_str = Utils.date_or_number_to_ymdhms(date_ms)
@@ -224,7 +325,7 @@ class DDEFile {
         }
         html += "</table>"
         let breadcrumbs_html = "/"
-        let folds = folder.split("/")
+        let folds = full_folder.split("/")
         let building_fold = "/"
         for(let fold of folds){
             if(fold !== "") { //first and last elts of folds are empty strings
@@ -240,9 +341,8 @@ class DDEFile {
                      callback: callback})
     }
     static async edit_file(path, dont_save_cur_buff_even_if_its_changed=false){
-        if(!path.startsWith("/")) {
-            path = dde_apps_folder + "/" + path
-        }
+        //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
+        path = this.add_default_file_prefix_maybe(path)
         let full_url = this.protocol_and_host() + "/edit?edit=" + path
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
           //think that this url is a root url for some strange reason.
@@ -258,9 +358,8 @@ class DDEFile {
     }
 
     static async insert_file_content(path){
-        if(!path.startsWith("/")) {
-            path = dde_apps_folder + "/" + path
-        }
+        //if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path }
+        path = this.add_default_file_prefix_maybe(path)
         let full_url = this.protocol_and_host() + "/edit?edit=" + path
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
@@ -277,9 +376,8 @@ class DDEFile {
 
 
     static async load_file(path){
-        if(!path.startsWith("/")) {
-            path = dde_apps_folder + "/" + path
-        }
+        //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
+        path = this.add_default_file_prefix_maybe(path)
         let full_url = this.protocol_and_host() + "/edit?edit=" + path
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
@@ -297,10 +395,9 @@ class DDEFile {
     //path can be a file, a folder, or a non-existant path.
     //returns null, if non-existant, else
     //a JSON object with the fields documented in
-    static async path_info(path){
-        if(!path.startsWith("/")) {
-            path = dde_apps_folder + "/" + path
-        }
+    static async path_info(path = "dde_apps"){
+        ///if(!path.startsWith("/")) {    path = dde_apps_folder + "/" + path
+        path = this.add_default_file_prefix_maybe(path)
         let full_url = this.protocol_and_host() + "/edit?info=" + path
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
@@ -309,18 +406,20 @@ class DDEFile {
         if(!file_info_response.ok) { return null } //ie file doesn't exist
         else {
             let content = await file_info_response.text()
-            let json_obj = JSON.parse(content)
-            let is_dir = json_obj.kind === "folder"
-            let perm_str = Utils.permissions_integer_string_to_letter_string(json_obj.permissions, is_dir)
-            json_obj.perissions_letters = perm_str
-            return json_obj
+            if(content === "null") { return null }
+            else {
+                let json_obj = JSON.parse(content)
+                let is_dir = json_obj.kind === "folder"
+                let perm_str = Utils.permissions_integer_string_to_letter_string(json_obj.permissions, is_dir)
+                json_obj.perissions_letters = perm_str
+                return json_obj
+            }
         }
     }
 
     static async file_exists(path){
-        if(!path.startsWith("/")) {
-            path = dde_apps_folder + "/" + path
-        }
+        //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
+        path = this.add_default_file_prefix_maybe(path)
         let full_url = this.protocol_and_host() + "/edit?edit=" + path
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
@@ -331,47 +430,6 @@ class DDEFile {
 
 
 
-    //utilities
-    static convert_backslashes_to_slashes(a_string){
-        return a_string.replace(/\\/g, "/")
-    }
-
-    static is_root_path(path){
-        if(path.startsWith("/")) { return true }
-        else if ((path.length > 1) && (path[1] == ":")){ //WinOS junk. Maybe unnecessary in dde4
-            let first_char = path[0]
-            return ((first_char >= "A") && (first_char <= "Z"))
-        }
-        else { return false }
-    }
-
-
-    static add_default_file_prefix_maybe(path){
-        if (this.is_root_path(path)) { return path }
-        else if (path.includes(":")) { return path }
-        else if (path.startsWith("dde_apps/")) {
-            path = path.substring(8)
-            return dde_apps_folder + path
-        }
-        else if(path.startsWith("./")) {  //return "dde_apps/" + path.substring(2)
-            return dde_apps_folder + path.substring(1)
-        }
-        else if (path.startsWith("../")) {
-            let core_path = path.substring(3)
-            let last_slash_pos = dde_apps_folder.lastIndexOf("/")
-
-            let up_from_dde_apps = dde_apps_folder.substring(0, last_slash_pos + 1)
-            new_path = up_from_dde_apps + core_path
-            return new_path
-        }
-        else { return dde_apps_folder + "/" + path }
-    }
-
-    static make_full_path(path){
-        path = this.add_default_file_prefix_maybe(path)
-        //if (adjust_to_os) { path = adjust_path_to_os(path) }
-        return path
-    }
 
     static async read_file_async(path){
         if (path === undefined){
@@ -380,7 +438,8 @@ class DDEFile {
             }
             else { path = Editor.current_file_path }
         }
-        path = this.make_full_path(path)
+        //path = this.make_full_path(path)
+        path = this.add_default_file_prefix_maybe(path)
         let full_url = this.protocol_and_host() +  "/edit?edit=" + path
         let file_info_response = await fetch(full_url)
         if(file_info_response.ok) {
@@ -401,10 +460,10 @@ class DDEFile {
             }
             else { path = Editor.current_file_path }
         }
+        path = this.add_default_file_prefix_maybe(path)
         if (content === undefined) {
             content = Editor.get_javascript()
         }
-        path = this.make_full_path(path)
         let full_url = this.protocol_and_host() + "/edit" //"/edit?path=path" //"/edit"
         //let res = await fetch(full_url, {method: 'POST', //'PUT', //'POST', //using PUT fails
         //                                 //path: path, //fails
@@ -445,8 +504,10 @@ class DDEFile {
            let is_folder = vals.clicked_button_value.endsWith("/")
            if(is_folder){
                let path_to_save_to = vals.clicked_button_value + filename_to_save_to
+               let save_button_label = vals.save_button_label.value
                DDEFile.choose_file_save_as({path:     path_to_save_to,
                                             title:    "Save file as:",
+                                            save_button_label: save_button_label,
                                             callback: "DDEFile.choose_file_save_as_handler"})
            }
            else {
@@ -525,15 +586,20 @@ class DDEFile {
     static current_path_to_save_to = null
 
     //folder is a string like "/foo/bar" or "/foo/bar/"
-    static async choose_file_save_as({path=dde_apps_folder + "/junk.js",
+    static async choose_file_save_as({path="dde_apps" + "/junk.js",
+                                      save_button_label = "Save",
                                       title="Save file as:",
                                       x=50, y=50, width=700, height=450,
-                                      callback="DDEFile.choose_file_save_as_handler"}){
-        if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path }
+                                      callback="DDEFile.choose_file_save_as_handler"} = {}){
+        //if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path }
+        path = this.add_default_file_prefix_maybe(path)
         let last_slash = path.lastIndexOf("/")
-        let folder = path.substring(0, last_slash + 1) //we want folder to end in a slash
-        let filename = path.substring(last_slash + 1)
-        let fold_info = await this.folder_listing(folder)
+        let folder     = path.substring(0, last_slash + 1) //we want folder to end in a slash
+        let filename   = path.substring(last_slash + 1)
+        let full_folder_info_obj = await DDEFile.path_info(folder)
+        let full_folder = full_folder_info_obj.full_path
+
+        let fold_info  = await this.folder_listing(folder)
         let array_of_objs = await fold_info.json()
         let html = "<table><tr><th>Name</th><th>Size(bytes)</th><th>Last Modified Date</th><th>Permissions</th></tr>\n"
         for(let obj of array_of_objs) {
@@ -544,7 +610,7 @@ class DDEFile {
                     name = name + "/"
                     is_dir = true
                 }
-                let path = folder + name
+                let path = full_folder + name
                 let name_html = "<a href='#' name='" + path + "'>" + name + "</a>"
                 let date_ms = obj.date //might be a float, possibly undefined.
                 let date_str = Utils.date_or_number_to_ymdhms(date_ms)
@@ -561,9 +627,9 @@ class DDEFile {
         }
         html += "</table>"
 
-        this.current_folder_to_save_to = folder
+        this.current_folder_to_save_to = full_folder
         let breadcrumbs_html = "/"
-        let folds = folder.split("/")
+        let folds = full_folder.split("/")
         let building_fold = "/"
         for(let fold of folds){
             if(fold !== "") { //first and last elts of folds are empty strings
@@ -573,8 +639,9 @@ class DDEFile {
             }
         }
         html = "<input style='margin-left:10px' id='filename_to_save_to_id' value='" + filename + "'/>" +
-               "<input type='submit' style='margin-left:10px' name='save_as' value='Save' autofocus/>" +
-               html
+               "<input type='submit' style='margin-left:10px' name='save_as' value='" + save_button_label + "' autofocus/>" +
+               "<input type='hidden' style='margin-left:10px' name='save_button_label' value='" + save_button_label + "'/>" +
+                html
         show_window({title: "<span style='font-size:17px;'> " + title + " " + breadcrumbs_html + "</span>",
                      content: html,
                      x: x, y: y, width: width, height: height,
@@ -596,7 +663,7 @@ class DDEFile {
         if(vals.clicked_button_value === "close_button") {}
         else if (vals.clicked_button_value === "upload_file"){
             let first_file = dde_upload_file_id.files[0]
-            let path = dde_apps_folder + "/" + first_file.name
+            let path = "dde_apps" + "/" + first_file.name
             DDEFile.choose_file_save_as({path: path,
                                          title: "Upload file to:",
                                          callback: "DDEFile.file_upload_handler"})
@@ -647,9 +714,10 @@ class DDEFile {
     //choose folder to upload_______
 
     static choose_folder_to_upload(){
-        show_window({title: "Choose a folder to upload",
-            content: "First click the <b>Choose Files</b> button and select a source folder.<p/>" +
-                     "<input id='dde_upload_folder_id' type='file' webkitdirectory multiple value='Choose folder'/><p/>" +
+        show_window({
+            title: "Choose a folder to upload",
+            content: "First click the <b>Choose File</b> button and select a source folder.<p/>" +
+                     "<input id='dde_upload_folder_id' type='file' webkitdirectory value='Choose folder'/><p/>" +
                      "Then click <b>Upload Folder</b> and select the destination folder.<p/>" +
                      "<input name='upload_folder' type='button' value='Upload Folder'/>",
             x:100, y:100, width:450, height:190,
@@ -669,7 +737,7 @@ class DDEFile {
                 title = "Upload the files of folder <b>" + last_folder_name + "</b> to:"
                 break;
             }
-            let path = dde_apps_folder + "/" + last_folder_name
+            let path = "dde_apps" + "/" + last_folder_name
             DDEFile.choose_folder_to_upload_to({path: path,
                 title:    title,
                 callback: "DDEFile.choose_folder_to_upload_to_handler"})
@@ -683,7 +751,7 @@ class DDEFile {
         if(vals.clicked_button_value === "close_button") {}
         else if(vals.clicked_button_value === "upload") { //does the real work
             let files = dde_upload_folder_id.files //a file is a blob
-            out("Uploading " + files.length + " files from " + vals.orig_folder_name)
+            out("Uploading " + files.length + " files from " + vals.orig_folder_name + " to " + vals.path_sans_last_folder_name_with_last_slash)
             for(let file of files){
                 let path_to_save_to = vals.path_sans_last_folder_name_with_last_slash + vals.last_folder_name + "/" + file.name
                 await DDEFile.write_file_async(path_to_save_to, file)
@@ -716,15 +784,15 @@ class DDEFile {
         }
     }
 
-    static async choose_folder_to_upload_to({path=dde_apps_folder,
+    static async choose_folder_to_upload_to({path="dde_apps/",
                                              title=null,
                                              x=50, y=50, width=700, height=450,
                                              callback="DDEFile.choose_folder_to_upload_to_handler",
                                              orig_folder_name = null}){
 
-        if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path }
-
-        if (!path.endsWith("/")) { path = path + "/" } //ensure last slash, needed on path below
+        //if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path }
+        //if (!path.endsWith("/")) { path = path + "/" } //ensure last slash, needed on path below
+        path = this.add_default_file_prefix_maybe(path)
         /*let last_slash = path.lastIndexOf("/")
         let first_path = path.substring(0, last_slash + 1) //inclusive trailing slash
         let last_path  = path.substring(last_slash + 1)

@@ -699,7 +699,9 @@ export function on_ready() {
  insert_file_path_into_editor_id.onclick=function(e){
      //const path = choose_file({title: "Choose a file to insert into DDE's editor"})
      //if (path){ Editor.insert('"' + path + '"') }
-     DDEFile.choose_file_save_as({path:   undefined,
+     DDEFile.choose_file_save_as({
+                                  path:   undefined,
+                                  save_button_label: "Insert",
                                   title:    "Insert file path:",
                                   callback: "DDEFile.insert_file_path_handler" })
  }
@@ -707,7 +709,9 @@ export function on_ready() {
  insert_file_path_into_cmd_input_id.onclick=function(e){
      //const path = choose_file({title: "Choose a file to insert into DDE's editor"})
      //if (path){ Editor.insert_into_cmd_input('"' + path + '"')}
-     DDEFile.choose_file_save_as({path:   undefined,
+     DDEFile.choose_file_save_as({
+                                  path:   undefined,
+                                  save_button_label: "Insert",
                                   title:    "Insert file path into cmd input:",
                                   callback: "DDEFile.insert_file_path_into_cmd_handler" })
  }
@@ -1541,6 +1545,11 @@ window_modify_id.onclick=function(){Editor.insert(
           Dexter.default.reboot_joints_fn() //not an instruction, a function that creates a job and starts it
       }
 
+      //starts a job to reboot Dexter.
+      reboot_dexter_id.onclick = function(){
+          Dexter.default.reboot_dexter()
+      }
+
       show_errors_log_id.onclick = function(){
           let path = "Dexter." + Dexter.default.name + ":/srv/samba/share/errors.log"
           read_file_async(path, undefined, function(err, data){
@@ -1609,7 +1618,7 @@ window_modify_id.onclick=function(){Editor.insert(
       SSH.run_command({command:SSH.show_dir_cmd})
   }
   reboot_id.onclick = function() {
-      cmd_input_id.value = "shutdown -r now"
+      cmd_input_id.value = "reboot" //"reboot" is better than "shutdown -r now" for resetting the FPGA code
       cmd_input_id.focus()
   }
   run_selected_cmd_id.onclick = function(){

@@ -284,14 +284,14 @@ class Editor {
     //below a folder always ends with a slash or a colon (as in "dexter0:")
     static files_menu_path_to_folder_and_name (path){
         let [name, fold] = path.split(Editor.files_menu_path_separator)
-        if(fold == "dde_apps/") { fold = dde_apps_folder + "/" }
+        //if(fold == "dde_apps/") { fold = dde_apps_folder + "/" }
         return [fold, name]
     }
 
     static make_files_menu_path (folder, name) {
-        if (folder.startsWith(dde_apps_folder)){
-            folder = "dde_apps" + folder.substring(dde_apps_folder.length)
-        }
+        //if (folder.startsWith(dde_apps_folder)){
+        //    folder = "dde_apps" + folder.substring(dde_apps_folder.length)
+        //}
         return name + Editor.files_menu_path_separator + folder
     }
 
@@ -299,9 +299,9 @@ class Editor {
     // The returned folder always ends with slash or colon.
     static path_to_folder_and_name (path){
         let file_name_start_index = path.lastIndexOf("/")
-        if(file_name_start_index == -1) { file_name_start_index = path.lastIndexOf(":") } //happens with dexter0:foo.js and C:foo.js
+        //if(file_name_start_index == -1) { file_name_start_index = path.lastIndexOf(":") } //happens with dexter0:foo.js and C:foo.js
         if(file_name_start_index == -1) { //happens with "foo.js"
-            return[dde_apps_folder + "/", path]
+            return["dde_apps/", path]
         }
         else {
             return [path.substring(0, file_name_start_index + 1),  path.substring(file_name_start_index + 1)]
@@ -323,8 +323,9 @@ class Editor {
 }*/
     static path_to_files_menu_path (path){
         if(path == "new buffer") { return path }
-        else if (path.startsWith(dde_apps_folder)){
-            path = "dde_apps" + path.substring(dde_apps_folder.length)
+        else if (path.startsWith("/")){ } //ok as is
+        else if (!path.startsWith("dde_apps/")) {
+            path = "dde_apps/" + path
         }
         let [fold, name] = Editor.path_to_folder_and_name(path)
         return Editor.make_files_menu_path(fold, name)
@@ -847,10 +848,11 @@ Clear its content?
                callback: "DDEFile.choose_file_to_edit_handler"})
        }
        else {
-           warning("You can't go to a new file until you either<br/>" +
+           warning("You can't edit a new file until you either<br/>" +
                    "delete the contents of the current buffer<br/>" +
                    "indicating you don't care about it, or<br/> " +
-                   "you choose file menu's <b>Save As</b> to save it in a named file.")
+                   "you choose the file menu's <b>Save</b> to save it, or<br/>" +
+                   "you choose the File menu's <b>Save As</b> to save it in a named file.")
        }
    }
 //path is the new path to edit,
@@ -858,7 +860,7 @@ Clear its content?
 //usually content is not passed as that's gotten from path,
 //but in the ssh context, it sometimes is passed.
     static edit_file (path, content, dont_save_cur_buff_even_if_its_changed=false){ //path could be "new buffer"
-        let new_path = DDEFile.convert_backslashes_to_slashes(path) //must store only slashes in files menu
+        let new_path = DDEFile.add_default_file_prefix_maybe(path) //converts backslashes to slashes and maybe prefixes "dde_apps"
         let cur_path = Editor.current_file_path
         let cur_content = Editor.get_javascript()
         if(dont_save_cur_buff_even_if_its_changed ||
@@ -998,6 +1000,7 @@ Clear its content?
 
     //saving of current buff, if needed has already happened.
     //just display the new content in the editor
+    //path
     static edit_file_aux (path, content){
         Editor.set_javascript(content)
         Editor.current_file_path = path
@@ -1070,8 +1073,8 @@ Clear its content?
     static save_as(){
         const title     = "Save as:"
         let default_path
-        if(Editor.current_file_path == "new buffer") { default_path = dde_apps_folder + "/junk.js" }
-        else if (!Editor.current_file_path)          { default_path = dde_apps_folder + "/junk.js"}
+        if(Editor.current_file_path == "new buffer") { default_path = "dde_apps/junk.js" }
+        else if (!Editor.current_file_path)          { default_path = "dde_apps/junk.js"}
         else if(Editor.current_file_path)            { default_path = Editor.current_file_path }
         else { Utils.shouldnt("In Editor.save_as with: Editor.current_file_path: " + Editor.current_file_path)}
         DDEFile.choose_file_save_as({path: default_path,
