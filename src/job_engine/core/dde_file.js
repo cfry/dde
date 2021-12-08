@@ -751,18 +751,20 @@ class DDEFile {
         if(vals.clicked_button_value === "close_button") {}
         else if(vals.clicked_button_value === "upload") { //does the real work
             let files = dde_upload_folder_id.files //a file is a blob
-            out("Uploading " + files.length + " files from " + vals.orig_folder_name + " to " + vals.path_sans_last_folder_name_with_last_slash)
+            let suffix = ((files.length === 1 ? "" : "s"))
+            out("Uploading " + files.length + " file" + suffix + " from " + vals.orig_folder_name + "/ to " + vals.full_folder_to_present +  vals.last_folder_name + "/")
             for(let file of files){
-                let path_to_save_to = vals.path_sans_last_folder_name_with_last_slash + vals.last_folder_name + "/" + file.name
+                let path_to_save_to = vals.full_folder_to_present + vals.last_folder_name + "/" + file.name
                 await DDEFile.write_file_async(path_to_save_to, file)
-                out(path_to_save_to + " uploaded.")
+                out("File uploaded to: " + path_to_save_to)
             }
-            out(vals.orig_folder_name + " folder upload complete.")
+            out(vals.orig_folder_name + "/ folder upload complete.")
         }
         else if (!vals.clicked_button_value.endsWith("/")){
             warning("You must choose a folder, not a file.\nFolder names end in slash.")
         }
         else { //navigate to new folder to upload to
+            //user clicked on either a breadcrumb in the title or a folder name in the table.
             let window_index = vals.window_index
             SW.close_window(window_index)
             let title = "Upload the files of folder to:"
@@ -777,10 +779,11 @@ class DDEFile {
             let last_folder_name = vals.last_folder_name
             let path_to_save_to = DDEFile.ensure_ending_slash(vals.clicked_button_value)
                                   + last_folder_name
-            DDEFile.choose_folder_to_upload_to({path: path_to_save_to,
-                title:    title,
-                callback: "DDEFile.choose_folder_to_upload_to_handler",
-                orig_folder_name: vals.orig_folder_name})
+            DDEFile.choose_folder_to_upload_to({
+                                    path:     vals.clicked_button_value + vals.last_folder_name,
+                                    title:    title,
+                                    callback: "DDEFile.choose_folder_to_upload_to_handler",
+                                    orig_folder_name: vals.orig_folder_name})
         }
     }
 
@@ -806,7 +809,8 @@ class DDEFile {
         //this.current_folder_to_save_to = path
         if (orig_folder_name === null) { orig_folder_name = last_folder_name}
         title = "Upload files from <b>" + orig_folder_name + "</b> to:"
-
+        let full_folder_to_present_info_obj = await DDEFile.path_info(path_sans_last_folder_name_with_last_slash)
+        let full_folder_to_present = full_folder_to_present_info_obj.full_path
         let fold_info = await this.folder_listing(path_sans_last_folder_name_with_last_slash)
         let array_of_objs = await fold_info.json()
         let html = "<table><tr><th>Name</th><th>Size(bytes)</th><th>Last Modified Date</th><th>Permissions</th></tr>\n"
@@ -835,7 +839,7 @@ class DDEFile {
         }
         html += "</table>"
         let breadcrumbs_html = "/"
-        let folds = path_sans_last_folder_name_with_last_slash.split("/")
+        let folds = full_folder_to_present.split("/")  //full_folder_to_present has slahses on front and end
         let building_fold = "/"
         for(let fold of folds){
             if(fold !== "") { //first and last elts of folds are empty strings
@@ -844,13 +848,13 @@ class DDEFile {
                 breadcrumbs_html += the_html + "/"
             }
         }
-        let path_to_save_to = path_sans_last_folder_name_with_last_slash + last_folder_name
+        let path_to_save_to = full_folder_to_present + last_folder_name
         let upload_tooltip = "Click to upload the files to\n" + path_sans_last_folder_name_with_last_slash +
                               "\nwith a last_folder of the folder in the type-in to the left."
 
         html = "<input style='margin-left:10px' name='last_folder_name' value='" + last_folder_name + "'/>" +
                "<input type='submit' title='" + upload_tooltip + "' style='margin-left:10px; margin-bottom:5px;' name='upload' value='upload'/>" +
-               "<input type='hidden' name='path_sans_last_folder_name_with_last_slash' value='" + path_sans_last_folder_name_with_last_slash + "'/>" +
+               "<input type='hidden' name='full_folder_to_present' value='" + full_folder_to_present + "'/>" +
                "<input type='hidden' name='orig_folder_name' value='" + orig_folder_name + "'/>" +
             html
         show_window({title: "<span style='font-size:17px;'> " + title + " " + breadcrumbs_html + "</span>",
