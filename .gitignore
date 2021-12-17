@@ -4,3 +4,4 @@ node_modules
 .DS_Store
 .idea
 /dde/build
+/dde/third_party/opencv.js

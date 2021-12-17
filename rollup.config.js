@@ -4,6 +4,7 @@ import commonjs from '@rollup/plugin-commonjs'
 import json     from '@rollup/plugin-json'
 import styles from "rollup-plugin-styles";
 //import sourcemaps from 'rollup-plugin-sourcemaps'; // https://github.com/maxdavidson/rollup-plugin-sourcemaps
+import copy from 'rollup-plugin-copy'
 
 
 export default {
@@ -21,6 +22,11 @@ export default {
         json(),
         styles(),
         //sourcemaps()
+        copy({
+            targets: [
+                { src: 'node_modules/opencv.js/opencv.js', dest: 'dde/third_party' }
+            ]
+        })
     ],
     output: {
         name: "dde4", //https://gist.github.com/Rich-Harris/d472c50732dab03efeb37472b08a3f32
