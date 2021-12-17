@@ -5,3 +5,4 @@ node_modules
 .idea
 /dde/build
 /dde/third_party/opencv.js
+/src/third_party/rotating-calipers.js
