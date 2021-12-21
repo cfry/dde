@@ -299,10 +299,11 @@ function isBinary(byte) { //must use numbers, not strings to compare. ' ' is 32
 //standard web server on port 80 to serve files
 var http_server = http.createServer(function (req, res) {
   //see https://nodejs.org/api/http.html#http_class_http_incomingmessage 
-  //for the format of q. 
+  //for the format of q.
+  console.log("web server got request: " + req.url )
   var q = url.parse(req.url, true)
-  var query_string = url.parse(req.url).search
-  console.log("web server passed url: " + req.url + "\n pathname: " + q.pathname + "\nquery: " + query_string)
+  let [main_url, query_string] = ("" + req.url).split("?") //url.parse(req.url,true).search fails
+  console.log("web server passed url: " + req.url + "\n           pathname: " + q.pathname + "\n           query: " + query_string)
   if (q.pathname === "/") {
       q.pathname = "index.html"
   }

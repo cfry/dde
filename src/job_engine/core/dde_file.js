@@ -83,7 +83,8 @@ class DDEFile {
                     extracted_path = host
                     host = protocol
                     extracted_path = this.add_default_file_prefix_maybe(extracted_path)
-                    url = "http" + "://" + host + ":" + query + extracted_path
+                    url = "http" + "://" + host + //":" +  //don't insert this colon. causes fetch to break
+                        query + extracted_path
                 }
             }
             else { url = path }
