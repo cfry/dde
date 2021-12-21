@@ -13,12 +13,13 @@
     "build": "npm run buildje && npm run copy_then_transform_rotating_calipers && rollup --config rollup.config.js",
     "help": "rollup --help",
     "dde_server": "node httpdde",
-    "copy_then_transform_rotating_calipers": "cp --force node_modules/rotating-calipers/rotating-calipers.js src/third_party/ && sed --in-place \"s/    RotatingCalipers.name = 'RotatingCalipers';/    \\\/\\\/ RotatingCalipers.name = 'RotatingCalipers';/\" src/third_party/rotating-calipers.js"
+    "copy_then_transform_rotating_calipers": "cp --force node_modules/rotating-calipers/rotating-calipers.js src/third_party/ && sed --in-place \"s/    RotatingCalipers.name = 'RotatingCalipers';/    \\/\\/ RotatingCalipers.name = 'RotatingCalipers';/\" src/third_party/rotating-calipers.js"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-node-resolve": "^11.0.1",
     "@rollup/plugin-replace": "^2.3.4",
+    "copyfiles": "^2.4.1",
     "rollup": "^2.35.1",
     "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-styles": "^3.14.1"
