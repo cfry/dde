@@ -13,7 +13,7 @@
     "build": "npm run buildje && npm run copy_then_transform_rotating_calipers && rollup --config rollup.config.js",
     "help": "rollup --help",
     "dde_server": "node httpdde",
-    "copy_then_transform_rotating_calipers": "copyfiles --flat node_modules/rotating-calipers/rotating-calipers.js src/third_party"
+    "copy_then_transform_rotating_calipers": "copyfiles --flat node_modules/rotating-calipers/rotating-calipers.js src/third_party && node replace-in-file.js"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
