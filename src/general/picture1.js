@@ -14,9 +14,9 @@ class Picture{
        if(typeof(cv) == "string") { //calling init a 2nd time some times screws up do to timing,
                                     //probably due to the show_video call.
 
-       //load_files(__dirname + "/node_modules/rotating-calipers/rotating-calipers.js")
+       //load_files(__ddieme + "/node_modules/rotating-calipers/rotating-calipers.js")
        // Picture.show_video({width: width, height: height, callback: SW.close_window}) //immediately closes itself, but needs to open temporarily just to complete "initing".
-      //Picture.take_picture({callback: null}) //the first time I call take_picture,
+      //Picture.take_picture({cƒallback: null}) //the first time I call take_picture,
                 //it doesn't work due to timing/async. So this "inits" the video
        //so that take_picture will work the first time.
        }

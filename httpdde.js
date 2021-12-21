@@ -62,7 +62,7 @@ function make_full_path(path){ //dde4 added
             path = SHARE_FOLDER + "/" + path
         }
         else {
-            let prefix = os.homedir() + "/documents/"
+            let prefix = os.homedir() + "/Documents/"
             console.log("in make_full_path, NOT running_on_dexter, prefix: " + prefix)
             path = prefix + path
         }
@@ -301,7 +301,8 @@ var http_server = http.createServer(function (req, res) {
   //see https://nodejs.org/api/http.html#http_class_http_incomingmessage 
   //for the format of q. 
   var q = url.parse(req.url, true)
-  console.log("web server passed pathname: " + q.pathname)
+  var query_string = url.parse(req.url).search
+  console.log("web server passed url: " + req.url + "\n pathname: " + q.pathname + "\nquery: " + query_string)
   if (q.pathname === "/") {
       q.pathname = "index.html"
   }

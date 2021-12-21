@@ -80,6 +80,15 @@ static is_string_base64(a_string, permit_trailing_newline=false) {
 }
 //end base64
 
+//Convert the string into a Uint8Array. from James N. Used in write_file
+static string_to_unit8array(str){
+    let buf8 = new Uint8Array(str.length);
+    for (let i = 0; i < str.length; i++) {
+        buf8[i] = str.charCodeAt(i);
+    }
+    return buf8
+}
+
 static prepend_file_message_maybe(message){
     if (message.startsWith("while loading file:")) { return message }
     else if (globalThis.loading_file) {
@@ -1959,8 +1968,15 @@ static string_to_seconds(dur){
     }
 
    static available_memory(){
-        return performance.memory.jsHeapSizeLimit -
-            performance.memory.usedJSHeapSize
+       if (Utils.value_of_path("window")) {
+           //the below works in DDE but fails in node,
+           return performance.memory.jsHeapSizeLimit -
+                  performance.memory.usedJSHeapSize
+       } else {
+           //works in node, but not in DDE4.
+           let info = process.memoryUsage()
+           return info.heapTotal - info.heapUsed
+       }
    }
 } //end class Utils
 

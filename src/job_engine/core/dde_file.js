@@ -41,20 +41,69 @@ class DDEFile {
         else { return dde_apps_folder + "/" + path }
     }*/
 
-    /*static make_full_path(path){
-        path = this.add_default_file_prefix_maybe(path)
+    static make_url(path, query=""){
         //if (adjust_to_os) { path = adjust_path_to_os(path) }
-        return path
-    }*/
-
-
+        let url
+        let colon_pos = path.indexOf(":")
+        let extracted_path
+        if(path.startsWith("Dexter.")){
+            if(colon_pos === -1) {
+                dde_error("The path of: " + path + " is invalid. If it starts with 'Dexter.'" +
+                          "It must contain a colon and that colon must be after the name" +
+                          "of the Dexter.")
+            }
+            else {
+                let [full_dex_name, extracted_path] = path.split(":")
+                let dex = Utils.value_of_path(full_dex_name)
+                if(!dex) {
+                    dde_error("The path of: " + path + " is invalid because<br/>" +
+                        full_dex_name + " is not defined as a Dexter instance.<br/>" +
+                        "You need to define a Dexter instance with that name and<br/>" +
+                        "an ip_address to use that path.")
+                }
+                let ip_address = dex.ip_address
+                extracted_path = this.add_default_file_prefix_maybe(extracted_path)
+                url = "http://" + ip_address + ":" + query + extracted_path
+            }
+        }
+        else if(path.startsWith("host:")){
+            let [full_dex_name, extracted_path] = path.split(":")
+            let ip_address = this.host //might return "localhost"
+            extracted_path = this.add_default_file_prefix_maybe(extracted_path)
+            url = "http://" + ip_address + ":" + query + extracted_path
+        }
+        else if (path.includes(":")) {
+            if(query !== "") {
+                let [protocol, host, extracted_path] = path.split(":")
+                if((protocol === "http") || (protocol === "https")){
+                    extracted_path = this.add_default_file_prefix_maybe(extracted_path)
+                    url = protocol + ":" + host + ":" + query + path
+                }
+                else { //only 1 colon, assume its NOT the suffix to host but the separataor between host and path
+                    extracted_path = host
+                    host = protocol
+                    extracted_path = this.add_default_file_prefix_maybe(extracted_path)
+                    url = "http" + "://" + host + ":" + query + extracted_path
+                }
+            }
+            else { url = path }
+        }
+        else {
+            path = this.add_default_file_prefix_maybe(path)
+            url = "http://" + this.host() + ":" + query + path
+        }
+        return url
+    }
 
     static host(){
         return window.location.host //ex: "192.168.1.142:5000", "localhost:80"
     }
-    static is_server_on_dexter(){
+    /*
+    static is_server_on_dexter(){ //dde4 todo compare this.host to each one of the defined dexters,
+        //and if ONE of them matches host, then return true lese return false.
         return this.host().startsWith("192.168.")
-    }
+
+    }*/
 
     //returns something like "http://localhost:80" or
     //                       "http://192.168.1.142"
@@ -69,46 +118,7 @@ class DDEFile {
         return domain
     }
 
-   //url_or_path does not have a query portion. That will get created
-   //from the path of the url that is returned by this function
-    /* ultimately not useful due to the way url's are constructed with paths in query strings.
-    static make_url(url_or_path) {
-       if(url_or_path.startsWith("http://") ||
-          url_or_path.startsWith("https://")){
-          let url_split_array = url.split("/")
-          let [protocol, empty, domain, path_start] = url_split_array
-          if(domain.startsWith("Dexter.")) {
-             let dexter_instance
-             try{
-                dexter_instance = Utils.value_of_path(domain)
-             }
-             catch(err){
-                 dde_error("in make_url(" + url_or_path + ") the domain: " +
-                            domain + " looks like a Dexter instance, but isn't.")
-             }
-             let domain = dexter_instance.ip_address
-             let url = protocol + "//" + domain + "/"
-             let path = ""
-             if (path_start === "sroot") {
-                  //path = url_split_array.slice(4).join("/")
-             }
-             else {
-                if(this.is_server_on_dexter()){
 
-                }
-                else {
-                   if(path_start === "dde_apps") {
-
-                   }
-
-                }
-                 path += url_split_array.slice(3).join("/")
-             }
-             url += path
-         }
-
-       }
-    }*/
 
     //static dde_apps_folder_url
     static init(){
@@ -135,6 +145,165 @@ class DDEFile {
     }
 
     //______end Utilites______
+    //Core file manipulation methods
+
+    static async file_exists(path){
+        //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
+        path = this.add_default_file_prefix_maybe(path)
+        let full_url = this.protocol_and_host() + "/edit?edit=" + path
+        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
+        //think that this url is a root url for some strange reason.
+        //see httpdde.js, serve_file()
+        let file_info_response = await fetch(full_url)
+        return file_info_response.ok  //should be a boolean
+    }
+
+    //path can be a file, a folder, or a non-existant path.
+    //returns null, if non-existant, else
+    //a JSON object with the fields documented in
+    static async path_info(path = "dde_apps"){
+        ///if(!path.startsWith("/")) {    path = dde_apps_folder + "/" + path
+        //path = this.add_default_file_prefix_maybe(path)
+        //let full_url = this.protocol_and_host() + "/edit?info=" + path
+        let full_url = this.make_url(path, "/edit?info=")
+        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
+        //think that this url is a root url for some strange reason.
+        //see httpdde.js, serve_file()
+        // see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+        let file_info_response = await fetch(full_url, {mode: 'no-cors'}) // no-cors)
+        if(!file_info_response.ok) { return null } //ie file doesn't exist
+        else {
+            let content = await file_info_response.text()
+            if(content === "null") { return null }
+            else {
+                let json_obj = JSON.parse(content)
+                let is_dir = json_obj.kind === "folder"
+                let perm_str = Utils.permissions_integer_string_to_letter_string(json_obj.permissions, is_dir)
+                json_obj.permissions_letters = perm_str
+                return json_obj
+            }
+        }
+    }
+
+    static async read_file_async(path){
+        if (path === undefined){
+            if (Editor.current_file_path == "new buffer"){
+                dde_error("Attempt to read file but no filepath given.")
+            }
+            else { path = Editor.current_file_path }
+        }
+        let full_url = this.make_url(path, "/edit?edit=")
+        //path = this.add_default_file_prefix_maybe(path)
+        //let full_url = this.protocol_and_host() +  "/edit?edit=" + path
+        let file_info_response = await fetch(full_url, {mode: 'no-cors'})
+        if(file_info_response.ok) {
+            let content = await file_info_response.text()
+            return content
+        }
+        else {
+            dde_error("DDEFile.read_file_async of: " + path + " got error: " + file_info_response.status)
+        }
+    }
+
+
+    //content can be a string or a blob, and a "file" object is a blob.
+    static async write_file_async(path, content, encoding= null){ //default was "utf8" in dde3
+        if (path === undefined){
+            if (Editor.current_file_path == "new buffer"){
+                dde_error("Attempt to write file but no filepath given.")
+            }
+            else { path = Editor.current_file_path }
+        }
+        //path = this.add_default_file_prefix_maybe(path)
+        if (content === undefined) {
+            content = Editor.get_javascript()
+        }
+        if(encoding === null) {
+            if(Utils.typed_array_name(content) === "Uint8Array") {} //good!
+            else if (typeof(content) === "string") {
+                content = Utils.string_to_unit8array(content)
+            }
+            else {
+                warning("DDEFile.write_file_async passed content of type: " +
+                    typeof (content) + " and encoding of null.<br/>" +
+                    "write probably won't write the content correctly.")
+            } //todo  good luck! probably need some conversion here.
+        }
+
+        let full_url = this.make_url(path, "/edit?")
+        //let full_url = this.protocol_and_host() + "/edit" //"/edit?path=path" //"/edit"
+        //let res = await fetch(full_url, {method: 'POST', //'PUT', //'POST', //using PUT fails
+        //                                 //path: path, //fails
+        //                                 body: content})
+        let [url_sans_query, path_to_store_content_in] = full_url.split("?")
+        let formData = new FormData();
+        let blob
+        if(typeof(content) === "string"){
+            blob = new Blob([content]) //, { type: "text/plain"}); //turns out at least for text files, no tyoe necessary
+        }
+        else if(Utils.typed_array_name(content) === "Uint8Array") {  //if I atttempt to use the uin9Arry as a blob. I get wrror "content is not of type Blob"
+            blob = new Blob([content.buffer])
+        }
+        else { blob = content } //probably a "file" object from upload
+        formData.append("data", blob, path_to_store_content_in);
+        //formData.append("name", path)
+        let res = await fetch(url_sans_query, {method: 'POST', //'PUT', //'POST', //using PUT fails
+                                             body: formData,
+                                             mode: 'no-cors'})
+        out("write_file_async wrote file to: " + full_url)
+        return res
+    }
+
+    static async edit_file(path, dont_save_cur_buff_even_if_its_changed=false){
+        //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
+        path = this.add_default_file_prefix_maybe(path)
+        let full_url = this.protocol_and_host() + "/edit?edit=" + path
+        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
+        //think that this url is a root url for some strange reason.
+        //see httpdde.js, serve_file()
+        let file_info_response = await fetch(full_url)
+        if(file_info_response.ok) {
+            let content = await file_info_response.text()
+            Editor.edit_file(path, content, dont_save_cur_buff_even_if_its_changed) //true means: dont_save_cur_buff_even_if_its_changed
+        }
+        else {
+            dde_error("DDEFile.edit_file of: " + path + " got error: " + file_info_response.status)
+        }
+    }
+
+    static async insert_file_content(path){
+        //if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path }
+        path = this.add_default_file_prefix_maybe(path)
+        let full_url = this.protocol_and_host() + "/edit?edit=" + path
+        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
+        //think that this url is a root url for some strange reason.
+        //see httpdde.js, serve_file()
+        let file_info_response = await fetch(full_url)
+        if(file_info_response.ok) {
+            let content = await file_info_response.text()
+            Editor.insert(content)
+        }
+        else {
+            dde_error("DDEFile.edit_file of: " + path + " got error: " + file_info_response.status)
+        }
+    }
+
+    static async load_file(path){
+        //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
+        path = this.add_default_file_prefix_maybe(path)
+        let full_url = this.protocol_and_host() + "/edit?edit=" + path
+        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
+        //think that this url is a root url for some strange reason.
+        //see httpdde.js, serve_file()
+        let file_info_response = await fetch(full_url)
+        if(file_info_response.ok) {
+            let content = await file_info_response.text()
+            eval_js_part2(content)
+        }
+        else {
+            dde_error("DDEFile.edit_file of: " + path + " got error: " + file_info_response.status)
+        }
+    }
 
     static async folder_listing(path="dde_apps"){
        //if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path }
@@ -146,6 +315,8 @@ class DDEFile {
        //out("fold_info: " + fold_info)
        return fold_info
     }
+
+    //______choose methods
 
     static choose_file_to_edit_handler(vals){
         //out("top of choose_file_handler with: " + vals.clicked_button_value)
@@ -288,7 +459,7 @@ class DDEFile {
     //folder is a string like "/foo/bar" or "/foo/bar/"
     //choose file to edit, etc depending on callback
     static async choose_file({folder="dde_apps",
-                              title="Choose a file from:",
+                              title="Choose file:",
                               x=50, y=50, width=700, height=450,
                               callback=DDEFile.choose_file_to_edit_handler}){
         //if(!folder.startsWith("/")) { folder = dde_apps_folder + "/" + path }
@@ -334,152 +505,25 @@ class DDEFile {
                 breadcrumbs_html += the_html + "/"
             }
         }
+        let device_menu = this.device_menu()
+
         //html = "<div style='overflow:scroll; height:400px);'>" + html + "</div>"
-        show_window({title: "<span style='font-size:17px;'> " + title + " " + breadcrumbs_html + "</span>",
+        show_window({title: "<span style='font-size:17px;'> " + title + " " + device_menu + " " + breadcrumbs_html + "</span>",
                      content: html,
                      x: x, y: y, width: width, height: height,
                      callback: callback})
     }
-    static async edit_file(path, dont_save_cur_buff_even_if_its_changed=false){
-        //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
-        path = this.add_default_file_prefix_maybe(path)
-        let full_url = this.protocol_and_host() + "/edit?edit=" + path
-        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
-          //think that this url is a root url for some strange reason.
-          //see httpdde.js, serve_file()
-        let file_info_response = await fetch(full_url)
-        if(file_info_response.ok) {
-            let content = await file_info_response.text()
-            Editor.edit_file(path, content, dont_save_cur_buff_even_if_its_changed) //true means: dont_save_cur_buff_even_if_its_changed
+
+    static device_menu(){
+        let html = "<select name='device_name'> <option>host</option>\n"
+        for(let a_dex_name of Dexter.all_names){
+            let opt_html = "<option>" + a_dex_name + "</option>\n"
+            html += opt_html
         }
-        else {
-            dde_error("DDEFile.edit_file of: " + path + " got error: " + file_info_response.status)
-        }
+        html += "</select>"
+        return html
     }
 
-    static async insert_file_content(path){
-        //if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path }
-        path = this.add_default_file_prefix_maybe(path)
-        let full_url = this.protocol_and_host() + "/edit?edit=" + path
-        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
-        //think that this url is a root url for some strange reason.
-        //see httpdde.js, serve_file()
-        let file_info_response = await fetch(full_url)
-        if(file_info_response.ok) {
-            let content = await file_info_response.text()
-            Editor.insert(content)
-        }
-        else {
-            dde_error("DDEFile.edit_file of: " + path + " got error: " + file_info_response.status)
-        }
-    }
-
-
-    static async load_file(path){
-        //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
-        path = this.add_default_file_prefix_maybe(path)
-        let full_url = this.protocol_and_host() + "/edit?edit=" + path
-        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
-        //think that this url is a root url for some strange reason.
-        //see httpdde.js, serve_file()
-        let file_info_response = await fetch(full_url)
-        if(file_info_response.ok) {
-            let content = await file_info_response.text()
-            eval_js_part2(content)
-        }
-        else {
-            dde_error("DDEFile.edit_file of: " + path + " got error: " + file_info_response.status)
-        }
-    }
-
-    //path can be a file, a folder, or a non-existant path.
-    //returns null, if non-existant, else
-    //a JSON object with the fields documented in
-    static async path_info(path = "dde_apps"){
-        ///if(!path.startsWith("/")) {    path = dde_apps_folder + "/" + path
-        path = this.add_default_file_prefix_maybe(path)
-        let full_url = this.protocol_and_host() + "/edit?info=" + path
-        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
-        //think that this url is a root url for some strange reason.
-        //see httpdde.js, serve_file()
-        let file_info_response = await fetch(full_url)
-        if(!file_info_response.ok) { return null } //ie file doesn't exist
-        else {
-            let content = await file_info_response.text()
-            if(content === "null") { return null }
-            else {
-                let json_obj = JSON.parse(content)
-                let is_dir = json_obj.kind === "folder"
-                let perm_str = Utils.permissions_integer_string_to_letter_string(json_obj.permissions, is_dir)
-                json_obj.perissions_letters = perm_str
-                return json_obj
-            }
-        }
-    }
-
-    static async file_exists(path){
-        //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
-        path = this.add_default_file_prefix_maybe(path)
-        let full_url = this.protocol_and_host() + "/edit?edit=" + path
-        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
-        //think that this url is a root url for some strange reason.
-        //see httpdde.js, serve_file()
-        let file_info_response = await fetch(full_url)
-        return file_info_response.ok  //should be a boolean
-    }
-
-
-
-
-    static async read_file_async(path){
-        if (path === undefined){
-            if (Editor.current_file_path == "new buffer"){
-                dde_error("Attempt to read file but no filepath given.")
-            }
-            else { path = Editor.current_file_path }
-        }
-        //path = this.make_full_path(path)
-        path = this.add_default_file_prefix_maybe(path)
-        let full_url = this.protocol_and_host() +  "/edit?edit=" + path
-        let file_info_response = await fetch(full_url)
-        if(file_info_response.ok) {
-            let content = await file_info_response.text()
-            return content
-        }
-        else {
-            dde_error("DDEFile.read_file_async of: " + path + " got error: " + file_info_response.status)
-        }
-    }
-
-
-    //content can be a string or a blob, and a "file" object is a blob.
-    static async write_file_async(path, content, encoding="utf8"){
-        if (path === undefined){
-            if (Editor.current_file_path == "new buffer"){
-                dde_error("Attempt to write file but no filepath given.")
-            }
-            else { path = Editor.current_file_path }
-        }
-        path = this.add_default_file_prefix_maybe(path)
-        if (content === undefined) {
-            content = Editor.get_javascript()
-        }
-        let full_url = this.protocol_and_host() + "/edit" //"/edit?path=path" //"/edit"
-        //let res = await fetch(full_url, {method: 'POST', //'PUT', //'POST', //using PUT fails
-        //                                 //path: path, //fails
-        //                                 body: content})
-        let formData = new FormData();
-        let blob
-        if(typeof(content) === "string"){
-            blob = new Blob([content]) //, { type: "text/plain"}); //turns out at least for text files, no tyoe necessary
-        }
-        else { blob = content } //probably a "file" object from upload
-        formData.append("data", blob, path);
-        //formData.append("name", path)
-        let res = await fetch(full_url, {method: 'POST', //'PUT', //'POST', //using PUT fails
-                                         body: formData})
-        return res
-    }
 //______save_as
     static choose_file_save_as_handler(vals){
         //out("top of choose_file_handler with: " + vals.clicked_button_value)

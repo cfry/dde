@@ -128,6 +128,15 @@ input[name='z_slider']::-webkit-slider-thumb {
 
 }
 
+/*without the below the "spinners" on the HTML input type="number"
+don't appear in DDE4, Chrome.
+ */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: auto;
+
+}
+
 .splash_screen_item:hover{ background: #EECCFF;}
 
 .simqueue_td{

@@ -744,6 +744,8 @@ export function on_ready() {
  //save_to_dexter_as_id.onclick = Editor.save_to_dexter_as
 
  remove_id.onclick = function(){ Editor.remove() } //don't simply use Editor.remove as ther value  for onclick because we want to default its arg as the Editor.remove method does
+ preferences_id.onclick = DDE_DB.show_dialog
+
  update_id.onclick = function(){ check_for_latest_release() }
 
  //Edit menu  (see editor.js for the Edit menu items
