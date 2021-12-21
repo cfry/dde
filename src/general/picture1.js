@@ -4,8 +4,9 @@ But looks like cv.imshow can only show to a canvas tag.
 
 //var cv = "cv is not initialized. Call Picture.init()"
 //var RotatingCalipers = "RotatingCalipers is not initialized. Call Picture.init()"
-import * as cv from "../../node_modules/opencv.js/opencv.js"
-import * as RotatingCalipers from "rotating-calipers/rotating-calipers.js"
+// import * as cv from "../../node_modules/opencv.js/opencv.js"
+import RotatingCalipers from "../third_party/rotating-calipers.js";
+globalThis.RotatingCalipers = RotatingCalipers;
 
 class Picture{
    //the width and height are for the show_window made (if any)
