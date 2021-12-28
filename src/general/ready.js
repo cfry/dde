@@ -47,8 +47,8 @@ import "codemirror/addon/fold/comment-fold.js"
 
 import "shepherd.js/dist/css/shepherd.css"
 
-import * as Espree from "../../node_modules/espree/lib/espree.js"//"espree", "espree/lib/espree.js"
-globalThis.Espree = Espree //todo Espree.parse is not defined
+import * as Espree from "espree";
+globalThis.Espree = Espree;
 
 //see https://stackoverflow.com/questions/65547827/how-to-import-npm-semver-on-an-ionic-project-with-angular
 // but that fails
