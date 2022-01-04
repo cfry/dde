@@ -1570,8 +1570,7 @@ static stringify_value_aux(value, job, depth=0){
             return value.toString()
         }
         var result = "{"
-        let constructor_name = value.constructor.name
-        if (constructor_name != "Object") { result += "class: " + constructor_name + ",<br/>"}
+        if (value.constructor && value.constructor.name && (value.constructor.name != "Object")) { result += "class: " + value.constructor.name + ",<br/>"}
         let prop_names = Object.getOwnPropertyNames(value) //long objects like cv cause problems
         for (var prop_index = 0; prop_index < Math.min(prop_names.length, 100); prop_index++) {
             let prop_name = prop_names[prop_index]

@@ -3,6 +3,7 @@ import "./test_suite.js" //must be here as TestSuite must be defined before load
 new TestSuite("file_system",
     [`new Job({name: "file_sys_test",
          do_list: [Dexter.write_file("file_sys_test.txt", "file_sys_test content1"),
+                   Control.wait_until(1),
                    Dexter.read_file("file_sys_test.txt", "ud_var_file_test")
                   ]
          }

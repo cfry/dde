@@ -161,7 +161,7 @@ class DexterSim{
 
     //called from Socket.send
     //typically adds instruction to ds_instance.instruction_queue
-    static send(robot_name, str){ //use to take arr_buff as 2nd arg in dde3
+    static async send(robot_name, str){ //use to take arr_buff as 2nd arg in dde3
         let instruction_array = //obsolete in dde4:  this.array_buffer_to_oplet_array(arr_buff) //instruction_array is in dexter_units
                                 this.str_to_oplet_array(str)
         //out("Sim.send passed instruction_array: " + instruction_array + " robot_name: " + robot_name)
@@ -237,7 +237,7 @@ class DexterSim{
                 ds_instance.ack_reply(instruction_array)
                 break;
             case "r": //Dexter.read_file. does not go on queue
-                let payload_string_maybe = ds_instance.process_next_instruction_r(instruction_array)
+                let payload_string_maybe = await ds_instance.process_next_instruction_r(instruction_array)
                 ds_instance.ack_reply(instruction_array, payload_string_maybe)
                 break;
             case "S":
@@ -492,11 +492,12 @@ class DexterSim{
         return angles_in_dexter_units //this.process_next_instruction_a(angles_in_dexter_units)
     }
 
-    process_next_instruction_r(instruction_array) {
+    //read_file
+    async process_next_instruction_r(instruction_array) {
         let hunk_index = instruction_array[Instruction.INSTRUCTION_ARG0]
         let source     = instruction_array[Instruction.INSTRUCTION_ARG1]
         let whole_content
-        try { whole_content = read_file(source) }//errors if path in "source" doesn't exist
+        try { whole_content = await DDEFile.read_file_async(source) }//errors if path in "source" doesn't exist
         catch(err){
             return 2 //return the error code
         }
@@ -532,12 +533,14 @@ class DexterSim{
                 else {
                     folder_path = dde_computer_file_system_start + folders_string //ends with slash
                 }
-                folder_path = make_full_path(folder_path)
+               /* folder_path = make_full_path(folder_path)
                 make_folder(folder_path)
                 let full_path = dde_computer_file_system_start + this.write_file_file_name
                 full_path = make_full_path(full_path)
                 //fs.mkdirSync(path, options-recursive???)
                 write_file(full_path, this.write_file_file_content)
+                */
+                DDEFile.write_file_async(this.write_file_file_name, this.write_file_file_content)
                 break;
             default:
               dde_error('The "W" write_file instruction received<br/>' +

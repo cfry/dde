@@ -1,7 +1,7 @@
 import http from "http"
 import url from 'url'; //url parsing
 import pkg from 'formidable'; //I have formidable v 2. see https://stackoverflow.com/questions/65368903/node-formidable-why-does-require-work-but-import-does-not
-const {formidable} = pkg;
+const formidable = pkg;
 
 import fs from 'fs'; //file system
 import net from 'net'; //network
@@ -21,8 +21,7 @@ var fs = require('fs'); //file system
 var net = require('net'); //network
 const ws = require('ws'); //websocket
 const path = require('path'); //parse path / file / extension
-const ModbusRTU = require("modbus-serial"); //dde4, just moved this up from way below
-const os = require("os") //dde4
+const { spawn } = require('child_process'); //see top of file
 */
 // https://github.com/websockets/ws 
 //install with:
@@ -380,7 +379,7 @@ var http_server = http.createServer(function (req, res) {
             } //directories are not currently supported. 
         }
         console.log('\n\nAbout to stringify 5\n');
-        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
         res.write(JSON.stringify(dir))
         res.end()
       })
@@ -401,6 +400,7 @@ var http_server = http.createServer(function (req, res) {
     filename = make_full_path(filename) //dde4
     fs.readFile(filename, function(err, data) {
         if (err) {
+            res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
             res.writeHead(404, {'Content-Type': 'text/html'})
             return res.end("404 Not Found "+err)
         }
@@ -414,9 +414,10 @@ var http_server = http.createServer(function (req, res) {
                 break
                 }
             }
-        if (q.query.download) 
-            res.setHeader("Content-Disposition", "attachment; filename=\""+path.basename(filename)+"\"")
-        res.setHeader('Access-Control-Allow-Origin', '*');
+        if (q.query.download) {
+            res.setHeader("Content-Disposition", "attachment; filename=\"" + path.basename(filename) + "\"")
+        }
+        res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
         res.writeHead(200)
         //console.log("server writing out data: " + data)
         res.write(data)
@@ -427,7 +428,10 @@ var http_server = http.createServer(function (req, res) {
       const form = formidable({ multiples: true });
       form.parse(req, (err, fields, files) => { //console.log(JSON.stringify({ fields, files }, null, 2) +'\n'+ err)
         console.log("delete:"+fields.path+"!")
-        try {fs.unlinkSync(fields.path)} catch(e) {res.writeHead(400); return res.end(e)}
+        try {fs.unlinkSync(fields.path)} catch(e) {
+            res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
+            res.writeHead(400); return res.end(e)
+        }
         return res.end('ok'); 
       });
       return
@@ -451,18 +455,18 @@ var http_server = http.createServer(function (req, res) {
           try { console.log(`make folder:${topath}.`)
             fs.mkdirSync(topath, {recursive:true})
           } catch(err) { console.log(`Can't make folder:${topath}.`, err)
-            res.setHeader('Access-Control-Allow-Origin', '*');
-            res.writeHead(400)
-            return res.end(`Can't make folder ${topath}:`, err)
+              res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
+              res.writeHead(400)
+              return res.end(`Can't make folder ${topath}:`, err)
           }
           fs.copyFile((file.path || file.filepath),  //or  file.filepath
              topathfile, function(err) {
             let new_mode = undefined
             if (err) { console.log("copy failed:", err)
-                res.setHeader('Access-Control-Allow-Origin', '*')
+                res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
                 res.writeHead(400)
-              return res.end("Failed")
-              }
+                return res.end("Failed")
+            }
             else {
               fs.chmodSync(topathfile, stats.mode)
               try { //sync ok because we will recheck the actual file
@@ -472,14 +476,13 @@ var http_server = http.createServer(function (req, res) {
               } catch {} //if it fails, new_mode will still be undefined
               if (stats.mode != new_mode) { //console.log("permssions wrong")
                 //res.writeHead(400) //no point?
-                  res.setHeader('Access-Control-Allow-Origin', '*');
-                  return res.end("Permissions error")
+                return res.end("Permissions error")
                 }
               fs.unlink((file.path || file.filepath), function(err) {
                 if (err) console.log((file.path || file.filepath), 'not cleaned up', err);
                 });
-                res.setHeader('Access-Control-Allow-Origin', '*');
-              res.end('ok');
+                res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
+                res.end('ok');
               }
             }) //done w/ copyFile
           });
@@ -493,23 +496,26 @@ var http_server = http.createServer(function (req, res) {
         const form = formidable({ multiples: true });
         form.parse(req, (err, fields, files) => { //console.log('fields:', fields);
           let pathfile = fields.path
-          newpath = pathfile.split('/').slice(0,-1).join('/')+'/'
+          let newpath = pathfile.split('/').slice(0,-1).join('/')+'/'
           try { console.log(`make folder:${newpath}.`)
             fs.mkdirSync(newpath, {recursive:true})
-          } catch(err) { console.log(`Can't make folder:${newpath}.`, err)
-              res.setHeader('Access-Control-Allow-Origin', '*');
+          } catch(err) {
+              console.log(`Can't make folder:${newpath}.`, err)
+              res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
               res.writeHead(400)
-            return res.end(`Can't make folder ${newpath}:`, err)
+              return res.end(`Can't make folder ${newpath}:`, err)
           }
           if (pathfile.slice(-1)!="/") { //if it wasn't just an empty folder
               fs.writeFile(pathfile, "", function (err) { console.log('create' + pathfile)
-                if (err) {console.log("failed", err)
-                    res.setHeader('Access-Control-Allow-Origin', '*');
-                    res.writeHead(400)
-                    return res.end("Failed:" + err)
+                if (err) {
+                  console.log("failed", err)
+                  res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
+                  res.writeHead(400)
+                  return res.end("Failed:" + err)
                   }
                }); 
              }
+            res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
             res.end('ok'); //console.log('done');
           });
         }

@@ -71,6 +71,7 @@ class DexterUtils {
         return result
     }
 
+     //dont' user "this." below, use "DexterUtils."
     static ping_a_dexter_handler(vals){
         let menu_label = vals.ping_a_dexter_id_address_id
         if(!menu_label) { out("No ip_address selected.") }
@@ -81,19 +82,19 @@ class DexterUtils {
                 let octets = ip_address.split(".")
                 if (octets.length == 3) {
                     ip_address += "."
-                    this.ping_a_dexter_scan(ip_address)
+                    DexterUtils.ping_a_dexter_scan(ip_address)
                 }
                 else if (octets.length == 4) {
-                    if(octets[3] == "") {  this.ping_a_dexter_scan(ip_address) }
+                    if(octets[3] == "") {  DexterUtils.ping_a_dexter_scan(ip_address) }
                     else if (ip_address.includes("*")) { this.ping_a_dexter_wildcard(ip_address) }
-                    else {  this.ping_host(ip_address) } //normal, ping one ip_address
+                    else {  DexterUtils.ping_host(ip_address) } //normal, ping one ip_address
                 }
                 else {
                     warning("Incorrect syntax for ip_address. It should have 3 periods.")
                 }
             }
             else if (vals.clicked_button_value == "Cancel") {
-                this.ping_a_dexter_ongoing = false
+                DexterUtils.ping_a_dexter_ongoing = false
             }
             else if (vals.clicked_button_value == "Insert Robot Definition") {
                 if(split_menu_label.length == 2) {

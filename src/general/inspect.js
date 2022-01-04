@@ -302,7 +302,7 @@ class Inspect{
                     let class_name = Utils.get_class_name(item)
                     if (class_name) { title = "A Class named: " + class_name }
                 }
-                if (item.hasOwnProperty("name")){
+                if (item.hasOwnProperty && item.hasOwnProperty("name")){
                     let prop_name = "name"
                     let prop_value = item.name
                     result += prefix + "<i>name</i>: "                + this.inspect_one_liner(prop_value, stack_number, in_stack_position, prop_name)        + "<br/>\n"
@@ -329,7 +329,7 @@ class Inspect{
                         prefix = "&nbsp;&nbsp;"
                     }
                 }
-                if (item.hasOwnProperty("prototype")){
+                if (item.hasOwnProperty && item.hasOwnProperty("prototype")){
                     let prop_name = "prototype"
                     const constructor_class_name = Utils.get_class_name(item.constructor)
                     if(constructor_class_name) { prop_name = constructor_class_name }

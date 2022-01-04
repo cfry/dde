@@ -63,21 +63,21 @@ class DDEFile {
                 }
                 let ip_address = dex.ip_address
                 extracted_path = this.add_default_file_prefix_maybe(extracted_path)
-                url = "http://" + ip_address + ":" + query + extracted_path
+                url = "http://" + ip_address + query + extracted_path
             }
         }
         else if(path.startsWith("host:")){
             let [full_dex_name, extracted_path] = path.split(":")
             let ip_address = this.host //might return "localhost"
             extracted_path = this.add_default_file_prefix_maybe(extracted_path)
-            url = "http://" + ip_address + ":" + query + extracted_path
+            url = "http://" + ip_address + query + extracted_path
         }
         else if (path.includes(":")) {
             if(query !== "") {
                 let [protocol, host, extracted_path] = path.split(":")
                 if((protocol === "http") || (protocol === "https")){
                     extracted_path = this.add_default_file_prefix_maybe(extracted_path)
-                    url = protocol + ":" + host + ":" + query + path
+                    url = protocol + ":" + host + query + path
                 }
                 else { //only 1 colon, assume its NOT the suffix to host but the separataor between host and path
                     extracted_path = host
@@ -171,7 +171,7 @@ class DDEFile {
         //think that this url is a root url for some strange reason.
         //see httpdde.js, serve_file()
         // see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
-        let file_info_response = await fetch(full_url, {mode: 'no-cors'}) // no-cors)
+        let file_info_response = await fetch(full_url) //, {mode: 'no-cors'}) // no-cors)
         if(!file_info_response.ok) { return null } //ie file doesn't exist
         else {
             let content = await file_info_response.text()
@@ -253,6 +253,11 @@ class DDEFile {
                                              mode: 'no-cors'})
         out("write_file_async wrote file to: " + full_url)
         return res
+    }
+
+    static async copy_file_async(source_path, destination_path){
+        let content = await DDEFile.read_file_async(source_path)
+        DDEFile.write_file_async(destination_path, content)
     }
 
     static async edit_file(path, dont_save_cur_buff_even_if_its_changed=false){

@@ -50,6 +50,9 @@ import "shepherd.js/dist/css/shepherd.css"
 import * as Espree from "espree";
 globalThis.Espree = Espree;
 
+//import ping from "ping.js" //errors
+//globalThis.ping = ping
+
 //see https://stackoverflow.com/questions/65547827/how-to-import-npm-semver-on-an-ionic-project-with-angular
 // but that fails
 //import * as semver from "semver" //yields circular dependencies
@@ -286,7 +289,7 @@ export function on_ready() {
 
         Job.class_init()
         Dexter.class_init()
-        new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 3001}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
+        new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 3000}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
           //the only thing dde_init.js really MUST do is define dexter0, so just stick
           //it here and now user can screw up dde_init.js and still win.
         setTimeout(function(){
@@ -1541,7 +1544,7 @@ window_modify_id.onclick=function(){Editor.insert(
           //Job.define_and_start_job(__dirname + "/user_tools/dexter_user_interface2.js")
           dui2.make_job()
       }
-      ping_dexter_id.onclick       = function() { ping_a_dexter(); DocCode.open_doc(ping_doc_id) }
+      ping_dexter_id.onclick       = function() { DexterUtils.ping_a_dexter(); DocCode.open_doc(ping_doc_id) }
 
       reboot_joints_id.onclick  = function(){
           DocCode.open_doc("Dexter.reboot_joints_doc_id")
