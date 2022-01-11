@@ -363,7 +363,7 @@ new TestSuite("Instruction.is_no_op_instruction",
     ["Instruction.is_no_op_instruction(123)", "false"],
     ["Instruction.is_no_op_instruction([[], [[true]]])", "false"],
 )
-
+/*
 new TestSuite("PatchDDE.patch_until",
     ['PatchDDE.patch_until("1 + 2", "0.0.0", "4 + 5")', "9"],
     ['PatchDDE.patch_until("1 + 2", dde_version, "4 + 5")', "9"],
@@ -371,7 +371,7 @@ new TestSuite("PatchDDE.patch_until",
     ['PatchDDE.patch_until("1 + 2", "1000", "4 + 5")', "TestSuite.error"],
     ['PatchDDE.patch_until("1 + 2", 1000, "4 + 5")', "TestSuite.error"]
 )
-
+*/
 new TestSuite("Utils.trim_comments_from_front",
     ['Utils.trim_comments_from_front("abc")', '"abc"'],
     ['Utils.trim_comments_from_front("  def")', '"def"'],

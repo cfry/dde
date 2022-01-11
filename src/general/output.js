@@ -454,25 +454,34 @@ bw1.focus()
  */
  // see https://developer.mozilla.org/en-US/docs/Web/API/Window/open
  //defaults come from the above page
-function show_page(url, window_name, options={x: 0, y: 0, width: 800, height: 600,
-                                              menubar: false, location: false ,
-                                              resizable: true,
-                                              scrollbars: false, status: false}){
+function show_page(url, window_name, options={}){
     if (url.indexOf("://") == -1){
         url = "http://" + url
     }
     if((window_name === undefined) || (window_name === null))  {
-        window_name = "_blank"
+        window_name = url //"_blank"
     }
     else if(typeof(window_name) == "string") {} //ok as is
     else if(typeof(window_name) == "object") {
         options = window_name // for backwards compatibility with show_page of dde3
-        window_name = "_blank"
+        window_name = url //"_blank"
     }
     let window_features_str = ""
-    for(let key of Object.keys(options)){
-        let val = options[key]
-        if(val == true) { val = "yes"}
+    let defaults = {x:          0,
+                    y:          0,
+                    width:      800,
+                    height:     600,
+                    menubar:    false,
+                    location:   false,
+                    resizable:  true,
+                    scrollbars: false,
+                    status:     false,
+                    popup:      false,
+                    noopener:   false,
+                    noreferrer: false}
+    for(let key in defaults) { //Object.keys(options)){
+        let val = (options.hasOwnProperty(key) ? options[key] : defaults[key])
+        if      (val == true)  { val = "yes"}
         else if (val == false) { val = "no" }
         if(key == "x") {key = "left"}
         if(key == "y") {key = "top"}
@@ -482,11 +491,11 @@ function show_page(url, window_name, options={x: 0, y: 0, width: 800, height: 60
         }
         window_features_str += key + "=" + val
     }
-    var windowObjectReference = window.open(url, window_name, window_features_str)
+    let windowObjectReference = window.open(url, window_name, window_features_str)
     return windowObjectReference
 }
 
-window.show_page = show_page
+globalThis.show_page = show_page
 
 //unlike show_page, you can't set size, x, y, BUT it opens the page
 //in your default browser and you see the url and you can edit the url

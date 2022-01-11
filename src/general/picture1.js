@@ -121,6 +121,24 @@ class Picture{
            })
    }
 
+    static show_window_callback_for_canvas_click(vals){
+        let canvas_id = vals.clicked_button_value
+        let canvas_elt = value_of_path(canvas_id)
+        let x = vals.offsetX
+        let y = vals.offsetY
+        let ctx = canvas_elt.getContext("2d")
+        let pix = ctx.getImageData(x, y, 1, 1).data
+        out( "You clicked: x: "     + x +
+            ", y: "     + y +
+            ", red: "   + pix[0] +
+            ", green: " + pix[1] +
+            ", blue: "  + pix[2] +
+            ", alpha: " + pix[3] +
+            "<div style='margin-left:10px; display:inline-block; width:30px;height:20px; " +
+            "background:rgb(" + pix[0] + "," + pix[1] + "," + pix[2] + ")';></div>"
+        )
+    }
+
    static show_picture({canvas_id="canvas_id", //string of a canvas_id or canvasId dom elt
              			content=null, //mat or file_path
                         title=undefined,
@@ -131,7 +149,7 @@ class Picture{
                         scale_y=1,
                         translate_x=0,
                         translate_y=0,
-                        show_window_callback=show_window_callback_for_canvas_click}={}){
+                        show_window_callback="Picture.show_window_callback_for_canvas_click"}={}){
       if (!content) { content = __dirname + "/examples/snickerdoodle_board.png" }
       if(!title) {
            let title_suffix
@@ -1217,26 +1235,6 @@ class Picture{
 Picture.max_color_component_value = 255
 
 Picture.model_index = 0 //used internally by make_classifier
-
-//used by Picture.show_window as its default callback.
-//intentially outside the Picture class because we need one simple string for its name
-function show_window_callback_for_canvas_click(vals){
-    let canvas_id = vals.clicked_button_value
-    let canvas_elt = value_of_path(canvas_id)
-    let x = vals.offsetX
-    let y = vals.offsetY
-    let ctx = canvas_elt.getContext("2d")
-    let pix = ctx.getImageData(x, y, 1, 1).data
-    out( "You clicked: x: "     + x +
-        ", y: "     + y +
-        ", red: "   + pix[0] +
-        ", green: " + pix[1] +
-        ", blue: "  + pix[2] +
-        ", alpha: " + pix[3] +
-        "<div style='margin-left:10px; display:inline-block; width:30px;height:20px; " +
-           "background:rgb(" + pix[0] + "," + pix[1] + "," + pix[2] + ")';></div>"
-    )
-}
 
 globalThis.Picture = Picture
 

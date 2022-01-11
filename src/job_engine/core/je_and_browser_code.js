@@ -144,12 +144,8 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
 
     //if you change, this, also change sw_make_title_html
     static get_show_window_title(sw_elt){
-        let title_elt = sw_elt.firstChild
-        let title = title_elt.firstChild.textContent
-        //let html = title_elt.innerHTML //warning: includes the buttons
-        //let pos  = html.indexOf("sw_close(")
-        //pos = html.lastIndexOf("<button", pos)
-        //let title = html.substring(0, pos)
+        let title_elt = sw_elt.firstElementChild
+        let title = title_elt.firstChild.textContent //don't use firstElementChild here.
         return title
     }
 

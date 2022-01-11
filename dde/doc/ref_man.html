@@ -2556,7 +2556,7 @@ Then choose GB menu bar/Window/Show Keyboard.  The image of a piano
 keyboard should appear. Click on any note. If you don't hear
 a sound, verify that the unlabeled
 horizontal slider in the upper right of GB is slid to the right for
-a non-zreo volume.
+a non-zero volume.
 (Note Apple has followed its standard user interface guidelines
 here, spending effort to make the slider look pretty
 but difficult to figure out what it actually means.)
@@ -2584,7 +2584,7 @@ a MIDI event.
 <code title="not in TestSuite">WebMidi.inputs[1].addListener('noteon',  "all", Midi.describe_midi_event)</code>
 <p></p>
 
-In DDE, Eval <code title="not in TestSuite">Midi.init()</code>.<br/>
+In DDE, Eval <code title="not in TestSuite">Midi.init()</code><br/>
 Now eval <code title="not in TestSuite">new Note("C").start()</code><br/>
 OR select <code>new Note("C")</code><br/>
 and click <button>Eval&Start</button><br/>
@@ -2592,7 +2592,7 @@ Often the first note or two will get lost so do it a few times
 and you should hear Middle C played on the instrument you have
 selected in GarageBand. <br/>
 <code>Midi.init</code> can also be called by choosing
-Insert menu/Music/Midi.init().
+Insert menu/Music/Midi.init()
 <p></p>
 If you don't hear a sound, check the MIDI connections in
 GarageBand: menu bar/GarageBand/Preferences.<br/>
@@ -3963,7 +3963,7 @@ Now its time to run our Job.<br/>
 <b>DDE Model:</b>
 <pre><code>function model_start_job(a_job){
      let pc = a_job.program_counter
-     if (pc >= a_job.do_list.length) {
+     if (pc == a_job.do_list.length) {
         out("Finished Job.")
         a_job.program_counter = 0 //prepare for next start of Job.
      }
@@ -4370,9 +4370,9 @@ new Job({name: "my_job",
         when all the items on a do_list have been run. The default: <code>"run_when_stopped"</code>
         performs the "when_stopped" action, after which the job is finished.<br/>
          <code>"wait"</code>  pauses the job waiting to run new instructions that are added
-         to the end of the do_list by some other process. Call
-            <code><a href="#" onclick="DocCode.open_doc('Job.insert_instruction_doc_id', event)">Job.insert_instruction</a></code>
-            from any JavaScript code to do this.</li>
+         to the end of the do_list by some other process.<br/>Call
+            <a href="#" onclick="DocCode.open_doc('Job.insert_instruction_doc_id', event)">Job.insert_instruction</a>
+            from any JavaScript code to add a new instruction to the do_list.</li>
         <li id="job_param_when_stopped_doc_id"><b>when_stopped</b> controls what happens
              when a job stops.<br/>
              <i>Possible Values</i>:<br/>
@@ -8595,16 +8595,16 @@ If you want an object to have a name,
 supply it when calling newObject. Don't set it afterwards.<br/>
 Examples:<br/>
 <pre><code>newObject({
- &nbsp;&nbsp;&nbsp;name: "vehicle",
- &nbsp;&nbsp;&nbsp;color: "white",
- &nbsp;&nbsp;&nbsp;weight: 3000})</code></pre>
+    name: "vehicle",
+    color: "white",
+    weight: 3000})</code></pre>
     <code>Root.vehicle</code> => the new object<br/>
     <code>Root.vehicle.name</code> => <samp>"vehicle"</samp><br/>
     <code>Root.vehicle.color</code> => <samp>"white"</samp><br/>
 <pre><code>newObject({
- &nbsp;&nbsp;&nbsp;prototype: Root.vehicle,
- &nbsp;&nbsp;&nbsp;name: "boat",
- &nbsp;&nbsp;&nbsp;color: "blue"})</code></pre>
+    prototype: Root.vehicle,
+    name: "boat",
+    color: "blue"})</code></pre>
 <code>Root.vehicle.boat</code> => the new object<br/>
 <code>Root.vehicle.boat.name</code> => <samp>"boat"</samp><br/>
 <code>Root.vehicle.boat.color</code> => <samp>"blue"</samp><br/>
@@ -8629,10 +8629,11 @@ including code that modifies the property values, of code title="unEVALable code
 create
 entirely new properties or remove ones from <code>this</code>.
 <p></p>
-Example: <pre><code>newObject({name: "animal",
- constructor: function(){ this.fur = "no"}})
- newObject({prototype: Root.animal,
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; name: "fido"})</code></pre>
+Example: <pre><code>
+newObject({name: "animal",
+           constructor: function(){ this.fur = "no"}})
+newObject({prototype: Root.animal,
+           name: "fido"})</code></pre>
 <p></p>
 Above, during the first call to newObject, <code>this</code> is bound
 to the <i>animal</i> object. But when the 2nd call to newObect is
@@ -8661,16 +8662,16 @@ of the boat constructor, and then make additional modifications to
 "this" in the bottom part of the boat constructor method.
 <p></p>
 Example: <br/>
-<pre><code>newObject({name: "animal",
+<pre><code>
+newObject({name: "animal",
            constructor: function(){ this.fur = "no"}})
 newObject({prototype: Root.animal, name: "mammal",
-  constructor: function(){<br/>
-     this.callPrototypeConstructor()<br/>
-     this.fur = "usually"<br/>
-     this.hair = "sometimes"<br/>
-  	 out("in mammal constructor")}})</code></pre><br/>
+           constructor: function(){
+             this.callPrototypeConstructor()
+             this.fur = "usually"
+             this.hair = "sometimes"
+  	         out("in mammal constructor")}})</code></pre><br/>
 After running the above code,<br/>
-
 <code>Root.animal.fur</code> => <samp>"no"</samp>.<br/>
 <code>Root.animal.mammal.fur</code> => <samp>"usually"</samp><br/>
 <code>Root.animal.mammal.hair</code> => <samp>"sometimes"</samp><br/>
@@ -9046,12 +9047,7 @@ If include_this is true, the returned source, when evaled, will return a copy of
         add functionality.
         <p></p>
         <b id="cv_doc_id">cv</b> opencv.js functions are available
-        from the <code title="unEVALable">cv</code> global variable,
-        which can be initialized via:<br/>
-        <code>var cv = require("opencv.js")</code><br/>
-        The first time you do this after launching DDE will take several seconds.
-        The rest of the times it is very quick, so no harm in calling it
-        more than once.
+        from the <code>cv</code> global variable.
         <p></p>
         <i>Examples:</i><br/>
         DDE's Insert menu/Machine Vision submenu has examples of
@@ -9959,6 +9955,7 @@ Here's the CSS for a bunch more editor properties.
  <p></p>
 <i>Example show_window call with many input types.</i>
 <pre><code>show_window({
+    title: "lots of widgets",
     content:
 &#96;text: &lt;input type="text" name="my_text" value="Dexter"/>&lt;br/>
 textarea: &lt;textarea name="my_textarea">Hi Rez&lt;/textarea>&lt;br/>
@@ -10058,11 +10055,16 @@ show_window({
 
     <details id="show_page_doc_id" class="doc_details"><summary>show_page</summary>
        Creates a new browser window and shows a web page in it.<br/>
-       Unlike <code>browse_page</code> does not show url in an editable field,
-       but does allow you to set location and size of the window that pops up.<br/>
+       show_page is a wrapper that attempts to make sense of the
+        ideosyncractic, poorly documented,
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/open" target="_blank">window.open</a>.
        <i>Parameters:</i><br/>
        <b>url</b> A string. The url to show in the new browser window.<br/>
-       <b>options</b> A literal object. The most useful properties are:
+       <b>title</b> A string. This is not a title that shows in the window, but meerely used internally.
+                    If not passed, it defaults to <i>url</i>.
+                    If there is a 2nd arg and it is not a string, it will be considered to
+                    be the <i>options</i> arg.<br/>
+       <b>options</b> A literal object. You can see additional documentation at the above URL for <code>window.open</code>.
        <ul> <li><b>x</b> An integer. Default: <code>0</code>
              which places the left edge of the window at the left edge of the screen.
              </li>
@@ -10070,37 +10072,39 @@ show_window({
                which places the top edge of the window, at least close to,
                 the top edge of the screen.
            </li>
-           <li><b>width</b> An integer. Default: <code>800</code>
-                 In pixels.
-           </li>
-           <li><b>height</b> An integer. Default: <code>600</code>
-           In pixels.
-           </li>
+           <li><b>width</b> An integer. Default: <code>800</code>. In pixels.</li>
+           <li><b>height</b> An integer. Default: <code>600</code>. In pixels.</li>
+           <li><b>menubar</b> Boolean. Default: <code>false</code>.</li>
+           <li><b>location</b> Boolean. Default: <code>false</code>.</li>
+           <li><b>resizable</b> Boolean. Default: <code>false</code>.</li>
+           <li><b>scrollbars</b> Boolean. Default: <code>false</code>.</li>
+           <li><b>status</b> Boolean. Default: <code>false</code>.</li>
+           <li><b>popup</b> Boolean. Default: <code>false</code>.</li>
+           <li><b>noopener</b> Boolean. Default: <code>false</code>. window.open is confused here.</li>
+           <li><b>noreferrer</b> Boolean. Default: <code>false</code>. window.open is confused here.</li>
        </ul>
        <p></p>
        <i>Example:</i>
        <pre><code>var win = show_page("http://hdrobotic.com",
           {x:100, y:150,
-           width:800, height:600})
+           width:500, height:300})
            </code></pre>
-        The returned value is an instance of Electron's BrowserWindow.
+        The returned value is a WindowProxy object.
         The most useful methods on it are:<br/>
-        <b>getURL</b> A method of no args that returns the string representing
-                      the URL shown in the window.<br/>
-        <i>Example:</i> <code>win.getURL()</code><br/>
-        <br/>
         <b>blur</b> A method of no args that buries the window
                     (pushes it behind other windows).<br/>
-        <i>Example:</i> <code>win.blur()</code>
+           Caution: not reliable.<br/>
+        <i>Example:</i> <code title="not in TestSuite">win.blur()</code>
         <br/>
         <b>focus</b> A method of no args that brings the window to the top.
-           The opposite of blur<br>
+           The opposite of blur.<br>
         <i>Example:</i> <code>win.focus()</code>
         <br/>
+        <!-- Errors, even with both noopener and noreferrer false
         <b>isDestroyed</b> A method of no args that returns <code>true</code>
         if the window has been closed.<br/>
         <i>Example:</i> <code>win.isDestroyed()</code> => <samp>false</samp>
-        <br/>
+        <br/> -->
         <b>close</b> A method of no args that closes the window. <br/>
         <i>Example:</i> <code title="not in TestSuite">win.close()</code>
         <p></p>
@@ -10529,12 +10533,14 @@ Initialize "math" to the class containing the mathjs functions<br/>
 Eval <code>math</code>  to inspect the list of constants and functions available<br/>
 <code>math.hypot(3, 4)</code> => <samp>5</samp>
 <p></p>
-There's a lot more math libraries in npm. Choose File menu/Manage npm.
+There's a lot more math libraries in npm.
+<!--Choose File menu/Manage npm.
 Type in "math" or the name of some math function like "svd", and
 click the <button>search</button> button. This will show you a page
-of relevant npm packages.
+of relevant npm packages.-->
 </details>
 
+<!-- todo dde4 Messaging needs to be moved to server.
 <details id="Messaging_id" class="doc_details"><summary>Messaging</summary>
    <div style="color: red;"> Warning: The Messaging facility
       is now just internal prototype code, not available for public use.
@@ -10620,7 +10626,7 @@ of relevant npm packages.
            </ul>
        </details>
 
-       </details> <!--interactive use-->
+       </details>
 
    <details class="doc_details"><summary>Messaging Misc</summary>
        <details id="Messaging.login_doc_id" class="doc_details"><summary>login</summary>
@@ -10683,7 +10689,7 @@ Messaging.permit_default = function(mess_obj){
    else { return "manual" }
 } </code></pre>
    </details>
-   </details> <!--end Messaging Misc -->
+   </details> //end Messaging Misc
    <details class="doc_details"><summary>Communication</summary>
    Messaging's communications methods do the real work of interacting
    with remote DDEs.
@@ -11017,7 +11023,7 @@ Messaging.stop_job({job_name: "wait_for_message",
        See also: <a href="#" onclick="DocCode.open_doc('Control.stop_job_doc_id')">Control.stop_job</a>
    </details>
 
-       <!-- templaete for Messaging fns
+       --- templaete for Messaging fns
            <details id="Messaging._doc_id" class="doc_details"><summary></summary>
 
            <br/>
@@ -11034,10 +11040,11 @@ Messaging.stop_job({job_name: "wait_for_message",
        to: "Joe",
        get_result: true
        }) </code></pre>
-       </details> -->
+       </details> ---
 
-   </details><!--end Messaging Communication -->
-</details> <!-- end Messaging -->
+   </details> // end Messaging Communication
+</details>  --> <!-- end Messaging -->
+
 <details id="Lesson_doc_id" class="doc_details"><summary>Lesson</summary>
 In many ways, DDE is a cirriculua delivery platform for highly
 interactive ways to learn about programming JavaScript, with an emphasis
@@ -12113,10 +12120,10 @@ def main():
            and load its "main" file (often called "index.js") which
            may have calls to load in the other files.
        </li>
-       <li>Node Package Manager (NPM) for loading open source JavaScript.
-           See below.</li>
+       <!--<li>Node Package Manager (NPM) for loading open source JavaScript.
+           See below.</li> -->
        </ol>
-       <details id="DDE_NPM_doc_id" class="doc_details"><summary>DDE_NPM</summary>
+     <!--  <details id="DDE_NPM_doc_id" class="doc_details"><summary>DDE_NPM</summary>
            One reason DDE uses JavaScript is that it has the most freely available,
            open-source code of any language. The bulk of this is stored on
            <a href="https://www.npmjs.com/" target="_blank">the npm web site</a>
@@ -12244,6 +12251,6 @@ def main():
          which require format to use and how to call functions in the package,
          but be forewarned: Open Source documentation is notoriously poorly documented.
        </details>
-       </details> <!-- end DDE_NPM -->
+       </details> --> <!-- end DDE_NPM -->
        </details> <!-- ending Adding JavaScript -->
 

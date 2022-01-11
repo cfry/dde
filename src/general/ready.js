@@ -100,6 +100,9 @@ import "../job_engine/core/robot_status.js" //defines class RobotStatus as globa
 import "../job_engine/core/dde_file.js" //defines class File as global
 import "../job_engine/core/object_system.js"//defined globals: Root, newObject
 
+//import "../job_engine/core/messaging.js"//defined global: Messaging todo dde4, this needs to be moved to the server.
+
+
 
 import "./dex.js" //makes Dex global
 

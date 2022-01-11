@@ -263,7 +263,9 @@ class TestSuite{
         */
         //import('./math_testsuite.js').then(module => {"just loaded math testsuite"})
         if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }
-        if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
+        if (!TestSuite["reference_manual_id"]) {
+            TestSuite.make_test_suites_from_doc(reference_manual_id)
+        }
         let report_prefix = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
             '<span style="color:magenta;">test_suite_reporting *should* indicate<br/>"failures: unknown=2, known=1"</span><br/>'
         this.set_state_and_resume({reports: report_prefix, suites: TestSuite.suites})
@@ -346,14 +348,29 @@ class TestSuite{
         return result
     }
 
-    static run_ts_in_file_ui(){
-        let path = choose_file()
-        if(path){
-            TestSuite.run_ts_in_file(path)
+    static choose_file_to_run_ts_handler(vals){
+        //out("top of choose_file_handler with: " + vals.clicked_button_value)
+        if(vals.clicked_button_value === "close_button") {} //just let window close
+        else {
+            let window_index = vals.window_index
+            SW.close_window(vals.window_index)
+            let is_folder = vals.clicked_button_value.endsWith("/")
+            if(is_folder){
+                DDEFile.choose_file({folder:   vals.clicked_button_value,
+                    title:    "Choose a file from:",
+                    callback: "TestSuite.choose_file_to_run_ts_handler"})
+            }
+            else{
+                TestSuite.run_ts_in_file(vals.clicked_button_value)
+            }
         }
     }
 
-    static run_ts_in_file(path){
+    static run_ts_in_file_ui(){
+        DDEFile.choose_file({callback: "TestSuite.choose_file_to_run_ts_handler"})     //choose_file()
+    }
+
+    static async run_ts_in_file(path){
         let ts_array
         if(path.endsWith("guide.html")) {
             ts_array = TestSuite.make_test_suites_from_doc(user_guide_id)
@@ -362,7 +379,14 @@ class TestSuite{
             ts_array = TestSuite.make_test_suites_from_doc(reference_manual_id)
         }
         else {
-            let ts_src = read_file(path).trim()
+            let ts_src = await DDEFile.read_file_async(path)
+            ts_src = ts_src.trim()
+            if(ts_src.startsWith("import ")) { //usually this is 'import "./test_suite.js" // ...'
+                //but in any case, eval will error on the import so cut it out
+                //and hope for the best
+                let newline_pos = ts_src.indexOf("\n")
+                ts_src = ts_src.substring(newline_pos)
+            }
             //because there is sometimes a comment at top of a testsuite file (like for the
             //math tests, we have to be careful about deleting that initial comma.
             //ts_src = ts_src.substring(1) //cut off initial comma
@@ -1050,7 +1074,10 @@ class TestSuite{
             var code_elts = dom_elt.querySelectorAll('code')
             var a_test_suite_tests = []
             for (let code_elt of code_elts){
-                let src = code_elt.innerText
+                let src = code_elt.innerHTML //innerText use to work, but Chrome changed around 2021 and now I must use innerHTML
+                if(src.includes("&lt;")) {
+                    debugger;
+                }
                 let fixed_src = src
                 if (code_elt.title.startsWith("unstartable")) {//we expect src to have "new Job" in it, probably
                     //at the beginning. But 7 of such src's  will have 2 "new Job" s in it for the ref man of Dec 2018.
@@ -1069,10 +1096,18 @@ class TestSuite{
                     //that the job gets defined without error.
                 }
                 if (!code_elt.title || (code_elt.title.startsWith("unstartable"))){
+                    //because we now have to use innerHTML to get the code out of code_elt,
+                    //and if that has any less than signs in it, they will automagically
+                    //get converted to &lt; which wil break if its evaled.
+                    //so I have to CONVERT them back to <.
+                    //Note we should never have a test case in the doc that has < or > in it
+                    //that is allowed to be evaled (according to the CODE's title attribute.
+                    fixed_src = fixed_src.replaceAll("&lt;", "<")
+                    fixed_src = fixed_src.replaceAll("&gt;", ">")
                     var a_test = [fixed_src]
                     var next_elt = code_elt.nextElementSibling
                     if (next_elt && (next_elt.tagName == "SAMP") && (!next_elt.title || next_elt.title.startsWith("unstartable"))){
-                        a_test.push(next_elt.innerText)
+                        a_test.push(next_elt.innerHTML)
                     }
                     a_test_suite_tests.push(a_test)
                 }

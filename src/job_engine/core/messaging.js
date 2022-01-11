@@ -1,9 +1,14 @@
+/*todo dde4, this needs to be moved to the server,
+  or at least the https. request calls need to
+  be changed to fetch and handled by the server.
+ */
+
 import https from '/https'
-import  querystring from '/querystring'
+import querystring from '/querystring'
 
-import {speak, stringify_for_speak} from "./out.js"
+import "./out.js"
 
-export var Messaging = class Messaging{}
+globalThis.Messaging = class Messaging{}
 Messaging.hostname      = "not yet available in DDE"
 Messaging.login_path    = "/login.html"
 Messaging.auth_path     = "/auth"

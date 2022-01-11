@@ -96,7 +96,7 @@ globalThis.get_output = get_output
 
 //value can either be some single random js type, or a literal object
 //with a field of speak_data, in which case we use that.
-export function stringify_for_speak(value, recursing=false){
+function stringify_for_speak(value, recursing=false){
     var result
     if ((typeof(value) == "object") && (value !== null) && value.hasOwnProperty("speak_data")){
         if (recursing) {
@@ -134,6 +134,8 @@ export function stringify_for_speak(value, recursing=false){
     }
     return result
 }
+
+globalThis.stringify_for_speak = stringify_for_speak
 
 function speak({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null, node_callback = null} = {}){
     if (arguments.length > 0){
@@ -263,19 +265,24 @@ function show_window({content = `<input type="submit" value="Done"/>`,
     let the_sw_elt_id = 'show_window_' + SW.window_index + '_id'
     //let content_height = height - title_bar_height -21
     //let content_width  = width - 10
-    content = '<div class="show_window_content" contentEditable="false" draggable="false" ' +
+    content = '<div class="show_window_content" contentEditable="false" draggable="false"\n' +
               //'onresize="show_window_content_onresize(event)" ' +
         ' style="' +
         //'width:' + content_width + 'px; height:' + content_height + 'px; ' +
        // 'overflow:' + (resizable? "auto" : "visible") + '; resize:' + (resizable? "both" : "none") + "; " +
-        'font-size:15px; padding:5px;">' +
-        '<input name="window_callback_string" type="hidden" value="' + callback + '"/>' +
-        '<input name="trim_strings" type="hidden" value="' + trim_strings + '"/>' +
-        '<input name="job_name" type="hidden" value="' + job_name + '"/>' +
-        '<input name="show_window_elt_id" type="hidden" value="' + the_sw_elt_id + '"/>' +
-        '<input name="window_index" type="hidden" value="' + SW.window_index + '"/>' +
+        'font-size:15px; padding:5px;\n' +
+
+        'width:'    + width + 'px; height:' + (height - title_bar_height) + 'px;\n' +
+        'overflow:' + (resizable? 'auto' : 'visible')                 + ';\n'   +
+        'resize:'   + (resizable? 'both' : 'none')                    + ';\n'   +
+        '">\n' +
+        `<input type="hidden" name="window_callback_string" value='` + callback        + "'/>\n" +
+        '<input type="hidden" name="trim_strings"           value="' + trim_strings    + '"/>\n' +
+        '<input type="hidden" name="job_name"               value="' + job_name        + '"/>\n' +
+        '<input type="hidden" name="show_window_elt_id"     value="' + the_sw_elt_id   + '"/>\n' +
+        '<input type="hidden" name="window_index"           value="' + SW.window_index + '"/>\n' +
         content +
-        '</div>' //to allow selection and copying of window content
+        '\n</div>\n' //to allow selection and copying of window content
 
 
     var show_window_html =
@@ -284,15 +291,17 @@ function show_window({content = `<input type="submit" value="Done"/>`,
         '" id="' + the_sw_elt_id +
         //'" data-show_window_title="' + title +
         // '" ondragstart="sw_dragstart(event)' +
-        '" style="padding:0px; right:none; margin:0px; position:fixed; z-index:100;' +
+        '"\nstyle="padding:0px; right:none; margin:0px; position:fixed; z-index:100;' +
          ' left:' + x + 'px; top:' + y + 'px; ' +
-        'width:' + width + 'px; height:' + height + 'px; ' +
-        'overflow:' + (resizable? "auto" : "visible") + '; resize:' + (resizable? "both" : "none") + "; " +
+
+        //'width:'    + width + 'px; height:' + height + 'px; ' +
+        //'overflow:' + (resizable? "auto" : "visible") + "; " +
+        //'resize:'   + (resizable? "both" : "none") + "; " +
 
         'background-color:' + background_color + //if the content div doesn't take up the whole rest of the window, its good if this covers that extra area below the content
         ';">' +
         sw_make_title_html(title, width, title_bar_height, title_bar_color, show_close_button, show_collapse_button) +
-        '<div draggable="false" background-color:' + background_color + ';">' + content + '</div>' +
+        '<div draggable="false" background-color:' + background_color + ';">\n' + content + '</div>' +
         '</dialog>'
     //onsole.log("show_window produced html: " + show_window_html)
     let props = {job_name: job_name, kind: "show_window", html: show_window_html, draggable: draggable,
