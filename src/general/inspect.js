@@ -2,7 +2,7 @@
 
 import {out_eval_result} from "../job_engine/core/out.js"
 
-import {file_exists, make_full_path, read_file} from "../job_engine/core/storage.js"
+//import {file_exists, make_full_path, read_file} from "../job_engine/core/storage.js"
 
 class Inspect{
 
@@ -121,6 +121,8 @@ class Inspect{
     static looks_like_an_existing_file_path(item){
         return ((typeof(item) == "string") &&
                 (item.length > 1) &&
+                (item.length < 256) &&
+                (!item.includes("\n")) &&
                 (file_exists(item)))
     }
 
@@ -165,7 +167,7 @@ class Inspect{
         //if (typeof(new_object_or_path) == "string")  { return new_object_or_path }
         //else { return value_of_path(new_object_or_path) }
         const the_type = typeof(item)
-        if(this.looks_like_an_existing_file_path(item)) { return this.inspect_one_liner_existing_file_path(item) }
+        //if(this.looks_like_an_existing_file_path(item)) { return this.inspect_one_liner_existing_file_path(item) }
         //if (this.inspect_is_primitive(item)) { return inspect_one_liner(item) }
         if ((the_type == "function") && !Utils.is_class(item) && (item !== Number)) {
              return this.inspect_one_liner_regular_fn(item) //just a twistdown with no links in it. So inspecting top level fn won't have the fwd and back arrows. that's ok
@@ -438,7 +440,7 @@ class Inspect{
         else if (the_type === "boolean")   { return "" + item }
         else if (the_type === "number")    { return "" + item }
         else if (item instanceof Date)     { return item.toString() }
-
+        else if (typeof(item) == "symbol") { return item.toString() }
         else if (the_type === "string")     {
             //return JSON.stringify(item)
             //var quoting_char = '"'
@@ -446,10 +448,10 @@ class Inspect{
             item = Utils.replace_substrings(item, "\n", "<br/>")
             var pos_of_br = item.indexOf("<br/>")
             if (pos_of_br !== -1) {
-                var first_part = item.substring(0, pos_of_br)
-                var body       = item.substring(pos_of_br + 5)
+                let first_part = item.substring(0, pos_of_br)
+                let body       = item.substring(pos_of_br + 5)
                 body   = "<div style='display:inline-block;margin-left:17px;'>" + body + "</div>" //to indent by teh twist triangle
-                result = "<details style='display:inline-block;'><summary>" +
+                let result = "<details style='display:inline-block;'><summary>" +
                           "<i>String of " + str_length + "</i>: " +
                           first_part + "</summary>" + body + "</details>"
                 return result
@@ -469,8 +471,11 @@ class Inspect{
 
         else if (Array.isArray(item))  {
            if (Utils.is_array_of_same_lengthed_arrays(item)) { return this.inspect_format_2D_array(item) }
-           else return this.inspect_clickable_path(item, stack_number, in_stack_position, prop_name) +
-                                                this.inspect_extra_info(item)
+           else {
+               let click_path = this.inspect_clickable_path(item, stack_number, in_stack_position, prop_name)
+               let extra_info = this.inspect_extra_info(item)
+               return click_path + extra_info
+           }
         }
         else if (the_type === "object") { //handles the typeArray case but note, is same call as normal array
             let name_text = ""
@@ -658,17 +663,19 @@ class Inspect{
         for(let key of index_to_key) {
             the_html += "<th>" + key + "</th>"
         }
-        the_html += "</tr>"
+        the_html += "</tr>\n"
         //finally the body of the table
         for(let i = 0; i < array_of_rows.length; i++){
             let a_row_array = array_of_rows[i]
             let row_html = "<tr><td>" + i + "</td>"
-            for(let val of a_row_array){
+            for(let j=0; j < a_row_array.length; j++){//let val of a_row_array){
+                let val = a_row_array[j]
+                let new_in_stack_pos = in_stack_position + (i * a_row_array.length) + j
                 row_html += "<td>" +
-                            this.inspect_one_liner(val, stack_number, in_stack_position, prop_name)//((val === undefined) ? "" :  val) +
-                            "</td>"
+                    this.inspect_one_liner(val, stack_number, new_in_stack_pos, prop_name)//((val === undefined) ? "" :  val) +
+                "</td>"
             }
-            row_html += "</tr>"
+            row_html += "</tr>\n"
             the_html += row_html
         }
         the_html += "</table>"

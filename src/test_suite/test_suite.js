@@ -279,7 +279,8 @@ class TestSuite{
            this.finish()
         }
         else if (this.state) {
-            if (this.state.started_job) { return } //can't resume until we finish the started_job
+            if     (this.state.started_job)     { return } //can't resume until we finish the started_job
+            else if(this.state.promise_pending) { return } //can't resume until promise is resolved
             for (let suite_index = this.state.current_suite_index;
                      suite_index < this.state.suites.length;
                      suite_index++){
@@ -295,7 +296,8 @@ class TestSuite{
                 }
                 console.log("starting testsuite: " + cur_suite.name)
                 cur_suite.start(this.state.next_test_index) //try to get through all tests iin cur_suite,
-                if (this.state.started_job) { return }      //but if one is a job, we need to wait until its done
+                if     (this.state.started_job)     { return }      //but if one is a job, we need to wait until its done
+                else if(this.state.promise_pending) { return }      //wait until promise is resolved
                 else if(this.state.next_test_index == cur_suite.tests.length) { //done with cur_suite
                     this.state.reports += cur_suite.report + "<br/>"
                     this.state.current_suite_index += 1 //mostly redundant with setting this above, but not if we're on the last suite.
@@ -599,6 +601,10 @@ class TestSuite{
                                     err.message
                 }
             }
+            else if(status == "promise_pending"){
+                return false //suspending this TestSuite until the promise's THEN callback is
+                             //called, which itself calls TestSuite.resume()
+            }
             if (status == "known" ) {
                 this_suite.report += error_message + "\n"
                 this_suite.known_failure_count   += 1
@@ -626,7 +632,7 @@ class TestSuite{
     //when called normally, suspend_jobs defaults to true.
     //but when called when evaling just one test suite via user interaction,
     //this fn  should be call with suspend_jobs=true
-    static run_test_array(test, test_number=null, ts=null, suspend_jobs=true){
+    static run_test_array(test, test_number=null, this_suite=null, suspend_jobs=true){
         var status = false //means test ran with no errors, no suspend
         var error_message = ""
          //first elt: false means everything ok,  or "known"  or "unknown" for a bug
@@ -636,7 +642,7 @@ class TestSuite{
         var test_number_html = ((test_number || (test_number === 0)) ? "Test " + test_number + ". ": "")
         //permit 'let' but warn
         if (src.startsWith("let ") || src.startsWith("\nlet ")) {
-            out("<span style='color:#cc04ef;'>TestSuite: " + (ts ? ts.name : "unknown") + ", Test: " + test_number +
+            out("<span style='color:#cc04ef;'>TestSuite: " + (this_suite ? this_suite.name : "unknown") + ", Test: " + test_number +
                 ". Warning: variable bindings made with 'let' will not be available in subsequent tests.<br/>Use 'var' if you want them to be.<br/>" +
                 src + "</span>")
             }
@@ -650,8 +656,9 @@ class TestSuite{
         //unlike every other use of curly braces in JS, try returns the value of its last try expr if no error, and otherwise returns the value of the last expr in catch
         var wrapped_src = "try{ " + src + "} catch(err) {TestSuite.last_src_error_message = err.name + ' ' + err.message; TestSuite.error}"
         var src_result
-        try{ src_result = window.eval(wrapped_src) }
-
+        try{
+            src_result = window.eval(wrapped_src)
+        }
         catch(err) {
            status = "unknown"
            error_message = test_number_html + src + " errored with: " + err +
@@ -699,6 +706,44 @@ class TestSuite{
                return ["unknown", TestSuite.last_expected_error_message]
             }
             if ((expected_result == TestSuite.dont_care) && !TestSuite.last_src_error_message) {} //allows any value from src to pass (unless it errors)
+            else if (src_result instanceof Promise){
+                TestSuite.state.promise_pending = true
+                status = "promise_pending"
+                error_message =  test_number_html + " promise pending for " + src
+                src_result.then(function(value) { //value is the resolve of the promise.
+                    if(!similar(value, expected_result)) { //test failed
+                        let status = "unknown"
+                        let error_message
+                        var desc     = ((test.length > 2) ? test[2] : "")
+                        if (desc.startsWith("known")){ status = "known" }
+                        else                         { status = "unknown" }
+                        var desc_html = ((desc == "")? "" : " <i> (" + desc + ")</i>")
+                        if(TestSuite.last_src_error_message){
+                            error_message = test_number_html + src +
+                                " => <span style='color:red;'>" + TestSuite.last_src_error_message +
+                                "</span> " + desc_html + "<br/>"
+                        }
+                        else if (TestSuite.last_expected_error_message){
+                            error_message = test_number_html + expected +
+                                " => <span style='color:red;'>" + TestSuite.last_expected_error_message +
+                                "</span> " + desc_html + "<br/>"
+                        }
+                        else { //unexpected error
+                            let src_result_str = Utils.stringify_value(value)
+                            let src_result_html = "<span style='color:red;'>" + src_result_str + "</span>"
+                            error_message = test_number_html +
+                                "&nbsp;<code>" + src +
+                                "</code> <i>returned</i>: "                    + ((src_result_str.length > 20) ? "<br/>" : "") + "<code>" + src_result_html  +
+                                "</code>, <i>but expected</i>: " + ((src_result_str.length > 20) ? "<br/>" : "") + "<code>" + Utils.stringify_value(expected_result) +
+                                "</code> " + desc_html + "<br/>"
+                        }
+                        this_suite.report += error_message + "\n"
+                        this_suite.unknown_failure_count += 1
+                    } //end if
+                    TestSuite.state.promise_pending = false
+                    TestSuite.resume()
+                })
+            }
             else if(!similar(src_result, expected_result)) { //note if both are TestSuite.error, they will be similar
                 var desc     = ((test.length > 2) ? test[2] : "")
                 if (desc.startsWith("known")){ status = "known" }

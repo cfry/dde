@@ -1,9 +1,13 @@
 debugger;
+globalThis.running_in_browser = (globalThis.window ? true : false)
 console.log("top of ready.js")
 
 //import os from 'os' //todo causes Failed to resolve module specifier "os". bug  //probably only useful in server code,  not browser code.
 //import $  from "jquery" //jqxwdigets tech suppport sez this is no longer necessary
 //and not having it still makes $ available.
+
+
+//These imports only for when running_in_browser
 import "jqwidgets-scripts/jqwidgets/styles/jqx.base.css"
 import "jqwidgets-scripts/jqwidgets/jqxcore.js"
 import "jqwidgets-scripts/jqwidgets/jqxmenu.js"
@@ -47,6 +51,12 @@ import "codemirror/addon/fold/comment-fold.js"
 
 import "shepherd.js/dist/css/shepherd.css"
 
+import "./styles.css"
+
+import {w3} from "../third_party/w3.js"
+
+
+
 import * as Espree from "espree";
 globalThis.Espree = Espree;
 
@@ -62,7 +72,7 @@ globalThis.Espree = Espree;
 //but still fails
 //import { parse as semver } from "semver"; //yields circular dependencies
 
-import "./styles.css"
+
 
 import "../job_engine/core/utils.js" //defines as global class Utils, and a few of its methods such as  dde_error, rgb
 import "../job_engine/core/duration.js"
@@ -108,8 +118,8 @@ import "./dex.js" //makes Dex global
 
 import "./doc_code.js" //makes DocCode global
 
-import {eval_js_part2, latest_eval_button_click_source} from "./eval.js"
-    //eval_js_part2 needed for the cmd type in evaluation and
+import {latest_eval_button_click_source} from "./eval.js"
+    //eval_js_part2 is global. It is needed for the cmd type in evaluation and
     //latest_eval_button_click_source needed for make_dde_status_report
 
 import "./svg.js" //defines svg_svg & friends as globals.
@@ -179,7 +189,7 @@ import "./lesson.js" //defines global Lesson
 
 import package_json        from "../../package.json"
 
-import {w3} from "../third_party/w3.js"
+
 
 globalThis.dde_version      = "not inited"
 globalThis.dde_release_date = "not inited"
@@ -244,7 +254,7 @@ function set_operating_system() {
 }
 
 export function on_ready() {
-        debugger;
+        if(!running_in_browser) { return }
         //const os = require('os');
         console.log("top of on_ready")
         //console.log("__dirname:"  + __dirname) //todo dde4 causes error

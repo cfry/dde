@@ -1,4 +1,4 @@
-import {eval_js_part2} from "../../general/eval.js"
+//import {eval_js_part2} from "../../general/eval.js" //now this is global
 
 class DDEFile {
     //utilities
@@ -148,21 +148,21 @@ class DDEFile {
     //______end Utilites______
     //Core file manipulation methods
 
-    static async file_exists(path){
+    static async file_exists(path, callback){
         //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
-        path = this.add_default_file_prefix_maybe(path)
-        let full_url = this.protocol_and_host() + "/edit?edit=" + path
+        //path = this.add_default_file_prefix_maybe(path)
+        let full_url =  this.make_url(path, "/edit?edit=")
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
         //see httpdde.js, serve_file()
         let file_info_response = await fetch(full_url)
-        return file_info_response.ok  //should be a boolean
+        return this.callback_or_return(callback, file_info_response.ok)
     }
 
     //path can be a file, a folder, or a non-existant path.
     //returns null, if non-existant, else
     //a JSON object with the fields documented in
-    static async path_info(path = "dde_apps"){
+    static async path_info(path = "dde_apps", callback){
         ///if(!path.startsWith("/")) {    path = dde_apps_folder + "/" + path
         //path = this.add_default_file_prefix_maybe(path)
         //let full_url = this.protocol_and_host() + "/edit?info=" + path
@@ -172,46 +172,97 @@ class DDEFile {
         //see httpdde.js, serve_file()
         // see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
         let file_info_response = await fetch(full_url) //, {mode: 'no-cors'}) // no-cors)
-        if(!file_info_response.ok) { return null } //ie file doesn't exist
-        else {
+        if(file_info_response.ok) {
             let content = await file_info_response.text()
-            if(content === "null") { return null }
+            if(content === "null") {
+                return this.callback_or_return(callback, null)
+            }
             else {
                 let json_obj = JSON.parse(content)
                 let is_dir = json_obj.kind === "folder"
                 let perm_str = Utils.permissions_integer_string_to_letter_string(json_obj.permissions, is_dir)
                 json_obj.permissions_letters = perm_str
-                return json_obj
+                return this.callback_or_return(callback, json_obj)
             }
+        }
+        else {
+            this.callback_or_error(callback, "DDEFile.path_info for: " + path + " got error: " + file_info_response.status)
         }
     }
 
-    static async read_file_async(path){
-        if (path === undefined){
+    static async is_folder(path, callback){
+        let info_obj = await this.path_info(path)
+        let is_fold = info_obj.kind === "folder"
+        return this.callback_or_return(callback, is_fold)
+    }
+
+    static callback_or_error(callback, error_message="got error"){
+        if (callback) {
+            callback(error_message)
+        }
+        else {
+            dde_error(error_message)
+        }
+    }
+
+    static callback_or_return(callback, value="got error"){
+        if (callback) {
+            callback(null, value)
+        }
+        else {
+            return value
+        }
+    }
+
+    //callback is optional. If not passed, return a promise
+    static async read_file_async(path, callback){
+        if (path === undefined) {
             if (Editor.current_file_path == "new buffer"){
-                dde_error("Attempt to read file but no filepath given.")
+                this.callback_or_error(callback, "Attempt to read_file_async but no path given.")
             }
             else { path = Editor.current_file_path }
         }
         let full_url = this.make_url(path, "/edit?edit=")
         //path = this.add_default_file_prefix_maybe(path)
         //let full_url = this.protocol_and_host() +  "/edit?edit=" + path
-        let file_info_response = await fetch(full_url, {mode: 'no-cors'})
+        let file_info_response = await fetch(full_url) // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
         if(file_info_response.ok) {
             let content = await file_info_response.text()
-            return content
+            return this.callback_or_return(callback, content)
         }
         else {
-            dde_error("DDEFile.read_file_async of: " + path + " got error: " + file_info_response.status)
+            this.callback_or_error(callback, "DDEFile.read_file_async of: " + path + " got error: " + file_info_response.status)
+        }
+    }
+
+    static async read_file_part(path, start=0, length=80, callback){
+        if (path === undefined) {
+            if (Editor.current_file_path == "new buffer"){
+                this.callback_or_error(callback, "Attempt to read_file_async but no path given.")
+            }
+            else { path = Editor.current_file_path }
+        }
+        let full_url = this.make_url(path,
+                                    "/edit?start=" + start +
+                                    "&length=" + length + "&read_part=")
+        //path = this.add_default_file_prefix_maybe(path)
+        //let full_url = this.protocol_and_host() +  "/edit?edit=" + path
+        let file_info_response = await fetch(full_url) // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
+        if(file_info_response.ok) {
+            let content = await file_info_response.text()
+            return this.callback_or_return(callback, content)
+        }
+        else {
+            this.callback_or_error(callback, "DDEFile.read_file_part of: " + path + " got error: " + file_info_response.status)
         }
     }
 
 
     //content can be a string or a blob, and a "file" object is a blob.
-    static async write_file_async(path, content, encoding= null){ //default was "utf8" in dde3
+    static async write_file_async(path, content, encoding= null, callback){ //default was "utf8" in dde3
         if (path === undefined){
             if (Editor.current_file_path == "new buffer"){
-                dde_error("Attempt to write file but no filepath given.")
+                this.callback_or_error(callback, "Attempt to write file but no filepath given.")
             }
             else { path = Editor.current_file_path }
         }
@@ -219,6 +270,7 @@ class DDEFile {
         if (content === undefined) {
             content = Editor.get_javascript()
         }
+        let orig_content = content
         if(encoding === null) {
             if(Utils.typed_array_name(content) === "Uint8Array") {} //good!
             else if (typeof(content) === "string") {
@@ -251,75 +303,143 @@ class DDEFile {
         let res = await fetch(url_sans_query, {method: 'POST', //'PUT', //'POST', //using PUT fails
                                              body: formData,
                                              mode: 'no-cors'})
-        out("write_file_async wrote file to: " + full_url)
-        return res
+        if(res.ok) {
+            out("write_file_async wrote file to: " + full_url)
+            return this.callback_or_return(callback, orig_content)
+        }
+        else {
+            this.callback_or_error(callback, "DDEFile.write_file_async of: " + path + " got error: " + res.status)
+        }
     }
 
-    static async copy_file_async(source_path, destination_path){
+    static async append_to_file(path, content, encoding= null, callback){ //default was "utf8" in dde3
+        if (path === undefined){
+            if (Editor.current_file_path == "new buffer"){
+                this.callback_or_error(callback, "Attempt to write file but no filepath given.")
+            }
+            else { path = Editor.current_file_path }
+        }
+        //path = this.add_default_file_prefix_maybe(path)
+        if (content === undefined) {
+            content = Editor.get_javascript()
+        }
+        let orig_content = content
+        if(encoding === null) {
+            if(Utils.typed_array_name(content) === "Uint8Array") {} //good!
+            else if (typeof(content) === "string") {
+                content = Utils.string_to_unit8array(content)
+            }
+            else {
+                warning("DDEFile.write_file_async passed content of type: " +
+                    typeof (content) + " and encoding of null.<br/>" +
+                    "write probably won't write the content correctly.")
+            } //todo  good luck! probably need some conversion here.
+        }
+
+        let full_url = this.make_url(path, "/edit?")
+        //let full_url = this.protocol_and_host() + "/edit" //"/edit?path=path" //"/edit"
+        //let res = await fetch(full_url, {method: 'POST', //'PUT', //'POST', //using PUT fails
+        //                                 //path: path, //fails
+        //                                 body: content})
+        let [url_sans_query, path_to_store_content_in] = full_url.split("?")
+        let formData = new FormData();
+        let blob
+        if(typeof(content) === "string"){
+            blob = new Blob([content]) //, { type: "text/plain"}); //turns out at least for text files, no tyoe necessary
+        }
+        else if(Utils.typed_array_name(content) === "Uint8Array") {  //if I atttempt to use the uin9Arry as a blob. I get wrror "content is not of type Blob"
+            blob = new Blob([content.buffer])
+        }
+        else { blob = content } //probably a "file" object from upload
+        formData.append("data", blob, path_to_store_content_in);
+        //formData.append("name", path)
+        url_sans_query += "?append=true"
+        let res = await fetch(url_sans_query, {method: 'POST', //'PUT', //'POST', //using PUT fails
+                                                    body: formData,
+                                                    mode: 'no-cors'})
+        if(res.ok) {
+            out("DDEFile.append_to_file to: " + full_url)
+            return this.callback_or_return(callback, orig_content)
+        }
+        else {
+            this.callback_or_error(callback, "DDEFile.append_to_file to: " + path + " got error: " + res.status)
+        }
+    }
+
+    static async copy_file_async(source_path, destination_path, callback){
         let content = await DDEFile.read_file_async(source_path)
-        DDEFile.write_file_async(destination_path, content)
+        DDEFile.write_file_async(destination_path, content, null, callback)
     }
 
-    static async edit_file(path, dont_save_cur_buff_even_if_its_changed=false){
-        //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
-        path = this.add_default_file_prefix_maybe(path)
-        let full_url = this.protocol_and_host() + "/edit?edit=" + path
-        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
-        //think that this url is a root url for some strange reason.
-        //see httpdde.js, serve_file()
+    static async edit_file(path, dont_save_cur_buff_even_if_its_changed=false, callback){
+        let full_url = this.make_url(path, "/edit?edit=")
+
         let file_info_response = await fetch(full_url)
         if(file_info_response.ok) {
             let content = await file_info_response.text()
             Editor.edit_file(path, content, dont_save_cur_buff_even_if_its_changed) //true means: dont_save_cur_buff_even_if_its_changed
+            this.callback_or_return(callback, content)
         }
         else {
-            dde_error("DDEFile.edit_file of: " + path + " got error: " + file_info_response.status)
+            this.callback_or_error(callback, "DDEFile.edit_file of: " + path + " got error: " + file_info_response.status)
         }
     }
 
-    static async insert_file_content(path){
-        //if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path }
-        path = this.add_default_file_prefix_maybe(path)
-        let full_url = this.protocol_and_host() + "/edit?edit=" + path
-        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
-        //think that this url is a root url for some strange reason.
-        //see httpdde.js, serve_file()
+    static async insert_file_content(path, callback){
+        let full_url = this.make_url(path, "/edit?edit=")
         let file_info_response = await fetch(full_url)
         if(file_info_response.ok) {
             let content = await file_info_response.text()
             Editor.insert(content)
+            this.callback_or_return(callback, content)
         }
         else {
-            dde_error("DDEFile.edit_file of: " + path + " got error: " + file_info_response.status)
+            this.callback_or_error(callback, "DDEFile.insert_file_content of: " + path + " got error: " + file_info_response.status)
         }
     }
 
-    static async load_file(path){
+    static async load_file(path, callback){
         //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
-        path = this.add_default_file_prefix_maybe(path)
-        let full_url = this.protocol_and_host() + "/edit?edit=" + path
+        //path = this.add_default_file_prefix_maybe(path)
+        //let full_url = this.protocol_and_host() + "/edit?edit=" + path
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
         //see httpdde.js, serve_file()
+        let full_url = this.make_url(path, "/edit?edit=")
         let file_info_response = await fetch(full_url)
         if(file_info_response.ok) {
             let content = await file_info_response.text()
-            eval_js_part2(content)
+            let result
+            try {
+                let result = eval_js_part2(content)
+                this.callback_or_return(callback, result.value)
+            }
+            catch(err){
+                this.callback_or_error(callback, err)
+            }
         }
         else {
-            dde_error("DDEFile.edit_file of: " + path + " got error: " + file_info_response.status)
+            this.callback_or_error(callback,"DDEFile.load_file of: " + path + " got error: " + file_info_response.status)
         }
     }
 
-    static async folder_listing(path="dde_apps"){
+    static async folder_listing(path="dde_apps", callback){
        //if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path }
        //if(!path.endsWith("/")) { path = path + "/" } //httpd.js requires ending slash
-       path = this.add_default_file_prefix_maybe(path)
-       path = this.ensure_ending_slash(path) //httpd.js requires ending slash
-       let url = this.protocol_and_host() + "/edit?list=" + path
-       let fold_info = await fetch(url)
-       //out("fold_info: " + fold_info)
-       return fold_info
+        //path = this.add_default_file_prefix_maybe(path)
+        path = this.ensure_ending_slash(path)
+        let full_url = this.make_url(path, "/edit?list=")
+        //path = this.ensure_ending_slash(path) //httpd.js requires ending slash
+        //let url = this.protocol_and_host() + "/edit?list=" + path
+        let fold_info = await fetch(full_url)
+        if(fold_info.ok) {
+            let content = await fold_info.text()
+            let obj = JSON.parse(content)
+            return this.callback_or_return(callback, obj)
+        }
+        else {
+            this.callback_or_error(callback, "DDEFile.folder_listing for: " + path + " got error: " + fold_info.status)
+        }
     }
 
     //______choose methods
@@ -380,13 +500,8 @@ class DDEFile {
     }
 
 
-    static async download_file(path){
-        //if(!path.startsWith("/")) { path = dde_apps_folder + "/" + path}
-        path = this.add_default_file_prefix_maybe(path)
-        let full_url = this.protocol_and_host() + "/edit?edit=" + path
-        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
-        //think that this url is a root url for some strange reason.
-        //see httpdde.js, serve_file()
+    static async download_file(path, callback){
+        let full_url = this.make_url(path, "/edit?edit=")
         let file_info_response = await fetch(full_url)
         if(file_info_response.ok) {
             let type = file_info_response.type //not so good. Returns "basic"
@@ -400,9 +515,10 @@ class DDEFile {
             let file_name = path.substring(last_slash + 1)
             this.download(url, file_name);  // Download file
             URL.revokeObjectURL(url) // Release the object URL
+            return this.callback_or_return(callback, true)
             }
         else {
-            dde_error("DDEFile.download_file of: " + path + " got error: " + file_info_response.status)
+            this.callback_or_error(callback,"DDEFile.download_file of: " + path + " got error: " + file_info_response.status)
         }
     }
 
@@ -475,7 +591,7 @@ class DDEFile {
         let full_folder_info_obj = await DDEFile.path_info(folder)
         let full_folder = full_folder_info_obj.full_path
         let fold_info = await this.folder_listing(folder)
-        let array_of_objs = await fold_info.json()
+        let array_of_objs = fold_info // I use to have to use "await fold_info.json()" here but magically no longer necessary
         let html = "<table><tr><th>Name</th><th>Size(bytes)</th><th>Last Modified Date</th><th>Permissions</th></tr>\n"
         for(let obj of array_of_objs) {
             let name = obj.name
@@ -913,6 +1029,20 @@ class DDEFile {
             callback: callback})
     }
     //end overall Upload______
-
+    static async dynamic_import(package_name, global_var_name){
+        let url = 'https://cdn.skypack.dev/' + package_name
+        let result = await import(url)
+        if(global_var_name) {
+            if(global_var_name.includes("-")) {
+                dde_error("dynamic_import passed a global_var_name of: " + global_var_name +
+                    "<br/>that contains a hyphen which is invalid in JS.<br/>" +
+                    "We recommend replacing hyphens with underscores.")
+            }
+            else {
+                globalThis[global_var_name] = result
+            }
+        }
+        return result
+    }
 }
 globalThis.DDEFile = DDEFile

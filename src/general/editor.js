@@ -153,6 +153,28 @@ class Editor {
         //document.querySelector(".CodeMirror").addEventListener("mouseup", function(){
         //   out("got mouseup")
         //})
+
+        // See https://developer.mozilla.org/en-US/docs/Web/API/WindowEventHandlers/onbeforeunload
+        window.addEventListener('beforeunload', function (e) {
+            out("in render process, save_before_quit_dde_maybe")
+            if(Editor.current_buffer_needs_saving) {
+                let should_quit = confirm("The file in DDE's editor has unsaved changes.\nQuit DDE without saving it?")
+                if(should_quit){
+                    // the absence of a returnValue property on the event will guarantee the browser unload happens
+                    delete e['returnValue'];
+                }
+                else{ //don't quit dde
+                    out("To save the current file, use the file menu 'Save' item.")
+                    // Cancel the event
+                    e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
+                    // Chrome requires returnValue to be set
+                    e.returnValue = '';
+                }
+            }
+            else { // the absence of a returnValue property on the event will guarantee the browser unload happens
+                delete e['returnValue'];
+            }
+        })
     }
 
     static handle_codemirror_mouse_click(mouse_event){
@@ -2988,6 +3010,7 @@ Editor.context_help_for_make_ins_oplet = function(full_src, cursor_pos, identifi
 } //end Editor class
 globalThis.Editor = Editor
 
+/* now in init_editor to protect against being called when running in Node.
 // See https://developer.mozilla.org/en-US/docs/Web/API/WindowEventHandlers/onbeforeunload
 window.addEventListener('beforeunload', function (e) {
     out("in render process, save_before_quit_dde_maybe")
@@ -3009,3 +3032,4 @@ window.addEventListener('beforeunload', function (e) {
         delete e['returnValue'];
     }
 })
+ */

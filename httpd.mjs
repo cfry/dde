@@ -10,6 +10,32 @@ import path from 'path';
 import { spawn } from 'child_process'
 import ModbusRTU from "modbus-serial"
 import os from "os" //dde4 added
+//import {readChunkSync} from 'read-chunk' //https://www.npmjs.com/package/read-chunk
+function readChunkSync(filePath, {length, startPosition}) {
+    console.log("top of readChunkSync with filePath: " + filePath +
+                " length: " + length + " startPosition: " + startPosition)
+    console.log("Buffer: " + Buffer)
+    let buffer = Buffer.alloc(length);
+    console.log("got buffer: " + buffer)
+    console.log("got fs.openSync: " + fs.openSync)
+    const fileDescriptor = fs.openSync(filePath, 'r');
+    console.log("got fileDescriptor: " + fileDescriptor)
+    try {
+        const bytesRead = fs.readSync(fileDescriptor, buffer, {
+            length,
+            position: startPosition,
+        });
+
+        if (bytesRead < length) {
+            buffer = buffer.slice(0, bytesRead);
+        }
+
+        return buffer;
+    } finally {
+        fs.closeSync(fileDescriptor);
+    }
+}
+
 
 
 //dde4 replaced the below requires with the above imports
@@ -300,7 +326,7 @@ function isBinary(byte) { //must use numbers, not strings to compare. ' ' is 32
 }
 
 //standard web server on port 80 to serve files
-var http_server = http.createServer(function (req, res) {
+var http_server = http.createServer(async function (req, res) {
   //see https://nodejs.org/api/http.html#http_class_http_incomingmessage 
   //for the format of q.
   console.log("web server got request: " + req.url )
@@ -313,6 +339,7 @@ var http_server = http.createServer(function (req, res) {
   if (q.pathname === "/init_jobs") {
       serve_init_jobs(q, req, res)
   }
+  //get path info
   else if (q.pathname === "/edit" && q.query.info ) { //added dde4
       let path = q.query.info
       console.log("Getting info for orig path: " + path)
@@ -358,29 +385,32 @@ var http_server = http.createServer(function (req, res) {
           let now = new Date()
           dir.push({name: "..", size: "", type: "dir", date: now.getTime()})
           }
-        for (let i in items) { //dde4 added "let "  //console.log("file:", JSON.stringify(items[i]))
+        for (let i = 0; i < items.length; i++) { //dde4 added "let "  //console.log("file:", JSON.stringify(items[i]))
            //console.log("getting stats for i: " + i + " item: " + items[i] + " name: " + items[i].name)
-          if (items[i].isFile()) {
+          let file_maybe = items[i]
+          if (file_maybe.isFile()) {
+            let file_name = file_maybe.name
             let size = "unknown"
             let permissions = "unknown"
             let stats = {size: "unknown"} //dde4 not used so delete this line and move "let" to 3 lines below
             let date = 0 //dde4 necessary for catch clause of date
             try { //console.log("file:", listpath + items[i].name)
-              stats = fs.statSync(listpath + items[i].name)
+              stats = fs.statSync(listpath + file_name)
               size = stats["size"]
               date = stats["mtimeMs"]
               //if(!date) { date = 0 } //dde4 added to fix bug when no mtimeMs
               permissions = (stats.mode & parseInt('777', 8)).toString(8)
-            } catch (e) {console.log("couldn't stat "+items[i].name+":"+e) }
-            dir.push({name: items[i].name, size: size, type: "file", permissions: permissions, date: date})
+            } catch (e) {console.log("couldn't stat "+ file_name +":"+e) }
+            dir.push({name: file_name, size: size, type: "file", permissions: permissions, date: date})
           } //size is used to see if the file is too big to edit.
-          else if (items[i].isDirectory()) {
-            dir.push({name: items[i].name, size: "", type: "dir"})
+          else if (file_maybe.isDirectory()) {
+            dir.push({name:file_maybe.name, size: "", type: "dir"})
             } //directories are not currently supported. 
         }
         console.log('\n\nAbout to stringify 5\n');
         res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
-        res.write(JSON.stringify(dir))
+        let dir_listing_str = JSON.stringify(dir)
+        res.write(dir_listing_str)
         res.end()
       })
     }
@@ -394,6 +424,7 @@ var http_server = http.createServer(function (req, res) {
     // comes back with the data from the server.
     //and the browser may chose to prepend "downloads" folder and
     //save just the downloads/filename.txt there.
+   //used by read_file_async
   else if (q.pathname === "/edit" && q.query.edit || q.query.download) { 
     let filename = q.query.edit || q.query.download
     console.log("serving for edit filename: " + filename)
@@ -424,6 +455,43 @@ var http_server = http.createServer(function (req, res) {
         return res.end()
       })
     }
+    //used by read_file_part
+    else if (q.pathname === "/edit" && q.query.read_part){ //dde4
+      let filename = q.query.read_part
+      console.log("serving for read_part filename: " + filename)
+      filename   = make_full_path(filename)
+      let start  = parseInt(q.query.start)
+      let length = parseInt(q.query.length)
+      if(start < 0) { //read length bytes from the end of the file
+          let stats = fs.statSync(filename)
+          let fileSizeInBytes = stats.size;
+          start = fileSizeInBytes - length + start + 1 //compute new start when reading from end
+      }
+      console.log("read_file_part full_path: " + filename + " start: " + start + " length: " + length)
+      try {
+          console.log("got readChunckSync: " + readChunkSync)
+          let data = readChunkSync(filename, {length: length, startPosition: start});
+          console.log("After readChunkSync with data: " + data)
+          let line = 0;
+          for (let i = 0; i < data.length; i++) {
+              if (10==data[i]) line++
+              if ( isBinary(data[i]) ) { //console.log("binary data:" + data[i] + " at:" + i + " line:" + line)
+                  res.setHeader("Content-Type", "application/octet-stream")
+                  break
+              }
+          }
+          res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
+          res.writeHead(200)
+          //console.log("server writing out data: " + data)
+          res.write(data)
+          return res.end()
+      }
+      catch(err) {
+          res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
+          res.writeHead(404, {'Content-Type': 'text/html'})
+          return res.end("404 Not Found "+err)
+      }
+    }
     else if (q.pathname === "/edit" && req.method == 'DELETE' ) { //console.log("edit delete:"+JSON.stringify(req.headers))
       const form = formidable({ multiples: true });
       form.parse(req, (err, fields, files) => { //console.log(JSON.stringify({ fields, files }, null, 2) +'\n'+ err)
@@ -438,53 +506,80 @@ var http_server = http.createServer(function (req, res) {
       }
       //use POST for updating the content of an existing file
       //below the first causeofan||(or)is for formindable v 1.2.2  and the 2nd is for formidable v "^2.0.1"
-    else if (q.pathname === "/edit" && req.method == 'POST' ) { //console.log("edit post headers:",req.headers)
+      //used by write_file_async
+     else if (q.pathname === "/edit" && req.method == 'POST' ) { //console.log("edit post headers:",req.headers)
         const form = formidable({ multiples: false });
         form.once('error', console.error);
         const DEFAULT_PERMISSIONS = parseInt('644', 8)
         var stats = {mode: DEFAULT_PERMISSIONS}
         form.on('file', function (filename, file) {  //console.log("edit post file:",file)
-          //console.log("filename: " + filename + " file: " + JSON.stringify(file))
-          let topathfile = (file.name || file.originalFilename) // dde4 we need the "let"
-          try { console.log("copy", (file.path || file.filepath),
-                            "to", topathfile)
-            stats = fs.statSync(topathfile) 
-            //console.log(("had permissions:" + (stats.mode & parseInt('777', 8)).toString(8)))
-          } catch {} //no biggy if that didn't work
-          let topath = topathfile.split('/').slice(0,-1).join('/')+'/' //dde4 needs "let"
-          try { console.log(`make folder:${topath}.`)
-            fs.mkdirSync(topath, {recursive:true})
-          } catch(err) { console.log(`Can't make folder:${topath}.`, err)
-              res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
-              res.writeHead(400)
-              return res.end(`Can't make folder ${topath}:`, err)
-          }
-          fs.copyFile((file.path || file.filepath),  //or  file.filepath
-             topathfile, function(err) {
-            let new_mode = undefined
-            if (err) { console.log("copy failed:", err)
-                res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
-                res.writeHead(400)
-                return res.end("Failed")
+            //console.log("filename: " + filename + " file: " + JSON.stringify(file))
+            let topathfile = (file.name || file.originalFilename) // dde4 we need the "let"
+            topathfile = make_full_path(topathfile)
+            try {
+                console.log("copy", (file.path || file.filepath),
+                    "to", topathfile)
+                stats = fs.statSync(topathfile)
+                //console.log(("had permissions:" + (stats.mode & parseInt('777', 8)).toString(8)))
+            } catch {
+            } //no biggy if that didn't work
+            if (q.query.append) {
+                // open destination file for appending
+                let write_stream = fs.createWriteStream(topathfile, {flags: 'a'});
+                // open source file for reading
+                let read_stream = fs.createReadStream((file.path || file.filepath));
+
+                write_stream.on('close', function() {
+                    fs.unlink((file.path || file.filepath), function (err) {
+                        if (err) console.log((file.path || file.filepath), 'not cleaned up', err);
+                    });
+                    res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
+                    res.end('ok');
+                    console.log("done writing");
+                });
+
+                read_stream.pipe(write_stream);
+                //fs.appendFile((file.path || file.filepath), topathfile)
             }
             else {
-              fs.chmodSync(topathfile, stats.mode)
-              try { //sync ok because we will recheck the actual file
-                let new_stats = fs.statSync(topathfile)
-                new_mode = new_stats.mode
-                //console.log(("has permissions:" + (new_mode & parseInt('777', 8)).toString(8)))
-              } catch {} //if it fails, new_mode will still be undefined
-              if (stats.mode != new_mode) { //console.log("permssions wrong")
-                //res.writeHead(400) //no point?
-                return res.end("Permissions error")
+                let topath = topathfile.split('/').slice(0, -1).join('/') + '/' //dde4 needs "let"
+                try {
+                    console.log(`make folder:${topath}.`)
+                    fs.mkdirSync(topath, {recursive: true})
+                } catch (err) {
+                    console.log(`Can't make folder:${topath}.`, err)
+                    res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
+                    res.writeHead(400)
+                    return res.end(`Can't make folder ${topath}:`, err)
                 }
-              fs.unlink((file.path || file.filepath), function(err) {
-                if (err) console.log((file.path || file.filepath), 'not cleaned up', err);
-                });
-                res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
-                res.end('ok');
-              }
-            }) //done w/ copyFile
+                fs.copyFile((file.path || file.filepath),  //or  file.filepath
+                  topathfile, function (err) {
+                    let new_mode = undefined
+                    if (err) {
+                        console.log("copy failed:", err)
+                        res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
+                        res.writeHead(400)
+                        return res.end("Failed")
+                    } else {
+                        fs.chmodSync(topathfile, stats.mode)
+                        try { //sync ok because we will recheck the actual file
+                            let new_stats = fs.statSync(topathfile)
+                            new_mode = new_stats.mode
+                            //console.log(("has permissions:" + (new_mode & parseInt('777', 8)).toString(8)))
+                        } catch {
+                        } //if it fails, new_mode will still be undefined
+                        if (stats.mode != new_mode) { //console.log("permssions wrong")
+                            //res.writeHead(400) //no point?
+                            return res.end("Permissions error")
+                        }
+                        fs.unlink((file.path || file.filepath), function (err) {
+                            if (err) console.log((file.path || file.filepath), 'not cleaned up', err);
+                        });
+                        res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
+                        res.end('ok');
+                    }
+                }) //done w/ copyFile
+            }
           });
         form.parse(req)
         return

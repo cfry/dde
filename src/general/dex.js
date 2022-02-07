@@ -1,4 +1,4 @@
-import {eval_js_part2} from "./eval.js"
+//import {eval_js_part2} from "./eval.js" //now global
 
 class Dex {
     static version = 4

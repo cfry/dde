@@ -191,6 +191,23 @@
             <code>"/Users/Fry/Documents/dde_apps"</code> on the Mac.
         </details>
 
+        <details id="DDEFile.dynamic_import" class="doc_details"><summary>dynamic_import</summary>
+            Use Javascript ES6 modules to dynamically import an NPM package from The Skypack website.<br/>
+            Returns a Promise resolving to a Module object.
+            <i>Parameters:</i><br/>
+            <b>npm_package_name</b> A string. Required.<br/>
+            <b>global variable name</b> A string. Optional. If supplied,
+              binds the returned module to the global varible.
+              Will error if you include a hyphen in the variable name, which
+              is a common mistake because the mis-desiged syntax of package names
+              allows a hyphen. Usually you should replace hyphens with underscores.
+            <p></p>
+            <i>Example:</i><br/>
+            <code>DDEFile.dynamic_import("canvas-confetti", "canvas_confetti")</code><br/>
+            <code>globalThis.canvas_confetti.default()</code>
+            Evaluating the above causes some moving colored rectangles to be displayed
+            simulating confetti being dropped.
+        </details>
         <details id="Editor.edit_file_doc_id" class="doc_details"><summary>Editor.edit_file</summary>
             <code>Editor.edit_file</code> takes an argument of a filepath, similar to <code>load_files</code>,
             and puts that file in DDE's editor.

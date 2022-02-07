@@ -1025,4 +1025,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
         return "dont_print"
     }
 } // end class SW
+globalThis.clear_output = SW.clear_output //this isn're REALLY part of show_window
+   //but is a window system like fn. In DDE3 it was just clear_output at top level
+   //so I decided to preserve that, but also stick it in the SW class
 globalThis.SW = SW //used a bunch in the ref man for SW.append_in_ui and other misc places in dde

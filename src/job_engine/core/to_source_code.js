@@ -18,6 +18,7 @@ export function to_source_code({value, indent="", function_names=false, newObjec
         else if (value === true)            { return "true"}
         else if (value === false)           { return "false"}
         else if (typeof(value) == "number") { return value.toString() } //works for NaN too, no need to use (isNaN(value)) { result = "NaN" } //note the check for number before checking isNanN is necessary because JS wasn't designed.
+        else if (typeof(value) === "symbol") { return value.toString() }
         else if (typeof(value) == "string") {
             if (value.includes("\n") ||
                 (value.includes("'") && value.includes('"')))
