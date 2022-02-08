@@ -817,11 +817,13 @@ class Job{
 
             but_elt = window[the_id]
             but_elt.onclick = function(event){
+                const job_instance = Job[job_name]
+                //if(job_instance.status_code === "starting") { } //user probably "double clicked" on a job
                 if(window["Metrics"]) { Metrics.increment_state("Job button clicks") }
                 event.target.blur() //gets rid of dark border around button and because its
                 //not focused, pressing the space or ENTER key doesn't do something strange
                 //like an extra button click.
-                const job_instance = Job[job_name]
+
                 console.log("Job button clicked when status was: " + job_instance.status_code)
                 if (job_instance.status_code == "suspended"){
                     if(but_elt.title.includes("Make Instruction")) { job_instance.stop_for_reason("interrupted", "User stopped job.") }
@@ -1438,7 +1440,6 @@ Job.stop_all_jobs = function(){
 }
 
 Job.prototype.undefine_job = function(){
-    if(this.robot instanceof Dexter) { Dexter.remove_from_busy_job_arrays(this) }
     delete Job[this.name]
     Job.forget_job_name(this.name)
     this.remove_job_button()

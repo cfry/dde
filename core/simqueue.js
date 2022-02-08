@@ -103,8 +103,21 @@ var Simqueue = class Simqueue{
         let oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
         return  ["a", "P"].includes(oplet)
     }
+
+    simple_instruction_array_test(instruction_array){
+        for(let i = 0; i < instruction_array.length; i++){
+            let val = instruction_array[i]
+            let type = typeof(val)
+            if(!["number", "string", "undefined"].includes(type)) {
+                dde_error("Simulator passed invalid instruction arg at index " + i +
+                          " of : " + val +
+                          " in instruction array: " + instruction_array)
+            }
+        }
+    }
     
     add_to_queue(instruction_array) {
+        this.simple_instruction_array_test(instruction_array)
         if(this.is_queue_full()){
             shouldnt("Simqueue is full so can't be added to.")
         }

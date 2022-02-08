@@ -247,7 +247,7 @@ Js_info = class Js_info {
             }
             else if (window[fn_name]){
                 fn = window[fn_name]
-                if (fn && fn.toString().includes("[native code]")){ //catches at least a high percent of built0in js fns
+                if (fn && fn.toString && fn.toString().includes("[native code]")){ //catches at least a high percent of built0in js fns
                     let url = "https://developer.mozilla.org/en-US/docs/Web/API/Window/" + fn_name
                     return Js_info.make_atag("window", fn_name, url) + "(" + Js_info.get_param_string(fn) + ")"
                 }
@@ -433,6 +433,7 @@ Js_info = class Js_info {
     static get_lit_string_info_maybe(fn_name, full_src, pos){
         let prev_newline      = full_src.lastIndexOf("\n", pos)
         let next_newline      = full_src.indexOf("\n", pos)
+        if(next_newline === -1) { next_newline = full_src.length }
         full_src = full_src.substring(prev_newline + 1, next_newline)
         pos -= (prev_newline + 1)
         let start_search = 0
@@ -474,6 +475,7 @@ Js_info = class Js_info {
     }
 
     static strip_path_prefix_maybe(fn_name){
+        if(fn_name === ".") { return fn_name } //its not really a prefix, is the operator between 2 path parts that says "get tvalue of the 2nd part from the first part.
         let lit_str_delimiters = ['"', "'", "`"]
         let first_char = ((fn_name.length > 1) ? fn_name[0] : null)
         if(is_string_a_literal_string(fn_name)) { return fn_name }

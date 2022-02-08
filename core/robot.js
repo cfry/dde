@@ -1460,7 +1460,7 @@ Dexter = class Dexter extends Robot {
                return
             }
         }
-        if ((robot_status[Dexter.ERROR_CODE] !== 0) && (oplet === "r")){ //we have an error but its "file not found" handled specially
+        if ((error_code !== 0) && (oplet === "r")){ //we have an error but its "file not found" handled specially
              //Dexter.read_file errored, assuming its "file not found" so end the rfr loop and set the "content read" as null, meaning file not found
                 //the below setting of the user data already done by got_content_hunk
                 //let rfr_instance = Instruction.Dexter.read_file.find_read_file_instance_on_do_list(job_instance, ins_id)

@@ -347,7 +347,7 @@ function find_doc_aux(record){
             else {
                 out(count + ' matches of <span style="background-color:yellow;">' +
                     search_string + '</span> now highlighed  in yellow in the Doc pane.<br/>' +
-                    'To see them, twist down the <details style="background-color:rgb(255, 214, 153);"><summary><b>Orange Rows</b></summary></details>' +
+                    'To see them, twist down the <details style="background-color:rgb(255, 214, 153);"><summary><b>Orange Rows</b> (in the Doc pane)</summary></details>' +
                     html_for_test_suites,
                     "black")
             }
@@ -515,6 +515,7 @@ function init_doc(){
         "</details>\n"
     doc_pane_content_id.innerHTML = content
 }
+
 
 function show_configurations_image(){
     show_window({

@@ -1,5 +1,5 @@
-global.dde_version = "3.8.0" //require("../package.json").version
-global.dde_release_date = "Jul 23, 2021" //require("../package.json").release_date
+global.dde_version = "3.8.1" //require("../package.json").version
+global.dde_release_date = "Feb 8, 2022" //require("../package.json").release_date
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
@@ -119,7 +119,7 @@ function run_shell_cmd(cmd_string, options={}, cb=run_shell_cmd_default_cb){
     exec(cmd_string, options, cb)
 }
 
-var {append_to_file,
+var {adjust_path_to_os, append_to_file,
     choose_file, choose_save_file, choose_file_and_get_content, choose_folder,
     copy_file_async, copy_folder_async,
     dde_init_dot_js_initialize, file_content, //file_content is deprecated
@@ -139,6 +139,9 @@ var Job    = require("./job.js")
 
 var {Robot, Brain, Dexter, Human, Serial}  = require("./robot.js")
 var {RobotStatus} = require("./robot_status.js")
+
+
+//todo dde4 all the human_enter_... are now globals after you load instruction.js
 var {Instruction, make_ins, human_task_handler, human_enter_choice_handler,
     human_enter_filepath_handler, human_enter_number_handler, human_enter_position_handler,
     human_enter_instruction_handler,
@@ -148,6 +151,7 @@ var {Instruction, make_ins, human_task_handler, human_enter_choice_handler,
     } = require("./instruction.js")
 var {Control} = require("./instruction_control.js")
 var {IO}      = require("./instruction_io.js")
+require("./dex.js") //makes Dex global
 require("./je_and_browser_code.js") // must be before loading out.js as it defines SW used by out.js
 var {beep, beeps, format_text_for_code, speak, show_window}  = require("./out.js")
 var calibrate_build_tables = require("../low_level_dexter/calibrate_build_tables.js")
@@ -213,6 +217,7 @@ global.acosd    = acosd
 global.atand    = atand
 global.atan2d   = atan2d
 
+global.adjust_path_to_os = adjust_path_to_os
 global.append_to_file = append_to_file
 global.copy_file_async = copy_file_async
 global.copy_folder_async = copy_folder_async

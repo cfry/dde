@@ -5,6 +5,57 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.8.1, Feb 8, 2022</summary>
+    Hightlights: New "Jobless Instructions" capability.<br/>
+    Numerous: bug fixes, doc improvements, example code updated.
+<ul>
+    <li><code>folder_name_version_extension</code> fixed for working with WInOS files with
+        defaulting folders.</li>
+    <li>Now exported and available in Job Engine: <code>adjust_path_to_os</code>
+    <li><code>read_file_async</code> properly exported.</li>
+    <li>When using FIND, the output in Output pane of "Orange Rows"
+        has been extended to include "(in the Doc pane) to make it less ambiguous.</li>
+    <li>Dexter UI: changed the type-in-number-spinners such that when you click in the number and type/delete a char,
+        it doesn't actually move the robot until you hit return.
+        This prevents spurious moves to places you didn't want Dexter
+        to go to when you're in the middle of an editing operation.</li>
+    <li>Simulator: when you run a job in simulation BUT the default_robot in the
+        Misc pane header is NOT the same as the default robot of the Job,
+        then there was a bug that the simulated queue for Dexter wasn't being emptied,
+        so it clogged up and screwed up simulation. Fixed.</li>
+    <li>Ref Man fixed spurious --> comment near speech.</li>
+    <li>New Vector methods: <code>median</code>, <code>interpolate</code>.</li>
+    <li>Doc: Build Dexter/wire harness assembly: fixed buttons.</li>
+    <li>Job Examples: fixed 2 bugs in the Human Instruction examples.</li>
+    <li>gcode.js extended a lot to accomodate more G code cmds.</li>
+    <li>2 bugs fixed in click help js_info.js for foo.bar and for
+        unrecognized symbol at end of buffer.</li>
+    <li>In eval.js minor fix to render_html for passing args to out_eval_result.</li>
+    <li>In je_and_browser.js, submit_window, <code>Plot</code> window "modebar-btn" fixed.</li>
+    <li>Fixed Ref Man IO/Sound/Music with Midi,
+        fixed 3 places of Insert Menu/Sound to Insert Menu/Music.</li>
+    <li>Fixed Job Example 4c: Nested Generators.</li>
+    <li><code>Control.sync_point</code> fixed this => job_instance.</li>
+    <li>New and cleaned up Jobs menu/Insert Example/Sync Jobs plus
+        reference to the Jobs menu/InsertJobs/Sync Jobs added to Ref Man.</li>
+    <li>minor fixes to Job Example 11 for when_stopped.</li>
+    <li>Minor tweaks to other Job examples, both code and documentation.</li>
+    <li>Js_info.js robustified fn.toString()</li>
+    <li><code>show_window</code> submit process:
+        When user clicks on an A tag, if it has href="#", then the clicked_button_value gets bound to:
+        If there is a name, that, else if there is an id, that else to the innerHTML of the tag.
+        (It used to be always to the innerHTML.</li>
+    <li><code>show_window</code> restored <code>window_index</code> as property in the input obj with
+       an integer value inside window callback fn.</li>
+    <li>In SSH reboot changed "shutdown -r"  to "reboot" (better for FPGA rebooting).</li>
+    <li>Improved Ref Man for <code>Job.user_data</code>.</li>
+    <li>Fixed Inspector when inspecting 2D array and you click on one cell to
+         now inspect the correct sub-array.</li>
+    <li>Fix for choosing File menu/Manage npm  not popping up dialog.</li>
+    <li><code>Dex</code> class defined to allow "Jobless instructions" to run.
+        See Ref Man top level "Dex (Jobless Instructions)".</li>
+</ul>
+</details>
 
 <details class="doc_details"><summary>v 3.8.0, Jul 23, 2021</summary>
 Highlights: Recording Jobs more reliable, simpler UI.<br/>

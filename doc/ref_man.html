@@ -2575,7 +2575,7 @@ and Midi has not been inited, but there will be a slight delay in that case.<br/
 <code title="not in TestSuite">Midi.init()</code><br/>
 
 If Midi has previously been inited, this calls <code>Midi.all_notes_off</code>.
-This can also be called by choosing Insert menu/Sound/Midi.init().<br/>
+This can also be called by choosing Insert menu/Music/Midi.init().<br/>
 <i>Parameters:</i> None.
 <p></p>
 <b id="Midi.all_notes_off_doc_id">Midi.all_notes_off</b> Turns off
@@ -2598,7 +2598,7 @@ Often the first note or two will get lost so do it a few times
 and you should hear Middle C played on the instrument you have
 selected in GarageBand. <br/>
 <code>Midi.init</code> can also be called by choosing
-Insert menu/Sound/Midi.init().
+Insert menu/Music/Midi.init().
 <p></p>
 If you don't hear a sound, check the MIDI connections in
 GarageBand: menu bar/GarageBand/Preferences.<br/>
@@ -3300,7 +3300,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         Since the default velocity is 0.5, the returned phrase
         will have all of its note at a velocity of 1 (the maximum).
       </details>
-      For more extended examples of using Phrases see Insert menu/Examples/Music.
+      For more extended examples of using Phrases see Insert menu/Music.
       </details> <!-- end of Phrase methods -->
 
 </details> <!-- end Phrase -->
@@ -3434,7 +3434,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
              end the dialog. Moot when <code title="unEVALable code fragment"> only_once=true</code>.
         </li>
     </ul>
-</details> <!-- end of recognize_speech -->
+</details> end of recognize_speech
 -->
 
 <details id="speak_doc_id" class="doc_details"><summary>speak</summary>
@@ -4202,14 +4202,15 @@ new Job({name: "my_job",
            You can set existing user_data names or create new ones by setting them.
            <p></p>
            If you restart a
-           job, the user_data from its previous runnng is lost.
+           job, the user_data from its previous running is lost.
            For data that you want to persist across restarts,
            or for user_data that doesn't really belong with any one job but is used
-           by mulitple ones, use the <i>class</i> property <code>Job.global_user_data</code>.
+           by multiple ones, use the <i>class</i> property <code>Job.global_user_data</code>.
            This can be written to like so: <code>Job.global_user_data.my_count = 123</code>.
            <p></p>
-           The value for user_data is passed in when creating a job is shallow_copied when
-           the job starts. So if this value was stored in some external-to-the-job way
+            The value for user_data that is declared in the Job definition, is shallow_copied when
+            the job starts.
+            So if this value was stored in some external-to-the-job way
            and a job is run twice with that very same user_data, the 2nd time the job
            is started, it will see <i>the same</i> top level keys as the first time,
            and all the top level values that are immutable (booleans, strings, numbers).
@@ -5720,6 +5721,8 @@ The method takes 1 arg, "stop_reason" that behaves as documented above.
    a lot of flexibility. This can increase the overall speed of a cooperating
    robot group over merely "all pause at each same-named sync_points" 
    because it allows those jobs that <i>can</i> proceed to do so.
+    <p></p>
+    See Jobs menu/Insert Example/Sync Jobs.
 </details>
 
 <details id="Control.send_to_job_doc_id" class="doc_details"><summary>send_to_job</summary>
@@ -8369,6 +8372,71 @@ For documentation, see
 
 </details> <!-- end Robots -->
 
+<details id="Dex" class="doc_details"><summary>Dex (Jobless instructions)</summary>
+   <code>Dex</code> is a facility for making it easy to execute code to move
+    Dexter without having to create a Job and stick instructions on it's do_list.<br/>
+    <span style="color:red;">This is an experimental system so please don't expect it to be perfect.
+    </span>
+    <p/>
+    The first time you run a Dex instruction, a Job named <i>DexJob</i> is defined using
+    the robot of <code>Dexter.default</code> (the Dexter set in the Misc Pane header).<br/>
+    Then that job is started and that first instruction is run.<br/>
+    Then the Job waits for more Dex instructions.
+    <p/>
+    <i>Examples:</i><br/>
+    Run a "move_all_joints" instruction:<br/>
+    <code> Dex.m_joint([5, 10, 15]) </code>
+    <p/>
+    Run a "move_to" instruction:<br/>
+    <code> Dex.m_xyz([0.1, 0.2, 0.3]) </code>
+    <p/>
+    Run both together:
+    <pre><code> Dex.m_joint([5, 10, 15])
+ Dex.m_xyz([0.1, 0.2, 0.3]) </code></pre>
+    An Extended example:
+    <pre><code> function print_measured_angles(){
+   out(this.robot.rs.measured_angles())
+ }
+ for(let i = 1; i < 4; i++) {
+    Dex.m_joint([5, 10, 15])
+    Dex.run(IO.out("i = " + i))
+    Dex.m_joint([10 * i, 20 * i, 30 * i])
+    Dex.run(print_measured_angles)
+    Dex.m_xyz([0.1, 0.2, 0.3])
+    Dex.run(print_measured_angles)
+    Dex.m_joint([0, 0, 0])
+    Dex.run(IO.out("done with i = " + i))
+} </code></pre>
+    You can stop the Job by clicking its button in the Output Pane header or
+    programmatically via:<br/>
+    <code>Job.DexJob.stop_for_reason("interrupted")</code> <!-- this must run in testsuite or the next job won't run properly-->
+    <p></p>
+    <i>Observations:</i><br/>
+    <ul>
+        <li>We're using a vanilla JS <code title="Unevalable">for</code> loop,
+            not a <code>Control.loop</code> instruction.</li>
+        <li>The 8 instuctions in the body are executed 3 times, with
+            incrementing joint angles each time in the first <code>Dex.m_joint</code> instruction.</li>
+        <li><code>Dex.run</code> is a function with one argument, which can be anything
+            you would put on the do_list in a Job, such as:<br/>
+            <code>Dexter.move_all_joints([45, 60])</code><br/>
+            Here we pass in the function definition of <code>print_measured_angles</code></li>
+        <li>The function <code>print_measured_angles</code> prints the values of measured angles
+        after the previous instruction has completed moving.
+        So the first <code>Dex.m_joint</code> instruction
+        in the first iteration of the loop, prints <code>10</code> for joint 1.<br/>
+        In the second interation, it prints <code>20</code> for joint 1.
+        </li>
+        <li>
+        We must wrap this printing of measured_angles in a function,
+        because that winds up being an instruction in our DexJob that
+        must get called after the instruction before it completes.<br/>
+        We don't want to execute any code in the body of <code>print_measured_angles</code>
+        until then.
+        </li>
+    </ul>
+</details>
+
 <details id="units_system_help_doc_id" class="doc_details"><summary>Units System</summary>
     Throughout DDE, the primary functions and instructions assume SI units for their
     numerical values. Example: length is in meters.
@@ -9448,7 +9516,7 @@ show_window({draggable: false,
     the move-points from a job and graph them.<br/>
     <i>Example:</i>
     <pre><code>new Job({
-    name: "my_job3",
+    name: "my_job9",
     do_list: [
         Dexter.move_all_joints(10, 20, 30, 40, 50),
         Dexter.move_to([0.1, 0.2, 0.3]),
@@ -10056,7 +10124,7 @@ show_window({
     <details id="show_page_doc_id" class="doc_details"><summary>show_page</summary>
        Creates a new browser window and shows a web page in it.<br/>
        Unlike <code>browse_page</code> does not show url in an editable field,
-       but does allow you to set location and size of the widnow that pops up.<br/>
+       but does allow you to set location and size of the window that pops up.<br/>
        <i>Parameters:</i><br/>
        <b>url</b> A string. The url to show in the new browser window.<br/>
        <b>options</b> A literal object. The most useful properties are:

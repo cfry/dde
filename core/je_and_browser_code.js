@@ -672,6 +672,9 @@ static install_menus_and_recurse(inner_lis, window_index){ //the arg is li elts 
 static submit_window(event){
     // descriptions of x & y's: http://stackoverflow.com/questions/6073505/what-is-the-difference-between-screenx-y-clientx-y-and-pagex-y
     let subject_elt = this
+    if(this.classList.contains("modebar-btn")) { //user clicked on an icon at the top of a Plot window
+        return //so don't do stopPropagation, let its normal processing happen
+    }
     event.stopPropagation();
     let result = {offsetX:event.offsetX,  offsetY:event.offsetY, //relative to the elt clocked on
         x:event.x,              y:event.y, //relative to the parent of the elt clicked on
@@ -690,7 +693,10 @@ static submit_window(event){
     }
     else if (subject_elt.tagName == "A"){
         if (subject_elt.href.endsWith("#")){
-            result.clicked_button_value = subject_elt.innerHTML
+            //result.clicked_button_value = subject_elt.innerHTML
+            if(subject_elt.name)     { result.clicked_button_value = subject_elt.name   }
+            else if (subject_elt.id) { result.clicked_button_value = subject_elt.id     }
+            else                     { result.clicked_button_value = subject_elt.innerHTML  }
         }
         else { //we've got a real url. The only thing to do with it is open a window, so
             //don't even go through the handler fn, just do it.

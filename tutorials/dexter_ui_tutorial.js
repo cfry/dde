@@ -5,8 +5,10 @@ set_css_properties(".shepherd_step_dui_wide {width:400px}")
 // npm install shepherd.js --save  
 // shepherd.js@8.0.2
 var Shepherd = require("shepherd.js")
+
+
 var dui_tour = new Shepherd.Tour({
-  tourName: "Moving Dexter",
+  tourName: "Dexter UI",
   useModalOverlay: true
 })
   
@@ -17,6 +19,7 @@ dui_tour.options.defaultStepOptions = {
     arrow: false,
     when: { //from https://shepherdjs.dev/docs/tutorial-04-cookbook.html
       show() {
+        SW.close_window("Welcome to DDE")
         const currentStepElement = dui_tour.currentStep.el;
         const header = currentStepElement.querySelector('.shepherd-header');
         const progress = document.createElement('span');
@@ -39,7 +42,8 @@ dui_tour.addSteps([
           <ol><li><b>Move</b> Dexter's joints interactively.</li>
               <li>Move to an <b>X, Y, Z</b> location.</li>
               <li>The relationship between joint angles and an x,y,z location (<b>kinematics</b>).</li>
-              <li>Create a <b>Job</b> and its "move" instructions.</li>
+              <li>Create a <b>Job</b> (A formal process description for a task in DDE) 
+                  and its "move" instructions.</li>
               <li><b>Run</b> individual instructions in a Job.</li>
               <li>Run an entire Job.</li>
           </ol>`,
@@ -57,18 +61,21 @@ dui_tour.addSteps([
    popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 20] } }]},
   },
   {attachTo: {element: '#warning_moving_dexter', on: 'top'},
-        text: `Using this dialog box with <b>real</b> selected will move Dexter.
+        text: `Using this tutorial with <b>real</b> selected will move Dexter.
                Please clear its surrounding area and move Dexter slowly.`,
         popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 20] } }]},
     },
 
   {text: `If you <b>didn't</b> see the <i>Dexter User Interface</i> dialog box just pop up,
-            check the lower right Output pane in DDE for warnings.
+            check the lower left Output pane in DDE for warnings.
+            One common problem: With <b>real</b> checked, your
             Dexter may not be connected.<br/>
 
             Click the <b>X</b> in this window.<br/>
             You can start the tutorial over and choose <b>simulate</b> or<br/>
-            choose the <b>Configure Dexter</b> tutorial.`,
+            choose the <b>Configure Dexter</b> tutorial.
+            <p/>
+            If you <b>do</b> see the <i>Dexter User Interface</i> dialog box, click <b>Next</b>.`,
    when: {
         show() {
                 const currentStepElement = dui_tour.currentStep.el;
@@ -115,7 +122,12 @@ dui_tour.addSteps([
           This moves Dexter's end effector in the X-Y (horizontal) plane.<br/>
           Observe that the joint sliders move to maintain consistency
           between the new X-Y location, and the joint angles.<br/>
-          The white circle indicates the valid locations.`,
+          The white circle represents the possible
+            positions that Dexter's end effector
+            can go to in the current x-y plane
+            (i.e. the current z height).
+            The inner pink circle represents Dexter.
+            Dexter cannot move into itself.`,
    popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 20] } }]}
   },
   
@@ -147,14 +159,17 @@ dui_tour.addSteps([
           This will insert the JavaScript for an instruction
           that tells Dexter to move to where it currently is.`,
   },
-  {attachTo: {element: '.dui_dialog [name=j1_range]', on: 'bottom'},
+  {attachTo: {element: 'body' , on: 'right'},
    text: `Modify the new instruction <br/>
-          by dragging the highlighted joint 1 slider.
+          by dragging the joint 1 slider.
           This changes not just the robot and other controls,
           but joint 1's argument in the editor too.<br/>
           An instruction's arguments are often hidden by the 
-          Dexter UI dialog box. After this tutorial, you can
-          drag the dialog's title to move it out of the way.`,       
+          Dexter UI dialog box. Drag its title bar so you can see
+          the inserted instructions in the editor.
+          If you are using the simulator, try to position
+          the dialog so you can still see the simulated Dexter.
+          `,
    popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 5] } }]}
   },
   {attachTo: {element: '.dui_dialog', on: 'right'},
@@ -185,7 +200,7 @@ dui_tour.addSteps([
    text: `Now click the small, right-pointing, green arrow. This
           <ol><li>selects the source code of the instruction in the row of the 
                   editor's cursor</li>
-              <li>populates the dialog with the selection's values</li> 
+              <li>populates the Dexter UI dialog with the selection's values</li> 
               <li>runs the selected instruction, moving Dexter.</li>
           </ol>`,     
    popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 0] } }]}
@@ -202,7 +217,9 @@ dui_tour.addSteps([
   {attachTo: {element: '#editor_pane_id', on: 'bottom-start'},
    text: `If there is no selection, the <b>Eval</b> button
           evaluates all the code in the editor.<br/>
-          Click on whitespace in the edtior, to remove the selection.`,     
+          Click anywhere in the editor to remove the selection
+          <i>and</i> get help on the underlying source code.<br/>
+          `,
    popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 10] } }]}
   },
   {attachTo: {element: '#eval_id', on: 'right'},
@@ -223,7 +240,7 @@ dui_tour.addSteps([
           clicking the X in its upper right corner`
   },
   {attachTo: { element: '#editor_pane_id', on: 'left'},
-   text: `Get the dialog back by clicking<br/>
+   text: `Get the Dexter UI dialog back by clicking<br/>
           on the <b>Jobs</b> menu's <b>Dexter UI</b> item.`
   },
   {attachTo: { element: '#doc_pane_id', on: 'left'},
@@ -232,15 +249,19 @@ dui_tour.addSteps([
           that describes the Dexter UI dialog.<br/>
           There's more to it than this tutorial covers.`
    },
+    {attachTo: { element: '#help_system_id', on: 'left'},
+        text: `Clicking the <b>Help</b> button will bring back the
+               "Welcome to DDE" dialog box containing the tutorials menu.`
+    },
    {classes: "shepherd_step_dui_wide",
     text: `Congrats, You're a <i>Dexter Process Author!</i><br/>
            When you click <b>Exit</b>, you'll have
-           unrestricted access to the
+           unrestricted access to the:
            <ul><li>Dexter User Interface dialog box</li>
            <li>Simulator</li>
            <li>Editor</li>
            <li>Eval button</li>
-           <li>Rest of DDE.</li>
+           <li>Rest of DDE</li>
            </ul>`,
     buttons: [{text: 'Back', action: dui_tour.back},
               {text: 'Exit', action: dui_tour.complete}]

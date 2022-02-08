@@ -1,4 +1,4 @@
-var {exec} = require('child_process');
+//var {exec} = require('child_process'); //no longer used
 
 //https://www.npmjs.com/package/npm-programmatic
 var npm_p = require("npm-programmatic")
@@ -301,14 +301,18 @@ var DDE_NPM = class DDE_NPM {
 
     static show_ui(){
         open_doc(DDE_NPM_doc_id)
-        exec("npm list", {cwd: dde_apps_folder}, function(err, stdout, stderr){ //stderr will be a string. It is an empty string if our bash cmd succeeded.
+        //calling exec here doesn't cause its calleback to be called (even when npm & node are installed,
+        // so just don't do it. We don't have a good way to check if node is installed on
+        //user machine but using exec jsut precludes it from working at all
+        /*exec("npm list", {cwd: dde_apps_folder}, function(err, stdout, stderr){ //stderr will be a string. It is an empty string if our bash cmd succeeded.
             if(err || (stderr.length > 0)) {
                      warning("It appears that npm is not installed on your computer.<br/>" +
                              `Please browse <a href='#' onclick='browse_page("https://nodejs.org/en/download")'>the node website</a> to install it.` +
                              `<br/>You must install node to get npm.`)
             }
             else{ DDE_NPM.show_ui_really() }
-        })
+        })*/
+        DDE_NPM.show_ui_really()
     }
 
     static show_ui_really(pkg_name = ""){

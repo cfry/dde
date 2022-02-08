@@ -27,7 +27,7 @@ var {array_to_html_table, array_to_csv, csv_to_array,
     time_in_us, trim_comments_from_front,
     version_equal, version_less_than, version_more_than, dde_version_between} = require("./core/utils.js")
 
-var {append_to_file,
+var {adjust_path_to_os, append_to_file,
      choose_file, choose_save_file, choose_file_and_get_content, choose_folder,
      copy_file_async, copy_folder_async,
      file_exists, folder_listing, folder_separator, folder_name_version_extension,
@@ -63,6 +63,7 @@ var {RobotStatus} = require('./core/robot_status.js')
 var {Control} = require('./core/instruction_control.js')
 var {IO} = require('./core/instruction_io.js')
 var Job  = require('./core/job.js')
+require('./core/dex.js') //makes Dex global
 var {Messaging, MessStat} = require('./core/messaging.js')
 var {linux_error_message} = require('./core/linux_error_message.js')
 
@@ -78,6 +79,5 @@ var {Py} = require('./core/py.js')
 var keep_alive_value = true //only really used by node-browser,
    //but effectively, dde, always has keep_alive_value true.
    //this should never actually be read by dde.
-
 
 

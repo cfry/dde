@@ -577,7 +577,8 @@
     Editor.init_editor()
 
     //Insert menu
-    js_example_1_id.onclick=function(){Editor.insert(
+    js_example_1_id.onclick=function(){
+        Editor.insert(
 `//Click the Eval button to define and call the function 'foo'.
 function foo(a, b){ //define function foo with 2 args
     out("foo called with a=" + a) //print 1st arg to Output pane.
@@ -1479,7 +1480,7 @@ foo      //eval to see the latest values</pre>`,
         SSH.run_command({command:SSH.show_dir_cmd})
     }
     reboot_id.onclick = function() {
-        cmd_input_id.value = "shutdown -r now"
+        cmd_input_id.value = "reboot" //"reboot" is better than "shutdown -r now" for resetting the FPGA code
         cmd_input_id.focus()
     }
     run_selected_cmd_id.onclick = function(){

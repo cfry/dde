@@ -324,6 +324,7 @@ function read_file_async(path, encoding="utf8", callback){
         fs.readFile(path, encoding, callback)
     }
 }
+module.exports.read_file_async = read_file_async
 
 //this really isn't an async fn but since we want it to behavir like
 //read_file_async, it has to call the callback, so we do it.
@@ -450,6 +451,9 @@ function write_file(path, content, encoding="utf8"){
     if (content === undefined) {
         content = Editor.get_javascript()
     }
+    if((encoding === null) && (typeof(content) === "string")){
+         content = new Buffer(content, null)
+    }
 
     try{ fs.writeFileSync(path, content, {encoding: encoding}) }
     catch(err){
@@ -570,7 +574,7 @@ function copy_file_async(source_path, destination_path, callback=null){
             }
         }
     }
-   read_file_async(source_path, "binary", //"binary" should faithfully read and write content without modification.
+   read_file_async(source_path, "ascii", //"binary" should faithfully read and write content without modification.
                                           // "ascii" fails on jpg files.
 
       function(err, data){
@@ -578,7 +582,7 @@ function copy_file_async(source_path, destination_path, callback=null){
             callback(err)
         }
         else {
-            write_file_async(destination_path, data, "binary", callback)
+            write_file_async(destination_path, data, "ascii", callback)
         }
       })
 }
@@ -869,6 +873,8 @@ function adjust_path_to_os(path){
         return result
     }
 }
+
+module.exports.adjust_path_to_os = adjust_path_to_os
 
 function make_full_path(path, adjust_to_os=true){
     path = add_default_file_prefix_maybe(path)
@@ -1169,6 +1175,7 @@ folder_name_version_extension("foo_002.txt") => ["foo", 2, "txt"]
 
 function folder_name_version_extension(path){
     path = make_full_path(path)
+    path = adjust_path_to_os(path)
     let folder_parts = path.split("/")
     //folder_parts.shift() //takes off the initial ""
     let names_ver_ext = folder_parts.pop()
