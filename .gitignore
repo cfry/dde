@@ -3,7 +3,5 @@ myApp-darwin-x64/
 node_modules
 .DS_Store
 .idea
-/dde/build
 /src/third_party/rotating-calipers.js
-/dde/third_party/opencv.js
 /dde_apps/
