@@ -154,7 +154,7 @@ class DDEFile {
         let full_url =  this.make_url(path, "/edit?edit=")
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
-        //see httpdde.js, serve_file()
+        //see httpd.mjs, serve_file()
         let file_info_response = await fetch(full_url)
         return this.callback_or_return(callback, file_info_response.ok)
     }
@@ -169,7 +169,7 @@ class DDEFile {
         let full_url = this.make_url(path, "/edit?info=")
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
-        //see httpdde.js, serve_file()
+        //see httpd.mjs, serve_file()
         // see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
         let file_info_response = await fetch(full_url) //, {mode: 'no-cors'}) // no-cors)
         if(file_info_response.ok) {
@@ -438,7 +438,7 @@ class DDEFile {
         //let full_url = this.protocol_and_host() + "/edit?edit=" + path
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
-        //see httpdde.js, serve_file()
+        //see httpd.mjs, serve_file()
         let defaulted_path = this.add_default_file_prefix_maybe(path)
         let full_url = this.make_url(defaulted_path, "/edit?edit=")
         let file_info_response = await fetch(full_url)
