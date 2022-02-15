@@ -6,3 +6,4 @@ node_modules
 /dde/build
 /src/third_party/rotating-calipers.js
 /dde/third_party/opencv.js
+/dde_apps/
