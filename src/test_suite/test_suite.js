@@ -686,7 +686,7 @@ class TestSuite{
                }
             }
          }
-        else if(test.length == 1) {
+        else if((test.length == 1) && !(src_result instanceof Promise)) {
             if(TestSuite.last_src_error_message){
                 status = "unknown" //no utility in init code that errors so never a "known" one with a 1 elt test array
                 error_message = test_number_html + src + " => " + TestSuite.last_src_error_message + "<br/>"
@@ -696,11 +696,14 @@ class TestSuite{
             }
         }
         else {
-            var expected = test[1]
+            var expected = test[1] //will be undefined if test.length == 1
             TestSuite.last_expected_error_message = false
             var expected_result
-            try { expected_result = window.eval(expected) }
+            try { expected_result = window.eval(expected) } //undefined evals to undefined
             catch(err) {
+                if(src_result instanceof Promise) {
+                    TestSuite.state.promise_pending = false
+                }
                TestSuite.last_expected_error_message = err.name + ' ' + err.message +
                    " with expected source: " + expected + "<br/>"
                return ["unknown", TestSuite.last_expected_error_message]
@@ -711,7 +714,8 @@ class TestSuite{
                 status = "promise_pending"
                 error_message =  test_number_html + " promise pending for " + src
                 src_result.then(function(value) { //value is the resolve of the promise.
-                    if(!similar(value, expected_result)) { //test failed
+                    if (test.length == 1) {}//don't care what result is, so consider this a pass.
+                    else if(!similar(value, expected_result)) { //test failed
                         let status = "unknown"
                         let error_message
                         var desc     = ((test.length > 2) ? test[2] : "")
@@ -733,7 +737,7 @@ class TestSuite{
                             let src_result_html = "<span style='color:red;'>" + src_result_str + "</span>"
                             error_message = test_number_html +
                                 "&nbsp;<code>" + src +
-                                "</code> <i>returned</i>: "                    + ((src_result_str.length > 20) ? "<br/>" : "") + "<code>" + src_result_html  +
+                                "</code> <i>returned</i>: "      + ((src_result_str.length > 20) ? "<br/>" : "") + "<code>" + src_result_html  +
                                 "</code>, <i>but expected</i>: " + ((src_result_str.length > 20) ? "<br/>" : "") + "<code>" + Utils.stringify_value(expected_result) +
                                 "</code> " + desc_html + "<br/>"
                         }
@@ -742,7 +746,25 @@ class TestSuite{
                     } //end if
                     TestSuite.state.promise_pending = false
                     TestSuite.resume()
-                })
+                }, //end the successfully resolved callback
+                    function(rejected_reason){
+                        var desc     = ((test.length > 2) ? test[2] : "")
+                        if (desc.startsWith("known")){ status = "known" }
+                        else                         { status = "unknown" }
+                        var desc_html = ((desc == "")? "" : " <i> (" + desc + ")</i>")
+                        let src_result_str = ((rejected_reason instanceof Error) ? rejected_reason.message : Utils.stringify_value(rejected_reason))
+                        let src_result_html = "<span style='color:red;'>" + src_result_str + "</span>"
+                        error_message = test_number_html +
+                            "&nbsp;<code>" + src +
+                            "</code> <i>returned</i>: " + ((src_result_str.length > 20) ? "<br/>" : "") + "<code>" + src_result_html  +
+                            "</code>, <i>but expected</i>: " + ((src_result_str.length > 20) ? "<br/>" : "") + "<code>" + Utils.stringify_value(expected_result) +
+                            "</code> " + desc_html + "<br/>"
+                        this_suite.report += error_message + "\n"
+                        this_suite.unknown_failure_count += 1
+                        TestSuite.state.promise_pending = false
+                        TestSuite.resume()
+                    }
+                )
             }
             else if(!similar(src_result, expected_result)) { //note if both are TestSuite.error, they will be similar
                 var desc     = ((test.length > 2) ? test[2] : "")
@@ -1120,9 +1142,6 @@ class TestSuite{
             var a_test_suite_tests = []
             for (let code_elt of code_elts){
                 let src = code_elt.innerHTML //innerText use to work, but Chrome changed around 2021 and now I must use innerHTML
-                if(src.includes("&lt;")) {
-                    debugger;
-                }
                 let fixed_src = src
                 if (code_elt.title.startsWith("unstartable")) {//we expect src to have "new Job" in it, probably
                     //at the beginning. But 7 of such src's  will have 2 "new Job" s in it for the ref man of Dec 2018.

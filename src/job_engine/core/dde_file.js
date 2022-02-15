@@ -192,8 +192,13 @@ class DDEFile {
 
     static async is_folder(path, callback){
         let info_obj = await this.path_info(path)
-        let is_fold = info_obj.kind === "folder"
-        return this.callback_or_return(callback, is_fold)
+        if(info_obj === null) {
+            return this.callback_or_return(callback, false)
+        }
+        else {
+            let is_fold = info_obj.kind === "folder"
+            return this.callback_or_return(callback, is_fold)
+        }
     }
 
     static callback_or_error(callback, error_message="got error"){
@@ -330,7 +335,7 @@ class DDEFile {
                 content = Utils.string_to_unit8array(content)
             }
             else {
-                warning("DDEFile.write_file_async passed content of type: " +
+                warning("DDEFile.append_to_file passed content of type: " +
                     typeof (content) + " and encoding of null.<br/>" +
                     "write probably won't write the content correctly.")
             } //todo  good luck! probably need some conversion here.
@@ -358,11 +363,38 @@ class DDEFile {
                                                     body: formData,
                                                     mode: 'no-cors'})
         if(res.ok) {
-            out("DDEFile.append_to_file to: " + full_url)
+            out("DDEFile.append_to_file to: " + this.add_default_file_prefix_maybe(path))
             return this.callback_or_return(callback, orig_content)
         }
         else {
-            this.callback_or_error(callback, "DDEFile.append_to_file to: " + path + " got error: " + res.status)
+            this.callback_or_error(callback,
+                                   "DDEFile.append_to_file to: " +
+                                   this.add_default_file_prefix_maybe(path) + " got error: " + res.status)
+        }
+    }
+
+    static async delete(path, callback){
+        if (path === undefined){
+            if (Editor.current_file_path == "new buffer"){
+                this.callback_or_error(callback, "Attempt to write file but no filepath given.")
+            }
+            else { path = Editor.current_file_path }
+        }
+        let full_url = this.make_url(path, "/edit?path=") //but the "?path=path" part of the returned URL
+        // is not actually used by the server
+        // it uses the formData.append("path" ...
+        let [url_sans_query, path_to_store_content_in] = full_url.split("?")
+        let formData = new FormData();
+        let defaulted_path = this.add_default_file_prefix_maybe(path)
+        formData.append("path", defaulted_path)
+        let res = await fetch(url_sans_query, {method: 'DELETE',
+                                                    body: formData})
+        if(res.ok) {
+            out("DDEFile.delete deleted: " + defaulted_path)
+            return this.callback_or_return(callback, true)
+        }
+        else {
+            this.callback_or_error(callback, "DDEFile.delete_file of: " + path + " got error: " + res.status)
         }
     }
 
@@ -398,6 +430,8 @@ class DDEFile {
         }
     }
 
+    static loading_file
+
     static async load_file(path, callback){
         //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
         //path = this.add_default_file_prefix_maybe(path)
@@ -405,21 +439,26 @@ class DDEFile {
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
         //see httpdde.js, serve_file()
-        let full_url = this.make_url(path, "/edit?edit=")
+        let defaulted_path = this.add_default_file_prefix_maybe(path)
+        let full_url = this.make_url(defaulted_path, "/edit?edit=")
         let file_info_response = await fetch(full_url)
         if(file_info_response.ok) {
             let content = await file_info_response.text()
             let result
             try {
+                this.loading_file = defaulted_path
                 let result = eval_js_part2(content)
+                this.loading_file = undefined
                 this.callback_or_return(callback, result.value)
             }
             catch(err){
+                this.loading_file = undefined
                 this.callback_or_error(callback, err)
             }
         }
         else {
-            this.callback_or_error(callback,"DDEFile.load_file of: " + path + " got error: " + file_info_response.status)
+            this.loading_file = undefined
+            this.callback_or_error(callback,"DDEFile.load_file of: " + defaulted_path + " got error: " + file_info_response.status)
         }
     }
 
@@ -591,7 +630,7 @@ class DDEFile {
         let full_folder_info_obj = await DDEFile.path_info(folder)
         let full_folder = full_folder_info_obj.full_path
         let fold_info = await this.folder_listing(folder)
-        let array_of_objs = fold_info // I use to have to use "await fold_info.json()" here but magically no longer necessary
+        let array_of_objs = fold_info
         let html = "<table><tr><th>Name</th><th>Size(bytes)</th><th>Last Modified Date</th><th>Permissions</th></tr>\n"
         for(let obj of array_of_objs) {
             let name = obj.name
@@ -765,8 +804,8 @@ class DDEFile {
         let full_folder_info_obj = await DDEFile.path_info(folder)
         let full_folder = full_folder_info_obj.full_path
 
-        let fold_info  = await this.folder_listing(folder)
-        let array_of_objs = await fold_info.json()
+        let fold_info     = await this.folder_listing(folder)
+        let array_of_objs = fold_info
         let html = "<table><tr><th>Name</th><th>Size(bytes)</th><th>Last Modified Date</th><th>Permissions</th></tr>\n"
         for(let obj of array_of_objs) {
             let name = obj.name
@@ -978,7 +1017,7 @@ class DDEFile {
         let full_folder_to_present_info_obj = await DDEFile.path_info(path_sans_last_folder_name_with_last_slash)
         let full_folder_to_present = full_folder_to_present_info_obj.full_path
         let fold_info = await this.folder_listing(path_sans_last_folder_name_with_last_slash)
-        let array_of_objs = await fold_info.json()
+        let array_of_objs = fold_info
         let html = "<table><tr><th>Name</th><th>Size(bytes)</th><th>Last Modified Date</th><th>Permissions</th></tr>\n"
         for(let obj of array_of_objs) {
             let name = obj.name

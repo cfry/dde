@@ -495,18 +495,24 @@ var http_server = http.createServer(async function (req, res) {
     else if (q.pathname === "/edit" && req.method == 'DELETE' ) { //console.log("edit delete:"+JSON.stringify(req.headers))
       const form = formidable({ multiples: true });
       form.parse(req, (err, fields, files) => { //console.log(JSON.stringify({ fields, files }, null, 2) +'\n'+ err)
-        console.log("delete:"+fields.path+"!")
-        try {fs.unlinkSync(fields.path)} catch(e) {
+        let path = make_full_path(fields.path) //dde4
+        console.log("delete:" + path + "!")
+        try {
+            fs.unlinkSync(path)
             res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
-            res.writeHead(400); return res.end(e)
+            res.writeHead(200);
+            return res.end('ok');
+        } catch(e) {
+            res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
+            res.writeHead(400);
+            return res.end(e)
         }
-        return res.end('ok'); 
       });
       return
       }
       //use POST for updating the content of an existing file
       //below the first causeofan||(or)is for formindable v 1.2.2  and the 2nd is for formidable v "^2.0.1"
-      //used by write_file_async
+      //used by write_file_async and append_to_file
      else if (q.pathname === "/edit" && req.method == 'POST' ) { //console.log("edit post headers:",req.headers)
         const form = formidable({ multiples: false });
         form.once('error', console.error);
@@ -523,6 +529,17 @@ var http_server = http.createServer(async function (req, res) {
                 //console.log(("had permissions:" + (stats.mode & parseInt('777', 8)).toString(8)))
             } catch {
             } //no biggy if that didn't work
+            //if the folder doesn't exist, we want to auto-create it.
+            let topath = topathfile.split('/').slice(0, -1).join('/') + '/' //dde4 needs "let"
+            try {
+                console.log(`make folder:${topath}.`)
+                fs.mkdirSync(topath, {recursive: true})
+            } catch (err) {
+                console.log(`Can't make folder:${topath}.`, err)
+                res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
+                res.writeHead(400)
+                return res.end(`Can't make folder ${topath}:`, err)
+            }
             if (q.query.append) {
                 // open destination file for appending
                 let write_stream = fs.createWriteStream(topathfile, {flags: 'a'});
@@ -542,16 +559,6 @@ var http_server = http.createServer(async function (req, res) {
                 //fs.appendFile((file.path || file.filepath), topathfile)
             }
             else {
-                let topath = topathfile.split('/').slice(0, -1).join('/') + '/' //dde4 needs "let"
-                try {
-                    console.log(`make folder:${topath}.`)
-                    fs.mkdirSync(topath, {recursive: true})
-                } catch (err) {
-                    console.log(`Can't make folder:${topath}.`, err)
-                    res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
-                    res.writeHead(400)
-                    return res.end(`Can't make folder ${topath}:`, err)
-                }
                 fs.copyFile((file.path || file.filepath),  //or  file.filepath
                   topathfile, function (err) {
                     let new_mode = undefined

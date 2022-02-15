@@ -67,7 +67,7 @@
 
 
 
-        <details id="append_to_file_doc_id" class="doc_details"><summary>append_to_file</summary>
+        <details id="DDEFile.append_to_file_doc_id" class="doc_details"><summary>DDEFile.append_to_file</summary>
             Append content to a file path. Leaves the existing content in place but
             adds to the end of it. If the file does not exist, it is created.<br/>
             <i>Parameters</i><br/>
@@ -78,11 +78,13 @@
             <b>encoding</b> Default: <code>"utf8"</code> See
             <a href="#" onclick="DocCode.open_doc(write_file_doc_id)">encoding details</a><br/>
             <i>Example:</i><br/>
-            <code>append_to_file("log6.txt", "hey world")</code>
+            <code>DDEFile.append_to_file("ts_junk/append_to_file_test.txt", "hey world")</code>
+            <code>DDEFile.read_file_async("ts_junk/append_to_file_test.txt")</code>
+            <samp>"hey world"</samp>
         </details>
 
-            <details id="choose_file_doc_id" class="doc_details"><summary>choose_file</summary>
-            Pops up a dialog box allowing you to navigate the file system to choose a file.
+        <details id="DDEFile.choose_file_doc_id" class="doc_details"><summary>DDEFile.choose_file</summary>
+            <code>DDEFile.choose_file</code> pops up a dialog box allowing you to navigate the file system to choose a file.
             Returns a string of the full path of the file.
             <br/>
             <i>Parameter:</i><br/>
@@ -90,7 +92,7 @@
             are optional. See the options under "showOpenDialog" in <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/dialog.md">showOpenDialog</a>
             for details.<br/>
             <i>Example:</i><br/>
-            <code title="not in TestSuite"> choose_file({buttonLabel: "pick the best"})</code> Just lets you choose files.<br/>
+            <code title="not in TestSuite"> DDEFile.choose_file({buttonLabel: "pick the best"})</code> Just lets you choose files.<br/>
             If the user chooses "cancel" in the dialog box, this function returns <code>null</code>.
             If the options indicate that the user can choose more than one path, and they do,
             (using shift-click)
@@ -98,7 +100,7 @@
             See also <a href="#" onclick="DocCode.open_doc(choose_folder_doc_id)">choose_folder</a>
         </details>
 
-        <details id="choose_save_file_doc_id" class="doc_details"><summary>choose_save_file</summary>
+        <details id="DDEFile.choose_save_file_doc_id" class="doc_details"><summary>DDEFile.choose_save_file</summary>
             Pops up a dialog box allowing you to enter a name to save a file as,
             and navigate the file system &amp; choose a directory to save it in.
             Returns a string of the full path of the file.
@@ -110,11 +112,11 @@
             are optional. See the options under showSaveDialog in <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/dialog.md">showSaveDialog</a>
             for details.<br/>
             <i>Example:</i><br/>
-            <code title="not in TestSuite"> choose_save_file({buttonLabel: "save the best"})</code>
+            <code title="not in TestSuite"> DDEFile.choose_save_file({buttonLabel: "save the best"})</code>
         </details>
 
-        <details id="choose_folder_doc_id" class="doc_details"><summary>choose_folder</summary>
-            Pops up a dialog box allowing you to navigate the file system to choose a folder.
+        <details id="DDEFile.choose_folder_doc_id" class="doc_details"><summary>DDEFile.choose_folder</summary>
+            <code>DDEFile.choose_folder</code> pops up a dialog box allowing you to navigate the file system to choose a folder.
             Returns a string of the full path of the folder.
             <br/>
             <i>Parameter:</i><br/>
@@ -122,7 +124,7 @@
             are optional. See the options under "showOpenDialog" in <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/dialog.md">showOpenDialog</a>
             for details.<br/>
             <i>Example:</i><br/>
-            <code title="not in TestSuite"> choose_folder()</code> Just lets you choose folders.<br/>
+            <code title="not in TestSuite"> DDEFile.choose_folder()</code> Just lets you choose folders.<br/>
             If the user chooses "cancel" in the dialog box, this function returns <code>null</code>.
             If the options indicate that the user can choose more than one path, and they do,
             (using shift-click)
@@ -130,7 +132,7 @@
             See also <a href="#" onclick="DocCode.open_doc(choose_file_doc_id)">choose_file</a>
         </details>
 
-        <details id="copy_file_async_doc_id" class="doc_details"><summary>copy_file_async</summary>
+        <details id="DDEFile.copy_file_async_doc_id" class="doc_details"><summary>DDEFile.copy_file_async</summary>
         Copy a file from a source to a destination file.
         <p></p>
         <i>Parameters:</i><br/>
@@ -146,15 +148,15 @@
         <code>null</code>, that means the operation succeeded.
         <p></p>
         <i>Examples:</i><br/>
-        <pre><code>copy_file_async(
+        <pre><code>DDEFile.copy_file_async(
     "dde_init.js",
-    "dde_init_copy_for_testing.js",
+    "ts_junk/dde_init_copy_for_testing.js",
     function(err){
         if(err) {warning("copying dde_init.js errored with: " + err.message)}
         else { out("dde_init.js copied successfully.")}
         })    </code></pre>
 
-        <code>copy_file_async("foo.js", "Dexter.dexter0:foo_copy.js")</code>
+        <code>DDEFile.copy_file_async("foo.js", "Dexter.dexter0:foo_copy.js")</code>
         Copies the file "dde_apps/foo.js"<br/>
         to the ip address in</br/>
         Dexter.dexter0, and file: /srv/samba/share/dde_apps/foo_copy.js<br/>
@@ -184,11 +186,25 @@
          named "new", whose contents is a copy of the contents of the "old" folder.
         </details>
 
-        <details id="dde_apps_folder_doc_id" class="doc_details"><summary>dde_apps_folder</summary>
+       <!--not inn dde4 <details id="dde_apps_folder_doc_id" class="doc_details"><summary>dde_apps_folder</summary>
             <code>dde_apps_folder</code> is a global constant whose value is a string
             of the name of the folder beneath which DDE has programmatic access.
             You cannot set this constant. It will have a value something like:
             <code>"/Users/Fry/Documents/dde_apps"</code> on the Mac.
+        </details> -->
+
+        <details id="DDEFile.delete_doc_id" class="doc_details"><summary>DDEFile.delete</summary>
+            Deletes a file. Will not delete folders.
+            <i>Parameters</i><br>
+            <b>path</b> A path to a file to delete.<br/>
+            <b>callback</b> The callback takes two arguments: <i>error_message</i> and <i>true_or_false</i>
+            The first argument, error_message, is non-null if the deletion errored.<br/>
+            The second argument, true_or_false, is <code>true</code> if the file exists,
+            and <code>false</code> if it doesn't.<br/>
+            If no callback is passed, a promise is returned that
+            resolves to <code>true</code> or <code>false</code>.<br/>
+            <i>Example</i>:<br/>
+            <code>DDEFile.delete("junk.js", function(error_message, true_or_false){}</code>
         </details>
 
         <details id="DDEFile.dynamic_import" class="doc_details"><summary>dynamic_import</summary>
@@ -208,44 +224,75 @@
             Evaluating the above causes some moving colored rectangles to be displayed
             simulating confetti being dropped.
         </details>
-        <details id="Editor.edit_file_doc_id" class="doc_details"><summary>Editor.edit_file</summary>
-            <code>Editor.edit_file</code> takes an argument of a filepath, similar to <code>load_files</code>,
-            and puts that file in DDE's editor.
+
+        <details id="DDEFile.edit_file_doc_id" class="doc_details"><summary>DDEFile.edit_file</summary>
+            Show the given file in DDE's editor.<br/>
+            <i>Parameters:</i><br/>
+            <b>path</b> A string of the path to the file. If the string does not
+            start with a slash, it effectively starts with the dde_apps folder.<br/>
+            <b>dont_save_cur_buff_even_if_its_changed</b> A boolean, default <code>false</code>.
+            The default saves the content of the current buffer if it has changed
+            since the last time it was saved.<br/>
+            <b>callback</b> A function of two arguments: <i>error_message</i> and <i>content</i><br/>
+               If their is an error, the callback is called with one argument, the error messsage.<br/>
+               Otherwise the calleback is called with a first argument of <code>null</code>
+               and a 2nd argument of a string of the content of the file to be edited.
             <p></p>
-            Its 2nd argument is a callback that takes no arguments. It is called when the file's content
-            is in DDE's editor.<br/>
-            <b>Example:</b> <code>Editor.edit_file("dde_init.js")</code> edits the
-            file Documents/dde_apps/dde_init.js<br/>
+            <b>Example:</b> <code>DDEFile.edit_file("dde_init.js")</code> edits the
+            file dde_apps/dde_init.js<br/>
             You can also edit docs in subfolders, ie <code>"my_fold/junk.js"</code>
         </details> <!-- end edit_file -->
 
-        <details id="file_exists_doc_id" class="doc_details"><summary>file_exists</summary>
-        Returns true if the file path in the first argument exists.<br/>
-        <I>Example</i>:<br/>
-        <code>file_exists("dde_init.js")</code> => true
+        <details id="DDEFile.file_exists_doc_id" class="doc_details"><summary>DDEFile.file_exists</summary>
+            <i>Parameters</i><br>
+            <b>path</b> A path to a file or folder that may or may not exist.<br/>
+            <b>callback</b> The callback takes two arguments: <i>error_message</i> and <i>true_or_false</i>
+                The first argument is never used.<br/>
+                The second argument is <code>true</code> if the file exists,
+                and <code>false</code> if it doesn't.<br/>
+                If no callback is passed, a promise is returned that
+                resolves to <code>true</code> or <code>false</code>.
+            <p></p>
+            <i>Example</i>:<br/>
+            <code>DDEFile.file_exists("dde_init.js")</code> => a promise
         </details>
 
         <details id="folder_listing_doc_id" class="doc_details"><summary>folder_listing</summary>
-            Returns an array of strings naming the files and/or subfolders in a folder.<br/>
+            Returns an array of objects containing properties for each
+            file or folder in the path.<br/>
             <i>Parameters:</i><br/>
-            <b>folder</b> Default: <code>dde_apps_folder</code> A string of the name of
+            <b>path</b> Default: <code>"dde_apps"</code> A string of the name of
                the folder to get the listing of.<br/>
-            <b>include_files</b> Default: <code>true</code>  Whether or not to include
-               files in the returned array.<br/>
-            <b>include_folders</b> Default: <code>true</code>  Whether or not to include
-            subfolders in the returned array.<br/>
-            <b>include_folder_name</b> Default: <code>true</code>  Whether or not to include
-               the full path of the file or folder in the string returned for
-               each folder entry, or just its name and extension.<br/>
+            <b>callback</b> The callback takes two arguments: <i>error_message</i> and <i>array_of_objects</i>
+            If the first argument is non-null, an error occurred.<br/>
+            The second argument is an array of objects, one for each item in the path.
+            The properties of each object are:
+            <ul>
+                <li><b>name</b> A string of the name of the file or folder within the path.</li>
+                <li><b>date</b> A float of the number of milliseconds since Jan 1, 1970
+                       that the file was last modified.</li>
+                <li><b>permissions</b> A string of three digits indicating the file permissions
+                    encoded in Unix permissions format.
+                    Only present for files, not for folders.</li>
+                <li><b>size</b> An integer of the length of the file in bytes.
+                  If this a folder, its value is always the empty string.</li>
+                <li><b>type</b> A string of "file" or "dir".</li>
+            </ul>
+            and <code>false</code> if it doesn't.<br/>
+            If no callback is passed, a promise is returned that
+            resolves to <code>true</code> or <code>false</code>.
+
             <i>Example:</i> <code>folder_listing()</code><br/>
               Returns an array of strings naming the files and subfolder in
               your dde_apps folder (under your "Documents" folder).
         </details>
-        <details id="folder_separator_doc_id" class="doc_details"><summary>folder_separator</summary>
+
+        <!-- not in dde4 <details id="folder_separator_doc_id" class="doc_details"><summary>folder_separator</summary>
             A function of no arguments that returns the character used to separate folders in a filepath.
             For Windows OS's this is "\\" (backslash).
             For others its "/" (forward slash).
-        </details>
+        </details> -->
+       <!-- not in dde4  ... yet
         <details id="get_latest_path_doc_id"class="doc_details"><summary>get_latest_path</summary>
            DDE has a file versioning convention. File pathames of the format
            <code>"/foo/bar/baz_2.txt"</code> are considered to be "version 2" of
@@ -278,64 +325,52 @@
             Version numbers do not have to be contiguous.<p></p>
             See also <a href="#" onclick="DocCode.open_doc(make_unique_path_doc_id)">make_unique_path</a>
         </details>
-        <details id="is_folder_doc_id"class="doc_details"><summary>is_folder</summary>
+        -->
+
+        <details id="DDEFile.is_folder_doc_id"class="doc_details"><summary>DDEFile.is_folder</summary>
              Returns <code>true</code> if the argument represents a folder, <code>false</code> otherwise.
              <i>Parameters:</i><br/>
              <b>path</b> Default: <code>dde_apps_folder</code> The string naming the
                 file or folder to test.<br/>
-            <i>Example:</i> <code>is_folder()</code> => <samp>true</samp>
+             <b>callback</b> The callback takes two arguments: <i>error_message</i> and <i>is_folder</i>
+                If the first argument is ignored.<br/>
+                The second argument is <code>true</code> if the path is a folder,
+                and <code>false</code> if it isn't.
+                If the callback is not passed, this method returns a promise.
+             <p></p>
+            <i>Example:</i> <code>DDEFile.is_folder("dde_apps")</code> => <samp>true</samp>
         </details>
-        <details id="load_files_doc_id" class="doc_details"><summary>load_files</summary>
-            <code>load_files</code> gets the content of files from disk
+
+        <details id="load_file_doc_id" class="doc_details"><summary>load_file</summary>
+            <code>load_file</code> gets the content of the file
             (expected to be JavaScript) and evaluates
-            it in the DDE environment programmatically. You can pass any number of file paths to
-            load files. It will load the files sequentially, such that later files
-            can depend on the contents of earlier files loaded.
+            it in the DDE environment programmatically.<br/>
+            <i>Parameters:</i><br/>
+            <b>path</b> The path of the file to load. Usually this
+            path will have a file extension of ".js" or ".dde" but that is not required.<br/>
+            <b>callback</b> The callback takes two arguments: <i>error_message</i> and <i>result</i>
+            If the evaluation errors, error_message will be non-null.<br/>
+            The second argument is the result of evaling the JS source code of the file,
+            i.e. the result of evaling the last top level expression in the file.<br/>
+            For instance, if that code is: <code>2 + 3</code>
+            the second argument will be <code>5</code>.
+            Any side effects, like function definitions, will now
+            be in the DDE environment.
+            If callback is not passed, a promise is returned.
             <p></p>
-            File paths that start with slash are absolute and have no prefix prepended to them.
-            File paths that don't start with slash have a prefix appended to them.
-            The default prefix is the value of <code>dde_apps_folder + "/"</code>
-            A file path that is exactly <code>"/"</code> sets the prefix
-            to the default.
-            <p></p>
-            File paths that end in slash don't load files but do set the prefix to be
-            prepended for files in later args.
-            If such a file path starts with slash, it becomes the prefix
-            (other than <code>"/"</code> , see above).
-            If not, the new prefix is <code title="unEVALABLE">dde_apps_folder + "/" + path</code>
-            This saves repetition of long folder names.
-            <p></p>
-            <i>Examples</i>:<br/>
-            <code title="not in TestSuite"> load_files("foo.js")</code> Loads the file in your dde_apps folder named foo.js<br/>
-            <pre style="background-color:white;"><code title="not in TestSuite"> load_files(
- "c.js",   //loads .../dde_apps/c.js
- "a/b.js", //loads .../dde_apps/a/b.js
- "d/e/",   //no load but sets prefix to ".../dde_apps/d/e/"
- "f.js,    //loads .../dde_apps/d/e/f.js
- "g.js",   //loads .../dde_apps/d/e/g.js
- "/",      //no load but sets prefix to .../dde_apps/
- "h.js"    //loads .../dde_apps/h.js
-)
-</code></pre>
-            <p></p>
-            load_files <i>tries</i> to return the result of evaluating the last top level expression in the last file loaded.
-            <span style="color:red;">Warning</span>: Sometimes the last expression
-            is NOT returned, so if you really want a returned value,
-            its safer if the file contains only ONE top level expression.
-            <p></p>
-            It is conventional to use a file extension of ".js" for files containing JavaScript,
-            but not strictly necessary.
-            <p></p>
-            See <a href="#" onclick="DocCode.open_doc(read_file_doc_id, event)">read_file</a>
-            for getting the file contents as a string but not evaling it.
+            <i>Example</i>:<br/>
+            <code title="not in TestSuite"> load_files("foo.js")</code>
+            Loads the file in your dde_apps folder named foo.js<br/>
             <p></p>
             See <a href="#" onclick="DocCode.open_doc('Py.load_file_doc_id')">Py.load_file</a>
             for importing a Python file into DDE's Python process.
         </details> <!-- end load_files  -->
 
-        <details id="loading_file_doc_id" class="doc_details"><summary>loading_file</summary>
-        <code>loading_file</code> is a global variable bound to the full path
-        of the file being loaded. If no file is being loaded, it is <code>undefined</code>
+        <details id="DDEFile.loading_file_doc_id" class="doc_details"><summary>DDEFile.loading_file</summary>
+        <code>DDE.loading_file</code> is bound to the path
+         of the file being loaded. If no file is being loaded, it is <code>undefined</code>.
+         It can be used in the source of the file being loaded so that
+         it can know its file name.
         </details>
 
         <details id="make_folder_doc_id" class="doc_details"><summary>make_folder</summary>
@@ -8389,6 +8424,71 @@ For documentation, see
 
 </details> <!-- end Robots -->
 
+<details id="Dex" class="doc_details"><summary>Dex (Jobless instructions)</summary>
+         <code>Dex</code> is a facility for making it easy to execute code to move
+         Dexter without having to create a Job and stick instructions on it's do_list.<br/>
+         <span style="color:red;">This is an experimental system so please don't expect it to be perfect.
+    </span>
+         <p/>
+         The first time you run a Dex instruction, a Job named <i>DexJob</i> is defined using
+         the robot of <code>Dexter.default</code> (the Dexter set in the Misc Pane header).<br/>
+         Then that job is started and that first instruction is run.<br/>
+         Then the Job waits for more Dex instructions.
+         <p/>
+         <i>Examples:</i><br/>
+         Run a "move_all_joints" instruction:<br/>
+         <code> Dex.m_joint([5, 10, 15]) </code>
+         <p/>
+         Run a "move_to" instruction:<br/>
+         <code> Dex.m_xyz([0.1, 0.2, 0.3]) </code>
+         <p/>
+         Run both together:
+         <pre><code> Dex.m_joint([5, 10, 15])
+ Dex.m_xyz([0.1, 0.2, 0.3]) </code></pre>
+         An Extended example:
+         <pre><code> function print_measured_angles(){
+   out(this.robot.rs.measured_angles())
+ }
+ for(let i = 1; i < 4; i++) {
+    Dex.m_joint([5, 10, 15])
+    Dex.run(IO.out("i = " + i))
+    Dex.m_joint([10 * i, 20 * i, 30 * i])
+    Dex.run(print_measured_angles)
+    Dex.m_xyz([0.1, 0.2, 0.3])
+    Dex.run(print_measured_angles)
+    Dex.m_joint([0, 0, 0])
+    Dex.run(IO.out("done with i = " + i))
+} </code></pre>
+         You can stop the Job by clicking its button in the Output Pane header or
+         programmatically via:<br/>
+         <code>Job.DexJob.stop_for_reason("interrupted")</code> <!-- this must run in testsuite or the next job won't run properly-->
+         <p></p>
+         <i>Observations:</i><br/>
+         <ul>
+             <li>We're using a vanilla JS <code title="Unevalable">for</code> loop,
+                 not a <code>Control.loop</code> instruction.</li>
+             <li>The 8 instuctions in the body are executed 3 times, with
+                 incrementing joint angles each time in the first <code>Dex.m_joint</code> instruction.</li>
+             <li><code>Dex.run</code> is a function with one argument, which can be anything
+                 you would put on the do_list in a Job, such as:<br/>
+                 <code>Dexter.move_all_joints([45, 60])</code><br/>
+                 Here we pass in the function definition of <code>print_measured_angles</code></li>
+             <li>The function <code>print_measured_angles</code> prints the values of measured angles
+                 after the previous instruction has completed moving.
+                 So the first <code>Dex.m_joint</code> instruction
+                 in the first iteration of the loop, prints <code>10</code> for joint 1.<br/>
+                 In the second interation, it prints <code>20</code> for joint 1.
+             </li>
+             <li>
+                 We must wrap this printing of measured_angles in a function,
+                 because that winds up being an instruction in our DexJob that
+                 must get called after the instruction before it completes.<br/>
+                 We don't want to execute any code in the body of <code>print_measured_angles</code>
+                 until then.
+             </li>
+         </ul>
+</details>
+
 <details id="units_system_help_doc_id" class="doc_details"><summary>Units System</summary>
     Throughout DDE, the primary functions and instructions assume SI units for their
     numerical values. Example: length is in meters.
@@ -9615,7 +9715,7 @@ Plot.show(undefined, data,
    undefined,
    {title: "show_window title",
     x: 0,
-    y: 0,
+    y: 40,
     width: 900,
     height: 300}
  )    </code></pre>
@@ -11962,14 +12062,14 @@ new Job({
          write to in a global variable, then using it in a function
          that writes <code>"Test47"</code> into a file in your dde_apps folder.<br/>
          <i>Example:</i>
-         <pre><code>Py.eval(&#96;filename = dde_apps_folder + "/filename.txt"
+         <pre><code>Py.eval(&#96;filename = dde_apps_folder + "/file_written_by_py.txt"
 def main():
   with open(filename, 'w') as f:
     f.write("Test47")&#96;)   </code></pre>
          <code>Py.eval("main()")</code> //creates the file and sets its content to "Test47"<br/>
          This is one strategy for getting a large string from Python into DDE JavaScript
          via:<br/>
-         <code>read_file(dde_apps_folder + "/filename.txt")</code> .
+         <code>read_file(dde_apps_folder + "/file_written_by_py.txt")</code> .
          This call should return the content of the file, i.e. <code>"Test47"</code><br/>
          Note that our designation for the file is <i>the same</i> for both Python and JavaScript.
        </details>

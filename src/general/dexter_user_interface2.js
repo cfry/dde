@@ -313,9 +313,9 @@ class dui2 {
             '"/>' +
             '</div>'
         let xyz_num_html =
-            'X: <input name="x_num" type="number" data-oninput="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
-            'Y: <input name="y_num" type="number" data-oninput="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
-            'Z: <input name="z_num" type="number" data-oninput="true" style="width:55px;margin-top:0px;" min="' + min_z + '" max="' + max_z + '" value="0" step="0.01" ' + '"/>m<br/>'
+            'X: <input name="x_num" type="number" data-onchange="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
+            'Y: <input name="y_num" type="number" data-onchange="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
+            'Z: <input name="z_num" type="number" data-onchange="true" style="width:55px;margin-top:0px;" min="' + min_z + '" max="' + max_z + '" value="0" step="0.01" ' + '"/>m<br/>'
 
         let z_slider_restriction_html = '<div style="position:absolute; top:60px; right:25px; width:20px; height:40px; background-color:' + dui2.xy_background_color + ';"></div>'
         let the_html =
@@ -331,7 +331,7 @@ class dui2 {
             '<option>20</option><option>25</option><option>30</option><option>40</option>'+
             '<option>50</option><option>75</option><option>100</option>' +
              '</select>mm ' +
-            '<span style="margin-left:5px;">J6roll:</span><input name="J6_roll" data-oninput="true" type="number" min="-180" max="180" step="0.1" value="0" style="width:50px;"/>&deg;' +
+            '<span style="margin-left:5px;">J6roll:</span><input name="J6_roll" data-onchange="true" type="number" min="-180" max="180" step="0.1" value="0" style="width:50px;"/>&deg;' +
             '<span style="margin-left:3px;" title="Fill in joint angles by moving your Dexter by hand.">FromDex:<input name="from_dexter" type="checkbox" data-oninput="true"/></span>' +
             '</div>' +
                xyz_num_html
