@@ -1,0 +1,106 @@
+DDE4 Install and Launch Instructions
+Fry Feb 16, 2022
+
+You can see instructions by browsing:
+ github.com/cfry/dde/tree/dde4/dde4_install_launch.txt
+
+DDE4 can be installed on your Mac or Windows computer,
+OR installed on Dexter itself. This documentation tells you how.
+
+_________DDE4 Install on Mac or Windows__________
+DDE4 requires Node v 16 to be installed.
+To check if your compuer already has this:
+   - Launch a terminal
+         - MacOS,  double click on Applications/terminal
+   - Type in: node --version
+     (old versions of Node 11 should be updated to version 16
+            via the below instructions)
+
+- Browse: nodejs.org/
+- Click the big green button for Downloading the LTS version (node version 16)
+- This will put a file in your Downloads folder, named something like:
+  node-v16.14.0.pkg
+- Double click the file
+- This brings up a dialog box. Click continue, agree, install buttons
+  as they come up
+
+- Browse: https://github.com/cfry/dde/tree/dde4
+- Click the big green button "Code v", and choose "Download ZIP"
+- In your Downloads folder, unzip the file dde-dde4.zip
+  (on Mac ,just double click it.)
+
+- Make a folder on your computer.
+  A good location is in the parent of your Documents folder
+  Name it dde4
+
+- Move: Downloads/dde-dde4/httpd.mjs into your newly created dde4 folder.
+- Move: Downloads/dde-dde4/dde/  into your newly created dde4 folder.
+
+- Launch a termimal program:
+  On MacOS, Double click on Applications/Utilities/Terminal.app
+
+- cd to your newly created dde4 folder.
+
+- Tyoe in: npm install formidable
+- Type in: npm install modbus-serial
+
+__________DDE4 Install on Dexter____________
+DDE4 requires an updated version of Node (v 16) to be on your Dexter.
+First check to see if you need the new version of node:
+- In a Terminal
+  - Type in: ssh root@192.168.1.142  (or your Dexter's IP address)
+     When prompted, enter Password:  klg
+
+  - Type in: node --version
+       (old versions of Node 11 should be updated to version 16
+       via the below instructions)
+
+- Browse: nodejs.org/dist/v16.13.1/
+  click:  node-v16.13.1-linux-ppc64le.tar.xz
+  This is for Dexter's arm71 processor. Its 17Mbytes. Now in fry downloads folder.
+
+- Untar this file. (On Mac, double click it)
+   You can Launch a Terminal app:
+       - Type in: cd Downloads
+       - Type in: tar -xJvf node-v16.13.1-linux-armv7l.tar.xz
+
+- Copy the file to your Dexter:
+   - On Mac, use cyberduck  (or some other transfer app)
+      to copy dowloads/node-v16.13.1-linux-armv7l/bin/node
+              to Dexter /usr/bin/node
+
+- In a Terminal
+
+  - chmod node --reference=node_11  to fix up executable permissions to
+        those permissions of the previous version of node
+        which should be: -rwxr-xr-x
+
+The Node server requires 2 extra npm packages:
+formidable  and ModbusRTU, but these should
+already be on your Dexter.
+
+__________Launching the DDE4 Server_________
+
+- Launch a Terminal
+  On MacOS: Double click on the file: Applications/Utilities/terminal.app
+
+- Type in:  cd  dde4  (or where ever you put your dde4 folder)
+- Type in: node httpd.mjs
+
+   On WinOS:
+
+   On Dexter:
+   - Type in: ssh root@192.168.1.142  (or your Dexter's IP address)
+        When prompted, enter Password:  klg
+   - Type in:  cd /srv/samba/share
+   - Type in:  node www/httpd.js
+
+___________Starting DDE4___________
+For Server on MacOS or WinOS:
+  - In the Chrome Web browser, browse: localhost/dde/index.html
+    (stick this URL in the Favorites bar for quick launches.)
+
+For Server on Dexter:
+  - In the Chrome Web browser, browse: 192.168.1.142/dde/index.html
+
+You should see the DDE4 user interface page come up.
