@@ -54,9 +54,9 @@ We want to end up with the dde4 folder containing just:
 
 - cd (change directory) to your newly created dde4 folder.
 
-- Type in: npm install ws
-- Type in: npm install formidable
-- Type in: npm install modbus-serial
+- Type in: npm install ws@^7.5.1    (ws version 8 is incompatible with the way we create a new Server)
+- Type in: npm install formidable@^2.0.1
+- Type in: npm install modbus-serial@^8.0.5
 
 __________DDE4 Install on Dexter____________
 DDE4 requires an updated version of Node (v 16) to be on your Dexter.
@@ -80,8 +80,10 @@ First check to see if you need the new version of node:
 
 - Copy the file to your Dexter:
    - On Mac, use cyberduck  (or some other transfer app)
-      to copy dowloads/node-v16.13.1-linux-armv7l/bin/node
+      to copy downloads/node-v16.13.1-linux-armv7l/bin/node
               to Dexter /usr/bin/node
+   - On WinOS use cyberduck or Putty.
+
 
 - In a Terminal
 
@@ -102,13 +104,13 @@ __________Launching the DDE4 Server_________
 - Type in:  cd  dde4  (or where ever you put your dde4 folder)
 - Type in: node httpd.mjs
 
-   On WinOS:
 
    On Dexter:
    - Type in: ssh root@192.168.1.142  (or your Dexter's IP address)
         When prompted, enter Password:  klg
    - Type in:  cd /srv/samba/share
-   - Type in:  node www/httpd.js
+   - Type in:  pkill node         (stop the original server)
+   - Type in:  node www/httpd.js  (start the new server)
 
 ___________Starting DDE4___________
 For Server on MacOS or WinOS:
