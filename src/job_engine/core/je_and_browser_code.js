@@ -190,7 +190,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
         //kludge but that's dom reality
         let holder_div = document.createElement("div"); // a throw away elt
         holder_div.innerHTML = properties.html
-        let show_window_elt = holder_div.firstElementChild
+        let show_window_elt = holder_div.firstChild
         body_id.appendChild(show_window_elt) //this is automatically done when I call jqxw_jq.jqxWindow({width:width below
        // body_id.insertAdjacentHTML("beforeend", properties.html)  //more elegant EXCEPT I need show_window_elt below
         if(properties.is_modal) {

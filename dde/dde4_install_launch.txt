@@ -58,7 +58,7 @@ We want to end up with the dde4 folder containing just:
 - Type in: npm install formidable@^2.0.1
 - Type in: npm install modbus-serial@^8.0.5
 
-__________DDE4 Install on Dexter____________
+__________DDE4 Install Node on Dexter____________
 DDE4 requires an updated version of Node (v 16) to be on your Dexter.
 First check to see if you need the new version of node:
 - In a Terminal
@@ -70,30 +70,85 @@ First check to see if you need the new version of node:
        via the below instructions)
 
 - Browse: nodejs.org/dist/v16.13.1/
-  click:  node-v16.13.1-linux-ppc64le.tar.xz
+  click:  node-v16.13.1-linux-armv7l.tar.xz
   This is for Dexter's arm71 processor. Its 17Mbytes. Now in fry downloads folder.
 
-- Untar this file. (On Mac, double click it)
-   You can Launch a Terminal app:
+- Untar this file.
+  On MacOS, double click it
+  On WinOS
+     You can Launch a Terminal (ie Powershell) app:
        - Type in: cd Downloads
        - Type in: tar -xJvf node-v16.13.1-linux-armv7l.tar.xz
 
-- Copy the file to your Dexter:
-   - On Mac, use cyberduck  (or some other transfer app)
-      to copy downloads/node-v16.13.1-linux-armv7l/bin/node
-              to Dexter /usr/bin/node
-   - On WinOS use cyberduck or Putty.
+     OR use winzip, winrar or 7zip application to unzip (untar) this big file.
+
+- Copy the node file to your Dexter:
+  First we must stop node from running on your Dexter.
+  from a termminal program:
+  ssh root@192.168.1.142 //To ssh into Dexter From a mac terminal.
+         you will be prompted for the password. Use: klg
+  cd /usr/bin
+  pkill node  //to stop node from running.
+  mv node node_11  //for backup and we will use this file later.
+
+    Copy (on your Win or Mac)  downloads/node-v16.13.1-linux-armv7l/bin/node
+    To   (on Dexter)           /usr/bin/node (name of the destination file)
+   - On MacOS use cyberduck application to transfer
+   - On WinOS use cyberduck application to transfer
+    You can also use, from your Mac or Win, a terminal program using "scp"
+    scp first arg is the file you want to transfer,
+    which might be in a dfferent location if you
+    unzipped to somewhere else.
+
+    scp downloads/node-v16.13.1-linux-armv7l/bin/node root@192.168.1.142:/usr/bin/
+        (prompts you for a password. Use: klg )
+
+   -  In ssh session to dexter, set node's permissions via enter:
+    chmod node --reference=node_11  to fix up executable permissions to
+            those permissions of the previous version of node
+            which should be: -rwxr-xr-x
+    or
+    chmod +rwxrwxrwx node
+    node &
+    to verfity that you have the new version running, enter:
+    node --version
+     and it should give you a version 16 of node.
 
 
-- In a Terminal
-
-  - chmod node --reference=node_11  to fix up executable permissions to
-        those permissions of the previous version of node
-        which should be: -rwxr-xr-x
 
 The Node server requires 2 extra npm packages:
 formidable  and ModbusRTU, but these should
 already be on your Dexter.
+
+_____Install DDE4 server on Dexter_______
+copy dde folder to inside : Dexter folder: /srv/samba/share/www
+Using Cyberduck:
+  click button "openconnection"  OR File Menu/OpenConnection
+  choose option FTP/SFTP
+  Enter: server: 192.168.1.142
+         port:    (leave the default at 22)
+         username: root
+         password: klg
+    click the "connect"  button
+    You should see the file structure of Dexter:
+    Navigate to: /srv/samba/share/www
+    In the Cyberduck dialog box title bar, click on "Action"
+      to get a dropdown menu, choose "Upload".
+    Navigate to the dde folder on your Mac/Win and select that "dde" folder.
+      (this dde folder will have in it subfolders of
+           build,doc,examples, etc. )
+      and click the "upload" button in the lower right of the dialog box.
+
+    Now upload the file "httpd.mjs" (in the same folder as the dde that
+     you just uploaded.
+    we want to upload httpd.mjs to Dexter /srv/samba/share/www
+
+    in ssh,
+    cd /srv/samba/share/www
+    chmod +rwxrwxrwx httpd.mjs
+
+
+
 
 __________Launching the DDE4 Server_________
 
@@ -101,7 +156,7 @@ __________Launching the DDE4 Server_________
   On MacOS: Double click on the file: Applications/Utilities/terminal.app
   On WinOS: bring up Command prompt.
 
-- Type in:  cd  dde4  (or where ever you put your dde4 folder)
+- Type in: cd  dde4  (or where ever you put your dde4 folder)
 - Type in: node httpd.mjs
 
 
@@ -109,8 +164,8 @@ __________Launching the DDE4 Server_________
    - Type in: ssh root@192.168.1.142  (or your Dexter's IP address)
         When prompted, enter Password:  klg
    - Type in:  cd /srv/samba/share
-   - Type in:  pkill node         (stop the original server)
-   - Type in:  node www/httpd.js  (start the new server)
+   - Type in:  pkill node          (stop the original server)
+   - Type in:  node www/httpd.mjs  (start the new server)
 
 ___________Starting DDE4___________
 For Server on MacOS or WinOS:

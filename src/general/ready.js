@@ -1,4 +1,3 @@
-debugger;
 globalThis.running_in_browser = (globalThis.window ? true : false)
 console.log("top of ready.js")
 
@@ -1862,7 +1861,7 @@ window_modify_id.onclick=function(){Editor.insert(
           }
           //setTimeout(check_for_latest_release, 200) //todo dde4 this can *almost* work. but needs get_page_async, defined in storage, and nearly everything in that file needs the file system
 
-          setTimeout(function() { SplashScreen.show_maybe() }, 400)
+          setTimeout(function() { SplashScreen.show_maybe() }, 500)
           DocCode.close_all_details() //doc pane just show top level items.
           setTimeout(function(){ //dde4 todo needs file system
               DDEVideo.show_in_misc_pane(DDE_DB.persistent_get("misc_pane_content"))
@@ -1961,8 +1960,8 @@ function quit_dde(){
 
 //misc fns called in ready.js
 function email_bug_report(){
-    subj = "DDE Suggestion " + Utils.date_to_human_string()
-    bod = encodeURIComponent(make_dde_status_report())
+    let subj = "DDE Suggestion " + Utils.date_to_human_string()
+    let bod  = encodeURIComponent(make_dde_status_report())
     window.open("mailto:cfry@hdrobotic.com?subject=" + subj + "&body=" + bod)
 }
 console.log("bottom of ready.js")

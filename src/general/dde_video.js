@@ -174,7 +174,7 @@ class DDEVideo {
             content_is_good = true
         }
         else if(content === "Dexter Photo"){
-            let file_name = "src/doc/HD+Robotics-8517.jpg"
+            let file_name = "/dde/doc/HD+Robotics-8517.jpg"
                     //"../doc/HD+Robotics-8517.jpg"
                     //__dirname +
                     //"/general/doc/HD+Robotics-8517.jpg" //Dexter and Kent
@@ -182,7 +182,7 @@ class DDEVideo {
             content_is_good = true
         }
         else if(content === "Dexter Architecture"){
-            let file_name = "src/doc/dexter_architecture.jpg"
+            let file_name = "dde/doc/dexter_architecture.jpg"
             sim_pane_content_id.innerHTML = "<img src='" + file_name + "' style='width:100%;'/>"
             content_is_good = true
         }

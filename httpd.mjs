@@ -275,19 +275,17 @@ function serve_show_window_call_callback(browser_socket, mess_obj){
 //use a path of /edit?edit=/foo/bar.js instead and that
 //bypasses serve_file.
 function serve_file(q, req, res){
-    console.log("top of serve_file")
+    //console.log("top of serve_file")
+    let cur_dir = process.cwd()
     let filename
     if(fs.existsSync(SHARE_FOLDER)) { //running on Dexter
        filename = SHARE_FOLDER + "/www/" + q.pathname  //this is in orig dexter file, but replaced for  dde4 with server laptop by the below clause
     }
     //dde4 works except for editing a file
-      else { //dde4 not running on dexter
+    else { //dde4 not running on dexter
         filename = q.pathname
-
-        console.log("serve_file passed pathname: " + q.pathname)
         let maybe_slash = (q.pathname.startsWith("/") ? "" : "/")
-        let cur_dir = process.cwd()
-        console.log("serve_file got cur_dir: " + cur_dir)
+        //console.log("serve_file got cur_dir: " + cur_dir)
         filename = cur_dir + maybe_slash +  q.pathname
 
     }
@@ -303,7 +301,11 @@ function serve_file(q, req, res){
             filename = "/" + filename
         }
     }*/
-    console.log("serving " + filename) //dde4 changed the 2nd arg to filename
+    console.log("serve_file passed pathname: " + q.pathname +
+              "\n                   cur_dur: " + cur_dir +
+              "\n          serving filename: " + filename)
+
+    //console.log("serving " + filename) //dde4 changed the 2nd arg to filename
     fs.readFile(filename, function(err, data) {
         if (err) { console.log(filename, "not found")
             res.writeHead(404, {'Content-Type': 'text/html'})
@@ -329,10 +331,12 @@ function isBinary(byte) { //must use numbers, not strings to compare. ' ' is 32
 var http_server = http.createServer(async function (req, res) {
   //see https://nodejs.org/api/http.html#http_class_http_incomingmessage 
   //for the format of q.
-  console.log("web server got request: " + req.url )
+  //console.log("web server got request: " + req.url )
   var q = url.parse(req.url, true)
   let [main_url, query_string] = ("" + req.url).split("?") //url.parse(req.url,true).search fails
-  console.log("web server passed url: " + req.url + "\n           pathname: " + q.pathname + "\n           query: " + query_string)
+  console.log("\nweb server passed url: " + req.url +
+              "\n             pathname: " + q.pathname +
+              "\n                query: " + query_string)
   if (q.pathname === "/") {
       q.pathname = "index.html"
   }
