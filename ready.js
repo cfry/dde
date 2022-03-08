@@ -935,7 +935,7 @@ show_window({title: "Modify Window",
 `
     )}
 
-    build_window_id.onclick=ab.launch
+    <!-- build_window_id.onclick=ab.launch not working. code in app_builder.js perhaps revive some day -->
 
     opencv_gray_id.onclick=function(){
         const code = read_file(__dirname + "/examples/opencv_gray.js")
