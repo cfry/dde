@@ -309,7 +309,7 @@ class Simqueue{
         //know about Jobs and don't care. Useful for debugging perhaps, but
         //causes problems as in above.
         let rob_name  = this.sim_instance.robot_name
-        if(SimUtils.is_simulator_showing()) { //window.platform == "dde") //even if we're in dde, unless the sim pane is up, don't attempt to render
+        if(SimUtils.is_simulator_showing()) { //globalThis.platform == "dde") //even if we're in dde, unless the sim pane is up, don't attempt to render
             SimUtils.render_multi(this.sim_instance, ins_args, rob_name, dur_in_ms)
         }
         else {

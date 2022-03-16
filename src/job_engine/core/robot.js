@@ -4,8 +4,6 @@
 //import {Job} from "./job.js" now global
 //import {Instruction, make_ins} from "./instruction.js" //now global
 
-import {file_exists, node_server_supports_editor,
-        read_file} from "./storage"
 //import {Socket} from "./socket.js"
 //import {serial_connect, serial_disconnect, serial_send}from "./serial.js"
 
@@ -58,7 +56,7 @@ class Robot {
         Robot.all_names.push(name)
         //for Make Instance dialog
         if ((i == -1) &&
-             window["DexterUtils"] &&
+            globalThis.DexterUtils &&
             (robot_instance instanceof Dexter)) {
             DexterUtils.add_dexter_to_dexter_default_menu(robot_instance)
         }
@@ -1266,7 +1264,7 @@ class Dexter extends Robot {
     set_robot_status(robot_status) {
         let old_robot_status_button_down = this.is_phui_button_down() //do this first before setting robot_status
         this.robot_status = robot_status //thus rob.robot_status always has the latest rs we got from Dexter.
-        if(window.platform == "dde"){
+        if(globalThis.platform == "dde"){
             if(this.rs) { this.rs.robot_status = robot_status }
             else {
                 this.rs = new RobotStatus({robot_status: robot_status})
@@ -1506,7 +1504,7 @@ class Dexter extends Robot {
         if (job_instance.keep_history && (oplet == "g")){ //don't do it for oplet "G", get_robot_status_immediate
                 job_instance.rs_history.push(robot_status)
         }
-        if(window.platform === "dde"){
+        if(globalThis.platform === "dde"){
             RobotStatusDialog.update_robot_status_table_maybe(rob) //if the dialog isn't up, this does nothing
         }
 

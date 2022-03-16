@@ -97,7 +97,12 @@ class DDEFile {
     }
 
     static host(){
-        return window.location.host //ex: "192.168.1.142:5000", "localhost:80"
+        if(globalThis.platform === "node") {
+            return "localhost:5000"
+        }
+        else {
+            return window.location.host //ex: "192.168.1.142:5000", "localhost:80"
+        }
     }
     /*
     static is_server_on_dexter(){ //dde4 todo compare this.host to each one of the defined dexters,
@@ -145,6 +150,24 @@ class DDEFile {
         else { return str }
     }
 
+    static callback_or_error(callback, error_message="got error"){
+        if (callback) {
+            callback(error_message)
+        }
+        else {
+            dde_error(error_message)
+        }
+    }
+
+    static callback_or_return(callback, value="got error"){
+        if (callback) {
+            callback(null, value)
+        }
+        else {
+            return value
+        }
+    }
+
     //______end Utilites______
     //Core file manipulation methods
 
@@ -157,6 +180,45 @@ class DDEFile {
         //see httpd.mjs, serve_file()
         let file_info_response = await fetch(full_url)
         return this.callback_or_return(callback, file_info_response.ok)
+    }
+
+    /*static async get_page_async(url_or_options, callback){
+        //https://www.npmjs.com/package/request documents request
+        //as taking args of (options, cb) but the actual
+        //fn itself has params(uri, options, cb
+        //request(url_or_options, callback)
+        let url, options, response, err, body
+        if(typeof(url_or_options) === "string") {
+            url = url_or_options
+            options = { credentials: 'include',
+                mode: 'cors'} // no-cors, *cors, same-origin } //attempt to get cross domain urls. might not work
+                              // see https://developer.mozilla.org/en-US/docs/Web/API/Request/mode
+            response = await fetch(url, options)
+        }
+        else {
+            response = await fetch(url_or_options)
+        }
+        if(response.ok){
+            return this.callback_or_return(callback, body)
+        }
+        else {
+            let err = ("get_page_async didn't work.")
+            return this.callback_or_error(callback, err)
+        }
+    }*/
+    static async get_page_async(url_or_options, callback){
+        //https://www.npmjs.com/package/request documents request
+        let full_url = "http://" + this.host() + "/get_page?path=" + url_or_options
+        //let full_url =  this.make_url(url_or_options, "/get_page?path=")
+        let response = await fetch(full_url)
+        if(response.ok){
+            let content = await response.text()
+            return this.callback_or_return(callback, content)
+        }
+        else {
+            let err = ("get_page_async didn't work.")
+            return this.callback_or_error(callback, err)
+        }
     }
 
     //path can be a file, a folder, or a non-existant path.
@@ -201,23 +263,7 @@ class DDEFile {
         }
     }
 
-    static callback_or_error(callback, error_message="got error"){
-        if (callback) {
-            callback(error_message)
-        }
-        else {
-            dde_error(error_message)
-        }
-    }
 
-    static callback_or_return(callback, value="got error"){
-        if (callback) {
-            callback(null, value)
-        }
-        else {
-            return value
-        }
-    }
 
     //callback is optional. If not passed, return a promise
     static async read_file_async(path, callback){
@@ -398,6 +444,25 @@ class DDEFile {
         }
     }
 
+    static async make_folder(path, callback){
+        let exists = await this.file_exists(path)
+        if(exists) {
+            out("DDEFile.make_folder tried to create: " + path + " but it already exists.")
+        }
+        else {
+            let sep = ((Utils.last(path) === "/") ? "" : "/'")
+            let temp_file_path = path + sep + "temp_file"
+            let write_result = await this.write_file_async(temp_file_path, "the content")
+            //out("write_result: " + write_result)
+            if(write_result === "the content"){
+                this.delete(temp_file_path, callback)
+            }
+            else {
+                this.callback_or_error(callback, "Error calling DDEFile.make_folder(" + path + ")")
+            }
+        }
+    }
+
     static async copy_file_async(source_path, destination_path, callback){
         let content = await DDEFile.read_file_async(source_path)
         DDEFile.write_file_async(destination_path, content, null, callback)
@@ -447,7 +512,18 @@ class DDEFile {
             let result
             try {
                 this.loading_file = defaulted_path
-                let result = eval_js_part2(content)
+
+                //let result = eval_js_part2(content)
+                //this.loading_file = undefined
+                //this.callback_or_return(callback, result.value)
+
+                let result
+                if(GlobalThis.eval_js_part2) { //we're in IDE
+                    result = eval_js_part2(content).value
+                }
+                else { //we're in node
+                    result = globalThis.eval(content)
+                }
                 this.loading_file = undefined
                 this.callback_or_return(callback, result.value)
             }

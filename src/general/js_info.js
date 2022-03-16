@@ -3,8 +3,6 @@
 import {pluralize_full_unit_name, series_name_to_unity_unit,
         unit_abbrev_to_full_name} from "../job_engine/core/units.js"
 
-import {file_exists} from "../job_engine/core/storage.js"
-
 export class Js_info {
     static get_info_string(fn_name, series=null, full_src=null, pos=null){
             fn_name = this.depricated_to_new(fn_name) //we need "orig_input" to be the new, not
@@ -481,9 +479,9 @@ export class Js_info {
         if(fn_name === ".") { return fn_name } //its not really a prefix, is the operator between 2 path parts that says "get tvalue of the 2nd part from the first part.
         if(Utils.is_string_a_literal_string(fn_name)) { return fn_name }
         else if (!fn_name.includes(".")) { return fn_name }
-        else if (Utils.starts_with_one_of(fn_name, ["Brain.", "Control.", "Dexter.", "FPGA.", "Human.", "IO.", "Job.", "Math.",
-                                              "Number.", "Object.", "Series.", "Robot.", "Serial."
-                                              ])) {
+        else if (Utils.starts_with_one_of(fn_name, ["Brain.", "Control.", "DDEFile.", "Dexter.", "FPGA.", "Human.", "IO.", "Job.", "Math.",
+                                              "Number.", "Object.", "Series.", "Robot.", "Serial.",
+                                              "Utils." ])) {
             return fn_name
         }
         else if(!Number.isNaN(parseFloat(fn_name))){  //could be an integer or a float. that's ok, return whole fn_name

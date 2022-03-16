@@ -142,7 +142,7 @@ function speak({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0, lan
         var speak_data = arguments[0] //, volume = 1.0, rate = 1.0, pitch = 1.0, lang = "en_US", voice = 0, callback = null
     }
     var text = stringify_for_speak(speak_data)
-    if(window.platform == "node"){
+    if(globalThis.platform == "node"){
         let cmd_string = "espeak \"" + text + "\" -a "+ (volume*200) + " -p " + (pitch * 50) + " -s " + (rate * 37 + 130)
         if(node_callback) {
             exec(cmd_string, node_callback) //node_callback passed 3 args,
@@ -183,7 +183,7 @@ export function show_window_values(vals){
     if(platform == "dde") { inspect(vals) }
     else {
         let str = JSON.stringify(vals)
-        write_to_stdout(str)
+        globalThis.write_to_stdout(str)
     }
 }
 
@@ -316,7 +316,7 @@ function show_window({content = `<input type="submit" value="Done"/>`,
     }
     else {
         //onsole.log("bottom of show_window writing to stdout")
-        write_to_stdout("<for_server>" + JSON.stringify(props) + "</for_server>")
+        globalThis.write_to_stdout("<for_server>" + JSON.stringify(props) + "</for_server>")
     }
     return SW.window_index
 }
@@ -370,7 +370,7 @@ globalThis.beeps = beeps
 var audioCtx
 
 function beep({dur = 0.5, frequency = 440, volume = 1, waveform = "triangle", callback = null}={}){
-    if(window.platform == "node"){
+    if(globalThis.platform == "node"){
         exec("espeak \"" + "beep" + "\" -a "+ (volume*200) + " -p " + (frequency * 100) + " -s 300",
             callback );//this callback takes 2 args, an err object and a string of the shell output
                        //of calling the command.

@@ -2,7 +2,7 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import json     from '@rollup/plugin-json'
-import styles from "rollup-plugin-styles";
+import styles   from "rollup-plugin-styles";
 //import sourcemaps from 'rollup-plugin-sourcemaps'; // https://github.com/maxdavidson/rollup-plugin-sourcemaps
 import copy from 'rollup-plugin-copy'
 
@@ -28,6 +28,11 @@ export default {
             ]
         })
     ],
+    //see https://rollupjs.org/guide/en/#avoiding-eval and search for onwarn
+    onwarn (warning, warn) {
+        if(warning.code === "EVAL") { return } //don't show eval warnings
+        warn(warning) //do show all other warnings.
+    },
     output: {
         name: "dde4", //https://gist.github.com/Rich-Harris/d472c50732dab03efeb37472b08a3f32
         file: 'dde/build/bundle.js',

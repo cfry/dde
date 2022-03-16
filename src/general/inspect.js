@@ -2,7 +2,6 @@
 
 import {out_eval_result} from "../job_engine/core/out.js"
 
-//import {file_exists, make_full_path, read_file} from "../job_engine/core/storage.js"
 
 class Inspect{
 

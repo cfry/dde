@@ -1,4 +1,6 @@
+debugger;
 import http from "http"
+import https from "https"
 import url from 'url'; //url parsing
 import pkg from 'formidable'; //I have formidable v 2. see https://stackoverflow.com/questions/65368903/node-formidable-why-does-require-work-but-import-does-not
 const formidable = pkg;
@@ -76,9 +78,25 @@ var mimeTypes = {
   "txt": "text/plain"
   };
 
-const SHARE_FOLDER = '/srv/samba/share';
-const DDE_APPS_FOLDER = SHARE_FOLDER + '/dde_apps/'; //todo dde4 proably shouldn't end in slash
-const DDE_INSTALL_FOLDER = '/root/Documents/dde'; //where DDE is installed on Dexter  //todo dde4 this changes
+function compute_dde_apps_folder(){ //new in dde4 //todo dde4 result proably shouldn't end in slash
+    if(running_on_dexter()) { return SHARE_FOLDER + '/dde_apps/' }
+    else {
+        return os.homedir()  //example: "/Users/Fry"
+               + "/Documents/dde_apps/"
+    }
+}
+
+function compute_dde_install_folder(){ //new in dde4 //todo dde4 result proably shouldn't end in slash
+    if(running_on_dexter()) { return '/root/Documents/dde' }
+    else {
+        return os.homedir()  //example: "/Users/Fry"
+            + "/WebstormProjects/dde4/dde/build"
+    }
+}
+
+const SHARE_FOLDER       = '/srv/samba/share';
+const DDE_APPS_FOLDER    = compute_dde_apps_folder() //dde4
+const DDE_INSTALL_FOLDER = compute_dde_install_folder() //where DDE is installed on Dexter  //todo dde4 this changes
 
 function running_on_dexter() { //dde4 added
     return fs.existsSync(SHARE_FOLDER)
@@ -124,13 +142,22 @@ function extract_job_name(job_name_with_extension){
     else { job_name = job_name_with_extension.substring(0, dot_pos) }
     return job_name
     */
-    let ext = path.extname(job_name_with_extension);
+    /*let ext = path.extname(job_name_with_extension);
     //console.log("extension:"+ext)
     if (ext && -1!=["dde","js"].indexOf(ext)) { //if it's a dde job
         return job_name_with_extension.slice(0,-1-ext.length); //remove the extension
     } else { //just return the full thing if it's not a dde job
       return job_name_with_extension;
     }
+    */
+    //new in dde4
+    if(job_name_with_extension.endsWith(".dde")) {
+        return job_name_with_extension.substring(0, job_name_with_extension.length - 4)
+    }
+    else if (job_name_with_extension.endsWith(".js")) {
+        return job_name_with_extension.substring(0, job_name_with_extension.length - 3)
+    }
+    else { return job_name_with_extension}
 }
 
 function serve_init_jobs(q, req, res){
@@ -153,12 +180,15 @@ console.log("done making wss: " + wss);
 function serve_job_button_click(browser_socket, mess_obj){
     let app_file = mess_obj.job_name_with_extension; //includes ".js" suffix 
     console.log("\n\nserve_job_button_click for:" + app_file);
+    console.log("\nserve_job_button_click mess_obj:\n" + JSON.stringify(mess_obj))
     let app_type = path.extname(app_file);
+    console.log("app_type: " + app_type)
     if (-1!=[".dde",".js"].indexOf(app_type)) { app_type = ".dde" }//if this is a job engine job
     let jobfile = app_file;
     if (!app_file.startsWith("/")) jobfile = DDE_APPS_FOLDER + app_file; //q.search.substr(1)
     //console.log("serve_job_button_click with jobfile: " + jobfile)
     let job_name = extract_job_name(app_file); //console.log("job_name: " + job_name + "taken from file name")
+    console.log("job_name: " + job_name)
     let job_process = get_job_name_to_process(app_file); //warning: might be undefined.
     //let server_response = res //to help close over
     if(!job_process){
@@ -169,19 +199,22 @@ function serve_job_button_click(browser_socket, mess_obj){
         let cmd_options = {cwd: SHARE_FOLDER, shell: true};
         if (".dde"==app_type) { //if this is a job engine job
             cmd_line = 'node'; //then we run node
-            cmd_args = ["core define_and_start_job " + jobfile]; //tell it to start the job
+            cmd_args = // ["core define_and_start_job " + jobfile]; //orig dde3 //tell it to start the job
+                      ["bundleje.js define_and_start_job " + jobfile] //dde4
             cmd_options = {cwd: DDE_INSTALL_FOLDER, shell: true};
         }
+        console.log("spawn\n    cmd_line: " + cmd_line + "\n    cmd_args: " + cmd_args + "\n    cmd_options: " + JSON.stringify(cmd_options))
         job_process = spawn(cmd_line,
                             cmd_args,
                             cmd_options
                             
                            );
         set_job_name_to_process(app_file, job_process);
-        console.log("started job_name: " + job_name + " with:"+cmd_line+" "+cmd_args+" to new process: " + job_process.pid + " of type:" + app_type);
+        console.log("started job_name: " + job_name + " with: "+cmd_line+" "+cmd_args+" to new process: " + job_process.pid + " of type:" + app_type);
         job_process.stdout.on('data', function(data) {
-          console.log("\n\nserver: stdout.on data got data: " + data + "\n");
           let data_str = data.toString();
+          console.log("\n\nserver: stdout.on data got data: " + data_str + "\n");
+
           //server_response.write(data_str) //pipe straight through to calling browser's handle_stdout
           //https://github.com/expressjs/compression/issues/56 sez call flush even though it isn't documented.
           //server_response.flushHeaders() //flush is deprecated.
@@ -190,23 +223,25 @@ function serve_job_button_click(browser_socket, mess_obj){
 	     });
         if (".dde"==app_type) {  
             job_process.stderr.on('data', function(data) {
-                console.log("\n\njob: " + job_name + " got stderr with data: " + data);
+                let data_str = data.toString();
+                console.log("\n\njob: " + job_name + " got stderr with data: " + data_str);
                 //remove_job_name_to_process(job_name) //just because there is an error, that don't mean the job closed.
                 //server_response.write("Job." + job_name + " errored with: " + data)
                 console.log('\n\nAbout to stringify 2\n');
                 let lit_obj = {job_name: job_name,
-                             kind: "show_job_button",
-                             button_tooltip: "Server errored with: " + data, 
-                             button_color: "red"};
+                               kind: "show_job_button",
+                               button_tooltip: "Server errored with: " + data_str,
+                               button_color: "red"};
                 if (browser_socket.readyState != ws.OPEN) {job_process.kill(); return;} //maybe should be kill()?
                 browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>");
                 //server_response.end()
                 });
         } else {
             job_process.stderr.on('data', function(data) {
-                console.log("\n\njob: " + job_name + " got stderr with data: " + data);
+                let data_str = data.toString();
+                console.log("\n\njob: " + job_name + " got stderr with data: " + data_str);
                 if (browser_socket.readyState != ws.OPEN) {job_process.kill(); return;} //maybe should be kill()?
-                browser_socket.send(data.toString());
+                browser_socket.send(data_str);
                 });
             
         }
@@ -223,12 +258,18 @@ function serve_job_button_click(browser_socket, mess_obj){
           }
           remove_job_name_to_process(job_name);
           //server_response.end()
-          });
+          })
+        job_process.on('exit', function(code) { //do I really need to handle this?
+                console.log("\n\nServer on exit the process of Job: " + job_name + " with code: " + code)
+            }
+          );
         }
+
+
     else {
     	let code;
         if(job_name === "keep_alive") { //happens when transition from keep_alive box checked to unchecked
-        	code = "set_keep_alive_value(" + mess_obj.keep_alive_value + ")\n";
+        	code = "globalThis.set_keep_alive_value(" + mess_obj.keep_alive_value + ")\n";
         } else if (".dde" == app_type) { //job engine job
           //code = "Job." + job_name + ".server_job_button_click()"
           //e.g. `web_socket.send(JSON.stringify({"job_name_with_extension": "dexter_message_interface.dde", "ws_message": "goodbye" }))`
@@ -302,7 +343,7 @@ function serve_file(q, req, res){
         }
     }*/
     console.log("serve_file passed pathname: " + q.pathname +
-              "\n                   cur_dur: " + cur_dir +
+              "\n                   cur_dir: " + cur_dir +
               "\n          serving filename: " + filename)
 
     //console.log("serving " + filename) //dde4 changed the 2nd arg to filename
@@ -326,6 +367,8 @@ function isBinary(byte) { //must use numbers, not strings to compare. ' ' is 32
   if ([13, 10, 9].includes(byte)) { return false } //or text ctrl chars
   return true
 }
+
+function get_page_get_cb() {}
 
 //standard web server on port 80 to serve files
 var http_server = http.createServer(async function (req, res) {
@@ -493,9 +536,90 @@ var http_server = http.createServer(async function (req, res) {
       catch(err) {
           res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
           res.writeHead(404, {'Content-Type': 'text/html'})
-          return res.end("404 Not Found "+err)
+          return res.end("404 Not Found "+ err)
       }
     }
+    /*else if(q.pathname === "/get_page") {
+        let url = q.query.path
+        let response = await fetch(url)
+        if(response.ok) {
+            let content = await file_info_response.text()
+            res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
+            res.writeHead(200)
+            //console.log("server writing out data: " + data)
+            res.write(data)
+            return res.end()
+        }
+        else {
+            res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
+            res.writeHead(404, {'Content-Type': 'text/html'})
+            return res.end("404 " + url + " Not Found: " + err)
+        }
+    }*/
+      //see https://nodejs.org/api/http.html#httpgeturl-options-callback
+      //be very careful "res" is the respoonse that goes back to the browser.
+      // "get_res" is the response that comeba back from the http.get
+    else if(q.pathname === "/get_page") {
+      let url = q.query.path
+      if (url.startsWith("https:")) {
+          let options = {headers: {"User-Agent": req.headers['user-agent']}}
+          https.get(url, options, (get_res) => {
+                  let rawData = '';
+                  get_res.on('data', (chunk) => {
+                      rawData += chunk;
+                  });
+                  get_res.on('end', () => {
+                      //res.setHeader('Access-Control-Allow-Origin', '*'); //causes error
+                      if((get_res.statusCode >= 300) &&
+                         (get_res.statusCode <  400) &&
+                          get_res.headers.location) { //an indirection
+                         setTimeout(
+                             function() {
+                                 https.get(get_res.headers.location, options, function() {
+                                     console.log("needs work")
+                                 })
+                             }, 10)
+                      }
+                      else {
+                          res.writeHead(get_res.statusCode)
+                          //console.log("server writing out data: " + data)
+                          res.write(rawData)
+                          return res.end()
+                      }
+                  })
+                  get_res.on("error", (err) => {
+                  //res.setHeader('Access-Control-Allow-Origin', '*'); //causes error
+                     res.writeHead(get_res.statusCode)
+                     return res.end()
+                 })
+          })
+      }
+      else { //presume starts with http:
+          let options = {headers: {"User-Agent": req.headers['user-agent']}}
+          http.get(url, options,
+              (get_res) => {
+              let rawData = '';
+              get_res.on('data', (chunk) => {
+                  rawData += chunk;
+              });
+              get_res.on('end', () => {
+                  //res.setHeader('Access-Control-Allow-Origin', '*'); //causes error
+                  res.writeHead(get_res.statusCode)
+                  //console.log("server writing out data: " + data)
+                  res.write(rawData)
+                  return res.end()
+              })
+              get_res.on("error", (err) => {
+                  //res.setHeader('Access-Control-Allow-Origin', '*'); //causes error
+                  res.writeHead(get_res.statusCode)
+                  return res.end()
+              })
+          })
+      }
+      //from https://nodejs.org/api/https.html#httpsgeturl-options-callback
+
+    }
+
     else if (q.pathname === "/edit" && req.method == 'DELETE' ) { //console.log("edit delete:"+JSON.stringify(req.headers))
       const form = formidable({ multiples: true });
       form.parse(req, (err, fields, files) => { //console.log(JSON.stringify({ fields, files }, null, 2) +'\n'+ err)

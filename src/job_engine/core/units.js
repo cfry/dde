@@ -158,7 +158,7 @@ export function init_units(){
    // module.exports._nbits_cf = _nbits_cf
    // module.exports._arcsec   = _arcsec
    // module.exports._um       = _um
-    if(window.platform == "dde") {
+    if(globalThis.platform == "dde") {
         for(let series_name_core in units_data) {
             let ser = units_to_series(series_name_core, units_data[series_name_core])
             Series.instances.push(ser)

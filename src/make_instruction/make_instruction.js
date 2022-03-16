@@ -1,7 +1,7 @@
 //import Socket from "../job_engine/core/socket.js" //dde4 Socket is now global. used for string instruction processing
 //import  * as esprima  from "../../node_modules/esprima/dist/esprima.js" //not used
 import {to_source_code} from "../job_engine/core/to_source_code.js"
-import {file_exists, write_file, make_full_path} from "../job_engine/core/storage.js"
+import { make_full_path} from "../job_engine/core/storage.js"
 
 class MakeInstruction{
    //utilities
@@ -1090,7 +1090,7 @@ class MakeInstruction{
                         },
                         2000)
                 }
-                setTimeout(function() { the_inst.start({when_stopped: when_stopped_fn}) }, //doesn't work to just set when_stopped on the instance because that won't make it into the orig_args storage
+                setTimeout(function() { the_inst.start({when_stopped: when_stopped_fn}) }, //doesn't work to just set when_stopped on the instance because that won't make it into the orig_args
                     2000)
             }
             else {  the_inst.start() }
@@ -1350,7 +1350,7 @@ class MakeInstruction{
                                              defaultPath: dde_apps_folder})
                 }
                 if(path){
-                    write_file(path, seg_job_code)
+                    DDEFile.write_file_async(path, seg_job_code)
                     out(mi_job_instrs_wrapper_name_id.value  + " definition written to: " + path)
                 }
                 else { Editor.insert(seg_job_code, "end") }

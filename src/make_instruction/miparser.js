@@ -1,4 +1,4 @@
-import * as espree from "espree"; //replaces esprima
+//import * as espree from "espree"; //replaces esprima now Espree is global
 
 class MiParser {
     //_______utils_________
@@ -21,12 +21,12 @@ class MiParser {
     static string_to_ast(src){
         if (src[0] == "{") { //esprima doesn't like so hack it
             let new_src = "var foo947 = " + src
-            let st = espree.parse(new_src, {range: true, loc: true,  ecmaVersion: "latest"})
+            let st = Espree.parse(new_src, {range: true, loc: true,  ecmaVersion: "latest"})
             let new_st = st.body[0].declarations[0].init
             return new_st
         }
         else {
-            return espree.parse(src, {range: true, loc: true, ecmaVersion: "latest"})
+            return Espree.parse(src, {range: true, loc: true, ecmaVersion: "latest"})
         }
     }
 

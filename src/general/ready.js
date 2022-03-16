@@ -1,4 +1,3 @@
-globalThis.running_in_browser = (globalThis.window ? true : false)
 console.log("top of ready.js")
 
 //import os from 'os' //todo causes Failed to resolve module specifier "os". bug  //probably only useful in server code,  not browser code.
@@ -16,8 +15,6 @@ import "jqwidgets-scripts/jqwidgets/jqxlistbox.js"   //needed by combobox
 import "jqwidgets-scripts/jqwidgets/jqxbuttons.js"   //needed by listbox
 import "jqwidgets-scripts/jqwidgets/jqxscrollbar.js" //needed by listbox
 import "jqwidgets-scripts/jqwidgets/jqxcheckbox.js"
-
-
 
 //see https://github.com/codemirror/CodeMirror/issues/5484
 import CodeMirror from "codemirror/lib/codemirror.js"
@@ -54,11 +51,6 @@ import "./styles.css"
 
 import {w3} from "../third_party/w3.js"
 
-
-
-import * as Espree from "espree";
-globalThis.Espree = Espree;
-
 //import ping from "ping.js" //errors
 //globalThis.ping = ping
 
@@ -71,47 +63,12 @@ globalThis.Espree = Espree;
 //but still fails
 //import { parse as semver } from "semver"; //yields circular dependencies
 
+import {init_job_engine, init_units, package_json} from "../job_engine/load_job_engine.js" //imports je files
 
-
-import "../job_engine/core/utils.js" //defines as global class Utils, and a few of its methods such as  dde_error, rgb
-import "../job_engine/core/duration.js"
-
-import {init_units} from "../job_engine/core/units.js"
-import "../job_engine/core/je_and_browser_code.js" //defines SW and out globally
 
 import "./dde_db.js" //defines class DDE_DB globally
-import "../job_engine/math/Coor.js"    //now sets global Coor
-import "../job_engine/math/Vector.js"  //now global
-import "../job_engine/math/Convert.js" //now global
-import "../job_engine/math/Kin.js"     //now global
-import "../job_engine/math/DXF.js"     //now global
 
-import {calibrate_build_tables} from "../job_engine/low_level_dexter/calibrate_build_tables.js"
-
-import "../job_engine/core/out.js" //makes get_output, show_window, beep, etc global
-import "../job_engine/core/job.js" //globally defines Job
 import {job_examples} from "./job_examples.js" //just an array of strings of Job defs used for Job menu/insert menu item
-import "../job_engine/core/gcode.js" //Gcode now global
-import "../job_engine/core/fpga.js" //globally defines FPGA
-
-//robots!
-import "../job_engine/core/instruction.js"          //globally defines Instruction, make_ins
-import "../job_engine/core/instruction_dexter.js"   //sets Instruction.Dexter to the dexter instruction class
-import "../job_engine/core/instruction_io.js"       //makes class IO global
-import("../job_engine/core/instruction_control.js") //makes  class Control global
-import "../job_engine/core/robot.js" //now global Robot, Brain, Serial, Human, Dexter
-
-import "../job_engine/core/socket.js"       //defines class Socket as global
-import "../job_engine/core/dextersim.js"    //defines class DexterSim as global
-import "../job_engine/core/simqueue.js"     //defines class Simqueue as global
-import "../job_engine/core/robot_status.js" //defines class RobotStatus as global
-
-import "../job_engine/core/dde_file.js" //defines class File as global
-import "../job_engine/core/object_system.js"//defined globals: Root, newObject
-
-//import "../job_engine/core/messaging.js"//defined global: Messaging todo dde4, this needs to be moved to the server.
-
-
 
 import "./dex.js" //makes Dex global
 
@@ -136,9 +93,7 @@ import "../simulator/simulate.js" //makes class Simulate global
 import "../simulator/simutils.js" //makes class SimUtils global
 import "../simulator/simbuild.js" //makes class SimBuild global
 
-import "../job_engine/core/html_db.js" //makes: html_db, make_html, make_dom_elt global
 import "./inspect.js" //defines inspect & inspect_out globally
-import "../job_engine/core/to_source_code.js" //defined to_source_code globally
 //const {google} = require('googleapis'); //todo  do I use this?
 
 import {insert_color}  from "./output.js" //todo sets lots of things in window. Should change to globalThis
@@ -164,7 +119,7 @@ import "../test_suite/when_stopped_testsuite.js"
 
 
 import "./robot_status_dialog.js" //defines class RobotStatusDialog as global
-import {run_instruction}   from "./run_instruction.js"
+import {run_instruction} from "./run_instruction.js"
 import "./dexter_utils.js" //makes global var for class: DexterUtils
 import "./metrics.js" //globally defines class Metrics //todo can't really work until file save and read.
 
@@ -186,23 +141,10 @@ import "./gamepad.js"       //defined global class GamePad
 
 import "./lesson.js" //defines global Lesson
 
-import package_json        from "../../package.json"
 
-
-
-globalThis.dde_version      = "not inited"
-globalThis.dde_release_date = "not inited"
-
-globalThis.operating_system = "not inited" //"mac", "win" or "linux"(for Ubuntu)  bound in both ui and sandbox by ready
-globalThis.dde_apps_folder  = "not inited"
-
-globalThis.platform = "not inited"
 
 var js_cmds_array = []
 var js_cmds_index = -1
-
-
-
 
 function open_dev_tools(){
     //let dde_ipc
@@ -241,7 +183,6 @@ function clearSelection(){
 }
 
 // document.body.addEventListener('onload', on_ready)
-globalThis.operating_system = "not initialized"
 //from https://www.geeksforgeeks.org/how-to-detect-operating-system-on-the-client-machine-using-javascript/
 function set_operating_system() {
     if      (!globalThis["navigator"])                  globalThis.operating_system="unknown"
@@ -253,71 +194,42 @@ function set_operating_system() {
 }
 
 export function on_ready() {
-        if(!running_in_browser) { return }
-        //const os = require('os');
-        console.log("top of on_ready")
-        //console.log("__dirname:"  + __dirname) //todo dde4 causes error
-        console.log("top of ready with package_json: " + package_json)
-        w3.includeHTML()
-        /*operating_system = os.platform().toLowerCase() //for Ubuntu, ths returns "linux"
-        if      (operating_system == "darwin")       { operating_system = "mac" }
-        else if (operating_system.startsWith("win")) { operating_system = "win" }
-        */
-        set_operating_system()
-        //globalThis.semver = semver
-        //const remote = require("electron").remote
-        //window.dde_apps_folder //todo = convert_backslashes_to_slashes(remote.getGlobal("dde_apps_folder"))
-        DDEFile.init() //sets the global dde_apps_folder
-        //console.log("In renderer dde_apps_folder: " + window.dde_apps_folder)
-        //console.log("In renderer appPath: "      + remote.app.getAppPath())//probably not in dde4
-        //console.log("In renderer __dirname: "    + __dirname)//dde4 todo
-        //require('fs-lock')({
-         //   'file_accessdir': [__dirname, dde_apps_folder], //for readFile, etc. but must include __dirname since Electron needs it.
-        //    'open_basedir':   [__dirname ] //__direname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',
-         //}) //restrict file access
-        //window.fs = require('fs')
+    //const os = require('os');
+    console.log("top of on_ready")
+    //console.log("__dirname:"  + __dirname) //todo dde4 causes error
+    console.log("top of ready with package_json: " + package_json)
+    w3.includeHTML()
+    /*operating_system = os.platform().toLowerCase() //for Ubuntu, ths returns "linux"
+    if      (operating_system == "darwin")       { operating_system = "mac" }
+    else if (operating_system.startsWith("win")) { operating_system = "win" }
+    */
+    set_operating_system()
+    //globalThis.semver = semver
+    //const remote = require("electron").remote
+    //window.dde_apps_folder //todo = convert_backslashes_to_slashes(remote.getGlobal("dde_apps_folder"))
+   // DDEFile.init() //actually not needed ...
+    //console.log("In renderer dde_apps_folder: " + window.dde_apps_folder)
+    //console.log("In renderer appPath: "      + remote.app.getAppPath())//probably not in dde4
+    //console.log("In renderer __dirname: "    + __dirname)//dde4 todo
+    //require('fs-lock')({
+    //   'file_accessdir': [__dirname, dde_apps_folder], //for readFile, etc. but must include __dirname since Electron needs it.
+    //    'open_basedir':   [__dirname ] //__direname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',
+    //}) //restrict file access
+    //window.fs = require('fs')
 
-        dde_version = package_json.version
-        dde_release_date = package_json.release_date
-        console.log(dde_version)
-        platform         = "dde" //"node" is the other possibility, which happens when we're in the job_engine
-        //serial_port_init() //now does nothing, No longer necessary to use serial port.
-        //window.Root      = Root //should work but doesn't jan 13, 2019
 
-        Coor.init()
-        //see also ./core/index.js that has this same code
-        Dexter.make_ins = make_ins
-        Dexter.calibrate_build_tables = calibrate_build_tables
-        window.calibrate_build_tables = undefined
-        Dexter.prototype.calibrate_build_tables = function() {
-            let result = Dexter.calibrate_build_tables()
-            for(let oplet_array of result){
-                if(Array.isArray(oplet_array)){
-                    oplet_array.push(this)
-                }
-            }
-            return result
-        }
+    globalThis.platform = "dde" //the job engine sets this to "node"
 
-        Job.class_init()
-        Dexter.class_init()
-        new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 3000}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
-          //the only thing dde_init.js really MUST do is define dexter0, so just stick
-          //it here and now user can screw up dde_init.js and still win.
-        setTimeout(function(){
-            window.document.title = "Dexter Development Environment " + dde_version
-            //dde_version_id.innerHTML      = dde_version //do this by hand because these matic values are NOT getting display in this doc's version on hdrobotic.com/software
-            //dde_release_date_id.innerHTML = dde_release_date
-        }, 1000)
+    //serial_port_init() //now does nothing, No longer necessary to use serial port.
+    //window.Root      = Root //should work but doesn't jan 13, 2019
 
-    Dexter.draw_dxf = DXF.dxf_to_instructions //see Robot.js
-    Dexter.prototype.draw_dxf = function({robot = null}={}) {
-            let obj_args
-            if (arguments.length == 0) { obj_args = {} } //when no args are passed, I must do this
-            else { obj_args = arguments[0] }
-            obj_args.robot = this
-            return Dexter.draw_dxf(obj_args)
-    }
+    init_job_engine()
+
+    setTimeout(function(){
+        window.document.title = "Dexter Development Environment " + dde_version
+        //dde_version_id.innerHTML      = dde_version //do this by hand because these matic values are NOT getting display in this doc's version on hdrobotic.com/software
+        //dde_release_date_id.innerHTML = dde_release_date
+    }, 1000)
 
     $('#outer_splitter_id').jqxSplitter({
         width: '98%', height: '97%', //was 93%
@@ -500,10 +412,12 @@ export function on_ready() {
     //dde_release_date_id.innerHTML = dde_release_date //todo comment back in once doc is loaded
 
     Series.init_series()
-    init_units() //has to be after init_series call.
-    FPGA.init() //does not depend on Series.
 
+    //the below 3 are also done in on_ready_je
+    init_units() //In dde, has to be after init_series call.
+    FPGA.init()  //does not depend on Series.
     Gcode.init() //must be after init_series which calls init_units()
+
     Lesson.init() //sets css properties for steptorials.
 
     $('#js_textarea_id').focus() //same as Editor.myCodeMirror.focus()  but  myCodeMerror not inited yet
@@ -689,11 +603,11 @@ export function on_ready() {
  //DDE_NPM.init() //todo big changes due to import???
  //install_npm_pkg_id.onclick = DDE_NPM.show_ui
 
-     download_file_id.onclick=function(){
+    download_file_id.onclick=function(){
          DDEFile.choose_file({folder:   undefined,
                               title:    "Download file: ",
                               callback: "DDEFile.download_file_handler" })
-     }
+    }
 
     upload_file_id.onclick=function(){
          DDEFile.choose_file_to_upload()
@@ -785,9 +699,9 @@ foo("hello", [7, 10, 20, -3.2]) //call function foo with 2 args
                                 //a string and an array of numbers.
 `)}
 
-alert_id.onclick   = function(){Editor.wrap_around_selection(  "alert(", ')', '"Hi."')}
-confirm_id.onclick = function(){Editor.wrap_around_selection("confirm(", ')', '"Do it?"')}
-prompt_id.onclick  = function(){Editor.wrap_around_selection( "prompt(", ')', '"Price?"')}
+ alert_id.onclick   = function(){Editor.wrap_around_selection(  "alert(", ')', '"Hi."')}
+ confirm_id.onclick = function(){Editor.wrap_around_selection("confirm(", ')', '"Do it?"')}
+ prompt_id.onclick  = function(){Editor.wrap_around_selection( "prompt(", ')', '"Price?"')}
 
  out_black_id.onclick =function(){Editor.wrap_around_selection("out(", ')', '"Hello"')}
  out_purple_id.onclick=function(){Editor.wrap_around_selection("out(", ', "blue")', '"Hello"')}

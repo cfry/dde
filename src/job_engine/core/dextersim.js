@@ -4,7 +4,6 @@
 //import {Robot, Dexter} from "./robot.js" //dde4 not needed as Robot, Dexter now global
 //import {Socket}        from "./socket.js" //dde4 Socket is now global
 //import {Instruction}   from "./instruction.js" //dde4 Instruction is now global
-import {make_folder, make_full_path}  from "./storage"
 
 //import {Kin}           from "../math/Kin.js"    //dde4 Kin is now global
 //import {Vector}        from "../math/Vector.js" //dde4 Vector is now global

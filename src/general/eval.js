@@ -162,7 +162,7 @@ function eval_js_part2(command, call_eval_part3_if_no_error=true){ //2nd arg pas
         //if I don't do this trick with val927, I get an error when evaling "{a:2, b:3}
         //I can't figure out whether try is supposed to return the val of its last exp or not from the js spec.
         let start_time = Date.now()
-        var value = window.eval(command     //using: try_command fails to define async fns.
+        var value = globalThis.eval(command     //using: try_command fails to define async fns.
               ) //window.eval evals in "global scope" meaning that, unlike plain eval
         result.value = value //used by Job's menu item "Start job"
         //if I click on EVAL button with window.eval for defining a fn,

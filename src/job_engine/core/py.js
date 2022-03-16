@@ -47,7 +47,7 @@ export class Py{
         }
         //if (src_formatted == "") { console.log("_____out_eval_result passed src: " + src + " with empty string for src_formatted and text: " + text)}
         let the_html = "<fieldset><legend><i>" + src_label  + " </i>" + src_formatted + " <i> is...</i></legend>" +  text + "</fieldset>"
-        append_to_output(the_html)
+        SW.append_to_output(the_html)
         //$('#js_textarea_id').focus() fails silently
         if(window["document"]){
             let orig_focus_elt = document.activeElement

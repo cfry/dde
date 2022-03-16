@@ -7,9 +7,9 @@ function out(val="", color="black", temp=false, code=null){
         if(window["stringify_value"]) { text = Utils.stringify_value(text) }
         else { text = Utils.stringify_value_cheap(val) } //hits in browser
     }
-    if(window.platform == "node") { //console.log(val)
+    if(globalThis.platform == "node") { //console.log(val)
         let out_obj = {kind: "out_call", val: text, color: color, temp: temp, code: code} //code isn't actually used in the browser
-        write_to_stdout("<for_server>" + JSON.stringify(out_obj) + "</for_server>")
+        globalThis.write_to_stdout("<for_server>" + JSON.stringify(out_obj) + "</for_server>")
         return val
     }
 
@@ -41,16 +41,20 @@ function out(val="", color="black", temp=false, code=null){
         return "dont_print"
     }
     else {
-        if ((existing_temp_elts.length > 0) && (temp_str_id == "temp")){ //don't remove if temp is another string. This is used in Job.show_progress
+        if ((existing_temp_elts.length > 0) && (temp_str_id == "temp")) { //don't remove if temp is another string. This is used in Job.show_progress
             //existing_temp_elts.remove()
-            for(let temp_elt of existing_temp_elts){ temp_elt.remove() }
+            for (let temp_elt of existing_temp_elts) {
+                temp_elt.remove()
+            }
         }
         //var out_item_id = "out_" + out_item_index
         //out_item_index += 1
         text = '<div id="' + //out_item_id +
             '" style="border-style:solid;border-width:1px;border-color:#AA00AA;margin:5px 5px 5px 15px;padding:4px;">' + text + '</div>'
         SW.append_to_output(text)
-        DocCode.blink_if_output_pane_hidden() //let user know there's new output that they can't see.
+        if (globalThis.DocCode) {
+            DocCode.blink_if_output_pane_hidden() //let user know there's new output that they can't see.
+        }
     }
     if(window["document"]){
         let orig_focus_elt = document.activeElement
@@ -768,7 +772,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
             if(platform === "browser") { cb = callback_fn_string }
             else {
                 cb = value_of_path(callback_fn_string)
-                if (!cb) { try { cb = window.eval("(" + callback_fn_string + ")") } //probably have an anonymous fn. Evaling it without the parent wrappers errors.
+                if (!cb) { try { cb = globalThis.eval("(" + callback_fn_string + ")") } //probably have an anonymous fn. Evaling it without the parent wrappers errors.
                            catch(err){ dde_error("During show_window handler (callback), could not find: " + callback_fn_string) } //just ignore
                 }
             }
@@ -889,9 +893,9 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
     //a null value means remove the dom_elt or attribute specified in path_string
     //ex: SW.selector_set_in_ui("#show_window_0_id foo [value]" , "blue")
     static selector_set_in_ui(path_string, value=null){
-        if(window.platform == "node") { //console.log(val)
+        if(globalThis.platform == "node") { //console.log(val)
             let obj = {kind: "selector_set_in_ui_call", path_string: path_string, value: value}
-            write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>")
+            globalThis.write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>")
         }
         else {
             if(value === -0) { value = 0 } //in some weird raoujnding situations, we get a negative zero.
@@ -980,22 +984,22 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
 
     static append_to_output(text){
         text += "\n"
-        if(window["output_div_id"]) { //DDE and browser
+        if(globalThis["output_div_id"]) { //DDE and browser
             let out_height = output_div_id.scrollHeight
             output_div_id.insertAdjacentHTML('beforeend', text) //output_div_id is defined in DDE and browser
             output_div_id.scrollTop = out_height
             SW.install_onclick_via_data_fns()
         }
         else { //in Job Engine
-            write_to_stdout(text)
+            globalThis.write_to_stdout(text)
         }
     }
 
     //inserts the new_html as the new last child of the element indicated by path_string
     static append_in_ui(path_string, new_html){
-        if(window.platform == "node") { //console.log(val)
+        if(globalThis.platform == "node") { //console.log(val)
             let obj = {kind: "append_in_ui_call", path_string: path_string, new_html: new_html}
-            write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>")
+            globalThis.write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>")
         }
         else {
             let elt = value_of_path(path_string)
@@ -1019,7 +1023,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
     }
     static clear_output(){
         output_div_id.innerText = ""
-        if(window["init_inspect"]) {
+        if(globalThis["init_inspect"]) {
             Inspect.init_inspect();
         }
         return "dont_print"

@@ -1,72 +1,92 @@
-//symbols loaded from job_engine code needed by the test suite
+//start of Job Engine imports
 
-import {sind, cosd, tand, asind, acosd, atand, atan2d} from "./math/Trig_in_Degrees.js"
-import Convert from "./math/Convert.js"
-import Coor    from "./math/Coor.js"
-import Kin     from "./math/Kin.js"
-import Vector  from "./math/Vector.js"
-import txt     from "./math/txt.js"
-import calibrate_build_tables from "./low_level_dexter/calibrate_build_tables.js"
+globalThis.dde_version      = "not inited"
+globalThis.dde_release_date = "not inited"
+globalThis.operating_system = "not inited" //"mac", "win" or "linux"(for Ubuntu)  bound in both ui and sandbox by ready
+globalThis.dde_apps_folder  = "not inited"
+globalThis.platform         = "not inited" //"dde" or "node"
 
-import {convertArrayBufferToString, convertStringToArrayBuffer,
-    SerialPort, serial_port_init, serial_port_path_to_info_map,
-    serial_devices, serial_devices_async,
-    serial_connect_low_level,
-    serial_send_low_level, serial_connect, serial_send, serial_flush, serial_disconnect,
-    serial_disconnect_all} from "./core/serial.js"
+globalThis.keep_alive_value = true
 
+import package_json from "../../package.json"
+export {package_json}
 
-import "./core/utils.js"
+import * as Espree from "espree";
+globalThis.Espree = Espree;
 
-import {adjust_path_to_os, append_to_file,
-     choose_file, choose_save_file, choose_file_and_get_content, choose_folder,
-     copy_file_async, copy_folder_async,
-     file_exists, folder_listing, folder_separator, folder_name_version_extension,
-     get_latest_path, get_page_async,
-     is_folder, load_files,
-     make_folder, make_full_path, make_unique_path,
-     persistent_get, persistent_remove,
-     read_file, read_file_async, write_file, write_file_async}
-     from "./core/storage.js"
+import "../job_engine/core/utils.js" //defines as global class Utils, and a few of its methods such as  dde_error, rgb
+import "../job_engine/core/je_and_browser_code.js" //defines SW and out globally
 
-var file_content = read_file //file_content is deprecated
+import "../job_engine/math/Coor.js"    //now sets global Coor
+import "../job_engine/math/Vector.js"  //now global
+import "../job_engine/math/Convert.js" //now global
+import "../job_engine/math/Kin.js"     //now global
+import "../job_engine/math/DXF.js"     //now global
 
-import {deg_c_to_c, deg_c_to_f, deg_f_to_c,
-     deg_c_to_k, deg_k_to_c,
-     deg_k_to_f, deg_f_to_k, } from "./core/units.js"
+import "../job_engine/low_level_dexter/calibrate_build_tables.js"
 
-//require('./core/je_and_browser_code.js') //don't set SW, just load
-//load_files(__dirname + "/core/je_and_browser_code.js") //must be before loading out.js
-import {beep, beeps, format_text_for_code, speak, show_window,
-        show_window_values} from "./core/out.js"
+import "../job_engine/core/out.js" //makes get_output, show_window, beep, etc global
+import "../job_engine/core/job.js" //globally defines Job
+import "../job_engine/core/linux_error_message.js" //used by Job, makes linux_error_message global
+import "../job_engine/core/gcode.js" //Gcode now global
+import "../job_engine/core/fpga.js" //globally defines FPGA
 
-import {DXF} from "./math/DXF.js"
+//robots!
+import "../job_engine/core/instruction.js"          //globally defines Instruction, make_ins
+import "../job_engine/core/instruction_dexter.js"   //sets Instruction.Dexter to the dexter instruction class
+import "../job_engine/core/instruction_io.js"       //makes class IO global
+import("../job_engine/core/instruction_control.js") //makes  class Control global
+import "../job_engine/core/robot.js" //now global Robot, Brain, Serial, Human, Dexter
 
+import "../job_engine/core/socket.js"       //defines class Socket as global
+import "../job_engine/core/dextersim.js"    //defines class DexterSim as global
+import "../job_engine/core/simqueue.js"     //defines class Simqueue as global
+import "../job_engine/core/robot_status.js" //defines class RobotStatus as global
 
-import {Instruction, make_ins, human_task_handler, human_enter_choice_handler,
-    human_enter_filepath_handler, human_enter_number_handler, human_enter_position_handler,
-    human_enter_instruction_handler,
-    human_enter_text_handler,
-    human_notify_handler, human_show_window_handler}
-    from "./core/instruction.js"
+import "../job_engine/core/dde_file.js" //defines class File as global
+import "../job_engine/core/object_system.js"//defined globals: Root, newObject
+import "../job_engine/core/html_db.js" //makes: html_db, make_html, make_dom_elt global
+import "../job_engine/core/to_source_code.js" //defined to_source_code globally
+import "../job_engine/core/duration.js"
 
-import {FPGA}from "./core/fpga.js"
-import {Robot, Brain, Dexter, Human, Serial} from "./core/robot.js"
-import {RobotStatus} from "./core/robot_status.js"
-
-import {Control} from "./core/instruction_control.js"
-import {IO} from "./core/instruction_io.js"
-import Job  from "./core/job.js"
-import {Messaging, MessStat} from "./core/messaging.js"
-import {linux_error_message} from "./core/linux_error_message.js"
-
-import "./core/html_db.js" //makes html_db, make_html, make_dom_elt,   global
-
-import {Py} from "./core/py.js"
-
-var keep_alive_value = true //only really used by node-browser
-   //but effectively, dde, always has keep_alive_value true.
-   //this should never actually be read by dde.
+import {init_units} from "../job_engine/core/units.js"
+export {init_units}
 
 
+//import "../job_engine/core/messaging.js"//defined global: Messaging todo dde4, this needs to be moved to the server.
 
+//end  of Job Engine imports
+
+export function init_job_engine(){
+    globalThis.dde_version = package_json.version
+    globalThis.dde_release_date = package_json.release_date
+    console.log("DDE version: " + dde_version)
+    Coor.init()
+    //see also ./core/index.js that has this same code
+    Dexter.make_ins = make_ins
+    Dexter.calibrate_build_tables = globalThis.calibrate_build_tables
+    Dexter.prototype.calibrate_build_tables = function() {
+        let result = Dexter.calibrate_build_tables()
+        for(let oplet_array of result){
+            if(Array.isArray(oplet_array)){
+                oplet_array.push(this)
+            }
+        }
+        return result
+    }
+
+    Job.class_init()
+    Dexter.class_init()
+    new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 3000}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
+    //the only thing dde_init.js really MUST do is define dexter0, so just stick
+    //it here and now user can screw up dde_init.js and still win.
+
+    Dexter.draw_dxf = DXF.dxf_to_instructions //see Robot.js
+    Dexter.prototype.draw_dxf = function({robot = null}={}) {
+        let obj_args
+        if (arguments.length == 0) { obj_args = {} } //when no args are passed, I must do this
+        else { obj_args = arguments[0] }
+        obj_args.robot = this
+        return Dexter.draw_dxf(obj_args)
+    }
+}

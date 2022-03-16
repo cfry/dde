@@ -3,8 +3,6 @@
  */
 //import request from '../../node_modules/request' //todo needed only for non-working speech reco
 
-//import {write_to_stdout} from "../job_engine/core/stdio.js" //todo imports readline which requries fs which errors
-
 //since I can't actually change window width, height, x, y programmatically,
 //probably have to give up on this.
 window.addEventListener('resize', function(event){
@@ -540,8 +538,6 @@ function get_page(url, callback=out, error_callback=get_page_error_callback){//i
     }
 }*/
 
-
-//get_page_async now in storage.js and part of job engine.
 
 //synchronous.
 //bret's recommended I use npm sync-request BUT that takes different

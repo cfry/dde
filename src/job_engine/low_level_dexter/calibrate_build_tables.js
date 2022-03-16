@@ -16,7 +16,7 @@
        
 */
 
-export function calibrate_build_tables({
+function calibrate_build_tables({
 	J_move_max = [180, 100, 165, 110, 180],
     J_move_min = [-180, -100, -165, -110, -180],
     inner_factor = 1,
@@ -128,3 +128,5 @@ export function calibrate_build_tables({
         make_ins("F")
     ]
 }
+
+globalThis.calibrate_build_tables = calibrate_build_tables

@@ -195,7 +195,7 @@ var DXF = new function() {
     	for(let i = 0; i < dim[0]; i++){
     		elt = point_array[i]
         	dimu = Vector.matrix_dimensions(unique_points)
-        	match_flag = 0
+        	let match_flag = 0
         	for(let j = 0; j < dimu[0]; j++){
         		if(Vector.is_equal(elt, unique_points[j])){
             		match_flag = 1
@@ -742,7 +742,7 @@ function points_to_object(point_array){
     for(let i = 0; i < dim[0]; i++){
     	elt = point_array[i]
         dimu = Vector.matrix_dimensions(unique_points)
-        match_flag = 0
+        let match_flag = 0
         for(let j = 0; j < dimu[0]; j++){
         	if(Vector.is_equal(elt, unique_points[j])){
             	match_flag = 1

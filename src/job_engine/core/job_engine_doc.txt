@@ -46,17 +46,17 @@ SIMULATION
 
 CUSTOMIZING JOB ENGINE JOBS
 When you 'run a job' as defined above,
-it sets window.platform to "node".
-If you are in dde, window.platform == "dde".
+it sets globalThis.platform to "node".
+If you are in dde, globalThis.platform == "dde".
 That means you can customize any code written
 based on this "platform" i.e.
-if(window.platform == "node")      { console.log("hey I'm in node.") }
-else if (window.platform == "dde") { console.log("we're in dde!") }
+if(globalThis.platform == "node")      { console.log("hey I'm in node.") }
+else if (globalThis.platform == "dde") { console.log("we're in dde!") }
 
 The system software takes advantage of this.
 One important case is that the "out" function is defined as:
 function out(val="", color="black", temp=false, code=null){
-    if(window.platform == "node") { console.log(val) }
+    if(globalThis.platform == "node") { console.log(val) }
     else { //do formatting and print to DDE's Output pane
     }
 }

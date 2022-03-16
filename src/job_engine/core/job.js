@@ -26,12 +26,11 @@ import {serial_disconnect_all} from "./serial.js"
 //import {Robot, Brain, Dexter, Human, Serial} from './robot.js' //now global
 //import {Coor} from '../math/Coor.js' //now global
 //import {Instruction, make_ins} from "./instruction.js" //now global
-import {load_files} from "./storage.js"
 
 //import {speak} from "./out.js" //dde4 speak is now global
 //import {_nbits_cf, _arcsec, _um} from "./units.js" //dde4 now has all units global
-import {linux_error_message} from "./linux_error_message.js"
-//import {write_to_stdout, close_readline} from "./stdio.js" //todo imports readline which requries fs which errors
+//import {linux_error_message} from "./linux_error_message.js" //now global
+//import {write_to_stdout, close_readline} from "./stdio.js" //now these are global when in node
 
 class Job{
     constructor({name="",
@@ -353,10 +352,10 @@ class Job{
         let job_instances = await Job.instances_in_file(job_file_path)
         if(job_instances.length == 0) {
             warning("Could not find a Job definition in the file: " + job_file_path)
-            if((platform === "node") && !window.keep_alive_value){
+            if((platform === "node") && !globalThis.keep_alive_value){
                 warning("Closing the process of loading: " + job_file_path +
                         "<br/>If you want to keep the process up,<br/>check <b>keep_alive</b> before clicking the Job button.")
-                close_readline() //causes the process running this job to finish.
+                globalThis.close_readline() //causes the process running this job to finish.
             }
         }
         else {
@@ -366,7 +365,7 @@ class Job{
 
     static start_and_monitor_dexter_job(job_src){
         let base_id_before_new_def = Job.job_id_base
-        try { window.eval(job_src) }
+        try { globalThis.eval(job_src) }
         catch(err) {dde_error("While evaling the job definition to send to Dexter,<br/>" +
                               "got error: " + err.message)
         }
@@ -818,7 +817,7 @@ class Job{
     }
 
     add_job_button_maybe(){
-      if(window.platform == "dde") {
+      if(globalThis.platform == "dde") {
         let but_elt = this.get_job_button()
         if (!but_elt){
             const job_name = this.name
@@ -1035,7 +1034,7 @@ class Job{
                 " by:\n" + this.stop_reason + "\nClick to restart this Job."
                 break;
         }
-        if(window.platform == "dde"){
+        if(globalThis.platform == "dde"){
             const but_elt = this.get_job_button()
             if(!but_elt){ return }
             if (but_elt.style.backgroundColor !== bg_color) { //cut down the "jitter" in the culor, don't set unnecessarily
@@ -1051,7 +1050,7 @@ class Job{
         }
         else { //job engine
            let data = {kind: "show_job_button", job_name: this.name, status_code: this.status_code, button_color: bg_color, button_tooltip: tooltip}
-           write_to_stdout("<for_server>" + JSON.stringify(data) + "</for_server>")
+           globalThis.write_to_stdout("<for_server>" + JSON.stringify(data) + "</for_server>")
         }
     }
     //end of jobs buttons
@@ -1167,7 +1166,7 @@ class Job{
     }
 
     static do_list_to_html_set_up_onclick(){
-        if(window.platform == "dde"){
+        if(globalThis.platform == "dde"){
             setTimeout(function(){
                 let elts = document.getElementsByClassName("do_list_item")
                 for (let i = 0; i < elts.length; i++) { //more clever looping using let elt of elts breaks but only on windows deployed DDE
@@ -1653,7 +1652,7 @@ Job.prototype.rs_to_error_message = function(robot_status){
     let oplet = robot_status[Dexter.INSTRUCTION_TYPE]
     if (error_code > 0) {
         if((oplet == "r") || (oplet == "w")) {
-            let linux_msg = linux_error_message(oplet_error_code)
+            let linux_msg = globalThis.linux_error_message(oplet_error_code)
             msg += "Error on oplet 'r' (read_file) with Linux error of: " + linux_msg
         }
         else {
@@ -1700,8 +1699,8 @@ Job.prototype.show_error_log_maybe = function(){
 
 //status_code can also be a when_stopped condition, ie
 // errored, errored_from_dexter, errored_from_dexter_connect, interrupted, interrupted_by_stop_button. completed
-Job.prototype.stop_for_reason = function(condition_when_stopped, //"errored", "interrupted", "completed"
-                                         reason) { //a string
+Job.prototype.stop_for_reason = function(condition_when_stopped="interrupted", //"errored", "interrupted", "completed"
+                                         reason="unknown reason") { //a string
     if(!Job.when_stopped_conditions_property_names.includes(condition_when_stopped)){
         shouldnt("Job." + this.name + ".stop_for_reason called with invalid first arg condition_when_stopped of:<br/>" +
             condition_when_stopped + "<br/>Valid values are: " + Job.when_stopped_conditions_property_names)
@@ -1802,8 +1801,8 @@ Job.prototype.finish_job = function(){
           this.color_job_button() //possibly redundant but maybe not and just called on finishing job so leave it in
           this.show_progress_maybe()
           out("Done with Job." + this.name + ", for reason: " + this.stop_reason)
-          if(window.platform === "node") { //only calls close_readline to end process, or doesn't
-            if(window.keep_alive_value) {} //keep the process alive
+          if(globalThis.platform === "node") { //only calls close_readline to end process, or doesn't
+            if(globalThis.keep_alive_value) {} //keep the process alive
             else {
                 let the_active_jobs = Job.active_jobs()
                 //the below a bit tricky as the 'this' job is in the process of finishing
@@ -1821,7 +1820,7 @@ Job.prototype.finish_job = function(){
                     //as our orig job might have launched a 2nd job, so keep it open
                     //until all are done.
                     console.log("finish job calling close_readline")
-                    close_readline() //causes the process running this job to finish.
+                    globalThis.close_readline() //causes the process running this job to finish.
                 }
             }
           }

@@ -17,8 +17,6 @@ require("codemirror/addon/fold/brace-fold.js")
 require("codemirror/addon/fold/comment-fold.js")
 */
 
-import {dde_init_dot_js_initialize, file_exists, load_files
-       } from "../job_engine/core/storage.js"
 import beautify from "js-beautify"
 
 import {eval_js_part1} from "./eval.js"
@@ -402,8 +400,7 @@ class Editor {
     }
 
     //returns true or false.
-    // Called by Editor.restore_files_menu_paths_and_last_file and
-    //storage.js dde_init_dot_js_initialize
+    // Called by Editor.restore_files_menu_paths_and_last_file
     // This implies that user is a first time user, OR at least
     // hasn't saved any files so they haven't used DDE much at all.
     static files_menu_paths_empty_or_contains_only_dde_init (){

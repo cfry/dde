@@ -132,9 +132,11 @@ let messages = [
 "ERFKILL 132 Operation not possible due to RF-kill",
 "EHWPOISON 133 Memory page has hardware error",
 ]
-export function linux_error_message(error_code){
+function linux_error_message(error_code){
    if((error_code >= 0) && (error_code < messages.length)){
           return messages[error_code]
    }
    else { return "UNKNOWN " + error_code + " unknown linux error." }
 }
+
+globalThis.linux_error_message = linux_error_message

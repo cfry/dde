@@ -6,11 +6,19 @@
  //for semver 7, semver.Lt, semver.Gt, and maybe semverEq ???
  //in DDE3, used semver verison "^5.7.1"  I should switch dde4 to using semver 7.
 //can't get semver to work in dde4, so using alternative:
-import { compare as compare_semversions } from 'compare-versions';
+//import { compare as compare_semversions } from 'compare-versions';
+
+import pkg2 from 'compare-versions';
+const { compare_semversions } = pkg2;
+
+//see https://stackoverflow.com/questions/65547827/how-to-import-npm-semver-on-an-ionic-project-with-angular
+//which lies.
+//import * as semver from "semver";
+
 //import * as process from "../../../node_modules/process/index.js" //todo module is not defined
 //import {Instruction} from "./instruction.js" //now global
 //import {Robot, Brain, Dexter, Human, Serial} from './robot.js' //now global
-import * as espree from "espree"; //replaces esprima
+//import * as espree from "espree"; //replaces esprima //now done in load_job_engine.js
 
 //import {isBase64} from "../../../node_modules/is-base64/is-base64.js"
 //importing from is_base64 npm module doesn't work, so code inlined below
@@ -104,7 +112,7 @@ static dde_error(message){
     var stack_trace = err.stack
     out_string = "<details><summary><span class='dde_error_css_class'>Error: " + out_string +
         "</span></summary>" + stack_trace + "</details>"
-    if(window["out"]) { //when in DDE
+    if(globalThis.out) { //when in DDE
         out(out_string)
     }
     else { //when in browser and Job Engine
@@ -142,7 +150,7 @@ static warning_or_error(message, error=false){
 
 static shouldnt(message){
     console.log(message)
-    if(window.contact_doc_id) {
+    if(globalThis.contact_doc_id) {
         DocCode.open_doc(contact_doc_id)
     }
     dde_error("The function: shouldnt has been called.<br/>" +
@@ -1008,7 +1016,7 @@ static function_param_names_and_defaults_array(fn, grab_key_vals=false){
     if(fn.name == "Array") { return [["...elts", ""]]}
     let param_string = "function foo(" + this.function_params(fn, false) + "){}"
     //espree doc at https://github.com/eslint/espree
-    let ast = espree.parse(param_string, {range: true, ecmaVersion: "latest"}) //, raw: true})
+    let ast = Espree.parse(param_string, {range: true, ecmaVersion: "latest"}) //, raw: true})
     let params_ast = ast.body[0].params
     let result = []
     for (let param_ast of params_ast){

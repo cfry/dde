@@ -1,23 +1,25 @@
 //see doc: https://nodejs.org/api/readline.html
-import {Job} from "./job.js"
+//import {Job} from "./job.js" //now Job is global
 
-import * as readline from "../../../node_modules/readline/readline.js" //todo but readline.js does require("fs") and require is undefined.
+import * as readline from "readline" // "../../../node_modules/readline/readline.js" //todo but readline.js does require("fs") and require is undefined.
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
-export function set_keep_alive_value(new_val){
-    global.keep_alive_value = new_val //true or false
+function set_keep_alive_value(new_val){
+    globalThis.keep_alive_value = new_val //true or false
     let active_job_count = Job.active_jobs().length
     console.log("in set_keep_alive_value with active_job_count: " + active_job_count +
                 " and new_val: " + new_val)
     if((!new_val) && (active_job_count === 0)){
-        close_readline() //but this doesn't end the process so call:
+        globalThis.close_readline() //but this doesn't end the process so call:
         process.exit(0)  //https://stackabuse.com/how-to-exit-in-node-js/
     }
 }
+
+globalThis.set_keep_alive_value = set_keep_alive_value
 
 
 //examples of input:
@@ -32,7 +34,7 @@ rl.on('line', function(input) {
 })
 
 //https://stackoverflow.com/questions/4976466/difference-between-process-stdout-write-and-console-log-in-node-js
-export function write_to_stdout(str){
+function write_to_stdout(str){
     if(str.trim() == "") {} //do nothing
     else {
         //if(str.startsWith("<for_server>")){
@@ -42,7 +44,11 @@ export function write_to_stdout(str){
     }
 }
 
+globalThis.write_to_stdout = write_to_stdout
 
-export function close_readline(){
+
+function close_readline(){
     rl.close()
 }
+
+globalThis.close_readline = close_readline

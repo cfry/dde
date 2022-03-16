@@ -79,8 +79,8 @@
             <a href="#" onclick="DocCode.open_doc(write_file_doc_id)">encoding details</a><br/>
             <i>Example:</i><br/>
             <code>DDEFile.append_to_file("ts_junk/append_to_file_test.txt", "hey world")</code>
-            <code>DDEFile.read_file_async("ts_junk/append_to_file_test.txt")</code>
-            <samp>"hey world"</samp>
+            <code>DDEFile.read_file_async("ts_junk/append_to_file_test.txt",
+                  function(err, content){out("got content: " + content)})</code>
         </details>
 
         <details id="DDEFile.choose_file_doc_id" class="doc_details"><summary>DDEFile.choose_file</summary>
@@ -105,7 +105,7 @@
             and navigate the file system &amp; choose a directory to save it in.
             Returns a string of the full path of the file.
             Does not actualy <i>save</i> the contents of the file. Use
-            <code>write_file</code> for that.
+            <code>DDEFile.write_file_async</code> for that.
             <br/>
             <i>Parameter:</i><br/>
             <b>show_dialog_options</b> A JS literal object of name-value pairs, all of which
@@ -156,7 +156,7 @@
         else { out("dde_init.js copied successfully.")}
         })    </code></pre>
 
-        <code>DDEFile.copy_file_async("foo.js", "Dexter.dexter0:foo_copy.js")</code>
+        <code title="not in Testsuite">DDEFile.copy_file_async("foo.js", "Dexter.dexter0:foo_copy.js")</code>
         Copies the file "dde_apps/foo.js"<br/>
         to the ip address in</br/>
         Dexter.dexter0, and file: /srv/samba/share/dde_apps/foo_copy.js<br/>
@@ -194,7 +194,8 @@
         </details> -->
 
         <details id="DDEFile.delete_doc_id" class="doc_details"><summary>DDEFile.delete</summary>
-            Deletes a file. Will not delete folders.
+            <code>DDEFile.delete</code> deletes the file in its first argument.
+            It will not delete folders.
             <i>Parameters</i><br>
             <b>path</b> A path to a file to delete.<br/>
             <b>callback</b> The callback takes two arguments: <i>error_message</i> and <i>true_or_false</i>
@@ -204,7 +205,7 @@
             If no callback is passed, a promise is returned that
             resolves to <code>true</code> or <code>false</code>.<br/>
             <i>Example</i>:<br/>
-            <code>DDEFile.delete("junk.js", function(error_message, true_or_false){}</code>
+            <code title="not in TestSuite">DDEFile.delete("junk.js", function(error_message, true_or_false){})</code>
         </details>
 
         <details id="DDEFile.dynamic_import" class="doc_details"><summary>dynamic_import</summary>
@@ -257,7 +258,7 @@
             <code>DDEFile.file_exists("dde_init.js")</code> => a promise
         </details>
 
-        <details id="folder_listing_doc_id" class="doc_details"><summary>folder_listing</summary>
+        <details id="DDEFile.folder_listing_doc_id" class="doc_details"><summary>DDEFile.folder_listing</summary>
             Returns an array of objects containing properties for each
             file or folder in the path.<br/>
             <i>Parameters:</i><br/>
@@ -282,7 +283,7 @@
             If no callback is passed, a promise is returned that
             resolves to <code>true</code> or <code>false</code>.
 
-            <i>Example:</i> <code>folder_listing()</code><br/>
+            <i>Example:</i> <code>DDEFile.folder_listing(undefined, function(err, obj){inspect(obj)})</code><br/>
               Returns an array of strings naming the files and subfolder in
               your dde_apps folder (under your "Documents" folder).
         </details>
@@ -341,8 +342,8 @@
             <i>Example:</i> <code>DDEFile.is_folder("dde_apps")</code> => <samp>true</samp>
         </details>
 
-        <details id="load_file_doc_id" class="doc_details"><summary>load_file</summary>
-            <code>load_file</code> gets the content of the file
+        <details id="DDEFile.load_file_doc_id" class="doc_details"><summary>DDEFile.load_file</summary>
+            <code>DDEFile.load_file</code> gets the content of the file
             (expected to be JavaScript) and evaluates
             it in the DDE environment programmatically.<br/>
             <i>Parameters:</i><br/>
@@ -359,7 +360,13 @@
             If callback is not passed, a promise is returned.
             <p></p>
             <i>Example</i>:<br/>
-            <code title="not in TestSuite"> load_files("foo.js")</code>
+            <pre><code title="not in TestSuite">
+DDEFile.load_file("two_plus_three.js",
+                  function(err, info_obj) {
+                    if(err) { inspect(err) }
+                    else    { inspect(info_obj) }
+                  })
+            </code></pre>
             Loads the file in your dde_apps folder named foo.js<br/>
             <p></p>
             See <a href="#" onclick="DocCode.open_doc('Py.load_file_doc_id')">Py.load_file</a>
@@ -367,8 +374,9 @@
         </details> <!-- end load_files  -->
 
         <details id="DDEFile.loading_file_doc_id" class="doc_details"><summary>DDEFile.loading_file</summary>
-        <code>DDE.loading_file</code> is bound to the path
-         of the file being loaded. If no file is being loaded, it is <code>undefined</code>.
+        <code>DDEFile.loading_file</code> is bound to the path
+         of the file being loaded, <i>while</i> the content of the file is being evaled.
+         If no file is being loaded, it is <code>undefined</code>.
          It can be used in the source of the file being loaded so that
          it can know its file name.
         </details>
@@ -382,12 +390,13 @@
         they are ignored, but subsequent folder names in the path are created under
         the existing folders.<br/>
         <i>Example:</i><br/>
-        <code title="not in TestSuite">make_folder("foo/bar/baz")</code>
+        <code>DDEFile.make_folder("junk_fold_for_test",
+              function(err, success){ out("make_folder err: " + err + " success: " + success)})</code>
         Makes the folder dde_apps/foo. Inside of it is placed
         a folder named "bar", and inside of that is placed a folder "baz".
         </details>
 
-        <details id="make_full_path_doc_id" class="doc_details"><summary>make_full_path</summary>
+      <!--  <details id="make_full_path_doc_id" class="doc_details"><summary>make_full_path</summary>
            Most DDE functions that take a path will accept a partial path
            (that doesn't start with a slash) by defaulting the starting folder to
            the value of <code>dde_apps_folder</code>. This conversion is done by calling
@@ -426,7 +435,8 @@
             for ensuring that each time you call the above code, it makes a new file
             and does not overwrite, any existing version.
         </details>
-        <details id="read_file_doc_id" class="doc_details"><summary>read_file</summary>
+        -->
+        <!--<details id="read_file_doc_id" class="doc_details"><summary>read_file</summary>
             <code>read_file</code> is a function that takes an argument of a file path,
             and returns a string of the content of the file.<br/>
             <i>Parameters:</i><br/>
@@ -448,7 +458,9 @@
             <a href="#" onclick="browse_page('https://nodejs.org/api/buffer.html#buffer_buffers_and_character_encodings')"
             >Encoding details</a>
             <p></p>
-            <b>Example:</b> <code>read_file("dde_init.js")</code>
+            <b>Example:</b>
+              <code>read_file("dde_init.js")
+                    function(err, content) {out("read_file_async got err: " + err + " content: " + content)})</code>
             <p></p>
             See <a href="#" onclick="DocCode.open_doc(load_files_doc_id, event)">load_files</a>
             for grabbing the file contents, then evaling it.
@@ -458,7 +470,7 @@
             <span style="color:red;">file_content</span> has been deprecated.
             Please use <code>read_file</code> instead.
         </details> <!-- end read_file -->
-
+        -->
         <details id="read_file_async_doc_id" class="doc_details"><summary>read_file_async</summary>
            Similar to <a href="#" onclick="DocCode.open_doc(read_file_doc_id)">read_file</a>
            but does not return the
@@ -470,14 +482,13 @@
            <p></p>
            The <b>path</b> argument may refer to a Dexter robot to get the file from.<br/>
            <i>Example:</i><br>
-           <pre><code title="not in TestSuite">read_file_async("Dexter.dexter0:dde_init.js", "utf8",
-               function(err, content){
-                   out("read_file_async got err: " + err + " content: " + content)
-               })    </code></pre>
+           <pre><code title="not in TestSuite">DDEFile.read_file_async("dde_init.js",
+                    function(err, content) {out("read_file_async got err: " + err + " content: " + content)})
+                </code></pre>
         </details>
 
 
-     <details id="write_file_doc_id" class="doc_details"><summary>write_file</summary>
+     <!--<details id="write_file_doc_id" class="doc_details"><summary>write_file</summary>
         <code>write_file</code> is a function that takes an argument of a file path
         and a new content string. It sets the content of that file.<br/>
         Arguments:<br/>
@@ -512,21 +523,40 @@
         <p></p>
         See also Dexter instruction: <a href="#" onclick="DocCode.open_doc('Dexter.write_file_doc_id', event)">Dexter.write_file</a>
     </details>
-
+    -->
      <details id="write_file_async_doc_id" class="doc_details"><summary>write_file_async</summary>
-            Similar to <a href="#" onclick="DocCode.open_doc(write_file_doc_id)">write_file</a>
-            but takes an extra argument of a <b>callback</b>.
-            The callback is passed an error object.
-            If the error object is null, there was no error.
+         <code>DDEFile.write_file_async</code> is a function that normally takes an argument of a file path
+         and a new content string. It sets the content of that file.<br/>
+         <i>Parameters:</i><br/>
+         <b>path</b> A string. The location to save to. It will overwrite the current content.
+         Defaults to the file currently in the
+         editor. If this is a string, usually this will not start with a slash,
+         but rather the first character of a file name inside of your dde_apps folder.
+         If the path starts with a slash, it should be a complete path from the root
+         of your file system, on through to the file you want to write.<br/>
+         <b>content</b> A string of the content you wish to be in the written file.
+         Defaults to the text currently in the editor.<br/>
+         <b>encoding</b> Default: <code>null</code> A string or null indicating the
+         type of file to be written.
+         The default works fine for most plain text files, including .js files.
+         Some possible values:
+         <ul>
+             <li><code>null</code></li>
+             <li><code>"utf8"</code></li>
+             <li><code>"ascii"</code></li>
+             <li><code>"base64"</code></li>
+             <li><code>"hex"</code></li>
+         </ul>
             <p></p>
             The <b>path</b> argument may refer to a Dexter robot to write the file to.
             If the path contains a folder that doesn't exist, it is automatically
             created.<br/>
             <i>Example:</i><br>
-            <pre><code title="not in TestSuite">write_file_async("Dexter.dexter0:junk.js", "some content", "utf8",
-           function(err){
-               out("write_file_async got err: " + err)
+            <pre><code title="not in TestSuite">DDEFile.write_file_async("junk.txt", "some content", null,
+           function(err, success){
+               out("write_file_async got err: " + err + " content: " + content)
            })    </code></pre>
+           If DDE is served from a Dexter,
             "some content" is written into dexter0's
             <code>"/srv/samba/share/dde_apps/junk.js"</code> file.
      </details>
@@ -3632,7 +3662,7 @@ This will not work for Jobs run on the Job Engine on Dexter.
         JavaScript on the page will not be evaled, but if the page is not found,
         there will be an error.
         <p></p>
-        Example: <pre><code title="not in TestSuite"> get_page_async("http://ibm.com",
+        Example: <pre><code title="not in TestSuite"> get_page_async("https://www.ibm.com/en-us/",
   function(err, response, body){
      if(err) { out("get_page_async got error.") }
      else if (response.statusCode !== 200){
@@ -5403,7 +5433,7 @@ a location to insert an instruction using <code>Control.send_to_job</code>.<br/>
     <code>Control.loop</code> lets a Job repeat a sequence of instructions a number of times.
     This instruction is one of the most powerful and complex
     in DDE, providing a wide range of looping behavior.<br/>
-    <i>Parameters</i> (2)<br/>
+    <i>Parameters:</i> <br/>
     <b>times_to_loop</b> Default: <code>2</code>. Determines the number of times that the body_fn is called,
     i.e. the iteration count of the loop. It can be one of five types:
     <p></p>
@@ -7143,7 +7173,7 @@ see: <a  target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki
   you can use a do_list_item of <code>Dexter.wait_until(2)</code>
   to wait for 2 seconds.
 </details>
-<details id="Dexter.write_file_doc_id" class="doc_details"><summary>write_file</summary>
+<!-- <details id="Dexter.write_file_doc_id" class="doc_details"><summary>write_file</summary>
     A Dexter instruction that Writes a file on Dexter's file system.
     The file is transmitted through
    DDE's socket interface to the Linux OS runnning on Dexter's processor
@@ -7171,6 +7201,7 @@ see: <a  target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki
     <code>Dexter.write_to_robot</code> is maintained for backwards compatibility.
     Most users are expected to use <code>Dexter.write_file</code>
 </details>
+-->
 <details id="Dexter.write_fpga_doc_id" class="doc_details"><summary>write_fpga</summary>
     Write a value into an address in Dexter's FPGA.<br/>
     <i>Parameters:</i><br/>
