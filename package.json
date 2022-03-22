@@ -23,6 +23,7 @@
     "replace-in-file": "^6.3.2",
     "rollup": "^2.35.1",
     "rollup-plugin-copy": "^3.4.0",
+    "rollup-plugin-polyfill-node": "^0.8.0",
     "rollup-plugin-styles": "^3.14.1"
   },
   "dependencies": {
@@ -44,7 +45,6 @@
     "mark.js": "^8.11.1",
     "modbus-serial": "^8.0.5",
     "net": "^1.0.2",
-    "node-fetch": "^3.2.3",
     "nouislider": "^15.5.0",
     "npm": "^8.1.0",
     "npm-programmatic": "^0.0.12",

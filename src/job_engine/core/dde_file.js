@@ -91,14 +91,15 @@ class DDEFile {
         }
         else {
             path = this.add_default_file_prefix_maybe(path)
-            url = "http://" + this.host() + ":" + query + path
+            url = "http://" + this.host() + //":" +
+                   query + path
         }
         return url
     }
 
     static host(){
         if(globalThis.platform === "node") {
-            return "localhost:5000"
+            return "localhost:50000"
         }
         else {
             return window.location.host //ex: "192.168.1.142:5000", "localhost:80"
@@ -505,7 +506,9 @@ class DDEFile {
         //think that this url is a root url for some strange reason.
         //see httpd.mjs, serve_file()
         let defaulted_path = this.add_default_file_prefix_maybe(path)
+        console.log("load_file passed path: " + path)
         let full_url = this.make_url(defaulted_path, "/edit?edit=")
+        console.log("load_file made url: " + full_url)
         let file_info_response = await fetch(full_url)
         if(file_info_response.ok) {
             let content = await file_info_response.text()

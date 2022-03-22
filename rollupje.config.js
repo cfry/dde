@@ -1,5 +1,8 @@
 //see examples in: https://www.sitepoint.com/rollup-javascript-bundler-introduction/
 import { nodeResolve } from '@rollup/plugin-node-resolve'
+import nodePolyfills from 'rollup-plugin-polyfill-node';
+
+
 import commonjs from '@rollup/plugin-commonjs'
 import json     from '@rollup/plugin-json'
 
@@ -18,7 +21,8 @@ export default {
                //instead of the version in node_module folder is fine.
         }),
         commonjs(),
-        json()
+        json(),
+        nodePolyfills( /* options */ )
     ],
 
     //see https://rollupjs.org/guide/en/#avoiding-eval and search for onwarn

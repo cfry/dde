@@ -198,7 +198,7 @@ function serve_job_button_click(browser_socket, mess_obj){
         let cmd_args = [mess_obj.args || "-i"]; //if they didn't give us a -c <command> then do an interactive session
         let cmd_options = {cwd: SHARE_FOLDER, shell: true};
         if (".dde"==app_type) { //if this is a job engine job
-            cmd_line = 'node'; //then we run node
+            cmd_line = 'node --experimental-fetch'; //then we run node
             cmd_args = // ["core define_and_start_job " + jobfile]; //orig dde3 //tell it to start the job
                       ["bundleje.js define_and_start_job " + jobfile] //dde4
             cmd_options = {cwd: DDE_INSTALL_FOLDER, shell: true};

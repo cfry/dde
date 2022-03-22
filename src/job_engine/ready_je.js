@@ -3,10 +3,12 @@ console.log("top of ready_je.js")
 import {init_job_engine, init_units, package_json} from "../job_engine/load_job_engine.js" //imports je files
 import "../job_engine/core/stdio.js"   //ONLY in Job Engine so can't go in load_job_engine.js
          //makes global: close_readline, set_keep_alive_value, write_to_stdout
-// import fetch from 'node-fetch' //not part of node 16, but coming in 17 or 18 so need this
-//       //to let job_engine call fetch used in DDEFile
-// globalThis.fetch = fetch
+//import fetch from 'node-fetch' //not part of node 16, but coming in 17 or 18 so need this
+      //to let job_engine call fetch used in DDEFile
+//globalThis.fetch = fetch
 //see https://stackabuse.com/making-http-requests-in-node-js-with-node-fetch/
+
+//import fetch from 'fetch'
 
 function run_node_command(args){
     console.log("top of run_node_command with args:\n" + args)
