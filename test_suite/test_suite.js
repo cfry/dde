@@ -541,7 +541,7 @@ var TestSuite = class TestSuite{
                 }
                 let newline_pos = src.indexOf("\n")
                 if(newline_pos > -1) { src = src.substring(0, newline_pos) + " ..." }
-                console.log(test_number + ": " + src)
+                //console.log(test_number + ": " + src)
             }
             //onsole.log("About to run test: " + test_number + " " + test)
             let [status, error_message] = TestSuite.run_test_array(test, test_number, this_suite) //does the core work of evaling one test in this_suite.

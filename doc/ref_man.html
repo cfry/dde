@@ -160,7 +160,7 @@
         else { out("dde_init.js copied successfully.")}
         })    </code></pre>
 
-        <code>copy_file_async("foo.js", "Dexter.dexter0:foo_copy.js")</code>
+        <code title="Not in Testsuite">copy_file_async("foo.js", "Dexter.dexter0:foo_copy.js")</code>
         Copies the file "dde_apps/foo.js"<br/>
         to the ip address in</br/>
         Dexter.dexter0, and file: /srv/samba/share/dde_apps/foo_copy.js<br/>
@@ -7557,6 +7557,226 @@ First array of 3 values is in meters,<br/>2nd is J5_direction,<br/>3rd is config
 <code>Dexter.ACCELERATION</code> => <samp>0.000129</samp> degrees/(second^2)<br/>
 </details> <!--end Dexter Contantants -->
 
+<details class="doc_details"><summary>Dexter Defaults File</summary>
+    Each Dexter has a file: <code title="UnEvalable">"/srv/samba/share/Defaults.make_ins"</code>
+    that contains initialization parameters for Dexter.
+    The values in the file are customized to each Dexter with
+    physical dimensions and calibration values to help
+    Dexter's software control this Dexter accurately.
+    <p></p>
+    The file is loaded automatically when Dexter boots up.
+    It has its own special format, which is rather complex.
+    Normally it is edited with a text editor, but the code
+    documented here allows you to selectively read and write
+    parts of this file in DDE using Javascript.
+    Dexter's actual file is not modified until the user explicitly calls
+    the "write" function to do so.
+    <p></p>
+    <details class="doc_details"><summary>Dexter Defaults Low Level API</summary>
+        The low level API can read and write the file, store it in
+        an array of strings (one string per line) and allow basic
+        editing operations on those lines.
+        <p></p>
+        This code tries to maintain each line in a consistent format:
+        Each line has a semicolon, either at the end of an instruction or
+        at the beginning of a line. Comment text follows the semicolon.
+        Each argument on a line is separated from its surrounding arguments by
+        a comma and a space. Blank lines are allowed in the file.
+        <p></p>
+        The low level as values in "Dexter units", i.e.
+        arcseconds, microns, microseconds.
+        <details id="Dexter.dexter0.defaults_read_doc_id" class="doc_details"><summary>defaults_read</summary>
+            This method gets the file contents from Dexter,
+            fills in the low level data as well as the  high level data.<br/>
+            <i>Example:</i><br/>
+            <code title="Not in TestSuite">Dexter.dexter0.defaults_read()</code>
+            Because this uses an asynchronous file read, the data is not available
+            <i>immediately</i> after the call returns but will be in less than a second.
+        </details>
+        <details id="Dexter.dexter0.defaults_write_doc_id" class="doc_details"><summary>defaults_write</summary>
+            <i>Example:</i><br/>
+            <code title="Not in Testsuite">Dexter.dexter0.defaults_write()</code>
+            Because this uses an asynchronous file write, the file is not updated
+            <i>immediately</i> after the call returns but will be in less than a second.
+            <p></p>
+            <span style="color:red;">Warning: if you write out a bad file, your Dexter won't
+                initialize properly when you turn it on.</span>
+        </details>
+        <details id="Dexter.dexter0.defaults_get" class="doc_details"><summary>defaults_get</summary>
+            Get data from the low level data structure.
+            The LAST matching line is what is returned. Usually, the
+            last line for setting a given S-param is the only one that counts.
+            <br/>
+            <i>Examples:</i><br/>
+            <code>Dexter.dexter0.defaults_get("whole_file_string")</code> <br/>
+             Gets the content from low level data, as one whole string.<br/>
+             If you are returning it to DDE top level, check the Misc output pane's
+             "Code" checkbox to view it with each line taking up one line in the output.
+            <p></p>
+            <code>Dexter.dexter0.defaults_get("lines")</code> <br/>
+            See the entire low level representation as an array of strings, one per line.
+            <p></p>
+            <code>Dexter.dexter0.defaults_get(3)</code><br/>
+            Get an individual line by its line number.
+            <p></p>
+            <code>Dexter.dexter0.defaults_get(-1)</code><br/>
+            Get the last line. An arg of -2 gets the 2nd to the last line, etc.
+            <p></p>
+            <code>Dexter.dexter0.defaults_get("J1BoundryHigh")</code><br/>
+            <code>Dexter.dexter0.defaults_get("LinkLengths")</code><br/>
+            Get the value of any set_param via its name.
+            <p></p>
+            <code>Dexter.dexter0.defaults_get("S, JointDH, 1")</code><br/>
+            Get the last line in the file that starts with the argument.
+            <p></p>
+            <code>Dexter.dexter0.defaults_get("^S, JointDH, \\d")</code><br/>
+            Return an array of all the lines that match the regular expression in the argument.
+            <code title="UnEvalable">^</code> means the start of the line.<br/>
+            <code title="UnEvalable">\\d</code> matches any digit, so this regular expression gets
+            lines for JointDH 1 through JointDH 6
+            <p></p>
+            <code>Dexter.dexter0.defaults_get("Dexter Model")</code><br/>
+            Get the value of a "comment parameter" that are usually found at the top of the file.
+        </details>
+        <details id="Dexter.dexter0.defaults_set" class="doc_details"><summary>defaults_set</summary>
+            Set's the low level data structure as well as the corresponding high level
+            data structure. Each of these replace an existing value, or, if none
+            exists, adds the key and value. The keys are similar to those under "defaults_get".<br/>
+            <i>Examples:</i><br/>
+            <pre><code>Dexter.dexter0.defaults_set("whole_file_string",
+                        ";some big string")</code>
+                Grabs the content of the file <code  title="UnEvalable">dde_apps/Defaults.make_ins</code>
+                on the computer running DDE, (not where it usually is) and sets the
+                low and high level data from it.
+            </pre>
+            <code>Dexter.dexter0.defaults_set(0,  ";top line comment")</code><br/>
+            <code>Dexter.dexter0.defaults_set(-1, ";bottom line comment")</code><br/>
+            <code>Dexter.dexter0.defaults_set("J1BoundryHigh", 777000)</code>
+            <code>Dexter.dexter0.defaults_set("Built by", "yours truly")</code>
+        </details>
+        <details id="DexterDexter.dexter0.defaults_insert" class="doc_details"><summary>defaults_insert</summary>
+            <i>Parameters:</i><br/>
+            <b>line</b> A string of a line to add to the low level data.
+               If no semicolon is in the line, one will be added to its end.
+               The line will be "cleaned up" to conform to its normal format.
+            <br/>
+            <b>index</b> Usually an integer of of the line index where it will be after it is inserted.
+                 Can also be <code title="UnEvalable">"last"</code> (the default)
+                 to have the line added to the end of the data array.<br/>
+            <code>0</code> makes the first line be the given line.<br/>
+            <code>-1</code> makes the 2nd to last line be the given line.<br/>
+            <code>"last"</code> makes the last line be the given line.
+            <p></p>
+            <i>Examples:</i><br/>
+            <code>Dexter.dexter0.defaults_insert("z 2000")</code><br/>
+              Adds the line to the end.
+            <p></p>
+            <code>Dexter.dexter0.defaults_insert(";bottom comment", -1)</code><br/>
+              Makes the given line be the 2nd to last line in the data array.
+            <p></p>
+            <code>Dexter.dexter0.defaults_insert(";top comment", 0)</code><br/>
+              Prepends the given line to the data array.
+        </details>
+        <details id="Dexter.dexter0.defaults_delete" class="doc_details"><summary>defaults_delete</summary>
+            Deletes the matched line from the low level data array and its corresponding data
+            in the high level.<br/>
+            <i>Examples:</i><br/>
+            <code>Dexter.dexter0.defaults_delete("Dexter Model")</code><br/>
+            Removes the "comment property" line from the low level (and high level) data.
+            <p></p>
+            <code>Dexter.dexter0.defaults_delete("J1BoundryHigh")</code><br/>
+            <p></p>
+            <code>Dexter.dexter0.defaults_delete("^S, J\\dBoundryHi")</code><br/>
+               Deletes the S param lines in the low level data for
+               <code title="Unevalable">J1BoundryHigh</code> through <code title="Unevalable">J5BoundryHigh</code>.
+               Also deletes all the items in the high level array for <code title="Unevalable">BoundryHighs</code>
+        </details>
+    </details> <!-- end Dexter Defaults Low Level API -->
+    <details class="doc_details"><summary>Dexter Defaults High Level API</summary>
+        The high level API allows users to access the high level JavaScript Object,
+        using common JS built-in functions. It helps maintain synchronization
+        between the low and high level data representations, but this is
+        not perfect. When you modify a low level line via the
+          <code title="Unevalable">defaults_set</code>,
+          <code title="Unevalable">defaults_insert</code>, and
+          <code title="Unevalable">defaults_delete</code> methods,
+          the new values are auto-synced to the high level.
+        But when you modify the high level data structure, it s not synced
+        until you call a function to do so.
+        <p></p>
+        The high level has values in "DDE units", i.e.
+        degrees, meters, seconds.
+        <p></p>
+        <i>Examples:</i><br/>
+        <code>Dexter.dexter0.defaults</code><br/>
+        The high level data object.
+        Inspect this object to see what's available where.
+        <p></p>
+        <code>Dexter.dexter0.defaults.BoundryHighs</code><br/>
+          An array of the high values for
+          Joints 1 through 5, in degrees.
+        <p></p>
+        <code>Dexter.dexter0.defaults.BoundryHighs[0]</code><br/>
+          Get joint 1's BoundryHigh degrees. This is the same angle
+        as the low level <code title="UnEvalable">J1BoundryHigh</code> except that the
+        high level is in degrees whereas the low level is in arcseconds.
+        <p></p>
+        <code>Dexter.dexter0.defaults.BoundryHighs[0] = 177</code><br/>
+          Set joint 1's degrees to 177.
+        <p></p>
+        <code>Dexter.dexter0.defaults.BoundryHighs = [171, 172, 173, 174, 175]</code><br/>
+           Set the boundry highs for joints 1 through 5.
+        <p></p>
+        <code>delete Dexter.dexter0.defaults.BoundryHighs</code><br/>
+          Delete the key in the high level data for BoundryHighs
+        <p></p>
+        <code>Dexter.dexter0.defaults["Built by"]</code><br/> Get the name of the person that
+          built this Dexter.
+        <p></p>
+        <code>Dexter.dexter0.defaults.ServoSetup</code><br/>
+              Note: when inspecting this value, it makes more sense to uncheck the
+              inspector's "2D" checkbox.
+              For most of the lines in the Defaults.make_ins file, it doesn't matter
+              what order they're in. This includes the comments at the top and most
+              of the "S, ..." lines for setting parameters.
+              But for *some* of the lines, the order they are in *does* matter.
+              This is because they are executed in order, and that order can
+              affect how Dexter is initialized.
+              <p></p>
+              The lines where order matters are any lines that start with an oplet,
+              i.e. a single letter followed by a comma such as
+              <code title="UnEvalable">a</code> or
+              <code title="UnEvalable">z</code> .
+              and the S params of:
+              <code title="Unevalable">RebootServo</code>,
+              <code title="Unevalable">ServoSetX</code>,
+              <code title="Unevalable">ServoSet2X</code> .
+              Because JSON objects have unordered keys, and we might want to call these
+              ordered instructions more than once, they are stored under a special key
+              in the high level data named <code title="Unevalable">ServoSetup</code>.
+              The value of that key is an array.
+              Each element of that array has the format:
+              <code>{"the key": "the_value"}</code>,<br/>
+               for example: <code>{z: 2}</code><br/>
+              You can get, set, modify, insert new ones, delete exiting ones, and
+              even reorder these elements with JavaScript, just like the
+              other items in the high level data.
+              When the high level updates the low level (see below)
+              their order will be preserved in the resulting low level lines.
+        <p></p>
+        <code>Dexter.dexter0.defaults_high_level_to_defaults_lines()</code> Populate the
+        low level data with the current high level data.
+        Once you do this, you can call the low level <code>Dexter.dexter0.defaults_get</code>
+        method and see
+        any updates you've made to the high level in the low level format.
+        This helps you feel confident that any changes you've made will
+        match the expected syntax and values for the Defaults.make_ins file.
+        <br/>
+    </details> <!-- end Dexter Defaults High Level API -->
+
+</dexter> <!-- end Dexter Defaults -->
+
+
 </details> <!-- end Dexter -->
 
 <details id="Human_doc_id" class="doc_details"><summary>Human</summary>
@@ -12304,6 +12524,6 @@ def main():
          but be forewarned: Open Source documentation is notoriously poorly documented.
        </details>
        </details> <!-- end DDE_NPM -->
-       </details> <!-- ending Adding JavaScript
+       </details> <!-- ending Adding JavaScript -->
 
 </details> <!-- end ref man -->

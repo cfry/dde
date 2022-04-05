@@ -350,6 +350,7 @@ function read_file_async_from_dexter_using_node_server(dex_instance, path, callb
 }
 
 function read_file_async_from_dexter_using_job(dex_instance, path, callback){
+    console.log("top of read_file_async_from_dexter_using_job passed path: " + path)
     let colon_pos = path.indexOf(":")
     let dex_file_path = path.substring(colon_pos + 1)
     new Job({name: "dex_read_file",

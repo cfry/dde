@@ -5,6 +5,17 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.8.2, Apr 5, 2022</summary>
+    Highlights: New Defaults.make_ins file processing.
+<ul>
+<li>Removed require(dex.js) from index.js. caused attempt to load this missing file.</li>
+    <li>Removed Insert menu/show_window/Build Window (app_builder.js)</li>
+    <li>In Ref Man Py example, renamed filename.txt to file_written_by_py.txt to make it more obvious in test suite that when this fails.</li>
+    <li>Fixed Plot.is_2d_array which fixed inspect for arrays containing undefined elts.</li>
+    <li>Partial fix to inspector for 2D inspection of inner objects. But this broke the inspector back arrow. to be continued.</li>
+    <li>New Defaults.make_ins handling with Dexter.defaults_   methods plus doc in ref man.</li>
+</ul>
+</details>
 <details class="doc_details"><summary>v 3.8.1, Feb 8, 2022</summary>
     Hightlights: New "Jobless Instructions" capability.<br/>
     Numerous: bug fixes, doc improvements, example code updated.

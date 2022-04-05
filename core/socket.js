@@ -303,17 +303,10 @@ var Socket = class Socket{
                 rob.angles[6] = this.dexter_units_to_degrees(first_arg, 7)
                 return instruction_array
             }
-            //convert meters to microns
-            else if ((name.length == 5) && name.startsWith("Link")){
-                let instruction_array_copy = instruction_array.slice()
-                let new_val = Math.round(first_arg / _um) //convert from meters to microns
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
-                return instruction_array_copy
-            }
-            else if ("LinkLengths" == "name"){
+            else if (name === "LinkLengths"){
                 let instruction_array_copy = instruction_array.slice()
                 for(let i = Instruction.INSTRUCTION_ARG1; i < instruction_array.length; i++){
-                    let orig_arg = instruction_array_copy[1]
+                    let orig_arg = instruction_array_copy[i]
                     instruction_array_copy[i] = Math.round(orig_arg / _um)
                 }
                 return instruction_array_copy
@@ -323,6 +316,18 @@ var Socket = class Socket{
                 let instruction_array_copy = instruction_array.slice()
                 let new_val = Math.round(first_arg / _um) //convert from meters to microns
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
+                return instruction_array_copy
+            }
+            else if(name === "JointDH") {
+                let instruction_array_copy = instruction_array.slice()
+                instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000)
+                instruction_array_copy[Instruction.INSTRUCTION_ARG3] =
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG3] * 3600)
+                instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG4] * 1000)
+                instruction_array_copy[Instruction.INSTRUCTION_ARG5] =
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG5] * 3600)
                 return instruction_array_copy
             }
             else { return instruction_array }
@@ -345,6 +350,118 @@ var Socket = class Socket{
             let instruction_array_copy = instruction_array.slice() //instruction array contains dur in seconds, but Dexter expects microseconds
             instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
                 Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] * Socket.DEXTER_UNITS_PER_SECOND_FOR_SLEEP) //seconds to nanoseconds
+            return instruction_array_copy
+        }
+        else { return instruction_array }
+    }
+
+    //not normally called but IS called when converting Defaults.make_ins to "high level".
+    //this fn is meant to parallel as much as possible instruction_array_degrees_to_arcseconds_maybe
+    //with degrees_to_dexter_units replaced with dexter_units_to_degrees, divides replaced by multiples, etc as makes sense
+    //this inverse version doesn't actually use its rob arg.
+    static instruction_array_arcseconds_to_degrees_maybe(instruction_array, rob){
+        if(typeof(instruction_array) == "string") { return instruction_array} //no conversion needed.
+        const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
+        let number_of_args = instruction_array.length - Instruction.INSTRUCTION_ARG0
+        if ((oplet === "a") || (oplet === "P")){
+            //take any number of angle args
+            let instruction_array_copy = instruction_array.slice()
+            let angle_args_count = instruction_array_copy.length - Instruction.INSTRUCTION_ARG0
+            for(let i = 0; i < number_of_args; i++) {
+                let index = Instruction.INSTRUCTION_ARG0 + i
+                let arg_val = instruction_array_copy[index]
+                let converted_val = this.dexter_units_to_degrees(arg_val, i + 1)
+                instruction_array_copy[index] = converted_val
+            }
+            return instruction_array_copy
+        }
+        else if (oplet === "S") {
+            const name = instruction_array[Instruction.INSTRUCTION_ARG0]
+            const args = instruction_array.slice(Instruction.INSTRUCTION_ARG1, instruction_array.length)
+            const first_arg = args[0]
+            //first convert arcseconds to degrees
+            if(["MaxSpeed", "StartSpeed", "Acceleration",
+                "AngularSpeed", "AngularSpeedStartAndEnd", "AngularAcceleration",
+                "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
+                "CartesianPivotAcceleration", "CartesianPivotStepSize" ].includes(name)){
+                let instruction_array_copy = instruction_array.slice()
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = first_arg / _nbits_cf
+                return instruction_array_copy
+            }
+            else if (name.includes("Boundry")) { //the full name is  J1BoundryHigh thru J5BoundryHigh, or J1BoundryLow thru J5BoundryLow
+                let instruction_array_copy = instruction_array.slice()
+                let joint_number = parseInt(name[1])
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = this.dexter_units_to_degrees(first_arg, joint_number) //Math.round(first_arg * 3600) //deg to arcseconds
+                //only expecting j1 thru J5, and since j1 thru j5 are to be converted the same, just pass joint 1
+                return instruction_array_copy
+            }
+            else if (["CommandedAngles", "RawEncoderErrorLimits", "RawVelocityLimits"].includes(name)){
+                let instruction_array_copy = instruction_array.slice()
+                for(let i = Instruction.INSTRUCTION_ARG1; i <  instruction_array.length; i++){
+                    let orig_arg = instruction_array_copy[i]
+                    instruction_array_copy[i] = this.dexter_units_to_degrees(orig_arg, i + 1) // Math.round(orig_arg * 3600)
+                }
+                return instruction_array_copy
+            }
+            //dynamixel conversion
+            else if (name == "EERoll"){ //J6 no actual conversion here, but this is a convenient place
+                //to put the setting of robot.angles and is also the same fn where we convert
+                // the degrees to dynamixel units of 0.20 degrees
+                //val is in dynamixel units
+                //don't do in this fn  rob.angles[5] = this.dexter_units_to_degrees(first_arg, 6) //convert dynamixel units to degrees then shove that into rob.angles for use by subsequent relative move instructions
+                return instruction_array
+            }
+            else if (name == "EESpan") { //J7
+                //don't do in this fn  rob.angles[6] = this.dexter_units_to_degrees(first_arg, 7)
+                return instruction_array
+            }
+            else if (name === "LinkLengths"){
+                let instruction_array_copy = instruction_array.slice()
+                for(let i = Instruction.INSTRUCTION_ARG1; i < instruction_array.length; i++){
+                    let orig_arg = instruction_array_copy[i]
+                    instruction_array_copy[i] = orig_arg * _um
+                }
+                return instruction_array_copy
+            }
+            else if (["CartesianSpeed", "CartesianSpeedStart", "CartesianSpeedEnd", "CartesianAcceleration",
+                "CartesianStepSize", ].includes(name)){
+                let instruction_array_copy = instruction_array.slice()
+                let new_val = Math.round(first_arg * _um) //convert from meters to microns
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
+                return instruction_array_copy
+            }
+            else if(name === "JointDH") {
+                let instruction_array_copy = instruction_array.slice()
+                instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG2] / 1000
+                instruction_array_copy[Instruction.INSTRUCTION_ARG3] =
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG3] / 3600
+                instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG4] / 1000
+                instruction_array_copy[Instruction.INSTRUCTION_ARG5] =
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG5] / 3600
+                return instruction_array_copy
+            }
+            else { return instruction_array }
+        }
+        else if (oplet == "T") { //move_to_straight
+            let instruction_array_copy = instruction_array.slice()
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] * _um) //microns to meters
+            instruction_array_copy[Instruction.INSTRUCTION_ARG1] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG1] * _um) //microns to meters
+            instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * _um) //microns to meters
+            instruction_array_copy[Instruction.INSTRUCTION_ARG11] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG11] / 3600) //arcseconds to degrees
+            instruction_array_copy[Instruction.INSTRUCTION_ARG12] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG12] / 3600) //arcseconds to degrees
+            return instruction_array_copy
+        }
+        else if (oplet == "z") { //sleep
+            let instruction_array_copy = instruction_array.slice()
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
+                instruction_array_copy[Instruction.INSTRUCTION_ARG0] / Socket.DEXTER_UNITS_PER_SECOND_FOR_SLEEP // nanoseconds to seconds
             return instruction_array_copy
         }
         else { return instruction_array }

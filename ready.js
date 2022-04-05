@@ -1821,6 +1821,8 @@ var DXF   = require("./math/DXF.js")
 var {date_to_human_string, date_to_mmm_dd_yyyy, is_digit} = require("./core/utils.js")
 var {FPGA} = require("./core/fpga.js")
 var {Simqueue} = require("./core/simqueue.js")
+require('./core/dexter_defaults.js')
+
 
 
 //packages for package sake.

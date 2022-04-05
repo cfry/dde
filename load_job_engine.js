@@ -62,6 +62,7 @@ var {RobotStatus} = require('./core/robot_status.js')
 
 var {Control} = require('./core/instruction_control.js')
 var {IO} = require('./core/instruction_io.js')
+require('./core/dexter_defaults.js')
 var Job  = require('./core/job.js')
 require('./core/dex.js') //makes Dex global
 var {Messaging, MessStat} = require('./core/messaging.js')

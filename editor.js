@@ -78,7 +78,10 @@ Editor.init_editor = function(){
     fold_all_id.onclick    = function(){CodeMirror.commands.foldAll(myCodeMirror)}
     unfold_all_id.onclick  = function(){CodeMirror.commands.unfoldAll(myCodeMirror)}
     select_expr_id.onclick = function(){Editor.select_expr()}
-    select_all_id.onclick  = function(){CodeMirror.commands.selectAll(myCodeMirror); myCodeMirror.focus()}
+    select_all_id.onclick  = function(){
+           CodeMirror.commands.selectAll(myCodeMirror)
+           myCodeMirror.focus()
+    }
     indent_selection_id.onclick = function(){CodeMirror.commands.indentAuto(myCodeMirror)}
     pretty_print_id.onclick = function(){
         if(Editor.view === "JS") {

@@ -1,5 +1,5 @@
-global.dde_version = "3.8.1" //require("../package.json").version
-global.dde_release_date = "Feb 8, 2022" //require("../package.json").release_date
+global.dde_version = "3.8.2" //require("../package.json").version
+global.dde_release_date = "Apr 5, 2022" //require("../package.json").release_date
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
@@ -158,6 +158,8 @@ var calibrate_build_tables = require("../low_level_dexter/calibrate_build_tables
 var DXF    = require("../math/DXF.js")
 var {init_units} = require("./units.js")
 var {FPGA} = require("./fpga.js")
+require('./core/dexter_defaults.js')
+
 var {convertArrayBufferToString, convertStringToArrayBuffer,
      SerialPort, serial_connect, serial_connect_low_level,
      serial_devices, serial_devices_async,
