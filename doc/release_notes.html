@@ -5,6 +5,19 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.8.3, Apr 7, 2022</summary>
+Highlights: Bug fixes for Defaults.make_ins file processing.
+<ul>
+    <li>Defaults.makeins processing: fixed bug in <code>defaults_set("J1Boundry" ...)</code> and friends.</li>
+    <li>Defaults.makeins processing: fixed bug in <code>Dexter.dexter0.defaults_high_level_to_defaults_lines</code>
+       related to dh_mat processing.</li>
+    <li>Defaults.makeins processing: now <code>JointDH</code> and <code>dh_mat</code> are doing proper units conversion. (instead of none)</li>
+    <li>Defaults.makeins processing: <code>defaults_set</code> working better.</li>
+    <li>Defaults.makeins processing: <code>defaults_set</code> now returns the new value for all cases.</li>
+    <li>Defaults.makeins processing: minor improvements to ref man doc examples</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.8.2, Apr 5, 2022</summary>
     Highlights: New Defaults.make_ins file processing.
 <ul>
