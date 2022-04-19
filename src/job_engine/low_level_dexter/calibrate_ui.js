@@ -24,8 +24,8 @@ var showing_J_num = 1
 var cal_init_view_eye_state = true
 
 
-window.cal_svg_height = 410
-window.cal_working_axis = undefined //this is either undefined, 0, 1, 2, 3, 4 (ie zero based joint numbers)
+globalThis.cal_svg_height = 410
+globalThis.cal_working_axis = undefined //this is either undefined, 0, 1, 2, 3, 4 (ie zero based joint numbers)
 
 
 
@@ -97,7 +97,7 @@ function cal_init_robot(){
 
 function cal_is_loop_checked(J_num){
 	let cb_string = "cal_loop_joint_" + J_num + "_cb_id"
-    let result = window[cb_string].checked
+    let result = globalThis[cb_string].checked
     return result
 }
 
@@ -130,7 +130,7 @@ function make_calibrate_joint_buttons_html(){
 }
 
 function flip_point_y(y){
-    return (y * -1) + window.cal_svg_height
+    return (y * -1) + globalThis.cal_svg_height
 }
 
 function remove_svg_points(){
@@ -148,12 +148,12 @@ function are_all_joints_calibrated(){
 function cal_reset_ranges(){
 	for(let i = 1; i <= 5; i++){
 		let start_box_name = "cal_start_angle_" + i + "_id"
-        let start_dom_elt = window[start_box_name]
+        let start_dom_elt = globalThis[start_box_name]
         start_dom_elt.value = Outer_J_Ranges["J" + i + "BoundryLow"]
         
         
         let end_box_name = "cal_end_angle_" + i + "_id"
-        let end_dom_elt = window[end_box_name]
+        let end_dom_elt = globalThis[end_box_name]
         
         end_dom_elt.value = Outer_J_Ranges["J" + i + "BoundryHigh"]
 		
@@ -224,8 +224,8 @@ function handle_cal(vals){
         	init_view_eye()
     	}
     	let J_num = parseInt(vals.clicked_button_value.substring(8, 9))
-        let start_button_dom_elt = window["Start_J_" + J_num + "_id"]
-        let radio_button_dom_elt = window["cal_joint_" + J_num + "_radio_id"]
+        let start_button_dom_elt = globalThis["Start_J_" + J_num + "_id"]
+        let radio_button_dom_elt = globalThis["cal_joint_" + J_num + "_radio_id"]
         radio_button_dom_elt.checked = true
         showing_J_num = J_num
         cal_draw_saved_center()
@@ -234,11 +234,11 @@ function handle_cal(vals){
         if(Job.CalSensors.is_active()){
         	starting_timeout = 1000
         	Job.CalSensors.stop_for_reason("interrupted", "User stopped job.")
-        	if(window.cal_working_axis == J_num-1){
+        	if(globalThis.cal_working_axis == J_num-1){
             	start_button_dom_elt.style.backgroundColor = "rgb(255, 123, 0)"
                 return
         	}else{
-            	let old_start_button_dom_elt = window["Start_J_" + (window.cal_working_axis + 1) + "_id"]
+            	let old_start_button_dom_elt = globalThis["Start_J_" + (globalThis.cal_working_axis + 1) + "_id"]
             	old_start_button_dom_elt.style.backgroundColor = "rgb(255, 123, 0)"
             }
         }
@@ -246,7 +246,7 @@ function handle_cal(vals){
         
         var message = "Adjust the 2 trim pots for Joint " + J_num + " to make a circle.<br/>"
         if ([1, 4, 5].includes(J_num)){
-            message += "&nbsp;&nbsp;&nbsp;&nbsp;You can also adjust Joint " + (window.cal_working_axis - 1) + "'s two position screws."
+            message += "&nbsp;&nbsp;&nbsp;&nbsp;You can also adjust Joint " + (globalThis.cal_working_axis - 1) + "'s two position screws."
         }
         cal_instructions_id.innerHTML = message
         if (the_robot.simulate === true) {
@@ -267,17 +267,17 @@ function handle_cal(vals){
     		
         let start_range = vals["cal_start_angle_" + J_num + "_id"] //Outer_J_Ranges["J" + J_num + "BoundryLow"]
         let end_range   = vals["cal_end_angle_" + J_num + "_id"] //Outer_J_Ranges["J" + J_num + "BoundryHigh"]
-        window.cal_working_axis = J_num - 1
-        AxisTable[window.cal_working_axis][5][J_num-1] = start_range
-        AxisTable[window.cal_working_axis][4] = Math.abs(end_range - start_range) / AxisTable[window.cal_working_axis][0][J_num-1]
-        AxisTable[window.cal_working_axis][0][J_num-1] = Math.sign(end_range - start_range) * Math.abs(AxisTable[window.cal_working_axis][0][J_num-1])
+        globalThis.cal_working_axis = J_num - 1
+        AxisTable[globalThis.cal_working_axis][5][J_num-1] = start_range
+        AxisTable[globalThis.cal_working_axis][4] = Math.abs(end_range - start_range) / AxisTable[globalThis.cal_working_axis][0][J_num-1]
+        AxisTable[globalThis.cal_working_axis][0][J_num-1] = Math.sign(end_range - start_range) * Math.abs(AxisTable[globalThis.cal_working_axis][0][J_num-1])
         
         remove_svg_points()
         setTimeout(function(){Job.CalSensors.start({robot: the_robot})}, starting_timeout)
             
     }else if(vals.clicked_button_value === "svg_id") {
     	/*
-        if (window.cal_working_axis === undefined){
+        if (globalThis.cal_working_axis === undefined){
             cal_instructions_id.innerHTML = "<span style='color:red'>You must first press a Start J button to calibrate.<br/></span>"
         }
         else {
@@ -286,7 +286,7 @@ function handle_cal(vals){
             cal_instructions_id.innerHTML = "If you like the center you've chosen, click the <b>Save</b> button to save it to Dexter<br/>or move onto the next joint."
             const y_val_to_save = flip_point_y(vals.offsetY)
             let idx
-            switch(window.cal_working_axis){
+            switch(globalThis.cal_working_axis){
                 case 1:
                     idx = 2
                     break
@@ -294,11 +294,11 @@ function handle_cal(vals){
                     idx = 1
                     break
                 default:
-                    idx = window.cal_working_axis
+                    idx = globalThis.cal_working_axis
             }
-            centers_string[2*window.cal_working_axis] =
+            centers_string[2*globalThis.cal_working_axis] =
                 "0x" + ((vals.offsetX  * 10) * 65536).toString(16)
-            centers_string[2*window.cal_working_axis+1] =
+            centers_string[2*globalThis.cal_working_axis+1] =
                 "0x" + ((y_val_to_save * 10) * 65536).toString(16)
 
 
@@ -330,10 +330,10 @@ function handle_cal(vals){
             Job.CalSensors.stop_for_reason("interrupted", "User stopped job.")
         }
         remove_svg_points()
-        if(window.cal_working_axis !== undefined){
-            var message = "Adjust the 2 trim pots for Joint " + (window.cal_working_axis + 1) + " to make a circle.<br/>"
-            if ([1, 4, 5].includes(window.cal_working_axis - 1)){
-                message += "&nbsp;&nbsp;&nbsp;&nbsp;You can also adjust Joint " + (window.cal_working_axis + 1) + "'s two position screws."
+        if(globalThis.cal_working_axis !== undefined){
+            var message = "Adjust the 2 trim pots for Joint " + (globalThis.cal_working_axis + 1) + " to make a circle.<br/>"
+            if ([1, 4, 5].includes(globalThis.cal_working_axis - 1)){
+                message += "&nbsp;&nbsp;&nbsp;&nbsp;You can also adjust Joint " + (globalThis.cal_working_axis + 1) + "'s two position screws."
             }
             cal_instructions_id.innerHTML = message
             Job.CalSensors.start({robot: cal_get_robot()})
@@ -344,7 +344,7 @@ function handle_cal(vals){
     }
     else if (vals.clicked_button_value === "Save"){
     	/*
-        if (window.cal_working_axis === undefined){
+        if (globalThis.cal_working_axis === undefined){
             cal_instructions_id.innerHTML = "<span style='color:red'>You must first press a Start J button to calibrate.<br/></span>"
         }else{
         */
@@ -452,7 +452,7 @@ function init_calibrate(){
         svg_svg({width:20, height:410, child_elements: [svg_text({x:0, y:380, transform: 'rotate(-90 15 380)',
             text:'Left potentiometer: &nbsp;Clockwise pot rotation &rarr;'
         })]}) + "</td><td>" +
-        svg_svg({id: "svg_id", height: window.cal_svg_height, width: window.cal_svg_height,
+        svg_svg({id: "svg_id", height: globalThis.cal_svg_height, width: globalThis.cal_svg_height,
             html_class: "clickable", style:"background-color:white;",
             child_elements: [
                 svg_text({text: "X   Axis", x: 150, y: 400, size: 30, color: "#DDDDDD", border_width: 1, border_color: "black", style: 'font-weight:bold;'}),

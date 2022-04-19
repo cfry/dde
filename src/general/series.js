@@ -59,7 +59,7 @@ class Series {
                         let result = ""
                         for (let item of the_ser.array){
                             let unit_full_name = unit_abbrev_to_full_name(the_ser.id, item)
-                            let val = window[item]
+                            let val = globalThis[item]
                             let tooltip = item + " = " + unit_full_name + " = " + unity_full_name + " * " + val +
                                           "\nClick to insert: " + "*" + item
                             result += make_html("a",

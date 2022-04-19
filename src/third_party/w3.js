@@ -208,8 +208,8 @@ w3.slideshow = function (sel, ms, func) {
     ss.display(ss.current)
     if (ss.ondisplaychange) {ss.ondisplaychange();}
     if (ss.milliseconds > 0) {
-      window.clearTimeout(ss.timeout);
-      ss.timeout = window.setTimeout(ss.next, ss.milliseconds);
+      globalThis.clearTimeout(ss.timeout);
+      ss.timeout = globalThis.setTimeout(ss.next, ss.milliseconds);
     }
   };
   ss.next = function() {
@@ -276,9 +276,9 @@ w3.displayHttp = function (id, file) {
 w3.http = function (target, readyfunc, xml, method) {
   var httpObj;
   if (!method) {method = "GET"; }
-  if (window.XMLHttpRequest) {
+  if (globalThis.XMLHttpRequest) {
     httpObj = new XMLHttpRequest();
-  } else if (window.ActiveXObject) {
+  } else if (globalThis.ActiveXObject) {
     httpObj = new ActiveXObject("Microsoft.XMLHTTP");
   }
   if (httpObj) {

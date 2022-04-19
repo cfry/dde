@@ -8,8 +8,9 @@
 //can't get semver to work in dde4, so using alternative:
 //import { compare as compare_semversions } from 'compare-versions';
 
-import pkg2 from 'compare-versions';
-const { compare_semversions } = pkg2;
+//import pkg2 from 'compare-versions';
+//const { compare_semversions } = pkg2;
+import {compare as compare_semversions} from 'compare-versions';
 
 //see https://stackoverflow.com/questions/65547827/how-to-import-npm-semver-on-an-ionic-project-with-angular
 //which lies.
@@ -126,17 +127,15 @@ static warning(message, temp=false){
     if(message){
         let out_string
         let stack_trace = "Sorry, a stack trace is not available."
-        if(window["replace_substrings"]){
-            try{  //if I don't do this, apparently the new error is actually throw, but
-                //it really shouldn't be according to:
-                // https://stackoverflow.com/questions/41586293/how-can-i-get-a-js-stack-trace-without-halting-the-script
-                let err = new Error();
-                stack_trace = replace_substrings(err.stack, "\n", "<br/>")
-                //get rid of the "Error " at the beginning
-                stack_trace = stack_trace.substring(stack_trace.indexOf(" "))
-            }
-            catch(an_err) {}
+        try{  //if I don't do this, apparently the new error is actually throw, but
+            //it really shouldn't be according to:
+            // https://stackoverflow.com/questions/41586293/how-can-i-get-a-js-stack-trace-without-halting-the-script
+            let err = new Error();
+            stack_trace = this.replace_substrings(err.stack, "\n", "<br/>")
+            //get rid of the "Error " at the beginning
+            stack_trace = stack_trace.substring(stack_trace.indexOf(" "))
         }
+        catch(an_err) {}
         out_string = "<details><summary><span class='warning_css_class'>Warning: " + Utils.prepend_file_message_maybe(message) +
             "</span></summary>" + stack_trace + "</details>"
         out(out_string, undefined, temp)
@@ -795,8 +794,8 @@ static value_of_path(path_string){
         dde_error("value_of_path passed: " + path_string + " which is not a string or an array.")
     }
     let result
-    if(window[path[0]] !== undefined) { result = window }
-    //note window["window"] returns the window obj so the arg can be "window" and we still win
+    if(globalThis[path[0]] !== undefined) { result = window }
+    //note globalThis["window"] returns the window obj so the arg can be "window" and we still win
     else if (Object.prototype[path[0]] !== undefined) { result = Object.prototype }
     else { return undefined }
     for (var path_elt of path){
@@ -1483,7 +1482,7 @@ static stringify_value_aux(value, job, depth=0){
     var result
     if      (value === undefined)       { return "undefined" }
     else if (value === null)            { return "null" } //since typeof(null) == "object", this must be before the typeof(value) == "object" clause
-    else if (value === window)          { return "{window object: stores globals}" } //too many weird values in there and too slow so punt.
+    else if (value === globalThis)      { return "{globalThis object: stores globals}" } //too many weird values in there and too slow so punt.
     else if (typeof(value) == "number") { return value.toString() } //works for NaN too, no need to use (isNaN(value)) { result = "NaN" } //note the check for number before checking isNanN is necessary because JS wasn't designed.
     else if (typeof(value) == "string") { return JSON.stringify(value) }
     else if (value instanceof Date){ result = value.toString() }
@@ -1607,7 +1606,7 @@ static stringify_value_aux(value, job, depth=0){
                 try{
                   result += prop_name + ": " + this.stringify_value_aux(prop_val, job, depth + 1) + ",<br/>"
                 }
-                catch(e) {} //doing window["caches"] errors so just forget about this prop and maybe others.
+                catch(e) {} //doing globalThis["caches"] errors so just forget about this prop and maybe others.
             }
         }
         result += "}"

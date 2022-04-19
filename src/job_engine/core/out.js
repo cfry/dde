@@ -41,7 +41,7 @@ export function out_eval_result(text, color="#000000", src, src_label="The resul
         //    existing_temp.remove()
         //}
         let existing_temp_elts = []
-        if(window["document"]){
+        if(globalThis["document"]){
             existing_temp_elts = document.querySelectorAll("#temp")
         }
         for(let temp_elt of existing_temp_elts){ temp_elt.remove() }
@@ -75,7 +75,7 @@ export function out_eval_result(text, color="#000000", src, src_label="The resul
         SW.append_to_output(the_html)
     }
     //$('#js_textarea_id').focus() fails silently
-    if(window["document"]){
+    if(globalThis["document"]){
         let orig_focus_elt = document.activeElement
         if(orig_focus_elt.tagName != "BUTTON"){ //if user clicks eval button, it will be BUTTON
            //calling focus on a button draws a rect around it, not good.
@@ -157,7 +157,7 @@ function speak({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0, lan
     }
     else {
         var msg = new SpeechSynthesisUtterance();
-        //var voices = window.speechSynthesis.getVoices();
+        //var voices = globalThis.speechSynthesis.getVoices();
         //msg.voice = voices[10]; // Note: some voices don't support altering params
         //msg.voiceURI = 'native';
         msg.text   = text
@@ -165,7 +165,7 @@ function speak({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0, lan
         msg.rate   = rate;   // 0.1 to 10
         msg.pitch  = pitch;  // 0 to 2
         msg.lang   = lang;
-        var voices = window.speechSynthesis.getVoices();
+        var voices = globalThis.speechSynthesis.getVoices();
         msg.voice  = voices[voice]; // voice is just an index into the voices array, 0 thru 3
         msg.onend  = callback //this callback takes 1 arg, an event.
         speechSynthesis.speak(msg);
@@ -215,7 +215,7 @@ function show_window({content = `<input type="submit" value="Done"/>`,
         if(latest_win){
             //x = Math.max(0, latest_win.offset().left) //user might have repositioned the old window. let's preserve that
             //y = Math.max(0, latest_win.offset().top)
-            var style = window.getComputedStyle(latest_win, null)
+            var style = globalThis.getComputedStyle(latest_win, null)
             x = parseInt(style.getPropertyValue("left"), 10)
             y = parseInt(style.getPropertyValue("top"),  10)
             width =  parseInt(style.getPropertyValue("width"), 10) //user might have resized the old window. let's preserve that
@@ -376,7 +376,7 @@ function beep({dur = 0.5, frequency = 440, volume = 1, waveform = "triangle", ca
                        //of calling the command.
     }
     else {
-        if(!audioCtx) {  audioCtx = new window.AudioContext() }
+        if(!audioCtx) {  audioCtx = new globalThis.AudioContext() }
         var oscillator = audioCtx.createOscillator();
         var gainNode = audioCtx.createGain();
 

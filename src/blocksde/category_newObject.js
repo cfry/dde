@@ -19,7 +19,7 @@ newObject({name: "BlockCategory",
                this.block_types.push(a_string)
            },
            name_to_category: function(name){
-                if(window.debug_name_to_category) { debugger }
+                if(globalThis.debug_name_to_category) { debugger }
                 for(let cat of this.subObjects()){
                     if (cat.name == name) {return cat}
                     else {

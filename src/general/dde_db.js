@@ -41,7 +41,7 @@ class DDE_DB{
        DDE_DB.db_init_cb = db_init_cb //called after persistent_values is grabbed from DB.
        DDE_DB.persistent_values = DDE_DB.persistent_values_initial_object //very temporary until real db values grabbed
        DDE_DB.metrics = DDE_DB.metrics_initial_object                    //very temporary until real db values grabbed
-       let request = window.indexedDB.open("dde_db", 1);
+       let request = globalThis.indexedDB.open("dde_db", 1);
        request.onerror = function(event) {
            dde_error("DDE's database could not be opened. Error code: " +
                      event.target.errorCode)
@@ -86,6 +86,7 @@ class DDE_DB{
    }
 
    static persistent_get(key) {
+       console.log("this.persistent_values: " + this.persistent_values)
        return this.persistent_values[key]
    }
 

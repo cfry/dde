@@ -1929,11 +1929,11 @@ Instruction.human_notify = class human_notify extends Instruction{
     }
     static get_window_x(){
         human_notify.window_x += 40
-        return window.outerWidth - 370 - human_notify.window_x
+        return globalThis.outerWidth - 370 - human_notify.window_x
     }
     static get_window_y(){
         human_notify.window_y += 40
-        if (human_notify.window_y > (window.outerHeight - 300)){
+        if (human_notify.window_y > (globalThis.outerHeight - 300)){
             human_notify.window_x = 0
             human_notify.window_y = 40
         }
@@ -2145,7 +2145,7 @@ Instruction.include_job = class include_job extends Instruction{
                     }
                     else { //maybe file src starts with var foo = an_array_of_instructions
                         let file_src = read_file(first_arg)
-                        let result_obj = eval_js_part2(file_src, false) // warning: calling straight eval often doesn't return the value of the last expr in the src, but my eval_js_part2 usually does. //window.eval(file_src)
+                        let result_obj = eval_js_part2(file_src, false) // warning: calling straight eval often doesn't return the value of the last expr in the src, but my eval_js_part2 usually does. //globalThis.eval(file_src)
                         if(result_obj.error_message){
                            dde_error("Control.include_job's first argument: " + first_arg +
                                      "<br/>refers to an existing file but<br/>" +
@@ -2167,7 +2167,7 @@ Instruction.include_job = class include_job extends Instruction{
                                              "However, their is no equal sign after 'var'")
                                 }
                                 let var_name = file_src.substring(4, equal_sign_pos).trim()
-                                let var_val = window[var_name]
+                                let var_val = globalThis[var_name]
                                 if(Array.isArray(var_val)){
                                     resolved_first_arg   = var_val
                                     do_list_array_to_use = var_val
@@ -2188,8 +2188,8 @@ Instruction.include_job = class include_job extends Instruction{
                                "but no such file exists.")
                 }
             }
-            else if (window[first_arg]) {
-                resolved_first_arg = window[first_arg]
+            else if (globalThis[first_arg]) {
+                resolved_first_arg = globalThis[first_arg]
                 if(!Array.isArray(resolved_first_arg)) {
                     dde_error("Control.include_job's first argument: " + first_arg + " is a variable<br/>" +
                               "but the value of the variable is not an array:<br/>" +

@@ -89,7 +89,7 @@ class dui2 {
 
     //this is the top level code in this file that is called when the user chooses Jobs menu, Dexter UI item.
     static make_job(){
-        let dex = (window.default_robot ? Dexter.default : Dexter.dexter0)
+        let dex = (globalThis.default_robot ? Dexter.default : Dexter.dexter0)
         let name = ((platform === "dde") ? "dui2_for_" + dex.name : "dexter_user_interface2") //the job engine Job name must match the file name (sans .js")
         if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
             //previous version is stopped first
@@ -122,7 +122,7 @@ class dui2 {
     }
 
     static dui_instance_to_show_window_elt(dui_instance){
-        return window[dui_instance.show_window_elt_id]
+        return globalThis[dui_instance.show_window_elt_id]
     }
 
     static dui_instance_under_mouse(){
@@ -139,7 +139,7 @@ class dui2 {
     static init(xy_width_in_px = 300){
         DocCode.open_doc(dexter_user_interface_doc_id)
         if((platform == "dde") &&
-            !window.sim_graphics_pane_id) {
+            !globalThis.sim_graphics_pane_id) {
             DDEVideo.show_in_misc_pane("Simulate Dexter") //changes Misc pane to sim. Preserves pose of Dexter.
         }
         let dui_instance = new dui2()
@@ -252,7 +252,7 @@ class dui2 {
         })
         setTimeout(function() {
                 dui_instance.show_window_elt_id = "show_window_" + SW.window_index + "_id"
-                let sw_elt = window[dui_instance.show_window_elt_id]
+                let sw_elt = globalThis[dui_instance.show_window_elt_id]
                 sw_elt.classList.add("dui_dialog")
                 //let RS_inst = dui_instance.dexter_instance.rs
                 //let measured_angles = RS_inst.measured_angles(7).slice() //returns a copy of the array so safe to change it.
@@ -389,14 +389,14 @@ class dui2 {
 
     //unnecessary, use the dui_instance.direction
     static get_direction_in_ui(sw_elt){
-        if(typeof(sw_elt)) { sw_elt = window[sw_elt] }
+        if(typeof(sw_elt)) { sw_elt = globalThis[sw_elt] }
         let dir_elt = sw_elt.querySelector(".direction")
        return JSON.parse(dir_elt.innerHTML)
     }
 
     set_direction_in_ui(){
-        let sw_elt = window[this.show_window_elt_id]
-        //if(typeof(sw_elt) == ) { sw_elt = window[sw_elt] }
+        let sw_elt = globalThis[this.show_window_elt_id]
+        //if(typeof(sw_elt) == ) { sw_elt = globalThis[sw_elt] }
         let dir_elt = sw_elt.querySelector(".direction")
         let dir_str = JSON.stringify(this.direction)
         dir_elt.innerHTML = dir_str
@@ -404,13 +404,13 @@ class dui2 {
 
      //unnecessary, use the dui_instance.should_point_down
     static is_point_down_checked(sw_elt){
-        if(typeof(sw_elt)) { sw_elt = window[sw_elt] }
+        if(typeof(sw_elt)) { sw_elt = globalThis[sw_elt] }
         let dir_checkbox_elt = sw_elt.querySelector(".direction_checkbox")
         return dir_checkbox_elt.checked
     }
 
     set_point_down_checkbox(){
-        let sw_elt = window[this.show_window_elt_id]
+        let sw_elt = globalThis[this.show_window_elt_id]
         let dir_checkbox_elt = sw_elt.querySelector(".direction_checkbox")
         dir_checkbox_elt.checked = this.should_point_down
     }
@@ -735,7 +735,7 @@ class dui2 {
                 Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
             }
         }
-        //let show_win_elt = window[vals.show_window_elt_id]
+        //let show_win_elt = globalThis[vals.show_window_elt_id]
         //show_win_elt.focus()  //so that is_dui_the_focus will work after setting the selection.
                               //is_dui_the_focus needed by dui_instruction_callback
         return

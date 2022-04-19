@@ -8,7 +8,7 @@
         module.exports = factory();
     } else {
         // Browser globals
-        window.noUiSlider = factory();
+        globalThis.noUiSlider = factory();
     }
 })(function() {
     "use strict";
@@ -128,15 +128,15 @@
 
     // https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollY#Notes
     function getPageOffset(doc) {
-        var supportPageOffset = window.pageXOffset !== undefined;
+        var supportPageOffset = globalThis.pageXOffset !== undefined;
         var isCSS1Compat = (doc.compatMode || "") === "CSS1Compat";
         var x = supportPageOffset
-            ? window.pageXOffset
+            ? globalThis.pageXOffset
             : isCSS1Compat
                 ? doc.documentElement.scrollLeft
                 : doc.body.scrollLeft;
         var y = supportPageOffset
-            ? window.pageYOffset
+            ? globalThis.pageYOffset
             : isCSS1Compat
                 ? doc.documentElement.scrollTop
                 : doc.body.scrollTop;
@@ -153,13 +153,13 @@
     function getActions() {
         // Determine the events to bind. IE11 implements pointerEvents without
         // a prefix, which breaks compatibility with the IE10 implementation.
-        return window.navigator.pointerEnabled
+        return globalThis.navigator.pointerEnabled
             ? {
                   start: "pointerdown",
                   move: "pointermove",
                   end: "pointerup"
               }
-            : window.navigator.msPointerEnabled
+            : globalThis.navigator.msPointerEnabled
                 ? {
                       start: "MSPointerDown",
                       move: "MSPointerMove",
@@ -185,7 +185,7 @@
                 }
             });
 
-            window.addEventListener("test", null, opts);
+            globalThis.addEventListener("test", null, opts);
         } catch (e) {}
         /* eslint-enable */
 
@@ -193,7 +193,7 @@
     }
 
     function getSupportsTouchActionNone() {
-        return window.CSS && CSS.supports && CSS.supports("touch-action", "none");
+        return globalThis.CSS && CSS.supports && CSS.supports("touch-action", "none");
     }
 
     //endregion

@@ -4,7 +4,7 @@
 function out(val="", color="black", temp=false, code=null){
     let text = val
     if (typeof(text) != "string"){ //if its not a string, its some data structure so make it fixed width to demonstrate code. Plus the json pretty printing doesn't work unless if its not fixed width.
-        if(window["stringify_value"]) { text = Utils.stringify_value(text) }
+        if(globalThis["stringify_value"]) { text = Utils.stringify_value(text) }
         else { text = Utils.stringify_value_cheap(val) } //hits in browser
     }
     if(globalThis.platform == "node") { //console.log(val)
@@ -13,7 +13,7 @@ function out(val="", color="black", temp=false, code=null){
         return val
     }
 
-    if(window["format_text_for_code"]) { //doesn't hit in browser
+    if(globalThis["format_text_for_code"]) { //doesn't hit in browser
         text = format_text_for_code(text, code)
     }
     if ((color != "black") && (color != "#000000")){
@@ -21,7 +21,7 @@ function out(val="", color="black", temp=false, code=null){
     }
     let temp_str_id = ((typeof(temp) == "string") ? temp : "temp")
     let existing_temp_elts = []
-    if(window["document"]){
+    if(globalThis["document"]){
          try{
             existing_temp_elts = document.querySelectorAll("#" + temp_str_id)
          }
@@ -56,7 +56,7 @@ function out(val="", color="black", temp=false, code=null){
             DocCode.blink_if_output_pane_hidden() //let user know there's new output that they can't see.
         }
     }
-    if(window["document"]){
+    if(globalThis["document"]){
         let orig_focus_elt = document.activeElement
         orig_focus_elt.focus()
     }
@@ -71,7 +71,7 @@ function out(val="", color="black", temp=false, code=null){
 globalThis.out = out
 
 
-class SW { //stands for Show Window. These are the aux fns that the top level show_window fn uses
+export class SW { //stands for Show Window. These are the aux fns that the top level show_window fn uses
            //show_window itself is not called from the browser
 
     //good test: get_index_of_window(get_window_of_index(0))
@@ -211,7 +211,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
         //the title is called the drag "handle", whereas the whole window is called the "draggable"
         show_window_elt.focus()
         //let title_id = "sw_title_" + properties.window_index + "_id"
-        let title_elt = show_window_elt.querySelector(".show_window_title") //window[title_id]
+        let title_elt = show_window_elt.querySelector(".show_window_title") //globalThis[title_id]
         //onsole.log("render_show_window got title_elt: " + title_elt)
         if(title_elt) { // won't hit if title === "" because that means no title
             let draggable_value = (properties.draggable? "true": "false")
@@ -225,7 +225,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
         }
         show_window_elt.ondragstart = function(event) {
             let show_win_elt = event.target
-            var style = window.getComputedStyle(show_win_elt, null)
+            var style = globalThis.getComputedStyle(show_win_elt, null)
             let left = parseInt(style.getPropertyValue("left"), 10) - event.clientX
             let top  = parseInt(style.getPropertyValue("top"),  10) - event.clientY
             //event.dataTransfer.setData("text/plain", (parseInt(style.getPropertyValue("left"), 10) - event.clientX) + ',' + (parseInt(style.getPropertyValue("top"), 10) - event.clientY) + ',' + event.target.getAttribute('data-item'));
@@ -247,7 +247,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
         setTimeout(SW.install_onclick_via_data_fns, 10) //don't need this at all for show_window in browser.
         setTimeout(function(){SW.install_submit_window_fns(show_window_elt)}, 10)
         if (properties.init_elt_id){
-            setTimeout(function(){window[properties.init_elt_id].click()} , 100)
+            setTimeout(function(){globalThis[properties.init_elt_id].click()} , 100)
         }
     }
 
@@ -273,7 +273,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
                 event.preventDefault();
                 event.stopPropagation()
                 let inp = event.target
-                var style = window.getComputedStyle(inp, null)
+                var style = globalThis.getComputedStyle(inp, null)
                 let left = parseInt(style.getPropertyValue("left"), 10) - event.clientX
                 let top  = parseInt(style.getPropertyValue("top"),  10) - event.clientY
                 //event.dataTransfer.setData("text/plain", (parseInt(style.getPropertyValue("left"), 10) - event.clientX) + ',' + (parseInt(style.getPropertyValue("top"), 10) - event.clientY) + ',' + event.target.getAttribute('data-item'));
@@ -388,7 +388,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
         //onsole.log("sw_drop got data: " + data)
         let [sw_elt_id, left, top] = data.split(",")
         event.dataTransfer.clearData("sw_id") //doesn't prevent inserting of the data into the editor
-        let show_window_elt_being_dragged = body_id.querySelector("#" + sw_elt_id) //window[sw_elt_id]
+        let show_window_elt_being_dragged = body_id.querySelector("#" + sw_elt_id) //globalThis[sw_elt_id]
         //event.target //in browser, this is the sw dialog. In DDE this is some codemirror nested elt
         //show_window_elt_being_dragged = show_window_elt_being_dragged.closest("DIALOG") ////in browser, this is the sw dialog. In DDE this is null
         let new_x = (event.clientX + parseInt(left, 10)) + 'px';
@@ -594,7 +594,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
                 if (!url.startsWith("http")){
                     url = "http://" + url
                 }
-                window.open(url)
+                globalThis.open(url)
                 return
             }
         }
@@ -780,7 +780,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
             if (!cb) { //cb could have been a named fn such that when evaled didn't return the fn due to bad js design
                 if(callback_fn_string.startsWith("function ")){
                     let fn_name = Utils.function_name(callback_fn_string)
-                    if ((typeof(fn_name) == "string") && (fn_name.length > 0)) { cb = window.fn_name }
+                    if ((typeof(fn_name) == "string") && (fn_name.length > 0)) { cb = globalThis.fn_name }
                     else { //we've got an anonyous function source code def
                         cb = eval("(" + callback_fn_string + ")") //need extra parens here. Will error without them due to poor JS design
                         if(typeof(cb) != "function"){
@@ -933,7 +933,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
                 }
                 else {
                     dde_error("In SW.selector_set_in_ui, path_string: " + path_string +
-                              " should be a referernece to an existing dom_elt, but isn't.")
+                              " should be a reference to an existing dom_elt, but isn't.")
                 }
             }
             else if (path_string_references_style_attribute) { //2nd to last path_string elt is "[style]"
@@ -1029,7 +1029,7 @@ class SW { //stands for Show Window. These are the aux fns that the top level sh
         return "dont_print"
     }
 } // end class SW
-globalThis.clear_output = SW.clear_output //this isn're REALLY part of show_window
+globalThis.clear_output = SW.clear_output //this isn't REALLY part of show_window
    //but is a window system like fn. In DDE3 it was just clear_output at top level
    //so I decided to preserve that, but also stick it in the SW class
 globalThis.SW = SW //used a bunch in the ref man for SW.append_in_ui and other misc places in dde

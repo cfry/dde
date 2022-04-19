@@ -4,7 +4,7 @@
 import * as readline from "readline" // "../../../node_modules/readline/readline.js" //todo but readline.js does require("fs") and require is undefined.
 
 const rl = readline.createInterface({
-    input: process.stdin,
+    input:  process.stdin,
     output: process.stdout
 });
 
@@ -28,7 +28,7 @@ globalThis.set_keep_alive_value = set_keep_alive_value
 // 'Job.myjob.color_job_button()'
 // 'Job.myjob.server_job_button_click()'
 rl.on('line', function(input) {
-    //onsole.log("<br/>stdin got line: " + input)
+    console.log("<br/>stdin got line: " + input)
     out("(out call) stdin got line: " + input + "\n")
     eval(input)
 })

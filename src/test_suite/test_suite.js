@@ -64,7 +64,7 @@ class TestSuite{
                 }
         var the_id = "run_test_suite_" + suite_name + "_id"
         $( "#test_suites_id" ).append("<li id='" + the_id + "'>run " + suite_name + "</li>" );
-        setTimeout(function(){ window[the_id].onclick = fn}, 300)
+        setTimeout(function(){ globalThis[the_id].onclick = fn}, 300)
     }
     //not called
     static make_suites_menu_items(){
@@ -291,7 +291,7 @@ class TestSuite{
                 let suite_index = this.state.current_suite_index;
                 let cur_suite = this.state.suites[suite_index]
                 if (typeof(cur_suite) == "string"){
-                    cur_suite = window.eval(cur_suite)
+                    cur_suite = globalThis.eval(cur_suite)
                     this.state.suites[suite_index] = cur_suite
                 }
                 console.log("starting testsuite: " + cur_suite.name)
@@ -411,7 +411,7 @@ class TestSuite{
         let src_end_quote   = Editor.find_forwards_matching_quote(test_src, src_start_quote)
         if (src_end_quote == -1) { return false; }
         let src = test_src.substring(src_start_quote + 1, src_end_quote) //get src and strip off surrounding quotes
-        let src_result = window.eval("(function(){try{ return " + src      + "} catch(err) {return err.name + ' ' + err.message}})()")
+        let src_result = globalThis.eval("(function(){try{ return " + src      + "} catch(err) {return err.name + ' ' + err.message}})()")
         //there might or might not be an expected string. If none, don't try to eval it!
         let close_square = test_src.indexOf("]", src_end_quote)
         if (close_square == -1) {return false;}
@@ -421,7 +421,7 @@ class TestSuite{
             let expected_end_quote   = Editor.find_forwards_matching_quote(test_src, expected_end_quote)
             if (expected_end_quote == -1) {return false;}
             let expected = test_src.substring(expected_start_quote + 1, expected_end_quote) //strip off quotes
-            let expected_result = window.eval("(function(){try{ return " + expected + "} catch(err) {return err.name + ' ' + err.message}})()")
+            let expected_result = globalThis.eval("(function(){try{ return " + expected + "} catch(err) {return err.name + ' ' + err.message}})()")
             if(similar(src_result, expected_result)) {
                  out("Test passed with source result of: <span style='color:blue;'>" + src_result + "</span>")
              }
@@ -469,7 +469,7 @@ class TestSuite{
             (arrow_key_direction == 1) &&
             run_item){
             if (run_item){
-                let ts  = window.eval(sel_text)
+                let ts  = globalThis.eval(sel_text)
                 if (ts instanceof TestSuite) {
                    this.set_state_and_resume({reports: "", suites: [ts]})
                 }
@@ -657,16 +657,16 @@ class TestSuite{
         var wrapped_src = "try{ " + src + "} catch(err) {TestSuite.last_src_error_message = err.name + ' ' + err.message; TestSuite.error}"
         var src_result
         try{
-            src_result = window.eval(wrapped_src)
+            src_result = globalThis.eval(wrapped_src)
         }
         catch(err) {
            status = "unknown"
            error_message = test_number_html + src + " errored with: " + err +
                            "<br/> &nbsp;&nbsp; Test Source: " + src +
-                           "<br/> &nbsp;&nbsp; Prev Test Source: " + window.prev_src +
-                           "<br/> &nbsp;&nbsp; Prev-prev Test Source: " + window.prev_prev_src + "<br/>"
-            window.prev_prev_src  =   window.prev_src
-            window.prev_src = src
+                           "<br/> &nbsp;&nbsp; Prev Test Source: " + globalThis.prev_src +
+                           "<br/> &nbsp;&nbsp; Prev-prev Test Source: " + globalThis.prev_prev_src + "<br/>"
+            globalThis.prev_prev_src  =   globalThis.prev_src
+            globalThis.prev_src = src
            return [status, error_message]
          }
          if (src_result instanceof Job) { //ignore the 2nd and 3rd array elts if any.
@@ -699,7 +699,7 @@ class TestSuite{
             var expected = test[1] //will be undefined if test.length == 1
             TestSuite.last_expected_error_message = false
             var expected_result
-            try { expected_result = window.eval(expected) } //undefined evals to undefined
+            try { expected_result = globalThis.eval(expected) } //undefined evals to undefined
             catch(err) {
                 if(src_result instanceof Promise) {
                     TestSuite.state.promise_pending = false
@@ -792,8 +792,8 @@ class TestSuite{
                 }
             }
         }
-        window.prev_prev_src = window.prev_src
-        window.prev_src = src
+        globalThis.prev_prev_src = globalThis.prev_src
+        globalThis.prev_src = src
         return [status, error_message]
     }
 
@@ -804,7 +804,7 @@ class TestSuite{
             let sel_text_to_eval = sel_text.substring(1, sel_text.length - 1) //cut off the quotes
             let result
             let got_error = false
-            try{ result = window.eval(sel_text_to_eval) }
+            try{ result = globalThis.eval(sel_text_to_eval) }
             catch(err) {
                  got_error = true
                  result = err.message
@@ -987,7 +987,7 @@ class TestSuite{
             else {
                 let sel_str = Utils.string_to_literal(sel_text)
                 let full_str = "try{" + sel_text + "} catch(err){ TestSuite.error }"
-                let expected_result = window.eval(full_str)
+                let expected_result = globalThis.eval(full_str)
                 let expected_str
                 if (expected_result === undefined)             { expected_str = '"undefined"' }
                 else if (expected_result == TestSuite.error) {

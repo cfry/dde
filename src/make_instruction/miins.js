@@ -172,7 +172,7 @@ class MiIns {
     static make_from_instruction_name_no_args(instruction_name){
         let family_class = this.instruction_name_to_family_class(instruction_name)
         //let new_class_name = Utils.get_class_name(family_class)
-        //let new_inst = window.eval("new " + new_class_name) //dde4 causes probelms because of a name of MiIns$1
+        //let new_inst = globalThis.eval("new " + new_class_name) //dde4 causes probelms because of a name of MiIns$1
         let new_inst = new family_class()
         new_inst.superclass_name = this.instruction_name_to_superclass_name(instruction_name)
         new_inst.instance_name   = this.instruction_name_to_instance_name(instruction_name)
@@ -238,7 +238,7 @@ class MiIns {
     static make_from_instruction_name_only_no_args(instruction_name){
         let family_class = this.instruction_name_to_family_class(instruction_name)
         let new_class_name = Utils.get_class_name(family_class)
-        let new_inst = window.eval("new " + new_class_name)
+        let new_inst = globalThis.eval("new " + new_class_name)
         new_inst.superclass_name = this.instruction_name_to_superclass_name(instruction_name)
         new_inst.instance_name   = this.instruction_name_to_instance_name(instruction_name)
         new_inst.class_name      = this.instruction_name_to_class_name(instruction_name)
@@ -464,7 +464,7 @@ MiIns.move_all_joints_family = class move_all_joints_family extends MiIns{
                 else {  joint_val = rob.angles[i - 1] } //need the first 5 angles to do kinematics.
             }
             else {
-                try { joint_val = window.eval(joint_val_src)  }
+                try { joint_val = globalThis.eval(joint_val_src)  }
                 catch(err) {
                     dde_error("When converting from angles to position, " + joint_arg_name +
                         " with source: " + joint_val_src + " errored upon eval.")

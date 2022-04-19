@@ -5,27 +5,27 @@
 
 //since I can't actually change window width, height, x, y programmatically,
 //probably have to give up on this.
-window.addEventListener('resize', function(event){
-    DDE_DB.persistent_values.dde_window_x      = window.screenX //todo dde4 coment these back in
-    DDE_DB.persistent_values.dde_window_y      = window.screenY
-    DDE_DB.persistent_values.dde_window_width  = window.outerWidth
-    DDE_DB.persistent_set("dde_window_height",   window.outerHeight) //causes them all to be saved.
+globalThis.addEventListener('resize', function(event){
+    DDE_DB.persistent_values.dde_window_x      = globalThis.screenX //todo dde4 coment these back in
+    DDE_DB.persistent_values.dde_window_y      = globalThis.screenY
+    DDE_DB.persistent_values.dde_window_width  = globalThis.outerWidth
+    DDE_DB.persistent_set("dde_window_height",   globalThis.outerHeight) //causes them all to be saved.
 });
 
 //todo dde4: though this is documented to work, it doesn't and probably wont
 //due to security reasons. Probably have to give up on this.
-window.set_dde_window_size_to_persistent_values = function(){
-    window.moveTo(DDE_DB.persistent_get("dde_window_x"), DDE_DB.persistent_get("dde_window_y"))
-    window.resizeTo(DDE_DB.persistent_get("dde_window_width"), DDE_DB.persistent_get("dde_window_height"))
+globalThis.set_dde_window_size_to_persistent_values = function(){
+    globalThis.moveTo(DDE_DB.persistent_get("dde_window_x"), DDE_DB.persistent_get("dde_window_y"))
+    globalThis.resizeTo(DDE_DB.persistent_get("dde_window_width"), DDE_DB.persistent_get("dde_window_height"))
 }
 
 //_________show_window and helper fns__________
 //get the value of the path in the UI.
-window.get_in_ui = function(path_string){
+globalThis.get_in_ui = function(path_string){
     //return value_of_path(path_string) //fails on getting svg attributes,
     //and returns strings for numbers.
     let path_elts = path_string.split(".")
-    let the_loc = window
+    let the_loc = globalThis
     for (var i = 0; i < path_elts.length; i++){
         var path_elt = path_elts[i]
         if (i === (path_elts.length - 1)){ //on last elt so set it
@@ -62,7 +62,7 @@ window.get_in_ui = function(path_string){
 }
 
 
-window.set_in_ui = function(path_string, value){
+globalThis.set_in_ui = function(path_string, value){
     let path_elts = path_string.split(".")
     let the_loc = window
     for (var i = 0; i < path_elts.length; i++){
@@ -83,12 +83,12 @@ window.set_in_ui = function(path_string, value){
 
 
 
-window.remove_in_ui = function(path_string){
+globalThis.remove_in_ui = function(path_string){
         let elt = value_of_path(path_string)
         elt.remove()
 }
 
-window.replace_in_ui = function(path_string, new_html){
+globalThis.replace_in_ui = function(path_string, new_html){
     let elt = value_of_path(path_string)
     $(elt).replaceWith(new_html)
 }
@@ -105,7 +105,7 @@ function html_to_tag_name(html){
     return  result.trim()
 }
 
-window.html_to_tag_name = html_to_tag_name
+globalThis.html_to_tag_name = html_to_tag_name
 
 //returns an array of arrays.
 // the Inner array has 2 elts, a string of the attribute name
@@ -186,7 +186,7 @@ function html_attributes_and_values(html){
     return result
 }
 
-window.html_attributes_and_values = html_attributes_and_values
+globalThis.html_attributes_and_values = html_attributes_and_values
 
 //input" '<foo a="3"> bar </foo>'  output: " bar "
 function html_content(html){
@@ -199,7 +199,7 @@ function html_content(html){
         else { return html.substring(close_angle_pos + 1, open_angle_pos) }
     }
 }
-window.html_content = html_content
+globalThis.html_content = html_content
 
 
 
@@ -209,16 +209,16 @@ window.html_content = html_content
 //________recognize_speech_____________
 //all these vars meaningful in ui only.
 /*
-window.recognition = null
-window.recognize_speech_window_index    = null
-window.recognize_speech_phrase_callback = null
-window.recognize_speech_finish_callback = null
-window.recognize_speech_only_once       = null
-window.recognize_speech_click_to_talk   = null
-window.recognize_speech_last_text       = null
-window.recognize_speech_last_confidence = null
-window.recognize_speech_finish_array    = []
-window.recognize_speech_finish_phrase   = "finish" //set by recognize_speech ui
+globalThis.recognition = null
+globalThis.recognize_speech_window_index    = null
+globalThis.recognize_speech_phrase_callback = null
+globalThis.recognize_speech_finish_callback = null
+globalThis.recognize_speech_only_once       = null
+globalThis.recognize_speech_click_to_talk   = null
+globalThis.recognize_speech_last_text       = null
+globalThis.recognize_speech_last_confidence = null
+globalThis.recognize_speech_finish_array    = []
+globalThis.recognize_speech_finish_phrase   = "finish" //set by recognize_speech ui
 
 function init_recognize_speech(){
     recognition = new webkitSpeechRecognition();
@@ -279,7 +279,7 @@ function init_recognize_speech(){
     }
 
     recognition.onerror  = function(event) {
-        if (window["recognize_speech_img_id"]){
+        if (globalThis["recognize_speech_img_id"]){
             recognize_speech_img_id.src = 'mic.gif';
             recognize_speech_instructions_id.innerHTML = "Stop talking"
         }
@@ -288,12 +288,12 @@ function init_recognize_speech(){
         }
     }
 } //end init_recognize_speech
-//window.init_recognize_speech = init_recognize_speech
+//globalThis.init_recognize_speech = init_recognize_speech
 //public
 function recognize_speech_default_phrase_callback(text, confidence){
     out("text: " + text + "<br/>confidence: " + confidence.toFixed(2))
 }
-window.recognize_speech_default_phrase_callback = recognize_speech_default_phrase_callback
+globalThis.recognize_speech_default_phrase_callback = recognize_speech_default_phrase_callback
 
 function recognize_speech({title="Recognize Speech", prompt="",
                            only_once=true, click_to_talk=true,
@@ -330,12 +330,12 @@ function recognize_speech({title="Recognize Speech", prompt="",
         if (!click_to_talk) { start_recognition() }
 }
 
-window.recognize_speech = recognize_speech
+globalThis.recognize_speech = recognize_speech
 
 function start_recognition(){
        recognition.start()
 }
-window.start_recognition = start_recognition
+globalThis.start_recognition = start_recognition
 */
 
 //_______end Chrome Apps recognize_speech_______
@@ -374,7 +374,7 @@ window.start_recognition = start_recognition
     }).pipe(recognizeStream);
 }
 
-window.streamingMicRecognize = streamingMicRecognize
+globalThis.streamingMicRecognize = streamingMicRecognize
 */
 
 
@@ -397,7 +397,7 @@ But it opens in the default browser for the computer.
 (on Mac this is Apple's browser, not chrome.)
  */
 
-/* js window.open is standard js, plus returns an object
+/* js globalThis.open is standard js, plus returns an object
 that I can call win.closed(), win.focus(), win.blur(), win.print(), win.location, win.closed
 on
 
@@ -418,11 +418,11 @@ function show_page(url, options={x:0, y:0, width: 800, height: 600}){
     if (!options.width)  { options.width  = 800 } //does not allow width to be 0. Is that good? a 0 width means the window is invisible
     if (!options.height) { options.height = 600 } //does not allow width to be 0. Is that good? a 0 width means the window is invisible
     if (!options.title)  { options.title = url }
-   // window.open(url) //show_url(url) //fails in electron 1 but works in later versions
+   // globalThis.open(url) //show_url(url) //fails in electron 1 but works in later versions
     ipcRenderer.sendSync('show_page', url, options) //see main.js "show_page"
     return url
 }*/
-/* window.open fails to use its options  correctly due to Google bugs
+/* globalThis.open fails to use its options  correctly due to Google bugs
  since 2012. https://bugs.chromium.org/p/chromium/issues/detail?id=137681
  so switch back to electron solution but use it in rennder process,
  not main process.
@@ -438,9 +438,9 @@ function show_page(url, options={x:0, y:0, width: 800, height: 600}){
                       ",top="    + options.y +
                       ",width="  + options.width +
                       ",height=" + options.height
-    //window.open is documented to take a middle arg of "name" but that
+    //globalThis.open is documented to take a middle arg of "name" but that
     //looks useless for our purposes at least.
-    return window.open(url, options_str)
+    return globalThis.open(url, options_str)
 }*/
 /* return value good for:
 bw1.loadURL("http://hdrobotic.com")
@@ -489,7 +489,7 @@ function show_page(url, window_name, options={}){
         }
         window_features_str += key + "=" + val
     }
-    let windowObjectReference = window.open(url, window_name, window_features_str)
+    let windowObjectReference = globalThis.open(url, window_name, window_features_str)
     return windowObjectReference
 }
 
@@ -502,10 +502,10 @@ globalThis.show_page = show_page
 
 //https://developer.mozilla.org/en-US/docs/Web/API/Window/open
 function browse_page(url){
-  window.open(url)
+    globalThis.open(url)
 }
 
-window.browse_page = browse_page
+globalThis.browse_page = browse_page
 
 
 /*
@@ -552,12 +552,12 @@ function get_page(url_or_options){
         //onsole.log("rend get_page sync back from: " + url_or_options + " with: " + reply.substring(0, 10))
         return reply
 }
-window.get_page = get_page
+globalThis.get_page = get_page
 
 
 //returns null if it can't get the data, else an array
 //of 2 strings a la ["1.0.2, "2017-03-23T13:02:59"]
-window.latest_release_version_and_date = function(callback){
+globalThis.latest_release_version_and_date = function(callback){
     //hitting the below url from a browser works, but not programmatically
     //unless you have a header of the below usr agent.
     const browser_user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
@@ -594,7 +594,7 @@ function make_url(url, options) {
     }
     return url
 }
-window.make_url = make_url
+globalThis.make_url = make_url
 
 //hack! no good way to do this but go after an existing elt that uses
 //a particular "class" that I'm interrested in, and grab its
@@ -647,7 +647,7 @@ function set_window_frame_background_color(new_color){
                      "backgroundColor", //must use the camel cased version of the name, no dashes
                       new_color)
 }
-window.set_window_frame_background_color = set_window_frame_background_color
+globalThis.set_window_frame_background_color = set_window_frame_background_color
 
 
 function set_pane_header_background_color(new_color){
@@ -656,7 +656,7 @@ function set_pane_header_background_color(new_color){
                      "backgroundColor", //must use the camel cased version of the name, no dashes
         new_color)
 }
-window.set_pane_header_background_color = set_pane_header_background_color
+globalThis.set_pane_header_background_color = set_pane_header_background_color
 
 function set_menu_background_color(new_color){
     $(".dde_menu").css("background-color", new_color)
@@ -664,7 +664,7 @@ function set_menu_background_color(new_color){
                      "backgroundColor", //must use the camel cased version of the name, no dashes
                      new_color)
 }
-window.set_menu_background_color = set_menu_background_color
+globalThis.set_menu_background_color = set_menu_background_color
 
 function set_button_background_color(new_color){
     $("button").css("background-color", new_color)
@@ -678,26 +678,26 @@ function set_button_background_color(new_color){
         new_color)
 
 }
-window.set_button_background_color = set_button_background_color
+globalThis.set_button_background_color = set_button_background_color
 
 
 function insert_color_cb(vals){
     if(vals.clicked_button_value == "Insert Color"){
         let new_color = vals.my_color
-        if(window.insert_color_cb_remove_sharp_sign){
+        if(globalThis.insert_color_cb_remove_sharp_sign){
             new_color = new_color.substring(1)
         }
-        if (window.insert_color_cb_add_quotes) {
-            new_color = window.insert_color_cb_add_quotes + new_color +
-                        window.insert_color_cb_add_quotes
+        if (globalThis.insert_color_cb_add_quotes) {
+            new_color = globalThis.insert_color_cb_add_quotes + new_color +
+                globalThis.insert_color_cb_add_quotes
         }
         Editor.insert(new_color)
     }
 }
 
-window.insert_color_cb = insert_color_cb
-window.insert_color_cb_remove_sharp_sign = false
-window.insert_color_cb_add_quotes         = false
+globalThis.insert_color_cb = insert_color_cb
+globalThis.insert_color_cb_remove_sharp_sign = false
+globalThis.insert_color_cb_add_quotes         = false
 
 export function insert_color(){
     let orig_color = Editor.get_javascript(true).trim()
@@ -705,15 +705,15 @@ export function insert_color(){
     if (hex_color_name_maybe) { orig_color = hex_color_name_maybe}
     if (orig_color == "") { orig_color = "#FFFFFF" } //white
     if (Utils.starts_with_one_of(orig_color, ["'", '"'])) {
-        window.insert_color_cb_add_quotes =  orig_color[0]
+        globalThis.insert_color_cb_add_quotes =  orig_color[0]
         orig_color = orig_color.substring(1, orig_color.length - 1) //assume it has ending quote too
     }
-    else { window.insert_color_cb_add_quotes = false }
+    else { globalThis.insert_color_cb_add_quotes = false }
     if (Utils.starts_with_one_of(orig_color, ["#", "rgb"])) {
-        window.insert_color_cb_remove_sharp_sign = false
+        globalThis.insert_color_cb_remove_sharp_sign = false
     }
     //else { orig_color = "#" + orig_color
-    //    window.insert_color_cb_remove_sharp_sign = true
+    //    globalThis.insert_color_cb_remove_sharp_sign = true
     //}
     show_window(
         {title: "Choose a color to insert",
@@ -725,7 +725,7 @@ export function insert_color(){
             width:300, height:175, x:100, y:100,
             callback: insert_color_cb})
 }
-window.insert_color = insert_color
+globalThis.insert_color = insert_color
 
 var prompt_async_cb
 function prompt_async({title = "DDE Prompt",
@@ -757,7 +757,7 @@ doc + `<br/><input name="input" type="text" size="40" style="margin:5px;" value=
 //fixes broken Electron prompt See main.js for more code and doc
 //ue to work.
 // https://github.com/konsumer/electron-prompt claims to work, but I can't get its tricks to sep 4, 2019
-/*window.prompt = function(description="", default_value=""){
+/*globalThis.prompt = function(description="", default_value=""){
     let obj
     if(typeof(description) == "string"){
         obj = {description: description,

@@ -7,7 +7,7 @@ export function to_source_code({value, indent="", function_names=false, newObjec
                         depth_limit=100, depth=0, job_orig_args=false,
                         one_line_per_array_elt=false, array_elt_max_chars=60} = {}){
         //console.log("Object.isNewObject: " + Object.isNewObject)
-        if(window.Ammo && (value === Ammo)) { return "Ammo" } //if I let this go, it causes some infinite recursion which also happens in inspect
+        if(globalThis.Ammo && (value === Ammo)) { return "Ammo" } //if I let this go, it causes some infinite recursion which also happens in inspect
         if (!((typeof(arguments[0]) == "object") && arguments[0].hasOwnProperty("value"))){
             value = arguments[0] //so we can just do calls of to_source_code("stuf")
         }
@@ -45,8 +45,8 @@ export function to_source_code({value, indent="", function_names=false, newObjec
             let new_args = {value: value, indent: indent, depth: depth + 1} //use depth because we can potentially have infinite recursion here.
             return value.to_source_code(new_args)
         }
-        else if (value === window)     { return "window"  } //too many weird values in there and too slow so punt.
-        else if (window.Picture && Picture.is_mat(value)){ //we can't and probably shouldn't attempt to print out a readable mat here,
+        else if (value === globalThis)     { return "globalThis"  } //too many weird values in there and too slow so punt.
+        else if (globalThis.Picture && Picture.is_mat(value)){ //we can't and probably shouldn't attempt to print out a readable mat here,
                                           //so just print a string to let a user know what it is in the inspector
                                           //without this, bad bug happens when inspecting Jobs that have taken a picture and
                                           //put it in a user_data variable

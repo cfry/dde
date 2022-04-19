@@ -18,7 +18,7 @@ export class Py{
    //very much like top level out_eval_result for JS.
    static out_eval_result(text, color="#000000", src, src_label="The result of evaling Python: "){
         let existing_temp_elts = []
-        if(window["document"]){
+        if(globalThis["document"]){
             existing_temp_elts = document.querySelectorAll("#temp")
         }
         for(let temp_elt of existing_temp_elts){ temp_elt.remove() }
@@ -49,7 +49,7 @@ export class Py{
         let the_html = "<fieldset><legend><i>" + src_label  + " </i>" + src_formatted + " <i> is...</i></legend>" +  text + "</fieldset>"
         SW.append_to_output(the_html)
         //$('#js_textarea_id').focus() fails silently
-        if(window["document"]){
+        if(globalThis["document"]){
             let orig_focus_elt = document.activeElement
             if(orig_focus_elt.tagName != "BUTTON"){ //if user clicks eval button, it will be BUTTON
                 //calling focus on a button draws a rect around it, not good.

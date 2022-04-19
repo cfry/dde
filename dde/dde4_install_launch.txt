@@ -1,5 +1,5 @@
 DDE4 Install and Launch Instructions
-Fry Feb 16, 2022
+Fry Feb 16, 2022,  updated apr 15.1, 2022
 
 You can see instructions by browsing:
  https://github.com/cfry/dde/blob/dde4/dde/dde4_install_launch.txt
@@ -49,7 +49,7 @@ We want to end up with the dde4 folder containing just:
    httpd.mjs
    dde/
 
-- Launch a termimal program or Command Prompt:
+- Launch a terminal program or Command Prompt:
   On MacOS, Double click on Applications/Utilities/Terminal.app
 
 - cd (change directory) to your newly created dde4 folder.
@@ -70,8 +70,12 @@ First check to see if you need the new version of node:
        via the below instructions)
 
 - Browse: nodejs.org/dist/v16.13.1/
-  click:  node-v16.13.1-linux-armv7l.tar.xz
-  This is for Dexter's arm71 processor. Its 17Mbytes. Now in fry downloads folder.
+    click:  node-v16.13.1-linux-armv7l.tar.xz
+    This is for Dexter's arm71 processor. Its 17Mbytes. Now in fry downloads folder.
+  OR
+  Browse: https://nodejs.org/en/download/current/
+     in the Linux binaries row click "ARMv7" to download it
+     
 
 - Untar this file.
   On MacOS, double click it
@@ -82,9 +86,9 @@ First check to see if you need the new version of node:
 
      OR use winzip, winrar or 7zip application to unzip (untar) this big file.
 
-- Copy the node file to your Dexter:
+- Copy the file named "node" (possibly bin/node, about 75Mbytes)  file to your Dexter:
   First we must stop node from running on your Dexter.
-  from a termminal program:
+  from a terminal program:
   ssh root@192.168.1.142 //To ssh into Dexter From a mac terminal.
          you will be prompted for the password. Use: klg
   cd /usr/bin
@@ -109,8 +113,8 @@ First check to see if you need the new version of node:
             which should be: -rwxr-xr-x
     or
     chmod +rwxrwxrwx node
-    node &
-    to verfity that you have the new version running, enter:
+    node &   //to run node
+    to verify that you have the new version running, enter:
     node --version
      and it should give you a version 16 of node.
 
@@ -139,9 +143,13 @@ Using Cyberduck:
            build,doc,examples, etc. )
       and click the "upload" button in the lower right of the dialog box.
 
-    Now upload the file "httpd.mjs" (in the same folder as the dde that
+    Now upload the file "httpd.mjs" (the server) (in the same folder as the dde that
      you just uploaded.
-    we want to upload httpd.mjs to Dexter /srv/samba/share/www
+    we want to upload httpd.mjs into Dexter /srv/samba/share/www/
+
+    Now upload the file "jobs.html" (in the same folder as the dde that
+     you just uploaded.
+    we want to upload jobs.html into Dexter /srv/samba/share/www/
 
     in ssh,
     cd /srv/samba/share/www
@@ -168,11 +176,20 @@ __________Launching the DDE4 Server_________
    - Type in:  node www/httpd.mjs  (start the new server)
 
 ___________Starting DDE4___________
-For Server on MacOS or WinOS:
+For Server on MacOS or WinOS to launch DDE:
   - In the Chrome Web browser, browse: localhost/dde/index.html
     (stick this URL in the Favorites bar for quick launches.)
 
-For Server on Dexter:
-  - In the Chrome Web browser, browse: 192.168.1.142/dde/index.html
+For Server on Dexter to launch DDE:
+  - In the Chrome Web browser, browse: 192.168.1.142/dde/index.html 
 
 You should see the DDE4 user interface page come up.
+
+________Starting Job Engine_______
+For Server on MacOS or WinOS to launch Job Engine:
+  - In the Chrome Web browser, browse: localhost/dde/jobs.html
+
+For Server on Dexter to launch Job Engine:
+  - In the Chrome Web browser, browse: 192.168.1.142/dde/jobs.html 
+                               
+

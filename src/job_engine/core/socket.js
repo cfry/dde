@@ -341,6 +341,18 @@ class Socket{
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
                 return instruction_array_copy
             }
+            else if (name == "JointDH") {
+                let instruction_array_copy = instruction_array.slice()
+                //arg0 is param name ie JointDB, arg1 is joint number.
+                instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000)
+                instruction_array_copy[Instruction.INSTRUCTION_ARG3] =
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 3600)
+                instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000)
+                instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 3600)
+            }
             else { return instruction_array }
         }
         else if (oplet == "T") { //move_to_straight
@@ -361,6 +373,121 @@ class Socket{
             let instruction_array_copy = instruction_array.slice() //instruction array contains dur in seconds, but Dexter expects microseconds
             instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
                 Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] * Socket.DEXTER_UNITS_PER_SECOND_FOR_SLEEP) //seconds to nanoseconds
+            return instruction_array_copy
+        }
+        else { return instruction_array }
+    }
+
+    //not normally called but IS called when converting Defaults.make_ins to "high level".
+    //this fn is meant to parallel as much as possible instruction_array_degrees_to_arcseconds_maybe
+    //with degrees_to_dexter_units replaced with dexter_units_to_degrees, divides replaced by multiples, etc as makes sense
+    //this inverse version doesn't actually use its rob arg.
+    static instruction_array_arcseconds_to_degrees_maybe(instruction_array, rob){
+        if(typeof(instruction_array) == "string") { return instruction_array} //no conversion needed.
+        const oplet = instruction_array[Dexter.INSTRUCTION_TYPE]
+        let number_of_args = instruction_array.length - Instruction.INSTRUCTION_ARG0
+        if ((oplet === "a") || (oplet === "P")){
+            //take any number of angle args
+            let instruction_array_copy = instruction_array.slice()
+            let angle_args_count = instruction_array_copy.length - Instruction.INSTRUCTION_ARG0
+            for(let i = 0; i < number_of_args; i++) {
+                let index = Instruction.INSTRUCTION_ARG0 + i
+                let arg_val = instruction_array_copy[index]
+                let converted_val = this.dexter_units_to_degrees(arg_val, i + 1)
+                instruction_array_copy[index] = converted_val
+            }
+            return instruction_array_copy
+        }
+        else if (oplet === "S") {
+            const name = instruction_array[Instruction.INSTRUCTION_ARG0]
+            const args = instruction_array.slice(Instruction.INSTRUCTION_ARG1, instruction_array.length)
+            const first_arg = args[0]
+            //first convert arcseconds to degrees
+            if(["MaxSpeed", "StartSpeed", "Acceleration",
+                "AngularSpeed", "AngularSpeedStartAndEnd", "AngularAcceleration",
+                "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
+                "CartesianPivotAcceleration", "CartesianPivotStepSize" ].includes(name)){
+                let instruction_array_copy = instruction_array.slice()
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(first_arg / _nbits_cf)
+                return instruction_array_copy
+            }
+            else if (name.includes("Boundry")) { //the full name is  J1BoundryHigh thru J5BoundryHigh, or J1BoundryLow thru J5BoundryLow
+                let instruction_array_copy = instruction_array.slice()
+                let joint_number = parseInt(name[1])
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = this.dexter_units_to_degrees(first_arg, joint_number) //Math.round(first_arg * 3600) //deg to arcseconds
+                //only expecting j1 thru J5, and since j1 thru j5 are to be converted the same, just pass joint 1
+                return instruction_array_copy
+            }
+            else if (["CommandedAngles", "RawEncoderErrorLimits", "RawVelocityLimits"].includes(name)){
+                let instruction_array_copy = instruction_array.slice()
+                for(let i = Instruction.INSTRUCTION_ARG1; i <  instruction_array.length; i++){
+                    let orig_arg = instruction_array_copy[i]
+                    instruction_array_copy[i] = this.dexter_units_to_degrees(orig_arg, i + 1) // Math.round(orig_arg * 3600)
+                }
+                return instruction_array_copy
+            }
+            //dynamixel conversion
+            else if (name == "EERoll"){ //J6 no actual conversion here, but this is a convenient place
+                //to put the setting of robot.angles and is also the same fn where we convert
+                // the degrees to dynamixel units of 0.20 degrees
+                //val is in dynamixel units
+              //don't do in this fn  rob.angles[5] = this.dexter_units_to_degrees(first_arg, 6) //convert dynamixel units to degrees then shove that into rob.angles for use by subsequent relative move instructions
+                return instruction_array
+            }
+            else if (name == "EESpan") { //J7
+                //don't do in this fn  rob.angles[6] = this.dexter_units_to_degrees(first_arg, 7)
+                return instruction_array
+            }
+            //convert microns to meters
+            else if ((name.length == 5) && name.startsWith("Link")){
+                let instruction_array_copy = instruction_array.slice()
+                let new_val = Math.round(first_arg * _um) //convert from meters to microns
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
+                return instruction_array_copy
+            }
+            else if ("LinkLengths" == "name"){
+                let instruction_array_copy = instruction_array.slice()
+                for(let i = Instruction.INSTRUCTION_ARG1; i < instruction_array.length; i++){
+                    let orig_arg = instruction_array_copy[1]
+                    instruction_array_copy[i] = Math.round(orig_arg * _um)
+                }
+                return instruction_array_copy
+            }
+            else if (["CartesianSpeed", "CartesianSpeedStart", "CartesianSpeedEnd", "CartesianAcceleration",
+                "CartesianStepSize", ].includes(name)){
+                let instruction_array_copy = instruction_array.slice()
+                let new_val = Math.round(first_arg * _um) //convert from meters to microns
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
+                return instruction_array_copy
+            }
+            else if (name == "JointDH") {
+                let instruction_array_copy = instruction_array.slice()
+                //arg0 is param name ie JointDB, arg1 is joint number.
+                instruction_array_copy[Instruction.INSTRUCTION_ARG2] /= 1000
+                instruction_array_copy[Instruction.INSTRUCTION_ARG3] /= 3600
+                instruction_array_copy[Instruction.INSTRUCTION_ARG4] /= 1000
+                instruction_array_copy[Instruction.INSTRUCTION_ARG4] /= 3600
+            }
+            else { return instruction_array }
+        }
+        else if (oplet == "T") { //move_to_straight
+            let instruction_array_copy = instruction_array.slice()
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] * _um) //microns to meters
+            instruction_array_copy[Instruction.INSTRUCTION_ARG1] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG1] * _um) //microns to meters
+            instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * _um) //microns to meters
+            instruction_array_copy[Instruction.INSTRUCTION_ARG11] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG11] / 3600) //arcseconds to degrees
+            instruction_array_copy[Instruction.INSTRUCTION_ARG12] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG12] / 3600) //arcseconds to degrees
+            return instruction_array_copy
+        }
+        else if (oplet == "z") { //sleep
+            let instruction_array_copy = instruction_array.slice()
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
+                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] / Socket.DEXTER_UNITS_PER_SECOND_FOR_SLEEP) // nanoseconds to seconds
             return instruction_array_copy
         }
         else { return instruction_array }
@@ -530,6 +657,7 @@ class Socket{
         }
         else {
             Socket.convert_robot_status_to_degrees(robot_status)
+            this.handle_monitor_dexter_maybe(robot_status) //just show the measured angles in the sim pane, no extra sim
         }
 
         //the below line became unnecessary, and too complex, too hieruasic once we
@@ -656,6 +784,51 @@ class Socket{
             }
         }
         //else not g0 so no conversion
+    }
+
+    /* //robot_status has dexter units (arceconds)
+    static handle_monitor_dexter_maybe(robot_status) {
+        let job_id = robot_status[Dexter.JOB_ID]
+        let job_instance = Job.job_id_to_job_instance(job_id)
+        if(job_instance.name === "monitor_dexter"){
+            let instr_for_sim = []
+            let rs = new RobotStatus(robot_status )
+            instr_for_sim[Instruction.JOB_ID]           = rs.job_id()
+            instr_for_sim[Instruction.INSTRUCTION_ID]   = rs.instruction_id()
+            instr_for_sim[Instruction.START_TIME]       = rs.start_time()
+            //don't need or shouldn't have stop time
+            instr_for_sim[Instruction.INSTRUCTION_TYPE] = rs.instruction_type()
+            instr_for_sim[Instruction.ERROR_CODE]       = rs.error_code()
+            let meas_ang_arcseconds                = rs.measured_angles(undefined, true)
+            let j1_index_in_instruction = Instruction.INSTRUCTION_ARG0
+            for(let j_index_inc = j_index_inc; j_index_inc < 7; j_index_inc++ ){
+                let j_index_in_instruction = j1_index_in_instruction + j_index_inc
+                let J_val_in_arcseconds =
+                instr_for_sim[j_index_in_instruction] = meas_ang_arcseconds[j_index_inc]
+            }
+            let robot_name = job_instance.robot.name //warning: might not be right.
+            let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
+            if(!sim_inst) {  DexterSim.create_or_just_init(robot_name, true)}
+            setTimeout( function() { //eqiv to net_soc_inst.write(arr_buff) below.
+                DexterSim.send(robot_name, str) //dde3 used to use arr_buff for the 2nd arg.
+            }, 1)
+        }
+    }*/
+
+    static handle_monitor_dexter_maybe(robot_status) {
+        let job_id = robot_status[Dexter.JOB_ID]
+        let job_instance = Job.job_id_to_job_instance(job_id)
+        if (job_instance.name === "monitor_dexter") {
+            let rs = new RobotStatus({robot_status: robot_status})
+            let err = rs.error_code()
+            if(err !== 0){
+                warning("Job." + job_instance.name + " got back from Dexter error code: " + err)
+            }
+            else {
+                let meas_ang_degrees = rs.measured_angles(undefined, true) //array of 7 degrees
+                SimUtils.render_joints(meas_ang_degrees)
+            }
+        }
     }
 
     static close(robot_name, force_close=false){

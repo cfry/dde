@@ -62,7 +62,6 @@ export function eval_js_part1(step=false){
         src = Editor.get_javascript("auto") //if sel in editor, get it, else get whole editor
         src_comes_from_editor = true
     }
-    //let sel_obj = window.getSelection()
     else if (DocCode.selected_text_when_eval_button_clicked.length > 0) {
         src = DocCode.selected_text_when_eval_button_clicked
     }
@@ -108,7 +107,7 @@ export function eval_js_part1(step=false){
             catch(e) { dde_error("Error parsing DefEng: " + e.message) }
             //out("<code>" + src + "</code>") //don't need this as JS is printed in Output pane after "Eval result of"
         }   //must add "d ebugger" after converting DefEng to JS.
-        else if (window.HCA && (Editor.view === "HCA")){
+        else if (globalThis.HCA && (Editor.view === "HCA")){
             HCA.eval_button_action(step)
             return
         }
@@ -138,7 +137,7 @@ function render_html(str){
     out_eval_result(str, "#000000", str_for_title, "The result of rendering HTML")
 }
 
-//part 2 of 3 is in eval.js,  window.addEventListener('message'  under the message name of "eval"
+//part 2 of 3 is in eval.js,  globalThis.addEventListener('message'  under the message name of "eval"
 function eval_js_part2(command, call_eval_part3_if_no_error=true){ //2nd arg passed in as false for eval_and_play
     command = fix_code_to_be_evaled(command)
     let suffix_to_evaled_src

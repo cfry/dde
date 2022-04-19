@@ -22,7 +22,7 @@ class DocCode {
         if ($(event.target).closest("#temp").length > 0){ //we're in a temp, and if we have a selection, DON"T
           //give us click help on it because we want to select that thing, then use it in another operation
           //like Find or Eval or copy & paste. IF so, just do nothing.
-          let sel = window.getSelection()
+          let sel = globalThis.getSelection()
           if(sel.toString().length != 0) { return }
           //else get click help on it, ie do the below.
         }
@@ -38,12 +38,12 @@ class DocCode {
             //else do nothing
         }
         else {
-            full_src = window.getSelection().focusNode
+            full_src = globalThis.getSelection().focusNode
             if ((typeof(full_src) == "object") && (full_src !== null) && full_src["data"]) {
                 full_src = full_src.data
             }
             if (full_src && (full_src.length > 0)){
-                var pos      = window.getSelection().focusOffset
+                var pos      = globalThis.getSelection().focusOffset
                 if ((pos == 0) || pos) {
                     Editor.show_identifier_info(full_src, pos, event.target)
                 }
@@ -67,7 +67,7 @@ class DocCode {
             if(details_elt == "Dexter.make_ins_doc_id") { //a synonym
                details_elt = "make_ins_doc_id"
             }
-            details_elt = window[details_elt]
+            details_elt = globalThis[details_elt]
         }
         //details_elt.open = true;
         this.open_doc_elt_and_ancestors(details_elt)
@@ -129,7 +129,7 @@ class DocCode {
     //fn name might have dots in it like "Control.go_to"
     static open_doc_show_fn_def(details_elt, fn_name){
         if(typeof(details_elt) == "string"){
-            details_elt = window[details_elt]
+            details_elt = globalThis[details_elt]
         }
         if(details_elt){ this.open_doc(details_elt) } //but ignore if no doc
         else { Js_info.show_doc(fn_name, fn_name) }
@@ -283,7 +283,6 @@ class DocCode {
             DocCode.previous_active_element.parentNode.parentNode.CodeMirror){
             src = Editor.get_javascript(true) //if sel in editor, get it, else return empty string
         }
-        //let sel_obj = window.getSelection()
         else if (DocCode.selected_text_when_eval_button_clicked.length > 0) {
             src = DocCode.selected_text_when_eval_button_clicked
         }

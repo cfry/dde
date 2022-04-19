@@ -418,7 +418,7 @@ class Picture{
       }
       //if we create the video tag above, it needs some time to render.
       setTimeout(function(event){
-                    if(video_elt == undefined) {video_elt = window[video_id] } //this really
+                    if(video_elt == undefined) {video_elt = globalThis[video_id] } //this really
                        //should be unnecessary and shouldn't actually make a difference,
                        //but when the html for the video_tag is defined above
                        //the *should be* global var of video_id isn't bound yet
@@ -430,7 +430,7 @@ class Picture{
                     if (content == "webcam") {
                       if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                             navigator.mediaDevices.getUserMedia({ video: {deviceId: camera_id} }).then(function(stream) {
-                                //video_elt.src = window.URL.createObjectURL(stream);
+                                //video_elt.src = globalThis.URL.createObjectURL(stream);
                                 video_elt.srcObject = stream;
                                 if(play) {
                                     //video_elt.pause() //without this, we sometimes get an error if there is a previous video running. Shoot, this doesn't work either.
@@ -548,7 +548,7 @@ class Picture{
     //returns a boolean
     static is_mat(mat, type=null) {
          if((typeof(mat) === "object") &&
-            (typeof(window.cv) === "object") && //just in case cv is not initialized yet, don't have in screw up to_source_code and inspect
+            (typeof(globalThis.cv) === "object") && //just in case cv is not initialized yet, don't have in screw up to_source_code and inspect
              (mat instanceof cv.Mat)) {
              let mat_type = mat.type()
              switch (type) {

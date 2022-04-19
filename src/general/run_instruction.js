@@ -148,7 +148,7 @@ function onchange_run_instruction_src_aux(instr_name){
     run_instruction_params_id.style.fontSize = font_size
     run_instruction_params_id.innerHTML = instr_params
     const details_elt_name = instr_name + "_doc_id"
-    const details_elt = window[details_elt_name]
+    const details_elt = globalThis[details_elt_name]
     if (details_elt) { DocCode.open_doc(details_elt) }
 }
 
@@ -207,7 +207,7 @@ function J5_direction_to_xyz_html(){
 
 function J5_direction_to_angles_html(){
     var new_angles = [0, 0]
-    if (window.J5_direction_xyz_x_id) {
+    if (globalThis.J5_direction_xyz_x_id) {
         const xyz_array = [J5_direction_xyz_x_id.value, J5_direction_xyz_y_id.value, J5_direction_xyz_z_id.value]
         if ((xyz_array[0] == 0) && (xyz_array[1] == 0) && (xyz_array[2] == -1)){
             new_angles = [0, 0]

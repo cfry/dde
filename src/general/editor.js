@@ -1,7 +1,7 @@
 /**Created by Fry on 10/29/15.*/
 /* this has bugs. Conclusion: codemirror not really designed for npm, too many plug-ins, etc.
 so load the old fashion way in index_obsolete.html
-window.CodeMirror = require("codemirror") //now in index_obsolete.html because this didn't work
+globalThis.CodeMirror = require("codemirror") //now in index_obsolete.html because this didn't work
 require("codemirror/mode/javascript/javascript")
 //require("eslint")
 //require("codemirror/addon/lint/lint.js")
@@ -153,7 +153,7 @@ class Editor {
         //})
 
         // See https://developer.mozilla.org/en-US/docs/Web/API/WindowEventHandlers/onbeforeunload
-        window.addEventListener('beforeunload', function (e) {
+        globalThis.addEventListener('beforeunload', function (e) {
             out("in render process, save_before_quit_dde_maybe")
             if(Editor.current_buffer_needs_saving) {
                 let should_quit = confirm("The file in DDE's editor has unsaved changes.\nQuit DDE without saving it?")
@@ -226,7 +226,7 @@ class Editor {
         else     { Metrics.increment_state("Eval button clicks") }
         if(step instanceof CodeMirror) { step = false } //means Cmd E was typed in the editor and we don't want to step in this case
         if((Editor.current_file_path != "new buffer") && DDE_DB.persistent_get("save_on_eval")){
-            if (window.HCA && (Editor.view === "HCA")){
+            if (globalThis.HCA && (Editor.view === "HCA")){
                 HCA.save_current_file()
                 Editor.eval_button_action_aux(step)
                 return
@@ -459,8 +459,8 @@ class Editor {
         //the editor window sel, and therefore your attention is on that non-editor selection.
         var sel_text = ""
         //this clause catches html selection inside code and samp tags.
-        if (!window.getSelection().isCollapsed) { //got sel in doc or output pane
-             let sel_text = window.getSelection().getRangeAt(0).toString()
+        if (!globalThis.getSelection().isCollapsed) { //got sel in doc or output pane
+             let sel_text = globalThis.getSelection().getRangeAt(0).toString()
              return sel_text
         }
         //this clause catches cmd_input as well as the codemirror text area.
@@ -2641,8 +2641,8 @@ Clear its content?
                         return "probably a local variable " + Js_info.make_atag("let", "let")
                     }
                 }
-                if (window[identifier]){
-                    return "a global variable with value: " + window[identifier]
+                if (globalThis[identifier]){
+                    return "a global variable with value: " + globalThis[identifier]
                 }
             }
         }
@@ -3009,7 +3009,7 @@ globalThis.Editor = Editor
 
 /* now in init_editor to protect against being called when running in Node.
 // See https://developer.mozilla.org/en-US/docs/Web/API/WindowEventHandlers/onbeforeunload
-window.addEventListener('beforeunload', function (e) {
+globalThis.addEventListener('beforeunload', function (e) {
     out("in render process, save_before_quit_dde_maybe")
     if(Editor.current_buffer_needs_saving) {
         let should_quit = confirm("The file in DDE's editor has unsaved changes.\nQuit DDE without saving it?")

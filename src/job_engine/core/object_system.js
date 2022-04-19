@@ -15,7 +15,7 @@ function ob_sys_is_class(obj){
 
 export var Root = {name: "Root"} //"root" is an old node,js global that's been depricated but still defined. I decidd to steer clear of it by using capitalied Root.
 globalThis.Root = Root
-//window.Root = Root //if I don't to this, value_of_path fails since window["rootObjject"] fails
+//globalThis.Root = Root //if I don't to this, value_of_path fails since globalThis["rootObjject"] fails
 //rootObject.name = "rootObject" //errors if I do this. the error happens in Jquery on something
                                //that looks very unlrelated, in ready, when seting the operating_system variable.
                                //mysterious. try again once electron is up.

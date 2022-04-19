@@ -119,7 +119,7 @@ export class Js_info {
             //do this before series because we may have a keyword of "name:" and name is in the HTML series
             else if(bounds_of_identifier && (full_src[bounds_of_identifier[1]] == ":")) { //got keyword
                 let possible_id = "job_param_" + fn_name + "_doc_id"
-                if(window[possible_id]){
+                if(globalThis[possible_id]){
                     return '<a href="#" onclick="DocCode.open_doc(' + possible_id + ')">' + fn_name + '</a> is an initialization parameter for Jobs.'
                 }
                 else {
@@ -246,8 +246,8 @@ export class Js_info {
                 return "new " + Js_info.wrap_fn_name(fn_name)  + //"</span>" +
                     Utils.function_params(val)
             }
-            else if (window[fn_name]){
-                fn = window[fn_name]
+            else if (globalThis[fn_name]){
+                fn = globalThis[fn_name]
                 if (fn && fn.toString && fn.toString().includes("[native code]")){ //catches at least a high percent of built0in js fns
                     let url = "https://developer.mozilla.org/en-US/docs/Web/API/Window/" + fn_name
                     return Js_info.make_atag("window", fn_name, url) + "(" + Js_info.get_param_string(fn) + ")"
@@ -341,7 +341,7 @@ export class Js_info {
             else { //last ditch effort
                 val = value_of_path(fn_name)
                 let doc_id_string = fn_name + "_doc_id"
-                let doc_id_elt = window[doc_id_string]
+                let doc_id_elt = globalThis[doc_id_string]
                 if ((val === undefined) && (doc_id_elt === undefined)){
                     let lit_string_info_maybe = Js_info.get_lit_string_info_maybe(fn_name, full_src, pos)
                     if(lit_string_info_maybe) { return lit_string_info_maybe }
@@ -751,7 +751,7 @@ export class Js_info {
             return  "Base: <code>" + unity_abbrev +
                     "</code> for " + unit_full_name +
                     ": <code style='color:blue;'>" + fn_name +
-                    "</code> = " + window[fn_name] +
+                    "</code> = " + globalThis[fn_name] +
                     "&nbsp; <code>" + pluralize_full_unit_name(unit_full_name) + "*" + fn_name +
                     " => " + pluralize_full_unit_name(unity_full_name) +
                     "</code>"
@@ -763,7 +763,7 @@ export class Js_info {
     static wrap_fn_name(fn_name, the_doc_id, title=""){
         let result = fn_name
         if(!the_doc_id) { the_doc_id = fn_name + "_doc_id"}
-        if (!window[the_doc_id]){ the_doc_id = "" } //no doc
+        if (!globalThis[the_doc_id]){ the_doc_id = "" } //no doc
         let onclick_val = "DocCode.open_doc_show_fn_def('" + the_doc_id + "', '" + fn_name + "')"
         let the_html = make_html("a", {href: "#", onclick: onclick_val, title: title}, fn_name)
         return the_html
@@ -797,7 +797,7 @@ export class Js_info {
 
     static make_atag(the_class, fn_name, url){
         //setTimeout(function(){
-        //            if(window["js_doc_link_id"]) { //intermittently, this is not defined and thus errors. So if its
+        //            if(globalThis["js_doc_link_id"]) { //intermittently, this is not defined and thus errors. So if its
                         //undefined, just don't set the onclick. Not great but better than erroring
                         //and usually the user doesn't click on the click-help link anyway.
         //                js_doc_link_id.onclick=function(){Js_info.show_doc(the_class, fn_name, url)}
@@ -891,8 +891,8 @@ export class Js_info {
                    fn_name
         }
         if (!url) { return false }
-        else if (url.endsWith("_doc_id")) { DocCode.open_doc(window[url]); return true; }
-        else                              { show_page(url); return true; } //window.open(url, "js_doc")
+        else if (url.endsWith("_doc_id")) { DocCode.open_doc(globalThis[url]); return true; }
+        else                              { show_page(url); return true; } //globalThis.open(url, "js_doc")
     }
     static object_to_inspect_maybe(fn_name, series){
         if(series.id == "series_literal_string_id"){

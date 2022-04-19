@@ -312,7 +312,7 @@ export var DDE_NPM = class DDE_NPM {
     }
 
     static show_ui_really(pkg_name = ""){
-        if(window.pkg_name_id) {
+        if(globalThis.pkg_name_id) {
             pkg_name_id.value = pkg_name
         }
         else {

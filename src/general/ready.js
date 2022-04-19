@@ -90,7 +90,7 @@ import "./series.js"    //now Series is global
 
 import "./dde_video"  //makes DDEVideo global
 import "../simulator/simulate.js" //makes class Simulate global
-import "../simulator/simutils.js" //makes class SimUtils global
+//import "../simulator/simutils.js" //makes class SimUtils global
 import "../simulator/simbuild.js" //makes class SimBuild global
 
 import "./inspect.js" //defines inspect & inspect_out globally
@@ -178,7 +178,7 @@ function adjust_animation(){
 //from https://stackoverflow.com/questions/6562727/is-there-a-function-to-deselect-all-text-using-javascript
 //pretty useless as doesn't clear selection in cmd input.
 function clearSelection(){
-    if (window.getSelection) {window.getSelection().removeAllRanges();}
+    if (globalThis.getSelection) {globalThis.getSelection().removeAllRanges();}
     else if (document.selection) {document.selection.empty();}
 }
 
@@ -206,27 +206,27 @@ export function on_ready() {
     set_operating_system()
     //globalThis.semver = semver
     //const remote = require("electron").remote
-    //window.dde_apps_folder //todo = convert_backslashes_to_slashes(remote.getGlobal("dde_apps_folder"))
+    //globalThis.dde_apps_folder //todo = convert_backslashes_to_slashes(remote.getGlobal("dde_apps_folder"))
    // DDEFile.init() //actually not needed ...
-    //console.log("In renderer dde_apps_folder: " + window.dde_apps_folder)
+    //console.log("In renderer dde_apps_folder: " + globalThis.dde_apps_folder)
     //console.log("In renderer appPath: "      + remote.app.getAppPath())//probably not in dde4
     //console.log("In renderer __dirname: "    + __dirname)//dde4 todo
     //require('fs-lock')({
     //   'file_accessdir': [__dirname, dde_apps_folder], //for readFile, etc. but must include __dirname since Electron needs it.
     //    'open_basedir':   [__dirname ] //__direname is the folder this app is installed in. //valid folders to get require's from. /usr/local/share/node_modules',
     //}) //restrict file access
-    //window.fs = require('fs')
+    //globalThis.fs = require('fs')
 
 
     globalThis.platform = "dde" //the job engine sets this to "node"
 
     //serial_port_init() //now does nothing, No longer necessary to use serial port.
-    //window.Root      = Root //should work but doesn't jan 13, 2019
+    //globalThis.Root      = Root //should work but doesn't jan 13, 2019
 
     init_job_engine()
 
     setTimeout(function(){
-        window.document.title = "Dexter Development Environment " + dde_version
+        globalThis.document.title = "Dexter Development Environment " + dde_version
         //dde_version_id.innerHTML      = dde_version //do this by hand because these matic values are NOT getting display in this doc's version on hdrobotic.com/software
         //dde_release_date_id.innerHTML = dde_release_date
     }, 1000)
@@ -343,7 +343,7 @@ export function on_ready() {
         cmd_input_id.focus()
     })
     //cmd_input_id.onblur = function(){
-    //        window.getSelection().collapse(cmd_input_id)
+    //        globalThis.getSelection().collapse(cmd_input_id)
     //}
 
     ////cmd_input_clicked_on_last = false //todo probably remove as not read anywhere global var. Also set below and by Editor.init_editor
@@ -447,14 +447,14 @@ export function on_ready() {
 
     //click help for all text inside the code tag (white).
     $('code').click(function(event) {
-                         const full_src = window.getSelection().focusNode.data
-                         const pos      = window.getSelection().focusOffset
+                         const full_src = globalThis.getSelection().focusNode.data
+                         const pos      = globalThis.getSelection().focusOffset
                          Editor.show_identifier_info(full_src, pos)
                     })
         //for results of code examples.
     $('samp').click(function(event) {
-                        const full_src = window.getSelection().focusNode.data
-                        const pos      = window.getSelection().focusOffset
+                        const full_src = globalThis.getSelection().focusNode.data
+                        const pos      = globalThis.getSelection().focusOffset
                         Editor.show_identifier_info(full_src, pos)
     })
 
@@ -517,7 +517,7 @@ export function on_ready() {
  //File Menu
 
  new_id.onclick = function() {
-     if (window.HCA && (Editor.view === "HCA")){
+     if (globalThis.HCA && (Editor.view === "HCA")){
          HCA.clear()
          Editor.add_path_to_files_menu("new buffer")
      }
@@ -531,7 +531,7 @@ export function on_ready() {
      let orig_path = Editor.current_file_path
      const inner_path = e.target.value //could be "new buffer" or an actual file
      const path = Editor.files_menu_path_to_path(inner_path)
-     if (window.HCA && (Editor.view === "HCA")){
+     if (globalThis.HCA && (Editor.view === "HCA")){
          try{
              HCA.edit_file(path)
          }
@@ -546,7 +546,7 @@ export function on_ready() {
  }
 
  open_id.onclick = function(){
-     if (window.HCA && (Editor.view === "HCA")){
+     if (globalThis.HCA && (Editor.view === "HCA")){
          const path = choose_file({title: "Choose a file to edit", properties: ['openFile']})
          if (path){
              try{
@@ -574,7 +574,7 @@ export function on_ready() {
  //open_system_file_id.onclick = Editor.open_system_file
 
  load_file_id.onclick=function(e) {
-     if (window.HCA && (Editor.view === "HCA")){
+     if (globalThis.HCA && (Editor.view === "HCA")){
          HCA.load_node_definition()
      }
      else { //presume JS
@@ -647,7 +647,7 @@ export function on_ready() {
  }
 
  save_id.onclick = function() {
-     if (window.HCA && (Editor.view === "HCA")){
+     if (globalThis.HCA && (Editor.view === "HCA")){
          if (Editor.current_file_path == "new buffer"){
              HCA.save_as()
          }
@@ -662,7 +662,7 @@ export function on_ready() {
  Editor.set_menu_string(save_id, "Save", "s")
 
  save_as_id.onclick = function(){
-     if (window.HCA && (Editor.view === "HCA")){
+     if (globalThis.HCA && (Editor.view === "HCA")){
          HCA.save_as()
      }
      else {
@@ -726,8 +726,8 @@ insert_color_id.onclick = insert_color
                                                       'show_window({\n' +
                                                                '    content: "hi",      // Any HTML OK here.\n' +
                                                                '    title: "Greetings", // Appears above the content. Any HTML OK.\n' +
-                                                               '    width: 180, // 100 to window.outerWidth\n' +
-                                                               '    height: 70, //  50 to window.outerHeight\n' +
+                                                               '    width: 180, // 100 to globalThis.outerWidth\n' +
+                                                               '    height: 70, //  50 to globalThis.outerHeight\n' +
                                                                "    x: 0,       // Distance from left of DDE window to this window's left\n" +
                                                                "    y: 100,     // Distance from top  of DDE window to this window's top\n" +
                                                                '    is_modal: false, // If true, prevents you from interacting with other windows. Default false.\n' +
@@ -744,15 +744,15 @@ insert_color_id.onclick = insert_color
 function count_up(vals){ //vals contains name-value pairs for each
                       //html elt in show_window's content with a name.
  if(vals.clicked_button_value == "Count"){ // Clicked button value holds the name of the clicked button.
-     if(window.demo_counter == undefined) {
-         window.demo_counter = 10           // Initialize the demo_counter global variable.
+     if(globalThis.demo_counter == undefined) {
+         globalThis.demo_counter = 10           // Initialize the demo_counter global variable.
      }
-     window.demo_counter = window.demo_counter + 1 // Increment demo_counter upon each button click.
+     globalThis.demo_counter = globalThis.demo_counter + 1 // Increment demo_counter upon each button click.
      count_id.innerHTML = window.demo_counter
      count_id.style["font-size"] = demo_counter + "px"
  }
  else if (vals.clicked_button_value == "Done"){   // When a 'submit' button is clicked, its 'value' can be used as its name.
-     out("outta here at: " + window.demo_counter) // Last thing printed to the Output pane.
+     out("outta here at: " + globalThis.demo_counter) // Last thing printed to the Output pane.
  }
 }\n` +
 'show_window({\n' +
@@ -971,7 +971,7 @@ show_window({
 
 //SVG Example 2: draw circle then move it to clicked position.
 function handle2 (vals){
-    if(window.c_id) {
+    if(globalThis.c_id) {
         set_in_ui("c_id.cx", vals.offsetX)
         set_in_ui("c_id.cy", vals.offsetY)
     }
@@ -1232,7 +1232,7 @@ window_modify_id.onclick=function(){Editor.insert(
                                                  //poitions the top of the elt at the top of the pane, which is good.
                    //d ebugging_id.scrollIntoView({behavior:"smooth"});//doesn't  smooth scroll in chrome
                    //$("#d ebugging_id").parent().animate({scrollTop: $("#debugging_id").offset().top}, 1000) //doesn't work
-                    } //fails: window.open("chrome://inspect/#apps")
+                    } //fails: globalThis.open("chrome://inspect/#apps")
     console_log_id.onclick     = function(){Editor.wrap_around_selection("console.log(", ")", '"Hello"')}
 
     step_instructions_id.onclick = function(){
@@ -1480,6 +1480,28 @@ window_modify_id.onclick=function(){Editor.insert(
       //starts a job to reboot Dexter.
       reboot_dexter_id.onclick = function(){
           Dexter.default.reboot_dexter()
+      }
+
+      render_joints_id.onclick = function(){
+          let src = Editor.get_any_selection()
+          if(src){
+              out("rendering: " + src)
+              try {
+                  let joint_arr_maybe = globalThis.eval(src)
+                  if(Array.isArray(joint_arr_maybe)){
+                      SimUtils.render_joints(joint_arr_maybe)
+                  }
+                  else {
+                      warning(src + " did not evaluate to an array of joint angles.")
+                  }
+              }
+              catch(err){
+                  warning(src + " did not evaluate to an array of joint angles.")
+              }
+          }
+          else {
+              warning("To render joints you must select some text in the editor pane that indicates an array of joint angles.")
+          }
       }
 
       show_errors_log_id.onclick = function(){
@@ -1876,7 +1898,7 @@ function quit_dde(){
 function email_bug_report(){
     let subj = "DDE Suggestion " + Utils.date_to_human_string()
     let bod  = encodeURIComponent(make_dde_status_report())
-    window.open("mailto:cfry@hdrobotic.com?subject=" + subj + "&body=" + bod)
+    globalThis.open("mailto:cfry@hdrobotic.com?subject=" + subj + "&body=" + bod)
 }
 console.log("bottom of ready.js")
 on_ready()

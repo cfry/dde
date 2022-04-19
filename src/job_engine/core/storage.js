@@ -38,7 +38,7 @@ function get_persistent_values_defaults() {
             "kiosk": false,
             "ssh_show_password": false,
             "dont_show_splash_screen_on_launch": false,
-            "splash_screen_tutorial_labels": (window.SplashScreen ? SplashScreen.splash_screen_tutorial_labels() : [])
+            "splash_screen_tutorial_labels": (globalThis.SplashScreen ? SplashScreen.splash_screen_tutorial_labels() : [])
            }
 }
 //ensures that dde_apps folder exists, that dde_persistent.json, and
@@ -1006,7 +1006,7 @@ export function node_server_supports_editor(dexter_instance){
         let resolved_path = resolved_paths[resolved_paths_index]
         let content = contents[resolved_paths_index]
         out("loading file: " + resolved_path, "green")
-        result = window.eval(content)
+        result = glogalThis..eval(content)
     }
     return result
 }*/
@@ -1061,7 +1061,7 @@ export function load_files(...paths) {
         let resolved_path = resolved_paths[resolved_paths_index]
         let content = contents[resolved_paths_index]
         out("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loading file: " + resolved_path, "green")
-          //the commented out code below uses window.eval(content), which returns the value of the
+          //the commented out code below uses globalThis.eval(content), which returns the value of the
           // last epxression in the file much less often than eval_js_part2, so use eval_js_part2 instead.
           //I must use eval and not eval_js_part2 because the later is not in core/job engine s
           //so that prevents loadiing files in job engine, which is a show stopper.
@@ -1073,7 +1073,7 @@ export function load_files(...paths) {
                 result = "Loading Python files doesn't return a result."
             }
             else {
-                result = window.eval(content)
+                result = globalThis.eval(content)
             }
             window["loading_file"] = prev_loading_file
         }

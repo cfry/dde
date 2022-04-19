@@ -351,11 +351,11 @@ class MiRecord {
         if(!this.is_job_in_mi_dialog()){
             MakeInstruction.update_instruction_name_and_args("new Job")
             let si_elt = MakeInstruction.arg_name_to_dom_elt_id("show_instructions")
-            si_elt = window[si_elt]
+            si_elt = globalThis[si_elt]
             si_elt.value = "false"
         }
         else {
-            window[MakeInstruction.arg_name_to_dom_elt_id("do_list")].value = "[]" //just cosmetic to let users
+            globalThis[MakeInstruction.arg_name_to_dom_elt_id("do_list")].value = "[]" //just cosmetic to let users
             // know we're creating a new recording when the user clicks the record button.
             //the do_list will be replaced when user click the record button to stop recording.
         }
@@ -367,7 +367,7 @@ class MiRecord {
                 sim_pane_content_id.scrollTop = 0
                 MakeInstruction.set_border_color_of_arg("name", "red")
                 let id = MakeInstruction.arg_name_to_dom_elt_id("name")
-                let elt = window[id]
+                let elt = globalThis[id]
                 elt.focus() //hmm, not working. maybe because doc pane is scrolling to the Job doc???
                 elt.setSelectionRange(1, 1) //set cursor to between the two quote chars.
                 out("The name in the Job field is an empty string.<br/>" +
@@ -384,7 +384,7 @@ class MiRecord {
             sim_pane_content_id.scrollTop = 0
             MakeInstruction.set_border_color_of_arg("name", "red")
             let id = MakeInstruction.arg_name_to_dom_elt_id("name")
-            let elt = window[id]
+            let elt = globalThis[id]
             elt.focus()
             MakeInstruction.set_border_color_of_arg("name", "red")
             dde_error("The name in the Job field, <code>&nbsp;" + elt.value + "&nbsp;</code>, is not a literal string.<br/>" +
@@ -568,9 +568,9 @@ class MiRecord {
         //do_list_src = Utils.replace_substrings(do_list_src, "],", "],\n")
         do_list_src += "]"
         let do_list_elt_id = MakeInstruction.arg_name_to_dom_elt_id("do_list")
-        window[do_list_elt_id].value = do_list_src
+        globalThis[do_list_elt_id].value = do_list_src
         let dur_in_sec = (MiRecord.stop_time_in_ms - MiRecord.start_time_in_ms) / 1000
-        let inter_do_item_dur_elt = window[MakeInstruction.arg_name_to_dom_elt_id("inter_do_item_dur")]
+        let inter_do_item_dur_elt = globalThis[MakeInstruction.arg_name_to_dom_elt_id("inter_do_item_dur")]
 
         //now set inter_do_item_dur in the job that represents this recording.
         let sent_inst_array = Job.mi_record.sent_instructions
@@ -662,7 +662,7 @@ class MiRecord {
         if(!(job_instance instanceof Job) || !job_instance.do_list || (job_instance !== MiState.job_instance)) {
             let inst_src = MakeInstruction.dialog_to_instruction_src(true)
             if (inst_src == null) { return false } //error message has already been printed by dialog_to_instruction_src
-            try { job_instance = window.eval(inst_src) }
+            try { job_instance = globalThis.eval(inst_src) }
             catch(err){ //this should rarely happen because dialog_to_instruction_src catches most bad args.
                 warning("The job in the dialog is invalid with:<br/>" +
                     err.message)
@@ -1098,7 +1098,7 @@ class MiRecord {
            if(!(job_instance instanceof Job) || !job_instance.do_list || (job_instance !== MiState.job_instance)) {
                let do_list_src = MakeInstruction.arg_name_to_src_in_mi_dialog("do_list")
                try {
-                    let do_list = window.eval(do_list_src)
+                    let do_list = globalThis.eval(do_list_src)
                     max_loc = do_list.length
                }
                catch(err){ //this should rarely happen because dialog_to_instruction_src catches most bad args.
@@ -1341,7 +1341,7 @@ class MiRecord {
                 warning("There are no instructions in the do_list to delete.")
                 return
             }
-            let do_list_src = window[do_list_elt_id].value.trim()
+            let do_list_src = globalThis[do_list_elt_id].value.trim()
             if(do_list_src == "") {
                 warning("There are no instructions in the do_list to delete.")
                 return

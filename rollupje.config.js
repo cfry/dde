@@ -32,7 +32,7 @@ export default {
     },
     output: {
         //name: "dde4_job_engine", //not sure if this is used for anything
-        file: 'dde/build/bundleje.js',
+        file: 'dde/build/bundleje.mjs',
         format: 'es', //could also be 'iife' and 'umd'
         sourcemap: true
     }

@@ -8,7 +8,7 @@ export var PatchDDE = class PatchDDE {
     */
     static init(){
         this.dde_2_to_3_path  = __dirname + "/user_tools/dde_2_to_3.dde"
-        let the_apps_folder = (window.dde_apps_folder ? dde_apps_folder : dde_apps_dir) // so this can run in LTS
+        let the_apps_folder = (globalThis.dde_apps_folder ? dde_apps_folder : dde_apps_dir) // so this can run in LTS
         let index = the_apps_folder.lastIndexOf("/")
         this.dde_patch_folder = dde_apps_folder.substring(0, index) + "/dde_patches/patches_for_" + dde_version
         try{
@@ -106,7 +106,7 @@ export var PatchDDE = class PatchDDE {
         PatchDDE.dde_2_to_3_loaded = true
     }
     static show_dde_2_to_3(){
-        let read_fn = (window.read_file ? read_file : file_ccontent)
+        let read_fn = (globalThis.read_file ? read_file : file_ccontent)
         let src = read_fn(__dirname + "/user_tools/dde_2_to_3.dde")
         out("<pre><code>" + src + "</code></pre>")
     }
@@ -289,12 +289,12 @@ export var PatchDDE = class PatchDDE {
  }
 
  User might add to top of their dde_init.js
- if(window.PatchDDE) {
+ if(globalThis.PatchDDE) {
     PatchDDE.load_dde_2_to_3()
  }
 
  add to default dde_init.js, under  load_dde_2_to_3 if its there:
- if(window.PatchDDE) {
+ if(globalThis.PatchDDE) {
    PatchDDE.download()
    PatchDDE.load()
 }

@@ -53,7 +53,7 @@ class RobotStatusDialog{
     }
 
     static window_up(){
-        return (window.update_robot_status_names_select_id ? true : false)
+        return (globalThis.update_robot_status_names_select_id ? true : false)
     }
 
     static close_window(){
@@ -141,7 +141,7 @@ class RobotStatusDialog{
                         if(RobotStatus.is_other_status_mode(sm)) {
                             val_prefix = "<b>" + i + "</b>: "
                         }
-                        window[elt_name].innerHTML = val_prefix + val
+                        globalThis[elt_name].innerHTML = val_prefix + val
                     }
                 }
                 if(robot_status){
@@ -149,7 +149,7 @@ class RobotStatusDialog{
                     START_TIME_id.title = Utils.date_integer_to_long_string(robot_status[Dexter.START_TIME])
                     STOP_TIME_id.title  = Utils.date_integer_to_long_string(robot_status[Dexter.STOP_TIME])
                     INSTRUCTION_TYPE_id.title = Robot.instruction_type_to_function_name(robot_status[Dexter.INSTRUCTION_TYPE])
-                    if(window["MEASURED_X_id"]) {
+                    if(globalThis["MEASURED_X_id"]) {
                         let xyz
                         if(robot.rs) { xyz = robot.rs.xyz()[0] }  //gets xyz array for joint 5}
                         else { xyz = ["N/A", "N/A", "N/A"] }
@@ -162,7 +162,7 @@ class RobotStatusDialog{
                     START_TIME_id.title = "No jobs run on this robot yet."
                     STOP_TIME_id.title  = "No jobs run on this robot yet."
                     INSTRUCTION_TYPE_id.title = "No jobs run on this robot yet."
-                    if(window["MEASURED_X_id"]) {
+                    if(globalThis["MEASURED_X_id"]) {
                         MEASURED_X_id.innerHTML = "no status"
                         MEASURED_Y_id.innerHTML = "no status"
                         MEASURED_Z_id.innerHTML = "no status"

@@ -247,17 +247,18 @@ class Job{
     //warning might be a empty array
     static async instances_in_file(path_name){
         let base_id_before_new_defs = Job.job_id_base
-        let result = []
         try{ await DDEFile.load_file(path_name) }
         catch(err) {
             dde_error("In Job.instances_in_file, evaling the content of path name: " + path_name +
-                      " errored with: " + err.message)
+                      " errored with: " + err.message + "<br/> " + err.toString())
         }
+        let result = []
         for(let i = base_id_before_new_defs + 1; true; i++){
             let inst_maybe = Job.job_id_to_job_instance(i)  //returns null if no exist
             if(inst_maybe) { result.push(inst_maybe) }
             else { break; }
         }
+        console.log("instances_in_file made result: " + result)
         return result
     }
 
@@ -350,6 +351,7 @@ class Job{
     //relavent in Messaging, dexter_user_interface2, instruction start_job, and maybe a few more places.
     static async define_and_start_job(job_file_path){
         let job_instances = await Job.instances_in_file(job_file_path)
+        console.log("NEW in Job.instances_in_file got job_instances:" + job_instances)
         if(job_instances.length == 0) {
             warning("Could not find a Job definition in the file: " + job_file_path)
             if((platform === "node") && !globalThis.keep_alive_value){
@@ -359,6 +361,8 @@ class Job{
             }
         }
         else {
+            console.log("now starting job: " + job_instances[0].name)
+            debugger;
             job_instances[0].start()
         }
     }
@@ -422,7 +426,7 @@ class Job{
 
     //Called by user to start the job and "reinitialize" a stopped job
     start(options={}){  //sent_from_job = null
-        //out("Top of Job." + this.name + ".start()")
+        out("Top of Job." + this.name + ".start()")
         let the_active_job_with_robot_maybe = Job.active_job_with_robot(this.robot) //could be null.
             //must do this before setting status_code to "starting".
             //there can only be one Job trying to use a Dexter. (at least as the Job's main robot.)
@@ -453,7 +457,7 @@ class Job{
            !early_start_if_robot_busy &&
            this.robot.is_busy()) {
                 let one_active_job = this.robot.busy_job_array[0]
-                let but_elt = window[one_active_job.name + "_job_button_id"]
+                let but_elt = globalThis[one_active_job.name + "_job_button_id"]
                 this.stop_for_reason("errored", "Another job: " + one_active_job.name +
                                       " is using robot: " + this.robot.name)
                 if(but_elt){
@@ -582,7 +586,7 @@ class Job{
             this.condition_when_stopped = null
 
             this.show_progress_maybe()
-            //console.log('calling robot.start from job.start')
+            console.log('calling robot.start from job.start')
             //out("Bottom of Job." + this.name + ".start() calling " + this.robot.name + ".start()")
             this.robot.start(this) //the only call to robot.start
             return this
@@ -806,13 +810,13 @@ class Job{
 
     get_job_button(){
         const the_id = this.get_job_button_id()
-        var but_elt = window[the_id]
+        var but_elt = globalThis[the_id]
         return but_elt
     }
 
     get_job_button_wrapper(){
         const the_id = this.get_job_button_wrapper_id()
-        var but_elt = window[the_id]
+        var but_elt = globalThis[the_id]
         return but_elt
     }
 
@@ -840,11 +844,11 @@ class Job{
                                 "' title='Inspect this job'>&#9432;</span></div>"
             jobs_button_bar_id.append(wrapper) //.firstChild)
 
-            but_elt = window[the_id]
+            but_elt = globalThis[the_id]
             but_elt.onclick = function(event){
                 const job_instance = Job[job_name]
                 //if(job_instance.status_code === "starting") { return } //user probably "double clicked" on a job
-                if(window["Metrics"]) { Metrics.increment_state("Job button clicks") }
+                if(globalThis["Metrics"]) { Metrics.increment_state("Job button clicks") }
                 event.target.blur() //gets rid of dark border around button and because its
                 //not focused, pressing the space or ENTER key doesn't do something strange
                 //like an extra button click.
@@ -1039,7 +1043,7 @@ class Job{
             if(!but_elt){ return }
             if (but_elt.style.backgroundColor !== bg_color) { //cut down the "jitter" in the culor, don't set unnecessarily
                 but_elt.style.backgroundColor = bg_color
-                if((this.name === "rs_update") && window.robot_status_run_update_job_button_id){
+                if((this.name === "rs_update") && globalThis.robot_status_run_update_job_button_id){
                     robot_status_run_update_job_button_id.style.backgroundColor = bg_color
                 }
             }
@@ -1726,11 +1730,11 @@ Job.prototype.stop_for_reason = function(condition_when_stopped="interrupted", /
                            200) //we give the job a chance to finish. the job is not expected to be running the do_list
             }
         }
-        else if((this.name == "dex_read_file") && (this.status_code == "errored") && window.Editor){
+        else if((this.name == "dex_read_file") && (this.status_code == "errored") && globalThis.Editor){
             //this special case needed because if we attempt to Dexter.read_file with sim= real and
             // we're not connected to the Dexter, we get a connection error, which
             // will call stop_for_reason but not finish.
-            // window.Editor will be undefined in Node, so ok to have this code when running job engine on dexter.
+            // globalThis.Editor will be undefined in Node, so ok to have this code when running job engine on dexter.
             Editor.set_files_menu_to_path() //restore files menu to what it was before we tried to get the file off of dexter.
         }
     }
@@ -1877,7 +1881,7 @@ Job.set_go_button_state = function(bool){
 }
 
 Job.go = function(){
-    //if(window.dui2 && dui2.instances.length > 0) { dui2.go_button_click_action()}
+    //if(globalThis.dui2 && dui2.instances.length > 0) { dui2.go_button_click_action()}
     if (Job.go_button_state){
         let any_active_jobs = false
         for(let a_job of Job.all_jobs()){
@@ -2013,7 +2017,8 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     //if (this.show_instructions){ onsole.log("Top of do_next_item in job: " + this.name + " with PC: " + this.program_counter)}
     //onsole.log("top of do_next_item with pc: " + this.program_counter)
     //out(this.name + " do_next_item top ")
-    if(window["js_debugger_checkbox_id"] && js_debugger_checkbox_id.checked) {
+    console.log("top of do_next_item 2")
+    if(globalThis.js_debugger_checkbox_id && js_debugger_checkbox_id.checked) {
         //the print help statements are here so that they get called both when
         //the user checks the checkbox, AND when Control.debugger instruction is run.
         out("To stop debugging, Eval: <code>undebug_job()</code> in Dev Tools console and click the big blue arrow.")
@@ -2021,8 +2026,10 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         console.log("To stop debugging, Eval:   undebug_job()   and click the big blue arrow, ")
     }
     let ending_pc = this.instruction_location_to_id(this.ending_program_counter) //we end BEFORE executing the ending_pcm we don't execute the instr at the ending pc if any
+    console.log("near top of do_next_item with status_code: " + this.status_code)
 
     if (["completed", "errored", "interrupted"].includes(this.status_code)){//put before the wait until instruction_id because interrupted is the user wanting to halt, regardless of pending instructions.
+        console.log("do_next_item about to call finish_job")
         this.finish_job()
         return
     }
@@ -2059,7 +2066,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     }
 
     else if (this.program_counter >= ending_pc) {  //this.do_list.length
-             //the normal stop case
+        console.log("do_next_item the normal stop case ")
         if (this.when_do_list_done == "wait") { //we're in a loop waiting for the next instruction.
             //this.color_job_button() //too expensive and unnecessary as color set elsewhere
             if((this.status_code === "waiting") &&
@@ -2099,6 +2106,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         else { this.finish_job() }
         return
     }
+    console.log("in do_next_item top of fn semantic body")
     //body of the fn.
     //regardless of whether we're in an iter or not, do the item at pc. (might or might not
     //have been just inserted by the above).
@@ -2109,6 +2117,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
           this.set_status_code("running")
       }
       let cur_do_item = this.current_instruction()
+      console.log("in do_next_item with cur_do_item: " + cur_do_item)
       try {
         //out(this.name + " do_next_item cur_do_item: " + cur_do_item)
         this.show_progress_maybe()

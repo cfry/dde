@@ -66,7 +66,18 @@ class Robot {
         if      (simulate_val === true)   { return true   }
         else if (simulate_val === false)  { return false  }
         else if (simulate_val === "both") { return "both" }
-        else if (simulate_val === null)   { return DDE_DB.persistent_get("default_dexter_simulate") }
+        else if (simulate_val === null)   {
+            let result
+            if(globalThis.DDE_DB) {
+                result = DDE_DB.persistent_get("default_dexter_simulate")
+            }
+            else {
+                result = false //don't simulate
+            }
+            console.log("in get_simulate_actual passed, simulate_val: " + simulate_val +
+                        " returning: " + result)
+            return result
+        }
         else { shouldnt("get_simulate_actual passed illegal value: " + simulate_val) }
     }
 
@@ -1075,7 +1086,7 @@ class Dexter extends Robot {
     }
 
     start(job_instance){
-        //out("top of Dexter.start() for "+ job_instance.name)
+        console.log("top of Dexter.start() for "+ job_instance.name)
         //let sim_actual = Robot.get_simulate_actual(this.simulate)
         //let this_robot = this
         //let this_job   = job_instance
@@ -1126,7 +1137,7 @@ class Dexter extends Robot {
     }
 
     start_aux(job_instance) { //fill in initial robot_status
-        //out("top of Dexter.start_aux() for "+ job_instance.name)
+        console.log("top of Dexter.start_aux() for "+ job_instance.name)
         //this.processing_flush = false
         let this_robot = this
         let this_job   = job_instance
@@ -2535,40 +2546,49 @@ Dexter.LINK5_AVERAGE_DIAMETER =  0.030000 //meters
 
 //note that
 Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
+    console.log("top of set_link_lengths with robot: " + this.name +
+                 " job_to_start_when_done: " + job_to_start_when_done.name +
+                 " Link1: " + this.Link1 +
+                 " this.simulate: " + this.simulate)
+    console.log("globalThis.platform: " + globalThis.platform)
+    console.log("globalThis.platform: " + globalThis.platform)
+    console.log("DDE_DB: " + globalThis.DDE_DB)
+    //console.log("persistent_values: " + DDE_DB.persistent_values) //will error if DDE_DB is undefined as is true in job engine
     let sim_actual = Robot.get_simulate_actual(this.simulate)
+    console.log("sim_actual: " + sim_actual)
     if(job_to_start_when_done && (job_to_start_when_done.name === "set_link_lengths")) {
+        console.log("in set_link_lengths with job job_to_start_when_done of set_link_lengths")
         this.start_aux(job_to_start_when_done)
     }
     else if(!this.Link1) { //no values set since dde launch
-        if(sim_actual !== true) { //ie "real"
-            if(false) { //node_server_supports_editor(this)) { //todo dde4 uncomment, etc.
-                this.set_link_lengths_using_node_server(job_to_start_when_done)
-            }
-            else {
-                warning("Dexter." + this.name + "'s node server is not responding.<br/>" +
-                    "Setting link lengths via DDE's internal defaults.")
-                //this.set_link_lengths_using_job(job_to_start_when_done)
-                this.set_link_lengths_using_dde_db(job_to_start_when_done)
-            }
-        }
-        else { //simulating
-            this.set_link_lengths_using_dde_db(job_to_start_when_done)
-        }
-    }
-    //already set the Link lengths once, but ...
-    else if((sim_actual !== true) && //ie real
-            (this.link_lengths_set_from_dde_computer === true)) { //the only time we read link_lengths_set_from_dde_computer
-        if(false) { //node_server_supports_editor(this)) {//todo dde4 uncomment, etc.
-            this.set_link_lengths_using_node_server(job_to_start_when_done)
+        console.log("in set_link_lengths, no Link1")
+        if (sim_actual === true) {
+            this.set_link_lengths_using_dde_db()
+            this.start_aux(job_to_start_when_done)
         }
         else {
-            warning("Dexter." + this.name + "'s node server is not responding.<br/>" +
-                    "Setting link lengths via DDE's internal defaults.")
-            //this.set_link_lengths_using_job(job_to_start_when_done)
-            this.set_link_lengths_using_dde_db(job_to_start_when_done)
+            let ip = job_to_start.robot.ip_address
+            let path = ip + ":" + "/edit?edit=/srv/samba/share/Defaults.make_ins"
+            let the_dex = this
+            DDEFile.read_file_async(path, function (err, content) {
+                if (err) {
+                    the_dex.set_link_lengths_using_dde_db()
+                    the_dex.start_aux(job_to_start_when_done)
+                } else if (content) { //node_server_supports_editor(this)) {//todo dde4 uncomment, etc.
+                    the_dex.set_link_lengths_from_file_content(content)
+                    the_dex.start_aux(job_to_start_when_done)
+                } else {
+                    warning("Dexter." + this.name + "'s node server is not responding.<br/>" +
+                        "Setting link lengths via DDE's internal defaults.")
+                    //this.set_link_lengths_using_job(job_to_start_when_done)
+                    the_dex.set_link_lengths_using_dde_db()
+                    the_dex.start_aux(job_to_start_when_done)
+                }
+            })
         }
     }
     else {//link lengths already set correctly
+        console.log("link lengths already set correctly")
         this.start_aux(job_to_start_when_done)
     }
 }
@@ -2595,7 +2615,7 @@ Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start){
 }
 */
 
-Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start){
+/*Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start){
     let ip = job_to_start.robot.ip_address
     let path = "http://" + ip + "/edit?edit=/srv/samba/share/Defaults.make_ins"
                //"http://192.168.1.142/edit?edit=/srv/samba/share/Defaults.make_ins"
@@ -2614,7 +2634,29 @@ Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start){
             this.start_aux(job_to_start)
         }
     }
+}*/
+
+/* obsolete
+Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start){
+    let ip = job_to_start.robot.ip_address
+    let path = ip + ":" + "/edit?edit=/srv/samba/share/Defaults.make_ins"
+    //"http://192.168.1.142/edit?edit=/srv/samba/share/Defaults.make_ins"
+    DDE_File.read_file_async(path, function(err, content)
+    if(content.startsWith("Error: ")) {
+        warning("set_link_lengths_using_node_server with path: " + path +
+            " got error: " + content +
+            "<br/> so now setting link lengths using a DDE Job.")
+        this.set_link_lengths_using_dde_db(job_to_start) //this will deal with link_lengths_set_from_dde_computer
+    }
+    else {
+        this.set_link_lengths_from_file_content(content)
+        delete this.link_lengths_set_from_dde_computer
+        if(job_to_start) {
+            this.start_aux(job_to_start)
+        }
+    }
 }
+ */
 /*
 Dexter.prototype.set_link_lengths_using_job = function(job_to_start){
     let the_robot = this
@@ -2651,13 +2693,7 @@ Dexter.prototype.set_link_lengths_using_job = function(job_to_start){
 }
 */
 
-Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
-    /*let path = dde_apps_folder + "/dexter_file_systems/"  + this.name + "/Defaults.make_ins"
-    if(file_exists(path)) {
-        let content = read_file(path)
-        this.set_link_lengths_from_file_content(content)
-    }
-    else {*/ //todo dde4 comment in when have access to robot.
+Dexter.prototype.set_link_lengths_using_dde_db = function(){
         this.Link1 = Dexter.LINK1
         this.Link2 = Dexter.LINK2
         this.Link3 = Dexter.LINK3
@@ -2679,11 +2715,6 @@ Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
         this.J5_angle_max = Dexter.J5_ANGLE_MAX
         this.J6_angle_max = Dexter.J6_ANGLE_MAX
         this.J7_angle_max = Dexter.J7_ANGLE_MAX
-    // } //todo dde4 comment in when have access to robot.
-    this.link_lengths_set_from_dde_computer = true
-    if(job_to_start) {
-        this.start_aux(job_to_start)
-    }
 }
 
 //content is the content of a Defaults.make_ins file

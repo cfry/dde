@@ -91,6 +91,6 @@ on_ready_je()
 run_node_command(process.argv)
 
 /* example runnning of Job engine to run a job:
-node bundleje.js Job.define_and_start_job "/Users/Fry/Documents/dde_apps/just_prints.dde"
+node bundleje.mjs Job.define_and_start_job "/Users/Fry/Documents/dde_apps/just_prints.dde"
 
  */

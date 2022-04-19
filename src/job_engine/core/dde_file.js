@@ -99,10 +99,10 @@ class DDEFile {
 
     static host(){
         if(globalThis.platform === "node") {
-            return "localhost:50000"
+            return "localhost" //localhost:50000"
         }
         else {
-            return window.location.host //ex: "192.168.1.142:5000", "localhost:80"
+            return globalThis.location.host //ex: "192.168.1.142:5000", "localhost:80"
         }
     }
     /*
@@ -115,7 +115,7 @@ class DDEFile {
     //returns something like "http://localhost:80" or
     //                       "http://192.168.1.142"
     static protocol_and_host(){ //includes port
-        return window.location.protocol +  // "http:" or "https:"
+        return globalThis.location.protocol +  // "http:" or "https:"
                "//" +
                this.host()
     }
@@ -510,10 +510,14 @@ class DDEFile {
         let full_url = this.make_url(defaulted_path, "/edit?edit=")
         console.log("load_file made url: " + full_url)
         let file_info_response = await fetch(full_url)
+        console.log("load_file after 1st fetch with response: " + file_info_response.ok)
         if(file_info_response.ok) {
+            console.log("load_file got response that is OK")
             let content = await file_info_response.text()
+            console.log("load_file got content: " + content)
             let result
             try {
+                console.log("load_file top of try with: eval_js_part2: " + globalThis.eval_js_part2)
                 this.loading_file = defaulted_path
 
                 //let result = eval_js_part2(content)
@@ -521,12 +525,15 @@ class DDEFile {
                 //this.callback_or_return(callback, result.value)
 
                 let result
-                if(GlobalThis.eval_js_part2) { //we're in IDE
+                if(globalThis.eval_js_part2) { //we're in IDE
+                    console.log("load_file in clause globalThis.eval_js_part2")
                     result = eval_js_part2(content).value
                 }
                 else { //we're in node
+                    console.log("load_file in clause node")
                     result = globalThis.eval(content)
                 }
+                console.log("load_file got result: " + result)
                 this.loading_file = undefined
                 this.callback_or_return(callback, result.value)
             }

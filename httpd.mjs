@@ -1,17 +1,17 @@
 debugger;
-import http from "http"
-import https from "https"
-import url from 'url'; //url parsing
-import pkg from 'formidable'; //I have formidable v 2. see https://stackoverflow.com/questions/65368903/node-formidable-why-does-require-work-but-import-does-not
+import http      from "http"
+import https     from "https"
+import url       from 'url'; //url parsing
+import pkg       from 'formidable'; //I have formidable v 2. see https://stackoverflow.com/questions/65368903/node-formidable-why-does-require-work-but-import-does-not
 const formidable = pkg;
 
-import fs from 'fs'; //file system
-import net from 'net'; //network
-import ws from 'ws' ; //websocket
-import path from 'path';
+import fs        from 'fs'; //file system
+import net       from 'net'; //network
+import ws        from 'ws' ; //websocket
+import path      from 'path';
 import { spawn } from 'child_process'
 import ModbusRTU from "modbus-serial"
-import os from "os" //dde4 added
+import os        from "os" //dde4 added
 //import {readChunkSync} from 'read-chunk' //https://www.npmjs.com/package/read-chunk
 function readChunkSync(filePath, {length, startPosition}) {
     console.log("top of readChunkSync with filePath: " + filePath +
@@ -64,18 +64,19 @@ const { spawn } = require('child_process'); //see top of file
 //var mime = require('mime'); //translate extensions into mime types
 //skip that,it's stupidly big
 var mimeTypes = {
-  "css": "text/css",
+  "css":  "text/css",
   "html": "text/html",
-  "gif": "image/gif",
+  "gif":  "image/gif",
   "jpeg": "image/jpeg",
-  "jpg": "image/jpeg",
-  "js": "text/javascript",
-  "mp3": "audio/mpeg",
-  "mp4": "video/mp4",
-  "png": "image/png",
-  "ico": "image/x-icon",
-  "svg": "image/svg+xml",
-  "txt": "text/plain"
+  "jpg":  "image/jpeg",
+  "js":   "text/javascript",
+  "mjs":  "text/javascript", //new for dde4 https://github.com/google/WebFundamentals/issues/7549
+  "mp3":  "audio/mpeg",
+  "mp4":  "video/mp4",
+  "png":  "image/png",
+  "ico":  "image/x-icon",
+  "svg":  "image/svg+xml",
+  "txt":  "text/plain"
   };
 
 function compute_dde_apps_folder(){ //new in dde4 //todo dde4 result proably shouldn't end in slash
@@ -87,7 +88,9 @@ function compute_dde_apps_folder(){ //new in dde4 //todo dde4 result proably sho
 }
 
 function compute_dde_install_folder(){ //new in dde4 //todo dde4 result proably shouldn't end in slash
-    if(running_on_dexter()) { return '/root/Documents/dde' }
+    if(running_on_dexter()) {
+          return  SHARE_FOLDER + "/www/dde/build"  //'/root/Documents/dde'
+    }
     else {
         return os.homedir()  //example: "/Users/Fry"
             + "/WebstormProjects/dde4/dde/build"
@@ -122,7 +125,8 @@ function make_full_path(path){ //dde4 added
 //const { spawn } = require('child_process'); //see top of file
  
 var job_name_to_process = {};
-function get_job_name_to_process(job_name) { 
+function get_job_name_to_process(job_name) {
+     console.log("get_job_name_to_process passed: " + job_name)
      if(job_name_to_process.keep_alive) { //if there is such a process, then keep_alive is true
      	return job_name_to_process.keep_alive;
      }
@@ -178,6 +182,7 @@ const wss = new ws.Server({port: 3001});    //server: http_server });
 console.log("done making wss: " + wss);
 
 function serve_job_button_click(browser_socket, mess_obj){
+    debugger;
     let app_file = mess_obj.job_name_with_extension; //includes ".js" suffix 
     console.log("\n\nserve_job_button_click for:" + app_file);
     console.log("\nserve_job_button_click mess_obj:\n" + JSON.stringify(mess_obj))
@@ -191,6 +196,7 @@ function serve_job_button_click(browser_socket, mess_obj){
     console.log("job_name: " + job_name)
     let job_process = get_job_name_to_process(app_file); //warning: might be undefined.
     //let server_response = res //to help close over
+    console.log("process: " + job_process)
     if(!job_process){
         //https://nodejs.org/api/child_process.html
         //https://blog.cloudboost.io/node-js-child-process-spawn-178eaaf8e1f9
@@ -200,8 +206,9 @@ function serve_job_button_click(browser_socket, mess_obj){
         if (".dde"==app_type) { //if this is a job engine job
             cmd_line = 'node --experimental-fetch'; //then we run node
             cmd_args = // ["core define_and_start_job " + jobfile]; //orig dde3 //tell it to start the job
-                      ["bundleje.js define_and_start_job " + jobfile] //dde4
-            cmd_options = {cwd: DDE_INSTALL_FOLDER, shell: true};
+                      ["bundleje.mjs define_and_start_job " + jobfile] //dde4
+            cmd_options = {cwd: DDE_INSTALL_FOLDER,
+                           shell: true};
         }
         console.log("spawn\n    cmd_line: " + cmd_line + "\n    cmd_args: " + cmd_args + "\n    cmd_options: " + JSON.stringify(cmd_options))
         job_process = spawn(cmd_line,
@@ -233,6 +240,7 @@ function serve_job_button_click(browser_socket, mess_obj){
                                button_tooltip: "Server errored with: " + data_str,
                                button_color: "red"};
                 if (browser_socket.readyState != ws.OPEN) {job_process.kill(); return;} //maybe should be kill()?
+                browser_socket.send(data_str) //redundant but the below might not be working
                 browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>");
                 //server_response.end()
                 });
@@ -265,12 +273,13 @@ function serve_job_button_click(browser_socket, mess_obj){
           );
         }
 
-
     else {
+        console.log("in serve_job_button_click already got a process")
     	let code;
         if(job_name === "keep_alive") { //happens when transition from keep_alive box checked to unchecked
         	code = "globalThis.set_keep_alive_value(" + mess_obj.keep_alive_value + ")\n";
-        } else if (".dde" == app_type) { //job engine job
+        }
+        else if (".dde" == app_type) { //job engine job
           //code = "Job." + job_name + ".server_job_button_click()"
           //e.g. `web_socket.send(JSON.stringify({"job_name_with_extension": "dexter_message_interface.dde", "ws_message": "goodbye" }))`
             if (mess_obj.ws_message ) { // {"job_name_with_extension": jobname.dde, "ws_message": data}
@@ -282,8 +291,9 @@ function serve_job_button_click(browser_socket, mess_obj){
             }
             else {
               code = 'Job.maybe_define_and_server_job_button_click("' + jobfile + '")\n';
-              }
-        } else { // something else, probably bash
+            }
+        }
+        else { // something else, probably bash
             code = mess_obj.ws_message  + "\n";
         }
         console.log("serve_job_button_click writing to job: " + job_name + " stdin: " + code);
@@ -354,7 +364,7 @@ function serve_file(q, req, res){
         }  
         res.setHeader('Access-Control-Allow-Origin', '*');
         let mimeType = mimeTypes[ q.pathname.split(".").pop() ] || "application/octet-stream"
-        console.log("Content-Type:", mimeType)
+        console.log("              Content-Type:", mimeType)
         res.setHeader("Content-Type", mimeType);
         res.writeHead(200)
         res.write(data)

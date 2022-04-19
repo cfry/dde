@@ -11,8 +11,7 @@ globalThis.keep_alive_value = true
 import package_json from "../../package.json"
 export {package_json}
 
-import * as Espree from "espree";
-globalThis.Espree = Espree;
+import * as Espree from "espree";globalThis.Espree = Espree;
 
 import "../job_engine/core/utils.js" //defines as global class Utils, and a few of its methods such as  dde_error, rgb
 import "../job_engine/core/je_and_browser_code.js" //defines SW and out globally
@@ -41,6 +40,7 @@ import "../job_engine/core/robot.js" //now global Robot, Brain, Serial, Human, D
 import "../job_engine/core/socket.js"       //defines class Socket as global
 import "../job_engine/core/dextersim.js"    //defines class DexterSim as global
 import "../job_engine/core/simqueue.js"     //defines class Simqueue as global
+import "../job_engine/core/simutils.js"     //defines class SimUtils as global
 import "../job_engine/core/robot_status.js" //defines class RobotStatus as global
 
 import "../job_engine/core/dde_file.js" //defines class File as global

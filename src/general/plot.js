@@ -72,11 +72,11 @@ class Plot{
            (typeof(data[0]) === "number")
    }
    static is_2d_array(data) { //not any 2D array, just the special kind for a scatter plot
-     return Array.isArray(data) && 
-            data.length === 2 &&
-            (typeof(data[0][0]) === "number") &&
-            Array.isArray(data[0]) &&
-            Array.isArray(data[1])
+       return Array.isArray(data)    &&
+              data.length === 2      &&
+              Array.isArray(data[0]) &&
+              Array.isArray(data[1]) &&
+              (typeof(data[0][0]) === "number")
    }
    static is_3d_array(data) {
      return Array.isArray(data) && 

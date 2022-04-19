@@ -109,7 +109,7 @@ class Inspect{
                 html_elt_to_replace = Inspect.make_inspector_id_string(stack_number, in_stack_position)
             }
             if (typeof(html_elt_to_replace) == "string"){
-                html_elt_to_replace = window[html_elt_to_replace]
+                html_elt_to_replace = globalThis[html_elt_to_replace]
             }
             $(html_elt_to_replace).replaceWith(new_inspect_html) } //must use query repalceWith here as regular DOM replaceWith doesn't work
         else {  out_eval_result(new_inspect_html, undefined, src) }
@@ -139,7 +139,7 @@ class Inspect{
     static make_plot_button_html_maybe(stack_number, in_stack_position){
         let item = this.inspect_stacks[stack_number][in_stack_position]
         let result = ""
-        if(window.Plot) {
+        if(globalThis.Plot) {
             if(Plot.is_data_array_ok(item)) {
                 result = " <button title='Show a graph of the array.'" +
                          " style='cursor:pointer;font-size:12px;padding:2px;height:20px;'" +
@@ -596,7 +596,7 @@ class Inspect{
            }
            info += "]"
         }
-        else if (window.Ammo && (item === Ammo)) { //because JSON.stringify(Ammo) causes infinite recursion
+        else if (globalThis.Ammo && (item === Ammo)) { //because JSON.stringify(Ammo) causes infinite recursion
             info = "Ammo"
         }
         else {
@@ -771,7 +771,7 @@ class Inspect{
                         const html_elt_to_replace = $(event.target).closest(".inspector")
                         Inspect.inspect_out(item, stack_number, in_stack_position + 1, html_elt_to_replace)
                      }
-            let elts = window[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
+            let elts = globalThis[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
             // this is a very broken data structure that I can't even test for except with length
             if (elts == undefined) {
                 console.log("In Inspect.inspect_set_onclick, didn't find: " +  id_string)
@@ -793,7 +793,7 @@ class Inspect{
                     var new_in_stack_position = in_stack_position - 1
                     Inspect.inspect_out(null, stack_number, new_in_stack_position, html_elt_to_replace)
                 }
-                let elts = window[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
+                let elts = globalThis[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
                 // this is a very broken data structure that I can't even test for except with length
                 if (elts == undefined) {
                     shouldnt("In Inpsect.inspect_set_onclick, didn't find: " +  id_string)
@@ -815,7 +815,7 @@ class Inspect{
                         const html_elt_to_replace = $(event.target).closest(".inspector")
                         Inspect.inspect_out(null, stack_number, in_stack_position + 1, html_elt_to_replace)
                     }
-                    let elts = window[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
+                    let elts = globalThis[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
                     // this is a very broken data structure that I can't even test for except with length
                     if (elts == undefined) {
                         shouldnt("In Inpsect.inspect_set_onclick, didn't find: " +  id_string)
@@ -836,7 +836,7 @@ class Inspect{
                     const html_elt_to_replace = $(event.target).closest(".inspector")
                     inspect_out(null, stack_number, in_stack_position , html_elt_to_replace)
                 }
-                let elts = window[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
+                let elts = globalThis[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
                 // this is a very broken data structure that I can't even test for except with length
                 if (elts == undefined) { //could legitimately happen if user has out put "code" checked, so just do nothing
                     //shouldnt("In Inspect.inspect_set_refresh_onclick, didn't find: " +  id_string)
@@ -928,7 +928,7 @@ class Inspect{
     static inspect_set_new_object_onclick(id_string, path){
         setTimeout(function(){ //we need to wait until the html is actually rendered.
             let fn = function(){ Inspect.inspect_new_object(path) }
-            let elts = window[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
+            let elts = globalThis[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
             // this is a very broken data struture that I can't even test for except with length
             if (elts == undefined) {
                 //at least often this is not an error. One case it happens is when
@@ -945,13 +945,13 @@ class Inspect{
                 }
             }
             else { elts.onclick = fn } //only one
-            if(window.inspect_previous_value_id){
+            if(globalThis.inspect_previous_value_id){
                 Inspect.inspect_previous_value_id.onclick = inspect_previous_value
             }
             else { //will happen when inspecting the first obj
                 //console.log("inspect_previous_value_id not bound in inspect_set_new_object_onclick.")
             }
-            if(window.inspect_next_value_id) {
+            if(globalThis.inspect_next_value_id) {
                 inspect_next_value_id.onclick     = Inspect.inspect_next_value
             }
             else { //will happen when inspecting the first obj

@@ -32,7 +32,7 @@ function node_on_ready() {
     init_units()
     //see also ready.js that has this same code
     Dexter.calibrate_build_tables  = calibrate_build_tables
-    window.calibrate_build_tables = undefined
+    globalThis.calibrate_build_tables = undefined
     Dexter.prototype.calibrate_build_tables = function() {
         let result = Dexter.calibrate_build_tables()
         for(let oplet_array of result){

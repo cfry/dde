@@ -203,7 +203,7 @@ SimUtils = class SimUtils{
                            //sim.J7.rotation.y = rads
                         }
                         sim_pane_j7_id.innerHTML = j_angle_degrees_rounded
-                        if(window.SimBuild) {
+                        if(globalThis.SimBuild) {
                              SimBuild.handle_j7_change(angle_degrees, xyz, rob)
                         }
                         break;

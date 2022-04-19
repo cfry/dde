@@ -22,17 +22,17 @@ class Gamepad {
     static start_remembering_keydown(sticky=false){
         this.clear_down_keys() //always "init" when starting to remember keydown
         if(!Gamepad.is_remembering_keydown){
-            window.addEventListener("keydown", Gamepad.remember_keydown)
-            if(!sticky) { window.addEventListener("keyup",  Gamepad.remember_keyup) }
+            globalThis.addEventListener("keydown", Gamepad.remember_keydown)
+            if(!sticky) { globalThis.addEventListener("keyup",  Gamepad.remember_keyup) }
             Gamepad.is_remembering_keydown = true
         }
         else if (!sticky){
-            window.removeEventListener("keyup",   Gamepad.remember_keyup)
+            globalThis.removeEventListener("keyup",   Gamepad.remember_keyup)
         }
     }
     static stop_remembering_keydown(){
-        window.removeEventListener("keydown", Gamepad.remember_keydown)
-        window.removeEventListener("keyup",   Gamepad.remember_keyup)
+        globalThis.removeEventListener("keydown", Gamepad.remember_keydown)
+        globalThis.removeEventListener("keyup",   Gamepad.remember_keyup)
         Gamepad.is_remembering_keydown = false
     }
     //used for testing

@@ -1292,10 +1292,10 @@ Messaging.receive = function(){
     req.on('error', (err) => {
         Messaging.receive_error_callback.call(null, err)
     })
-    if(window.mess_stat_request_indicator_id){
+    if(globalThis.mess_stat_request_indicator_id){
         mess_stat_request_indicator_id.style["background-color"] = "#0F0"
         setTimeout(function(){ //turns off the green light after half  a sec.
-                    if(window.mess_stat_request_indicator_id) {
+                    if(globalThis.mess_stat_request_indicator_id) {
                         mess_stat_request_indicator_id.style["background-color"] = "#DDD"
                     }
                   }, 500)
@@ -1973,7 +1973,7 @@ Messaging.smart_append_to_sent_messages = function(mess_obj,
 
 Messaging.append_to_sent_messages = function(html){
     //text += "\n"
-    if(window["messaging_dialog_sent_messages_id"]) { //DDE and browser
+    if(globalThis["messaging_dialog_sent_messages_id"]) { //DDE and browser
         messaging_dialog_sent_messages_id.insertAdjacentHTML('beforeend', html) //output_div_id is defined in DDE and browser
         let out_height = messaging_dialog_sent_messages_id.scrollHeight
         messaging_dialog_sent_messages_id.scrollTop = out_height
@@ -2056,7 +2056,7 @@ Messaging.edit_button_action = function(type, get_result){
 
 
 Messaging.dialog_login_success = function(success=true){
-    if(window.messaging_login_button_id) { //messaging dialog is up
+    if(globalThis.messaging_login_button_id) { //messaging dialog is up
         if(success){
             messaging_login_button_id.value = "logout"
             messaging_dialog_user_id.innerHTML = Messaging.user

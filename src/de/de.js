@@ -26,7 +26,7 @@ export var DE = class DE {
 
   static eval(de_src){
       let src = this.de_to_js(de_src)
-      return window.eval(src)
+      return globalThis.eval(src)
   }
   
   static make_verb_rule_expers() { 

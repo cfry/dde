@@ -326,57 +326,59 @@ class DexterSim{
     //hacked to now create and pass to on_receive a full robot status
     //payload_string_maybe might be undefined, a string payload or an error number positive int.
     ack_reply(instruction_array, payload_string_maybe){
+        let job_id = instruction_array[Instruction.JOB_ID]
+        let job_instance = Job.job_id_to_job_instance(job_id)
         let robot_status_array = Dexter.make_default_status_array_g_sm(this.status_mode)
         let rs_inst = new RobotStatus({robot_status: robot_status_array})
         let opcode = instruction_array[Instruction.INSTRUCTION_TYPE]
-        robot_status_array[Dexter.JOB_ID]            = instruction_array[Instruction.JOB_ID]
-        robot_status_array[Dexter.INSTRUCTION_ID]    = instruction_array[Instruction.INSTRUCTION_ID]
-        robot_status_array[Dexter.START_TIME]        = instruction_array[Instruction.START_TIME] //Date.now()
-        robot_status_array[Dexter.STOP_TIME]         = Date.now()
-        robot_status_array[Dexter.INSTRUCTION_TYPE]  = opcode //leave this as a 1 char string for now. helpful for debugging
-        if((opcode === "r")   &&
-            (typeof(payload_string_maybe) == "number") &&
-            (payload_string_maybe > 0)){
+        robot_status_array[Dexter.JOB_ID] = instruction_array[Instruction.JOB_ID]
+        robot_status_array[Dexter.INSTRUCTION_ID] = instruction_array[Instruction.INSTRUCTION_ID]
+        robot_status_array[Dexter.START_TIME] = instruction_array[Instruction.START_TIME] //Date.now()
+        robot_status_array[Dexter.STOP_TIME] = Date.now()
+        robot_status_array[Dexter.INSTRUCTION_TYPE] = opcode //leave this as a 1 char string for now. helpful for debugging
+        if ((opcode === "r") &&
+            (typeof (payload_string_maybe) == "number") &&
+            (payload_string_maybe > 0)) {
             robot_status_array[Dexter.ERROR_CODE] = payload_string_maybe
-        }
-        else if(opcode === "e"){
+        } else if (opcode === "e") {
             robot_status_array[Dexter.ERROR_CODE] = instruction_array[Dexter.ERROR_CODE]
         }
-        if(rs_inst.supports_measured_angles()) {
+        if (rs_inst.supports_measured_angles()) {
             let ma_du = this.compute_measured_angles_dexter_units()
             rs_inst.set_measured_angles(ma_du, true) //we want to install arcseconds, as Socket is expected arcseconds and will convert to degrees
         }
 
-        if(this.status_mode === 0){
-           robot_status_array[Dexter.J1_ANGLE] = this.angles_dexter_units[0]
-           robot_status_array[Dexter.J2_ANGLE] = this.angles_dexter_units[1]
-           robot_status_array[Dexter.J3_ANGLE] = this.angles_dexter_units[2]
-           robot_status_array[Dexter.J4_ANGLE] = this.angles_dexter_units[3]
-           robot_status_array[Dexter.J5_ANGLE] = this.angles_dexter_units[4]
-           //there are no slots in robot_status_array g0 for j6 and j7 angles
-           let latest = this.queue_instance.latest_sent_queued_instruction
-           let j1_5_arcsecs
-           if(latest) {
-              j1_5_arcsecs = [latest[Instruction.INSTRUCTION_ARG0], 
-                              latest[Instruction.INSTRUCTION_ARG1], 
-                              latest[Instruction.INSTRUCTION_ARG2], 
-                              latest[Instruction.INSTRUCTION_ARG3], 
-                              latest[Instruction.INSTRUCTION_ARG4]]  
-           }
-           else { j1_5_arcsecs = [0,0,0,0,0] }
-           robot_status_array[Dexter.J1_SENT] = j1_5_arcsecs[0]
-           robot_status_array[Dexter.J2_SENT] = j1_5_arcsecs[1]
-           robot_status_array[Dexter.J3_SENT] = j1_5_arcsecs[2]
-           robot_status_array[Dexter.J4_SENT] = j1_5_arcsecs[3]
-           robot_status_array[Dexter.J5_SENT] = j1_5_arcsecs[4]
-           //unfortunately g0 doesn't support J6_SENT or J7_SENT
-        } 
-         
-        if (this.sim_actual === true){
+        if (this.status_mode === 0) {
+            robot_status_array[Dexter.J1_ANGLE] = this.angles_dexter_units[0]
+            robot_status_array[Dexter.J2_ANGLE] = this.angles_dexter_units[1]
+            robot_status_array[Dexter.J3_ANGLE] = this.angles_dexter_units[2]
+            robot_status_array[Dexter.J4_ANGLE] = this.angles_dexter_units[3]
+            robot_status_array[Dexter.J5_ANGLE] = this.angles_dexter_units[4]
+            //there are no slots in robot_status_array g0 for j6 and j7 angles
+            let latest = this.queue_instance.latest_sent_queued_instruction
+            let j1_5_arcsecs
+            if (latest) {
+                j1_5_arcsecs = [latest[Instruction.INSTRUCTION_ARG0],
+                    latest[Instruction.INSTRUCTION_ARG1],
+                    latest[Instruction.INSTRUCTION_ARG2],
+                    latest[Instruction.INSTRUCTION_ARG3],
+                    latest[Instruction.INSTRUCTION_ARG4]]
+            } else {
+                j1_5_arcsecs = [0, 0, 0, 0, 0]
+            }
+            robot_status_array[Dexter.J1_SENT] = j1_5_arcsecs[0]
+            robot_status_array[Dexter.J2_SENT] = j1_5_arcsecs[1]
+            robot_status_array[Dexter.J3_SENT] = j1_5_arcsecs[2]
+            robot_status_array[Dexter.J4_SENT] = j1_5_arcsecs[3]
+            robot_status_array[Dexter.J5_SENT] = j1_5_arcsecs[4]
+            //unfortunately g0 doesn't support J6_SENT or J7_SENT
+        }
+
+        if (this.sim_actual === true) {
             let dexter_instance = this.robot  //for closure variable
-            setTimeout(function(){
-                        Socket.on_receive(robot_status_array, payload_string_maybe, dexter_instance)
-                        }, 1)
+            setTimeout(function () {
+                Socket.on_receive(robot_status_array, payload_string_maybe, dexter_instance)
+            }, 1)
         }
     }
 
@@ -393,7 +395,7 @@ class DexterSim{
     static render_once_node(ds_instance, job_name, robot_name, force_render=true){ //inputs in arc_seconds
          //note that SimUtils.render_once has force_render=false, but
          //due to other changes, its best if render_once_node default to true
-         rs_inst = ds_instance.robot.rs
+        let rs_inst = ds_instance.robot.rs
         if (force_render){
             let j1 = rs_inst.measured_angle(1) //joint_number)robot_status[Dexter.J1_MEASURED_ANGLE]
             let j2 = rs_inst.measured_angle(2)

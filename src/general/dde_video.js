@@ -41,7 +41,7 @@ import {STLLoader}      from 'three-stl-loader' //(THREE)
 
 class DDEVideo {
     static clear_out_sim_graphics_pane_id(){
-        if(window.sim_graphics_pane_id){
+        if(globalThis.sim_graphics_pane_id){
             var new_element = sim_graphics_pane_id.cloneNode(false);
             sim_graphics_pane_id.parentNode.replaceChild(new_element, sim_graphics_pane_id)
         }
@@ -225,8 +225,8 @@ class DDEVideo {
                     //from createRenderer
                     let the_renderer = new THREE.WebGLRenderer({ antialias:true });//antialias helps with drawing the table lines. //example: https://threejs.org/docs/#Manual/Introduction/Creating_a_scene
                     the_renderer.setSize( //sim.container.clientWidth, sim.container.clientHeight) //causes no canvas to appear
-                        window.innerWidth, window.innerHeight );
-                    //renderer.setPixelRatio( window.devicePixelRatio );  //causes no canvas to appear
+                        globalThis.innerWidth, globalThis.innerHeight );
+                    //renderer.setPixelRatio( globalThis.devicePixelRatio );  //causes no canvas to appear
                     //sim_graphics_pane_id.innerHTML = "" //done in video.js
                     //sim.renderer.shadowMap.enabled = true;
                     sim_pane_content_id.appendChild(the_renderer.domElement)

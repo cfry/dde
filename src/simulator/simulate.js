@@ -175,7 +175,7 @@ class Simulate {
         this.sim.renderer = new THREE.WebGLRenderer({ antialias:true });//antialias helps with drawing the table lines. //example: https://threejs.org/docs/#Manual/Introduction/Creating_a_scene
         this.sim.renderer.setSize( //this.sim.container.clientWidth, this.sim.container.clientHeight) //causes no canvas to appear
         this.canSize.width, this.canSize.height);
-        //renderer.setPixelRatio( window.devicePixelRatio );  //causes no canvas to appear
+        //renderer.setPixelRatio( globalThis.devicePixelRatio );  //causes no canvas to appear
         //sim_graphics_pane_id.innerHTML = "" //done in video.js
         this.sim.renderer.shadowMap.enabled = true;
         this.sim.container.appendChild(this.sim.renderer.domElement)
@@ -201,7 +201,7 @@ class Simulate {
         this.sim.table.add(this.sim.J0)
 
         let loader = new GLTFLoader //THREE_GLTFLoader()
-        console.log("cur file simulate.js: " + window.location.pathname)
+        console.log("cur file simulate.js: " + globalThis.location.pathname)
         loader.load(//__dirname + "/HDIMeterModel.gltf", //select_val, //fails
                     //"./HDIMeterModel.gltf", //fails
                     "simulator_server_files/HDIMeterModel.gltf",
@@ -682,7 +682,7 @@ class Simulate {
         text2.style.backgroundColor = "black";
         text2.innerHTML  = "Tool<br/>Rack";
         text2.style.top  = 500 + 'px';
-        text2.style.left = text2.style.left = ((window.innerWidth / 2) - 330) + 'px' //keeps text just to left of took rack even if width of window is resized.
+        text2.style.left = text2.style.left = ((globalThis.innerWidth / 2) - 330) + 'px' //keeps text just to left of took rack even if width of window is resized.
         sim_graphics_pane_id.appendChild(text2);
         return this.sim.rack
     }
@@ -743,7 +743,7 @@ class Simulate {
         text2.style.backgroundColor = "black";
         text2.innerHTML = text;
         text2.style.top = 675 + 'px';
-        text2.style.left = ((window.innerWidth / 2) - 200) + 'px'  //keeps teh caption centerd under the table despite differnt window widths. //140 + 'px';
+        text2.style.left = ((globalThis.innerWidth / 2) - 200) + 'px'  //keeps teh caption centerd under the table despite differnt window widths. //140 + 'px';
         sim_graphics_pane_id.appendChild(text2);
 
         /* uysing 3d text is busted. Maybe becuse the size ahd height are less than 1?
@@ -764,7 +764,7 @@ class Simulate {
         text2.style.backgroundColor = "black";
         text2.innerHTML = text;
         text2.style.top = 45 + 'px';
-        text2.style.left = 10 + 'px' //((window.innerWidth / 2) - 200) + 'px'  //keeps teh caption centerd under the table despite differnt window widths. //140 + 'px';
+        text2.style.left = 10 + 'px' //((globalThis.innerWidth / 2) - 200) + 'px'  //keeps teh caption centerd under the table despite differnt window widths. //140 + 'px';
         sim_graphics_pane_id.appendChild(text2);
     }
 
@@ -775,7 +775,7 @@ class Simulate {
             this.sim.enable_rendering = false
             this.sim.scene  = new THREE.Scene();
             this.sim.camera = new THREE.PerspectiveCamera(75, //75,
-                window.innerWidth / window.innerHeight, 0.1, 1000);
+                globalThis.innerWidth / globalThis.innerHeight, 0.1, 1000);
             this.sim.camera.position.z = 2; //2
             this.sim.camera.position.y = 1
             this.sim.camera.zoom.zoom = 4 //0.79 //has no effect.
@@ -784,7 +784,7 @@ class Simulate {
             //camera.lookAt( scene.position );
 
             this.sim.renderer = new THREE.WebGLRenderer();
-            this.sim.renderer.setSize( window.innerWidth, window.innerHeight );
+            this.sim.renderer.setSize( globalThis.innerWidth, globalThis.innerHeight );
             sim_graphics_pane_id.innerHTML = "" //clear out the previous contents
             sim_graphics_pane_id.appendChild(this.sim.renderer.domElement);
     }

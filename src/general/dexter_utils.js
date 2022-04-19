@@ -300,7 +300,7 @@ class DexterUtils {
             "with a robot class (like Dexter or Serial)\n" +
             "but no robot instance.')>"
         for(let robot_class_name of ["Brain", "Dexter", "Human", "Serial"]){
-            for(let name of window[robot_class_name].all_names){
+            for(let name of globalThis[robot_class_name].all_names){
                 let full_name = robot_class_name + "." + name
                 let sel_attr = ((full_name == selected_robot_full_name) ? " selected='selected' " : "")
                 result += "<option " + sel_attr + ">" +

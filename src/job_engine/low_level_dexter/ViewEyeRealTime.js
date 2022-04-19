@@ -23,7 +23,7 @@ function cal_is_clockwise(data_points, center_point = [0, 0]){
 
 function smLinex(run_backwards = false){
     xydata = []
-    const size = Math.floor(AxisTable[window.cal_working_axis][4])
+    const size = Math.floor(AxisTable[globalThis.cal_working_axis][4])
     const result = []
     result.push (make_ins("F"))
 	//out(run_backwards)
@@ -33,21 +33,21 @@ function smLinex(run_backwards = false){
         	i = size - j
         }
     	result.push(make_ins("a",
-            AxisTable[window.cal_working_axis][0][0] * i + AxisTable[window.cal_working_axis][5][0],
-            AxisTable[window.cal_working_axis][0][1] * i + AxisTable[window.cal_working_axis][5][1],
-            AxisTable[window.cal_working_axis][0][2] * i + AxisTable[window.cal_working_axis][5][2],
-            AxisTable[window.cal_working_axis][0][3] * i + AxisTable[window.cal_working_axis][5][3],
-            AxisTable[window.cal_working_axis][0][4] * i + AxisTable[window.cal_working_axis][5][4]))
+            AxisTable[globalThis.cal_working_axis][0][0] * i + AxisTable[globalThis.cal_working_axis][5][0],
+            AxisTable[globalThis.cal_working_axis][0][1] * i + AxisTable[globalThis.cal_working_axis][5][1],
+            AxisTable[globalThis.cal_working_axis][0][2] * i + AxisTable[globalThis.cal_working_axis][5][2],
+            AxisTable[globalThis.cal_working_axis][0][3] * i + AxisTable[globalThis.cal_working_axis][5][3],
+            AxisTable[globalThis.cal_working_axis][0][4] * i + AxisTable[globalThis.cal_working_axis][5][4]))
     
     		
             
     /*
         result.push(make_ins("a",
-            AxisTable[window.cal_working_axis][0][0] * i,
-            AxisTable[window.cal_working_axis][0][1] * i,
-            AxisTable[window.cal_working_axis][0][2] * i,
-            AxisTable[window.cal_working_axis][0][3] * i,
-            AxisTable[window.cal_working_axis][0][4] * i))
+            AxisTable[globalThis.cal_working_axis][0][0] * i,
+            AxisTable[globalThis.cal_working_axis][0][1] * i,
+            AxisTable[globalThis.cal_working_axis][0][2] * i,
+            AxisTable[globalThis.cal_working_axis][0][3] * i,
+            AxisTable[globalThis.cal_working_axis][0][4] * i))
 	*/
         
         result.push(make_ins("F"))
@@ -57,10 +57,10 @@ function smLinex(run_backwards = false){
             	shouldnt("Calibrate's smlinex function could not a find a robot to calibrate.")
             }
         	
-            var x = the_robot.robot_status[AxisTable[window.cal_working_axis][1]]/10
-            var y = the_robot.robot_status[AxisTable[window.cal_working_axis][2]]/10
+            var x = the_robot.robot_status[AxisTable[globalThis.cal_working_axis][1]]/10
+            var y = the_robot.robot_status[AxisTable[globalThis.cal_working_axis][2]]/10
             var thehtml = svg_circle({html_class: "cal_svg_circle", cx: x, cy: flip_point_y(y), r: 1})
-            let J_num = window.cal_working_axis+1
+            let J_num = globalThis.cal_working_axis+1
             
             cal_saved_points[J_num-1][0].push(x)
             cal_saved_points[J_num-1][1].push(y)
@@ -73,13 +73,13 @@ function smLinex(run_backwards = false){
             if(xydata.length%20 == 0){
             	let J_angle = cal_get_robot().rs.angle(J_num)    //joint_angle(J_num)
                 let angle_string = J_angle.toString().substring(0, 7)
-            	window["cal_angle_" + J_num + "_id"].innerHTML = angle_string
+            	globalThis["cal_angle_" + J_num + "_id"].innerHTML = angle_string
             }
             
             
             if(xydata.length > 200){
             
-            	let J_num = window.cal_working_axis
+            	let J_num = globalThis.cal_working_axis
                 
                 //debugger
                 let eye_suggest_result = eye_suggestion(xydata)
@@ -210,7 +210,7 @@ function init_view_eye(){
         [[0, 0, 0, 800/_nbits_cf, 0], Dexter.J4_A2D_SIN, Dexter.J4_A2D_COS, [0, 0, 0, -190000*_arcsec, 0], 1800 / 2, [0, 0, 0, 0, 0]],
         [[0, 0, 0, 0, 800/_nbits_cf], Dexter.J5_A2D_SIN, Dexter.J5_A2D_COS, [0, 0, 0, 0, -148000*_arcsec], 4240 / 2, [0, 0, 0, 0, 0]]]
 
-    window.cal_working_axis = undefined //global needed by calibrate_ui.js
+    globalThis.cal_working_axis = undefined //global needed by calibrate_ui.js
 
     new Job({name: "CalSensors", keep_history: true, show_instructions: false,
         inter_do_item_dur: .5 * _ms,
@@ -239,7 +239,7 @@ function init_view_eye(){
             make_ins("S", "Acceleration",0.00129),
             make_ins("S", "StartSpeed",5),
             function(){
-                if(cal_is_loop_checked(window.cal_working_axis+1)){ //if looping
+                if(cal_is_loop_checked(globalThis.cal_working_axis+1)){ //if looping
                     return [
                         function(){cal_clear_points()},
                         function(){return smLinex(true)},
@@ -251,8 +251,8 @@ function init_view_eye(){
             Dexter.move_all_joints(0, 0, 0, 0, 0),
             Dexter.empty_instruction_queue,
             function() {
-                let J_num = window.cal_working_axis+1
-                let start_button_dom_elt = window["Start_J_" + J_num + "_id"]
+                let J_num = globalThis.cal_working_axis+1
+                let start_button_dom_elt = globalThis["Start_J_" + J_num + "_id"]
                 start_button_dom_elt.style.backgroundColor = "rgb(230, 179, 255)"
                 cal_instructions_id.innerHTML =
                     "Click in the center of the dot_pattern circle.<br/>"}
@@ -273,7 +273,7 @@ function init_view_eye(){
         [[0, 0, 0, 800/_nbits_cf, 0], Dexter.J4_A2D_SIN, Dexter.J4_A2D_COS, [0, 0, 0, -190000*_arcsec, 0], 1800 / 2, [0, 0, 0, 0, 0]],
         [[0, 0, 0, 0, 800/_nbits_cf], Dexter.J5_A2D_SIN, Dexter.J5_A2D_COS, [0, 0, 0, 0, -148000*_arcsec], 4240 / 2, [0, 0, 0, 0, 0]]]
 
-    window.cal_working_axis = undefined //global needed by calibrate_ui.js
+    globalThis.cal_working_axis = undefined //global needed by calibrate_ui.js
 }
 
 /* obsolete, slower def
@@ -288,7 +288,7 @@ function init_view_eye(){
                     [[0, 0, 0, 0, 400/_nbits_cf], Dexter.J5_A2D_SIN, Dexter.J5_A2D_COS, [0, 0, 0, 0, -148000*_arcsec], 4240, [0, 0, 0, 0, 0]]]
     
 
-    window.cal_working_axis = undefined //global needed by calibrate_ui.js
+    globalThis.cal_working_axis = undefined //global needed by calibrate_ui.js
     
     
     
@@ -320,7 +320,7 @@ function init_view_eye(){
                         make_ins("S", "Acceleration",1/_nbits_cf),
                         make_ins("S", "StartSpeed",.05),
                         function(){
-                        	if(cal_is_loop_checked(window.cal_working_axis+1)){ //if looping
+                        	if(cal_is_loop_checked(globalThis.cal_working_axis+1)){ //if looping
                                 return [
                                 	function(){cal_clear_points()},
                                 	function(){return smLinex(true)},
@@ -332,8 +332,8 @@ function init_view_eye(){
                         Dexter.move_all_joints(0, 0, 0, 0, 0),
                         Dexter.empty_instruction_queue,
                         function() { 
-                        	let J_num = window.cal_working_axis+1
-        					let start_button_dom_elt = window["Start_J_" + J_num + "_id"]
+                        	let J_num = globalThis.cal_working_axis+1
+        					let start_button_dom_elt = globalThis["Start_J_" + J_num + "_id"]
                         	start_button_dom_elt.style.backgroundColor = "rgb(230, 179, 255)"
                             cal_instructions_id.innerHTML =
                                      "Click in the center of the dot_pattern circle.<br/>"}

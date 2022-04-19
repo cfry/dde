@@ -30,7 +30,7 @@ class MakeInstruction{
         let instruction_name = this.get_instruction_name_from_ui()
         if(MiIns.instruction_name_in_family_class(instruction_name, MiIns.move_all_joints_family)){
             let id = this.arg_name_to_dom_elt_id("joint1")
-            let elt = window[id]
+            let elt = globalThis[id]
             if(elt) { return true }
             else    { return false }
         }
@@ -40,7 +40,7 @@ class MakeInstruction{
         let instruction_name = this.get_instruction_name_from_ui()
         if(MiIns.instruction_name_in_family_class(instruction_name, MiIns.move_to_family)){
             let id = this.arg_name_to_dom_elt_id("x")
-            let elt = window[id]
+            let elt = globalThis[id]
             if(elt) { return true }
             else    { return false }
         }
@@ -65,7 +65,7 @@ class MakeInstruction{
     //return a string of the source code of the named arg in the MI dialog
     //returns null if no such name
     static arg_name_to_src_in_mi_dialog(name){
-       let elt = window[this.arg_name_to_dom_elt_id(name)]
+       let elt = globalThis[this.arg_name_to_dom_elt_id(name)]
        if(elt) {
            return elt.value
        }
@@ -80,7 +80,7 @@ class MakeInstruction{
     //the default color is dark gray, meaning its value is ok
     static set_border_color_of_arg(arg_name, color="rgb(238, 238, 238)"){
         let id = this.arg_name_to_dom_elt_id(arg_name)
-        let elt = window[id]
+        let elt = globalThis[id]
         if(elt){
           elt.style.borderColor = color
         }
@@ -150,7 +150,7 @@ class MakeInstruction{
     }
 
     static is_shown(){
-        if(window["mi_instruction_menu_id"]) { return true }
+        if(globalThis["mi_instruction_menu_id"]) { return true }
         else { return false }
     }
 
@@ -165,7 +165,7 @@ class MakeInstruction{
          //So beware, changing the select widget from "dex2" to "brain1"
          //will also change Dexter.default to dexter0.
        if(this.get_instruction_name_from_ui() == "new Job"){
-           window[this.arg_name_to_dom_elt_id("robot")].value = DexterUtils.default_dexter_full_name()
+           globalThis[this.arg_name_to_dom_elt_id("robot")].value = DexterUtils.default_dexter_full_name()
        }
     }
     */
@@ -271,7 +271,7 @@ class MakeInstruction{
         let class_name       = this.get_class_name_from_ui()
         let is_valid_instruction_name = MiIns.valid_instruction_name(instruction_name)
         if(superclass_name != ""){
-            if (!window[superclass_name]){
+            if (!globalThis[superclass_name]){
                 this.set_border_color_of_arg("mi_instruction_superclass_name_id", "red")
                 out("<span style='color:red'>Error: </span>" +
                     "The instruction superclass name: <code>" + superclass_name + "</code> can't be evaluated.<br/>" +
@@ -407,10 +407,10 @@ class MakeInstruction{
                 instruction_name = instruction_name.substring(4)
             }
             let id = instruction_name + "_doc_id"
-            if(window[id]) { DocCode.open_doc(id) }
+            if(globalThis[id]) { DocCode.open_doc(id) }
         }
         if (instruction_name == "Job") {
-            window[this.arg_name_to_dom_elt_id("robot")].value = DexterUtils.default_dexter_full_name()
+            globalThis[this.arg_name_to_dom_elt_id("robot")].value = DexterUtils.default_dexter_full_name()
             mi_run_id.title = "Start the job defined by the above fields."
             MiRecord.init_with_job_in_dialog()
         }
@@ -530,12 +530,12 @@ class MakeInstruction{
             //out("arg_val_src: " + arg_val_src + " sel_index: " + sel_index)
             if(sel_index == -1) { sel_index = 0 } //sill get the default set_parameter nname of "Acceleration"
             setTimeout(function() {
-                    $(window[id]).jqxComboBox({ source: array_of_possible_values,
+                    $(globalThis[id]).jqxComboBox({ source: array_of_possible_values,
                         width: '210px',
                         height: '16px',
                         selectedIndex: sel_index})  //default
                     //if(sel_index == -1){
-                    //    $(window[id]).jqxComboBox("val", the_arg_val_src)
+                    //    $(globalThis[id]).jqxComboBox("val", the_arg_val_src)
                     //}
                 },
                 200)
@@ -548,12 +548,12 @@ class MakeInstruction{
             let the_arg_val_src = arg_val_src
             out("arg_val_src: " + arg_val_src + " sel_index: " + sel_index)
             setTimeout(function() {
-                        $(window[id]).jqxComboBox({ source: array_of_possible_values,
+                        $(globalThis[id]).jqxComboBox({ source: array_of_possible_values,
                                                     width: '210px',
                                                     height: '16px',
                                                     selectedIndex: sel_index})  //default Dexter.RIGHT_UP_OUT
                         if(sel_index == -1){
-                            $(window[id]).jqxComboBox("val", the_arg_val_src)
+                            $(globalThis[id]).jqxComboBox("val", the_arg_val_src)
                         }
                       },
                       200)
@@ -692,7 +692,7 @@ class MakeInstruction{
                       "]"
         }
         let xyz
-        try{ xyz = window.eval(xyz_src)}
+        try{ xyz = globalThis.eval(xyz_src)}
         catch(err) { dde_error("While converting move_to to move_all_joints, evaling xyz source of: " +
                      xyz_src + " errored with: " + err.message) }
         if(!Array.isArray(xyz)) {
@@ -702,7 +702,7 @@ class MakeInstruction{
 
         let j5_direction_src = old_call_obj.args_obj.J5_direction
         let j5_direction
-        try{ j5_direction = window.eval(j5_direction_src)}
+        try{ j5_direction = globalThis.eval(j5_direction_src)}
         catch(err) { dde_error("While converting move_to to move_all_joints, evaling J5_direction source of: " +
                                 j5_direction_src + " errored with: " + err.message) }
         if(!Array.isArray(j5_direction)) {
@@ -712,7 +712,7 @@ class MakeInstruction{
 
         let config_src = old_call_obj.args_obj.config
         let config
-        try{ config = window.eval(config_src)}
+        try{ config = globalThis.eval(config_src)}
         catch(err) { dde_error("While converting move_to to move_all_joints, evaling config source of: " +
                                 config_src + " errored with: " + err.message) }
         if(!Array.isArray(config)) {
@@ -724,7 +724,7 @@ class MakeInstruction{
 
         let j6_angle_src = old_call_obj.args_obj.j6_angle
         let j6_angle
-        if(j6_angle_src != "") { try{ j6_angle = window.eval(j6_angle_src)}
+        if(j6_angle_src != "") { try{ j6_angle = globalThis.eval(j6_angle_src)}
                             catch(err) { dde_error("While converting move_to to move_all_joints, evaling j6_angle source of: " +
                                 j6_angle_src + " errored with: " + err.message) }
                          }
@@ -733,7 +733,7 @@ class MakeInstruction{
 
         let j7_angle_src = old_call_obj.args_obj.j7_angle
         let j7_angle
-        if(j7_angle_src != "") { try{ j7_angle = window.eval(j7_angle_src)}
+        if(j7_angle_src != "") { try{ j7_angle = globalThis.eval(j7_angle_src)}
         catch(err) { dde_error("While converting move_to to move_all_joints, evaling j7_angle source of: " +
                                 j7_angle_src + " errored with: " + err.message) }
         }
@@ -770,7 +770,7 @@ class MakeInstruction{
         for(let param_name of param_names){ //fails when we call this method from after instructio_name\
             //is changed in the UI, but before the args are set as we need to when grabbing prev values
             let id = this.arg_name_to_dom_elt_id(param_name)
-            let elt = window[id]
+            let elt = globalThis[id]
             let arg_val_src = elt.value //.trim() //bad, esp for textareas and preserivng initial whitespace on rest args
             call_obj.args_obj[param_name] = arg_val_src
         }
@@ -865,7 +865,7 @@ class MakeInstruction{
                 arg_default_val_src = ""
             }
             //let id = this.arg_name_to_dom_elt_id(param_name)
-            //let elt = window[id]
+            //let elt = globalThis[id]
             let arg_val_src = call_obj.args_obj[param_name] //elt.value //.trim() //bad, esp for textareas and preserivng initial whitespace on rest args
             if(eval_args){
                 if(!this.validate_arg_ui(instruction_name, param_name, arg_val_src)) { return null }
@@ -945,7 +945,7 @@ class MakeInstruction{
                         if(Utils.starts_with_one_of(elt_src, ["function(", "function (", "function*"])){
                             elt_src = "(" + elt_src + ")" //fixes JS design bug
                         }
-                        let do_list_item = window.eval(elt_src)
+                        let do_list_item = globalThis.eval(elt_src)
                         if(!Instruction.is_do_list_item(do_list_item)){
                             this.set_border_color_of_arg(param_name, "red")
                             out("<span style='color:red'>Error: </span>" +
@@ -974,7 +974,7 @@ class MakeInstruction{
         }
         else {
             try{
-                window.eval(arg_val_src)
+                globalThis.eval(arg_val_src)
                 this.set_border_color_of_arg(param_name)
             }
             catch(err){
@@ -998,13 +998,13 @@ class MakeInstruction{
         let id
         let elt
         id = this.arg_name_to_dom_elt_id("name")
-        elt = window[id]
+        elt = globalThis[id]
         let the_name_src = elt.value.trim()
         id = this.arg_name_to_dom_elt_id("...params")
-        elt = window[id]
+        elt = globalThis[id]
         let the_params_src = elt.value.trim()
         id = this.arg_name_to_dom_elt_id("body")
-        elt = window[id]
+        elt = globalThis[id]
         let the_body_src  = elt.value.trim()
         the_body_src = "\n" + the_body_src
         the_body_src = Utils.replace_substrings(the_body_src, "\n", "\n    ")
@@ -1017,14 +1017,14 @@ class MakeInstruction{
     static call_obj_to_instruction_src_for_array(eval_args=false){
         let param_name = "...elts"
         let id = this.arg_name_to_dom_elt_id(param_name)
-        let elt = window[id]
+        let elt = globalThis[id]
         let args_val_src = elt.value.trim()
         if(eval_args){
             let arg_val_src_array = args_val_src.split(",")
             for(let i = 0; i < arg_val_src_array.length; i++){
                 let arg_val_src = arg_val_src_array[i]
                 try{
-                    window.eval(arg_val_src)
+                    globalThis.eval(arg_val_src)
                     this.set_border_color_of_arg(param_name)
                 }
                 catch(err){
@@ -1227,7 +1227,7 @@ class MakeInstruction{
     }
 
     static show_insert_job_dialog(){
-        let job_name = window[this.arg_name_to_dom_elt_id("name")].value
+        let job_name = globalThis[this.arg_name_to_dom_elt_id("name")].value
         if(!Utils.is_string_a_literal_string(job_name) || (job_name.length <= 2)) {
             this.set_border_color_of_arg("name", "red")
             dde_error("The job name in the Make Instruction dialog<br/>must be a non-empty string.<br/>" +
@@ -1421,7 +1421,7 @@ class MakeInstruction{
             let has_non_top_levels
             let use_str_instrs = mi_job_instrs_what_string_id.checked
             if(!job_instance || (job_instance != MiState.job_instance) || !MiState.job_instance.do_list){ //not in sync so prefer the def in the dialog
-                do_list_to_mine = window.eval(do_list_src)
+                do_list_to_mine = globalThis.eval(do_list_src)
                 if(use_str_instrs) { do_list_to_mine = this.make_string_do_list_from_orig(do_list_to_mine, job_instance) }
                 warning("Since the Job in the Make Instruction dialog hasn't been played,<br/>we're using its full original do_list.")
                 has_non_top_levels = false

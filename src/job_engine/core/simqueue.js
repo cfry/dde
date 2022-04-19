@@ -320,11 +320,12 @@ class Simqueue{
         }
     }
     render_once_node(instruction_array, job_name, rob_name, dur_in_ms){
+        let instr_str = "<code style='background-color:white;'> " + instruction_array.join(", ") + " </code>"
         this.sim_instance.simout("For Job." + job_name +
-               "<br/>Starting to similate instruction: " + instruction_array, "green")
+               "<br/><span style='margin-left:106px;'>Simulating instruction: " + instr_str, "</span>")
           let queue_instance = this
           setTimeout(function(){
-              queue_instance.sim_instance.simout("Done simulating instruction: <span style='margin-right;40px;'/>" + instruction_array, "green")
+              queue_instance.sim_instance.simout("Done with: <span style='margin-right;40px;'/>" + instr_str, "green")
               queue_instance.done_with_instruction()
           }, dur_in_ms)
     }
@@ -349,7 +350,7 @@ class Simqueue{
         else { shouldnt("In Simqueue.queue_status_color got invalid status: " + status)}
     }
     queue_is_shown(){
-        if(window[this.queue_dom_elt_status_string]){
+        if(globalThis[this.queue_dom_elt_status_string]){
             return true
         }
         else { return false }
@@ -457,7 +458,7 @@ class Simqueue{
 
     update_show_queue_status_if_shown(){
         if(this.queue_is_shown()){
-            let elt = window[this.queue_dom_elt_status_string]
+            let elt = globalThis[this.queue_dom_elt_status_string]
            /* let html = '<span id="' + this.queue_dom_elt_status_string + '" '  +
                        'style="background-color:' + this.queue_status_color()        + ';">&nbsp;' +
                        this.queue_status() +
@@ -627,7 +628,7 @@ class Simqueue{
     }
 
     update_show_queue_instructions_table(){
-        let table_elt        = window[this.queue_dom_elt_instruction_table_string]
+        let table_elt        = globalThis[this.queue_dom_elt_instruction_table_string]
         table_elt.outerHTML  = this.make_show_queue_instructions_table()
     }
 
@@ -640,7 +641,7 @@ class Simqueue{
             else {
                 let status = this.joint_number_to_j6_plus_status_map[joint_number]
                 let elt_id = "sim_j" + joint_number + "_dom_elt_status_id"
-                let elt = window[elt_id]
+                let elt = globalThis[elt_id]
                 elt.innerHTML = status
                 let color = (status.startsWith("stopped") ? "#76cdf1" : //blue
                                                             "#aaf1aa") //green
