@@ -494,7 +494,7 @@ class Socket{
     }
 
     static send(robot_name, oplet_array_or_string){ //can't name a class method and instance method the same thing
-        console.log("top of Socket.send with: " + robot_name +  " " + oplet_array_or_string)
+
         let rob = Robot[robot_name]
         let oplet_array_or_string_du = Socket.instruction_array_degrees_to_arcseconds_maybe(oplet_array_or_string, rob)
         let job_id = Instruction.extract_job_id(oplet_array_or_string)
@@ -504,6 +504,21 @@ class Socket{
                      "<br/>extracted job_id:" + job_id + " but no defined Job with that ID.")
         }
         //out(job_instance.name + " " + robot_name + " Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
+
+        let oplet = oplet_array_or_string[Instruction.INSTRUCTION_TYPE]
+        let instr_id = oplet_array_or_string[Instruction.INSTRUCTION_ID]
+        let got_first_non_monitor_instr = false
+        out("top of Socket.send with: " + job_instance.name + " " + robot_name +  " " + oplet_array_or_string)
+
+        if((oplet === "g") && (instr_id > 0)) {
+            got_first_non_monitor_instr = true
+            out("send for: " + job_instance.name)
+            //debugger;
+        }
+        else if ((job_instance !== "monitor_job") && (oplet !== "g") && got_first_non_monitor_instr){
+            debugger;
+            out("send for: " + job_instance.name)
+        }
 
         const str =  Socket.oplet_array_or_string_to_string(oplet_array_or_string_du)
         if(Instruction.is_F_instruction_string(str)) {
@@ -591,7 +606,7 @@ class Socket{
     static on_receive(data, payload_string_maybe, dexter_instance){
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
         console.log("top of Socket.on_receive.")
-        console.log("Socket.on_receive passed data:        " + data)
+        out("Socket.on_receive passed data:        " + data)
         let robot_status
         let oplet
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator

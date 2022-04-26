@@ -16,9 +16,12 @@ export default {
             //jsnext: true,         //not in rollplay
             //preferBuiltins: true  //not in rollplay
         }),
-        commonjs(
-            //{include: [ "./src/main.js", "./node_modules/**" ] }
-        ),
+        commonjs({
+            //there is a bug in rollup importing npm 'ws' which causes it to think
+            //ws needs 'bufferutil' and  'utf-8-validate' but it doesn't
+            //this below fix of ignore is described in https://github.com/websockets/ws/issues/659
+            ignore: ['bufferutil', 'utf-8-validate'], // Ignore optional peer dependencies of ws
+        }),
         json(),
         styles(),
         //sourcemaps()

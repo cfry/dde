@@ -1482,28 +1482,6 @@ window_modify_id.onclick=function(){Editor.insert(
           Dexter.default.reboot_dexter()
       }
 
-      render_joints_id.onclick = function(){
-          let src = Editor.get_any_selection()
-          if(src){
-              out("rendering: " + src)
-              try {
-                  let joint_arr_maybe = globalThis.eval(src)
-                  if(Array.isArray(joint_arr_maybe)){
-                      SimUtils.render_joints(joint_arr_maybe)
-                  }
-                  else {
-                      warning(src + " did not evaluate to an array of joint angles.")
-                  }
-              }
-              catch(err){
-                  warning(src + " did not evaluate to an array of joint angles.")
-              }
-          }
-          else {
-              warning("To render joints you must select some text in the editor pane that indicates an array of joint angles.")
-          }
-      }
-
       show_errors_log_id.onclick = function(){
           let path = "Dexter." + Dexter.default.name + ":/srv/samba/share/errors.log"
           read_file_async(path, undefined, function(err, data){

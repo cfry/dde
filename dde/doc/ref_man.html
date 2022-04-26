@@ -7520,6 +7520,17 @@ Example:<br/><code title="unEVALable code fragment"> Robot.dexter0.joint_xyzs()<
 ]</samp></pre>
 </details>
 
+<details id="SimUtils.render_joints_doc_id" class="doc_details"><summary>render_joints</summary>
+Show the given joint angles in the simulator pane.<br/>
+    <i>Parameters:</i><br/>
+    <b>angle_degrees_array</b> Required. Array of 5 to 7 numbers that
+    indicate the angles to set the joints in the simulator.<br/>
+    <b>rob_pose</b> Optional robot pose. used when converting the
+    angle_degrees_array to XYZ for display in the simulator pane header. <br/>
+    <i>Example:<i><br/>
+        <code> SimUtils.render_joints([10, 20, 30, 40, 50])</code>
+</details>
+
 <!--
 <details id="Robot.dexter0.prop_doc_id" class="doc_details"><summary>prop</summary>
 <b>prop</b> is a Dexter instance method that takes a string

@@ -44,7 +44,6 @@
     "js-beautify": "^1.14.0",
     "mark.js": "^8.11.1",
     "modbus-serial": "^8.0.5",
-    "net": "^1.0.2",
     "nouislider": "^15.5.0",
     "npm": "^8.1.0",
     "npm-programmatic": "^0.0.12",
@@ -74,6 +73,6 @@
     "three-stl-loader": "^1.0.6",
     "three-text2d": "^0.6.0",
     "webmidi": "^2.5.3",
-    "ws": "^7.5.1"
+    "ws": "^8.5.0"
   }
 }

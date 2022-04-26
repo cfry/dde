@@ -11,7 +11,11 @@ globalThis.keep_alive_value = true
 import package_json from "../../package.json"
 export {package_json}
 
-import * as Espree from "espree";globalThis.Espree = Espree;
+import * as Espree from "espree";
+globalThis.Espree = Espree;
+
+import { WebSocketServer } from 'ws'; ; //websocket server
+globalThis.WebSocketServer = WebSocketServer
 
 import "../job_engine/core/utils.js" //defines as global class Utils, and a few of its methods such as  dde_error, rgb
 import "../job_engine/core/je_and_browser_code.js" //defines SW and out globally
@@ -48,6 +52,7 @@ import "../job_engine/core/object_system.js"//defined globals: Root, newObject
 import "../job_engine/core/html_db.js" //makes: html_db, make_html, make_dom_elt global
 import "../job_engine/core/to_source_code.js" //defined to_source_code globally
 import "../job_engine/core/duration.js"
+import "../job_engine/core/monitor.js" //defines Monitor and MonitorServer
 
 import {init_units} from "../job_engine/core/units.js"
 export {init_units}
@@ -57,7 +62,7 @@ export {init_units}
 
 //end  of Job Engine imports
 
-export function init_job_engine(){
+export async function init_job_engine(){
     globalThis.dde_version = package_json.version
     globalThis.dde_release_date = package_json.release_date
     console.log("DDE version: " + dde_version)
@@ -88,5 +93,8 @@ export function init_job_engine(){
         else { obj_args = arguments[0] }
         obj_args.robot = this
         return Dexter.draw_dxf(obj_args)
+    }
+    if(platform === "node") {
+        MonitorServer.init()
     }
 }

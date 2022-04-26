@@ -216,6 +216,113 @@ class SimUtils{
         }
     }
 
+    //never called in a job engine job, only called by dde_ide
+    static render_joints_smart(src = null) {
+        let evaled_src
+        if (src == null) {
+            src = Editor.get_any_selection().trim()
+        }
+        if (typeof(src) !== "string"){ evaled_src = src }
+        else { //src is a string
+            src = src.trim()
+            if (src.endsWith(",")) {
+                src = src.substring(0, src.length - 1) //cut off the trailing commaa
+            }
+            if (src.length === 0) {
+                warning("To render joints you must select some text in the editor pane that indicates an array of joint angles.")
+                return false
+            } else {
+                try {
+                    evaled_src = globalThis.eval(src) //note: if src is "2,3,4" then eval returns 4. This problem is handled way below
+                } catch (err) {
+                    let joint_arr_maybe = this.render_joints_process_arg_list(src)
+                    if (Utils.is_array_of_numbers(joint_arr_maybe)) {
+                        evaled_src = joint_arr_maybe
+                    } else {
+                        warning(src + " did not evaluate to an array of joint angles.")
+                        return false
+                    }
+                }
+            }
+        }
+        //at this point, eval_src is not a string and maybe valid,
+        //but we still might have to call render_joints_process_arg_list(src) again.
+        let angle_degrees
+        if(Utils.is_array_of_numbers(evaled_src)){
+                angle_degrees = evaled_src
+        }
+        else {
+            let angle_degrees_maybe = this.render_joints_process_instruction(evaled_src)
+            if(Utils.is_array_of_numbers(angle_degrees_maybe)) {
+                angle_degrees = angle_degrees_maybe
+            }
+            else {
+                let angle_degrees_maybe = this.render_joints_process_arg_list(src)
+                if (Utils.is_array_of_numbers(angle_degrees_maybe)) {
+                    angle_degrees = angle_degrees_maybe
+                }
+                else {
+                    warning(src + " did not evaluate to an array of joint angles.")
+                    return false
+                }
+            }
+        }
+        //at this point, angle_degrees is an array of numbers.
+        if(angle_degrees.length === 3){ //maybe its x, y z ?
+            if(Kin.is_in_reach(angle_degrees)){
+                angle_degrees = Kin.xyz_to_J_angles(angle_degrees) //this will error with [0,0,0] (singluarity) or out of range.
+                //that's  not terrible as we just want to keep the orign angle_degrees and use them
+                //as joint angles, but we do get a red error message in dde due to it.
+            }
+        }
+        for(let i = 0; angle_degrees.length < 5; i++){
+            angle_degrees.push(0)
+        }
+        this.render_joints(angle_degrees)
+        return angle_degrees
+    }
+
+    static render_joints_process_arg_list(src){
+        let split_src = src.split(",")
+        let joint_arr_maybe = []
+        for(let item of split_src){
+            try {
+                let num = globalThis.eval(item)
+                if(typeof(num) === "number") { joint_arr_maybe.push(num)}
+                else {return false }
+            }
+            catch(err){ return false}
+        }
+        return joint_arr_maybe
+    }
+
+    static render_joints_process_instruction(joint_arr_maybe){
+        if ((joint_arr_maybe instanceof Instruction.Dexter.move_all_joints) ||
+            (joint_arr_maybe instanceof Instruction.Dexter.pid_move_all_joints)){
+            if(!Kin.check_J_ranges(joint_arr_maybe.array_of_angles)) {
+                dde_error("Angles of: " + joint_arr_maybe.array_of_angles + " are not within Dexter's reach.")
+            }
+            return joint_arr_maybe.array_of_angles
+        }
+        else if ((joint_arr_maybe instanceof Instruction.Dexter.move_to) ||
+                 (joint_arr_maybe instanceof Instruction.Dexter.pid_move_to)  ||
+                 (joint_arr_maybe instanceof Instruction.Dexter.move_to_straight)){
+            let xyz = joint_arr_maybe.xyz
+            if(!Kin.is_in_reach(xyz)) {
+                dde_error("The XYZ position of: " + xyz + " is not within Dexter's reach.")
+            }
+            else {
+                return Kin.xyz_to_J_angles(
+                    joint_arr_maybe.xyz,
+                    joint_arr_maybe.J5_direction,
+                    joint_arr_maybe.config,
+                    joint_arr_maybe.workspace_pose
+                )
+            }
+        }
+        else { return false }
+    }
+
     //called by render_j1_thru_j5 as well as monitor_dexter
     static render_joints(angle_degrees_array, rob_pose=Vector.make_pose()){
         for(let i = 0; i < angle_degrees_array.length; i++){

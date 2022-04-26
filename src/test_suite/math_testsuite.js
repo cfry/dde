@@ -63,9 +63,11 @@ new TestSuite("Inverse to Forward Kinematics and Back",
         "true"]
 )
 
-new TestSuite("Checking xyz",
+new TestSuite("Kin Checking Ranges",
     ["Kin.check_J_ranges([0, 0, 0, 0, 0])", "true"],
-    ["Kin.check_J_ranges([0, 0, 0, 181, 0])", "false"]
+    ["Kin.check_J_ranges([0, 0, 0, 181, 0])", "false"],
+    ["Kin.is_in_reach([0.1, 0, 0.1])", "true"],
+    ["Kin.is_in_reach([0, 0, 0])", "false"]
 )
 
 //from Vector.js

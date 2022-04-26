@@ -20,7 +20,12 @@ export default {
                //for the node package "util". Use the built-in version
                //instead of the version in node_module folder is fine.
         }),
-        commonjs(),
+        commonjs({
+            //there is a bug in rollup importing npm 'ws' which causes it to think
+            //ws needs 'bufferutil' and  'utf-8-validate' but it doesn't
+            //this below fix of ignore is described in https://github.com/websockets/ws/issues/659
+            ignore: ['bufferutil', 'utf-8-validate'], // Ignore optional peer dependencies of ws
+        }),
         json(),
         nodePolyfills( /* options */ )
     ],

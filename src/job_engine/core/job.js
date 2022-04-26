@@ -853,7 +853,7 @@ class Job{
                 //not focused, pressing the space or ENTER key doesn't do something strange
                 //like an extra button click.
 
-                console.log("Job button clicked when status was: " + job_instance.status_code)
+                //onsole.log("Job button clicked when status was: " + job_instance.status_code)
                 if (job_instance.status_code == "suspended"){
                     if(but_elt.title.includes("Make Instruction")) { job_instance.stop_for_reason("interrupted", "User stopped job.") }
                     else { job_instance.unsuspend() }
@@ -1811,10 +1811,10 @@ Job.prototype.finish_job = function(){
                 let the_active_jobs = Job.active_jobs()
                 //the below a bit tricky as the 'this' job is in the process of finishing
                 // and might or might not be "active".
-                console.log("In finish_job for job: " + this.name + " id: " + this.job_id)
+                //onsole.log("In finish_job for job: " + this.name + " id: " + this.job_id)
                 //onsole.log("active_jobs length: " + the_active_jobs.length)
                 if(the_active_jobs.length == 1) {
-                    console.log("In finish_job just one active job with first job: " + the_active_jobs[0].name + " job_id: " + the_active_jobs[0].job_id)
+                    //onsole.log("In finish_job just one active job with first job: " + the_active_jobs[0].name + " job_id: " + the_active_jobs[0].job_id)
                 }
                 if( (the_active_jobs.length == 0) ||
                    ((the_active_jobs.length == 1) &&
@@ -2017,19 +2017,19 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     //if (this.show_instructions){ onsole.log("Top of do_next_item in job: " + this.name + " with PC: " + this.program_counter)}
     //onsole.log("top of do_next_item with pc: " + this.program_counter)
     //out(this.name + " do_next_item top ")
-    console.log("top of do_next_item 2")
+    //onsole.log("top of do_next_item 2")
     if(globalThis.js_debugger_checkbox_id && js_debugger_checkbox_id.checked) {
         //the print help statements are here so that they get called both when
         //the user checks the checkbox, AND when Control.debugger instruction is run.
         out("To stop debugging, Eval: <code>undebug_job()</code> in Dev Tools console and click the big blue arrow.")
         debugger; //LEAVE THIS IN RELEASED CODE
-        console.log("To stop debugging, Eval:   undebug_job()   and click the big blue arrow, ")
+        //onsole.log("To stop debugging, Eval:   undebug_job()   and click the big blue arrow, ")
     }
     let ending_pc = this.instruction_location_to_id(this.ending_program_counter) //we end BEFORE executing the ending_pcm we don't execute the instr at the ending pc if any
-    console.log("near top of do_next_item with status_code: " + this.status_code)
+    //onsole.log("near top of do_next_item with status_code: " + this.status_code)
 
     if (["completed", "errored", "interrupted"].includes(this.status_code)){//put before the wait until instruction_id because interrupted is the user wanting to halt, regardless of pending instructions.
-        console.log("do_next_item about to call finish_job")
+        //onsole.log("do_next_item about to call finish_job")
         this.finish_job()
         return
     }
@@ -2066,7 +2066,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
     }
 
     else if (this.program_counter >= ending_pc) {  //this.do_list.length
-        console.log("do_next_item the normal stop case ")
+        //onsole.log("do_next_item the normal stop case ")
         if (this.when_do_list_done == "wait") { //we're in a loop waiting for the next instruction.
             //this.color_job_button() //too expensive and unnecessary as color set elsewhere
             if((this.status_code === "waiting") &&
@@ -2106,7 +2106,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         else { this.finish_job() }
         return
     }
-    console.log("in do_next_item top of fn semantic body")
+    //onsole.log("in do_next_item top of fn semantic body")
     //body of the fn.
     //regardless of whether we're in an iter or not, do the item at pc. (might or might not
     //have been just inserted by the above).
@@ -2117,7 +2117,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
           this.set_status_code("running")
       }
       let cur_do_item = this.current_instruction()
-      console.log("in do_next_item with cur_do_item: " + cur_do_item)
+      //onsole.log("in do_next_item with cur_do_item: " + cur_do_item)
       try {
         //out(this.name + " do_next_item cur_do_item: " + cur_do_item)
         this.show_progress_maybe()

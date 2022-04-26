@@ -21,21 +21,26 @@ class Simulate {
         return `
         <div style="white-space:nowrap;"> 
         <b>Move Dur: </b><span id="sim_pane_move_dur_id"></span> s
-         <button onclick="SimBuild.init()">Load SimBuild</button>
+        <button onclick="SimUtils.render_joints_smart()" 
+            title="Grab the joint angles from the selection&#13;and change the simulator to show them.&#13;Works on arrays, comma separated arg lists,&#13;and whole instruction calls.&#13;With 3 numbers, treats them as XYZ if they are in range.">
+            Render selected joints</button>
+        <button onclick="SimBuild.init()">Load SimBuild</button>
         <span title="Inspect simulator Details." 
         onclick="SimUtils.inspect_dexter_sim_instance()" 
         style="margin-left:15px;color:blue;cursor:pointer;font-weight:bold;"> &#9432; </span>       
+        
+        
+        </div>
+        <div style="white-space:nowrap;">
+        <b title="X position of end effector in meters.">X: </b><span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>
+        <b title="Y position of end effector in meters."> Y: </b><span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>
+        <b title="Z position of end effector in meters."> Z: </b><span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span>
         Alignment: <button onclick="Simulate.align_cam(0)">X-Side</button> 
         <button onclick="Simulate.align_cam(1)">Y-Side</button> 
         <button onclick="Simulate.align_cam(2)">Z-Top</button> 
         <button onclick="Simulate.align_cam(3)">Home</button> 
-        
         </div>
-    
-        <b title="X position of end effector in meters.">X: </b><span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>
-        <b title="Y position of end effector in meters."> Y: </b><span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>
-        <b title="Z position of end effector in meters."> Z: </b><span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span>
-    
+       
         <div style="white-space:nowrap;">
         <b title="Joint 1 angle in degrees."> J1: </b><span id="sim_pane_j1_id" style="min-width:30px; text-align:left; display:inline-block"></span>
         <b title="Joint 2 angle in degrees."> J2: </b><span id="sim_pane_j2_id" style="min-width:30px; text-align:left; display:inline-block"></span>

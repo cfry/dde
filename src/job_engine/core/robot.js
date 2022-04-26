@@ -2567,7 +2567,7 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
             this.start_aux(job_to_start_when_done)
         }
         else {
-            let ip = job_to_start.robot.ip_address
+            let ip = job_to_start_when_done.robot.ip_address
             let path = ip + ":" + "/edit?edit=/srv/samba/share/Defaults.make_ins"
             let the_dex = this
             DDEFile.read_file_async(path, function (err, content) {

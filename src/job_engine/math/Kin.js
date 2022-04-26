@@ -347,6 +347,7 @@ class Kin{
 
 
     static is_in_reach (xyz, J5_direction = [0, 0, -1], config = [1, 1, 1], dexter_inst_or_workspace_pose){
+            if((xyz[0] === 0) && (xyz[1] === 0) && (xyz[2] === 0)) { return false }
             let base_xyz = [0, 0, 0] // Come back to this and pull it from robot_pose
             let base_plane = [0, 0, 1]
             let U3

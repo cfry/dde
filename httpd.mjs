@@ -7,7 +7,7 @@ const formidable = pkg;
 
 import fs        from 'fs'; //file system
 import net       from 'net'; //network
-import ws        from 'ws' ; //websocket
+import { WebSocketServer }    from 'ws' ; //websocket //dde4 added clurlies around ws to fix bug in import
 import path      from 'path';
 import { spawn } from 'child_process'
 import ModbusRTU from "modbus-serial"
@@ -93,7 +93,7 @@ function compute_dde_install_folder(){ //new in dde4 //todo dde4 result proably 
     }
     else {
         return os.homedir()  //example: "/Users/Fry"
-            + "/WebstormProjects/dde4/dde/build"
+            + "/WebstormProjects/dde4/dde/build" //todo move to a generic folder likely to be on user's machine
     }
 }
 
@@ -178,7 +178,7 @@ function serve_init_jobs(q, req, res){
 
 //https://www.npmjs.com/package/ws
 console.log("now making wss");
-const wss = new ws.Server({port: 3001});    //server: http_server });
+const wss = new WebSocketServer({port: 3001});    //server: http_server });
 console.log("done making wss: " + wss);
 
 function serve_job_button_click(browser_socket, mess_obj){
@@ -225,7 +225,7 @@ function serve_job_button_click(browser_socket, mess_obj){
           //server_response.write(data_str) //pipe straight through to calling browser's handle_stdout
           //https://github.com/expressjs/compression/issues/56 sez call flush even though it isn't documented.
           //server_response.flushHeaders() //flush is deprecated.
-          if (browser_socket.readyState != ws.OPEN) {job_process.kill(); return;} //maybe should be kill()?
+          if (browser_socket.readyState != WebSocketServer.OPEN) {job_process.kill(); return;} //maybe should be kill()?
           browser_socket.send(data_str);
 	     });
         if (".dde"==app_type) {  
@@ -239,7 +239,7 @@ function serve_job_button_click(browser_socket, mess_obj){
                                kind: "show_job_button",
                                button_tooltip: "Server errored with: " + data_str,
                                button_color: "red"};
-                if (browser_socket.readyState != ws.OPEN) {job_process.kill(); return;} //maybe should be kill()?
+                if (browser_socket.readyState != WebSocketServer.OPEN) {job_process.kill(); return;} //maybe should be kill()?
                 browser_socket.send(data_str) //redundant but the below might not be working
                 browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>");
                 //server_response.end()
@@ -248,14 +248,14 @@ function serve_job_button_click(browser_socket, mess_obj){
             job_process.stderr.on('data', function(data) {
                 let data_str = data.toString();
                 console.log("\n\njob: " + job_name + " got stderr with data: " + data_str);
-                if (browser_socket.readyState != ws.OPEN) {job_process.kill(); return;} //maybe should be kill()?
+                if (browser_socket.readyState != WebSocketServer.OPEN) {job_process.kill(); return;} //maybe should be kill()?
                 browser_socket.send(data_str);
                 });
             
         }
         job_process.on('close', function(code) {
           console.log("\n\nServer closed the process of Job: " + job_name + " with code: " + code);
-          if(code !== 0 && browser_socket.readyState === ws.OPEN){
+          if(code !== 0 && browser_socket.readyState === WebSocketServer.OPEN){
           	console.log('\n\nAbout to stringify 3\n');
           	let lit_obj = {job_name: job_name, 
                            kind: "show_job_button",
@@ -952,7 +952,7 @@ wss.on('connection', function(the_ws, req) {
 //websocket server that connects to Dexter
 //socket server to accept websockets from the browser on port 3000
 //and forward them out to DexRun as a raw socket
-var browser = new ws.Server({ port:3000 })
+var browser = new WebSocketServer({ port:3000 })
 var bs 
 var dexter = new net.Socket()
 //don't open the socket yet, because Dexter only allows 1 socket connection
