@@ -93,8 +93,8 @@
         function get_keep_alive_click(event){
             let is_checked = event.target.checked
             let mess_obj = {kind: "keep_alive_click",
-                job_name_with_extension: "keep_alive", //this is a pseudo-job, not a real job, but its processed like one.
-                keep_alive_value: is_checked}
+                            job_name_with_extension: "keep_alive", //this is a pseudo-job, not a real job, but its processed like one.
+                            keep_alive_value: is_checked}
             web_socket.send(JSON.stringify(mess_obj))
         }
 

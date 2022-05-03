@@ -6,7 +6,7 @@ globalThis.operating_system = "not inited" //"mac", "win" or "linux"(for Ubuntu)
 globalThis.dde_apps_folder  = "not inited"
 globalThis.platform         = "not inited" //"dde" or "node"
 
-globalThis.keep_alive_value = true
+globalThis.keep_alive_value = false //true
 
 import package_json from "../../package.json"
 export {package_json}
@@ -14,8 +14,8 @@ export {package_json}
 import * as Espree from "espree";
 globalThis.Espree = Espree;
 
-import { WebSocketServer } from 'ws'; ; //websocket server
-globalThis.WebSocketServer = WebSocketServer
+//import { WebSocketServer } from 'ws'; //websocket server
+//globalThis.WebSocketServer = WebSocketServer
 
 import "../job_engine/core/utils.js" //defines as global class Utils, and a few of its methods such as  dde_error, rgb
 import "../job_engine/core/je_and_browser_code.js" //defines SW and out globally
@@ -63,6 +63,8 @@ export {init_units}
 //end  of Job Engine imports
 
 export async function init_job_engine(){
+    //out("out: top of init_job_engine") //DO NOT CALL "out" here. It willl error.
+    console.log("top of init_job_engine")
     globalThis.dde_version = package_json.version
     globalThis.dde_release_date = package_json.release_date
     console.log("DDE version: " + dde_version)

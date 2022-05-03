@@ -1275,12 +1275,16 @@ class Dexter extends Robot {
     set_robot_status(robot_status) {
         let old_robot_status_button_down = this.is_phui_button_down() //do this first before setting robot_status
         this.robot_status = robot_status //thus rob.robot_status always has the latest rs we got from Dexter.
-        if(globalThis.platform == "dde"){
-            if(this.rs) { this.rs.robot_status = robot_status }
-            else {
-                this.rs = new RobotStatus({robot_status: robot_status})
-            }
+        //the below use to happen only in dde, but may 2, 2022 changed it to happen always (on node/job_engine as well)
+        if(this.rs) { this.rs.robot_status = robot_status }
+        else {
+            this.rs = new RobotStatus({robot_status: robot_status})
         }
+        out("In set_robot_status for Job." + Job.job_id_to_job_instance(robot_status[Dexter.JOB_ID]).name +
+            " Dexter." + this.name +
+            " oplet: " + robot_status[Dexter.INSTRUCTION_TYPE] +
+            " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE] +
+            " measured_angles in rs: " + this.rs.measured_angles())
         let new_robot_status_button_down = this.is_phui_button_down() //tricky. Not the same as 2 lines up!
         if((!old_robot_status_button_down) &&
             new_robot_status_button_down) {
@@ -1425,6 +1429,10 @@ class Dexter extends Robot {
         let oplet        = robot_status[Dexter.INSTRUCTION_TYPE]
         let error_code   = robot_status[Dexter.ERROR_CODE]
         let rob          = this //job_instance.robot
+        out("In robot_done_with_instruction for Job." + job_instance.name +
+            " Dexter." + this.name +
+            " oplet: " + oplet +
+            " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE])
         if(oplet === "F") {
             rob.waiting_for_flush_ack = false
         }

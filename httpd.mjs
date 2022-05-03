@@ -1,4 +1,4 @@
-debugger;
+
 import http      from "http"
 import https     from "https"
 import url       from 'url'; //url parsing
@@ -7,7 +7,7 @@ const formidable = pkg;
 
 import fs        from 'fs'; //file system
 import net       from 'net'; //network
-import { WebSocketServer }    from 'ws' ; //websocket //dde4 added clurlies around ws to fix bug in import
+import { WebSocket, WebSocketServer }    from 'ws' ; //websocket //dde4 added clurlies around ws to fix bug in import
 import path      from 'path';
 import { spawn } from 'child_process'
 import ModbusRTU from "modbus-serial"
@@ -135,7 +135,15 @@ function get_job_name_to_process(job_name) {
      }
 }
 function set_job_name_to_process(job_name, process) { job_name_to_process[job_name] = process }
-function remove_job_name_to_process(job_name) { delete job_name_to_process[job_name] }       
+function remove_job_name_to_process(job_name) { delete job_name_to_process[job_name] }
+
+function kill_all_job_processes(){
+    for (let key of Object.keys(job_name_to_process)){
+        let proc = job_name_to_process[key]
+        proc.kill()
+        remove_job_name_to_process(key)
+    }
+}
         
 //arg looks like "myjob.js", "myjob.dde", "myjob"
 function extract_job_name(job_name_with_extension){
@@ -181,8 +189,9 @@ console.log("now making wss");
 const wss = new WebSocketServer({port: 3001});    //server: http_server });
 console.log("done making wss: " + wss);
 
+
+
 function serve_job_button_click(browser_socket, mess_obj){
-    debugger;
     let app_file = mess_obj.job_name_with_extension; //includes ".js" suffix 
     console.log("\n\nserve_job_button_click for:" + app_file);
     console.log("\nserve_job_button_click mess_obj:\n" + JSON.stringify(mess_obj))
@@ -197,6 +206,7 @@ function serve_job_button_click(browser_socket, mess_obj){
     let job_process = get_job_name_to_process(app_file); //warning: might be undefined.
     //let server_response = res //to help close over
     console.log("process: " + job_process)
+
     if(!job_process){
         //https://nodejs.org/api/child_process.html
         //https://blog.cloudboost.io/node-js-child-process-spawn-178eaaf8e1f9
@@ -204,7 +214,7 @@ function serve_job_button_click(browser_socket, mess_obj){
         let cmd_args = [mess_obj.args || "-i"]; //if they didn't give us a -c <command> then do an interactive session
         let cmd_options = {cwd: SHARE_FOLDER, shell: true};
         if (".dde"==app_type) { //if this is a job engine job
-            cmd_line = 'node --experimental-fetch'; //then we run node
+            cmd_line = 'node' // --experimental-fetch --inspect'; // --inspect-brk then we run node
             cmd_args = // ["core define_and_start_job " + jobfile]; //orig dde3 //tell it to start the job
                       ["bundleje.mjs define_and_start_job " + jobfile] //dde4
             cmd_options = {cwd: DDE_INSTALL_FOLDER,
@@ -220,18 +230,18 @@ function serve_job_button_click(browser_socket, mess_obj){
         console.log("started job_name: " + job_name + " with: "+cmd_line+" "+cmd_args+" to new process: " + job_process.pid + " of type:" + app_type);
         job_process.stdout.on('data', function(data) {
           let data_str = data.toString();
-          console.log("\n\nserver: stdout.on data got data: " + data_str + "\n");
+          //console.log("\n\nserver: stdout.on data got data: " + data_str + "\n");
 
           //server_response.write(data_str) //pipe straight through to calling browser's handle_stdout
           //https://github.com/expressjs/compression/issues/56 sez call flush even though it isn't documented.
           //server_response.flushHeaders() //flush is deprecated.
-          if (browser_socket.readyState != WebSocketServer.OPEN) {job_process.kill(); return;} //maybe should be kill()?
+          if (browser_socket.readyState != WebSocket.OPEN) {job_process.kill(); return;} //maybe should be kill()?
           browser_socket.send(data_str);
 	     });
         if (".dde"==app_type) {  
             job_process.stderr.on('data', function(data) {
                 let data_str = data.toString();
-                console.log("\n\njob: " + job_name + " got stderr with data: " + data_str);
+                console.log("\n\nJob." + job_name + " got stderr with data: " + data_str);
                 //remove_job_name_to_process(job_name) //just because there is an error, that don't mean the job closed.
                 //server_response.write("Job." + job_name + " errored with: " + data)
                 console.log('\n\nAbout to stringify 2\n');
@@ -239,23 +249,28 @@ function serve_job_button_click(browser_socket, mess_obj){
                                kind: "show_job_button",
                                button_tooltip: "Server errored with: " + data_str,
                                button_color: "red"};
-                if (browser_socket.readyState != WebSocketServer.OPEN) {job_process.kill(); return;} //maybe should be kill()?
+                if (browser_socket.readyState != WebSocket.OPEN) {job_process.kill(); return;} //maybe should be kill()?
                 browser_socket.send(data_str) //redundant but the below might not be working
                 browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>");
                 //server_response.end()
-                });
+                //job_process.kill() //*probably* the right thing to do in most cases.
+                //remove_job_name_to_process(job_name);
+                //BUT even with Node v 18, it sends to stderr:
+                // " ExperimentalWarning: The Fetch API is an experimental feature. This feature could change at any time"
+                //so we don't want to kill the process just for that.
+            });
         } else {
             job_process.stderr.on('data', function(data) {
                 let data_str = data.toString();
                 console.log("\n\njob: " + job_name + " got stderr with data: " + data_str);
-                if (browser_socket.readyState != WebSocketServer.OPEN) {job_process.kill(); return;} //maybe should be kill()?
+                if (browser_socket.readyState != WebSocket.OPEN) {job_process.kill(); return;} //maybe should be kill()?
                 browser_socket.send(data_str);
                 });
             
         }
         job_process.on('close', function(code) {
           console.log("\n\nServer closed the process of Job: " + job_name + " with code: " + code);
-          if(code !== 0 && browser_socket.readyState === WebSocketServer.OPEN){
+          if(code !== 0 && browser_socket.readyState === WebSocket.OPEN){
           	console.log('\n\nAbout to stringify 3\n');
           	let lit_obj = {job_name: job_name, 
                            kind: "show_job_button",
@@ -271,7 +286,7 @@ function serve_job_button_click(browser_socket, mess_obj){
                 console.log("\n\nServer on exit the process of Job: " + job_name + " with code: " + code)
             }
           );
-        }
+    }
 
     else {
         console.log("in serve_job_button_click already got a process")
@@ -289,9 +304,24 @@ function serve_job_button_click(browser_socket, mess_obj){
             else if (mess_obj.code) {
               code = mess_obj.code + "\n";
             }
+            /*else if (mess_obj.kind === "job_button_click"){
+                code = "Job." + job_name + ".stop_for_reason('interrupted', 'user stopped the job')"
+                console.log("server button click stopping job with code: " + code)
+                setTimeout(function() {
+                    kill_all_job_processes() //todo this presumes that if there's already a process, we clicked the
+                    //job button to stop the process, so kill this process after it settles down
+                    //so that starting it up again won't run into the problem with the websocket port open
+                }, 2000)
+            }*/
             else {
-              code = 'Job.maybe_define_and_server_job_button_click("' + jobfile + '")\n';
+                code = 'Job.maybe_define_and_server_job_button_click("' + jobfile + '")\n';
+                setTimeout(function() {
+                    kill_all_job_processes() //todo this presumes that since there's already a process, we clicked the
+                    //job button to stop the process, so kill this process after it settles down
+                    //so that starting it up again won't run into the problem with the websocket port open
+                }, 2000)
             }
+
         }
         else { // something else, probably bash
             code = mess_obj.ws_message  + "\n";
@@ -505,6 +535,7 @@ var http_server = http.createServer(async function (req, res) {
         if (q.query.download) {
             res.setHeader("Content-Disposition", "attachment; filename=\"" + path.basename(filename) + "\"")
         }
+        console.log("in server edit?edit with: " + filename + " about to allow CORS.")
         res.setHeader('Access-Control-Allow-Origin', '*'); //dde4
         res.writeHead(200)
         //console.log("server writing out data: " + data)

@@ -48,7 +48,11 @@ globalThis.write_to_stdout = write_to_stdout
 
 
 function close_readline(){
-    rl.close()
+    console.log("top of  job engine node stdio.js close_readline") //even wit the setTimeout,
+    //I still don't see this print statement come to the JE browser interface Out pane.
+    setTimeout( function() {
+        rl.close()
+    }, 1000)
 }
 
 globalThis.close_readline = close_readline

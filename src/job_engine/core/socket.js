@@ -124,7 +124,7 @@ class Socket{
                     }
                 } //end of on("error"
                 net_soc_inst.onclose = function(err){
-                    console.log("websocket closed.")
+                    console.log("net socket closed.")
 
                 }
                 setTimeout(function() {
@@ -499,6 +499,7 @@ class Socket{
         let oplet_array_or_string_du = Socket.instruction_array_degrees_to_arcseconds_maybe(oplet_array_or_string, rob)
         let job_id = Instruction.extract_job_id(oplet_array_or_string)
         let job_instance = Job.job_id_to_job_instance(job_id)
+
         if(!job_instance){
             shouldnt("Socket.send passed: " + robot_name + " " + oplet_array_or_string +
                      "<br/>extracted job_id:" + job_id + " but no defined Job with that ID.")
@@ -506,18 +507,21 @@ class Socket{
         //out(job_instance.name + " " + robot_name + " Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
 
         let oplet = oplet_array_or_string[Instruction.INSTRUCTION_TYPE]
+        out("In send for Job." + job_instance.name +
+            " Dexter." + rob.name +
+            " oplet: " + oplet +
+            " instr: " + oplet_array_or_string)
         let instr_id = oplet_array_or_string[Instruction.INSTRUCTION_ID]
         let got_first_non_monitor_instr = false
-        out("top of Socket.send with: " + job_instance.name + " " + robot_name +  " " + oplet_array_or_string)
+        out("Top of Socket.send with: " + job_instance.name + " " + robot_name +  " " + oplet_array_or_string, undefined, true)
 
         if((oplet === "g") && (instr_id > 0)) {
             got_first_non_monitor_instr = true
-            out("send for: " + job_instance.name)
+            out("in Socket,send for job: " + job_instance.name)
             //debugger;
         }
         else if ((job_instance !== "monitor_job") && (oplet !== "g") && got_first_non_monitor_instr){
-            debugger;
-            out("send for: " + job_instance.name)
+            out("in Socket.send for job: " + job_instance.name)
         }
 
         const str =  Socket.oplet_array_or_string_to_string(oplet_array_or_string_du)
@@ -546,7 +550,7 @@ class Socket{
             let net_soc_inst = Socket.robot_name_to_soc_instance_map[robot_name]
             if(net_soc_inst && (net_soc_inst.readyState === WebSocket.OPEN)) {
                 try {
-                    console.log("Socket.send about to send str: " + str)
+                    console.log("Socket.send about to send str: " + str, undefined, true)
                     //net_soc_inst.write(arr_buff) //dde3
                     net_soc_inst.send(str) //dde4
                     //console.log("Socket.send just sent:     " + str)
@@ -605,8 +609,8 @@ class Socket{
     //
     static on_receive(data, payload_string_maybe, dexter_instance){
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
-        console.log("top of Socket.on_receive.")
-        out("Socket.on_receive passed data:        " + data)
+        //console.log("top of Socket.on_receive.")
+        out("Socket.on_receive passed data: " + data, undefined, true)
         let robot_status
         let oplet
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
@@ -651,6 +655,13 @@ class Socket{
         //the simulator automatically does this so we have to do it here in non-simulation
         //out("on_receive got back oplet of " + oplet)
         robot_status[Dexter.INSTRUCTION_TYPE] = oplet
+        let job_id = robot_status[Dexter.JOB_ID]
+        let job_instance = Job.job_id_to_job_instance(job_id)
+        out("In on_receive_aux for Job." + job_instance.name +
+            " Dexter." + dexter_instance.name +
+            " oplet: " + oplet +
+            " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE])
+        if(job_instance.name === "monitor_dexter"){ debugger;}
         if(oplet == "r"){ //Dexter.read_file
             if(typeof(payload_string_maybe) == "number") { //only can hit im sim.// should be 2 if it hits
                 robot_status[Dexter.ERROR_CODE] = 0 //even though we got an error from file_not_found,
@@ -672,7 +683,7 @@ class Socket{
         }
         else {
             Socket.convert_robot_status_to_degrees(robot_status)
-            this.handle_monitor_dexter_maybe(robot_status) //just show the measured angles in the sim pane, no extra sim
+            //this.handle_monitor_dexter_maybe(robot_status) //just show the measured angles in the sim pane, no extra sim
         }
 
         //the below line became unnecessary, and too complex, too hieruasic once we
@@ -682,8 +693,6 @@ class Socket{
         if (oplet === "F") {
             dexter_instance.waiting_for_flush_ack = false
         }
-        let job_id = robot_status[Dexter.JOB_ID]
-        let job_instance = Job.job_id_to_job_instance(job_id)
         //out(job_instance.name + " " + rob.name + " bottom of Socket.on_receive with: " + robot_status)
         dexter_instance.robot_done_with_instruction(robot_status) //robot_status ERROR_CODE *might* be 1
     }

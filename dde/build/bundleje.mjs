@@ -10,8 +10,6387 @@ import require$$2 from 'url';
 import require$$0$2 from 'domain';
 import * as readline from 'readline';
 
+var global$1 = (typeof global !== "undefined" ? global :
+  typeof self !== "undefined" ? self :
+  typeof window !== "undefined" ? window : {});
+
+// shim for using process in browser
+// based off https://github.com/defunctzombie/node-process/blob/master/browser.js
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+var cachedSetTimeout = defaultSetTimout;
+var cachedClearTimeout = defaultClearTimeout;
+if (typeof global$1.setTimeout === 'function') {
+    cachedSetTimeout = setTimeout;
+}
+if (typeof global$1.clearTimeout === 'function') {
+    cachedClearTimeout = clearTimeout;
+}
+
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue$1 = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue$1 = currentQueue.concat(queue$1);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue$1.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue$1.length;
+    while(len) {
+        currentQueue = queue$1;
+        queue$1 = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue$1.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+function nextTick(fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue$1.push(new Item(fun, args));
+    if (queue$1.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+}
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+var title = 'browser';
+var platform$1 = 'browser';
+var browser = true;
+var env = {};
+var argv = [];
+var version$4 = ''; // empty string to avoid regexp issues
+var versions = {};
+var release = {};
+var config = {};
+
+function noop() {}
+
+var on = noop;
+var addListener = noop;
+var once = noop;
+var off = noop;
+var removeListener = noop;
+var removeAllListeners = noop;
+var emit = noop;
+
+function binding(name) {
+    throw new Error('process.binding is not supported');
+}
+
+function cwd () { return '/' }
+function chdir (dir) {
+    throw new Error('process.chdir is not supported');
+}function umask() { return 0; }
+
+// from https://github.com/kumavis/browser-process-hrtime/blob/master/index.js
+var performance$1 = global$1.performance || {};
+var performanceNow =
+  performance$1.now        ||
+  performance$1.mozNow     ||
+  performance$1.msNow      ||
+  performance$1.oNow       ||
+  performance$1.webkitNow  ||
+  function(){ return (new Date()).getTime() };
+
+// generate timestamp or delta
+// see http://nodejs.org/api/process.html#process_process_hrtime
+function hrtime(previousTimestamp){
+  var clocktime = performanceNow.call(performance$1)*1e-3;
+  var seconds = Math.floor(clocktime);
+  var nanoseconds = Math.floor((clocktime%1)*1e9);
+  if (previousTimestamp) {
+    seconds = seconds - previousTimestamp[0];
+    nanoseconds = nanoseconds - previousTimestamp[1];
+    if (nanoseconds<0) {
+      seconds--;
+      nanoseconds += 1e9;
+    }
+  }
+  return [seconds,nanoseconds]
+}
+
+var startTime = new Date();
+function uptime() {
+  var currentTime = new Date();
+  var dif = currentTime - startTime;
+  return dif / 1000;
+}
+
+var browser$1 = {
+  nextTick: nextTick,
+  title: title,
+  browser: browser,
+  env: env,
+  argv: argv,
+  version: version$4,
+  versions: versions,
+  on: on,
+  addListener: addListener,
+  once: once,
+  off: off,
+  removeListener: removeListener,
+  removeAllListeners: removeAllListeners,
+  emit: emit,
+  binding: binding,
+  cwd: cwd,
+  chdir: chdir,
+  umask: umask,
+  hrtime: hrtime,
+  platform: platform$1,
+  release: release,
+  config: config,
+  uptime: uptime
+};
+
+var lookup = [];
+var revLookup = [];
+var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array;
+var inited = false;
+function init () {
+  inited = true;
+  var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  for (var i = 0, len = code.length; i < len; ++i) {
+    lookup[i] = code[i];
+    revLookup[code.charCodeAt(i)] = i;
+  }
+
+  revLookup['-'.charCodeAt(0)] = 62;
+  revLookup['_'.charCodeAt(0)] = 63;
+}
+
+function toByteArray (b64) {
+  if (!inited) {
+    init();
+  }
+  var i, j, l, tmp, placeHolders, arr;
+  var len = b64.length;
+
+  if (len % 4 > 0) {
+    throw new Error('Invalid string. Length must be a multiple of 4')
+  }
+
+  // the number of equal signs (place holders)
+  // if there are two placeholders, than the two characters before it
+  // represent one byte
+  // if there is only one, then the three characters before it represent 2 bytes
+  // this is just a cheap hack to not do indexOf twice
+  placeHolders = b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0;
+
+  // base64 is 4/3 + up to two characters of the original data
+  arr = new Arr(len * 3 / 4 - placeHolders);
+
+  // if there are placeholders, only get up to the last complete 4 chars
+  l = placeHolders > 0 ? len - 4 : len;
+
+  var L = 0;
+
+  for (i = 0, j = 0; i < l; i += 4, j += 3) {
+    tmp = (revLookup[b64.charCodeAt(i)] << 18) | (revLookup[b64.charCodeAt(i + 1)] << 12) | (revLookup[b64.charCodeAt(i + 2)] << 6) | revLookup[b64.charCodeAt(i + 3)];
+    arr[L++] = (tmp >> 16) & 0xFF;
+    arr[L++] = (tmp >> 8) & 0xFF;
+    arr[L++] = tmp & 0xFF;
+  }
+
+  if (placeHolders === 2) {
+    tmp = (revLookup[b64.charCodeAt(i)] << 2) | (revLookup[b64.charCodeAt(i + 1)] >> 4);
+    arr[L++] = tmp & 0xFF;
+  } else if (placeHolders === 1) {
+    tmp = (revLookup[b64.charCodeAt(i)] << 10) | (revLookup[b64.charCodeAt(i + 1)] << 4) | (revLookup[b64.charCodeAt(i + 2)] >> 2);
+    arr[L++] = (tmp >> 8) & 0xFF;
+    arr[L++] = tmp & 0xFF;
+  }
+
+  return arr
+}
+
+function tripletToBase64 (num) {
+  return lookup[num >> 18 & 0x3F] + lookup[num >> 12 & 0x3F] + lookup[num >> 6 & 0x3F] + lookup[num & 0x3F]
+}
+
+function encodeChunk (uint8, start, end) {
+  var tmp;
+  var output = [];
+  for (var i = start; i < end; i += 3) {
+    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2]);
+    output.push(tripletToBase64(tmp));
+  }
+  return output.join('')
+}
+
+function fromByteArray (uint8) {
+  if (!inited) {
+    init();
+  }
+  var tmp;
+  var len = uint8.length;
+  var extraBytes = len % 3; // if we have 1 byte left, pad 2 bytes
+  var output = '';
+  var parts = [];
+  var maxChunkLength = 16383; // must be multiple of 3
+
+  // go through the array every three bytes, we'll deal with trailing stuff later
+  for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
+    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)));
+  }
+
+  // pad the end with zeros, but make sure to not forget the extra bytes
+  if (extraBytes === 1) {
+    tmp = uint8[len - 1];
+    output += lookup[tmp >> 2];
+    output += lookup[(tmp << 4) & 0x3F];
+    output += '==';
+  } else if (extraBytes === 2) {
+    tmp = (uint8[len - 2] << 8) + (uint8[len - 1]);
+    output += lookup[tmp >> 10];
+    output += lookup[(tmp >> 4) & 0x3F];
+    output += lookup[(tmp << 2) & 0x3F];
+    output += '=';
+  }
+
+  parts.push(output);
+
+  return parts.join('')
+}
+
+function read (buffer, offset, isLE, mLen, nBytes) {
+  var e, m;
+  var eLen = nBytes * 8 - mLen - 1;
+  var eMax = (1 << eLen) - 1;
+  var eBias = eMax >> 1;
+  var nBits = -7;
+  var i = isLE ? (nBytes - 1) : 0;
+  var d = isLE ? -1 : 1;
+  var s = buffer[offset + i];
+
+  i += d;
+
+  e = s & ((1 << (-nBits)) - 1);
+  s >>= (-nBits);
+  nBits += eLen;
+  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+
+  m = e & ((1 << (-nBits)) - 1);
+  e >>= (-nBits);
+  nBits += mLen;
+  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+
+  if (e === 0) {
+    e = 1 - eBias;
+  } else if (e === eMax) {
+    return m ? NaN : ((s ? -1 : 1) * Infinity)
+  } else {
+    m = m + Math.pow(2, mLen);
+    e = e - eBias;
+  }
+  return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
+}
+
+function write (buffer, value, offset, isLE, mLen, nBytes) {
+  var e, m, c;
+  var eLen = nBytes * 8 - mLen - 1;
+  var eMax = (1 << eLen) - 1;
+  var eBias = eMax >> 1;
+  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0);
+  var i = isLE ? 0 : (nBytes - 1);
+  var d = isLE ? 1 : -1;
+  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0;
+
+  value = Math.abs(value);
+
+  if (isNaN(value) || value === Infinity) {
+    m = isNaN(value) ? 1 : 0;
+    e = eMax;
+  } else {
+    e = Math.floor(Math.log(value) / Math.LN2);
+    if (value * (c = Math.pow(2, -e)) < 1) {
+      e--;
+      c *= 2;
+    }
+    if (e + eBias >= 1) {
+      value += rt / c;
+    } else {
+      value += rt * Math.pow(2, 1 - eBias);
+    }
+    if (value * c >= 2) {
+      e++;
+      c /= 2;
+    }
+
+    if (e + eBias >= eMax) {
+      m = 0;
+      e = eMax;
+    } else if (e + eBias >= 1) {
+      m = (value * c - 1) * Math.pow(2, mLen);
+      e = e + eBias;
+    } else {
+      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen);
+      e = 0;
+    }
+  }
+
+  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
+
+  e = (e << mLen) | m;
+  eLen += mLen;
+  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
+
+  buffer[offset + i - d] |= s * 128;
+}
+
+var toString$1 = {}.toString;
+
+var isArray$1 = Array.isArray || function (arr) {
+  return toString$1.call(arr) == '[object Array]';
+};
+
+/*!
+ * The buffer module from node.js, for the browser.
+ *
+ * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * @license  MIT
+ */
+
+var INSPECT_MAX_BYTES = 50;
+
+/**
+ * If `Buffer.TYPED_ARRAY_SUPPORT`:
+ *   === true    Use Uint8Array implementation (fastest)
+ *   === false   Use Object implementation (most compatible, even IE6)
+ *
+ * Browsers that support typed arrays are IE 10+, Firefox 4+, Chrome 7+, Safari 5.1+,
+ * Opera 11.6+, iOS 4.2+.
+ *
+ * Due to various browser bugs, sometimes the Object implementation will be used even
+ * when the browser supports typed arrays.
+ *
+ * Note:
+ *
+ *   - Firefox 4-29 lacks support for adding new properties to `Uint8Array` instances,
+ *     See: https://bugzilla.mozilla.org/show_bug.cgi?id=695438.
+ *
+ *   - Chrome 9-10 is missing the `TypedArray.prototype.subarray` function.
+ *
+ *   - IE10 has a broken `TypedArray.prototype.subarray` function which returns arrays of
+ *     incorrect length in some situations.
+
+ * We detect these buggy browsers and set `Buffer.TYPED_ARRAY_SUPPORT` to `false` so they
+ * get the Object implementation, which is slower but behaves correctly.
+ */
+Buffer$1.TYPED_ARRAY_SUPPORT = global$1.TYPED_ARRAY_SUPPORT !== undefined
+  ? global$1.TYPED_ARRAY_SUPPORT
+  : true;
+
+function kMaxLength () {
+  return Buffer$1.TYPED_ARRAY_SUPPORT
+    ? 0x7fffffff
+    : 0x3fffffff
+}
+
+function createBuffer (that, length) {
+  if (kMaxLength() < length) {
+    throw new RangeError('Invalid typed array length')
+  }
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
+    // Return an augmented `Uint8Array` instance, for best performance
+    that = new Uint8Array(length);
+    that.__proto__ = Buffer$1.prototype;
+  } else {
+    // Fallback: Return an object instance of the Buffer class
+    if (that === null) {
+      that = new Buffer$1(length);
+    }
+    that.length = length;
+  }
+
+  return that
+}
+
+/**
+ * The Buffer constructor returns instances of `Uint8Array` that have their
+ * prototype changed to `Buffer.prototype`. Furthermore, `Buffer` is a subclass of
+ * `Uint8Array`, so the returned instances will have all the node `Buffer` methods
+ * and the `Uint8Array` methods. Square bracket notation works as expected -- it
+ * returns a single octet.
+ *
+ * The `Uint8Array` prototype remains unmodified.
+ */
+
+function Buffer$1 (arg, encodingOrOffset, length) {
+  if (!Buffer$1.TYPED_ARRAY_SUPPORT && !(this instanceof Buffer$1)) {
+    return new Buffer$1(arg, encodingOrOffset, length)
+  }
+
+  // Common case.
+  if (typeof arg === 'number') {
+    if (typeof encodingOrOffset === 'string') {
+      throw new Error(
+        'If encoding is specified then the first argument must be a string'
+      )
+    }
+    return allocUnsafe(this, arg)
+  }
+  return from(this, arg, encodingOrOffset, length)
+}
+
+Buffer$1.poolSize = 8192; // not used by this implementation
+
+// TODO: Legacy, not needed anymore. Remove in next major version.
+Buffer$1._augment = function (arr) {
+  arr.__proto__ = Buffer$1.prototype;
+  return arr
+};
+
+function from (that, value, encodingOrOffset, length) {
+  if (typeof value === 'number') {
+    throw new TypeError('"value" argument must not be a number')
+  }
+
+  if (typeof ArrayBuffer !== 'undefined' && value instanceof ArrayBuffer) {
+    return fromArrayBuffer(that, value, encodingOrOffset, length)
+  }
+
+  if (typeof value === 'string') {
+    return fromString(that, value, encodingOrOffset)
+  }
+
+  return fromObject(that, value)
+}
+
+/**
+ * Functionally equivalent to Buffer(arg, encoding) but throws a TypeError
+ * if value is a number.
+ * Buffer.from(str[, encoding])
+ * Buffer.from(array)
+ * Buffer.from(buffer)
+ * Buffer.from(arrayBuffer[, byteOffset[, length]])
+ **/
+Buffer$1.from = function (value, encodingOrOffset, length) {
+  return from(null, value, encodingOrOffset, length)
+};
+
+if (Buffer$1.TYPED_ARRAY_SUPPORT) {
+  Buffer$1.prototype.__proto__ = Uint8Array.prototype;
+  Buffer$1.__proto__ = Uint8Array;
+}
+
+function assertSize (size) {
+  if (typeof size !== 'number') {
+    throw new TypeError('"size" argument must be a number')
+  } else if (size < 0) {
+    throw new RangeError('"size" argument must not be negative')
+  }
+}
+
+function alloc (that, size, fill, encoding) {
+  assertSize(size);
+  if (size <= 0) {
+    return createBuffer(that, size)
+  }
+  if (fill !== undefined) {
+    // Only pay attention to encoding if it's a string. This
+    // prevents accidentally sending in a number that would
+    // be interpretted as a start offset.
+    return typeof encoding === 'string'
+      ? createBuffer(that, size).fill(fill, encoding)
+      : createBuffer(that, size).fill(fill)
+  }
+  return createBuffer(that, size)
+}
+
+/**
+ * Creates a new filled Buffer instance.
+ * alloc(size[, fill[, encoding]])
+ **/
+Buffer$1.alloc = function (size, fill, encoding) {
+  return alloc(null, size, fill, encoding)
+};
+
+function allocUnsafe (that, size) {
+  assertSize(size);
+  that = createBuffer(that, size < 0 ? 0 : checked(size) | 0);
+  if (!Buffer$1.TYPED_ARRAY_SUPPORT) {
+    for (var i = 0; i < size; ++i) {
+      that[i] = 0;
+    }
+  }
+  return that
+}
+
+/**
+ * Equivalent to Buffer(num), by default creates a non-zero-filled Buffer instance.
+ * */
+Buffer$1.allocUnsafe = function (size) {
+  return allocUnsafe(null, size)
+};
+/**
+ * Equivalent to SlowBuffer(num), by default creates a non-zero-filled Buffer instance.
+ */
+Buffer$1.allocUnsafeSlow = function (size) {
+  return allocUnsafe(null, size)
+};
+
+function fromString (that, string, encoding) {
+  if (typeof encoding !== 'string' || encoding === '') {
+    encoding = 'utf8';
+  }
+
+  if (!Buffer$1.isEncoding(encoding)) {
+    throw new TypeError('"encoding" must be a valid string encoding')
+  }
+
+  var length = byteLength(string, encoding) | 0;
+  that = createBuffer(that, length);
+
+  var actual = that.write(string, encoding);
+
+  if (actual !== length) {
+    // Writing a hex string, for example, that contains invalid characters will
+    // cause everything after the first invalid character to be ignored. (e.g.
+    // 'abxxcd' will be treated as 'ab')
+    that = that.slice(0, actual);
+  }
+
+  return that
+}
+
+function fromArrayLike (that, array) {
+  var length = array.length < 0 ? 0 : checked(array.length) | 0;
+  that = createBuffer(that, length);
+  for (var i = 0; i < length; i += 1) {
+    that[i] = array[i] & 255;
+  }
+  return that
+}
+
+function fromArrayBuffer (that, array, byteOffset, length) {
+  array.byteLength; // this throws if `array` is not a valid ArrayBuffer
+
+  if (byteOffset < 0 || array.byteLength < byteOffset) {
+    throw new RangeError('\'offset\' is out of bounds')
+  }
+
+  if (array.byteLength < byteOffset + (length || 0)) {
+    throw new RangeError('\'length\' is out of bounds')
+  }
+
+  if (byteOffset === undefined && length === undefined) {
+    array = new Uint8Array(array);
+  } else if (length === undefined) {
+    array = new Uint8Array(array, byteOffset);
+  } else {
+    array = new Uint8Array(array, byteOffset, length);
+  }
+
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
+    // Return an augmented `Uint8Array` instance, for best performance
+    that = array;
+    that.__proto__ = Buffer$1.prototype;
+  } else {
+    // Fallback: Return an object instance of the Buffer class
+    that = fromArrayLike(that, array);
+  }
+  return that
+}
+
+function fromObject (that, obj) {
+  if (internalIsBuffer(obj)) {
+    var len = checked(obj.length) | 0;
+    that = createBuffer(that, len);
+
+    if (that.length === 0) {
+      return that
+    }
+
+    obj.copy(that, 0, 0, len);
+    return that
+  }
+
+  if (obj) {
+    if ((typeof ArrayBuffer !== 'undefined' &&
+        obj.buffer instanceof ArrayBuffer) || 'length' in obj) {
+      if (typeof obj.length !== 'number' || isnan(obj.length)) {
+        return createBuffer(that, 0)
+      }
+      return fromArrayLike(that, obj)
+    }
+
+    if (obj.type === 'Buffer' && isArray$1(obj.data)) {
+      return fromArrayLike(that, obj.data)
+    }
+  }
+
+  throw new TypeError('First argument must be a string, Buffer, ArrayBuffer, Array, or array-like object.')
+}
+
+function checked (length) {
+  // Note: cannot use `length < kMaxLength()` here because that fails when
+  // length is NaN (which is otherwise coerced to zero.)
+  if (length >= kMaxLength()) {
+    throw new RangeError('Attempt to allocate Buffer larger than maximum ' +
+                         'size: 0x' + kMaxLength().toString(16) + ' bytes')
+  }
+  return length | 0
+}
+Buffer$1.isBuffer = isBuffer;
+function internalIsBuffer (b) {
+  return !!(b != null && b._isBuffer)
+}
+
+Buffer$1.compare = function compare (a, b) {
+  if (!internalIsBuffer(a) || !internalIsBuffer(b)) {
+    throw new TypeError('Arguments must be Buffers')
+  }
+
+  if (a === b) return 0
+
+  var x = a.length;
+  var y = b.length;
+
+  for (var i = 0, len = Math.min(x, y); i < len; ++i) {
+    if (a[i] !== b[i]) {
+      x = a[i];
+      y = b[i];
+      break
+    }
+  }
+
+  if (x < y) return -1
+  if (y < x) return 1
+  return 0
+};
+
+Buffer$1.isEncoding = function isEncoding (encoding) {
+  switch (String(encoding).toLowerCase()) {
+    case 'hex':
+    case 'utf8':
+    case 'utf-8':
+    case 'ascii':
+    case 'latin1':
+    case 'binary':
+    case 'base64':
+    case 'ucs2':
+    case 'ucs-2':
+    case 'utf16le':
+    case 'utf-16le':
+      return true
+    default:
+      return false
+  }
+};
+
+Buffer$1.concat = function concat (list, length) {
+  if (!isArray$1(list)) {
+    throw new TypeError('"list" argument must be an Array of Buffers')
+  }
+
+  if (list.length === 0) {
+    return Buffer$1.alloc(0)
+  }
+
+  var i;
+  if (length === undefined) {
+    length = 0;
+    for (i = 0; i < list.length; ++i) {
+      length += list[i].length;
+    }
+  }
+
+  var buffer = Buffer$1.allocUnsafe(length);
+  var pos = 0;
+  for (i = 0; i < list.length; ++i) {
+    var buf = list[i];
+    if (!internalIsBuffer(buf)) {
+      throw new TypeError('"list" argument must be an Array of Buffers')
+    }
+    buf.copy(buffer, pos);
+    pos += buf.length;
+  }
+  return buffer
+};
+
+function byteLength (string, encoding) {
+  if (internalIsBuffer(string)) {
+    return string.length
+  }
+  if (typeof ArrayBuffer !== 'undefined' && typeof ArrayBuffer.isView === 'function' &&
+      (ArrayBuffer.isView(string) || string instanceof ArrayBuffer)) {
+    return string.byteLength
+  }
+  if (typeof string !== 'string') {
+    string = '' + string;
+  }
+
+  var len = string.length;
+  if (len === 0) return 0
+
+  // Use a for loop to avoid recursion
+  var loweredCase = false;
+  for (;;) {
+    switch (encoding) {
+      case 'ascii':
+      case 'latin1':
+      case 'binary':
+        return len
+      case 'utf8':
+      case 'utf-8':
+      case undefined:
+        return utf8ToBytes(string).length
+      case 'ucs2':
+      case 'ucs-2':
+      case 'utf16le':
+      case 'utf-16le':
+        return len * 2
+      case 'hex':
+        return len >>> 1
+      case 'base64':
+        return base64ToBytes(string).length
+      default:
+        if (loweredCase) return utf8ToBytes(string).length // assume utf8
+        encoding = ('' + encoding).toLowerCase();
+        loweredCase = true;
+    }
+  }
+}
+Buffer$1.byteLength = byteLength;
+
+function slowToString (encoding, start, end) {
+  var loweredCase = false;
+
+  // No need to verify that "this.length <= MAX_UINT32" since it's a read-only
+  // property of a typed array.
+
+  // This behaves neither like String nor Uint8Array in that we set start/end
+  // to their upper/lower bounds if the value passed is out of range.
+  // undefined is handled specially as per ECMA-262 6th Edition,
+  // Section 13.3.3.7 Runtime Semantics: KeyedBindingInitialization.
+  if (start === undefined || start < 0) {
+    start = 0;
+  }
+  // Return early if start > this.length. Done here to prevent potential uint32
+  // coercion fail below.
+  if (start > this.length) {
+    return ''
+  }
+
+  if (end === undefined || end > this.length) {
+    end = this.length;
+  }
+
+  if (end <= 0) {
+    return ''
+  }
+
+  // Force coersion to uint32. This will also coerce falsey/NaN values to 0.
+  end >>>= 0;
+  start >>>= 0;
+
+  if (end <= start) {
+    return ''
+  }
+
+  if (!encoding) encoding = 'utf8';
+
+  while (true) {
+    switch (encoding) {
+      case 'hex':
+        return hexSlice(this, start, end)
+
+      case 'utf8':
+      case 'utf-8':
+        return utf8Slice(this, start, end)
+
+      case 'ascii':
+        return asciiSlice(this, start, end)
+
+      case 'latin1':
+      case 'binary':
+        return latin1Slice(this, start, end)
+
+      case 'base64':
+        return base64Slice(this, start, end)
+
+      case 'ucs2':
+      case 'ucs-2':
+      case 'utf16le':
+      case 'utf-16le':
+        return utf16leSlice(this, start, end)
+
+      default:
+        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
+        encoding = (encoding + '').toLowerCase();
+        loweredCase = true;
+    }
+  }
+}
+
+// The property is used by `Buffer.isBuffer` and `is-buffer` (in Safari 5-7) to detect
+// Buffer instances.
+Buffer$1.prototype._isBuffer = true;
+
+function swap (b, n, m) {
+  var i = b[n];
+  b[n] = b[m];
+  b[m] = i;
+}
+
+Buffer$1.prototype.swap16 = function swap16 () {
+  var len = this.length;
+  if (len % 2 !== 0) {
+    throw new RangeError('Buffer size must be a multiple of 16-bits')
+  }
+  for (var i = 0; i < len; i += 2) {
+    swap(this, i, i + 1);
+  }
+  return this
+};
+
+Buffer$1.prototype.swap32 = function swap32 () {
+  var len = this.length;
+  if (len % 4 !== 0) {
+    throw new RangeError('Buffer size must be a multiple of 32-bits')
+  }
+  for (var i = 0; i < len; i += 4) {
+    swap(this, i, i + 3);
+    swap(this, i + 1, i + 2);
+  }
+  return this
+};
+
+Buffer$1.prototype.swap64 = function swap64 () {
+  var len = this.length;
+  if (len % 8 !== 0) {
+    throw new RangeError('Buffer size must be a multiple of 64-bits')
+  }
+  for (var i = 0; i < len; i += 8) {
+    swap(this, i, i + 7);
+    swap(this, i + 1, i + 6);
+    swap(this, i + 2, i + 5);
+    swap(this, i + 3, i + 4);
+  }
+  return this
+};
+
+Buffer$1.prototype.toString = function toString () {
+  var length = this.length | 0;
+  if (length === 0) return ''
+  if (arguments.length === 0) return utf8Slice(this, 0, length)
+  return slowToString.apply(this, arguments)
+};
+
+Buffer$1.prototype.equals = function equals (b) {
+  if (!internalIsBuffer(b)) throw new TypeError('Argument must be a Buffer')
+  if (this === b) return true
+  return Buffer$1.compare(this, b) === 0
+};
+
+Buffer$1.prototype.inspect = function inspect () {
+  var str = '';
+  var max = INSPECT_MAX_BYTES;
+  if (this.length > 0) {
+    str = this.toString('hex', 0, max).match(/.{2}/g).join(' ');
+    if (this.length > max) str += ' ... ';
+  }
+  return '<Buffer ' + str + '>'
+};
+
+Buffer$1.prototype.compare = function compare (target, start, end, thisStart, thisEnd) {
+  if (!internalIsBuffer(target)) {
+    throw new TypeError('Argument must be a Buffer')
+  }
+
+  if (start === undefined) {
+    start = 0;
+  }
+  if (end === undefined) {
+    end = target ? target.length : 0;
+  }
+  if (thisStart === undefined) {
+    thisStart = 0;
+  }
+  if (thisEnd === undefined) {
+    thisEnd = this.length;
+  }
+
+  if (start < 0 || end > target.length || thisStart < 0 || thisEnd > this.length) {
+    throw new RangeError('out of range index')
+  }
+
+  if (thisStart >= thisEnd && start >= end) {
+    return 0
+  }
+  if (thisStart >= thisEnd) {
+    return -1
+  }
+  if (start >= end) {
+    return 1
+  }
+
+  start >>>= 0;
+  end >>>= 0;
+  thisStart >>>= 0;
+  thisEnd >>>= 0;
+
+  if (this === target) return 0
+
+  var x = thisEnd - thisStart;
+  var y = end - start;
+  var len = Math.min(x, y);
+
+  var thisCopy = this.slice(thisStart, thisEnd);
+  var targetCopy = target.slice(start, end);
+
+  for (var i = 0; i < len; ++i) {
+    if (thisCopy[i] !== targetCopy[i]) {
+      x = thisCopy[i];
+      y = targetCopy[i];
+      break
+    }
+  }
+
+  if (x < y) return -1
+  if (y < x) return 1
+  return 0
+};
+
+// Finds either the first index of `val` in `buffer` at offset >= `byteOffset`,
+// OR the last index of `val` in `buffer` at offset <= `byteOffset`.
+//
+// Arguments:
+// - buffer - a Buffer to search
+// - val - a string, Buffer, or number
+// - byteOffset - an index into `buffer`; will be clamped to an int32
+// - encoding - an optional encoding, relevant is val is a string
+// - dir - true for indexOf, false for lastIndexOf
+function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
+  // Empty buffer means no match
+  if (buffer.length === 0) return -1
+
+  // Normalize byteOffset
+  if (typeof byteOffset === 'string') {
+    encoding = byteOffset;
+    byteOffset = 0;
+  } else if (byteOffset > 0x7fffffff) {
+    byteOffset = 0x7fffffff;
+  } else if (byteOffset < -0x80000000) {
+    byteOffset = -0x80000000;
+  }
+  byteOffset = +byteOffset;  // Coerce to Number.
+  if (isNaN(byteOffset)) {
+    // byteOffset: it it's undefined, null, NaN, "foo", etc, search whole buffer
+    byteOffset = dir ? 0 : (buffer.length - 1);
+  }
+
+  // Normalize byteOffset: negative offsets start from the end of the buffer
+  if (byteOffset < 0) byteOffset = buffer.length + byteOffset;
+  if (byteOffset >= buffer.length) {
+    if (dir) return -1
+    else byteOffset = buffer.length - 1;
+  } else if (byteOffset < 0) {
+    if (dir) byteOffset = 0;
+    else return -1
+  }
+
+  // Normalize val
+  if (typeof val === 'string') {
+    val = Buffer$1.from(val, encoding);
+  }
+
+  // Finally, search either indexOf (if dir is true) or lastIndexOf
+  if (internalIsBuffer(val)) {
+    // Special case: looking for empty string/buffer always fails
+    if (val.length === 0) {
+      return -1
+    }
+    return arrayIndexOf(buffer, val, byteOffset, encoding, dir)
+  } else if (typeof val === 'number') {
+    val = val & 0xFF; // Search for a byte value [0-255]
+    if (Buffer$1.TYPED_ARRAY_SUPPORT &&
+        typeof Uint8Array.prototype.indexOf === 'function') {
+      if (dir) {
+        return Uint8Array.prototype.indexOf.call(buffer, val, byteOffset)
+      } else {
+        return Uint8Array.prototype.lastIndexOf.call(buffer, val, byteOffset)
+      }
+    }
+    return arrayIndexOf(buffer, [ val ], byteOffset, encoding, dir)
+  }
+
+  throw new TypeError('val must be string, number or Buffer')
+}
+
+function arrayIndexOf (arr, val, byteOffset, encoding, dir) {
+  var indexSize = 1;
+  var arrLength = arr.length;
+  var valLength = val.length;
+
+  if (encoding !== undefined) {
+    encoding = String(encoding).toLowerCase();
+    if (encoding === 'ucs2' || encoding === 'ucs-2' ||
+        encoding === 'utf16le' || encoding === 'utf-16le') {
+      if (arr.length < 2 || val.length < 2) {
+        return -1
+      }
+      indexSize = 2;
+      arrLength /= 2;
+      valLength /= 2;
+      byteOffset /= 2;
+    }
+  }
+
+  function read (buf, i) {
+    if (indexSize === 1) {
+      return buf[i]
+    } else {
+      return buf.readUInt16BE(i * indexSize)
+    }
+  }
+
+  var i;
+  if (dir) {
+    var foundIndex = -1;
+    for (i = byteOffset; i < arrLength; i++) {
+      if (read(arr, i) === read(val, foundIndex === -1 ? 0 : i - foundIndex)) {
+        if (foundIndex === -1) foundIndex = i;
+        if (i - foundIndex + 1 === valLength) return foundIndex * indexSize
+      } else {
+        if (foundIndex !== -1) i -= i - foundIndex;
+        foundIndex = -1;
+      }
+    }
+  } else {
+    if (byteOffset + valLength > arrLength) byteOffset = arrLength - valLength;
+    for (i = byteOffset; i >= 0; i--) {
+      var found = true;
+      for (var j = 0; j < valLength; j++) {
+        if (read(arr, i + j) !== read(val, j)) {
+          found = false;
+          break
+        }
+      }
+      if (found) return i
+    }
+  }
+
+  return -1
+}
+
+Buffer$1.prototype.includes = function includes (val, byteOffset, encoding) {
+  return this.indexOf(val, byteOffset, encoding) !== -1
+};
+
+Buffer$1.prototype.indexOf = function indexOf (val, byteOffset, encoding) {
+  return bidirectionalIndexOf(this, val, byteOffset, encoding, true)
+};
+
+Buffer$1.prototype.lastIndexOf = function lastIndexOf (val, byteOffset, encoding) {
+  return bidirectionalIndexOf(this, val, byteOffset, encoding, false)
+};
+
+function hexWrite (buf, string, offset, length) {
+  offset = Number(offset) || 0;
+  var remaining = buf.length - offset;
+  if (!length) {
+    length = remaining;
+  } else {
+    length = Number(length);
+    if (length > remaining) {
+      length = remaining;
+    }
+  }
+
+  // must be an even number of digits
+  var strLen = string.length;
+  if (strLen % 2 !== 0) throw new TypeError('Invalid hex string')
+
+  if (length > strLen / 2) {
+    length = strLen / 2;
+  }
+  for (var i = 0; i < length; ++i) {
+    var parsed = parseInt(string.substr(i * 2, 2), 16);
+    if (isNaN(parsed)) return i
+    buf[offset + i] = parsed;
+  }
+  return i
+}
+
+function utf8Write (buf, string, offset, length) {
+  return blitBuffer(utf8ToBytes(string, buf.length - offset), buf, offset, length)
+}
+
+function asciiWrite (buf, string, offset, length) {
+  return blitBuffer(asciiToBytes(string), buf, offset, length)
+}
+
+function latin1Write (buf, string, offset, length) {
+  return asciiWrite(buf, string, offset, length)
+}
+
+function base64Write (buf, string, offset, length) {
+  return blitBuffer(base64ToBytes(string), buf, offset, length)
+}
+
+function ucs2Write (buf, string, offset, length) {
+  return blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length)
+}
+
+Buffer$1.prototype.write = function write (string, offset, length, encoding) {
+  // Buffer#write(string)
+  if (offset === undefined) {
+    encoding = 'utf8';
+    length = this.length;
+    offset = 0;
+  // Buffer#write(string, encoding)
+  } else if (length === undefined && typeof offset === 'string') {
+    encoding = offset;
+    length = this.length;
+    offset = 0;
+  // Buffer#write(string, offset[, length][, encoding])
+  } else if (isFinite(offset)) {
+    offset = offset | 0;
+    if (isFinite(length)) {
+      length = length | 0;
+      if (encoding === undefined) encoding = 'utf8';
+    } else {
+      encoding = length;
+      length = undefined;
+    }
+  // legacy write(string, encoding, offset, length) - remove in v0.13
+  } else {
+    throw new Error(
+      'Buffer.write(string, encoding, offset[, length]) is no longer supported'
+    )
+  }
+
+  var remaining = this.length - offset;
+  if (length === undefined || length > remaining) length = remaining;
+
+  if ((string.length > 0 && (length < 0 || offset < 0)) || offset > this.length) {
+    throw new RangeError('Attempt to write outside buffer bounds')
+  }
+
+  if (!encoding) encoding = 'utf8';
+
+  var loweredCase = false;
+  for (;;) {
+    switch (encoding) {
+      case 'hex':
+        return hexWrite(this, string, offset, length)
+
+      case 'utf8':
+      case 'utf-8':
+        return utf8Write(this, string, offset, length)
+
+      case 'ascii':
+        return asciiWrite(this, string, offset, length)
+
+      case 'latin1':
+      case 'binary':
+        return latin1Write(this, string, offset, length)
+
+      case 'base64':
+        // Warning: maxLength not taken into account in base64Write
+        return base64Write(this, string, offset, length)
+
+      case 'ucs2':
+      case 'ucs-2':
+      case 'utf16le':
+      case 'utf-16le':
+        return ucs2Write(this, string, offset, length)
+
+      default:
+        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
+        encoding = ('' + encoding).toLowerCase();
+        loweredCase = true;
+    }
+  }
+};
+
+Buffer$1.prototype.toJSON = function toJSON () {
+  return {
+    type: 'Buffer',
+    data: Array.prototype.slice.call(this._arr || this, 0)
+  }
+};
+
+function base64Slice (buf, start, end) {
+  if (start === 0 && end === buf.length) {
+    return fromByteArray(buf)
+  } else {
+    return fromByteArray(buf.slice(start, end))
+  }
+}
+
+function utf8Slice (buf, start, end) {
+  end = Math.min(buf.length, end);
+  var res = [];
+
+  var i = start;
+  while (i < end) {
+    var firstByte = buf[i];
+    var codePoint = null;
+    var bytesPerSequence = (firstByte > 0xEF) ? 4
+      : (firstByte > 0xDF) ? 3
+      : (firstByte > 0xBF) ? 2
+      : 1;
+
+    if (i + bytesPerSequence <= end) {
+      var secondByte, thirdByte, fourthByte, tempCodePoint;
+
+      switch (bytesPerSequence) {
+        case 1:
+          if (firstByte < 0x80) {
+            codePoint = firstByte;
+          }
+          break
+        case 2:
+          secondByte = buf[i + 1];
+          if ((secondByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0x1F) << 0x6 | (secondByte & 0x3F);
+            if (tempCodePoint > 0x7F) {
+              codePoint = tempCodePoint;
+            }
+          }
+          break
+        case 3:
+          secondByte = buf[i + 1];
+          thirdByte = buf[i + 2];
+          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0xF) << 0xC | (secondByte & 0x3F) << 0x6 | (thirdByte & 0x3F);
+            if (tempCodePoint > 0x7FF && (tempCodePoint < 0xD800 || tempCodePoint > 0xDFFF)) {
+              codePoint = tempCodePoint;
+            }
+          }
+          break
+        case 4:
+          secondByte = buf[i + 1];
+          thirdByte = buf[i + 2];
+          fourthByte = buf[i + 3];
+          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80 && (fourthByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0xF) << 0x12 | (secondByte & 0x3F) << 0xC | (thirdByte & 0x3F) << 0x6 | (fourthByte & 0x3F);
+            if (tempCodePoint > 0xFFFF && tempCodePoint < 0x110000) {
+              codePoint = tempCodePoint;
+            }
+          }
+      }
+    }
+
+    if (codePoint === null) {
+      // we did not generate a valid codePoint so insert a
+      // replacement char (U+FFFD) and advance only 1 byte
+      codePoint = 0xFFFD;
+      bytesPerSequence = 1;
+    } else if (codePoint > 0xFFFF) {
+      // encode to utf16 (surrogate pair dance)
+      codePoint -= 0x10000;
+      res.push(codePoint >>> 10 & 0x3FF | 0xD800);
+      codePoint = 0xDC00 | codePoint & 0x3FF;
+    }
+
+    res.push(codePoint);
+    i += bytesPerSequence;
+  }
+
+  return decodeCodePointsArray(res)
+}
+
+// Based on http://stackoverflow.com/a/22747272/680742, the browser with
+// the lowest limit is Chrome, with 0x10000 args.
+// We go 1 magnitude less, for safety
+var MAX_ARGUMENTS_LENGTH = 0x1000;
+
+function decodeCodePointsArray (codePoints) {
+  var len = codePoints.length;
+  if (len <= MAX_ARGUMENTS_LENGTH) {
+    return String.fromCharCode.apply(String, codePoints) // avoid extra slice()
+  }
+
+  // Decode in chunks to avoid "call stack size exceeded".
+  var res = '';
+  var i = 0;
+  while (i < len) {
+    res += String.fromCharCode.apply(
+      String,
+      codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
+    );
+  }
+  return res
+}
+
+function asciiSlice (buf, start, end) {
+  var ret = '';
+  end = Math.min(buf.length, end);
+
+  for (var i = start; i < end; ++i) {
+    ret += String.fromCharCode(buf[i] & 0x7F);
+  }
+  return ret
+}
+
+function latin1Slice (buf, start, end) {
+  var ret = '';
+  end = Math.min(buf.length, end);
+
+  for (var i = start; i < end; ++i) {
+    ret += String.fromCharCode(buf[i]);
+  }
+  return ret
+}
+
+function hexSlice (buf, start, end) {
+  var len = buf.length;
+
+  if (!start || start < 0) start = 0;
+  if (!end || end < 0 || end > len) end = len;
+
+  var out = '';
+  for (var i = start; i < end; ++i) {
+    out += toHex(buf[i]);
+  }
+  return out
+}
+
+function utf16leSlice (buf, start, end) {
+  var bytes = buf.slice(start, end);
+  var res = '';
+  for (var i = 0; i < bytes.length; i += 2) {
+    res += String.fromCharCode(bytes[i] + bytes[i + 1] * 256);
+  }
+  return res
+}
+
+Buffer$1.prototype.slice = function slice (start, end) {
+  var len = this.length;
+  start = ~~start;
+  end = end === undefined ? len : ~~end;
+
+  if (start < 0) {
+    start += len;
+    if (start < 0) start = 0;
+  } else if (start > len) {
+    start = len;
+  }
+
+  if (end < 0) {
+    end += len;
+    if (end < 0) end = 0;
+  } else if (end > len) {
+    end = len;
+  }
+
+  if (end < start) end = start;
+
+  var newBuf;
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
+    newBuf = this.subarray(start, end);
+    newBuf.__proto__ = Buffer$1.prototype;
+  } else {
+    var sliceLen = end - start;
+    newBuf = new Buffer$1(sliceLen, undefined);
+    for (var i = 0; i < sliceLen; ++i) {
+      newBuf[i] = this[i + start];
+    }
+  }
+
+  return newBuf
+};
+
+/*
+ * Need to make sure that buffer isn't trying to write out of bounds.
+ */
+function checkOffset (offset, ext, length) {
+  if ((offset % 1) !== 0 || offset < 0) throw new RangeError('offset is not uint')
+  if (offset + ext > length) throw new RangeError('Trying to access beyond buffer length')
+}
+
+Buffer$1.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert) {
+  offset = offset | 0;
+  byteLength = byteLength | 0;
+  if (!noAssert) checkOffset(offset, byteLength, this.length);
+
+  var val = this[offset];
+  var mul = 1;
+  var i = 0;
+  while (++i < byteLength && (mul *= 0x100)) {
+    val += this[offset + i] * mul;
+  }
+
+  return val
+};
+
+Buffer$1.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAssert) {
+  offset = offset | 0;
+  byteLength = byteLength | 0;
+  if (!noAssert) {
+    checkOffset(offset, byteLength, this.length);
+  }
+
+  var val = this[offset + --byteLength];
+  var mul = 1;
+  while (byteLength > 0 && (mul *= 0x100)) {
+    val += this[offset + --byteLength] * mul;
+  }
+
+  return val
+};
+
+Buffer$1.prototype.readUInt8 = function readUInt8 (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 1, this.length);
+  return this[offset]
+};
+
+Buffer$1.prototype.readUInt16LE = function readUInt16LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length);
+  return this[offset] | (this[offset + 1] << 8)
+};
+
+Buffer$1.prototype.readUInt16BE = function readUInt16BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length);
+  return (this[offset] << 8) | this[offset + 1]
+};
+
+Buffer$1.prototype.readUInt32LE = function readUInt32LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length);
+
+  return ((this[offset]) |
+      (this[offset + 1] << 8) |
+      (this[offset + 2] << 16)) +
+      (this[offset + 3] * 0x1000000)
+};
+
+Buffer$1.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length);
+
+  return (this[offset] * 0x1000000) +
+    ((this[offset + 1] << 16) |
+    (this[offset + 2] << 8) |
+    this[offset + 3])
+};
+
+Buffer$1.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
+  offset = offset | 0;
+  byteLength = byteLength | 0;
+  if (!noAssert) checkOffset(offset, byteLength, this.length);
+
+  var val = this[offset];
+  var mul = 1;
+  var i = 0;
+  while (++i < byteLength && (mul *= 0x100)) {
+    val += this[offset + i] * mul;
+  }
+  mul *= 0x80;
+
+  if (val >= mul) val -= Math.pow(2, 8 * byteLength);
+
+  return val
+};
+
+Buffer$1.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
+  offset = offset | 0;
+  byteLength = byteLength | 0;
+  if (!noAssert) checkOffset(offset, byteLength, this.length);
+
+  var i = byteLength;
+  var mul = 1;
+  var val = this[offset + --i];
+  while (i > 0 && (mul *= 0x100)) {
+    val += this[offset + --i] * mul;
+  }
+  mul *= 0x80;
+
+  if (val >= mul) val -= Math.pow(2, 8 * byteLength);
+
+  return val
+};
+
+Buffer$1.prototype.readInt8 = function readInt8 (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 1, this.length);
+  if (!(this[offset] & 0x80)) return (this[offset])
+  return ((0xff - this[offset] + 1) * -1)
+};
+
+Buffer$1.prototype.readInt16LE = function readInt16LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length);
+  var val = this[offset] | (this[offset + 1] << 8);
+  return (val & 0x8000) ? val | 0xFFFF0000 : val
+};
+
+Buffer$1.prototype.readInt16BE = function readInt16BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length);
+  var val = this[offset + 1] | (this[offset] << 8);
+  return (val & 0x8000) ? val | 0xFFFF0000 : val
+};
+
+Buffer$1.prototype.readInt32LE = function readInt32LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length);
+
+  return (this[offset]) |
+    (this[offset + 1] << 8) |
+    (this[offset + 2] << 16) |
+    (this[offset + 3] << 24)
+};
+
+Buffer$1.prototype.readInt32BE = function readInt32BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length);
+
+  return (this[offset] << 24) |
+    (this[offset + 1] << 16) |
+    (this[offset + 2] << 8) |
+    (this[offset + 3])
+};
+
+Buffer$1.prototype.readFloatLE = function readFloatLE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length);
+  return read(this, offset, true, 23, 4)
+};
+
+Buffer$1.prototype.readFloatBE = function readFloatBE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length);
+  return read(this, offset, false, 23, 4)
+};
+
+Buffer$1.prototype.readDoubleLE = function readDoubleLE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 8, this.length);
+  return read(this, offset, true, 52, 8)
+};
+
+Buffer$1.prototype.readDoubleBE = function readDoubleBE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 8, this.length);
+  return read(this, offset, false, 52, 8)
+};
+
+function checkInt (buf, value, offset, ext, max, min) {
+  if (!internalIsBuffer(buf)) throw new TypeError('"buffer" argument must be a Buffer instance')
+  if (value > max || value < min) throw new RangeError('"value" argument is out of bounds')
+  if (offset + ext > buf.length) throw new RangeError('Index out of range')
+}
+
+Buffer$1.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, noAssert) {
+  value = +value;
+  offset = offset | 0;
+  byteLength = byteLength | 0;
+  if (!noAssert) {
+    var maxBytes = Math.pow(2, 8 * byteLength) - 1;
+    checkInt(this, value, offset, byteLength, maxBytes, 0);
+  }
+
+  var mul = 1;
+  var i = 0;
+  this[offset] = value & 0xFF;
+  while (++i < byteLength && (mul *= 0x100)) {
+    this[offset + i] = (value / mul) & 0xFF;
+  }
+
+  return offset + byteLength
+};
+
+Buffer$1.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, noAssert) {
+  value = +value;
+  offset = offset | 0;
+  byteLength = byteLength | 0;
+  if (!noAssert) {
+    var maxBytes = Math.pow(2, 8 * byteLength) - 1;
+    checkInt(this, value, offset, byteLength, maxBytes, 0);
+  }
+
+  var i = byteLength - 1;
+  var mul = 1;
+  this[offset + i] = value & 0xFF;
+  while (--i >= 0 && (mul *= 0x100)) {
+    this[offset + i] = (value / mul) & 0xFF;
+  }
+
+  return offset + byteLength
+};
+
+Buffer$1.prototype.writeUInt8 = function writeUInt8 (value, offset, noAssert) {
+  value = +value;
+  offset = offset | 0;
+  if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0);
+  if (!Buffer$1.TYPED_ARRAY_SUPPORT) value = Math.floor(value);
+  this[offset] = (value & 0xff);
+  return offset + 1
+};
+
+function objectWriteUInt16 (buf, value, offset, littleEndian) {
+  if (value < 0) value = 0xffff + value + 1;
+  for (var i = 0, j = Math.min(buf.length - offset, 2); i < j; ++i) {
+    buf[offset + i] = (value & (0xff << (8 * (littleEndian ? i : 1 - i)))) >>>
+      (littleEndian ? i : 1 - i) * 8;
+  }
+}
+
+Buffer$1.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAssert) {
+  value = +value;
+  offset = offset | 0;
+  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value & 0xff);
+    this[offset + 1] = (value >>> 8);
+  } else {
+    objectWriteUInt16(this, value, offset, true);
+  }
+  return offset + 2
+};
+
+Buffer$1.prototype.writeUInt16BE = function writeUInt16BE (value, offset, noAssert) {
+  value = +value;
+  offset = offset | 0;
+  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value >>> 8);
+    this[offset + 1] = (value & 0xff);
+  } else {
+    objectWriteUInt16(this, value, offset, false);
+  }
+  return offset + 2
+};
+
+function objectWriteUInt32 (buf, value, offset, littleEndian) {
+  if (value < 0) value = 0xffffffff + value + 1;
+  for (var i = 0, j = Math.min(buf.length - offset, 4); i < j; ++i) {
+    buf[offset + i] = (value >>> (littleEndian ? i : 3 - i) * 8) & 0xff;
+  }
+}
+
+Buffer$1.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert) {
+  value = +value;
+  offset = offset | 0;
+  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
+    this[offset + 3] = (value >>> 24);
+    this[offset + 2] = (value >>> 16);
+    this[offset + 1] = (value >>> 8);
+    this[offset] = (value & 0xff);
+  } else {
+    objectWriteUInt32(this, value, offset, true);
+  }
+  return offset + 4
+};
+
+Buffer$1.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert) {
+  value = +value;
+  offset = offset | 0;
+  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value >>> 24);
+    this[offset + 1] = (value >>> 16);
+    this[offset + 2] = (value >>> 8);
+    this[offset + 3] = (value & 0xff);
+  } else {
+    objectWriteUInt32(this, value, offset, false);
+  }
+  return offset + 4
+};
+
+Buffer$1.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, noAssert) {
+  value = +value;
+  offset = offset | 0;
+  if (!noAssert) {
+    var limit = Math.pow(2, 8 * byteLength - 1);
+
+    checkInt(this, value, offset, byteLength, limit - 1, -limit);
+  }
+
+  var i = 0;
+  var mul = 1;
+  var sub = 0;
+  this[offset] = value & 0xFF;
+  while (++i < byteLength && (mul *= 0x100)) {
+    if (value < 0 && sub === 0 && this[offset + i - 1] !== 0) {
+      sub = 1;
+    }
+    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF;
+  }
+
+  return offset + byteLength
+};
+
+Buffer$1.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, noAssert) {
+  value = +value;
+  offset = offset | 0;
+  if (!noAssert) {
+    var limit = Math.pow(2, 8 * byteLength - 1);
+
+    checkInt(this, value, offset, byteLength, limit - 1, -limit);
+  }
+
+  var i = byteLength - 1;
+  var mul = 1;
+  var sub = 0;
+  this[offset + i] = value & 0xFF;
+  while (--i >= 0 && (mul *= 0x100)) {
+    if (value < 0 && sub === 0 && this[offset + i + 1] !== 0) {
+      sub = 1;
+    }
+    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF;
+  }
+
+  return offset + byteLength
+};
+
+Buffer$1.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
+  value = +value;
+  offset = offset | 0;
+  if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80);
+  if (!Buffer$1.TYPED_ARRAY_SUPPORT) value = Math.floor(value);
+  if (value < 0) value = 0xff + value + 1;
+  this[offset] = (value & 0xff);
+  return offset + 1
+};
+
+Buffer$1.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) {
+  value = +value;
+  offset = offset | 0;
+  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000);
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value & 0xff);
+    this[offset + 1] = (value >>> 8);
+  } else {
+    objectWriteUInt16(this, value, offset, true);
+  }
+  return offset + 2
+};
+
+Buffer$1.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) {
+  value = +value;
+  offset = offset | 0;
+  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000);
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value >>> 8);
+    this[offset + 1] = (value & 0xff);
+  } else {
+    objectWriteUInt16(this, value, offset, false);
+  }
+  return offset + 2
+};
+
+Buffer$1.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
+  value = +value;
+  offset = offset | 0;
+  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value & 0xff);
+    this[offset + 1] = (value >>> 8);
+    this[offset + 2] = (value >>> 16);
+    this[offset + 3] = (value >>> 24);
+  } else {
+    objectWriteUInt32(this, value, offset, true);
+  }
+  return offset + 4
+};
+
+Buffer$1.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
+  value = +value;
+  offset = offset | 0;
+  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
+  if (value < 0) value = 0xffffffff + value + 1;
+  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value >>> 24);
+    this[offset + 1] = (value >>> 16);
+    this[offset + 2] = (value >>> 8);
+    this[offset + 3] = (value & 0xff);
+  } else {
+    objectWriteUInt32(this, value, offset, false);
+  }
+  return offset + 4
+};
+
+function checkIEEE754 (buf, value, offset, ext, max, min) {
+  if (offset + ext > buf.length) throw new RangeError('Index out of range')
+  if (offset < 0) throw new RangeError('Index out of range')
+}
+
+function writeFloat (buf, value, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    checkIEEE754(buf, value, offset, 4);
+  }
+  write(buf, value, offset, littleEndian, 23, 4);
+  return offset + 4
+}
+
+Buffer$1.prototype.writeFloatLE = function writeFloatLE (value, offset, noAssert) {
+  return writeFloat(this, value, offset, true, noAssert)
+};
+
+Buffer$1.prototype.writeFloatBE = function writeFloatBE (value, offset, noAssert) {
+  return writeFloat(this, value, offset, false, noAssert)
+};
+
+function writeDouble (buf, value, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    checkIEEE754(buf, value, offset, 8);
+  }
+  write(buf, value, offset, littleEndian, 52, 8);
+  return offset + 8
+}
+
+Buffer$1.prototype.writeDoubleLE = function writeDoubleLE (value, offset, noAssert) {
+  return writeDouble(this, value, offset, true, noAssert)
+};
+
+Buffer$1.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert) {
+  return writeDouble(this, value, offset, false, noAssert)
+};
+
+// copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
+Buffer$1.prototype.copy = function copy (target, targetStart, start, end) {
+  if (!start) start = 0;
+  if (!end && end !== 0) end = this.length;
+  if (targetStart >= target.length) targetStart = target.length;
+  if (!targetStart) targetStart = 0;
+  if (end > 0 && end < start) end = start;
+
+  // Copy 0 bytes; we're done
+  if (end === start) return 0
+  if (target.length === 0 || this.length === 0) return 0
+
+  // Fatal error conditions
+  if (targetStart < 0) {
+    throw new RangeError('targetStart out of bounds')
+  }
+  if (start < 0 || start >= this.length) throw new RangeError('sourceStart out of bounds')
+  if (end < 0) throw new RangeError('sourceEnd out of bounds')
+
+  // Are we oob?
+  if (end > this.length) end = this.length;
+  if (target.length - targetStart < end - start) {
+    end = target.length - targetStart + start;
+  }
+
+  var len = end - start;
+  var i;
+
+  if (this === target && start < targetStart && targetStart < end) {
+    // descending copy from end
+    for (i = len - 1; i >= 0; --i) {
+      target[i + targetStart] = this[i + start];
+    }
+  } else if (len < 1000 || !Buffer$1.TYPED_ARRAY_SUPPORT) {
+    // ascending copy from start
+    for (i = 0; i < len; ++i) {
+      target[i + targetStart] = this[i + start];
+    }
+  } else {
+    Uint8Array.prototype.set.call(
+      target,
+      this.subarray(start, start + len),
+      targetStart
+    );
+  }
+
+  return len
+};
+
+// Usage:
+//    buffer.fill(number[, offset[, end]])
+//    buffer.fill(buffer[, offset[, end]])
+//    buffer.fill(string[, offset[, end]][, encoding])
+Buffer$1.prototype.fill = function fill (val, start, end, encoding) {
+  // Handle string cases:
+  if (typeof val === 'string') {
+    if (typeof start === 'string') {
+      encoding = start;
+      start = 0;
+      end = this.length;
+    } else if (typeof end === 'string') {
+      encoding = end;
+      end = this.length;
+    }
+    if (val.length === 1) {
+      var code = val.charCodeAt(0);
+      if (code < 256) {
+        val = code;
+      }
+    }
+    if (encoding !== undefined && typeof encoding !== 'string') {
+      throw new TypeError('encoding must be a string')
+    }
+    if (typeof encoding === 'string' && !Buffer$1.isEncoding(encoding)) {
+      throw new TypeError('Unknown encoding: ' + encoding)
+    }
+  } else if (typeof val === 'number') {
+    val = val & 255;
+  }
+
+  // Invalid ranges are not set to a default, so can range check early.
+  if (start < 0 || this.length < start || this.length < end) {
+    throw new RangeError('Out of range index')
+  }
+
+  if (end <= start) {
+    return this
+  }
+
+  start = start >>> 0;
+  end = end === undefined ? this.length : end >>> 0;
+
+  if (!val) val = 0;
+
+  var i;
+  if (typeof val === 'number') {
+    for (i = start; i < end; ++i) {
+      this[i] = val;
+    }
+  } else {
+    var bytes = internalIsBuffer(val)
+      ? val
+      : utf8ToBytes(new Buffer$1(val, encoding).toString());
+    var len = bytes.length;
+    for (i = 0; i < end - start; ++i) {
+      this[i + start] = bytes[i % len];
+    }
+  }
+
+  return this
+};
+
+// HELPER FUNCTIONS
+// ================
+
+var INVALID_BASE64_RE = /[^+\/0-9A-Za-z-_]/g;
+
+function base64clean (str) {
+  // Node strips out invalid characters like \n and \t from the string, base64-js does not
+  str = stringtrim(str).replace(INVALID_BASE64_RE, '');
+  // Node converts strings with length < 2 to ''
+  if (str.length < 2) return ''
+  // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
+  while (str.length % 4 !== 0) {
+    str = str + '=';
+  }
+  return str
+}
+
+function stringtrim (str) {
+  if (str.trim) return str.trim()
+  return str.replace(/^\s+|\s+$/g, '')
+}
+
+function toHex (n) {
+  if (n < 16) return '0' + n.toString(16)
+  return n.toString(16)
+}
+
+function utf8ToBytes (string, units) {
+  units = units || Infinity;
+  var codePoint;
+  var length = string.length;
+  var leadSurrogate = null;
+  var bytes = [];
+
+  for (var i = 0; i < length; ++i) {
+    codePoint = string.charCodeAt(i);
+
+    // is surrogate component
+    if (codePoint > 0xD7FF && codePoint < 0xE000) {
+      // last char was a lead
+      if (!leadSurrogate) {
+        // no lead yet
+        if (codePoint > 0xDBFF) {
+          // unexpected trail
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
+          continue
+        } else if (i + 1 === length) {
+          // unpaired lead
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
+          continue
+        }
+
+        // valid lead
+        leadSurrogate = codePoint;
+
+        continue
+      }
+
+      // 2 leads in a row
+      if (codePoint < 0xDC00) {
+        if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
+        leadSurrogate = codePoint;
+        continue
+      }
+
+      // valid surrogate pair
+      codePoint = (leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00) + 0x10000;
+    } else if (leadSurrogate) {
+      // valid bmp char, but last char was a lead
+      if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
+    }
+
+    leadSurrogate = null;
+
+    // encode utf8
+    if (codePoint < 0x80) {
+      if ((units -= 1) < 0) break
+      bytes.push(codePoint);
+    } else if (codePoint < 0x800) {
+      if ((units -= 2) < 0) break
+      bytes.push(
+        codePoint >> 0x6 | 0xC0,
+        codePoint & 0x3F | 0x80
+      );
+    } else if (codePoint < 0x10000) {
+      if ((units -= 3) < 0) break
+      bytes.push(
+        codePoint >> 0xC | 0xE0,
+        codePoint >> 0x6 & 0x3F | 0x80,
+        codePoint & 0x3F | 0x80
+      );
+    } else if (codePoint < 0x110000) {
+      if ((units -= 4) < 0) break
+      bytes.push(
+        codePoint >> 0x12 | 0xF0,
+        codePoint >> 0xC & 0x3F | 0x80,
+        codePoint >> 0x6 & 0x3F | 0x80,
+        codePoint & 0x3F | 0x80
+      );
+    } else {
+      throw new Error('Invalid code point')
+    }
+  }
+
+  return bytes
+}
+
+function asciiToBytes (str) {
+  var byteArray = [];
+  for (var i = 0; i < str.length; ++i) {
+    // Node's code seems to be doing this and not & 0x7F..
+    byteArray.push(str.charCodeAt(i) & 0xFF);
+  }
+  return byteArray
+}
+
+function utf16leToBytes (str, units) {
+  var c, hi, lo;
+  var byteArray = [];
+  for (var i = 0; i < str.length; ++i) {
+    if ((units -= 2) < 0) break
+
+    c = str.charCodeAt(i);
+    hi = c >> 8;
+    lo = c % 256;
+    byteArray.push(lo);
+    byteArray.push(hi);
+  }
+
+  return byteArray
+}
+
+
+function base64ToBytes (str) {
+  return toByteArray(base64clean(str))
+}
+
+function blitBuffer (src, dst, offset, length) {
+  for (var i = 0; i < length; ++i) {
+    if ((i + offset >= dst.length) || (i >= src.length)) break
+    dst[i + offset] = src[i];
+  }
+  return i
+}
+
+function isnan (val) {
+  return val !== val // eslint-disable-line no-self-compare
+}
+
+
+// the following is from is-buffer, also by Feross Aboukhadijeh and with same lisence
+// The _isBuffer check is for Safari 5-7 support, because it's missing
+// Object.prototype.constructor. Remove this eventually
+function isBuffer(obj) {
+  return obj != null && (!!obj._isBuffer || isFastBuffer(obj) || isSlowBuffer(obj))
+}
+
+function isFastBuffer (obj) {
+  return !!obj.constructor && typeof obj.constructor.isBuffer === 'function' && obj.constructor.isBuffer(obj)
+}
+
+// For Node v0.10 support. Remove this eventually.
+function isSlowBuffer (obj) {
+  return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isFastBuffer(obj.slice(0, 0))
+}
+
+var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+function createCommonjsModule(fn) {
+  var module = { exports: {} };
+	return fn(module, module.exports), module.exports;
+}
+
+var constants = {
+  BINARY_TYPES: ['nodebuffer', 'arraybuffer', 'fragments'],
+  EMPTY_BUFFER: Buffer$1.alloc(0),
+  GUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11',
+  kForOnEventAttribute: Symbol('kIsForOnEventAttribute'),
+  kListener: Symbol('kListener'),
+  kStatusCode: Symbol('status-code'),
+  kWebSocket: Symbol('websocket'),
+  NOOP: () => {}
+};
+
+var bufferUtil = createCommonjsModule(function (module) {
+
+const { EMPTY_BUFFER } = constants;
+
+/**
+ * Merges an array of buffers into a new buffer.
+ *
+ * @param {Buffer[]} list The array of buffers to concat
+ * @param {Number} totalLength The total length of buffers in the list
+ * @return {Buffer} The resulting buffer
+ * @public
+ */
+function concat(list, totalLength) {
+  if (list.length === 0) return EMPTY_BUFFER;
+  if (list.length === 1) return list[0];
+
+  const target = Buffer$1.allocUnsafe(totalLength);
+  let offset = 0;
+
+  for (let i = 0; i < list.length; i++) {
+    const buf = list[i];
+    target.set(buf, offset);
+    offset += buf.length;
+  }
+
+  if (offset < totalLength) return target.slice(0, offset);
+
+  return target;
+}
+
+/**
+ * Masks a buffer using the given mask.
+ *
+ * @param {Buffer} source The buffer to mask
+ * @param {Buffer} mask The mask to use
+ * @param {Buffer} output The buffer where to store the result
+ * @param {Number} offset The offset at which to start writing
+ * @param {Number} length The number of bytes to mask.
+ * @public
+ */
+function _mask(source, mask, output, offset, length) {
+  for (let i = 0; i < length; i++) {
+    output[offset + i] = source[i] ^ mask[i & 3];
+  }
+}
+
+/**
+ * Unmasks a buffer using the given mask.
+ *
+ * @param {Buffer} buffer The buffer to unmask
+ * @param {Buffer} mask The mask to use
+ * @public
+ */
+function _unmask(buffer, mask) {
+  for (let i = 0; i < buffer.length; i++) {
+    buffer[i] ^= mask[i & 3];
+  }
+}
+
+/**
+ * Converts a buffer to an `ArrayBuffer`.
+ *
+ * @param {Buffer} buf The buffer to convert
+ * @return {ArrayBuffer} Converted buffer
+ * @public
+ */
+function toArrayBuffer(buf) {
+  if (buf.byteLength === buf.buffer.byteLength) {
+    return buf.buffer;
+  }
+
+  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+}
+
+/**
+ * Converts `data` to a `Buffer`.
+ *
+ * @param {*} data The data to convert
+ * @return {Buffer} The buffer
+ * @throws {TypeError}
+ * @public
+ */
+function toBuffer(data) {
+  toBuffer.readOnly = true;
+
+  if (Buffer$1.isBuffer(data)) return data;
+
+  let buf;
+
+  if (data instanceof ArrayBuffer) {
+    buf = Buffer$1.from(data);
+  } else if (ArrayBuffer.isView(data)) {
+    buf = Buffer$1.from(data.buffer, data.byteOffset, data.byteLength);
+  } else {
+    buf = Buffer$1.from(data);
+    toBuffer.readOnly = false;
+  }
+
+  return buf;
+}
+
+try {
+  const bufferUtil = require('bufferutil');
+
+  module.exports = {
+    concat,
+    mask(source, mask, output, offset, length) {
+      if (length < 48) _mask(source, mask, output, offset, length);
+      else bufferUtil.mask(source, mask, output, offset, length);
+    },
+    toArrayBuffer,
+    toBuffer,
+    unmask(buffer, mask) {
+      if (buffer.length < 32) _unmask(buffer, mask);
+      else bufferUtil.unmask(buffer, mask);
+    }
+  };
+} catch (e) /* istanbul ignore next */ {
+  module.exports = {
+    concat,
+    mask: _mask,
+    toArrayBuffer,
+    toBuffer,
+    unmask: _unmask
+  };
+}
+});
+
+const kDone = Symbol('kDone');
+const kRun = Symbol('kRun');
+
+/**
+ * A very simple job queue with adjustable concurrency. Adapted from
+ * https://github.com/STRML/async-limiter
+ */
+class Limiter {
+  /**
+   * Creates a new `Limiter`.
+   *
+   * @param {Number} [concurrency=Infinity] The maximum number of jobs allowed
+   *     to run concurrently
+   */
+  constructor(concurrency) {
+    this[kDone] = () => {
+      this.pending--;
+      this[kRun]();
+    };
+    this.concurrency = concurrency || Infinity;
+    this.jobs = [];
+    this.pending = 0;
+  }
+
+  /**
+   * Adds a job to the queue.
+   *
+   * @param {Function} job The job to run
+   * @public
+   */
+  add(job) {
+    this.jobs.push(job);
+    this[kRun]();
+  }
+
+  /**
+   * Removes a job from the queue and runs it if possible.
+   *
+   * @private
+   */
+  [kRun]() {
+    if (this.pending === this.concurrency) return;
+
+    if (this.jobs.length) {
+      const job = this.jobs.shift();
+
+      this.pending++;
+      job(this[kDone]);
+    }
+  }
+}
+
+var limiter = Limiter;
+
+const { kStatusCode: kStatusCode$2 } = constants;
+
+const TRAILER = Buffer$1.from([0x00, 0x00, 0xff, 0xff]);
+const kPerMessageDeflate = Symbol('permessage-deflate');
+const kTotalLength = Symbol('total-length');
+const kCallback = Symbol('callback');
+const kBuffers = Symbol('buffers');
+const kError$1 = Symbol('error');
+
+//
+// We limit zlib concurrency, which prevents severe memory fragmentation
+// as documented in https://github.com/nodejs/node/issues/8871#issuecomment-250915913
+// and https://github.com/websockets/ws/issues/1202
+//
+// Intentionally global; it's the global thread pool that's an issue.
+//
+let zlibLimiter;
+
+/**
+ * permessage-deflate implementation.
+ */
+class PerMessageDeflate {
+  /**
+   * Creates a PerMessageDeflate instance.
+   *
+   * @param {Object} [options] Configuration options
+   * @param {(Boolean|Number)} [options.clientMaxWindowBits] Advertise support
+   *     for, or request, a custom client window size
+   * @param {Boolean} [options.clientNoContextTakeover=false] Advertise/
+   *     acknowledge disabling of client context takeover
+   * @param {Number} [options.concurrencyLimit=10] The number of concurrent
+   *     calls to zlib
+   * @param {(Boolean|Number)} [options.serverMaxWindowBits] Request/confirm the
+   *     use of a custom server window size
+   * @param {Boolean} [options.serverNoContextTakeover=false] Request/accept
+   *     disabling of server context takeover
+   * @param {Number} [options.threshold=1024] Size (in bytes) below which
+   *     messages should not be compressed if context takeover is disabled
+   * @param {Object} [options.zlibDeflateOptions] Options to pass to zlib on
+   *     deflate
+   * @param {Object} [options.zlibInflateOptions] Options to pass to zlib on
+   *     inflate
+   * @param {Boolean} [isServer=false] Create the instance in either server or
+   *     client mode
+   * @param {Number} [maxPayload=0] The maximum allowed message length
+   */
+  constructor(options, isServer, maxPayload) {
+    this._maxPayload = maxPayload | 0;
+    this._options = options || {};
+    this._threshold =
+      this._options.threshold !== undefined ? this._options.threshold : 1024;
+    this._isServer = !!isServer;
+    this._deflate = null;
+    this._inflate = null;
+
+    this.params = null;
+
+    if (!zlibLimiter) {
+      const concurrency =
+        this._options.concurrencyLimit !== undefined
+          ? this._options.concurrencyLimit
+          : 10;
+      zlibLimiter = new limiter(concurrency);
+    }
+  }
+
+  /**
+   * @type {String}
+   */
+  static get extensionName() {
+    return 'permessage-deflate';
+  }
+
+  /**
+   * Create an extension negotiation offer.
+   *
+   * @return {Object} Extension parameters
+   * @public
+   */
+  offer() {
+    const params = {};
+
+    if (this._options.serverNoContextTakeover) {
+      params.server_no_context_takeover = true;
+    }
+    if (this._options.clientNoContextTakeover) {
+      params.client_no_context_takeover = true;
+    }
+    if (this._options.serverMaxWindowBits) {
+      params.server_max_window_bits = this._options.serverMaxWindowBits;
+    }
+    if (this._options.clientMaxWindowBits) {
+      params.client_max_window_bits = this._options.clientMaxWindowBits;
+    } else if (this._options.clientMaxWindowBits == null) {
+      params.client_max_window_bits = true;
+    }
+
+    return params;
+  }
+
+  /**
+   * Accept an extension negotiation offer/response.
+   *
+   * @param {Array} configurations The extension negotiation offers/reponse
+   * @return {Object} Accepted configuration
+   * @public
+   */
+  accept(configurations) {
+    configurations = this.normalizeParams(configurations);
+
+    this.params = this._isServer
+      ? this.acceptAsServer(configurations)
+      : this.acceptAsClient(configurations);
+
+    return this.params;
+  }
+
+  /**
+   * Releases all resources used by the extension.
+   *
+   * @public
+   */
+  cleanup() {
+    if (this._inflate) {
+      this._inflate.close();
+      this._inflate = null;
+    }
+
+    if (this._deflate) {
+      const callback = this._deflate[kCallback];
+
+      this._deflate.close();
+      this._deflate = null;
+
+      if (callback) {
+        callback(
+          new Error(
+            'The deflate stream was closed while data was being processed'
+          )
+        );
+      }
+    }
+  }
+
+  /**
+   *  Accept an extension negotiation offer.
+   *
+   * @param {Array} offers The extension negotiation offers
+   * @return {Object} Accepted configuration
+   * @private
+   */
+  acceptAsServer(offers) {
+    const opts = this._options;
+    const accepted = offers.find((params) => {
+      if (
+        (opts.serverNoContextTakeover === false &&
+          params.server_no_context_takeover) ||
+        (params.server_max_window_bits &&
+          (opts.serverMaxWindowBits === false ||
+            (typeof opts.serverMaxWindowBits === 'number' &&
+              opts.serverMaxWindowBits > params.server_max_window_bits))) ||
+        (typeof opts.clientMaxWindowBits === 'number' &&
+          !params.client_max_window_bits)
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+
+    if (!accepted) {
+      throw new Error('None of the extension offers can be accepted');
+    }
+
+    if (opts.serverNoContextTakeover) {
+      accepted.server_no_context_takeover = true;
+    }
+    if (opts.clientNoContextTakeover) {
+      accepted.client_no_context_takeover = true;
+    }
+    if (typeof opts.serverMaxWindowBits === 'number') {
+      accepted.server_max_window_bits = opts.serverMaxWindowBits;
+    }
+    if (typeof opts.clientMaxWindowBits === 'number') {
+      accepted.client_max_window_bits = opts.clientMaxWindowBits;
+    } else if (
+      accepted.client_max_window_bits === true ||
+      opts.clientMaxWindowBits === false
+    ) {
+      delete accepted.client_max_window_bits;
+    }
+
+    return accepted;
+  }
+
+  /**
+   * Accept the extension negotiation response.
+   *
+   * @param {Array} response The extension negotiation response
+   * @return {Object} Accepted configuration
+   * @private
+   */
+  acceptAsClient(response) {
+    const params = response[0];
+
+    if (
+      this._options.clientNoContextTakeover === false &&
+      params.client_no_context_takeover
+    ) {
+      throw new Error('Unexpected parameter "client_no_context_takeover"');
+    }
+
+    if (!params.client_max_window_bits) {
+      if (typeof this._options.clientMaxWindowBits === 'number') {
+        params.client_max_window_bits = this._options.clientMaxWindowBits;
+      }
+    } else if (
+      this._options.clientMaxWindowBits === false ||
+      (typeof this._options.clientMaxWindowBits === 'number' &&
+        params.client_max_window_bits > this._options.clientMaxWindowBits)
+    ) {
+      throw new Error(
+        'Unexpected or invalid parameter "client_max_window_bits"'
+      );
+    }
+
+    return params;
+  }
+
+  /**
+   * Normalize parameters.
+   *
+   * @param {Array} configurations The extension negotiation offers/reponse
+   * @return {Array} The offers/response with normalized parameters
+   * @private
+   */
+  normalizeParams(configurations) {
+    configurations.forEach((params) => {
+      Object.keys(params).forEach((key) => {
+        let value = params[key];
+
+        if (value.length > 1) {
+          throw new Error(`Parameter "${key}" must have only a single value`);
+        }
+
+        value = value[0];
+
+        if (key === 'client_max_window_bits') {
+          if (value !== true) {
+            const num = +value;
+            if (!Number.isInteger(num) || num < 8 || num > 15) {
+              throw new TypeError(
+                `Invalid value for parameter "${key}": ${value}`
+              );
+            }
+            value = num;
+          } else if (!this._isServer) {
+            throw new TypeError(
+              `Invalid value for parameter "${key}": ${value}`
+            );
+          }
+        } else if (key === 'server_max_window_bits') {
+          const num = +value;
+          if (!Number.isInteger(num) || num < 8 || num > 15) {
+            throw new TypeError(
+              `Invalid value for parameter "${key}": ${value}`
+            );
+          }
+          value = num;
+        } else if (
+          key === 'client_no_context_takeover' ||
+          key === 'server_no_context_takeover'
+        ) {
+          if (value !== true) {
+            throw new TypeError(
+              `Invalid value for parameter "${key}": ${value}`
+            );
+          }
+        } else {
+          throw new Error(`Unknown parameter "${key}"`);
+        }
+
+        params[key] = value;
+      });
+    });
+
+    return configurations;
+  }
+
+  /**
+   * Decompress data. Concurrency limited.
+   *
+   * @param {Buffer} data Compressed data
+   * @param {Boolean} fin Specifies whether or not this is the last fragment
+   * @param {Function} callback Callback
+   * @public
+   */
+  decompress(data, fin, callback) {
+    zlibLimiter.add((done) => {
+      this._decompress(data, fin, (err, result) => {
+        done();
+        callback(err, result);
+      });
+    });
+  }
+
+  /**
+   * Compress data. Concurrency limited.
+   *
+   * @param {(Buffer|String)} data Data to compress
+   * @param {Boolean} fin Specifies whether or not this is the last fragment
+   * @param {Function} callback Callback
+   * @public
+   */
+  compress(data, fin, callback) {
+    zlibLimiter.add((done) => {
+      this._compress(data, fin, (err, result) => {
+        done();
+        callback(err, result);
+      });
+    });
+  }
+
+  /**
+   * Decompress data.
+   *
+   * @param {Buffer} data Compressed data
+   * @param {Boolean} fin Specifies whether or not this is the last fragment
+   * @param {Function} callback Callback
+   * @private
+   */
+  _decompress(data, fin, callback) {
+    const endpoint = this._isServer ? 'client' : 'server';
+
+    if (!this._inflate) {
+      const key = `${endpoint}_max_window_bits`;
+      const windowBits =
+        typeof this.params[key] !== 'number'
+          ? zlib.Z_DEFAULT_WINDOWBITS
+          : this.params[key];
+
+      this._inflate = zlib.createInflateRaw({
+        ...this._options.zlibInflateOptions,
+        windowBits
+      });
+      this._inflate[kPerMessageDeflate] = this;
+      this._inflate[kTotalLength] = 0;
+      this._inflate[kBuffers] = [];
+      this._inflate.on('error', inflateOnError);
+      this._inflate.on('data', inflateOnData);
+    }
+
+    this._inflate[kCallback] = callback;
+
+    this._inflate.write(data);
+    if (fin) this._inflate.write(TRAILER);
+
+    this._inflate.flush(() => {
+      const err = this._inflate[kError$1];
+
+      if (err) {
+        this._inflate.close();
+        this._inflate = null;
+        callback(err);
+        return;
+      }
+
+      const data = bufferUtil.concat(
+        this._inflate[kBuffers],
+        this._inflate[kTotalLength]
+      );
+
+      if (this._inflate._readableState.endEmitted) {
+        this._inflate.close();
+        this._inflate = null;
+      } else {
+        this._inflate[kTotalLength] = 0;
+        this._inflate[kBuffers] = [];
+
+        if (fin && this.params[`${endpoint}_no_context_takeover`]) {
+          this._inflate.reset();
+        }
+      }
+
+      callback(null, data);
+    });
+  }
+
+  /**
+   * Compress data.
+   *
+   * @param {(Buffer|String)} data Data to compress
+   * @param {Boolean} fin Specifies whether or not this is the last fragment
+   * @param {Function} callback Callback
+   * @private
+   */
+  _compress(data, fin, callback) {
+    const endpoint = this._isServer ? 'server' : 'client';
+
+    if (!this._deflate) {
+      const key = `${endpoint}_max_window_bits`;
+      const windowBits =
+        typeof this.params[key] !== 'number'
+          ? zlib.Z_DEFAULT_WINDOWBITS
+          : this.params[key];
+
+      this._deflate = zlib.createDeflateRaw({
+        ...this._options.zlibDeflateOptions,
+        windowBits
+      });
+
+      this._deflate[kTotalLength] = 0;
+      this._deflate[kBuffers] = [];
+
+      this._deflate.on('data', deflateOnData);
+    }
+
+    this._deflate[kCallback] = callback;
+
+    this._deflate.write(data);
+    this._deflate.flush(zlib.Z_SYNC_FLUSH, () => {
+      if (!this._deflate) {
+        //
+        // The deflate stream was closed while data was being processed.
+        //
+        return;
+      }
+
+      let data = bufferUtil.concat(
+        this._deflate[kBuffers],
+        this._deflate[kTotalLength]
+      );
+
+      if (fin) data = data.slice(0, data.length - 4);
+
+      //
+      // Ensure that the callback will not be called again in
+      // `PerMessageDeflate#cleanup()`.
+      //
+      this._deflate[kCallback] = null;
+
+      this._deflate[kTotalLength] = 0;
+      this._deflate[kBuffers] = [];
+
+      if (fin && this.params[`${endpoint}_no_context_takeover`]) {
+        this._deflate.reset();
+      }
+
+      callback(null, data);
+    });
+  }
+}
+
+var permessageDeflate = PerMessageDeflate;
+
+/**
+ * The listener of the `zlib.DeflateRaw` stream `'data'` event.
+ *
+ * @param {Buffer} chunk A chunk of data
+ * @private
+ */
+function deflateOnData(chunk) {
+  this[kBuffers].push(chunk);
+  this[kTotalLength] += chunk.length;
+}
+
+/**
+ * The listener of the `zlib.InflateRaw` stream `'data'` event.
+ *
+ * @param {Buffer} chunk A chunk of data
+ * @private
+ */
+function inflateOnData(chunk) {
+  this[kTotalLength] += chunk.length;
+
+  if (
+    this[kPerMessageDeflate]._maxPayload < 1 ||
+    this[kTotalLength] <= this[kPerMessageDeflate]._maxPayload
+  ) {
+    this[kBuffers].push(chunk);
+    return;
+  }
+
+  this[kError$1] = new RangeError('Max payload size exceeded');
+  this[kError$1].code = 'WS_ERR_UNSUPPORTED_MESSAGE_LENGTH';
+  this[kError$1][kStatusCode$2] = 1009;
+  this.removeListener('data', inflateOnData);
+  this.reset();
+}
+
+/**
+ * The listener of the `zlib.InflateRaw` stream `'error'` event.
+ *
+ * @param {Error} err The emitted error
+ * @private
+ */
+function inflateOnError(err) {
+  //
+  // There is no need to call `Zlib#close()` as the handle is automatically
+  // closed when an error is emitted.
+  //
+  this[kPerMessageDeflate]._inflate = null;
+  err[kStatusCode$2] = 1007;
+  this[kCallback](err);
+}
+
+var validation = createCommonjsModule(function (module) {
+
+//
+// Allowed token characters:
+//
+// '!', '#', '$', '%', '&', ''', '*', '+', '-',
+// '.', 0-9, A-Z, '^', '_', '`', a-z, '|', '~'
+//
+// tokenChars[32] === 0 // ' '
+// tokenChars[33] === 1 // '!'
+// tokenChars[34] === 0 // '"'
+// ...
+//
+// prettier-ignore
+const tokenChars = [
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0 - 15
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 16 - 31
+  0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, // 32 - 47
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, // 48 - 63
+  0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 64 - 79
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, // 80 - 95
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 96 - 111
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0 // 112 - 127
+];
+
+/**
+ * Checks if a status code is allowed in a close frame.
+ *
+ * @param {Number} code The status code
+ * @return {Boolean} `true` if the status code is valid, else `false`
+ * @public
+ */
+function isValidStatusCode(code) {
+  return (
+    (code >= 1000 &&
+      code <= 1014 &&
+      code !== 1004 &&
+      code !== 1005 &&
+      code !== 1006) ||
+    (code >= 3000 && code <= 4999)
+  );
+}
+
+/**
+ * Checks if a given buffer contains only correct UTF-8.
+ * Ported from https://www.cl.cam.ac.uk/%7Emgk25/ucs/utf8_check.c by
+ * Markus Kuhn.
+ *
+ * @param {Buffer} buf The buffer to check
+ * @return {Boolean} `true` if `buf` contains only correct UTF-8, else `false`
+ * @public
+ */
+function _isValidUTF8(buf) {
+  const len = buf.length;
+  let i = 0;
+
+  while (i < len) {
+    if ((buf[i] & 0x80) === 0) {
+      // 0xxxxxxx
+      i++;
+    } else if ((buf[i] & 0xe0) === 0xc0) {
+      // 110xxxxx 10xxxxxx
+      if (
+        i + 1 === len ||
+        (buf[i + 1] & 0xc0) !== 0x80 ||
+        (buf[i] & 0xfe) === 0xc0 // Overlong
+      ) {
+        return false;
+      }
+
+      i += 2;
+    } else if ((buf[i] & 0xf0) === 0xe0) {
+      // 1110xxxx 10xxxxxx 10xxxxxx
+      if (
+        i + 2 >= len ||
+        (buf[i + 1] & 0xc0) !== 0x80 ||
+        (buf[i + 2] & 0xc0) !== 0x80 ||
+        (buf[i] === 0xe0 && (buf[i + 1] & 0xe0) === 0x80) || // Overlong
+        (buf[i] === 0xed && (buf[i + 1] & 0xe0) === 0xa0) // Surrogate (U+D800 - U+DFFF)
+      ) {
+        return false;
+      }
+
+      i += 3;
+    } else if ((buf[i] & 0xf8) === 0xf0) {
+      // 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+      if (
+        i + 3 >= len ||
+        (buf[i + 1] & 0xc0) !== 0x80 ||
+        (buf[i + 2] & 0xc0) !== 0x80 ||
+        (buf[i + 3] & 0xc0) !== 0x80 ||
+        (buf[i] === 0xf0 && (buf[i + 1] & 0xf0) === 0x80) || // Overlong
+        (buf[i] === 0xf4 && buf[i + 1] > 0x8f) ||
+        buf[i] > 0xf4 // > U+10FFFF
+      ) {
+        return false;
+      }
+
+      i += 4;
+    } else {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+try {
+  const isValidUTF8 = require('utf-8-validate');
+
+  module.exports = {
+    isValidStatusCode,
+    isValidUTF8(buf) {
+      return buf.length < 150 ? _isValidUTF8(buf) : isValidUTF8(buf);
+    },
+    tokenChars
+  };
+} catch (e) /* istanbul ignore next */ {
+  module.exports = {
+    isValidStatusCode,
+    isValidUTF8: _isValidUTF8,
+    tokenChars
+  };
+}
+});
+
+const { Writable } = require$$0;
+
+
+const {
+  BINARY_TYPES: BINARY_TYPES$1,
+  EMPTY_BUFFER: EMPTY_BUFFER$2,
+  kStatusCode: kStatusCode$1,
+  kWebSocket: kWebSocket$2
+} = constants;
+const { concat, toArrayBuffer, unmask } = bufferUtil;
+const { isValidStatusCode: isValidStatusCode$1, isValidUTF8 } = validation;
+
+const GET_INFO = 0;
+const GET_PAYLOAD_LENGTH_16 = 1;
+const GET_PAYLOAD_LENGTH_64 = 2;
+const GET_MASK = 3;
+const GET_DATA = 4;
+const INFLATING = 5;
+
+/**
+ * HyBi Receiver implementation.
+ *
+ * @extends Writable
+ */
+class Receiver extends Writable {
+  /**
+   * Creates a Receiver instance.
+   *
+   * @param {Object} [options] Options object
+   * @param {String} [options.binaryType=nodebuffer] The type for binary data
+   * @param {Object} [options.extensions] An object containing the negotiated
+   *     extensions
+   * @param {Boolean} [options.isServer=false] Specifies whether to operate in
+   *     client or server mode
+   * @param {Number} [options.maxPayload=0] The maximum allowed message length
+   * @param {Boolean} [options.skipUTF8Validation=false] Specifies whether or
+   *     not to skip UTF-8 validation for text and close messages
+   */
+  constructor(options = {}) {
+    super();
+
+    this._binaryType = options.binaryType || BINARY_TYPES$1[0];
+    this._extensions = options.extensions || {};
+    this._isServer = !!options.isServer;
+    this._maxPayload = options.maxPayload | 0;
+    this._skipUTF8Validation = !!options.skipUTF8Validation;
+    this[kWebSocket$2] = undefined;
+
+    this._bufferedBytes = 0;
+    this._buffers = [];
+
+    this._compressed = false;
+    this._payloadLength = 0;
+    this._mask = undefined;
+    this._fragmented = 0;
+    this._masked = false;
+    this._fin = false;
+    this._opcode = 0;
+
+    this._totalPayloadLength = 0;
+    this._messageLength = 0;
+    this._fragments = [];
+
+    this._state = GET_INFO;
+    this._loop = false;
+  }
+
+  /**
+   * Implements `Writable.prototype._write()`.
+   *
+   * @param {Buffer} chunk The chunk of data to write
+   * @param {String} encoding The character encoding of `chunk`
+   * @param {Function} cb Callback
+   * @private
+   */
+  _write(chunk, encoding, cb) {
+    if (this._opcode === 0x08 && this._state == GET_INFO) return cb();
+
+    this._bufferedBytes += chunk.length;
+    this._buffers.push(chunk);
+    this.startLoop(cb);
+  }
+
+  /**
+   * Consumes `n` bytes from the buffered data.
+   *
+   * @param {Number} n The number of bytes to consume
+   * @return {Buffer} The consumed bytes
+   * @private
+   */
+  consume(n) {
+    this._bufferedBytes -= n;
+
+    if (n === this._buffers[0].length) return this._buffers.shift();
+
+    if (n < this._buffers[0].length) {
+      const buf = this._buffers[0];
+      this._buffers[0] = buf.slice(n);
+      return buf.slice(0, n);
+    }
+
+    const dst = Buffer$1.allocUnsafe(n);
+
+    do {
+      const buf = this._buffers[0];
+      const offset = dst.length - n;
+
+      if (n >= buf.length) {
+        dst.set(this._buffers.shift(), offset);
+      } else {
+        dst.set(new Uint8Array(buf.buffer, buf.byteOffset, n), offset);
+        this._buffers[0] = buf.slice(n);
+      }
+
+      n -= buf.length;
+    } while (n > 0);
+
+    return dst;
+  }
+
+  /**
+   * Starts the parsing loop.
+   *
+   * @param {Function} cb Callback
+   * @private
+   */
+  startLoop(cb) {
+    let err;
+    this._loop = true;
+
+    do {
+      switch (this._state) {
+        case GET_INFO:
+          err = this.getInfo();
+          break;
+        case GET_PAYLOAD_LENGTH_16:
+          err = this.getPayloadLength16();
+          break;
+        case GET_PAYLOAD_LENGTH_64:
+          err = this.getPayloadLength64();
+          break;
+        case GET_MASK:
+          this.getMask();
+          break;
+        case GET_DATA:
+          err = this.getData(cb);
+          break;
+        default:
+          // `INFLATING`
+          this._loop = false;
+          return;
+      }
+    } while (this._loop);
+
+    cb(err);
+  }
+
+  /**
+   * Reads the first two bytes of a frame.
+   *
+   * @return {(RangeError|undefined)} A possible error
+   * @private
+   */
+  getInfo() {
+    if (this._bufferedBytes < 2) {
+      this._loop = false;
+      return;
+    }
+
+    const buf = this.consume(2);
+
+    if ((buf[0] & 0x30) !== 0x00) {
+      this._loop = false;
+      return error$1(
+        RangeError,
+        'RSV2 and RSV3 must be clear',
+        true,
+        1002,
+        'WS_ERR_UNEXPECTED_RSV_2_3'
+      );
+    }
+
+    const compressed = (buf[0] & 0x40) === 0x40;
+
+    if (compressed && !this._extensions[permessageDeflate.extensionName]) {
+      this._loop = false;
+      return error$1(
+        RangeError,
+        'RSV1 must be clear',
+        true,
+        1002,
+        'WS_ERR_UNEXPECTED_RSV_1'
+      );
+    }
+
+    this._fin = (buf[0] & 0x80) === 0x80;
+    this._opcode = buf[0] & 0x0f;
+    this._payloadLength = buf[1] & 0x7f;
+
+    if (this._opcode === 0x00) {
+      if (compressed) {
+        this._loop = false;
+        return error$1(
+          RangeError,
+          'RSV1 must be clear',
+          true,
+          1002,
+          'WS_ERR_UNEXPECTED_RSV_1'
+        );
+      }
+
+      if (!this._fragmented) {
+        this._loop = false;
+        return error$1(
+          RangeError,
+          'invalid opcode 0',
+          true,
+          1002,
+          'WS_ERR_INVALID_OPCODE'
+        );
+      }
+
+      this._opcode = this._fragmented;
+    } else if (this._opcode === 0x01 || this._opcode === 0x02) {
+      if (this._fragmented) {
+        this._loop = false;
+        return error$1(
+          RangeError,
+          `invalid opcode ${this._opcode}`,
+          true,
+          1002,
+          'WS_ERR_INVALID_OPCODE'
+        );
+      }
+
+      this._compressed = compressed;
+    } else if (this._opcode > 0x07 && this._opcode < 0x0b) {
+      if (!this._fin) {
+        this._loop = false;
+        return error$1(
+          RangeError,
+          'FIN must be set',
+          true,
+          1002,
+          'WS_ERR_EXPECTED_FIN'
+        );
+      }
+
+      if (compressed) {
+        this._loop = false;
+        return error$1(
+          RangeError,
+          'RSV1 must be clear',
+          true,
+          1002,
+          'WS_ERR_UNEXPECTED_RSV_1'
+        );
+      }
+
+      if (this._payloadLength > 0x7d) {
+        this._loop = false;
+        return error$1(
+          RangeError,
+          `invalid payload length ${this._payloadLength}`,
+          true,
+          1002,
+          'WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH'
+        );
+      }
+    } else {
+      this._loop = false;
+      return error$1(
+        RangeError,
+        `invalid opcode ${this._opcode}`,
+        true,
+        1002,
+        'WS_ERR_INVALID_OPCODE'
+      );
+    }
+
+    if (!this._fin && !this._fragmented) this._fragmented = this._opcode;
+    this._masked = (buf[1] & 0x80) === 0x80;
+
+    if (this._isServer) {
+      if (!this._masked) {
+        this._loop = false;
+        return error$1(
+          RangeError,
+          'MASK must be set',
+          true,
+          1002,
+          'WS_ERR_EXPECTED_MASK'
+        );
+      }
+    } else if (this._masked) {
+      this._loop = false;
+      return error$1(
+        RangeError,
+        'MASK must be clear',
+        true,
+        1002,
+        'WS_ERR_UNEXPECTED_MASK'
+      );
+    }
+
+    if (this._payloadLength === 126) this._state = GET_PAYLOAD_LENGTH_16;
+    else if (this._payloadLength === 127) this._state = GET_PAYLOAD_LENGTH_64;
+    else return this.haveLength();
+  }
+
+  /**
+   * Gets extended payload length (7+16).
+   *
+   * @return {(RangeError|undefined)} A possible error
+   * @private
+   */
+  getPayloadLength16() {
+    if (this._bufferedBytes < 2) {
+      this._loop = false;
+      return;
+    }
+
+    this._payloadLength = this.consume(2).readUInt16BE(0);
+    return this.haveLength();
+  }
+
+  /**
+   * Gets extended payload length (7+64).
+   *
+   * @return {(RangeError|undefined)} A possible error
+   * @private
+   */
+  getPayloadLength64() {
+    if (this._bufferedBytes < 8) {
+      this._loop = false;
+      return;
+    }
+
+    const buf = this.consume(8);
+    const num = buf.readUInt32BE(0);
+
+    //
+    // The maximum safe integer in JavaScript is 2^53 - 1. An error is returned
+    // if payload length is greater than this number.
+    //
+    if (num > Math.pow(2, 53 - 32) - 1) {
+      this._loop = false;
+      return error$1(
+        RangeError,
+        'Unsupported WebSocket frame: payload length > 2^53 - 1',
+        false,
+        1009,
+        'WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH'
+      );
+    }
+
+    this._payloadLength = num * Math.pow(2, 32) + buf.readUInt32BE(4);
+    return this.haveLength();
+  }
+
+  /**
+   * Payload length has been read.
+   *
+   * @return {(RangeError|undefined)} A possible error
+   * @private
+   */
+  haveLength() {
+    if (this._payloadLength && this._opcode < 0x08) {
+      this._totalPayloadLength += this._payloadLength;
+      if (this._totalPayloadLength > this._maxPayload && this._maxPayload > 0) {
+        this._loop = false;
+        return error$1(
+          RangeError,
+          'Max payload size exceeded',
+          false,
+          1009,
+          'WS_ERR_UNSUPPORTED_MESSAGE_LENGTH'
+        );
+      }
+    }
+
+    if (this._masked) this._state = GET_MASK;
+    else this._state = GET_DATA;
+  }
+
+  /**
+   * Reads mask bytes.
+   *
+   * @private
+   */
+  getMask() {
+    if (this._bufferedBytes < 4) {
+      this._loop = false;
+      return;
+    }
+
+    this._mask = this.consume(4);
+    this._state = GET_DATA;
+  }
+
+  /**
+   * Reads data bytes.
+   *
+   * @param {Function} cb Callback
+   * @return {(Error|RangeError|undefined)} A possible error
+   * @private
+   */
+  getData(cb) {
+    let data = EMPTY_BUFFER$2;
+
+    if (this._payloadLength) {
+      if (this._bufferedBytes < this._payloadLength) {
+        this._loop = false;
+        return;
+      }
+
+      data = this.consume(this._payloadLength);
+
+      if (
+        this._masked &&
+        (this._mask[0] | this._mask[1] | this._mask[2] | this._mask[3]) !== 0
+      ) {
+        unmask(data, this._mask);
+      }
+    }
+
+    if (this._opcode > 0x07) return this.controlMessage(data);
+
+    if (this._compressed) {
+      this._state = INFLATING;
+      this.decompress(data, cb);
+      return;
+    }
+
+    if (data.length) {
+      //
+      // This message is not compressed so its length is the sum of the payload
+      // length of all fragments.
+      //
+      this._messageLength = this._totalPayloadLength;
+      this._fragments.push(data);
+    }
+
+    return this.dataMessage();
+  }
+
+  /**
+   * Decompresses data.
+   *
+   * @param {Buffer} data Compressed data
+   * @param {Function} cb Callback
+   * @private
+   */
+  decompress(data, cb) {
+    const perMessageDeflate = this._extensions[permessageDeflate.extensionName];
+
+    perMessageDeflate.decompress(data, this._fin, (err, buf) => {
+      if (err) return cb(err);
+
+      if (buf.length) {
+        this._messageLength += buf.length;
+        if (this._messageLength > this._maxPayload && this._maxPayload > 0) {
+          return cb(
+            error$1(
+              RangeError,
+              'Max payload size exceeded',
+              false,
+              1009,
+              'WS_ERR_UNSUPPORTED_MESSAGE_LENGTH'
+            )
+          );
+        }
+
+        this._fragments.push(buf);
+      }
+
+      const er = this.dataMessage();
+      if (er) return cb(er);
+
+      this.startLoop(cb);
+    });
+  }
+
+  /**
+   * Handles a data message.
+   *
+   * @return {(Error|undefined)} A possible error
+   * @private
+   */
+  dataMessage() {
+    if (this._fin) {
+      const messageLength = this._messageLength;
+      const fragments = this._fragments;
+
+      this._totalPayloadLength = 0;
+      this._messageLength = 0;
+      this._fragmented = 0;
+      this._fragments = [];
+
+      if (this._opcode === 2) {
+        let data;
+
+        if (this._binaryType === 'nodebuffer') {
+          data = concat(fragments, messageLength);
+        } else if (this._binaryType === 'arraybuffer') {
+          data = toArrayBuffer(concat(fragments, messageLength));
+        } else {
+          data = fragments;
+        }
+
+        this.emit('message', data, true);
+      } else {
+        const buf = concat(fragments, messageLength);
+
+        if (!this._skipUTF8Validation && !isValidUTF8(buf)) {
+          this._loop = false;
+          return error$1(
+            Error,
+            'invalid UTF-8 sequence',
+            true,
+            1007,
+            'WS_ERR_INVALID_UTF8'
+          );
+        }
+
+        this.emit('message', buf, false);
+      }
+    }
+
+    this._state = GET_INFO;
+  }
+
+  /**
+   * Handles a control message.
+   *
+   * @param {Buffer} data Data to handle
+   * @return {(Error|RangeError|undefined)} A possible error
+   * @private
+   */
+  controlMessage(data) {
+    if (this._opcode === 0x08) {
+      this._loop = false;
+
+      if (data.length === 0) {
+        this.emit('conclude', 1005, EMPTY_BUFFER$2);
+        this.end();
+      } else if (data.length === 1) {
+        return error$1(
+          RangeError,
+          'invalid payload length 1',
+          true,
+          1002,
+          'WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH'
+        );
+      } else {
+        const code = data.readUInt16BE(0);
+
+        if (!isValidStatusCode$1(code)) {
+          return error$1(
+            RangeError,
+            `invalid status code ${code}`,
+            true,
+            1002,
+            'WS_ERR_INVALID_CLOSE_CODE'
+          );
+        }
+
+        const buf = data.slice(2);
+
+        if (!this._skipUTF8Validation && !isValidUTF8(buf)) {
+          return error$1(
+            Error,
+            'invalid UTF-8 sequence',
+            true,
+            1007,
+            'WS_ERR_INVALID_UTF8'
+          );
+        }
+
+        this.emit('conclude', code, buf);
+        this.end();
+      }
+    } else if (this._opcode === 0x09) {
+      this.emit('ping', data);
+    } else {
+      this.emit('pong', data);
+    }
+
+    this._state = GET_INFO;
+  }
+}
+
+var receiver = Receiver;
+
+/**
+ * Builds an error object.
+ *
+ * @param {function(new:Error|RangeError)} ErrorCtor The error constructor
+ * @param {String} message The error message
+ * @param {Boolean} prefix Specifies whether or not to add a default prefix to
+ *     `message`
+ * @param {Number} statusCode The status code
+ * @param {String} errorCode The exposed error code
+ * @return {(Error|RangeError)} The error
+ * @private
+ */
+function error$1(ErrorCtor, message, prefix, statusCode, errorCode) {
+  const err = new ErrorCtor(
+    prefix ? `Invalid WebSocket frame: ${message}` : message
+  );
+
+  Error.captureStackTrace(err, error$1);
+  err.code = errorCode;
+  err[kStatusCode$1] = statusCode;
+  return err;
+}
+
+const { randomFillSync } = require$$0$1;
+
+
+const { EMPTY_BUFFER: EMPTY_BUFFER$1 } = constants;
+const { isValidStatusCode } = validation;
+const { mask: applyMask, toBuffer: toBuffer$1 } = bufferUtil;
+
+const kByteLength = Symbol('kByteLength');
+const maskBuffer = Buffer$1.alloc(4);
+
+/**
+ * HyBi Sender implementation.
+ */
+class Sender {
+  /**
+   * Creates a Sender instance.
+   *
+   * @param {(net.Socket|tls.Socket)} socket The connection socket
+   * @param {Object} [extensions] An object containing the negotiated extensions
+   * @param {Function} [generateMask] The function used to generate the masking
+   *     key
+   */
+  constructor(socket, extensions, generateMask) {
+    this._extensions = extensions || {};
+
+    if (generateMask) {
+      this._generateMask = generateMask;
+      this._maskBuffer = Buffer$1.alloc(4);
+    }
+
+    this._socket = socket;
+
+    this._firstFragment = true;
+    this._compress = false;
+
+    this._bufferedBytes = 0;
+    this._deflating = false;
+    this._queue = [];
+  }
+
+  /**
+   * Frames a piece of data according to the HyBi WebSocket protocol.
+   *
+   * @param {(Buffer|String)} data The data to frame
+   * @param {Object} options Options object
+   * @param {Boolean} [options.fin=false] Specifies whether or not to set the
+   *     FIN bit
+   * @param {Function} [options.generateMask] The function used to generate the
+   *     masking key
+   * @param {Boolean} [options.mask=false] Specifies whether or not to mask
+   *     `data`
+   * @param {Buffer} [options.maskBuffer] The buffer used to store the masking
+   *     key
+   * @param {Number} options.opcode The opcode
+   * @param {Boolean} [options.readOnly=false] Specifies whether `data` can be
+   *     modified
+   * @param {Boolean} [options.rsv1=false] Specifies whether or not to set the
+   *     RSV1 bit
+   * @return {(Buffer|String)[]} The framed data
+   * @public
+   */
+  static frame(data, options) {
+    let mask;
+    let merge = false;
+    let offset = 2;
+    let skipMasking = false;
+
+    if (options.mask) {
+      mask = options.maskBuffer || maskBuffer;
+
+      if (options.generateMask) {
+        options.generateMask(mask);
+      } else {
+        randomFillSync(mask, 0, 4);
+      }
+
+      skipMasking = (mask[0] | mask[1] | mask[2] | mask[3]) === 0;
+      offset = 6;
+    }
+
+    let dataLength;
+
+    if (typeof data === 'string') {
+      if (
+        (!options.mask || skipMasking) &&
+        options[kByteLength] !== undefined
+      ) {
+        dataLength = options[kByteLength];
+      } else {
+        data = Buffer$1.from(data);
+        dataLength = data.length;
+      }
+    } else {
+      dataLength = data.length;
+      merge = options.mask && options.readOnly && !skipMasking;
+    }
+
+    let payloadLength = dataLength;
+
+    if (dataLength >= 65536) {
+      offset += 8;
+      payloadLength = 127;
+    } else if (dataLength > 125) {
+      offset += 2;
+      payloadLength = 126;
+    }
+
+    const target = Buffer$1.allocUnsafe(merge ? dataLength + offset : offset);
+
+    target[0] = options.fin ? options.opcode | 0x80 : options.opcode;
+    if (options.rsv1) target[0] |= 0x40;
+
+    target[1] = payloadLength;
+
+    if (payloadLength === 126) {
+      target.writeUInt16BE(dataLength, 2);
+    } else if (payloadLength === 127) {
+      target[2] = target[3] = 0;
+      target.writeUIntBE(dataLength, 4, 6);
+    }
+
+    if (!options.mask) return [target, data];
+
+    target[1] |= 0x80;
+    target[offset - 4] = mask[0];
+    target[offset - 3] = mask[1];
+    target[offset - 2] = mask[2];
+    target[offset - 1] = mask[3];
+
+    if (skipMasking) return [target, data];
+
+    if (merge) {
+      applyMask(data, mask, target, offset, dataLength);
+      return [target];
+    }
+
+    applyMask(data, mask, data, 0, dataLength);
+    return [target, data];
+  }
+
+  /**
+   * Sends a close message to the other peer.
+   *
+   * @param {Number} [code] The status code component of the body
+   * @param {(String|Buffer)} [data] The message component of the body
+   * @param {Boolean} [mask=false] Specifies whether or not to mask the message
+   * @param {Function} [cb] Callback
+   * @public
+   */
+  close(code, data, mask, cb) {
+    let buf;
+
+    if (code === undefined) {
+      buf = EMPTY_BUFFER$1;
+    } else if (typeof code !== 'number' || !isValidStatusCode(code)) {
+      throw new TypeError('First argument must be a valid error code number');
+    } else if (data === undefined || !data.length) {
+      buf = Buffer$1.allocUnsafe(2);
+      buf.writeUInt16BE(code, 0);
+    } else {
+      const length = Buffer$1.byteLength(data);
+
+      if (length > 123) {
+        throw new RangeError('The message must not be greater than 123 bytes');
+      }
+
+      buf = Buffer$1.allocUnsafe(2 + length);
+      buf.writeUInt16BE(code, 0);
+
+      if (typeof data === 'string') {
+        buf.write(data, 2);
+      } else {
+        buf.set(data, 2);
+      }
+    }
+
+    const options = {
+      [kByteLength]: buf.length,
+      fin: true,
+      generateMask: this._generateMask,
+      mask,
+      maskBuffer: this._maskBuffer,
+      opcode: 0x08,
+      readOnly: false,
+      rsv1: false
+    };
+
+    if (this._deflating) {
+      this.enqueue([this.dispatch, buf, false, options, cb]);
+    } else {
+      this.sendFrame(Sender.frame(buf, options), cb);
+    }
+  }
+
+  /**
+   * Sends a ping message to the other peer.
+   *
+   * @param {*} data The message to send
+   * @param {Boolean} [mask=false] Specifies whether or not to mask `data`
+   * @param {Function} [cb] Callback
+   * @public
+   */
+  ping(data, mask, cb) {
+    let byteLength;
+    let readOnly;
+
+    if (typeof data === 'string') {
+      byteLength = Buffer$1.byteLength(data);
+      readOnly = false;
+    } else {
+      data = toBuffer$1(data);
+      byteLength = data.length;
+      readOnly = toBuffer$1.readOnly;
+    }
+
+    if (byteLength > 125) {
+      throw new RangeError('The data size must not be greater than 125 bytes');
+    }
+
+    const options = {
+      [kByteLength]: byteLength,
+      fin: true,
+      generateMask: this._generateMask,
+      mask,
+      maskBuffer: this._maskBuffer,
+      opcode: 0x09,
+      readOnly,
+      rsv1: false
+    };
+
+    if (this._deflating) {
+      this.enqueue([this.dispatch, data, false, options, cb]);
+    } else {
+      this.sendFrame(Sender.frame(data, options), cb);
+    }
+  }
+
+  /**
+   * Sends a pong message to the other peer.
+   *
+   * @param {*} data The message to send
+   * @param {Boolean} [mask=false] Specifies whether or not to mask `data`
+   * @param {Function} [cb] Callback
+   * @public
+   */
+  pong(data, mask, cb) {
+    let byteLength;
+    let readOnly;
+
+    if (typeof data === 'string') {
+      byteLength = Buffer$1.byteLength(data);
+      readOnly = false;
+    } else {
+      data = toBuffer$1(data);
+      byteLength = data.length;
+      readOnly = toBuffer$1.readOnly;
+    }
+
+    if (byteLength > 125) {
+      throw new RangeError('The data size must not be greater than 125 bytes');
+    }
+
+    const options = {
+      [kByteLength]: byteLength,
+      fin: true,
+      generateMask: this._generateMask,
+      mask,
+      maskBuffer: this._maskBuffer,
+      opcode: 0x0a,
+      readOnly,
+      rsv1: false
+    };
+
+    if (this._deflating) {
+      this.enqueue([this.dispatch, data, false, options, cb]);
+    } else {
+      this.sendFrame(Sender.frame(data, options), cb);
+    }
+  }
+
+  /**
+   * Sends a data message to the other peer.
+   *
+   * @param {*} data The message to send
+   * @param {Object} options Options object
+   * @param {Boolean} [options.binary=false] Specifies whether `data` is binary
+   *     or text
+   * @param {Boolean} [options.compress=false] Specifies whether or not to
+   *     compress `data`
+   * @param {Boolean} [options.fin=false] Specifies whether the fragment is the
+   *     last one
+   * @param {Boolean} [options.mask=false] Specifies whether or not to mask
+   *     `data`
+   * @param {Function} [cb] Callback
+   * @public
+   */
+  send(data, options, cb) {
+    const perMessageDeflate = this._extensions[permessageDeflate.extensionName];
+    let opcode = options.binary ? 2 : 1;
+    let rsv1 = options.compress;
+
+    let byteLength;
+    let readOnly;
+
+    if (typeof data === 'string') {
+      byteLength = Buffer$1.byteLength(data);
+      readOnly = false;
+    } else {
+      data = toBuffer$1(data);
+      byteLength = data.length;
+      readOnly = toBuffer$1.readOnly;
+    }
+
+    if (this._firstFragment) {
+      this._firstFragment = false;
+      if (
+        rsv1 &&
+        perMessageDeflate &&
+        perMessageDeflate.params[
+          perMessageDeflate._isServer
+            ? 'server_no_context_takeover'
+            : 'client_no_context_takeover'
+        ]
+      ) {
+        rsv1 = byteLength >= perMessageDeflate._threshold;
+      }
+      this._compress = rsv1;
+    } else {
+      rsv1 = false;
+      opcode = 0;
+    }
+
+    if (options.fin) this._firstFragment = true;
+
+    if (perMessageDeflate) {
+      const opts = {
+        [kByteLength]: byteLength,
+        fin: options.fin,
+        generateMask: this._generateMask,
+        mask: options.mask,
+        maskBuffer: this._maskBuffer,
+        opcode,
+        readOnly,
+        rsv1
+      };
+
+      if (this._deflating) {
+        this.enqueue([this.dispatch, data, this._compress, opts, cb]);
+      } else {
+        this.dispatch(data, this._compress, opts, cb);
+      }
+    } else {
+      this.sendFrame(
+        Sender.frame(data, {
+          [kByteLength]: byteLength,
+          fin: options.fin,
+          generateMask: this._generateMask,
+          mask: options.mask,
+          maskBuffer: this._maskBuffer,
+          opcode,
+          readOnly,
+          rsv1: false
+        }),
+        cb
+      );
+    }
+  }
+
+  /**
+   * Dispatches a message.
+   *
+   * @param {(Buffer|String)} data The message to send
+   * @param {Boolean} [compress=false] Specifies whether or not to compress
+   *     `data`
+   * @param {Object} options Options object
+   * @param {Boolean} [options.fin=false] Specifies whether or not to set the
+   *     FIN bit
+   * @param {Function} [options.generateMask] The function used to generate the
+   *     masking key
+   * @param {Boolean} [options.mask=false] Specifies whether or not to mask
+   *     `data`
+   * @param {Buffer} [options.maskBuffer] The buffer used to store the masking
+   *     key
+   * @param {Number} options.opcode The opcode
+   * @param {Boolean} [options.readOnly=false] Specifies whether `data` can be
+   *     modified
+   * @param {Boolean} [options.rsv1=false] Specifies whether or not to set the
+   *     RSV1 bit
+   * @param {Function} [cb] Callback
+   * @private
+   */
+  dispatch(data, compress, options, cb) {
+    if (!compress) {
+      this.sendFrame(Sender.frame(data, options), cb);
+      return;
+    }
+
+    const perMessageDeflate = this._extensions[permessageDeflate.extensionName];
+
+    this._bufferedBytes += options[kByteLength];
+    this._deflating = true;
+    perMessageDeflate.compress(data, options.fin, (_, buf) => {
+      if (this._socket.destroyed) {
+        const err = new Error(
+          'The socket was closed while data was being compressed'
+        );
+
+        if (typeof cb === 'function') cb(err);
+
+        for (let i = 0; i < this._queue.length; i++) {
+          const params = this._queue[i];
+          const callback = params[params.length - 1];
+
+          if (typeof callback === 'function') callback(err);
+        }
+
+        return;
+      }
+
+      this._bufferedBytes -= options[kByteLength];
+      this._deflating = false;
+      options.readOnly = false;
+      this.sendFrame(Sender.frame(buf, options), cb);
+      this.dequeue();
+    });
+  }
+
+  /**
+   * Executes queued send operations.
+   *
+   * @private
+   */
+  dequeue() {
+    while (!this._deflating && this._queue.length) {
+      const params = this._queue.shift();
+
+      this._bufferedBytes -= params[3][kByteLength];
+      Reflect.apply(params[0], this, params.slice(1));
+    }
+  }
+
+  /**
+   * Enqueues a send operation.
+   *
+   * @param {Array} params Send operation parameters.
+   * @private
+   */
+  enqueue(params) {
+    this._bufferedBytes += params[3][kByteLength];
+    this._queue.push(params);
+  }
+
+  /**
+   * Sends a frame.
+   *
+   * @param {Buffer[]} list The frame to send
+   * @param {Function} [cb] Callback
+   * @private
+   */
+  sendFrame(list, cb) {
+    if (list.length === 2) {
+      this._socket.cork();
+      this._socket.write(list[0]);
+      this._socket.write(list[1], cb);
+      this._socket.uncork();
+    } else {
+      this._socket.write(list[0], cb);
+    }
+  }
+}
+
+var sender = Sender;
+
+const { kForOnEventAttribute: kForOnEventAttribute$1, kListener: kListener$1 } = constants;
+
+const kCode = Symbol('kCode');
+const kData = Symbol('kData');
+const kError = Symbol('kError');
+const kMessage = Symbol('kMessage');
+const kReason = Symbol('kReason');
+const kTarget = Symbol('kTarget');
+const kType = Symbol('kType');
+const kWasClean = Symbol('kWasClean');
+
+/**
+ * Class representing an event.
+ */
+class Event {
+  /**
+   * Create a new `Event`.
+   *
+   * @param {String} type The name of the event
+   * @throws {TypeError} If the `type` argument is not specified
+   */
+  constructor(type) {
+    this[kTarget] = null;
+    this[kType] = type;
+  }
+
+  /**
+   * @type {*}
+   */
+  get target() {
+    return this[kTarget];
+  }
+
+  /**
+   * @type {String}
+   */
+  get type() {
+    return this[kType];
+  }
+}
+
+Object.defineProperty(Event.prototype, 'target', { enumerable: true });
+Object.defineProperty(Event.prototype, 'type', { enumerable: true });
+
+/**
+ * Class representing a close event.
+ *
+ * @extends Event
+ */
+class CloseEvent extends Event {
+  /**
+   * Create a new `CloseEvent`.
+   *
+   * @param {String} type The name of the event
+   * @param {Object} [options] A dictionary object that allows for setting
+   *     attributes via object members of the same name
+   * @param {Number} [options.code=0] The status code explaining why the
+   *     connection was closed
+   * @param {String} [options.reason=''] A human-readable string explaining why
+   *     the connection was closed
+   * @param {Boolean} [options.wasClean=false] Indicates whether or not the
+   *     connection was cleanly closed
+   */
+  constructor(type, options = {}) {
+    super(type);
+
+    this[kCode] = options.code === undefined ? 0 : options.code;
+    this[kReason] = options.reason === undefined ? '' : options.reason;
+    this[kWasClean] = options.wasClean === undefined ? false : options.wasClean;
+  }
+
+  /**
+   * @type {Number}
+   */
+  get code() {
+    return this[kCode];
+  }
+
+  /**
+   * @type {String}
+   */
+  get reason() {
+    return this[kReason];
+  }
+
+  /**
+   * @type {Boolean}
+   */
+  get wasClean() {
+    return this[kWasClean];
+  }
+}
+
+Object.defineProperty(CloseEvent.prototype, 'code', { enumerable: true });
+Object.defineProperty(CloseEvent.prototype, 'reason', { enumerable: true });
+Object.defineProperty(CloseEvent.prototype, 'wasClean', { enumerable: true });
+
+/**
+ * Class representing an error event.
+ *
+ * @extends Event
+ */
+class ErrorEvent extends Event {
+  /**
+   * Create a new `ErrorEvent`.
+   *
+   * @param {String} type The name of the event
+   * @param {Object} [options] A dictionary object that allows for setting
+   *     attributes via object members of the same name
+   * @param {*} [options.error=null] The error that generated this event
+   * @param {String} [options.message=''] The error message
+   */
+  constructor(type, options = {}) {
+    super(type);
+
+    this[kError] = options.error === undefined ? null : options.error;
+    this[kMessage] = options.message === undefined ? '' : options.message;
+  }
+
+  /**
+   * @type {*}
+   */
+  get error() {
+    return this[kError];
+  }
+
+  /**
+   * @type {String}
+   */
+  get message() {
+    return this[kMessage];
+  }
+}
+
+Object.defineProperty(ErrorEvent.prototype, 'error', { enumerable: true });
+Object.defineProperty(ErrorEvent.prototype, 'message', { enumerable: true });
+
+/**
+ * Class representing a message event.
+ *
+ * @extends Event
+ */
+class MessageEvent extends Event {
+  /**
+   * Create a new `MessageEvent`.
+   *
+   * @param {String} type The name of the event
+   * @param {Object} [options] A dictionary object that allows for setting
+   *     attributes via object members of the same name
+   * @param {*} [options.data=null] The message content
+   */
+  constructor(type, options = {}) {
+    super(type);
+
+    this[kData] = options.data === undefined ? null : options.data;
+  }
+
+  /**
+   * @type {*}
+   */
+  get data() {
+    return this[kData];
+  }
+}
+
+Object.defineProperty(MessageEvent.prototype, 'data', { enumerable: true });
+
+/**
+ * This provides methods for emulating the `EventTarget` interface. It's not
+ * meant to be used directly.
+ *
+ * @mixin
+ */
+const EventTarget = {
+  /**
+   * Register an event listener.
+   *
+   * @param {String} type A string representing the event type to listen for
+   * @param {Function} listener The listener to add
+   * @param {Object} [options] An options object specifies characteristics about
+   *     the event listener
+   * @param {Boolean} [options.once=false] A `Boolean` indicating that the
+   *     listener should be invoked at most once after being added. If `true`,
+   *     the listener would be automatically removed when invoked.
+   * @public
+   */
+  addEventListener(type, listener, options = {}) {
+    let wrapper;
+
+    if (type === 'message') {
+      wrapper = function onMessage(data, isBinary) {
+        const event = new MessageEvent('message', {
+          data: isBinary ? data : data.toString()
+        });
+
+        event[kTarget] = this;
+        listener.call(this, event);
+      };
+    } else if (type === 'close') {
+      wrapper = function onClose(code, message) {
+        const event = new CloseEvent('close', {
+          code,
+          reason: message.toString(),
+          wasClean: this._closeFrameReceived && this._closeFrameSent
+        });
+
+        event[kTarget] = this;
+        listener.call(this, event);
+      };
+    } else if (type === 'error') {
+      wrapper = function onError(error) {
+        const event = new ErrorEvent('error', {
+          error,
+          message: error.message
+        });
+
+        event[kTarget] = this;
+        listener.call(this, event);
+      };
+    } else if (type === 'open') {
+      wrapper = function onOpen() {
+        const event = new Event('open');
+
+        event[kTarget] = this;
+        listener.call(this, event);
+      };
+    } else {
+      return;
+    }
+
+    wrapper[kForOnEventAttribute$1] = !!options[kForOnEventAttribute$1];
+    wrapper[kListener$1] = listener;
+
+    if (options.once) {
+      this.once(type, wrapper);
+    } else {
+      this.on(type, wrapper);
+    }
+  },
+
+  /**
+   * Remove an event listener.
+   *
+   * @param {String} type A string representing the event type to remove
+   * @param {Function} handler The listener to remove
+   * @public
+   */
+  removeEventListener(type, handler) {
+    for (const listener of this.listeners(type)) {
+      if (listener[kListener$1] === handler && !listener[kForOnEventAttribute$1]) {
+        this.removeListener(type, listener);
+        break;
+      }
+    }
+  }
+};
+
+var eventTarget = {
+  CloseEvent,
+  ErrorEvent,
+  Event,
+  EventTarget,
+  MessageEvent
+};
+
+const { tokenChars: tokenChars$1 } = validation;
+
+/**
+ * Adds an offer to the map of extension offers or a parameter to the map of
+ * parameters.
+ *
+ * @param {Object} dest The map of extension offers or parameters
+ * @param {String} name The extension or parameter name
+ * @param {(Object|Boolean|String)} elem The extension parameters or the
+ *     parameter value
+ * @private
+ */
+function push(dest, name, elem) {
+  if (dest[name] === undefined) dest[name] = [elem];
+  else dest[name].push(elem);
+}
+
+/**
+ * Parses the `Sec-WebSocket-Extensions` header into an object.
+ *
+ * @param {String} header The field value of the header
+ * @return {Object} The parsed object
+ * @public
+ */
+function parse$3(header) {
+  const offers = Object.create(null);
+  let params = Object.create(null);
+  let mustUnescape = false;
+  let isEscaping = false;
+  let inQuotes = false;
+  let extensionName;
+  let paramName;
+  let start = -1;
+  let code = -1;
+  let end = -1;
+  let i = 0;
+
+  for (; i < header.length; i++) {
+    code = header.charCodeAt(i);
+
+    if (extensionName === undefined) {
+      if (end === -1 && tokenChars$1[code] === 1) {
+        if (start === -1) start = i;
+      } else if (
+        i !== 0 &&
+        (code === 0x20 /* ' ' */ || code === 0x09) /* '\t' */
+      ) {
+        if (end === -1 && start !== -1) end = i;
+      } else if (code === 0x3b /* ';' */ || code === 0x2c /* ',' */) {
+        if (start === -1) {
+          throw new SyntaxError(`Unexpected character at index ${i}`);
+        }
+
+        if (end === -1) end = i;
+        const name = header.slice(start, end);
+        if (code === 0x2c) {
+          push(offers, name, params);
+          params = Object.create(null);
+        } else {
+          extensionName = name;
+        }
+
+        start = end = -1;
+      } else {
+        throw new SyntaxError(`Unexpected character at index ${i}`);
+      }
+    } else if (paramName === undefined) {
+      if (end === -1 && tokenChars$1[code] === 1) {
+        if (start === -1) start = i;
+      } else if (code === 0x20 || code === 0x09) {
+        if (end === -1 && start !== -1) end = i;
+      } else if (code === 0x3b || code === 0x2c) {
+        if (start === -1) {
+          throw new SyntaxError(`Unexpected character at index ${i}`);
+        }
+
+        if (end === -1) end = i;
+        push(params, header.slice(start, end), true);
+        if (code === 0x2c) {
+          push(offers, extensionName, params);
+          params = Object.create(null);
+          extensionName = undefined;
+        }
+
+        start = end = -1;
+      } else if (code === 0x3d /* '=' */ && start !== -1 && end === -1) {
+        paramName = header.slice(start, i);
+        start = end = -1;
+      } else {
+        throw new SyntaxError(`Unexpected character at index ${i}`);
+      }
+    } else {
+      //
+      // The value of a quoted-string after unescaping must conform to the
+      // token ABNF, so only token characters are valid.
+      // Ref: https://tools.ietf.org/html/rfc6455#section-9.1
+      //
+      if (isEscaping) {
+        if (tokenChars$1[code] !== 1) {
+          throw new SyntaxError(`Unexpected character at index ${i}`);
+        }
+        if (start === -1) start = i;
+        else if (!mustUnescape) mustUnescape = true;
+        isEscaping = false;
+      } else if (inQuotes) {
+        if (tokenChars$1[code] === 1) {
+          if (start === -1) start = i;
+        } else if (code === 0x22 /* '"' */ && start !== -1) {
+          inQuotes = false;
+          end = i;
+        } else if (code === 0x5c /* '\' */) {
+          isEscaping = true;
+        } else {
+          throw new SyntaxError(`Unexpected character at index ${i}`);
+        }
+      } else if (code === 0x22 && header.charCodeAt(i - 1) === 0x3d) {
+        inQuotes = true;
+      } else if (end === -1 && tokenChars$1[code] === 1) {
+        if (start === -1) start = i;
+      } else if (start !== -1 && (code === 0x20 || code === 0x09)) {
+        if (end === -1) end = i;
+      } else if (code === 0x3b || code === 0x2c) {
+        if (start === -1) {
+          throw new SyntaxError(`Unexpected character at index ${i}`);
+        }
+
+        if (end === -1) end = i;
+        let value = header.slice(start, end);
+        if (mustUnescape) {
+          value = value.replace(/\\/g, '');
+          mustUnescape = false;
+        }
+        push(params, paramName, value);
+        if (code === 0x2c) {
+          push(offers, extensionName, params);
+          params = Object.create(null);
+          extensionName = undefined;
+        }
+
+        paramName = undefined;
+        start = end = -1;
+      } else {
+        throw new SyntaxError(`Unexpected character at index ${i}`);
+      }
+    }
+  }
+
+  if (start === -1 || inQuotes || code === 0x20 || code === 0x09) {
+    throw new SyntaxError('Unexpected end of input');
+  }
+
+  if (end === -1) end = i;
+  const token = header.slice(start, end);
+  if (extensionName === undefined) {
+    push(offers, token, params);
+  } else {
+    if (paramName === undefined) {
+      push(params, token, true);
+    } else if (mustUnescape) {
+      push(params, paramName, token.replace(/\\/g, ''));
+    } else {
+      push(params, paramName, token);
+    }
+    push(offers, extensionName, params);
+  }
+
+  return offers;
+}
+
+/**
+ * Builds the `Sec-WebSocket-Extensions` header field value.
+ *
+ * @param {Object} extensions The map of extensions and parameters to format
+ * @return {String} A string representing the given object
+ * @public
+ */
+function format$1(extensions) {
+  return Object.keys(extensions)
+    .map((extension) => {
+      let configurations = extensions[extension];
+      if (!Array.isArray(configurations)) configurations = [configurations];
+      return configurations
+        .map((params) => {
+          return [extension]
+            .concat(
+              Object.keys(params).map((k) => {
+                let values = params[k];
+                if (!Array.isArray(values)) values = [values];
+                return values
+                  .map((v) => (v === true ? k : `${k}=${v}`))
+                  .join('; ');
+              })
+            )
+            .join('; ');
+        })
+        .join(', ');
+    })
+    .join(', ');
+}
+
+var extension = { format: format$1, parse: parse$3 };
+
+const { randomBytes, createHash: createHash$1 } = require$$0$1;
+const { URL: URL$1 } = require$$2;
+
+
+
+
+const {
+  BINARY_TYPES,
+  EMPTY_BUFFER,
+  GUID: GUID$1,
+  kForOnEventAttribute,
+  kListener,
+  kStatusCode,
+  kWebSocket: kWebSocket$1,
+  NOOP
+} = constants;
+const {
+  EventTarget: { addEventListener, removeEventListener }
+} = eventTarget;
+const { format, parse: parse$2 } = extension;
+const { toBuffer } = bufferUtil;
+
+const readyStates = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
+const subprotocolRegex = /^[!#$%&'*+\-.0-9A-Z^_`|a-z~]+$/;
+const protocolVersions = [8, 13];
+const closeTimeout = 30 * 1000;
+
+/**
+ * Class representing a WebSocket.
+ *
+ * @extends EventEmitter
+ */
+class WebSocket$1 extends EventEmitter {
+  /**
+   * Create a new `WebSocket`.
+   *
+   * @param {(String|URL)} address The URL to which to connect
+   * @param {(String|String[])} [protocols] The subprotocols
+   * @param {Object} [options] Connection options
+   */
+  constructor(address, protocols, options) {
+    super();
+
+    this._binaryType = BINARY_TYPES[0];
+    this._closeCode = 1006;
+    this._closeFrameReceived = false;
+    this._closeFrameSent = false;
+    this._closeMessage = EMPTY_BUFFER;
+    this._closeTimer = null;
+    this._extensions = {};
+    this._paused = false;
+    this._protocol = '';
+    this._readyState = WebSocket$1.CONNECTING;
+    this._receiver = null;
+    this._sender = null;
+    this._socket = null;
+
+    if (address !== null) {
+      this._bufferedAmount = 0;
+      this._isServer = false;
+      this._redirects = 0;
+
+      if (protocols === undefined) {
+        protocols = [];
+      } else if (!Array.isArray(protocols)) {
+        if (typeof protocols === 'object' && protocols !== null) {
+          options = protocols;
+          protocols = [];
+        } else {
+          protocols = [protocols];
+        }
+      }
+
+      initAsClient(this, address, protocols, options);
+    } else {
+      this._isServer = true;
+    }
+  }
+
+  /**
+   * This deviates from the WHATWG interface since ws doesn't support the
+   * required default "blob" type (instead we define a custom "nodebuffer"
+   * type).
+   *
+   * @type {String}
+   */
+  get binaryType() {
+    return this._binaryType;
+  }
+
+  set binaryType(type) {
+    if (!BINARY_TYPES.includes(type)) return;
+
+    this._binaryType = type;
+
+    //
+    // Allow to change `binaryType` on the fly.
+    //
+    if (this._receiver) this._receiver._binaryType = type;
+  }
+
+  /**
+   * @type {Number}
+   */
+  get bufferedAmount() {
+    if (!this._socket) return this._bufferedAmount;
+
+    return this._socket._writableState.length + this._sender._bufferedBytes;
+  }
+
+  /**
+   * @type {String}
+   */
+  get extensions() {
+    return Object.keys(this._extensions).join();
+  }
+
+  /**
+   * @type {Boolean}
+   */
+  get isPaused() {
+    return this._paused;
+  }
+
+  /**
+   * @type {Function}
+   */
+  /* istanbul ignore next */
+  get onclose() {
+    return null;
+  }
+
+  /**
+   * @type {Function}
+   */
+  /* istanbul ignore next */
+  get onerror() {
+    return null;
+  }
+
+  /**
+   * @type {Function}
+   */
+  /* istanbul ignore next */
+  get onopen() {
+    return null;
+  }
+
+  /**
+   * @type {Function}
+   */
+  /* istanbul ignore next */
+  get onmessage() {
+    return null;
+  }
+
+  /**
+   * @type {String}
+   */
+  get protocol() {
+    return this._protocol;
+  }
+
+  /**
+   * @type {Number}
+   */
+  get readyState() {
+    return this._readyState;
+  }
+
+  /**
+   * @type {String}
+   */
+  get url() {
+    return this._url;
+  }
+
+  /**
+   * Set up the socket and the internal resources.
+   *
+   * @param {(net.Socket|tls.Socket)} socket The network socket between the
+   *     server and client
+   * @param {Buffer} head The first packet of the upgraded stream
+   * @param {Object} options Options object
+   * @param {Function} [options.generateMask] The function used to generate the
+   *     masking key
+   * @param {Number} [options.maxPayload=0] The maximum allowed message size
+   * @param {Boolean} [options.skipUTF8Validation=false] Specifies whether or
+   *     not to skip UTF-8 validation for text and close messages
+   * @private
+   */
+  setSocket(socket, head, options) {
+    const receiver$1 = new receiver({
+      binaryType: this.binaryType,
+      extensions: this._extensions,
+      isServer: this._isServer,
+      maxPayload: options.maxPayload,
+      skipUTF8Validation: options.skipUTF8Validation
+    });
+
+    this._sender = new sender(socket, this._extensions, options.generateMask);
+    this._receiver = receiver$1;
+    this._socket = socket;
+
+    receiver$1[kWebSocket$1] = this;
+    socket[kWebSocket$1] = this;
+
+    receiver$1.on('conclude', receiverOnConclude);
+    receiver$1.on('drain', receiverOnDrain);
+    receiver$1.on('error', receiverOnError);
+    receiver$1.on('message', receiverOnMessage);
+    receiver$1.on('ping', receiverOnPing);
+    receiver$1.on('pong', receiverOnPong);
+
+    socket.setTimeout(0);
+    socket.setNoDelay();
+
+    if (head.length > 0) socket.unshift(head);
+
+    socket.on('close', socketOnClose);
+    socket.on('data', socketOnData);
+    socket.on('end', socketOnEnd);
+    socket.on('error', socketOnError$1);
+
+    this._readyState = WebSocket$1.OPEN;
+    this.emit('open');
+  }
+
+  /**
+   * Emit the `'close'` event.
+   *
+   * @private
+   */
+  emitClose() {
+    if (!this._socket) {
+      this._readyState = WebSocket$1.CLOSED;
+      this.emit('close', this._closeCode, this._closeMessage);
+      return;
+    }
+
+    if (this._extensions[permessageDeflate.extensionName]) {
+      this._extensions[permessageDeflate.extensionName].cleanup();
+    }
+
+    this._receiver.removeAllListeners();
+    this._readyState = WebSocket$1.CLOSED;
+    this.emit('close', this._closeCode, this._closeMessage);
+  }
+
+  /**
+   * Start a closing handshake.
+   *
+   *          +----------+   +-----------+   +----------+
+   *     - - -|ws.close()|-->|close frame|-->|ws.close()|- - -
+   *    |     +----------+   +-----------+   +----------+     |
+   *          +----------+   +-----------+         |
+   * CLOSING  |ws.close()|<--|close frame|<--+-----+       CLOSING
+   *          +----------+   +-----------+   |
+   *    |           |                        |   +---+        |
+   *                +------------------------+-->|fin| - - - -
+   *    |         +---+                      |   +---+
+   *     - - - - -|fin|<---------------------+
+   *              +---+
+   *
+   * @param {Number} [code] Status code explaining why the connection is closing
+   * @param {(String|Buffer)} [data] The reason why the connection is
+   *     closing
+   * @public
+   */
+  close(code, data) {
+    if (this.readyState === WebSocket$1.CLOSED) return;
+    if (this.readyState === WebSocket$1.CONNECTING) {
+      const msg = 'WebSocket was closed before the connection was established';
+      return abortHandshake$1(this, this._req, msg);
+    }
+
+    if (this.readyState === WebSocket$1.CLOSING) {
+      if (
+        this._closeFrameSent &&
+        (this._closeFrameReceived || this._receiver._writableState.errorEmitted)
+      ) {
+        this._socket.end();
+      }
+
+      return;
+    }
+
+    this._readyState = WebSocket$1.CLOSING;
+    this._sender.close(code, data, !this._isServer, (err) => {
+      //
+      // This error is handled by the `'error'` listener on the socket. We only
+      // want to know if the close frame has been sent here.
+      //
+      if (err) return;
+
+      this._closeFrameSent = true;
+
+      if (
+        this._closeFrameReceived ||
+        this._receiver._writableState.errorEmitted
+      ) {
+        this._socket.end();
+      }
+    });
+
+    //
+    // Specify a timeout for the closing handshake to complete.
+    //
+    this._closeTimer = setTimeout(
+      this._socket.destroy.bind(this._socket),
+      closeTimeout
+    );
+  }
+
+  /**
+   * Pause the socket.
+   *
+   * @public
+   */
+  pause() {
+    if (
+      this.readyState === WebSocket$1.CONNECTING ||
+      this.readyState === WebSocket$1.CLOSED
+    ) {
+      return;
+    }
+
+    this._paused = true;
+    this._socket.pause();
+  }
+
+  /**
+   * Send a ping.
+   *
+   * @param {*} [data] The data to send
+   * @param {Boolean} [mask] Indicates whether or not to mask `data`
+   * @param {Function} [cb] Callback which is executed when the ping is sent
+   * @public
+   */
+  ping(data, mask, cb) {
+    if (this.readyState === WebSocket$1.CONNECTING) {
+      throw new Error('WebSocket is not open: readyState 0 (CONNECTING)');
+    }
+
+    if (typeof data === 'function') {
+      cb = data;
+      data = mask = undefined;
+    } else if (typeof mask === 'function') {
+      cb = mask;
+      mask = undefined;
+    }
+
+    if (typeof data === 'number') data = data.toString();
+
+    if (this.readyState !== WebSocket$1.OPEN) {
+      sendAfterClose(this, data, cb);
+      return;
+    }
+
+    if (mask === undefined) mask = !this._isServer;
+    this._sender.ping(data || EMPTY_BUFFER, mask, cb);
+  }
+
+  /**
+   * Send a pong.
+   *
+   * @param {*} [data] The data to send
+   * @param {Boolean} [mask] Indicates whether or not to mask `data`
+   * @param {Function} [cb] Callback which is executed when the pong is sent
+   * @public
+   */
+  pong(data, mask, cb) {
+    if (this.readyState === WebSocket$1.CONNECTING) {
+      throw new Error('WebSocket is not open: readyState 0 (CONNECTING)');
+    }
+
+    if (typeof data === 'function') {
+      cb = data;
+      data = mask = undefined;
+    } else if (typeof mask === 'function') {
+      cb = mask;
+      mask = undefined;
+    }
+
+    if (typeof data === 'number') data = data.toString();
+
+    if (this.readyState !== WebSocket$1.OPEN) {
+      sendAfterClose(this, data, cb);
+      return;
+    }
+
+    if (mask === undefined) mask = !this._isServer;
+    this._sender.pong(data || EMPTY_BUFFER, mask, cb);
+  }
+
+  /**
+   * Resume the socket.
+   *
+   * @public
+   */
+  resume() {
+    if (
+      this.readyState === WebSocket$1.CONNECTING ||
+      this.readyState === WebSocket$1.CLOSED
+    ) {
+      return;
+    }
+
+    this._paused = false;
+    if (!this._receiver._writableState.needDrain) this._socket.resume();
+  }
+
+  /**
+   * Send a data message.
+   *
+   * @param {*} data The message to send
+   * @param {Object} [options] Options object
+   * @param {Boolean} [options.binary] Specifies whether `data` is binary or
+   *     text
+   * @param {Boolean} [options.compress] Specifies whether or not to compress
+   *     `data`
+   * @param {Boolean} [options.fin=true] Specifies whether the fragment is the
+   *     last one
+   * @param {Boolean} [options.mask] Specifies whether or not to mask `data`
+   * @param {Function} [cb] Callback which is executed when data is written out
+   * @public
+   */
+  send(data, options, cb) {
+    if (this.readyState === WebSocket$1.CONNECTING) {
+      throw new Error('WebSocket is not open: readyState 0 (CONNECTING)');
+    }
+
+    if (typeof options === 'function') {
+      cb = options;
+      options = {};
+    }
+
+    if (typeof data === 'number') data = data.toString();
+
+    if (this.readyState !== WebSocket$1.OPEN) {
+      sendAfterClose(this, data, cb);
+      return;
+    }
+
+    const opts = {
+      binary: typeof data !== 'string',
+      mask: !this._isServer,
+      compress: true,
+      fin: true,
+      ...options
+    };
+
+    if (!this._extensions[permessageDeflate.extensionName]) {
+      opts.compress = false;
+    }
+
+    this._sender.send(data || EMPTY_BUFFER, opts, cb);
+  }
+
+  /**
+   * Forcibly close the connection.
+   *
+   * @public
+   */
+  terminate() {
+    if (this.readyState === WebSocket$1.CLOSED) return;
+    if (this.readyState === WebSocket$1.CONNECTING) {
+      const msg = 'WebSocket was closed before the connection was established';
+      return abortHandshake$1(this, this._req, msg);
+    }
+
+    if (this._socket) {
+      this._readyState = WebSocket$1.CLOSING;
+      this._socket.destroy();
+    }
+  }
+}
+
+/**
+ * @constant {Number} CONNECTING
+ * @memberof WebSocket
+ */
+Object.defineProperty(WebSocket$1, 'CONNECTING', {
+  enumerable: true,
+  value: readyStates.indexOf('CONNECTING')
+});
+
+/**
+ * @constant {Number} CONNECTING
+ * @memberof WebSocket.prototype
+ */
+Object.defineProperty(WebSocket$1.prototype, 'CONNECTING', {
+  enumerable: true,
+  value: readyStates.indexOf('CONNECTING')
+});
+
+/**
+ * @constant {Number} OPEN
+ * @memberof WebSocket
+ */
+Object.defineProperty(WebSocket$1, 'OPEN', {
+  enumerable: true,
+  value: readyStates.indexOf('OPEN')
+});
+
+/**
+ * @constant {Number} OPEN
+ * @memberof WebSocket.prototype
+ */
+Object.defineProperty(WebSocket$1.prototype, 'OPEN', {
+  enumerable: true,
+  value: readyStates.indexOf('OPEN')
+});
+
+/**
+ * @constant {Number} CLOSING
+ * @memberof WebSocket
+ */
+Object.defineProperty(WebSocket$1, 'CLOSING', {
+  enumerable: true,
+  value: readyStates.indexOf('CLOSING')
+});
+
+/**
+ * @constant {Number} CLOSING
+ * @memberof WebSocket.prototype
+ */
+Object.defineProperty(WebSocket$1.prototype, 'CLOSING', {
+  enumerable: true,
+  value: readyStates.indexOf('CLOSING')
+});
+
+/**
+ * @constant {Number} CLOSED
+ * @memberof WebSocket
+ */
+Object.defineProperty(WebSocket$1, 'CLOSED', {
+  enumerable: true,
+  value: readyStates.indexOf('CLOSED')
+});
+
+/**
+ * @constant {Number} CLOSED
+ * @memberof WebSocket.prototype
+ */
+Object.defineProperty(WebSocket$1.prototype, 'CLOSED', {
+  enumerable: true,
+  value: readyStates.indexOf('CLOSED')
+});
+
+[
+  'binaryType',
+  'bufferedAmount',
+  'extensions',
+  'isPaused',
+  'protocol',
+  'readyState',
+  'url'
+].forEach((property) => {
+  Object.defineProperty(WebSocket$1.prototype, property, { enumerable: true });
+});
+
+//
+// Add the `onopen`, `onerror`, `onclose`, and `onmessage` attributes.
+// See https://html.spec.whatwg.org/multipage/comms.html#the-websocket-interface
+//
+['open', 'error', 'close', 'message'].forEach((method) => {
+  Object.defineProperty(WebSocket$1.prototype, `on${method}`, {
+    enumerable: true,
+    get() {
+      for (const listener of this.listeners(method)) {
+        if (listener[kForOnEventAttribute]) return listener[kListener];
+      }
+
+      return null;
+    },
+    set(handler) {
+      for (const listener of this.listeners(method)) {
+        if (listener[kForOnEventAttribute]) {
+          this.removeListener(method, listener);
+          break;
+        }
+      }
+
+      if (typeof handler !== 'function') return;
+
+      this.addEventListener(method, handler, {
+        [kForOnEventAttribute]: true
+      });
+    }
+  });
+});
+
+WebSocket$1.prototype.addEventListener = addEventListener;
+WebSocket$1.prototype.removeEventListener = removeEventListener;
+
+var websocket = WebSocket$1;
+
+/**
+ * Initialize a WebSocket client.
+ *
+ * @param {WebSocket} websocket The client to initialize
+ * @param {(String|URL)} address The URL to which to connect
+ * @param {Array} protocols The subprotocols
+ * @param {Object} [options] Connection options
+ * @param {Boolean} [options.followRedirects=false] Whether or not to follow
+ *     redirects
+ * @param {Function} [options.generateMask] The function used to generate the
+ *     masking key
+ * @param {Number} [options.handshakeTimeout] Timeout in milliseconds for the
+ *     handshake request
+ * @param {Number} [options.maxPayload=104857600] The maximum allowed message
+ *     size
+ * @param {Number} [options.maxRedirects=10] The maximum number of redirects
+ *     allowed
+ * @param {String} [options.origin] Value of the `Origin` or
+ *     `Sec-WebSocket-Origin` header
+ * @param {(Boolean|Object)} [options.perMessageDeflate=true] Enable/disable
+ *     permessage-deflate
+ * @param {Number} [options.protocolVersion=13] Value of the
+ *     `Sec-WebSocket-Version` header
+ * @param {Boolean} [options.skipUTF8Validation=false] Specifies whether or
+ *     not to skip UTF-8 validation for text and close messages
+ * @private
+ */
+function initAsClient(websocket, address, protocols, options) {
+  const opts = {
+    protocolVersion: protocolVersions[1],
+    maxPayload: 100 * 1024 * 1024,
+    skipUTF8Validation: false,
+    perMessageDeflate: true,
+    followRedirects: false,
+    maxRedirects: 10,
+    ...options,
+    createConnection: undefined,
+    socketPath: undefined,
+    hostname: undefined,
+    protocol: undefined,
+    timeout: undefined,
+    method: undefined,
+    host: undefined,
+    path: undefined,
+    port: undefined
+  };
+
+  if (!protocolVersions.includes(opts.protocolVersion)) {
+    throw new RangeError(
+      `Unsupported protocol version: ${opts.protocolVersion} ` +
+        `(supported versions: ${protocolVersions.join(', ')})`
+    );
+  }
+
+  let parsedUrl;
+
+  if (address instanceof URL$1) {
+    parsedUrl = address;
+    websocket._url = address.href;
+  } else {
+    try {
+      parsedUrl = new URL$1(address);
+    } catch (e) {
+      throw new SyntaxError(`Invalid URL: ${address}`);
+    }
+
+    websocket._url = address;
+  }
+
+  const isSecure = parsedUrl.protocol === 'wss:';
+  const isUnixSocket = parsedUrl.protocol === 'ws+unix:';
+  let invalidURLMessage;
+
+  if (parsedUrl.protocol !== 'ws:' && !isSecure && !isUnixSocket) {
+    invalidURLMessage =
+      'The URL\'s protocol must be one of "ws:", "wss:", or "ws+unix:"';
+  } else if (isUnixSocket && !parsedUrl.pathname) {
+    invalidURLMessage = "The URL's pathname is empty";
+  } else if (parsedUrl.hash) {
+    invalidURLMessage = 'The URL contains a fragment identifier';
+  }
+
+  if (invalidURLMessage) {
+    const err = new SyntaxError(invalidURLMessage);
+
+    if (websocket._redirects === 0) {
+      throw err;
+    } else {
+      emitErrorAndClose(websocket, err);
+      return;
+    }
+  }
+
+  const defaultPort = isSecure ? 443 : 80;
+  const key = randomBytes(16).toString('base64');
+  const get = isSecure ? https.get : http.get;
+  const protocolSet = new Set();
+  let perMessageDeflate;
+
+  opts.createConnection = isSecure ? tlsConnect : netConnect;
+  opts.defaultPort = opts.defaultPort || defaultPort;
+  opts.port = parsedUrl.port || defaultPort;
+  opts.host = parsedUrl.hostname.startsWith('[')
+    ? parsedUrl.hostname.slice(1, -1)
+    : parsedUrl.hostname;
+  opts.headers = {
+    'Sec-WebSocket-Version': opts.protocolVersion,
+    'Sec-WebSocket-Key': key,
+    Connection: 'Upgrade',
+    Upgrade: 'websocket',
+    ...opts.headers
+  };
+  opts.path = parsedUrl.pathname + parsedUrl.search;
+  opts.timeout = opts.handshakeTimeout;
+
+  if (opts.perMessageDeflate) {
+    perMessageDeflate = new permessageDeflate(
+      opts.perMessageDeflate !== true ? opts.perMessageDeflate : {},
+      false,
+      opts.maxPayload
+    );
+    opts.headers['Sec-WebSocket-Extensions'] = format({
+      [permessageDeflate.extensionName]: perMessageDeflate.offer()
+    });
+  }
+  if (protocols.length) {
+    for (const protocol of protocols) {
+      if (
+        typeof protocol !== 'string' ||
+        !subprotocolRegex.test(protocol) ||
+        protocolSet.has(protocol)
+      ) {
+        throw new SyntaxError(
+          'An invalid or duplicated subprotocol was specified'
+        );
+      }
+
+      protocolSet.add(protocol);
+    }
+
+    opts.headers['Sec-WebSocket-Protocol'] = protocols.join(',');
+  }
+  if (opts.origin) {
+    if (opts.protocolVersion < 13) {
+      opts.headers['Sec-WebSocket-Origin'] = opts.origin;
+    } else {
+      opts.headers.Origin = opts.origin;
+    }
+  }
+  if (parsedUrl.username || parsedUrl.password) {
+    opts.auth = `${parsedUrl.username}:${parsedUrl.password}`;
+  }
+
+  if (isUnixSocket) {
+    const parts = opts.path.split(':');
+
+    opts.socketPath = parts[0];
+    opts.path = parts[1];
+  }
+
+  if (opts.followRedirects) {
+    if (websocket._redirects === 0) {
+      websocket._originalHost = parsedUrl.host;
+
+      const headers = options && options.headers;
+
+      //
+      // Shallow copy the user provided options so that headers can be changed
+      // without mutating the original object.
+      //
+      options = { ...options, headers: {} };
+
+      if (headers) {
+        for (const [key, value] of Object.entries(headers)) {
+          options.headers[key.toLowerCase()] = value;
+        }
+      }
+    } else if (parsedUrl.host !== websocket._originalHost) {
+      //
+      // Match curl 7.77.0 behavior and drop the following headers. These
+      // headers are also dropped when following a redirect to a subdomain.
+      //
+      delete opts.headers.authorization;
+      delete opts.headers.cookie;
+      delete opts.headers.host;
+      opts.auth = undefined;
+    }
+
+    //
+    // Match curl 7.77.0 behavior and make the first `Authorization` header win.
+    // If the `Authorization` header is set, then there is nothing to do as it
+    // will take precedence.
+    //
+    if (opts.auth && !options.headers.authorization) {
+      options.headers.authorization =
+        'Basic ' + Buffer$1.from(opts.auth).toString('base64');
+    }
+  }
+
+  let req = (websocket._req = get(opts));
+
+  if (opts.timeout) {
+    req.on('timeout', () => {
+      abortHandshake$1(websocket, req, 'Opening handshake has timed out');
+    });
+  }
+
+  req.on('error', (err) => {
+    if (req === null || req.aborted) return;
+
+    req = websocket._req = null;
+    emitErrorAndClose(websocket, err);
+  });
+
+  req.on('response', (res) => {
+    const location = res.headers.location;
+    const statusCode = res.statusCode;
+
+    if (
+      location &&
+      opts.followRedirects &&
+      statusCode >= 300 &&
+      statusCode < 400
+    ) {
+      if (++websocket._redirects > opts.maxRedirects) {
+        abortHandshake$1(websocket, req, 'Maximum redirects exceeded');
+        return;
+      }
+
+      req.abort();
+
+      let addr;
+
+      try {
+        addr = new URL$1(location, address);
+      } catch (e) {
+        const err = new SyntaxError(`Invalid URL: ${location}`);
+        emitErrorAndClose(websocket, err);
+        return;
+      }
+
+      initAsClient(websocket, addr, protocols, options);
+    } else if (!websocket.emit('unexpected-response', req, res)) {
+      abortHandshake$1(
+        websocket,
+        req,
+        `Unexpected server response: ${res.statusCode}`
+      );
+    }
+  });
+
+  req.on('upgrade', (res, socket, head) => {
+    websocket.emit('upgrade', res);
+
+    //
+    // The user may have closed the connection from a listener of the `upgrade`
+    // event.
+    //
+    if (websocket.readyState !== WebSocket$1.CONNECTING) return;
+
+    req = websocket._req = null;
+
+    const digest = createHash$1('sha1')
+      .update(key + GUID$1)
+      .digest('base64');
+
+    if (res.headers['sec-websocket-accept'] !== digest) {
+      abortHandshake$1(websocket, socket, 'Invalid Sec-WebSocket-Accept header');
+      return;
+    }
+
+    const serverProt = res.headers['sec-websocket-protocol'];
+    let protError;
+
+    if (serverProt !== undefined) {
+      if (!protocolSet.size) {
+        protError = 'Server sent a subprotocol but none was requested';
+      } else if (!protocolSet.has(serverProt)) {
+        protError = 'Server sent an invalid subprotocol';
+      }
+    } else if (protocolSet.size) {
+      protError = 'Server sent no subprotocol';
+    }
+
+    if (protError) {
+      abortHandshake$1(websocket, socket, protError);
+      return;
+    }
+
+    if (serverProt) websocket._protocol = serverProt;
+
+    const secWebSocketExtensions = res.headers['sec-websocket-extensions'];
+
+    if (secWebSocketExtensions !== undefined) {
+      if (!perMessageDeflate) {
+        const message =
+          'Server sent a Sec-WebSocket-Extensions header but no extension ' +
+          'was requested';
+        abortHandshake$1(websocket, socket, message);
+        return;
+      }
+
+      let extensions;
+
+      try {
+        extensions = parse$2(secWebSocketExtensions);
+      } catch (err) {
+        const message = 'Invalid Sec-WebSocket-Extensions header';
+        abortHandshake$1(websocket, socket, message);
+        return;
+      }
+
+      const extensionNames = Object.keys(extensions);
+
+      if (
+        extensionNames.length !== 1 ||
+        extensionNames[0] !== permessageDeflate.extensionName
+      ) {
+        const message = 'Server indicated an extension that was not requested';
+        abortHandshake$1(websocket, socket, message);
+        return;
+      }
+
+      try {
+        perMessageDeflate.accept(extensions[permessageDeflate.extensionName]);
+      } catch (err) {
+        const message = 'Invalid Sec-WebSocket-Extensions header';
+        abortHandshake$1(websocket, socket, message);
+        return;
+      }
+
+      websocket._extensions[permessageDeflate.extensionName] =
+        perMessageDeflate;
+    }
+
+    websocket.setSocket(socket, head, {
+      generateMask: opts.generateMask,
+      maxPayload: opts.maxPayload,
+      skipUTF8Validation: opts.skipUTF8Validation
+    });
+  });
+}
+
+/**
+ * Emit the `'error'` and `'close'` event.
+ *
+ * @param {WebSocket} websocket The WebSocket instance
+ * @param {Error} The error to emit
+ * @private
+ */
+function emitErrorAndClose(websocket, err) {
+  websocket._readyState = WebSocket$1.CLOSING;
+  websocket.emit('error', err);
+  websocket.emitClose();
+}
+
+/**
+ * Create a `net.Socket` and initiate a connection.
+ *
+ * @param {Object} options Connection options
+ * @return {net.Socket} The newly created socket used to start the connection
+ * @private
+ */
+function netConnect(options) {
+  options.path = options.socketPath;
+  return net.connect(options);
+}
+
+/**
+ * Create a `tls.TLSSocket` and initiate a connection.
+ *
+ * @param {Object} options Connection options
+ * @return {tls.TLSSocket} The newly created socket used to start the connection
+ * @private
+ */
+function tlsConnect(options) {
+  options.path = undefined;
+
+  if (!options.servername && options.servername !== '') {
+    options.servername = net.isIP(options.host) ? '' : options.host;
+  }
+
+  return tls.connect(options);
+}
+
+/**
+ * Abort the handshake and emit an error.
+ *
+ * @param {WebSocket} websocket The WebSocket instance
+ * @param {(http.ClientRequest|net.Socket|tls.Socket)} stream The request to
+ *     abort or the socket to destroy
+ * @param {String} message The error message
+ * @private
+ */
+function abortHandshake$1(websocket, stream, message) {
+  websocket._readyState = WebSocket$1.CLOSING;
+
+  const err = new Error(message);
+  Error.captureStackTrace(err, abortHandshake$1);
+
+  if (stream.setHeader) {
+    stream.abort();
+
+    if (stream.socket && !stream.socket.destroyed) {
+      //
+      // On Node.js >= 14.3.0 `request.abort()` does not destroy the socket if
+      // called after the request completed. See
+      // https://github.com/websockets/ws/issues/1869.
+      //
+      stream.socket.destroy();
+    }
+
+    stream.once('abort', websocket.emitClose.bind(websocket));
+    websocket.emit('error', err);
+  } else {
+    stream.destroy(err);
+    stream.once('error', websocket.emit.bind(websocket, 'error'));
+    stream.once('close', websocket.emitClose.bind(websocket));
+  }
+}
+
+/**
+ * Handle cases where the `ping()`, `pong()`, or `send()` methods are called
+ * when the `readyState` attribute is `CLOSING` or `CLOSED`.
+ *
+ * @param {WebSocket} websocket The WebSocket instance
+ * @param {*} [data] The data to send
+ * @param {Function} [cb] Callback
+ * @private
+ */
+function sendAfterClose(websocket, data, cb) {
+  if (data) {
+    const length = toBuffer(data).length;
+
+    //
+    // The `_bufferedAmount` property is used only when the peer is a client and
+    // the opening handshake fails. Under these circumstances, in fact, the
+    // `setSocket()` method is not called, so the `_socket` and `_sender`
+    // properties are set to `null`.
+    //
+    if (websocket._socket) websocket._sender._bufferedBytes += length;
+    else websocket._bufferedAmount += length;
+  }
+
+  if (cb) {
+    const err = new Error(
+      `WebSocket is not open: readyState ${websocket.readyState} ` +
+        `(${readyStates[websocket.readyState]})`
+    );
+    cb(err);
+  }
+}
+
+/**
+ * The listener of the `Receiver` `'conclude'` event.
+ *
+ * @param {Number} code The status code
+ * @param {Buffer} reason The reason for closing
+ * @private
+ */
+function receiverOnConclude(code, reason) {
+  const websocket = this[kWebSocket$1];
+
+  websocket._closeFrameReceived = true;
+  websocket._closeMessage = reason;
+  websocket._closeCode = code;
+
+  if (websocket._socket[kWebSocket$1] === undefined) return;
+
+  websocket._socket.removeListener('data', socketOnData);
+  browser$1.nextTick(resume, websocket._socket);
+
+  if (code === 1005) websocket.close();
+  else websocket.close(code, reason);
+}
+
+/**
+ * The listener of the `Receiver` `'drain'` event.
+ *
+ * @private
+ */
+function receiverOnDrain() {
+  const websocket = this[kWebSocket$1];
+
+  if (!websocket.isPaused) websocket._socket.resume();
+}
+
+/**
+ * The listener of the `Receiver` `'error'` event.
+ *
+ * @param {(RangeError|Error)} err The emitted error
+ * @private
+ */
+function receiverOnError(err) {
+  const websocket = this[kWebSocket$1];
+
+  if (websocket._socket[kWebSocket$1] !== undefined) {
+    websocket._socket.removeListener('data', socketOnData);
+
+    //
+    // On Node.js < 14.0.0 the `'error'` event is emitted synchronously. See
+    // https://github.com/websockets/ws/issues/1940.
+    //
+    browser$1.nextTick(resume, websocket._socket);
+
+    websocket.close(err[kStatusCode]);
+  }
+
+  websocket.emit('error', err);
+}
+
+/**
+ * The listener of the `Receiver` `'finish'` event.
+ *
+ * @private
+ */
+function receiverOnFinish() {
+  this[kWebSocket$1].emitClose();
+}
+
+/**
+ * The listener of the `Receiver` `'message'` event.
+ *
+ * @param {Buffer|ArrayBuffer|Buffer[])} data The message
+ * @param {Boolean} isBinary Specifies whether the message is binary or not
+ * @private
+ */
+function receiverOnMessage(data, isBinary) {
+  this[kWebSocket$1].emit('message', data, isBinary);
+}
+
+/**
+ * The listener of the `Receiver` `'ping'` event.
+ *
+ * @param {Buffer} data The data included in the ping frame
+ * @private
+ */
+function receiverOnPing(data) {
+  const websocket = this[kWebSocket$1];
+
+  websocket.pong(data, !websocket._isServer, NOOP);
+  websocket.emit('ping', data);
+}
+
+/**
+ * The listener of the `Receiver` `'pong'` event.
+ *
+ * @param {Buffer} data The data included in the pong frame
+ * @private
+ */
+function receiverOnPong(data) {
+  this[kWebSocket$1].emit('pong', data);
+}
+
+/**
+ * Resume a readable stream
+ *
+ * @param {Readable} stream The readable stream
+ * @private
+ */
+function resume(stream) {
+  stream.resume();
+}
+
+/**
+ * The listener of the `net.Socket` `'close'` event.
+ *
+ * @private
+ */
+function socketOnClose() {
+  const websocket = this[kWebSocket$1];
+
+  this.removeListener('close', socketOnClose);
+  this.removeListener('data', socketOnData);
+  this.removeListener('end', socketOnEnd);
+
+  websocket._readyState = WebSocket$1.CLOSING;
+
+  let chunk;
+
+  //
+  // The close frame might not have been received or the `'end'` event emitted,
+  // for example, if the socket was destroyed due to an error. Ensure that the
+  // `receiver` stream is closed after writing any remaining buffered data to
+  // it. If the readable side of the socket is in flowing mode then there is no
+  // buffered data as everything has been already written and `readable.read()`
+  // will return `null`. If instead, the socket is paused, any possible buffered
+  // data will be read as a single chunk.
+  //
+  if (
+    !this._readableState.endEmitted &&
+    !websocket._closeFrameReceived &&
+    !websocket._receiver._writableState.errorEmitted &&
+    (chunk = websocket._socket.read()) !== null
+  ) {
+    websocket._receiver.write(chunk);
+  }
+
+  websocket._receiver.end();
+
+  this[kWebSocket$1] = undefined;
+
+  clearTimeout(websocket._closeTimer);
+
+  if (
+    websocket._receiver._writableState.finished ||
+    websocket._receiver._writableState.errorEmitted
+  ) {
+    websocket.emitClose();
+  } else {
+    websocket._receiver.on('error', receiverOnFinish);
+    websocket._receiver.on('finish', receiverOnFinish);
+  }
+}
+
+/**
+ * The listener of the `net.Socket` `'data'` event.
+ *
+ * @param {Buffer} chunk A chunk of data
+ * @private
+ */
+function socketOnData(chunk) {
+  if (!this[kWebSocket$1]._receiver.write(chunk)) {
+    this.pause();
+  }
+}
+
+/**
+ * The listener of the `net.Socket` `'end'` event.
+ *
+ * @private
+ */
+function socketOnEnd() {
+  const websocket = this[kWebSocket$1];
+
+  websocket._readyState = WebSocket$1.CLOSING;
+  websocket._receiver.end();
+  this.end();
+}
+
+/**
+ * The listener of the `net.Socket` `'error'` event.
+ *
+ * @private
+ */
+function socketOnError$1() {
+  const websocket = this[kWebSocket$1];
+
+  this.removeListener('error', socketOnError$1);
+  this.on('error', NOOP);
+
+  if (websocket) {
+    websocket._readyState = WebSocket$1.CLOSING;
+    this.destroy();
+  }
+}
+
+const { tokenChars } = validation;
+
+/**
+ * Parses the `Sec-WebSocket-Protocol` header into a set of subprotocol names.
+ *
+ * @param {String} header The field value of the header
+ * @return {Set} The subprotocol names
+ * @public
+ */
+function parse$1(header) {
+  const protocols = new Set();
+  let start = -1;
+  let end = -1;
+  let i = 0;
+
+  for (i; i < header.length; i++) {
+    const code = header.charCodeAt(i);
+
+    if (end === -1 && tokenChars[code] === 1) {
+      if (start === -1) start = i;
+    } else if (
+      i !== 0 &&
+      (code === 0x20 /* ' ' */ || code === 0x09) /* '\t' */
+    ) {
+      if (end === -1 && start !== -1) end = i;
+    } else if (code === 0x2c /* ',' */) {
+      if (start === -1) {
+        throw new SyntaxError(`Unexpected character at index ${i}`);
+      }
+
+      if (end === -1) end = i;
+
+      const protocol = header.slice(start, end);
+
+      if (protocols.has(protocol)) {
+        throw new SyntaxError(`The "${protocol}" subprotocol is duplicated`);
+      }
+
+      protocols.add(protocol);
+      start = end = -1;
+    } else {
+      throw new SyntaxError(`Unexpected character at index ${i}`);
+    }
+  }
+
+  if (start === -1 || end !== -1) {
+    throw new SyntaxError('Unexpected end of input');
+  }
+
+  const protocol = header.slice(start, i);
+
+  if (protocols.has(protocol)) {
+    throw new SyntaxError(`The "${protocol}" subprotocol is duplicated`);
+  }
+
+  protocols.add(protocol);
+  return protocols;
+}
+
+var subprotocol = { parse: parse$1 };
+
+const { createHash } = require$$0$1;
+
+
+
+
+
+const { GUID, kWebSocket } = constants;
+
+const keyRegex = /^[+/0-9A-Za-z]{22}==$/;
+
+const RUNNING = 0;
+const CLOSING = 1;
+const CLOSED = 2;
+
+/**
+ * Class representing a WebSocket server.
+ *
+ * @extends EventEmitter
+ */
+class WebSocketServer$1 extends EventEmitter {
+  /**
+   * Create a `WebSocketServer` instance.
+   *
+   * @param {Object} options Configuration options
+   * @param {Number} [options.backlog=511] The maximum length of the queue of
+   *     pending connections
+   * @param {Boolean} [options.clientTracking=true] Specifies whether or not to
+   *     track clients
+   * @param {Function} [options.handleProtocols] A hook to handle protocols
+   * @param {String} [options.host] The hostname where to bind the server
+   * @param {Number} [options.maxPayload=104857600] The maximum allowed message
+   *     size
+   * @param {Boolean} [options.noServer=false] Enable no server mode
+   * @param {String} [options.path] Accept only connections matching this path
+   * @param {(Boolean|Object)} [options.perMessageDeflate=false] Enable/disable
+   *     permessage-deflate
+   * @param {Number} [options.port] The port where to bind the server
+   * @param {(http.Server|https.Server)} [options.server] A pre-created HTTP/S
+   *     server to use
+   * @param {Boolean} [options.skipUTF8Validation=false] Specifies whether or
+   *     not to skip UTF-8 validation for text and close messages
+   * @param {Function} [options.verifyClient] A hook to reject connections
+   * @param {Function} [options.WebSocket=WebSocket] Specifies the `WebSocket`
+   *     class to use. It must be the `WebSocket` class or class that extends it
+   * @param {Function} [callback] A listener for the `listening` event
+   */
+  constructor(options, callback) {
+    super();
+
+    options = {
+      maxPayload: 100 * 1024 * 1024,
+      skipUTF8Validation: false,
+      perMessageDeflate: false,
+      handleProtocols: null,
+      clientTracking: true,
+      verifyClient: null,
+      noServer: false,
+      backlog: null, // use default (511 as implemented in net.js)
+      server: null,
+      host: null,
+      path: null,
+      port: null,
+      WebSocket: websocket,
+      ...options
+    };
+
+    if (
+      (options.port == null && !options.server && !options.noServer) ||
+      (options.port != null && (options.server || options.noServer)) ||
+      (options.server && options.noServer)
+    ) {
+      throw new TypeError(
+        'One and only one of the "port", "server", or "noServer" options ' +
+          'must be specified'
+      );
+    }
+
+    if (options.port != null) {
+      this._server = http.createServer((req, res) => {
+        const body = http.STATUS_CODES[426];
+
+        res.writeHead(426, {
+          'Content-Length': body.length,
+          'Content-Type': 'text/plain'
+        });
+        res.end(body);
+      });
+      this._server.listen(
+        options.port,
+        options.host,
+        options.backlog,
+        callback
+      );
+    } else if (options.server) {
+      this._server = options.server;
+    }
+
+    if (this._server) {
+      const emitConnection = this.emit.bind(this, 'connection');
+
+      this._removeListeners = addListeners(this._server, {
+        listening: this.emit.bind(this, 'listening'),
+        error: this.emit.bind(this, 'error'),
+        upgrade: (req, socket, head) => {
+          this.handleUpgrade(req, socket, head, emitConnection);
+        }
+      });
+    }
+
+    if (options.perMessageDeflate === true) options.perMessageDeflate = {};
+    if (options.clientTracking) {
+      this.clients = new Set();
+      this._shouldEmitClose = false;
+    }
+
+    this.options = options;
+    this._state = RUNNING;
+  }
+
+  /**
+   * Returns the bound address, the address family name, and port of the server
+   * as reported by the operating system if listening on an IP socket.
+   * If the server is listening on a pipe or UNIX domain socket, the name is
+   * returned as a string.
+   *
+   * @return {(Object|String|null)} The address of the server
+   * @public
+   */
+  address() {
+    if (this.options.noServer) {
+      throw new Error('The server is operating in "noServer" mode');
+    }
+
+    if (!this._server) return null;
+    return this._server.address();
+  }
+
+  /**
+   * Stop the server from accepting new connections and emit the `'close'` event
+   * when all existing connections are closed.
+   *
+   * @param {Function} [cb] A one-time listener for the `'close'` event
+   * @public
+   */
+  close(cb) {
+    if (this._state === CLOSED) {
+      if (cb) {
+        this.once('close', () => {
+          cb(new Error('The server is not running'));
+        });
+      }
+
+      browser$1.nextTick(emitClose, this);
+      return;
+    }
+
+    if (cb) this.once('close', cb);
+
+    if (this._state === CLOSING) return;
+    this._state = CLOSING;
+
+    if (this.options.noServer || this.options.server) {
+      if (this._server) {
+        this._removeListeners();
+        this._removeListeners = this._server = null;
+      }
+
+      if (this.clients) {
+        if (!this.clients.size) {
+          browser$1.nextTick(emitClose, this);
+        } else {
+          this._shouldEmitClose = true;
+        }
+      } else {
+        browser$1.nextTick(emitClose, this);
+      }
+    } else {
+      const server = this._server;
+
+      this._removeListeners();
+      this._removeListeners = this._server = null;
+
+      //
+      // The HTTP/S server was created internally. Close it, and rely on its
+      // `'close'` event.
+      //
+      server.close(() => {
+        emitClose(this);
+      });
+    }
+  }
+
+  /**
+   * See if a given request should be handled by this server instance.
+   *
+   * @param {http.IncomingMessage} req Request object to inspect
+   * @return {Boolean} `true` if the request is valid, else `false`
+   * @public
+   */
+  shouldHandle(req) {
+    if (this.options.path) {
+      const index = req.url.indexOf('?');
+      const pathname = index !== -1 ? req.url.slice(0, index) : req.url;
+
+      if (pathname !== this.options.path) return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Handle a HTTP Upgrade request.
+   *
+   * @param {http.IncomingMessage} req The request object
+   * @param {(net.Socket|tls.Socket)} socket The network socket between the
+   *     server and client
+   * @param {Buffer} head The first packet of the upgraded stream
+   * @param {Function} cb Callback
+   * @public
+   */
+  handleUpgrade(req, socket, head, cb) {
+    socket.on('error', socketOnError);
+
+    const key =
+      req.headers['sec-websocket-key'] !== undefined
+        ? req.headers['sec-websocket-key']
+        : false;
+    const version = +req.headers['sec-websocket-version'];
+
+    if (
+      req.method !== 'GET' ||
+      req.headers.upgrade.toLowerCase() !== 'websocket' ||
+      !key ||
+      !keyRegex.test(key) ||
+      (version !== 8 && version !== 13) ||
+      !this.shouldHandle(req)
+    ) {
+      return abortHandshake(socket, 400);
+    }
+
+    const secWebSocketProtocol = req.headers['sec-websocket-protocol'];
+    let protocols = new Set();
+
+    if (secWebSocketProtocol !== undefined) {
+      try {
+        protocols = subprotocol.parse(secWebSocketProtocol);
+      } catch (err) {
+        return abortHandshake(socket, 400);
+      }
+    }
+
+    const secWebSocketExtensions = req.headers['sec-websocket-extensions'];
+    const extensions = {};
+
+    if (
+      this.options.perMessageDeflate &&
+      secWebSocketExtensions !== undefined
+    ) {
+      const perMessageDeflate = new permessageDeflate(
+        this.options.perMessageDeflate,
+        true,
+        this.options.maxPayload
+      );
+
+      try {
+        const offers = extension.parse(secWebSocketExtensions);
+
+        if (offers[permessageDeflate.extensionName]) {
+          perMessageDeflate.accept(offers[permessageDeflate.extensionName]);
+          extensions[permessageDeflate.extensionName] = perMessageDeflate;
+        }
+      } catch (err) {
+        return abortHandshake(socket, 400);
+      }
+    }
+
+    //
+    // Optionally call external client verification handler.
+    //
+    if (this.options.verifyClient) {
+      const info = {
+        origin:
+          req.headers[`${version === 8 ? 'sec-websocket-origin' : 'origin'}`],
+        secure: !!(req.socket.authorized || req.socket.encrypted),
+        req
+      };
+
+      if (this.options.verifyClient.length === 2) {
+        this.options.verifyClient(info, (verified, code, message, headers) => {
+          if (!verified) {
+            return abortHandshake(socket, code || 401, message, headers);
+          }
+
+          this.completeUpgrade(
+            extensions,
+            key,
+            protocols,
+            req,
+            socket,
+            head,
+            cb
+          );
+        });
+        return;
+      }
+
+      if (!this.options.verifyClient(info)) return abortHandshake(socket, 401);
+    }
+
+    this.completeUpgrade(extensions, key, protocols, req, socket, head, cb);
+  }
+
+  /**
+   * Upgrade the connection to WebSocket.
+   *
+   * @param {Object} extensions The accepted extensions
+   * @param {String} key The value of the `Sec-WebSocket-Key` header
+   * @param {Set} protocols The subprotocols
+   * @param {http.IncomingMessage} req The request object
+   * @param {(net.Socket|tls.Socket)} socket The network socket between the
+   *     server and client
+   * @param {Buffer} head The first packet of the upgraded stream
+   * @param {Function} cb Callback
+   * @throws {Error} If called more than once with the same socket
+   * @private
+   */
+  completeUpgrade(extensions, key, protocols, req, socket, head, cb) {
+    //
+    // Destroy the socket if the client has already sent a FIN packet.
+    //
+    if (!socket.readable || !socket.writable) return socket.destroy();
+
+    if (socket[kWebSocket]) {
+      throw new Error(
+        'server.handleUpgrade() was called more than once with the same ' +
+          'socket, possibly due to a misconfiguration'
+      );
+    }
+
+    if (this._state > RUNNING) return abortHandshake(socket, 503);
+
+    const digest = createHash('sha1')
+      .update(key + GUID)
+      .digest('base64');
+
+    const headers = [
+      'HTTP/1.1 101 Switching Protocols',
+      'Upgrade: websocket',
+      'Connection: Upgrade',
+      `Sec-WebSocket-Accept: ${digest}`
+    ];
+
+    const ws = new this.options.WebSocket(null);
+
+    if (protocols.size) {
+      //
+      // Optionally call external protocol selection handler.
+      //
+      const protocol = this.options.handleProtocols
+        ? this.options.handleProtocols(protocols, req)
+        : protocols.values().next().value;
+
+      if (protocol) {
+        headers.push(`Sec-WebSocket-Protocol: ${protocol}`);
+        ws._protocol = protocol;
+      }
+    }
+
+    if (extensions[permessageDeflate.extensionName]) {
+      const params = extensions[permessageDeflate.extensionName].params;
+      const value = extension.format({
+        [permessageDeflate.extensionName]: [params]
+      });
+      headers.push(`Sec-WebSocket-Extensions: ${value}`);
+      ws._extensions = extensions;
+    }
+
+    //
+    // Allow external modification/inspection of handshake headers.
+    //
+    this.emit('headers', headers, req);
+
+    socket.write(headers.concat('\r\n').join('\r\n'));
+    socket.removeListener('error', socketOnError);
+
+    ws.setSocket(socket, head, {
+      maxPayload: this.options.maxPayload,
+      skipUTF8Validation: this.options.skipUTF8Validation
+    });
+
+    if (this.clients) {
+      this.clients.add(ws);
+      ws.on('close', () => {
+        this.clients.delete(ws);
+
+        if (this._shouldEmitClose && !this.clients.size) {
+          browser$1.nextTick(emitClose, this);
+        }
+      });
+    }
+
+    cb(ws, req);
+  }
+}
+
+var websocketServer = WebSocketServer$1;
+
+/**
+ * Add event listeners on an `EventEmitter` using a map of <event, listener>
+ * pairs.
+ *
+ * @param {EventEmitter} server The event emitter
+ * @param {Object.<String, Function>} map The listeners to add
+ * @return {Function} A function that will remove the added listeners when
+ *     called
+ * @private
+ */
+function addListeners(server, map) {
+  for (const event of Object.keys(map)) server.on(event, map[event]);
+
+  return function removeListeners() {
+    for (const event of Object.keys(map)) {
+      server.removeListener(event, map[event]);
+    }
+  };
+}
+
+/**
+ * Emit a `'close'` event on an `EventEmitter`.
+ *
+ * @param {EventEmitter} server The event emitter
+ * @private
+ */
+function emitClose(server) {
+  server._state = CLOSED;
+  server.emit('close');
+}
+
+/**
+ * Handle premature socket errors.
+ *
+ * @private
+ */
+function socketOnError() {
+  this.destroy();
+}
+
+/**
+ * Close the connection when preconditions are not fulfilled.
+ *
+ * @param {(net.Socket|tls.Socket)} socket The socket of the upgrade request
+ * @param {Number} code The HTTP response status code
+ * @param {String} [message] The HTTP response body
+ * @param {Object} [headers] Additional HTTP response headers
+ * @private
+ */
+function abortHandshake(socket, code, message, headers) {
+  if (socket.writable) {
+    message = message || http.STATUS_CODES[code];
+    headers = {
+      Connection: 'close',
+      'Content-Type': 'text/html',
+      'Content-Length': Buffer$1.byteLength(message),
+      ...headers
+    };
+
+    socket.write(
+      `HTTP/1.1 ${code} ${http.STATUS_CODES[code]}\r\n` +
+        Object.keys(headers)
+          .map((h) => `${h}: ${headers[h]}`)
+          .join('\r\n') +
+        '\r\n\r\n' +
+        message
+    );
+  }
+
+  socket.removeListener('error', socketOnError);
+  socket.destroy();
+}
+
 var name = "dde4";
-var version$4 = "4.0.0";
+var version$3 = "4.0.0";
 var release_date = "Aug 26, 2021";
 var description = "test rollup";
 var author = "Fry";
@@ -88,7 +6467,7 @@ var dependencies = {
 };
 var package_json = {
 	name: name,
-	version: version$4,
+	version: version$3,
 	release_date: release_date,
 	description: description,
 	author: author,
@@ -368,14 +6747,14 @@ var skipWhiteSpace = /(?:\s|\/\/.*|\/\*[^]*?\*\/)*/g;
 
 var ref = Object.prototype;
 var hasOwnProperty = ref.hasOwnProperty;
-var toString$1 = ref.toString;
+var toString = ref.toString;
 
 var hasOwn = Object.hasOwn || (function (obj, propName) { return (
   hasOwnProperty.call(obj, propName)
 ); });
 
-var isArray$1 = Array.isArray || (function (obj) { return (
-  toString$1.call(obj) === "[object Array]"
+var isArray = Array.isArray || (function (obj) { return (
+  toString.call(obj) === "[object Array]"
 ); });
 
 function wordsRegexp(words) {
@@ -536,11 +6915,11 @@ function getOptions(opts) {
   if (options.allowReserved == null)
     { options.allowReserved = options.ecmaVersion < 5; }
 
-  if (isArray$1(options.onToken)) {
+  if (isArray(options.onToken)) {
     var tokens = options.onToken;
     options.onToken = function (token) { return tokens.push(token); };
   }
-  if (isArray$1(options.onComment))
+  if (isArray(options.onComment))
     { options.onComment = pushComment(options, options.onComment); }
 
   return options
@@ -5636,11 +12015,11 @@ pp.readWord = function() {
 
 // Acorn is a tiny, fast JavaScript parser written in JavaScript.
 
-var version$3 = "8.7.0";
+var version$2 = "8.7.0";
 
 Parser.acorn = {
   Parser: Parser,
-  version: version$3,
+  version: version$2,
   defaultOptions: defaultOptions,
   Position: Position,
   SourceLocation: SourceLocation,
@@ -5659,13 +12038,6 @@ Parser.acorn = {
   lineBreakG: lineBreakG,
   nonASCIIwhitespace: nonASCIIwhitespace
 };
-
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-function createCommonjsModule(fn) {
-  var module = { exports: {} };
-	return fn(module, module.exports), module.exports;
-}
 
 var xhtml = {
   quot: '\u0022',
@@ -12741,7 +19113,7 @@ var espree = () => Parser => {
     };
 };
 
-const version$2 = "9.3.1";
+const version$1 = "9.3.1";
 
 /**
  * @typedef {import('./index.js').VisitorKeys} VisitorKeys
@@ -13176,7 +19548,7 @@ function tokenize(code, options) {
  * @returns {ASTNode} The "Program" AST node.
  * @throws {SyntaxError} If the input code is invalid.
  */
-function parse$3(code, options) {
+function parse(code, options) {
     const Parser = parsers.get(options);
 
     return new Parser(options, code).parse();
@@ -13186,7 +19558,7 @@ function parse$3(code, options) {
 // Public
 //------------------------------------------------------------------------------
 
-const version$1 = version$2;
+const version = version$1;
 
 /* istanbul ignore next */
 const VisitorKeys = (function() {
@@ -13223,6385 +19595,13 @@ const supportedEcmaVersions = getSupportedEcmaVersions();
 var Espree$1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
   tokenize: tokenize,
-  parse: parse$3,
-  version: version$1,
+  parse: parse,
+  version: version,
   VisitorKeys: VisitorKeys,
   Syntax: Syntax,
   latestEcmaVersion: latestEcmaVersion,
   supportedEcmaVersions: supportedEcmaVersions
 });
-
-var global$1 = (typeof global !== "undefined" ? global :
-  typeof self !== "undefined" ? self :
-  typeof window !== "undefined" ? window : {});
-
-// shim for using process in browser
-// based off https://github.com/defunctzombie/node-process/blob/master/browser.js
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-var cachedSetTimeout = defaultSetTimout;
-var cachedClearTimeout = defaultClearTimeout;
-if (typeof global$1.setTimeout === 'function') {
-    cachedSetTimeout = setTimeout;
-}
-if (typeof global$1.clearTimeout === 'function') {
-    cachedClearTimeout = clearTimeout;
-}
-
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue$1 = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue$1 = currentQueue.concat(queue$1);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue$1.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue$1.length;
-    while(len) {
-        currentQueue = queue$1;
-        queue$1 = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue$1.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-function nextTick(fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue$1.push(new Item(fun, args));
-    if (queue$1.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-}
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-var title = 'browser';
-var platform$1 = 'browser';
-var browser = true;
-var env = {};
-var argv = [];
-var version = ''; // empty string to avoid regexp issues
-var versions = {};
-var release = {};
-var config = {};
-
-function noop() {}
-
-var on = noop;
-var addListener = noop;
-var once = noop;
-var off = noop;
-var removeListener = noop;
-var removeAllListeners = noop;
-var emit = noop;
-
-function binding(name) {
-    throw new Error('process.binding is not supported');
-}
-
-function cwd () { return '/' }
-function chdir (dir) {
-    throw new Error('process.chdir is not supported');
-}function umask() { return 0; }
-
-// from https://github.com/kumavis/browser-process-hrtime/blob/master/index.js
-var performance$1 = global$1.performance || {};
-var performanceNow =
-  performance$1.now        ||
-  performance$1.mozNow     ||
-  performance$1.msNow      ||
-  performance$1.oNow       ||
-  performance$1.webkitNow  ||
-  function(){ return (new Date()).getTime() };
-
-// generate timestamp or delta
-// see http://nodejs.org/api/process.html#process_process_hrtime
-function hrtime(previousTimestamp){
-  var clocktime = performanceNow.call(performance$1)*1e-3;
-  var seconds = Math.floor(clocktime);
-  var nanoseconds = Math.floor((clocktime%1)*1e9);
-  if (previousTimestamp) {
-    seconds = seconds - previousTimestamp[0];
-    nanoseconds = nanoseconds - previousTimestamp[1];
-    if (nanoseconds<0) {
-      seconds--;
-      nanoseconds += 1e9;
-    }
-  }
-  return [seconds,nanoseconds]
-}
-
-var startTime = new Date();
-function uptime() {
-  var currentTime = new Date();
-  var dif = currentTime - startTime;
-  return dif / 1000;
-}
-
-var browser$1 = {
-  nextTick: nextTick,
-  title: title,
-  browser: browser,
-  env: env,
-  argv: argv,
-  version: version,
-  versions: versions,
-  on: on,
-  addListener: addListener,
-  once: once,
-  off: off,
-  removeListener: removeListener,
-  removeAllListeners: removeAllListeners,
-  emit: emit,
-  binding: binding,
-  cwd: cwd,
-  chdir: chdir,
-  umask: umask,
-  hrtime: hrtime,
-  platform: platform$1,
-  release: release,
-  config: config,
-  uptime: uptime
-};
-
-var lookup = [];
-var revLookup = [];
-var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array;
-var inited = false;
-function init () {
-  inited = true;
-  var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-  for (var i = 0, len = code.length; i < len; ++i) {
-    lookup[i] = code[i];
-    revLookup[code.charCodeAt(i)] = i;
-  }
-
-  revLookup['-'.charCodeAt(0)] = 62;
-  revLookup['_'.charCodeAt(0)] = 63;
-}
-
-function toByteArray (b64) {
-  if (!inited) {
-    init();
-  }
-  var i, j, l, tmp, placeHolders, arr;
-  var len = b64.length;
-
-  if (len % 4 > 0) {
-    throw new Error('Invalid string. Length must be a multiple of 4')
-  }
-
-  // the number of equal signs (place holders)
-  // if there are two placeholders, than the two characters before it
-  // represent one byte
-  // if there is only one, then the three characters before it represent 2 bytes
-  // this is just a cheap hack to not do indexOf twice
-  placeHolders = b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0;
-
-  // base64 is 4/3 + up to two characters of the original data
-  arr = new Arr(len * 3 / 4 - placeHolders);
-
-  // if there are placeholders, only get up to the last complete 4 chars
-  l = placeHolders > 0 ? len - 4 : len;
-
-  var L = 0;
-
-  for (i = 0, j = 0; i < l; i += 4, j += 3) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 18) | (revLookup[b64.charCodeAt(i + 1)] << 12) | (revLookup[b64.charCodeAt(i + 2)] << 6) | revLookup[b64.charCodeAt(i + 3)];
-    arr[L++] = (tmp >> 16) & 0xFF;
-    arr[L++] = (tmp >> 8) & 0xFF;
-    arr[L++] = tmp & 0xFF;
-  }
-
-  if (placeHolders === 2) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 2) | (revLookup[b64.charCodeAt(i + 1)] >> 4);
-    arr[L++] = tmp & 0xFF;
-  } else if (placeHolders === 1) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 10) | (revLookup[b64.charCodeAt(i + 1)] << 4) | (revLookup[b64.charCodeAt(i + 2)] >> 2);
-    arr[L++] = (tmp >> 8) & 0xFF;
-    arr[L++] = tmp & 0xFF;
-  }
-
-  return arr
-}
-
-function tripletToBase64 (num) {
-  return lookup[num >> 18 & 0x3F] + lookup[num >> 12 & 0x3F] + lookup[num >> 6 & 0x3F] + lookup[num & 0x3F]
-}
-
-function encodeChunk (uint8, start, end) {
-  var tmp;
-  var output = [];
-  for (var i = start; i < end; i += 3) {
-    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2]);
-    output.push(tripletToBase64(tmp));
-  }
-  return output.join('')
-}
-
-function fromByteArray (uint8) {
-  if (!inited) {
-    init();
-  }
-  var tmp;
-  var len = uint8.length;
-  var extraBytes = len % 3; // if we have 1 byte left, pad 2 bytes
-  var output = '';
-  var parts = [];
-  var maxChunkLength = 16383; // must be multiple of 3
-
-  // go through the array every three bytes, we'll deal with trailing stuff later
-  for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
-    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)));
-  }
-
-  // pad the end with zeros, but make sure to not forget the extra bytes
-  if (extraBytes === 1) {
-    tmp = uint8[len - 1];
-    output += lookup[tmp >> 2];
-    output += lookup[(tmp << 4) & 0x3F];
-    output += '==';
-  } else if (extraBytes === 2) {
-    tmp = (uint8[len - 2] << 8) + (uint8[len - 1]);
-    output += lookup[tmp >> 10];
-    output += lookup[(tmp >> 4) & 0x3F];
-    output += lookup[(tmp << 2) & 0x3F];
-    output += '=';
-  }
-
-  parts.push(output);
-
-  return parts.join('')
-}
-
-function read (buffer, offset, isLE, mLen, nBytes) {
-  var e, m;
-  var eLen = nBytes * 8 - mLen - 1;
-  var eMax = (1 << eLen) - 1;
-  var eBias = eMax >> 1;
-  var nBits = -7;
-  var i = isLE ? (nBytes - 1) : 0;
-  var d = isLE ? -1 : 1;
-  var s = buffer[offset + i];
-
-  i += d;
-
-  e = s & ((1 << (-nBits)) - 1);
-  s >>= (-nBits);
-  nBits += eLen;
-  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
-
-  m = e & ((1 << (-nBits)) - 1);
-  e >>= (-nBits);
-  nBits += mLen;
-  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
-
-  if (e === 0) {
-    e = 1 - eBias;
-  } else if (e === eMax) {
-    return m ? NaN : ((s ? -1 : 1) * Infinity)
-  } else {
-    m = m + Math.pow(2, mLen);
-    e = e - eBias;
-  }
-  return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
-}
-
-function write (buffer, value, offset, isLE, mLen, nBytes) {
-  var e, m, c;
-  var eLen = nBytes * 8 - mLen - 1;
-  var eMax = (1 << eLen) - 1;
-  var eBias = eMax >> 1;
-  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0);
-  var i = isLE ? 0 : (nBytes - 1);
-  var d = isLE ? 1 : -1;
-  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0;
-
-  value = Math.abs(value);
-
-  if (isNaN(value) || value === Infinity) {
-    m = isNaN(value) ? 1 : 0;
-    e = eMax;
-  } else {
-    e = Math.floor(Math.log(value) / Math.LN2);
-    if (value * (c = Math.pow(2, -e)) < 1) {
-      e--;
-      c *= 2;
-    }
-    if (e + eBias >= 1) {
-      value += rt / c;
-    } else {
-      value += rt * Math.pow(2, 1 - eBias);
-    }
-    if (value * c >= 2) {
-      e++;
-      c /= 2;
-    }
-
-    if (e + eBias >= eMax) {
-      m = 0;
-      e = eMax;
-    } else if (e + eBias >= 1) {
-      m = (value * c - 1) * Math.pow(2, mLen);
-      e = e + eBias;
-    } else {
-      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen);
-      e = 0;
-    }
-  }
-
-  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
-
-  e = (e << mLen) | m;
-  eLen += mLen;
-  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
-
-  buffer[offset + i - d] |= s * 128;
-}
-
-var toString = {}.toString;
-
-var isArray = Array.isArray || function (arr) {
-  return toString.call(arr) == '[object Array]';
-};
-
-/*!
- * The buffer module from node.js, for the browser.
- *
- * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
- * @license  MIT
- */
-
-var INSPECT_MAX_BYTES = 50;
-
-/**
- * If `Buffer.TYPED_ARRAY_SUPPORT`:
- *   === true    Use Uint8Array implementation (fastest)
- *   === false   Use Object implementation (most compatible, even IE6)
- *
- * Browsers that support typed arrays are IE 10+, Firefox 4+, Chrome 7+, Safari 5.1+,
- * Opera 11.6+, iOS 4.2+.
- *
- * Due to various browser bugs, sometimes the Object implementation will be used even
- * when the browser supports typed arrays.
- *
- * Note:
- *
- *   - Firefox 4-29 lacks support for adding new properties to `Uint8Array` instances,
- *     See: https://bugzilla.mozilla.org/show_bug.cgi?id=695438.
- *
- *   - Chrome 9-10 is missing the `TypedArray.prototype.subarray` function.
- *
- *   - IE10 has a broken `TypedArray.prototype.subarray` function which returns arrays of
- *     incorrect length in some situations.
-
- * We detect these buggy browsers and set `Buffer.TYPED_ARRAY_SUPPORT` to `false` so they
- * get the Object implementation, which is slower but behaves correctly.
- */
-Buffer$1.TYPED_ARRAY_SUPPORT = global$1.TYPED_ARRAY_SUPPORT !== undefined
-  ? global$1.TYPED_ARRAY_SUPPORT
-  : true;
-
-function kMaxLength () {
-  return Buffer$1.TYPED_ARRAY_SUPPORT
-    ? 0x7fffffff
-    : 0x3fffffff
-}
-
-function createBuffer (that, length) {
-  if (kMaxLength() < length) {
-    throw new RangeError('Invalid typed array length')
-  }
-  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
-    // Return an augmented `Uint8Array` instance, for best performance
-    that = new Uint8Array(length);
-    that.__proto__ = Buffer$1.prototype;
-  } else {
-    // Fallback: Return an object instance of the Buffer class
-    if (that === null) {
-      that = new Buffer$1(length);
-    }
-    that.length = length;
-  }
-
-  return that
-}
-
-/**
- * The Buffer constructor returns instances of `Uint8Array` that have their
- * prototype changed to `Buffer.prototype`. Furthermore, `Buffer` is a subclass of
- * `Uint8Array`, so the returned instances will have all the node `Buffer` methods
- * and the `Uint8Array` methods. Square bracket notation works as expected -- it
- * returns a single octet.
- *
- * The `Uint8Array` prototype remains unmodified.
- */
-
-function Buffer$1 (arg, encodingOrOffset, length) {
-  if (!Buffer$1.TYPED_ARRAY_SUPPORT && !(this instanceof Buffer$1)) {
-    return new Buffer$1(arg, encodingOrOffset, length)
-  }
-
-  // Common case.
-  if (typeof arg === 'number') {
-    if (typeof encodingOrOffset === 'string') {
-      throw new Error(
-        'If encoding is specified then the first argument must be a string'
-      )
-    }
-    return allocUnsafe(this, arg)
-  }
-  return from(this, arg, encodingOrOffset, length)
-}
-
-Buffer$1.poolSize = 8192; // not used by this implementation
-
-// TODO: Legacy, not needed anymore. Remove in next major version.
-Buffer$1._augment = function (arr) {
-  arr.__proto__ = Buffer$1.prototype;
-  return arr
-};
-
-function from (that, value, encodingOrOffset, length) {
-  if (typeof value === 'number') {
-    throw new TypeError('"value" argument must not be a number')
-  }
-
-  if (typeof ArrayBuffer !== 'undefined' && value instanceof ArrayBuffer) {
-    return fromArrayBuffer(that, value, encodingOrOffset, length)
-  }
-
-  if (typeof value === 'string') {
-    return fromString(that, value, encodingOrOffset)
-  }
-
-  return fromObject(that, value)
-}
-
-/**
- * Functionally equivalent to Buffer(arg, encoding) but throws a TypeError
- * if value is a number.
- * Buffer.from(str[, encoding])
- * Buffer.from(array)
- * Buffer.from(buffer)
- * Buffer.from(arrayBuffer[, byteOffset[, length]])
- **/
-Buffer$1.from = function (value, encodingOrOffset, length) {
-  return from(null, value, encodingOrOffset, length)
-};
-
-if (Buffer$1.TYPED_ARRAY_SUPPORT) {
-  Buffer$1.prototype.__proto__ = Uint8Array.prototype;
-  Buffer$1.__proto__ = Uint8Array;
-}
-
-function assertSize (size) {
-  if (typeof size !== 'number') {
-    throw new TypeError('"size" argument must be a number')
-  } else if (size < 0) {
-    throw new RangeError('"size" argument must not be negative')
-  }
-}
-
-function alloc (that, size, fill, encoding) {
-  assertSize(size);
-  if (size <= 0) {
-    return createBuffer(that, size)
-  }
-  if (fill !== undefined) {
-    // Only pay attention to encoding if it's a string. This
-    // prevents accidentally sending in a number that would
-    // be interpretted as a start offset.
-    return typeof encoding === 'string'
-      ? createBuffer(that, size).fill(fill, encoding)
-      : createBuffer(that, size).fill(fill)
-  }
-  return createBuffer(that, size)
-}
-
-/**
- * Creates a new filled Buffer instance.
- * alloc(size[, fill[, encoding]])
- **/
-Buffer$1.alloc = function (size, fill, encoding) {
-  return alloc(null, size, fill, encoding)
-};
-
-function allocUnsafe (that, size) {
-  assertSize(size);
-  that = createBuffer(that, size < 0 ? 0 : checked(size) | 0);
-  if (!Buffer$1.TYPED_ARRAY_SUPPORT) {
-    for (var i = 0; i < size; ++i) {
-      that[i] = 0;
-    }
-  }
-  return that
-}
-
-/**
- * Equivalent to Buffer(num), by default creates a non-zero-filled Buffer instance.
- * */
-Buffer$1.allocUnsafe = function (size) {
-  return allocUnsafe(null, size)
-};
-/**
- * Equivalent to SlowBuffer(num), by default creates a non-zero-filled Buffer instance.
- */
-Buffer$1.allocUnsafeSlow = function (size) {
-  return allocUnsafe(null, size)
-};
-
-function fromString (that, string, encoding) {
-  if (typeof encoding !== 'string' || encoding === '') {
-    encoding = 'utf8';
-  }
-
-  if (!Buffer$1.isEncoding(encoding)) {
-    throw new TypeError('"encoding" must be a valid string encoding')
-  }
-
-  var length = byteLength(string, encoding) | 0;
-  that = createBuffer(that, length);
-
-  var actual = that.write(string, encoding);
-
-  if (actual !== length) {
-    // Writing a hex string, for example, that contains invalid characters will
-    // cause everything after the first invalid character to be ignored. (e.g.
-    // 'abxxcd' will be treated as 'ab')
-    that = that.slice(0, actual);
-  }
-
-  return that
-}
-
-function fromArrayLike (that, array) {
-  var length = array.length < 0 ? 0 : checked(array.length) | 0;
-  that = createBuffer(that, length);
-  for (var i = 0; i < length; i += 1) {
-    that[i] = array[i] & 255;
-  }
-  return that
-}
-
-function fromArrayBuffer (that, array, byteOffset, length) {
-  array.byteLength; // this throws if `array` is not a valid ArrayBuffer
-
-  if (byteOffset < 0 || array.byteLength < byteOffset) {
-    throw new RangeError('\'offset\' is out of bounds')
-  }
-
-  if (array.byteLength < byteOffset + (length || 0)) {
-    throw new RangeError('\'length\' is out of bounds')
-  }
-
-  if (byteOffset === undefined && length === undefined) {
-    array = new Uint8Array(array);
-  } else if (length === undefined) {
-    array = new Uint8Array(array, byteOffset);
-  } else {
-    array = new Uint8Array(array, byteOffset, length);
-  }
-
-  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
-    // Return an augmented `Uint8Array` instance, for best performance
-    that = array;
-    that.__proto__ = Buffer$1.prototype;
-  } else {
-    // Fallback: Return an object instance of the Buffer class
-    that = fromArrayLike(that, array);
-  }
-  return that
-}
-
-function fromObject (that, obj) {
-  if (internalIsBuffer(obj)) {
-    var len = checked(obj.length) | 0;
-    that = createBuffer(that, len);
-
-    if (that.length === 0) {
-      return that
-    }
-
-    obj.copy(that, 0, 0, len);
-    return that
-  }
-
-  if (obj) {
-    if ((typeof ArrayBuffer !== 'undefined' &&
-        obj.buffer instanceof ArrayBuffer) || 'length' in obj) {
-      if (typeof obj.length !== 'number' || isnan(obj.length)) {
-        return createBuffer(that, 0)
-      }
-      return fromArrayLike(that, obj)
-    }
-
-    if (obj.type === 'Buffer' && isArray(obj.data)) {
-      return fromArrayLike(that, obj.data)
-    }
-  }
-
-  throw new TypeError('First argument must be a string, Buffer, ArrayBuffer, Array, or array-like object.')
-}
-
-function checked (length) {
-  // Note: cannot use `length < kMaxLength()` here because that fails when
-  // length is NaN (which is otherwise coerced to zero.)
-  if (length >= kMaxLength()) {
-    throw new RangeError('Attempt to allocate Buffer larger than maximum ' +
-                         'size: 0x' + kMaxLength().toString(16) + ' bytes')
-  }
-  return length | 0
-}
-Buffer$1.isBuffer = isBuffer;
-function internalIsBuffer (b) {
-  return !!(b != null && b._isBuffer)
-}
-
-Buffer$1.compare = function compare (a, b) {
-  if (!internalIsBuffer(a) || !internalIsBuffer(b)) {
-    throw new TypeError('Arguments must be Buffers')
-  }
-
-  if (a === b) return 0
-
-  var x = a.length;
-  var y = b.length;
-
-  for (var i = 0, len = Math.min(x, y); i < len; ++i) {
-    if (a[i] !== b[i]) {
-      x = a[i];
-      y = b[i];
-      break
-    }
-  }
-
-  if (x < y) return -1
-  if (y < x) return 1
-  return 0
-};
-
-Buffer$1.isEncoding = function isEncoding (encoding) {
-  switch (String(encoding).toLowerCase()) {
-    case 'hex':
-    case 'utf8':
-    case 'utf-8':
-    case 'ascii':
-    case 'latin1':
-    case 'binary':
-    case 'base64':
-    case 'ucs2':
-    case 'ucs-2':
-    case 'utf16le':
-    case 'utf-16le':
-      return true
-    default:
-      return false
-  }
-};
-
-Buffer$1.concat = function concat (list, length) {
-  if (!isArray(list)) {
-    throw new TypeError('"list" argument must be an Array of Buffers')
-  }
-
-  if (list.length === 0) {
-    return Buffer$1.alloc(0)
-  }
-
-  var i;
-  if (length === undefined) {
-    length = 0;
-    for (i = 0; i < list.length; ++i) {
-      length += list[i].length;
-    }
-  }
-
-  var buffer = Buffer$1.allocUnsafe(length);
-  var pos = 0;
-  for (i = 0; i < list.length; ++i) {
-    var buf = list[i];
-    if (!internalIsBuffer(buf)) {
-      throw new TypeError('"list" argument must be an Array of Buffers')
-    }
-    buf.copy(buffer, pos);
-    pos += buf.length;
-  }
-  return buffer
-};
-
-function byteLength (string, encoding) {
-  if (internalIsBuffer(string)) {
-    return string.length
-  }
-  if (typeof ArrayBuffer !== 'undefined' && typeof ArrayBuffer.isView === 'function' &&
-      (ArrayBuffer.isView(string) || string instanceof ArrayBuffer)) {
-    return string.byteLength
-  }
-  if (typeof string !== 'string') {
-    string = '' + string;
-  }
-
-  var len = string.length;
-  if (len === 0) return 0
-
-  // Use a for loop to avoid recursion
-  var loweredCase = false;
-  for (;;) {
-    switch (encoding) {
-      case 'ascii':
-      case 'latin1':
-      case 'binary':
-        return len
-      case 'utf8':
-      case 'utf-8':
-      case undefined:
-        return utf8ToBytes(string).length
-      case 'ucs2':
-      case 'ucs-2':
-      case 'utf16le':
-      case 'utf-16le':
-        return len * 2
-      case 'hex':
-        return len >>> 1
-      case 'base64':
-        return base64ToBytes(string).length
-      default:
-        if (loweredCase) return utf8ToBytes(string).length // assume utf8
-        encoding = ('' + encoding).toLowerCase();
-        loweredCase = true;
-    }
-  }
-}
-Buffer$1.byteLength = byteLength;
-
-function slowToString (encoding, start, end) {
-  var loweredCase = false;
-
-  // No need to verify that "this.length <= MAX_UINT32" since it's a read-only
-  // property of a typed array.
-
-  // This behaves neither like String nor Uint8Array in that we set start/end
-  // to their upper/lower bounds if the value passed is out of range.
-  // undefined is handled specially as per ECMA-262 6th Edition,
-  // Section 13.3.3.7 Runtime Semantics: KeyedBindingInitialization.
-  if (start === undefined || start < 0) {
-    start = 0;
-  }
-  // Return early if start > this.length. Done here to prevent potential uint32
-  // coercion fail below.
-  if (start > this.length) {
-    return ''
-  }
-
-  if (end === undefined || end > this.length) {
-    end = this.length;
-  }
-
-  if (end <= 0) {
-    return ''
-  }
-
-  // Force coersion to uint32. This will also coerce falsey/NaN values to 0.
-  end >>>= 0;
-  start >>>= 0;
-
-  if (end <= start) {
-    return ''
-  }
-
-  if (!encoding) encoding = 'utf8';
-
-  while (true) {
-    switch (encoding) {
-      case 'hex':
-        return hexSlice(this, start, end)
-
-      case 'utf8':
-      case 'utf-8':
-        return utf8Slice(this, start, end)
-
-      case 'ascii':
-        return asciiSlice(this, start, end)
-
-      case 'latin1':
-      case 'binary':
-        return latin1Slice(this, start, end)
-
-      case 'base64':
-        return base64Slice(this, start, end)
-
-      case 'ucs2':
-      case 'ucs-2':
-      case 'utf16le':
-      case 'utf-16le':
-        return utf16leSlice(this, start, end)
-
-      default:
-        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
-        encoding = (encoding + '').toLowerCase();
-        loweredCase = true;
-    }
-  }
-}
-
-// The property is used by `Buffer.isBuffer` and `is-buffer` (in Safari 5-7) to detect
-// Buffer instances.
-Buffer$1.prototype._isBuffer = true;
-
-function swap (b, n, m) {
-  var i = b[n];
-  b[n] = b[m];
-  b[m] = i;
-}
-
-Buffer$1.prototype.swap16 = function swap16 () {
-  var len = this.length;
-  if (len % 2 !== 0) {
-    throw new RangeError('Buffer size must be a multiple of 16-bits')
-  }
-  for (var i = 0; i < len; i += 2) {
-    swap(this, i, i + 1);
-  }
-  return this
-};
-
-Buffer$1.prototype.swap32 = function swap32 () {
-  var len = this.length;
-  if (len % 4 !== 0) {
-    throw new RangeError('Buffer size must be a multiple of 32-bits')
-  }
-  for (var i = 0; i < len; i += 4) {
-    swap(this, i, i + 3);
-    swap(this, i + 1, i + 2);
-  }
-  return this
-};
-
-Buffer$1.prototype.swap64 = function swap64 () {
-  var len = this.length;
-  if (len % 8 !== 0) {
-    throw new RangeError('Buffer size must be a multiple of 64-bits')
-  }
-  for (var i = 0; i < len; i += 8) {
-    swap(this, i, i + 7);
-    swap(this, i + 1, i + 6);
-    swap(this, i + 2, i + 5);
-    swap(this, i + 3, i + 4);
-  }
-  return this
-};
-
-Buffer$1.prototype.toString = function toString () {
-  var length = this.length | 0;
-  if (length === 0) return ''
-  if (arguments.length === 0) return utf8Slice(this, 0, length)
-  return slowToString.apply(this, arguments)
-};
-
-Buffer$1.prototype.equals = function equals (b) {
-  if (!internalIsBuffer(b)) throw new TypeError('Argument must be a Buffer')
-  if (this === b) return true
-  return Buffer$1.compare(this, b) === 0
-};
-
-Buffer$1.prototype.inspect = function inspect () {
-  var str = '';
-  var max = INSPECT_MAX_BYTES;
-  if (this.length > 0) {
-    str = this.toString('hex', 0, max).match(/.{2}/g).join(' ');
-    if (this.length > max) str += ' ... ';
-  }
-  return '<Buffer ' + str + '>'
-};
-
-Buffer$1.prototype.compare = function compare (target, start, end, thisStart, thisEnd) {
-  if (!internalIsBuffer(target)) {
-    throw new TypeError('Argument must be a Buffer')
-  }
-
-  if (start === undefined) {
-    start = 0;
-  }
-  if (end === undefined) {
-    end = target ? target.length : 0;
-  }
-  if (thisStart === undefined) {
-    thisStart = 0;
-  }
-  if (thisEnd === undefined) {
-    thisEnd = this.length;
-  }
-
-  if (start < 0 || end > target.length || thisStart < 0 || thisEnd > this.length) {
-    throw new RangeError('out of range index')
-  }
-
-  if (thisStart >= thisEnd && start >= end) {
-    return 0
-  }
-  if (thisStart >= thisEnd) {
-    return -1
-  }
-  if (start >= end) {
-    return 1
-  }
-
-  start >>>= 0;
-  end >>>= 0;
-  thisStart >>>= 0;
-  thisEnd >>>= 0;
-
-  if (this === target) return 0
-
-  var x = thisEnd - thisStart;
-  var y = end - start;
-  var len = Math.min(x, y);
-
-  var thisCopy = this.slice(thisStart, thisEnd);
-  var targetCopy = target.slice(start, end);
-
-  for (var i = 0; i < len; ++i) {
-    if (thisCopy[i] !== targetCopy[i]) {
-      x = thisCopy[i];
-      y = targetCopy[i];
-      break
-    }
-  }
-
-  if (x < y) return -1
-  if (y < x) return 1
-  return 0
-};
-
-// Finds either the first index of `val` in `buffer` at offset >= `byteOffset`,
-// OR the last index of `val` in `buffer` at offset <= `byteOffset`.
-//
-// Arguments:
-// - buffer - a Buffer to search
-// - val - a string, Buffer, or number
-// - byteOffset - an index into `buffer`; will be clamped to an int32
-// - encoding - an optional encoding, relevant is val is a string
-// - dir - true for indexOf, false for lastIndexOf
-function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
-  // Empty buffer means no match
-  if (buffer.length === 0) return -1
-
-  // Normalize byteOffset
-  if (typeof byteOffset === 'string') {
-    encoding = byteOffset;
-    byteOffset = 0;
-  } else if (byteOffset > 0x7fffffff) {
-    byteOffset = 0x7fffffff;
-  } else if (byteOffset < -0x80000000) {
-    byteOffset = -0x80000000;
-  }
-  byteOffset = +byteOffset;  // Coerce to Number.
-  if (isNaN(byteOffset)) {
-    // byteOffset: it it's undefined, null, NaN, "foo", etc, search whole buffer
-    byteOffset = dir ? 0 : (buffer.length - 1);
-  }
-
-  // Normalize byteOffset: negative offsets start from the end of the buffer
-  if (byteOffset < 0) byteOffset = buffer.length + byteOffset;
-  if (byteOffset >= buffer.length) {
-    if (dir) return -1
-    else byteOffset = buffer.length - 1;
-  } else if (byteOffset < 0) {
-    if (dir) byteOffset = 0;
-    else return -1
-  }
-
-  // Normalize val
-  if (typeof val === 'string') {
-    val = Buffer$1.from(val, encoding);
-  }
-
-  // Finally, search either indexOf (if dir is true) or lastIndexOf
-  if (internalIsBuffer(val)) {
-    // Special case: looking for empty string/buffer always fails
-    if (val.length === 0) {
-      return -1
-    }
-    return arrayIndexOf(buffer, val, byteOffset, encoding, dir)
-  } else if (typeof val === 'number') {
-    val = val & 0xFF; // Search for a byte value [0-255]
-    if (Buffer$1.TYPED_ARRAY_SUPPORT &&
-        typeof Uint8Array.prototype.indexOf === 'function') {
-      if (dir) {
-        return Uint8Array.prototype.indexOf.call(buffer, val, byteOffset)
-      } else {
-        return Uint8Array.prototype.lastIndexOf.call(buffer, val, byteOffset)
-      }
-    }
-    return arrayIndexOf(buffer, [ val ], byteOffset, encoding, dir)
-  }
-
-  throw new TypeError('val must be string, number or Buffer')
-}
-
-function arrayIndexOf (arr, val, byteOffset, encoding, dir) {
-  var indexSize = 1;
-  var arrLength = arr.length;
-  var valLength = val.length;
-
-  if (encoding !== undefined) {
-    encoding = String(encoding).toLowerCase();
-    if (encoding === 'ucs2' || encoding === 'ucs-2' ||
-        encoding === 'utf16le' || encoding === 'utf-16le') {
-      if (arr.length < 2 || val.length < 2) {
-        return -1
-      }
-      indexSize = 2;
-      arrLength /= 2;
-      valLength /= 2;
-      byteOffset /= 2;
-    }
-  }
-
-  function read (buf, i) {
-    if (indexSize === 1) {
-      return buf[i]
-    } else {
-      return buf.readUInt16BE(i * indexSize)
-    }
-  }
-
-  var i;
-  if (dir) {
-    var foundIndex = -1;
-    for (i = byteOffset; i < arrLength; i++) {
-      if (read(arr, i) === read(val, foundIndex === -1 ? 0 : i - foundIndex)) {
-        if (foundIndex === -1) foundIndex = i;
-        if (i - foundIndex + 1 === valLength) return foundIndex * indexSize
-      } else {
-        if (foundIndex !== -1) i -= i - foundIndex;
-        foundIndex = -1;
-      }
-    }
-  } else {
-    if (byteOffset + valLength > arrLength) byteOffset = arrLength - valLength;
-    for (i = byteOffset; i >= 0; i--) {
-      var found = true;
-      for (var j = 0; j < valLength; j++) {
-        if (read(arr, i + j) !== read(val, j)) {
-          found = false;
-          break
-        }
-      }
-      if (found) return i
-    }
-  }
-
-  return -1
-}
-
-Buffer$1.prototype.includes = function includes (val, byteOffset, encoding) {
-  return this.indexOf(val, byteOffset, encoding) !== -1
-};
-
-Buffer$1.prototype.indexOf = function indexOf (val, byteOffset, encoding) {
-  return bidirectionalIndexOf(this, val, byteOffset, encoding, true)
-};
-
-Buffer$1.prototype.lastIndexOf = function lastIndexOf (val, byteOffset, encoding) {
-  return bidirectionalIndexOf(this, val, byteOffset, encoding, false)
-};
-
-function hexWrite (buf, string, offset, length) {
-  offset = Number(offset) || 0;
-  var remaining = buf.length - offset;
-  if (!length) {
-    length = remaining;
-  } else {
-    length = Number(length);
-    if (length > remaining) {
-      length = remaining;
-    }
-  }
-
-  // must be an even number of digits
-  var strLen = string.length;
-  if (strLen % 2 !== 0) throw new TypeError('Invalid hex string')
-
-  if (length > strLen / 2) {
-    length = strLen / 2;
-  }
-  for (var i = 0; i < length; ++i) {
-    var parsed = parseInt(string.substr(i * 2, 2), 16);
-    if (isNaN(parsed)) return i
-    buf[offset + i] = parsed;
-  }
-  return i
-}
-
-function utf8Write (buf, string, offset, length) {
-  return blitBuffer(utf8ToBytes(string, buf.length - offset), buf, offset, length)
-}
-
-function asciiWrite (buf, string, offset, length) {
-  return blitBuffer(asciiToBytes(string), buf, offset, length)
-}
-
-function latin1Write (buf, string, offset, length) {
-  return asciiWrite(buf, string, offset, length)
-}
-
-function base64Write (buf, string, offset, length) {
-  return blitBuffer(base64ToBytes(string), buf, offset, length)
-}
-
-function ucs2Write (buf, string, offset, length) {
-  return blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length)
-}
-
-Buffer$1.prototype.write = function write (string, offset, length, encoding) {
-  // Buffer#write(string)
-  if (offset === undefined) {
-    encoding = 'utf8';
-    length = this.length;
-    offset = 0;
-  // Buffer#write(string, encoding)
-  } else if (length === undefined && typeof offset === 'string') {
-    encoding = offset;
-    length = this.length;
-    offset = 0;
-  // Buffer#write(string, offset[, length][, encoding])
-  } else if (isFinite(offset)) {
-    offset = offset | 0;
-    if (isFinite(length)) {
-      length = length | 0;
-      if (encoding === undefined) encoding = 'utf8';
-    } else {
-      encoding = length;
-      length = undefined;
-    }
-  // legacy write(string, encoding, offset, length) - remove in v0.13
-  } else {
-    throw new Error(
-      'Buffer.write(string, encoding, offset[, length]) is no longer supported'
-    )
-  }
-
-  var remaining = this.length - offset;
-  if (length === undefined || length > remaining) length = remaining;
-
-  if ((string.length > 0 && (length < 0 || offset < 0)) || offset > this.length) {
-    throw new RangeError('Attempt to write outside buffer bounds')
-  }
-
-  if (!encoding) encoding = 'utf8';
-
-  var loweredCase = false;
-  for (;;) {
-    switch (encoding) {
-      case 'hex':
-        return hexWrite(this, string, offset, length)
-
-      case 'utf8':
-      case 'utf-8':
-        return utf8Write(this, string, offset, length)
-
-      case 'ascii':
-        return asciiWrite(this, string, offset, length)
-
-      case 'latin1':
-      case 'binary':
-        return latin1Write(this, string, offset, length)
-
-      case 'base64':
-        // Warning: maxLength not taken into account in base64Write
-        return base64Write(this, string, offset, length)
-
-      case 'ucs2':
-      case 'ucs-2':
-      case 'utf16le':
-      case 'utf-16le':
-        return ucs2Write(this, string, offset, length)
-
-      default:
-        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
-        encoding = ('' + encoding).toLowerCase();
-        loweredCase = true;
-    }
-  }
-};
-
-Buffer$1.prototype.toJSON = function toJSON () {
-  return {
-    type: 'Buffer',
-    data: Array.prototype.slice.call(this._arr || this, 0)
-  }
-};
-
-function base64Slice (buf, start, end) {
-  if (start === 0 && end === buf.length) {
-    return fromByteArray(buf)
-  } else {
-    return fromByteArray(buf.slice(start, end))
-  }
-}
-
-function utf8Slice (buf, start, end) {
-  end = Math.min(buf.length, end);
-  var res = [];
-
-  var i = start;
-  while (i < end) {
-    var firstByte = buf[i];
-    var codePoint = null;
-    var bytesPerSequence = (firstByte > 0xEF) ? 4
-      : (firstByte > 0xDF) ? 3
-      : (firstByte > 0xBF) ? 2
-      : 1;
-
-    if (i + bytesPerSequence <= end) {
-      var secondByte, thirdByte, fourthByte, tempCodePoint;
-
-      switch (bytesPerSequence) {
-        case 1:
-          if (firstByte < 0x80) {
-            codePoint = firstByte;
-          }
-          break
-        case 2:
-          secondByte = buf[i + 1];
-          if ((secondByte & 0xC0) === 0x80) {
-            tempCodePoint = (firstByte & 0x1F) << 0x6 | (secondByte & 0x3F);
-            if (tempCodePoint > 0x7F) {
-              codePoint = tempCodePoint;
-            }
-          }
-          break
-        case 3:
-          secondByte = buf[i + 1];
-          thirdByte = buf[i + 2];
-          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80) {
-            tempCodePoint = (firstByte & 0xF) << 0xC | (secondByte & 0x3F) << 0x6 | (thirdByte & 0x3F);
-            if (tempCodePoint > 0x7FF && (tempCodePoint < 0xD800 || tempCodePoint > 0xDFFF)) {
-              codePoint = tempCodePoint;
-            }
-          }
-          break
-        case 4:
-          secondByte = buf[i + 1];
-          thirdByte = buf[i + 2];
-          fourthByte = buf[i + 3];
-          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80 && (fourthByte & 0xC0) === 0x80) {
-            tempCodePoint = (firstByte & 0xF) << 0x12 | (secondByte & 0x3F) << 0xC | (thirdByte & 0x3F) << 0x6 | (fourthByte & 0x3F);
-            if (tempCodePoint > 0xFFFF && tempCodePoint < 0x110000) {
-              codePoint = tempCodePoint;
-            }
-          }
-      }
-    }
-
-    if (codePoint === null) {
-      // we did not generate a valid codePoint so insert a
-      // replacement char (U+FFFD) and advance only 1 byte
-      codePoint = 0xFFFD;
-      bytesPerSequence = 1;
-    } else if (codePoint > 0xFFFF) {
-      // encode to utf16 (surrogate pair dance)
-      codePoint -= 0x10000;
-      res.push(codePoint >>> 10 & 0x3FF | 0xD800);
-      codePoint = 0xDC00 | codePoint & 0x3FF;
-    }
-
-    res.push(codePoint);
-    i += bytesPerSequence;
-  }
-
-  return decodeCodePointsArray(res)
-}
-
-// Based on http://stackoverflow.com/a/22747272/680742, the browser with
-// the lowest limit is Chrome, with 0x10000 args.
-// We go 1 magnitude less, for safety
-var MAX_ARGUMENTS_LENGTH = 0x1000;
-
-function decodeCodePointsArray (codePoints) {
-  var len = codePoints.length;
-  if (len <= MAX_ARGUMENTS_LENGTH) {
-    return String.fromCharCode.apply(String, codePoints) // avoid extra slice()
-  }
-
-  // Decode in chunks to avoid "call stack size exceeded".
-  var res = '';
-  var i = 0;
-  while (i < len) {
-    res += String.fromCharCode.apply(
-      String,
-      codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
-    );
-  }
-  return res
-}
-
-function asciiSlice (buf, start, end) {
-  var ret = '';
-  end = Math.min(buf.length, end);
-
-  for (var i = start; i < end; ++i) {
-    ret += String.fromCharCode(buf[i] & 0x7F);
-  }
-  return ret
-}
-
-function latin1Slice (buf, start, end) {
-  var ret = '';
-  end = Math.min(buf.length, end);
-
-  for (var i = start; i < end; ++i) {
-    ret += String.fromCharCode(buf[i]);
-  }
-  return ret
-}
-
-function hexSlice (buf, start, end) {
-  var len = buf.length;
-
-  if (!start || start < 0) start = 0;
-  if (!end || end < 0 || end > len) end = len;
-
-  var out = '';
-  for (var i = start; i < end; ++i) {
-    out += toHex(buf[i]);
-  }
-  return out
-}
-
-function utf16leSlice (buf, start, end) {
-  var bytes = buf.slice(start, end);
-  var res = '';
-  for (var i = 0; i < bytes.length; i += 2) {
-    res += String.fromCharCode(bytes[i] + bytes[i + 1] * 256);
-  }
-  return res
-}
-
-Buffer$1.prototype.slice = function slice (start, end) {
-  var len = this.length;
-  start = ~~start;
-  end = end === undefined ? len : ~~end;
-
-  if (start < 0) {
-    start += len;
-    if (start < 0) start = 0;
-  } else if (start > len) {
-    start = len;
-  }
-
-  if (end < 0) {
-    end += len;
-    if (end < 0) end = 0;
-  } else if (end > len) {
-    end = len;
-  }
-
-  if (end < start) end = start;
-
-  var newBuf;
-  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
-    newBuf = this.subarray(start, end);
-    newBuf.__proto__ = Buffer$1.prototype;
-  } else {
-    var sliceLen = end - start;
-    newBuf = new Buffer$1(sliceLen, undefined);
-    for (var i = 0; i < sliceLen; ++i) {
-      newBuf[i] = this[i + start];
-    }
-  }
-
-  return newBuf
-};
-
-/*
- * Need to make sure that buffer isn't trying to write out of bounds.
- */
-function checkOffset (offset, ext, length) {
-  if ((offset % 1) !== 0 || offset < 0) throw new RangeError('offset is not uint')
-  if (offset + ext > length) throw new RangeError('Trying to access beyond buffer length')
-}
-
-Buffer$1.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert) {
-  offset = offset | 0;
-  byteLength = byteLength | 0;
-  if (!noAssert) checkOffset(offset, byteLength, this.length);
-
-  var val = this[offset];
-  var mul = 1;
-  var i = 0;
-  while (++i < byteLength && (mul *= 0x100)) {
-    val += this[offset + i] * mul;
-  }
-
-  return val
-};
-
-Buffer$1.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAssert) {
-  offset = offset | 0;
-  byteLength = byteLength | 0;
-  if (!noAssert) {
-    checkOffset(offset, byteLength, this.length);
-  }
-
-  var val = this[offset + --byteLength];
-  var mul = 1;
-  while (byteLength > 0 && (mul *= 0x100)) {
-    val += this[offset + --byteLength] * mul;
-  }
-
-  return val
-};
-
-Buffer$1.prototype.readUInt8 = function readUInt8 (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 1, this.length);
-  return this[offset]
-};
-
-Buffer$1.prototype.readUInt16LE = function readUInt16LE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 2, this.length);
-  return this[offset] | (this[offset + 1] << 8)
-};
-
-Buffer$1.prototype.readUInt16BE = function readUInt16BE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 2, this.length);
-  return (this[offset] << 8) | this[offset + 1]
-};
-
-Buffer$1.prototype.readUInt32LE = function readUInt32LE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length);
-
-  return ((this[offset]) |
-      (this[offset + 1] << 8) |
-      (this[offset + 2] << 16)) +
-      (this[offset + 3] * 0x1000000)
-};
-
-Buffer$1.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length);
-
-  return (this[offset] * 0x1000000) +
-    ((this[offset + 1] << 16) |
-    (this[offset + 2] << 8) |
-    this[offset + 3])
-};
-
-Buffer$1.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
-  offset = offset | 0;
-  byteLength = byteLength | 0;
-  if (!noAssert) checkOffset(offset, byteLength, this.length);
-
-  var val = this[offset];
-  var mul = 1;
-  var i = 0;
-  while (++i < byteLength && (mul *= 0x100)) {
-    val += this[offset + i] * mul;
-  }
-  mul *= 0x80;
-
-  if (val >= mul) val -= Math.pow(2, 8 * byteLength);
-
-  return val
-};
-
-Buffer$1.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
-  offset = offset | 0;
-  byteLength = byteLength | 0;
-  if (!noAssert) checkOffset(offset, byteLength, this.length);
-
-  var i = byteLength;
-  var mul = 1;
-  var val = this[offset + --i];
-  while (i > 0 && (mul *= 0x100)) {
-    val += this[offset + --i] * mul;
-  }
-  mul *= 0x80;
-
-  if (val >= mul) val -= Math.pow(2, 8 * byteLength);
-
-  return val
-};
-
-Buffer$1.prototype.readInt8 = function readInt8 (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 1, this.length);
-  if (!(this[offset] & 0x80)) return (this[offset])
-  return ((0xff - this[offset] + 1) * -1)
-};
-
-Buffer$1.prototype.readInt16LE = function readInt16LE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 2, this.length);
-  var val = this[offset] | (this[offset + 1] << 8);
-  return (val & 0x8000) ? val | 0xFFFF0000 : val
-};
-
-Buffer$1.prototype.readInt16BE = function readInt16BE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 2, this.length);
-  var val = this[offset + 1] | (this[offset] << 8);
-  return (val & 0x8000) ? val | 0xFFFF0000 : val
-};
-
-Buffer$1.prototype.readInt32LE = function readInt32LE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length);
-
-  return (this[offset]) |
-    (this[offset + 1] << 8) |
-    (this[offset + 2] << 16) |
-    (this[offset + 3] << 24)
-};
-
-Buffer$1.prototype.readInt32BE = function readInt32BE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length);
-
-  return (this[offset] << 24) |
-    (this[offset + 1] << 16) |
-    (this[offset + 2] << 8) |
-    (this[offset + 3])
-};
-
-Buffer$1.prototype.readFloatLE = function readFloatLE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length);
-  return read(this, offset, true, 23, 4)
-};
-
-Buffer$1.prototype.readFloatBE = function readFloatBE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length);
-  return read(this, offset, false, 23, 4)
-};
-
-Buffer$1.prototype.readDoubleLE = function readDoubleLE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 8, this.length);
-  return read(this, offset, true, 52, 8)
-};
-
-Buffer$1.prototype.readDoubleBE = function readDoubleBE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 8, this.length);
-  return read(this, offset, false, 52, 8)
-};
-
-function checkInt (buf, value, offset, ext, max, min) {
-  if (!internalIsBuffer(buf)) throw new TypeError('"buffer" argument must be a Buffer instance')
-  if (value > max || value < min) throw new RangeError('"value" argument is out of bounds')
-  if (offset + ext > buf.length) throw new RangeError('Index out of range')
-}
-
-Buffer$1.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, noAssert) {
-  value = +value;
-  offset = offset | 0;
-  byteLength = byteLength | 0;
-  if (!noAssert) {
-    var maxBytes = Math.pow(2, 8 * byteLength) - 1;
-    checkInt(this, value, offset, byteLength, maxBytes, 0);
-  }
-
-  var mul = 1;
-  var i = 0;
-  this[offset] = value & 0xFF;
-  while (++i < byteLength && (mul *= 0x100)) {
-    this[offset + i] = (value / mul) & 0xFF;
-  }
-
-  return offset + byteLength
-};
-
-Buffer$1.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, noAssert) {
-  value = +value;
-  offset = offset | 0;
-  byteLength = byteLength | 0;
-  if (!noAssert) {
-    var maxBytes = Math.pow(2, 8 * byteLength) - 1;
-    checkInt(this, value, offset, byteLength, maxBytes, 0);
-  }
-
-  var i = byteLength - 1;
-  var mul = 1;
-  this[offset + i] = value & 0xFF;
-  while (--i >= 0 && (mul *= 0x100)) {
-    this[offset + i] = (value / mul) & 0xFF;
-  }
-
-  return offset + byteLength
-};
-
-Buffer$1.prototype.writeUInt8 = function writeUInt8 (value, offset, noAssert) {
-  value = +value;
-  offset = offset | 0;
-  if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0);
-  if (!Buffer$1.TYPED_ARRAY_SUPPORT) value = Math.floor(value);
-  this[offset] = (value & 0xff);
-  return offset + 1
-};
-
-function objectWriteUInt16 (buf, value, offset, littleEndian) {
-  if (value < 0) value = 0xffff + value + 1;
-  for (var i = 0, j = Math.min(buf.length - offset, 2); i < j; ++i) {
-    buf[offset + i] = (value & (0xff << (8 * (littleEndian ? i : 1 - i)))) >>>
-      (littleEndian ? i : 1 - i) * 8;
-  }
-}
-
-Buffer$1.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAssert) {
-  value = +value;
-  offset = offset | 0;
-  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
-  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value & 0xff);
-    this[offset + 1] = (value >>> 8);
-  } else {
-    objectWriteUInt16(this, value, offset, true);
-  }
-  return offset + 2
-};
-
-Buffer$1.prototype.writeUInt16BE = function writeUInt16BE (value, offset, noAssert) {
-  value = +value;
-  offset = offset | 0;
-  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0);
-  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value >>> 8);
-    this[offset + 1] = (value & 0xff);
-  } else {
-    objectWriteUInt16(this, value, offset, false);
-  }
-  return offset + 2
-};
-
-function objectWriteUInt32 (buf, value, offset, littleEndian) {
-  if (value < 0) value = 0xffffffff + value + 1;
-  for (var i = 0, j = Math.min(buf.length - offset, 4); i < j; ++i) {
-    buf[offset + i] = (value >>> (littleEndian ? i : 3 - i) * 8) & 0xff;
-  }
-}
-
-Buffer$1.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert) {
-  value = +value;
-  offset = offset | 0;
-  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
-  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
-    this[offset + 3] = (value >>> 24);
-    this[offset + 2] = (value >>> 16);
-    this[offset + 1] = (value >>> 8);
-    this[offset] = (value & 0xff);
-  } else {
-    objectWriteUInt32(this, value, offset, true);
-  }
-  return offset + 4
-};
-
-Buffer$1.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert) {
-  value = +value;
-  offset = offset | 0;
-  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0);
-  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value >>> 24);
-    this[offset + 1] = (value >>> 16);
-    this[offset + 2] = (value >>> 8);
-    this[offset + 3] = (value & 0xff);
-  } else {
-    objectWriteUInt32(this, value, offset, false);
-  }
-  return offset + 4
-};
-
-Buffer$1.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, noAssert) {
-  value = +value;
-  offset = offset | 0;
-  if (!noAssert) {
-    var limit = Math.pow(2, 8 * byteLength - 1);
-
-    checkInt(this, value, offset, byteLength, limit - 1, -limit);
-  }
-
-  var i = 0;
-  var mul = 1;
-  var sub = 0;
-  this[offset] = value & 0xFF;
-  while (++i < byteLength && (mul *= 0x100)) {
-    if (value < 0 && sub === 0 && this[offset + i - 1] !== 0) {
-      sub = 1;
-    }
-    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF;
-  }
-
-  return offset + byteLength
-};
-
-Buffer$1.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, noAssert) {
-  value = +value;
-  offset = offset | 0;
-  if (!noAssert) {
-    var limit = Math.pow(2, 8 * byteLength - 1);
-
-    checkInt(this, value, offset, byteLength, limit - 1, -limit);
-  }
-
-  var i = byteLength - 1;
-  var mul = 1;
-  var sub = 0;
-  this[offset + i] = value & 0xFF;
-  while (--i >= 0 && (mul *= 0x100)) {
-    if (value < 0 && sub === 0 && this[offset + i + 1] !== 0) {
-      sub = 1;
-    }
-    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF;
-  }
-
-  return offset + byteLength
-};
-
-Buffer$1.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
-  value = +value;
-  offset = offset | 0;
-  if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80);
-  if (!Buffer$1.TYPED_ARRAY_SUPPORT) value = Math.floor(value);
-  if (value < 0) value = 0xff + value + 1;
-  this[offset] = (value & 0xff);
-  return offset + 1
-};
-
-Buffer$1.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) {
-  value = +value;
-  offset = offset | 0;
-  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000);
-  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value & 0xff);
-    this[offset + 1] = (value >>> 8);
-  } else {
-    objectWriteUInt16(this, value, offset, true);
-  }
-  return offset + 2
-};
-
-Buffer$1.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) {
-  value = +value;
-  offset = offset | 0;
-  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000);
-  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value >>> 8);
-    this[offset + 1] = (value & 0xff);
-  } else {
-    objectWriteUInt16(this, value, offset, false);
-  }
-  return offset + 2
-};
-
-Buffer$1.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
-  value = +value;
-  offset = offset | 0;
-  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
-  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value & 0xff);
-    this[offset + 1] = (value >>> 8);
-    this[offset + 2] = (value >>> 16);
-    this[offset + 3] = (value >>> 24);
-  } else {
-    objectWriteUInt32(this, value, offset, true);
-  }
-  return offset + 4
-};
-
-Buffer$1.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
-  value = +value;
-  offset = offset | 0;
-  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000);
-  if (value < 0) value = 0xffffffff + value + 1;
-  if (Buffer$1.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value >>> 24);
-    this[offset + 1] = (value >>> 16);
-    this[offset + 2] = (value >>> 8);
-    this[offset + 3] = (value & 0xff);
-  } else {
-    objectWriteUInt32(this, value, offset, false);
-  }
-  return offset + 4
-};
-
-function checkIEEE754 (buf, value, offset, ext, max, min) {
-  if (offset + ext > buf.length) throw new RangeError('Index out of range')
-  if (offset < 0) throw new RangeError('Index out of range')
-}
-
-function writeFloat (buf, value, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    checkIEEE754(buf, value, offset, 4);
-  }
-  write(buf, value, offset, littleEndian, 23, 4);
-  return offset + 4
-}
-
-Buffer$1.prototype.writeFloatLE = function writeFloatLE (value, offset, noAssert) {
-  return writeFloat(this, value, offset, true, noAssert)
-};
-
-Buffer$1.prototype.writeFloatBE = function writeFloatBE (value, offset, noAssert) {
-  return writeFloat(this, value, offset, false, noAssert)
-};
-
-function writeDouble (buf, value, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    checkIEEE754(buf, value, offset, 8);
-  }
-  write(buf, value, offset, littleEndian, 52, 8);
-  return offset + 8
-}
-
-Buffer$1.prototype.writeDoubleLE = function writeDoubleLE (value, offset, noAssert) {
-  return writeDouble(this, value, offset, true, noAssert)
-};
-
-Buffer$1.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert) {
-  return writeDouble(this, value, offset, false, noAssert)
-};
-
-// copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
-Buffer$1.prototype.copy = function copy (target, targetStart, start, end) {
-  if (!start) start = 0;
-  if (!end && end !== 0) end = this.length;
-  if (targetStart >= target.length) targetStart = target.length;
-  if (!targetStart) targetStart = 0;
-  if (end > 0 && end < start) end = start;
-
-  // Copy 0 bytes; we're done
-  if (end === start) return 0
-  if (target.length === 0 || this.length === 0) return 0
-
-  // Fatal error conditions
-  if (targetStart < 0) {
-    throw new RangeError('targetStart out of bounds')
-  }
-  if (start < 0 || start >= this.length) throw new RangeError('sourceStart out of bounds')
-  if (end < 0) throw new RangeError('sourceEnd out of bounds')
-
-  // Are we oob?
-  if (end > this.length) end = this.length;
-  if (target.length - targetStart < end - start) {
-    end = target.length - targetStart + start;
-  }
-
-  var len = end - start;
-  var i;
-
-  if (this === target && start < targetStart && targetStart < end) {
-    // descending copy from end
-    for (i = len - 1; i >= 0; --i) {
-      target[i + targetStart] = this[i + start];
-    }
-  } else if (len < 1000 || !Buffer$1.TYPED_ARRAY_SUPPORT) {
-    // ascending copy from start
-    for (i = 0; i < len; ++i) {
-      target[i + targetStart] = this[i + start];
-    }
-  } else {
-    Uint8Array.prototype.set.call(
-      target,
-      this.subarray(start, start + len),
-      targetStart
-    );
-  }
-
-  return len
-};
-
-// Usage:
-//    buffer.fill(number[, offset[, end]])
-//    buffer.fill(buffer[, offset[, end]])
-//    buffer.fill(string[, offset[, end]][, encoding])
-Buffer$1.prototype.fill = function fill (val, start, end, encoding) {
-  // Handle string cases:
-  if (typeof val === 'string') {
-    if (typeof start === 'string') {
-      encoding = start;
-      start = 0;
-      end = this.length;
-    } else if (typeof end === 'string') {
-      encoding = end;
-      end = this.length;
-    }
-    if (val.length === 1) {
-      var code = val.charCodeAt(0);
-      if (code < 256) {
-        val = code;
-      }
-    }
-    if (encoding !== undefined && typeof encoding !== 'string') {
-      throw new TypeError('encoding must be a string')
-    }
-    if (typeof encoding === 'string' && !Buffer$1.isEncoding(encoding)) {
-      throw new TypeError('Unknown encoding: ' + encoding)
-    }
-  } else if (typeof val === 'number') {
-    val = val & 255;
-  }
-
-  // Invalid ranges are not set to a default, so can range check early.
-  if (start < 0 || this.length < start || this.length < end) {
-    throw new RangeError('Out of range index')
-  }
-
-  if (end <= start) {
-    return this
-  }
-
-  start = start >>> 0;
-  end = end === undefined ? this.length : end >>> 0;
-
-  if (!val) val = 0;
-
-  var i;
-  if (typeof val === 'number') {
-    for (i = start; i < end; ++i) {
-      this[i] = val;
-    }
-  } else {
-    var bytes = internalIsBuffer(val)
-      ? val
-      : utf8ToBytes(new Buffer$1(val, encoding).toString());
-    var len = bytes.length;
-    for (i = 0; i < end - start; ++i) {
-      this[i + start] = bytes[i % len];
-    }
-  }
-
-  return this
-};
-
-// HELPER FUNCTIONS
-// ================
-
-var INVALID_BASE64_RE = /[^+\/0-9A-Za-z-_]/g;
-
-function base64clean (str) {
-  // Node strips out invalid characters like \n and \t from the string, base64-js does not
-  str = stringtrim(str).replace(INVALID_BASE64_RE, '');
-  // Node converts strings with length < 2 to ''
-  if (str.length < 2) return ''
-  // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
-  while (str.length % 4 !== 0) {
-    str = str + '=';
-  }
-  return str
-}
-
-function stringtrim (str) {
-  if (str.trim) return str.trim()
-  return str.replace(/^\s+|\s+$/g, '')
-}
-
-function toHex (n) {
-  if (n < 16) return '0' + n.toString(16)
-  return n.toString(16)
-}
-
-function utf8ToBytes (string, units) {
-  units = units || Infinity;
-  var codePoint;
-  var length = string.length;
-  var leadSurrogate = null;
-  var bytes = [];
-
-  for (var i = 0; i < length; ++i) {
-    codePoint = string.charCodeAt(i);
-
-    // is surrogate component
-    if (codePoint > 0xD7FF && codePoint < 0xE000) {
-      // last char was a lead
-      if (!leadSurrogate) {
-        // no lead yet
-        if (codePoint > 0xDBFF) {
-          // unexpected trail
-          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
-          continue
-        } else if (i + 1 === length) {
-          // unpaired lead
-          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
-          continue
-        }
-
-        // valid lead
-        leadSurrogate = codePoint;
-
-        continue
-      }
-
-      // 2 leads in a row
-      if (codePoint < 0xDC00) {
-        if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
-        leadSurrogate = codePoint;
-        continue
-      }
-
-      // valid surrogate pair
-      codePoint = (leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00) + 0x10000;
-    } else if (leadSurrogate) {
-      // valid bmp char, but last char was a lead
-      if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD);
-    }
-
-    leadSurrogate = null;
-
-    // encode utf8
-    if (codePoint < 0x80) {
-      if ((units -= 1) < 0) break
-      bytes.push(codePoint);
-    } else if (codePoint < 0x800) {
-      if ((units -= 2) < 0) break
-      bytes.push(
-        codePoint >> 0x6 | 0xC0,
-        codePoint & 0x3F | 0x80
-      );
-    } else if (codePoint < 0x10000) {
-      if ((units -= 3) < 0) break
-      bytes.push(
-        codePoint >> 0xC | 0xE0,
-        codePoint >> 0x6 & 0x3F | 0x80,
-        codePoint & 0x3F | 0x80
-      );
-    } else if (codePoint < 0x110000) {
-      if ((units -= 4) < 0) break
-      bytes.push(
-        codePoint >> 0x12 | 0xF0,
-        codePoint >> 0xC & 0x3F | 0x80,
-        codePoint >> 0x6 & 0x3F | 0x80,
-        codePoint & 0x3F | 0x80
-      );
-    } else {
-      throw new Error('Invalid code point')
-    }
-  }
-
-  return bytes
-}
-
-function asciiToBytes (str) {
-  var byteArray = [];
-  for (var i = 0; i < str.length; ++i) {
-    // Node's code seems to be doing this and not & 0x7F..
-    byteArray.push(str.charCodeAt(i) & 0xFF);
-  }
-  return byteArray
-}
-
-function utf16leToBytes (str, units) {
-  var c, hi, lo;
-  var byteArray = [];
-  for (var i = 0; i < str.length; ++i) {
-    if ((units -= 2) < 0) break
-
-    c = str.charCodeAt(i);
-    hi = c >> 8;
-    lo = c % 256;
-    byteArray.push(lo);
-    byteArray.push(hi);
-  }
-
-  return byteArray
-}
-
-
-function base64ToBytes (str) {
-  return toByteArray(base64clean(str))
-}
-
-function blitBuffer (src, dst, offset, length) {
-  for (var i = 0; i < length; ++i) {
-    if ((i + offset >= dst.length) || (i >= src.length)) break
-    dst[i + offset] = src[i];
-  }
-  return i
-}
-
-function isnan (val) {
-  return val !== val // eslint-disable-line no-self-compare
-}
-
-
-// the following is from is-buffer, also by Feross Aboukhadijeh and with same lisence
-// The _isBuffer check is for Safari 5-7 support, because it's missing
-// Object.prototype.constructor. Remove this eventually
-function isBuffer(obj) {
-  return obj != null && (!!obj._isBuffer || isFastBuffer(obj) || isSlowBuffer(obj))
-}
-
-function isFastBuffer (obj) {
-  return !!obj.constructor && typeof obj.constructor.isBuffer === 'function' && obj.constructor.isBuffer(obj)
-}
-
-// For Node v0.10 support. Remove this eventually.
-function isSlowBuffer (obj) {
-  return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isFastBuffer(obj.slice(0, 0))
-}
-
-var constants = {
-  BINARY_TYPES: ['nodebuffer', 'arraybuffer', 'fragments'],
-  EMPTY_BUFFER: Buffer$1.alloc(0),
-  GUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11',
-  kForOnEventAttribute: Symbol('kIsForOnEventAttribute'),
-  kListener: Symbol('kListener'),
-  kStatusCode: Symbol('status-code'),
-  kWebSocket: Symbol('websocket'),
-  NOOP: () => {}
-};
-
-var bufferUtil = createCommonjsModule(function (module) {
-
-const { EMPTY_BUFFER } = constants;
-
-/**
- * Merges an array of buffers into a new buffer.
- *
- * @param {Buffer[]} list The array of buffers to concat
- * @param {Number} totalLength The total length of buffers in the list
- * @return {Buffer} The resulting buffer
- * @public
- */
-function concat(list, totalLength) {
-  if (list.length === 0) return EMPTY_BUFFER;
-  if (list.length === 1) return list[0];
-
-  const target = Buffer$1.allocUnsafe(totalLength);
-  let offset = 0;
-
-  for (let i = 0; i < list.length; i++) {
-    const buf = list[i];
-    target.set(buf, offset);
-    offset += buf.length;
-  }
-
-  if (offset < totalLength) return target.slice(0, offset);
-
-  return target;
-}
-
-/**
- * Masks a buffer using the given mask.
- *
- * @param {Buffer} source The buffer to mask
- * @param {Buffer} mask The mask to use
- * @param {Buffer} output The buffer where to store the result
- * @param {Number} offset The offset at which to start writing
- * @param {Number} length The number of bytes to mask.
- * @public
- */
-function _mask(source, mask, output, offset, length) {
-  for (let i = 0; i < length; i++) {
-    output[offset + i] = source[i] ^ mask[i & 3];
-  }
-}
-
-/**
- * Unmasks a buffer using the given mask.
- *
- * @param {Buffer} buffer The buffer to unmask
- * @param {Buffer} mask The mask to use
- * @public
- */
-function _unmask(buffer, mask) {
-  for (let i = 0; i < buffer.length; i++) {
-    buffer[i] ^= mask[i & 3];
-  }
-}
-
-/**
- * Converts a buffer to an `ArrayBuffer`.
- *
- * @param {Buffer} buf The buffer to convert
- * @return {ArrayBuffer} Converted buffer
- * @public
- */
-function toArrayBuffer(buf) {
-  if (buf.byteLength === buf.buffer.byteLength) {
-    return buf.buffer;
-  }
-
-  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
-}
-
-/**
- * Converts `data` to a `Buffer`.
- *
- * @param {*} data The data to convert
- * @return {Buffer} The buffer
- * @throws {TypeError}
- * @public
- */
-function toBuffer(data) {
-  toBuffer.readOnly = true;
-
-  if (Buffer$1.isBuffer(data)) return data;
-
-  let buf;
-
-  if (data instanceof ArrayBuffer) {
-    buf = Buffer$1.from(data);
-  } else if (ArrayBuffer.isView(data)) {
-    buf = Buffer$1.from(data.buffer, data.byteOffset, data.byteLength);
-  } else {
-    buf = Buffer$1.from(data);
-    toBuffer.readOnly = false;
-  }
-
-  return buf;
-}
-
-try {
-  const bufferUtil = require('bufferutil');
-
-  module.exports = {
-    concat,
-    mask(source, mask, output, offset, length) {
-      if (length < 48) _mask(source, mask, output, offset, length);
-      else bufferUtil.mask(source, mask, output, offset, length);
-    },
-    toArrayBuffer,
-    toBuffer,
-    unmask(buffer, mask) {
-      if (buffer.length < 32) _unmask(buffer, mask);
-      else bufferUtil.unmask(buffer, mask);
-    }
-  };
-} catch (e) /* istanbul ignore next */ {
-  module.exports = {
-    concat,
-    mask: _mask,
-    toArrayBuffer,
-    toBuffer,
-    unmask: _unmask
-  };
-}
-});
-
-const kDone = Symbol('kDone');
-const kRun = Symbol('kRun');
-
-/**
- * A very simple job queue with adjustable concurrency. Adapted from
- * https://github.com/STRML/async-limiter
- */
-class Limiter {
-  /**
-   * Creates a new `Limiter`.
-   *
-   * @param {Number} [concurrency=Infinity] The maximum number of jobs allowed
-   *     to run concurrently
-   */
-  constructor(concurrency) {
-    this[kDone] = () => {
-      this.pending--;
-      this[kRun]();
-    };
-    this.concurrency = concurrency || Infinity;
-    this.jobs = [];
-    this.pending = 0;
-  }
-
-  /**
-   * Adds a job to the queue.
-   *
-   * @param {Function} job The job to run
-   * @public
-   */
-  add(job) {
-    this.jobs.push(job);
-    this[kRun]();
-  }
-
-  /**
-   * Removes a job from the queue and runs it if possible.
-   *
-   * @private
-   */
-  [kRun]() {
-    if (this.pending === this.concurrency) return;
-
-    if (this.jobs.length) {
-      const job = this.jobs.shift();
-
-      this.pending++;
-      job(this[kDone]);
-    }
-  }
-}
-
-var limiter = Limiter;
-
-const { kStatusCode: kStatusCode$2 } = constants;
-
-const TRAILER = Buffer$1.from([0x00, 0x00, 0xff, 0xff]);
-const kPerMessageDeflate = Symbol('permessage-deflate');
-const kTotalLength = Symbol('total-length');
-const kCallback = Symbol('callback');
-const kBuffers = Symbol('buffers');
-const kError$1 = Symbol('error');
-
-//
-// We limit zlib concurrency, which prevents severe memory fragmentation
-// as documented in https://github.com/nodejs/node/issues/8871#issuecomment-250915913
-// and https://github.com/websockets/ws/issues/1202
-//
-// Intentionally global; it's the global thread pool that's an issue.
-//
-let zlibLimiter;
-
-/**
- * permessage-deflate implementation.
- */
-class PerMessageDeflate {
-  /**
-   * Creates a PerMessageDeflate instance.
-   *
-   * @param {Object} [options] Configuration options
-   * @param {(Boolean|Number)} [options.clientMaxWindowBits] Advertise support
-   *     for, or request, a custom client window size
-   * @param {Boolean} [options.clientNoContextTakeover=false] Advertise/
-   *     acknowledge disabling of client context takeover
-   * @param {Number} [options.concurrencyLimit=10] The number of concurrent
-   *     calls to zlib
-   * @param {(Boolean|Number)} [options.serverMaxWindowBits] Request/confirm the
-   *     use of a custom server window size
-   * @param {Boolean} [options.serverNoContextTakeover=false] Request/accept
-   *     disabling of server context takeover
-   * @param {Number} [options.threshold=1024] Size (in bytes) below which
-   *     messages should not be compressed if context takeover is disabled
-   * @param {Object} [options.zlibDeflateOptions] Options to pass to zlib on
-   *     deflate
-   * @param {Object} [options.zlibInflateOptions] Options to pass to zlib on
-   *     inflate
-   * @param {Boolean} [isServer=false] Create the instance in either server or
-   *     client mode
-   * @param {Number} [maxPayload=0] The maximum allowed message length
-   */
-  constructor(options, isServer, maxPayload) {
-    this._maxPayload = maxPayload | 0;
-    this._options = options || {};
-    this._threshold =
-      this._options.threshold !== undefined ? this._options.threshold : 1024;
-    this._isServer = !!isServer;
-    this._deflate = null;
-    this._inflate = null;
-
-    this.params = null;
-
-    if (!zlibLimiter) {
-      const concurrency =
-        this._options.concurrencyLimit !== undefined
-          ? this._options.concurrencyLimit
-          : 10;
-      zlibLimiter = new limiter(concurrency);
-    }
-  }
-
-  /**
-   * @type {String}
-   */
-  static get extensionName() {
-    return 'permessage-deflate';
-  }
-
-  /**
-   * Create an extension negotiation offer.
-   *
-   * @return {Object} Extension parameters
-   * @public
-   */
-  offer() {
-    const params = {};
-
-    if (this._options.serverNoContextTakeover) {
-      params.server_no_context_takeover = true;
-    }
-    if (this._options.clientNoContextTakeover) {
-      params.client_no_context_takeover = true;
-    }
-    if (this._options.serverMaxWindowBits) {
-      params.server_max_window_bits = this._options.serverMaxWindowBits;
-    }
-    if (this._options.clientMaxWindowBits) {
-      params.client_max_window_bits = this._options.clientMaxWindowBits;
-    } else if (this._options.clientMaxWindowBits == null) {
-      params.client_max_window_bits = true;
-    }
-
-    return params;
-  }
-
-  /**
-   * Accept an extension negotiation offer/response.
-   *
-   * @param {Array} configurations The extension negotiation offers/reponse
-   * @return {Object} Accepted configuration
-   * @public
-   */
-  accept(configurations) {
-    configurations = this.normalizeParams(configurations);
-
-    this.params = this._isServer
-      ? this.acceptAsServer(configurations)
-      : this.acceptAsClient(configurations);
-
-    return this.params;
-  }
-
-  /**
-   * Releases all resources used by the extension.
-   *
-   * @public
-   */
-  cleanup() {
-    if (this._inflate) {
-      this._inflate.close();
-      this._inflate = null;
-    }
-
-    if (this._deflate) {
-      const callback = this._deflate[kCallback];
-
-      this._deflate.close();
-      this._deflate = null;
-
-      if (callback) {
-        callback(
-          new Error(
-            'The deflate stream was closed while data was being processed'
-          )
-        );
-      }
-    }
-  }
-
-  /**
-   *  Accept an extension negotiation offer.
-   *
-   * @param {Array} offers The extension negotiation offers
-   * @return {Object} Accepted configuration
-   * @private
-   */
-  acceptAsServer(offers) {
-    const opts = this._options;
-    const accepted = offers.find((params) => {
-      if (
-        (opts.serverNoContextTakeover === false &&
-          params.server_no_context_takeover) ||
-        (params.server_max_window_bits &&
-          (opts.serverMaxWindowBits === false ||
-            (typeof opts.serverMaxWindowBits === 'number' &&
-              opts.serverMaxWindowBits > params.server_max_window_bits))) ||
-        (typeof opts.clientMaxWindowBits === 'number' &&
-          !params.client_max_window_bits)
-      ) {
-        return false;
-      }
-
-      return true;
-    });
-
-    if (!accepted) {
-      throw new Error('None of the extension offers can be accepted');
-    }
-
-    if (opts.serverNoContextTakeover) {
-      accepted.server_no_context_takeover = true;
-    }
-    if (opts.clientNoContextTakeover) {
-      accepted.client_no_context_takeover = true;
-    }
-    if (typeof opts.serverMaxWindowBits === 'number') {
-      accepted.server_max_window_bits = opts.serverMaxWindowBits;
-    }
-    if (typeof opts.clientMaxWindowBits === 'number') {
-      accepted.client_max_window_bits = opts.clientMaxWindowBits;
-    } else if (
-      accepted.client_max_window_bits === true ||
-      opts.clientMaxWindowBits === false
-    ) {
-      delete accepted.client_max_window_bits;
-    }
-
-    return accepted;
-  }
-
-  /**
-   * Accept the extension negotiation response.
-   *
-   * @param {Array} response The extension negotiation response
-   * @return {Object} Accepted configuration
-   * @private
-   */
-  acceptAsClient(response) {
-    const params = response[0];
-
-    if (
-      this._options.clientNoContextTakeover === false &&
-      params.client_no_context_takeover
-    ) {
-      throw new Error('Unexpected parameter "client_no_context_takeover"');
-    }
-
-    if (!params.client_max_window_bits) {
-      if (typeof this._options.clientMaxWindowBits === 'number') {
-        params.client_max_window_bits = this._options.clientMaxWindowBits;
-      }
-    } else if (
-      this._options.clientMaxWindowBits === false ||
-      (typeof this._options.clientMaxWindowBits === 'number' &&
-        params.client_max_window_bits > this._options.clientMaxWindowBits)
-    ) {
-      throw new Error(
-        'Unexpected or invalid parameter "client_max_window_bits"'
-      );
-    }
-
-    return params;
-  }
-
-  /**
-   * Normalize parameters.
-   *
-   * @param {Array} configurations The extension negotiation offers/reponse
-   * @return {Array} The offers/response with normalized parameters
-   * @private
-   */
-  normalizeParams(configurations) {
-    configurations.forEach((params) => {
-      Object.keys(params).forEach((key) => {
-        let value = params[key];
-
-        if (value.length > 1) {
-          throw new Error(`Parameter "${key}" must have only a single value`);
-        }
-
-        value = value[0];
-
-        if (key === 'client_max_window_bits') {
-          if (value !== true) {
-            const num = +value;
-            if (!Number.isInteger(num) || num < 8 || num > 15) {
-              throw new TypeError(
-                `Invalid value for parameter "${key}": ${value}`
-              );
-            }
-            value = num;
-          } else if (!this._isServer) {
-            throw new TypeError(
-              `Invalid value for parameter "${key}": ${value}`
-            );
-          }
-        } else if (key === 'server_max_window_bits') {
-          const num = +value;
-          if (!Number.isInteger(num) || num < 8 || num > 15) {
-            throw new TypeError(
-              `Invalid value for parameter "${key}": ${value}`
-            );
-          }
-          value = num;
-        } else if (
-          key === 'client_no_context_takeover' ||
-          key === 'server_no_context_takeover'
-        ) {
-          if (value !== true) {
-            throw new TypeError(
-              `Invalid value for parameter "${key}": ${value}`
-            );
-          }
-        } else {
-          throw new Error(`Unknown parameter "${key}"`);
-        }
-
-        params[key] = value;
-      });
-    });
-
-    return configurations;
-  }
-
-  /**
-   * Decompress data. Concurrency limited.
-   *
-   * @param {Buffer} data Compressed data
-   * @param {Boolean} fin Specifies whether or not this is the last fragment
-   * @param {Function} callback Callback
-   * @public
-   */
-  decompress(data, fin, callback) {
-    zlibLimiter.add((done) => {
-      this._decompress(data, fin, (err, result) => {
-        done();
-        callback(err, result);
-      });
-    });
-  }
-
-  /**
-   * Compress data. Concurrency limited.
-   *
-   * @param {(Buffer|String)} data Data to compress
-   * @param {Boolean} fin Specifies whether or not this is the last fragment
-   * @param {Function} callback Callback
-   * @public
-   */
-  compress(data, fin, callback) {
-    zlibLimiter.add((done) => {
-      this._compress(data, fin, (err, result) => {
-        done();
-        callback(err, result);
-      });
-    });
-  }
-
-  /**
-   * Decompress data.
-   *
-   * @param {Buffer} data Compressed data
-   * @param {Boolean} fin Specifies whether or not this is the last fragment
-   * @param {Function} callback Callback
-   * @private
-   */
-  _decompress(data, fin, callback) {
-    const endpoint = this._isServer ? 'client' : 'server';
-
-    if (!this._inflate) {
-      const key = `${endpoint}_max_window_bits`;
-      const windowBits =
-        typeof this.params[key] !== 'number'
-          ? zlib.Z_DEFAULT_WINDOWBITS
-          : this.params[key];
-
-      this._inflate = zlib.createInflateRaw({
-        ...this._options.zlibInflateOptions,
-        windowBits
-      });
-      this._inflate[kPerMessageDeflate] = this;
-      this._inflate[kTotalLength] = 0;
-      this._inflate[kBuffers] = [];
-      this._inflate.on('error', inflateOnError);
-      this._inflate.on('data', inflateOnData);
-    }
-
-    this._inflate[kCallback] = callback;
-
-    this._inflate.write(data);
-    if (fin) this._inflate.write(TRAILER);
-
-    this._inflate.flush(() => {
-      const err = this._inflate[kError$1];
-
-      if (err) {
-        this._inflate.close();
-        this._inflate = null;
-        callback(err);
-        return;
-      }
-
-      const data = bufferUtil.concat(
-        this._inflate[kBuffers],
-        this._inflate[kTotalLength]
-      );
-
-      if (this._inflate._readableState.endEmitted) {
-        this._inflate.close();
-        this._inflate = null;
-      } else {
-        this._inflate[kTotalLength] = 0;
-        this._inflate[kBuffers] = [];
-
-        if (fin && this.params[`${endpoint}_no_context_takeover`]) {
-          this._inflate.reset();
-        }
-      }
-
-      callback(null, data);
-    });
-  }
-
-  /**
-   * Compress data.
-   *
-   * @param {(Buffer|String)} data Data to compress
-   * @param {Boolean} fin Specifies whether or not this is the last fragment
-   * @param {Function} callback Callback
-   * @private
-   */
-  _compress(data, fin, callback) {
-    const endpoint = this._isServer ? 'server' : 'client';
-
-    if (!this._deflate) {
-      const key = `${endpoint}_max_window_bits`;
-      const windowBits =
-        typeof this.params[key] !== 'number'
-          ? zlib.Z_DEFAULT_WINDOWBITS
-          : this.params[key];
-
-      this._deflate = zlib.createDeflateRaw({
-        ...this._options.zlibDeflateOptions,
-        windowBits
-      });
-
-      this._deflate[kTotalLength] = 0;
-      this._deflate[kBuffers] = [];
-
-      this._deflate.on('data', deflateOnData);
-    }
-
-    this._deflate[kCallback] = callback;
-
-    this._deflate.write(data);
-    this._deflate.flush(zlib.Z_SYNC_FLUSH, () => {
-      if (!this._deflate) {
-        //
-        // The deflate stream was closed while data was being processed.
-        //
-        return;
-      }
-
-      let data = bufferUtil.concat(
-        this._deflate[kBuffers],
-        this._deflate[kTotalLength]
-      );
-
-      if (fin) data = data.slice(0, data.length - 4);
-
-      //
-      // Ensure that the callback will not be called again in
-      // `PerMessageDeflate#cleanup()`.
-      //
-      this._deflate[kCallback] = null;
-
-      this._deflate[kTotalLength] = 0;
-      this._deflate[kBuffers] = [];
-
-      if (fin && this.params[`${endpoint}_no_context_takeover`]) {
-        this._deflate.reset();
-      }
-
-      callback(null, data);
-    });
-  }
-}
-
-var permessageDeflate = PerMessageDeflate;
-
-/**
- * The listener of the `zlib.DeflateRaw` stream `'data'` event.
- *
- * @param {Buffer} chunk A chunk of data
- * @private
- */
-function deflateOnData(chunk) {
-  this[kBuffers].push(chunk);
-  this[kTotalLength] += chunk.length;
-}
-
-/**
- * The listener of the `zlib.InflateRaw` stream `'data'` event.
- *
- * @param {Buffer} chunk A chunk of data
- * @private
- */
-function inflateOnData(chunk) {
-  this[kTotalLength] += chunk.length;
-
-  if (
-    this[kPerMessageDeflate]._maxPayload < 1 ||
-    this[kTotalLength] <= this[kPerMessageDeflate]._maxPayload
-  ) {
-    this[kBuffers].push(chunk);
-    return;
-  }
-
-  this[kError$1] = new RangeError('Max payload size exceeded');
-  this[kError$1].code = 'WS_ERR_UNSUPPORTED_MESSAGE_LENGTH';
-  this[kError$1][kStatusCode$2] = 1009;
-  this.removeListener('data', inflateOnData);
-  this.reset();
-}
-
-/**
- * The listener of the `zlib.InflateRaw` stream `'error'` event.
- *
- * @param {Error} err The emitted error
- * @private
- */
-function inflateOnError(err) {
-  //
-  // There is no need to call `Zlib#close()` as the handle is automatically
-  // closed when an error is emitted.
-  //
-  this[kPerMessageDeflate]._inflate = null;
-  err[kStatusCode$2] = 1007;
-  this[kCallback](err);
-}
-
-var validation = createCommonjsModule(function (module) {
-
-//
-// Allowed token characters:
-//
-// '!', '#', '$', '%', '&', ''', '*', '+', '-',
-// '.', 0-9, A-Z, '^', '_', '`', a-z, '|', '~'
-//
-// tokenChars[32] === 0 // ' '
-// tokenChars[33] === 1 // '!'
-// tokenChars[34] === 0 // '"'
-// ...
-//
-// prettier-ignore
-const tokenChars = [
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0 - 15
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 16 - 31
-  0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, // 32 - 47
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, // 48 - 63
-  0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 64 - 79
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, // 80 - 95
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 96 - 111
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0 // 112 - 127
-];
-
-/**
- * Checks if a status code is allowed in a close frame.
- *
- * @param {Number} code The status code
- * @return {Boolean} `true` if the status code is valid, else `false`
- * @public
- */
-function isValidStatusCode(code) {
-  return (
-    (code >= 1000 &&
-      code <= 1014 &&
-      code !== 1004 &&
-      code !== 1005 &&
-      code !== 1006) ||
-    (code >= 3000 && code <= 4999)
-  );
-}
-
-/**
- * Checks if a given buffer contains only correct UTF-8.
- * Ported from https://www.cl.cam.ac.uk/%7Emgk25/ucs/utf8_check.c by
- * Markus Kuhn.
- *
- * @param {Buffer} buf The buffer to check
- * @return {Boolean} `true` if `buf` contains only correct UTF-8, else `false`
- * @public
- */
-function _isValidUTF8(buf) {
-  const len = buf.length;
-  let i = 0;
-
-  while (i < len) {
-    if ((buf[i] & 0x80) === 0) {
-      // 0xxxxxxx
-      i++;
-    } else if ((buf[i] & 0xe0) === 0xc0) {
-      // 110xxxxx 10xxxxxx
-      if (
-        i + 1 === len ||
-        (buf[i + 1] & 0xc0) !== 0x80 ||
-        (buf[i] & 0xfe) === 0xc0 // Overlong
-      ) {
-        return false;
-      }
-
-      i += 2;
-    } else if ((buf[i] & 0xf0) === 0xe0) {
-      // 1110xxxx 10xxxxxx 10xxxxxx
-      if (
-        i + 2 >= len ||
-        (buf[i + 1] & 0xc0) !== 0x80 ||
-        (buf[i + 2] & 0xc0) !== 0x80 ||
-        (buf[i] === 0xe0 && (buf[i + 1] & 0xe0) === 0x80) || // Overlong
-        (buf[i] === 0xed && (buf[i + 1] & 0xe0) === 0xa0) // Surrogate (U+D800 - U+DFFF)
-      ) {
-        return false;
-      }
-
-      i += 3;
-    } else if ((buf[i] & 0xf8) === 0xf0) {
-      // 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-      if (
-        i + 3 >= len ||
-        (buf[i + 1] & 0xc0) !== 0x80 ||
-        (buf[i + 2] & 0xc0) !== 0x80 ||
-        (buf[i + 3] & 0xc0) !== 0x80 ||
-        (buf[i] === 0xf0 && (buf[i + 1] & 0xf0) === 0x80) || // Overlong
-        (buf[i] === 0xf4 && buf[i + 1] > 0x8f) ||
-        buf[i] > 0xf4 // > U+10FFFF
-      ) {
-        return false;
-      }
-
-      i += 4;
-    } else {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-try {
-  const isValidUTF8 = require('utf-8-validate');
-
-  module.exports = {
-    isValidStatusCode,
-    isValidUTF8(buf) {
-      return buf.length < 150 ? _isValidUTF8(buf) : isValidUTF8(buf);
-    },
-    tokenChars
-  };
-} catch (e) /* istanbul ignore next */ {
-  module.exports = {
-    isValidStatusCode,
-    isValidUTF8: _isValidUTF8,
-    tokenChars
-  };
-}
-});
-
-const { Writable } = require$$0;
-
-
-const {
-  BINARY_TYPES: BINARY_TYPES$1,
-  EMPTY_BUFFER: EMPTY_BUFFER$2,
-  kStatusCode: kStatusCode$1,
-  kWebSocket: kWebSocket$2
-} = constants;
-const { concat, toArrayBuffer, unmask } = bufferUtil;
-const { isValidStatusCode: isValidStatusCode$1, isValidUTF8 } = validation;
-
-const GET_INFO = 0;
-const GET_PAYLOAD_LENGTH_16 = 1;
-const GET_PAYLOAD_LENGTH_64 = 2;
-const GET_MASK = 3;
-const GET_DATA = 4;
-const INFLATING = 5;
-
-/**
- * HyBi Receiver implementation.
- *
- * @extends Writable
- */
-class Receiver extends Writable {
-  /**
-   * Creates a Receiver instance.
-   *
-   * @param {Object} [options] Options object
-   * @param {String} [options.binaryType=nodebuffer] The type for binary data
-   * @param {Object} [options.extensions] An object containing the negotiated
-   *     extensions
-   * @param {Boolean} [options.isServer=false] Specifies whether to operate in
-   *     client or server mode
-   * @param {Number} [options.maxPayload=0] The maximum allowed message length
-   * @param {Boolean} [options.skipUTF8Validation=false] Specifies whether or
-   *     not to skip UTF-8 validation for text and close messages
-   */
-  constructor(options = {}) {
-    super();
-
-    this._binaryType = options.binaryType || BINARY_TYPES$1[0];
-    this._extensions = options.extensions || {};
-    this._isServer = !!options.isServer;
-    this._maxPayload = options.maxPayload | 0;
-    this._skipUTF8Validation = !!options.skipUTF8Validation;
-    this[kWebSocket$2] = undefined;
-
-    this._bufferedBytes = 0;
-    this._buffers = [];
-
-    this._compressed = false;
-    this._payloadLength = 0;
-    this._mask = undefined;
-    this._fragmented = 0;
-    this._masked = false;
-    this._fin = false;
-    this._opcode = 0;
-
-    this._totalPayloadLength = 0;
-    this._messageLength = 0;
-    this._fragments = [];
-
-    this._state = GET_INFO;
-    this._loop = false;
-  }
-
-  /**
-   * Implements `Writable.prototype._write()`.
-   *
-   * @param {Buffer} chunk The chunk of data to write
-   * @param {String} encoding The character encoding of `chunk`
-   * @param {Function} cb Callback
-   * @private
-   */
-  _write(chunk, encoding, cb) {
-    if (this._opcode === 0x08 && this._state == GET_INFO) return cb();
-
-    this._bufferedBytes += chunk.length;
-    this._buffers.push(chunk);
-    this.startLoop(cb);
-  }
-
-  /**
-   * Consumes `n` bytes from the buffered data.
-   *
-   * @param {Number} n The number of bytes to consume
-   * @return {Buffer} The consumed bytes
-   * @private
-   */
-  consume(n) {
-    this._bufferedBytes -= n;
-
-    if (n === this._buffers[0].length) return this._buffers.shift();
-
-    if (n < this._buffers[0].length) {
-      const buf = this._buffers[0];
-      this._buffers[0] = buf.slice(n);
-      return buf.slice(0, n);
-    }
-
-    const dst = Buffer$1.allocUnsafe(n);
-
-    do {
-      const buf = this._buffers[0];
-      const offset = dst.length - n;
-
-      if (n >= buf.length) {
-        dst.set(this._buffers.shift(), offset);
-      } else {
-        dst.set(new Uint8Array(buf.buffer, buf.byteOffset, n), offset);
-        this._buffers[0] = buf.slice(n);
-      }
-
-      n -= buf.length;
-    } while (n > 0);
-
-    return dst;
-  }
-
-  /**
-   * Starts the parsing loop.
-   *
-   * @param {Function} cb Callback
-   * @private
-   */
-  startLoop(cb) {
-    let err;
-    this._loop = true;
-
-    do {
-      switch (this._state) {
-        case GET_INFO:
-          err = this.getInfo();
-          break;
-        case GET_PAYLOAD_LENGTH_16:
-          err = this.getPayloadLength16();
-          break;
-        case GET_PAYLOAD_LENGTH_64:
-          err = this.getPayloadLength64();
-          break;
-        case GET_MASK:
-          this.getMask();
-          break;
-        case GET_DATA:
-          err = this.getData(cb);
-          break;
-        default:
-          // `INFLATING`
-          this._loop = false;
-          return;
-      }
-    } while (this._loop);
-
-    cb(err);
-  }
-
-  /**
-   * Reads the first two bytes of a frame.
-   *
-   * @return {(RangeError|undefined)} A possible error
-   * @private
-   */
-  getInfo() {
-    if (this._bufferedBytes < 2) {
-      this._loop = false;
-      return;
-    }
-
-    const buf = this.consume(2);
-
-    if ((buf[0] & 0x30) !== 0x00) {
-      this._loop = false;
-      return error$1(
-        RangeError,
-        'RSV2 and RSV3 must be clear',
-        true,
-        1002,
-        'WS_ERR_UNEXPECTED_RSV_2_3'
-      );
-    }
-
-    const compressed = (buf[0] & 0x40) === 0x40;
-
-    if (compressed && !this._extensions[permessageDeflate.extensionName]) {
-      this._loop = false;
-      return error$1(
-        RangeError,
-        'RSV1 must be clear',
-        true,
-        1002,
-        'WS_ERR_UNEXPECTED_RSV_1'
-      );
-    }
-
-    this._fin = (buf[0] & 0x80) === 0x80;
-    this._opcode = buf[0] & 0x0f;
-    this._payloadLength = buf[1] & 0x7f;
-
-    if (this._opcode === 0x00) {
-      if (compressed) {
-        this._loop = false;
-        return error$1(
-          RangeError,
-          'RSV1 must be clear',
-          true,
-          1002,
-          'WS_ERR_UNEXPECTED_RSV_1'
-        );
-      }
-
-      if (!this._fragmented) {
-        this._loop = false;
-        return error$1(
-          RangeError,
-          'invalid opcode 0',
-          true,
-          1002,
-          'WS_ERR_INVALID_OPCODE'
-        );
-      }
-
-      this._opcode = this._fragmented;
-    } else if (this._opcode === 0x01 || this._opcode === 0x02) {
-      if (this._fragmented) {
-        this._loop = false;
-        return error$1(
-          RangeError,
-          `invalid opcode ${this._opcode}`,
-          true,
-          1002,
-          'WS_ERR_INVALID_OPCODE'
-        );
-      }
-
-      this._compressed = compressed;
-    } else if (this._opcode > 0x07 && this._opcode < 0x0b) {
-      if (!this._fin) {
-        this._loop = false;
-        return error$1(
-          RangeError,
-          'FIN must be set',
-          true,
-          1002,
-          'WS_ERR_EXPECTED_FIN'
-        );
-      }
-
-      if (compressed) {
-        this._loop = false;
-        return error$1(
-          RangeError,
-          'RSV1 must be clear',
-          true,
-          1002,
-          'WS_ERR_UNEXPECTED_RSV_1'
-        );
-      }
-
-      if (this._payloadLength > 0x7d) {
-        this._loop = false;
-        return error$1(
-          RangeError,
-          `invalid payload length ${this._payloadLength}`,
-          true,
-          1002,
-          'WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH'
-        );
-      }
-    } else {
-      this._loop = false;
-      return error$1(
-        RangeError,
-        `invalid opcode ${this._opcode}`,
-        true,
-        1002,
-        'WS_ERR_INVALID_OPCODE'
-      );
-    }
-
-    if (!this._fin && !this._fragmented) this._fragmented = this._opcode;
-    this._masked = (buf[1] & 0x80) === 0x80;
-
-    if (this._isServer) {
-      if (!this._masked) {
-        this._loop = false;
-        return error$1(
-          RangeError,
-          'MASK must be set',
-          true,
-          1002,
-          'WS_ERR_EXPECTED_MASK'
-        );
-      }
-    } else if (this._masked) {
-      this._loop = false;
-      return error$1(
-        RangeError,
-        'MASK must be clear',
-        true,
-        1002,
-        'WS_ERR_UNEXPECTED_MASK'
-      );
-    }
-
-    if (this._payloadLength === 126) this._state = GET_PAYLOAD_LENGTH_16;
-    else if (this._payloadLength === 127) this._state = GET_PAYLOAD_LENGTH_64;
-    else return this.haveLength();
-  }
-
-  /**
-   * Gets extended payload length (7+16).
-   *
-   * @return {(RangeError|undefined)} A possible error
-   * @private
-   */
-  getPayloadLength16() {
-    if (this._bufferedBytes < 2) {
-      this._loop = false;
-      return;
-    }
-
-    this._payloadLength = this.consume(2).readUInt16BE(0);
-    return this.haveLength();
-  }
-
-  /**
-   * Gets extended payload length (7+64).
-   *
-   * @return {(RangeError|undefined)} A possible error
-   * @private
-   */
-  getPayloadLength64() {
-    if (this._bufferedBytes < 8) {
-      this._loop = false;
-      return;
-    }
-
-    const buf = this.consume(8);
-    const num = buf.readUInt32BE(0);
-
-    //
-    // The maximum safe integer in JavaScript is 2^53 - 1. An error is returned
-    // if payload length is greater than this number.
-    //
-    if (num > Math.pow(2, 53 - 32) - 1) {
-      this._loop = false;
-      return error$1(
-        RangeError,
-        'Unsupported WebSocket frame: payload length > 2^53 - 1',
-        false,
-        1009,
-        'WS_ERR_UNSUPPORTED_DATA_PAYLOAD_LENGTH'
-      );
-    }
-
-    this._payloadLength = num * Math.pow(2, 32) + buf.readUInt32BE(4);
-    return this.haveLength();
-  }
-
-  /**
-   * Payload length has been read.
-   *
-   * @return {(RangeError|undefined)} A possible error
-   * @private
-   */
-  haveLength() {
-    if (this._payloadLength && this._opcode < 0x08) {
-      this._totalPayloadLength += this._payloadLength;
-      if (this._totalPayloadLength > this._maxPayload && this._maxPayload > 0) {
-        this._loop = false;
-        return error$1(
-          RangeError,
-          'Max payload size exceeded',
-          false,
-          1009,
-          'WS_ERR_UNSUPPORTED_MESSAGE_LENGTH'
-        );
-      }
-    }
-
-    if (this._masked) this._state = GET_MASK;
-    else this._state = GET_DATA;
-  }
-
-  /**
-   * Reads mask bytes.
-   *
-   * @private
-   */
-  getMask() {
-    if (this._bufferedBytes < 4) {
-      this._loop = false;
-      return;
-    }
-
-    this._mask = this.consume(4);
-    this._state = GET_DATA;
-  }
-
-  /**
-   * Reads data bytes.
-   *
-   * @param {Function} cb Callback
-   * @return {(Error|RangeError|undefined)} A possible error
-   * @private
-   */
-  getData(cb) {
-    let data = EMPTY_BUFFER$2;
-
-    if (this._payloadLength) {
-      if (this._bufferedBytes < this._payloadLength) {
-        this._loop = false;
-        return;
-      }
-
-      data = this.consume(this._payloadLength);
-
-      if (
-        this._masked &&
-        (this._mask[0] | this._mask[1] | this._mask[2] | this._mask[3]) !== 0
-      ) {
-        unmask(data, this._mask);
-      }
-    }
-
-    if (this._opcode > 0x07) return this.controlMessage(data);
-
-    if (this._compressed) {
-      this._state = INFLATING;
-      this.decompress(data, cb);
-      return;
-    }
-
-    if (data.length) {
-      //
-      // This message is not compressed so its length is the sum of the payload
-      // length of all fragments.
-      //
-      this._messageLength = this._totalPayloadLength;
-      this._fragments.push(data);
-    }
-
-    return this.dataMessage();
-  }
-
-  /**
-   * Decompresses data.
-   *
-   * @param {Buffer} data Compressed data
-   * @param {Function} cb Callback
-   * @private
-   */
-  decompress(data, cb) {
-    const perMessageDeflate = this._extensions[permessageDeflate.extensionName];
-
-    perMessageDeflate.decompress(data, this._fin, (err, buf) => {
-      if (err) return cb(err);
-
-      if (buf.length) {
-        this._messageLength += buf.length;
-        if (this._messageLength > this._maxPayload && this._maxPayload > 0) {
-          return cb(
-            error$1(
-              RangeError,
-              'Max payload size exceeded',
-              false,
-              1009,
-              'WS_ERR_UNSUPPORTED_MESSAGE_LENGTH'
-            )
-          );
-        }
-
-        this._fragments.push(buf);
-      }
-
-      const er = this.dataMessage();
-      if (er) return cb(er);
-
-      this.startLoop(cb);
-    });
-  }
-
-  /**
-   * Handles a data message.
-   *
-   * @return {(Error|undefined)} A possible error
-   * @private
-   */
-  dataMessage() {
-    if (this._fin) {
-      const messageLength = this._messageLength;
-      const fragments = this._fragments;
-
-      this._totalPayloadLength = 0;
-      this._messageLength = 0;
-      this._fragmented = 0;
-      this._fragments = [];
-
-      if (this._opcode === 2) {
-        let data;
-
-        if (this._binaryType === 'nodebuffer') {
-          data = concat(fragments, messageLength);
-        } else if (this._binaryType === 'arraybuffer') {
-          data = toArrayBuffer(concat(fragments, messageLength));
-        } else {
-          data = fragments;
-        }
-
-        this.emit('message', data, true);
-      } else {
-        const buf = concat(fragments, messageLength);
-
-        if (!this._skipUTF8Validation && !isValidUTF8(buf)) {
-          this._loop = false;
-          return error$1(
-            Error,
-            'invalid UTF-8 sequence',
-            true,
-            1007,
-            'WS_ERR_INVALID_UTF8'
-          );
-        }
-
-        this.emit('message', buf, false);
-      }
-    }
-
-    this._state = GET_INFO;
-  }
-
-  /**
-   * Handles a control message.
-   *
-   * @param {Buffer} data Data to handle
-   * @return {(Error|RangeError|undefined)} A possible error
-   * @private
-   */
-  controlMessage(data) {
-    if (this._opcode === 0x08) {
-      this._loop = false;
-
-      if (data.length === 0) {
-        this.emit('conclude', 1005, EMPTY_BUFFER$2);
-        this.end();
-      } else if (data.length === 1) {
-        return error$1(
-          RangeError,
-          'invalid payload length 1',
-          true,
-          1002,
-          'WS_ERR_INVALID_CONTROL_PAYLOAD_LENGTH'
-        );
-      } else {
-        const code = data.readUInt16BE(0);
-
-        if (!isValidStatusCode$1(code)) {
-          return error$1(
-            RangeError,
-            `invalid status code ${code}`,
-            true,
-            1002,
-            'WS_ERR_INVALID_CLOSE_CODE'
-          );
-        }
-
-        const buf = data.slice(2);
-
-        if (!this._skipUTF8Validation && !isValidUTF8(buf)) {
-          return error$1(
-            Error,
-            'invalid UTF-8 sequence',
-            true,
-            1007,
-            'WS_ERR_INVALID_UTF8'
-          );
-        }
-
-        this.emit('conclude', code, buf);
-        this.end();
-      }
-    } else if (this._opcode === 0x09) {
-      this.emit('ping', data);
-    } else {
-      this.emit('pong', data);
-    }
-
-    this._state = GET_INFO;
-  }
-}
-
-var receiver = Receiver;
-
-/**
- * Builds an error object.
- *
- * @param {function(new:Error|RangeError)} ErrorCtor The error constructor
- * @param {String} message The error message
- * @param {Boolean} prefix Specifies whether or not to add a default prefix to
- *     `message`
- * @param {Number} statusCode The status code
- * @param {String} errorCode The exposed error code
- * @return {(Error|RangeError)} The error
- * @private
- */
-function error$1(ErrorCtor, message, prefix, statusCode, errorCode) {
-  const err = new ErrorCtor(
-    prefix ? `Invalid WebSocket frame: ${message}` : message
-  );
-
-  Error.captureStackTrace(err, error$1);
-  err.code = errorCode;
-  err[kStatusCode$1] = statusCode;
-  return err;
-}
-
-const { randomFillSync } = require$$0$1;
-
-
-const { EMPTY_BUFFER: EMPTY_BUFFER$1 } = constants;
-const { isValidStatusCode } = validation;
-const { mask: applyMask, toBuffer: toBuffer$1 } = bufferUtil;
-
-const kByteLength = Symbol('kByteLength');
-const maskBuffer = Buffer$1.alloc(4);
-
-/**
- * HyBi Sender implementation.
- */
-class Sender {
-  /**
-   * Creates a Sender instance.
-   *
-   * @param {(net.Socket|tls.Socket)} socket The connection socket
-   * @param {Object} [extensions] An object containing the negotiated extensions
-   * @param {Function} [generateMask] The function used to generate the masking
-   *     key
-   */
-  constructor(socket, extensions, generateMask) {
-    this._extensions = extensions || {};
-
-    if (generateMask) {
-      this._generateMask = generateMask;
-      this._maskBuffer = Buffer$1.alloc(4);
-    }
-
-    this._socket = socket;
-
-    this._firstFragment = true;
-    this._compress = false;
-
-    this._bufferedBytes = 0;
-    this._deflating = false;
-    this._queue = [];
-  }
-
-  /**
-   * Frames a piece of data according to the HyBi WebSocket protocol.
-   *
-   * @param {(Buffer|String)} data The data to frame
-   * @param {Object} options Options object
-   * @param {Boolean} [options.fin=false] Specifies whether or not to set the
-   *     FIN bit
-   * @param {Function} [options.generateMask] The function used to generate the
-   *     masking key
-   * @param {Boolean} [options.mask=false] Specifies whether or not to mask
-   *     `data`
-   * @param {Buffer} [options.maskBuffer] The buffer used to store the masking
-   *     key
-   * @param {Number} options.opcode The opcode
-   * @param {Boolean} [options.readOnly=false] Specifies whether `data` can be
-   *     modified
-   * @param {Boolean} [options.rsv1=false] Specifies whether or not to set the
-   *     RSV1 bit
-   * @return {(Buffer|String)[]} The framed data
-   * @public
-   */
-  static frame(data, options) {
-    let mask;
-    let merge = false;
-    let offset = 2;
-    let skipMasking = false;
-
-    if (options.mask) {
-      mask = options.maskBuffer || maskBuffer;
-
-      if (options.generateMask) {
-        options.generateMask(mask);
-      } else {
-        randomFillSync(mask, 0, 4);
-      }
-
-      skipMasking = (mask[0] | mask[1] | mask[2] | mask[3]) === 0;
-      offset = 6;
-    }
-
-    let dataLength;
-
-    if (typeof data === 'string') {
-      if (
-        (!options.mask || skipMasking) &&
-        options[kByteLength] !== undefined
-      ) {
-        dataLength = options[kByteLength];
-      } else {
-        data = Buffer$1.from(data);
-        dataLength = data.length;
-      }
-    } else {
-      dataLength = data.length;
-      merge = options.mask && options.readOnly && !skipMasking;
-    }
-
-    let payloadLength = dataLength;
-
-    if (dataLength >= 65536) {
-      offset += 8;
-      payloadLength = 127;
-    } else if (dataLength > 125) {
-      offset += 2;
-      payloadLength = 126;
-    }
-
-    const target = Buffer$1.allocUnsafe(merge ? dataLength + offset : offset);
-
-    target[0] = options.fin ? options.opcode | 0x80 : options.opcode;
-    if (options.rsv1) target[0] |= 0x40;
-
-    target[1] = payloadLength;
-
-    if (payloadLength === 126) {
-      target.writeUInt16BE(dataLength, 2);
-    } else if (payloadLength === 127) {
-      target[2] = target[3] = 0;
-      target.writeUIntBE(dataLength, 4, 6);
-    }
-
-    if (!options.mask) return [target, data];
-
-    target[1] |= 0x80;
-    target[offset - 4] = mask[0];
-    target[offset - 3] = mask[1];
-    target[offset - 2] = mask[2];
-    target[offset - 1] = mask[3];
-
-    if (skipMasking) return [target, data];
-
-    if (merge) {
-      applyMask(data, mask, target, offset, dataLength);
-      return [target];
-    }
-
-    applyMask(data, mask, data, 0, dataLength);
-    return [target, data];
-  }
-
-  /**
-   * Sends a close message to the other peer.
-   *
-   * @param {Number} [code] The status code component of the body
-   * @param {(String|Buffer)} [data] The message component of the body
-   * @param {Boolean} [mask=false] Specifies whether or not to mask the message
-   * @param {Function} [cb] Callback
-   * @public
-   */
-  close(code, data, mask, cb) {
-    let buf;
-
-    if (code === undefined) {
-      buf = EMPTY_BUFFER$1;
-    } else if (typeof code !== 'number' || !isValidStatusCode(code)) {
-      throw new TypeError('First argument must be a valid error code number');
-    } else if (data === undefined || !data.length) {
-      buf = Buffer$1.allocUnsafe(2);
-      buf.writeUInt16BE(code, 0);
-    } else {
-      const length = Buffer$1.byteLength(data);
-
-      if (length > 123) {
-        throw new RangeError('The message must not be greater than 123 bytes');
-      }
-
-      buf = Buffer$1.allocUnsafe(2 + length);
-      buf.writeUInt16BE(code, 0);
-
-      if (typeof data === 'string') {
-        buf.write(data, 2);
-      } else {
-        buf.set(data, 2);
-      }
-    }
-
-    const options = {
-      [kByteLength]: buf.length,
-      fin: true,
-      generateMask: this._generateMask,
-      mask,
-      maskBuffer: this._maskBuffer,
-      opcode: 0x08,
-      readOnly: false,
-      rsv1: false
-    };
-
-    if (this._deflating) {
-      this.enqueue([this.dispatch, buf, false, options, cb]);
-    } else {
-      this.sendFrame(Sender.frame(buf, options), cb);
-    }
-  }
-
-  /**
-   * Sends a ping message to the other peer.
-   *
-   * @param {*} data The message to send
-   * @param {Boolean} [mask=false] Specifies whether or not to mask `data`
-   * @param {Function} [cb] Callback
-   * @public
-   */
-  ping(data, mask, cb) {
-    let byteLength;
-    let readOnly;
-
-    if (typeof data === 'string') {
-      byteLength = Buffer$1.byteLength(data);
-      readOnly = false;
-    } else {
-      data = toBuffer$1(data);
-      byteLength = data.length;
-      readOnly = toBuffer$1.readOnly;
-    }
-
-    if (byteLength > 125) {
-      throw new RangeError('The data size must not be greater than 125 bytes');
-    }
-
-    const options = {
-      [kByteLength]: byteLength,
-      fin: true,
-      generateMask: this._generateMask,
-      mask,
-      maskBuffer: this._maskBuffer,
-      opcode: 0x09,
-      readOnly,
-      rsv1: false
-    };
-
-    if (this._deflating) {
-      this.enqueue([this.dispatch, data, false, options, cb]);
-    } else {
-      this.sendFrame(Sender.frame(data, options), cb);
-    }
-  }
-
-  /**
-   * Sends a pong message to the other peer.
-   *
-   * @param {*} data The message to send
-   * @param {Boolean} [mask=false] Specifies whether or not to mask `data`
-   * @param {Function} [cb] Callback
-   * @public
-   */
-  pong(data, mask, cb) {
-    let byteLength;
-    let readOnly;
-
-    if (typeof data === 'string') {
-      byteLength = Buffer$1.byteLength(data);
-      readOnly = false;
-    } else {
-      data = toBuffer$1(data);
-      byteLength = data.length;
-      readOnly = toBuffer$1.readOnly;
-    }
-
-    if (byteLength > 125) {
-      throw new RangeError('The data size must not be greater than 125 bytes');
-    }
-
-    const options = {
-      [kByteLength]: byteLength,
-      fin: true,
-      generateMask: this._generateMask,
-      mask,
-      maskBuffer: this._maskBuffer,
-      opcode: 0x0a,
-      readOnly,
-      rsv1: false
-    };
-
-    if (this._deflating) {
-      this.enqueue([this.dispatch, data, false, options, cb]);
-    } else {
-      this.sendFrame(Sender.frame(data, options), cb);
-    }
-  }
-
-  /**
-   * Sends a data message to the other peer.
-   *
-   * @param {*} data The message to send
-   * @param {Object} options Options object
-   * @param {Boolean} [options.binary=false] Specifies whether `data` is binary
-   *     or text
-   * @param {Boolean} [options.compress=false] Specifies whether or not to
-   *     compress `data`
-   * @param {Boolean} [options.fin=false] Specifies whether the fragment is the
-   *     last one
-   * @param {Boolean} [options.mask=false] Specifies whether or not to mask
-   *     `data`
-   * @param {Function} [cb] Callback
-   * @public
-   */
-  send(data, options, cb) {
-    const perMessageDeflate = this._extensions[permessageDeflate.extensionName];
-    let opcode = options.binary ? 2 : 1;
-    let rsv1 = options.compress;
-
-    let byteLength;
-    let readOnly;
-
-    if (typeof data === 'string') {
-      byteLength = Buffer$1.byteLength(data);
-      readOnly = false;
-    } else {
-      data = toBuffer$1(data);
-      byteLength = data.length;
-      readOnly = toBuffer$1.readOnly;
-    }
-
-    if (this._firstFragment) {
-      this._firstFragment = false;
-      if (
-        rsv1 &&
-        perMessageDeflate &&
-        perMessageDeflate.params[
-          perMessageDeflate._isServer
-            ? 'server_no_context_takeover'
-            : 'client_no_context_takeover'
-        ]
-      ) {
-        rsv1 = byteLength >= perMessageDeflate._threshold;
-      }
-      this._compress = rsv1;
-    } else {
-      rsv1 = false;
-      opcode = 0;
-    }
-
-    if (options.fin) this._firstFragment = true;
-
-    if (perMessageDeflate) {
-      const opts = {
-        [kByteLength]: byteLength,
-        fin: options.fin,
-        generateMask: this._generateMask,
-        mask: options.mask,
-        maskBuffer: this._maskBuffer,
-        opcode,
-        readOnly,
-        rsv1
-      };
-
-      if (this._deflating) {
-        this.enqueue([this.dispatch, data, this._compress, opts, cb]);
-      } else {
-        this.dispatch(data, this._compress, opts, cb);
-      }
-    } else {
-      this.sendFrame(
-        Sender.frame(data, {
-          [kByteLength]: byteLength,
-          fin: options.fin,
-          generateMask: this._generateMask,
-          mask: options.mask,
-          maskBuffer: this._maskBuffer,
-          opcode,
-          readOnly,
-          rsv1: false
-        }),
-        cb
-      );
-    }
-  }
-
-  /**
-   * Dispatches a message.
-   *
-   * @param {(Buffer|String)} data The message to send
-   * @param {Boolean} [compress=false] Specifies whether or not to compress
-   *     `data`
-   * @param {Object} options Options object
-   * @param {Boolean} [options.fin=false] Specifies whether or not to set the
-   *     FIN bit
-   * @param {Function} [options.generateMask] The function used to generate the
-   *     masking key
-   * @param {Boolean} [options.mask=false] Specifies whether or not to mask
-   *     `data`
-   * @param {Buffer} [options.maskBuffer] The buffer used to store the masking
-   *     key
-   * @param {Number} options.opcode The opcode
-   * @param {Boolean} [options.readOnly=false] Specifies whether `data` can be
-   *     modified
-   * @param {Boolean} [options.rsv1=false] Specifies whether or not to set the
-   *     RSV1 bit
-   * @param {Function} [cb] Callback
-   * @private
-   */
-  dispatch(data, compress, options, cb) {
-    if (!compress) {
-      this.sendFrame(Sender.frame(data, options), cb);
-      return;
-    }
-
-    const perMessageDeflate = this._extensions[permessageDeflate.extensionName];
-
-    this._bufferedBytes += options[kByteLength];
-    this._deflating = true;
-    perMessageDeflate.compress(data, options.fin, (_, buf) => {
-      if (this._socket.destroyed) {
-        const err = new Error(
-          'The socket was closed while data was being compressed'
-        );
-
-        if (typeof cb === 'function') cb(err);
-
-        for (let i = 0; i < this._queue.length; i++) {
-          const params = this._queue[i];
-          const callback = params[params.length - 1];
-
-          if (typeof callback === 'function') callback(err);
-        }
-
-        return;
-      }
-
-      this._bufferedBytes -= options[kByteLength];
-      this._deflating = false;
-      options.readOnly = false;
-      this.sendFrame(Sender.frame(buf, options), cb);
-      this.dequeue();
-    });
-  }
-
-  /**
-   * Executes queued send operations.
-   *
-   * @private
-   */
-  dequeue() {
-    while (!this._deflating && this._queue.length) {
-      const params = this._queue.shift();
-
-      this._bufferedBytes -= params[3][kByteLength];
-      Reflect.apply(params[0], this, params.slice(1));
-    }
-  }
-
-  /**
-   * Enqueues a send operation.
-   *
-   * @param {Array} params Send operation parameters.
-   * @private
-   */
-  enqueue(params) {
-    this._bufferedBytes += params[3][kByteLength];
-    this._queue.push(params);
-  }
-
-  /**
-   * Sends a frame.
-   *
-   * @param {Buffer[]} list The frame to send
-   * @param {Function} [cb] Callback
-   * @private
-   */
-  sendFrame(list, cb) {
-    if (list.length === 2) {
-      this._socket.cork();
-      this._socket.write(list[0]);
-      this._socket.write(list[1], cb);
-      this._socket.uncork();
-    } else {
-      this._socket.write(list[0], cb);
-    }
-  }
-}
-
-var sender = Sender;
-
-const { kForOnEventAttribute: kForOnEventAttribute$1, kListener: kListener$1 } = constants;
-
-const kCode = Symbol('kCode');
-const kData = Symbol('kData');
-const kError = Symbol('kError');
-const kMessage = Symbol('kMessage');
-const kReason = Symbol('kReason');
-const kTarget = Symbol('kTarget');
-const kType = Symbol('kType');
-const kWasClean = Symbol('kWasClean');
-
-/**
- * Class representing an event.
- */
-class Event {
-  /**
-   * Create a new `Event`.
-   *
-   * @param {String} type The name of the event
-   * @throws {TypeError} If the `type` argument is not specified
-   */
-  constructor(type) {
-    this[kTarget] = null;
-    this[kType] = type;
-  }
-
-  /**
-   * @type {*}
-   */
-  get target() {
-    return this[kTarget];
-  }
-
-  /**
-   * @type {String}
-   */
-  get type() {
-    return this[kType];
-  }
-}
-
-Object.defineProperty(Event.prototype, 'target', { enumerable: true });
-Object.defineProperty(Event.prototype, 'type', { enumerable: true });
-
-/**
- * Class representing a close event.
- *
- * @extends Event
- */
-class CloseEvent extends Event {
-  /**
-   * Create a new `CloseEvent`.
-   *
-   * @param {String} type The name of the event
-   * @param {Object} [options] A dictionary object that allows for setting
-   *     attributes via object members of the same name
-   * @param {Number} [options.code=0] The status code explaining why the
-   *     connection was closed
-   * @param {String} [options.reason=''] A human-readable string explaining why
-   *     the connection was closed
-   * @param {Boolean} [options.wasClean=false] Indicates whether or not the
-   *     connection was cleanly closed
-   */
-  constructor(type, options = {}) {
-    super(type);
-
-    this[kCode] = options.code === undefined ? 0 : options.code;
-    this[kReason] = options.reason === undefined ? '' : options.reason;
-    this[kWasClean] = options.wasClean === undefined ? false : options.wasClean;
-  }
-
-  /**
-   * @type {Number}
-   */
-  get code() {
-    return this[kCode];
-  }
-
-  /**
-   * @type {String}
-   */
-  get reason() {
-    return this[kReason];
-  }
-
-  /**
-   * @type {Boolean}
-   */
-  get wasClean() {
-    return this[kWasClean];
-  }
-}
-
-Object.defineProperty(CloseEvent.prototype, 'code', { enumerable: true });
-Object.defineProperty(CloseEvent.prototype, 'reason', { enumerable: true });
-Object.defineProperty(CloseEvent.prototype, 'wasClean', { enumerable: true });
-
-/**
- * Class representing an error event.
- *
- * @extends Event
- */
-class ErrorEvent extends Event {
-  /**
-   * Create a new `ErrorEvent`.
-   *
-   * @param {String} type The name of the event
-   * @param {Object} [options] A dictionary object that allows for setting
-   *     attributes via object members of the same name
-   * @param {*} [options.error=null] The error that generated this event
-   * @param {String} [options.message=''] The error message
-   */
-  constructor(type, options = {}) {
-    super(type);
-
-    this[kError] = options.error === undefined ? null : options.error;
-    this[kMessage] = options.message === undefined ? '' : options.message;
-  }
-
-  /**
-   * @type {*}
-   */
-  get error() {
-    return this[kError];
-  }
-
-  /**
-   * @type {String}
-   */
-  get message() {
-    return this[kMessage];
-  }
-}
-
-Object.defineProperty(ErrorEvent.prototype, 'error', { enumerable: true });
-Object.defineProperty(ErrorEvent.prototype, 'message', { enumerable: true });
-
-/**
- * Class representing a message event.
- *
- * @extends Event
- */
-class MessageEvent extends Event {
-  /**
-   * Create a new `MessageEvent`.
-   *
-   * @param {String} type The name of the event
-   * @param {Object} [options] A dictionary object that allows for setting
-   *     attributes via object members of the same name
-   * @param {*} [options.data=null] The message content
-   */
-  constructor(type, options = {}) {
-    super(type);
-
-    this[kData] = options.data === undefined ? null : options.data;
-  }
-
-  /**
-   * @type {*}
-   */
-  get data() {
-    return this[kData];
-  }
-}
-
-Object.defineProperty(MessageEvent.prototype, 'data', { enumerable: true });
-
-/**
- * This provides methods for emulating the `EventTarget` interface. It's not
- * meant to be used directly.
- *
- * @mixin
- */
-const EventTarget = {
-  /**
-   * Register an event listener.
-   *
-   * @param {String} type A string representing the event type to listen for
-   * @param {Function} listener The listener to add
-   * @param {Object} [options] An options object specifies characteristics about
-   *     the event listener
-   * @param {Boolean} [options.once=false] A `Boolean` indicating that the
-   *     listener should be invoked at most once after being added. If `true`,
-   *     the listener would be automatically removed when invoked.
-   * @public
-   */
-  addEventListener(type, listener, options = {}) {
-    let wrapper;
-
-    if (type === 'message') {
-      wrapper = function onMessage(data, isBinary) {
-        const event = new MessageEvent('message', {
-          data: isBinary ? data : data.toString()
-        });
-
-        event[kTarget] = this;
-        listener.call(this, event);
-      };
-    } else if (type === 'close') {
-      wrapper = function onClose(code, message) {
-        const event = new CloseEvent('close', {
-          code,
-          reason: message.toString(),
-          wasClean: this._closeFrameReceived && this._closeFrameSent
-        });
-
-        event[kTarget] = this;
-        listener.call(this, event);
-      };
-    } else if (type === 'error') {
-      wrapper = function onError(error) {
-        const event = new ErrorEvent('error', {
-          error,
-          message: error.message
-        });
-
-        event[kTarget] = this;
-        listener.call(this, event);
-      };
-    } else if (type === 'open') {
-      wrapper = function onOpen() {
-        const event = new Event('open');
-
-        event[kTarget] = this;
-        listener.call(this, event);
-      };
-    } else {
-      return;
-    }
-
-    wrapper[kForOnEventAttribute$1] = !!options[kForOnEventAttribute$1];
-    wrapper[kListener$1] = listener;
-
-    if (options.once) {
-      this.once(type, wrapper);
-    } else {
-      this.on(type, wrapper);
-    }
-  },
-
-  /**
-   * Remove an event listener.
-   *
-   * @param {String} type A string representing the event type to remove
-   * @param {Function} handler The listener to remove
-   * @public
-   */
-  removeEventListener(type, handler) {
-    for (const listener of this.listeners(type)) {
-      if (listener[kListener$1] === handler && !listener[kForOnEventAttribute$1]) {
-        this.removeListener(type, listener);
-        break;
-      }
-    }
-  }
-};
-
-var eventTarget = {
-  CloseEvent,
-  ErrorEvent,
-  Event,
-  EventTarget,
-  MessageEvent
-};
-
-const { tokenChars: tokenChars$1 } = validation;
-
-/**
- * Adds an offer to the map of extension offers or a parameter to the map of
- * parameters.
- *
- * @param {Object} dest The map of extension offers or parameters
- * @param {String} name The extension or parameter name
- * @param {(Object|Boolean|String)} elem The extension parameters or the
- *     parameter value
- * @private
- */
-function push(dest, name, elem) {
-  if (dest[name] === undefined) dest[name] = [elem];
-  else dest[name].push(elem);
-}
-
-/**
- * Parses the `Sec-WebSocket-Extensions` header into an object.
- *
- * @param {String} header The field value of the header
- * @return {Object} The parsed object
- * @public
- */
-function parse$2(header) {
-  const offers = Object.create(null);
-  let params = Object.create(null);
-  let mustUnescape = false;
-  let isEscaping = false;
-  let inQuotes = false;
-  let extensionName;
-  let paramName;
-  let start = -1;
-  let code = -1;
-  let end = -1;
-  let i = 0;
-
-  for (; i < header.length; i++) {
-    code = header.charCodeAt(i);
-
-    if (extensionName === undefined) {
-      if (end === -1 && tokenChars$1[code] === 1) {
-        if (start === -1) start = i;
-      } else if (
-        i !== 0 &&
-        (code === 0x20 /* ' ' */ || code === 0x09) /* '\t' */
-      ) {
-        if (end === -1 && start !== -1) end = i;
-      } else if (code === 0x3b /* ';' */ || code === 0x2c /* ',' */) {
-        if (start === -1) {
-          throw new SyntaxError(`Unexpected character at index ${i}`);
-        }
-
-        if (end === -1) end = i;
-        const name = header.slice(start, end);
-        if (code === 0x2c) {
-          push(offers, name, params);
-          params = Object.create(null);
-        } else {
-          extensionName = name;
-        }
-
-        start = end = -1;
-      } else {
-        throw new SyntaxError(`Unexpected character at index ${i}`);
-      }
-    } else if (paramName === undefined) {
-      if (end === -1 && tokenChars$1[code] === 1) {
-        if (start === -1) start = i;
-      } else if (code === 0x20 || code === 0x09) {
-        if (end === -1 && start !== -1) end = i;
-      } else if (code === 0x3b || code === 0x2c) {
-        if (start === -1) {
-          throw new SyntaxError(`Unexpected character at index ${i}`);
-        }
-
-        if (end === -1) end = i;
-        push(params, header.slice(start, end), true);
-        if (code === 0x2c) {
-          push(offers, extensionName, params);
-          params = Object.create(null);
-          extensionName = undefined;
-        }
-
-        start = end = -1;
-      } else if (code === 0x3d /* '=' */ && start !== -1 && end === -1) {
-        paramName = header.slice(start, i);
-        start = end = -1;
-      } else {
-        throw new SyntaxError(`Unexpected character at index ${i}`);
-      }
-    } else {
-      //
-      // The value of a quoted-string after unescaping must conform to the
-      // token ABNF, so only token characters are valid.
-      // Ref: https://tools.ietf.org/html/rfc6455#section-9.1
-      //
-      if (isEscaping) {
-        if (tokenChars$1[code] !== 1) {
-          throw new SyntaxError(`Unexpected character at index ${i}`);
-        }
-        if (start === -1) start = i;
-        else if (!mustUnescape) mustUnescape = true;
-        isEscaping = false;
-      } else if (inQuotes) {
-        if (tokenChars$1[code] === 1) {
-          if (start === -1) start = i;
-        } else if (code === 0x22 /* '"' */ && start !== -1) {
-          inQuotes = false;
-          end = i;
-        } else if (code === 0x5c /* '\' */) {
-          isEscaping = true;
-        } else {
-          throw new SyntaxError(`Unexpected character at index ${i}`);
-        }
-      } else if (code === 0x22 && header.charCodeAt(i - 1) === 0x3d) {
-        inQuotes = true;
-      } else if (end === -1 && tokenChars$1[code] === 1) {
-        if (start === -1) start = i;
-      } else if (start !== -1 && (code === 0x20 || code === 0x09)) {
-        if (end === -1) end = i;
-      } else if (code === 0x3b || code === 0x2c) {
-        if (start === -1) {
-          throw new SyntaxError(`Unexpected character at index ${i}`);
-        }
-
-        if (end === -1) end = i;
-        let value = header.slice(start, end);
-        if (mustUnescape) {
-          value = value.replace(/\\/g, '');
-          mustUnescape = false;
-        }
-        push(params, paramName, value);
-        if (code === 0x2c) {
-          push(offers, extensionName, params);
-          params = Object.create(null);
-          extensionName = undefined;
-        }
-
-        paramName = undefined;
-        start = end = -1;
-      } else {
-        throw new SyntaxError(`Unexpected character at index ${i}`);
-      }
-    }
-  }
-
-  if (start === -1 || inQuotes || code === 0x20 || code === 0x09) {
-    throw new SyntaxError('Unexpected end of input');
-  }
-
-  if (end === -1) end = i;
-  const token = header.slice(start, end);
-  if (extensionName === undefined) {
-    push(offers, token, params);
-  } else {
-    if (paramName === undefined) {
-      push(params, token, true);
-    } else if (mustUnescape) {
-      push(params, paramName, token.replace(/\\/g, ''));
-    } else {
-      push(params, paramName, token);
-    }
-    push(offers, extensionName, params);
-  }
-
-  return offers;
-}
-
-/**
- * Builds the `Sec-WebSocket-Extensions` header field value.
- *
- * @param {Object} extensions The map of extensions and parameters to format
- * @return {String} A string representing the given object
- * @public
- */
-function format$1(extensions) {
-  return Object.keys(extensions)
-    .map((extension) => {
-      let configurations = extensions[extension];
-      if (!Array.isArray(configurations)) configurations = [configurations];
-      return configurations
-        .map((params) => {
-          return [extension]
-            .concat(
-              Object.keys(params).map((k) => {
-                let values = params[k];
-                if (!Array.isArray(values)) values = [values];
-                return values
-                  .map((v) => (v === true ? k : `${k}=${v}`))
-                  .join('; ');
-              })
-            )
-            .join('; ');
-        })
-        .join(', ');
-    })
-    .join(', ');
-}
-
-var extension = { format: format$1, parse: parse$2 };
-
-const { randomBytes, createHash: createHash$1 } = require$$0$1;
-const { URL: URL$1 } = require$$2;
-
-
-
-
-const {
-  BINARY_TYPES,
-  EMPTY_BUFFER,
-  GUID: GUID$1,
-  kForOnEventAttribute,
-  kListener,
-  kStatusCode,
-  kWebSocket: kWebSocket$1,
-  NOOP
-} = constants;
-const {
-  EventTarget: { addEventListener, removeEventListener }
-} = eventTarget;
-const { format, parse: parse$1 } = extension;
-const { toBuffer } = bufferUtil;
-
-const readyStates = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
-const subprotocolRegex = /^[!#$%&'*+\-.0-9A-Z^_`|a-z~]+$/;
-const protocolVersions = [8, 13];
-const closeTimeout = 30 * 1000;
-
-/**
- * Class representing a WebSocket.
- *
- * @extends EventEmitter
- */
-class WebSocket$1 extends EventEmitter {
-  /**
-   * Create a new `WebSocket`.
-   *
-   * @param {(String|URL)} address The URL to which to connect
-   * @param {(String|String[])} [protocols] The subprotocols
-   * @param {Object} [options] Connection options
-   */
-  constructor(address, protocols, options) {
-    super();
-
-    this._binaryType = BINARY_TYPES[0];
-    this._closeCode = 1006;
-    this._closeFrameReceived = false;
-    this._closeFrameSent = false;
-    this._closeMessage = EMPTY_BUFFER;
-    this._closeTimer = null;
-    this._extensions = {};
-    this._paused = false;
-    this._protocol = '';
-    this._readyState = WebSocket$1.CONNECTING;
-    this._receiver = null;
-    this._sender = null;
-    this._socket = null;
-
-    if (address !== null) {
-      this._bufferedAmount = 0;
-      this._isServer = false;
-      this._redirects = 0;
-
-      if (protocols === undefined) {
-        protocols = [];
-      } else if (!Array.isArray(protocols)) {
-        if (typeof protocols === 'object' && protocols !== null) {
-          options = protocols;
-          protocols = [];
-        } else {
-          protocols = [protocols];
-        }
-      }
-
-      initAsClient(this, address, protocols, options);
-    } else {
-      this._isServer = true;
-    }
-  }
-
-  /**
-   * This deviates from the WHATWG interface since ws doesn't support the
-   * required default "blob" type (instead we define a custom "nodebuffer"
-   * type).
-   *
-   * @type {String}
-   */
-  get binaryType() {
-    return this._binaryType;
-  }
-
-  set binaryType(type) {
-    if (!BINARY_TYPES.includes(type)) return;
-
-    this._binaryType = type;
-
-    //
-    // Allow to change `binaryType` on the fly.
-    //
-    if (this._receiver) this._receiver._binaryType = type;
-  }
-
-  /**
-   * @type {Number}
-   */
-  get bufferedAmount() {
-    if (!this._socket) return this._bufferedAmount;
-
-    return this._socket._writableState.length + this._sender._bufferedBytes;
-  }
-
-  /**
-   * @type {String}
-   */
-  get extensions() {
-    return Object.keys(this._extensions).join();
-  }
-
-  /**
-   * @type {Boolean}
-   */
-  get isPaused() {
-    return this._paused;
-  }
-
-  /**
-   * @type {Function}
-   */
-  /* istanbul ignore next */
-  get onclose() {
-    return null;
-  }
-
-  /**
-   * @type {Function}
-   */
-  /* istanbul ignore next */
-  get onerror() {
-    return null;
-  }
-
-  /**
-   * @type {Function}
-   */
-  /* istanbul ignore next */
-  get onopen() {
-    return null;
-  }
-
-  /**
-   * @type {Function}
-   */
-  /* istanbul ignore next */
-  get onmessage() {
-    return null;
-  }
-
-  /**
-   * @type {String}
-   */
-  get protocol() {
-    return this._protocol;
-  }
-
-  /**
-   * @type {Number}
-   */
-  get readyState() {
-    return this._readyState;
-  }
-
-  /**
-   * @type {String}
-   */
-  get url() {
-    return this._url;
-  }
-
-  /**
-   * Set up the socket and the internal resources.
-   *
-   * @param {(net.Socket|tls.Socket)} socket The network socket between the
-   *     server and client
-   * @param {Buffer} head The first packet of the upgraded stream
-   * @param {Object} options Options object
-   * @param {Function} [options.generateMask] The function used to generate the
-   *     masking key
-   * @param {Number} [options.maxPayload=0] The maximum allowed message size
-   * @param {Boolean} [options.skipUTF8Validation=false] Specifies whether or
-   *     not to skip UTF-8 validation for text and close messages
-   * @private
-   */
-  setSocket(socket, head, options) {
-    const receiver$1 = new receiver({
-      binaryType: this.binaryType,
-      extensions: this._extensions,
-      isServer: this._isServer,
-      maxPayload: options.maxPayload,
-      skipUTF8Validation: options.skipUTF8Validation
-    });
-
-    this._sender = new sender(socket, this._extensions, options.generateMask);
-    this._receiver = receiver$1;
-    this._socket = socket;
-
-    receiver$1[kWebSocket$1] = this;
-    socket[kWebSocket$1] = this;
-
-    receiver$1.on('conclude', receiverOnConclude);
-    receiver$1.on('drain', receiverOnDrain);
-    receiver$1.on('error', receiverOnError);
-    receiver$1.on('message', receiverOnMessage);
-    receiver$1.on('ping', receiverOnPing);
-    receiver$1.on('pong', receiverOnPong);
-
-    socket.setTimeout(0);
-    socket.setNoDelay();
-
-    if (head.length > 0) socket.unshift(head);
-
-    socket.on('close', socketOnClose);
-    socket.on('data', socketOnData);
-    socket.on('end', socketOnEnd);
-    socket.on('error', socketOnError$1);
-
-    this._readyState = WebSocket$1.OPEN;
-    this.emit('open');
-  }
-
-  /**
-   * Emit the `'close'` event.
-   *
-   * @private
-   */
-  emitClose() {
-    if (!this._socket) {
-      this._readyState = WebSocket$1.CLOSED;
-      this.emit('close', this._closeCode, this._closeMessage);
-      return;
-    }
-
-    if (this._extensions[permessageDeflate.extensionName]) {
-      this._extensions[permessageDeflate.extensionName].cleanup();
-    }
-
-    this._receiver.removeAllListeners();
-    this._readyState = WebSocket$1.CLOSED;
-    this.emit('close', this._closeCode, this._closeMessage);
-  }
-
-  /**
-   * Start a closing handshake.
-   *
-   *          +----------+   +-----------+   +----------+
-   *     - - -|ws.close()|-->|close frame|-->|ws.close()|- - -
-   *    |     +----------+   +-----------+   +----------+     |
-   *          +----------+   +-----------+         |
-   * CLOSING  |ws.close()|<--|close frame|<--+-----+       CLOSING
-   *          +----------+   +-----------+   |
-   *    |           |                        |   +---+        |
-   *                +------------------------+-->|fin| - - - -
-   *    |         +---+                      |   +---+
-   *     - - - - -|fin|<---------------------+
-   *              +---+
-   *
-   * @param {Number} [code] Status code explaining why the connection is closing
-   * @param {(String|Buffer)} [data] The reason why the connection is
-   *     closing
-   * @public
-   */
-  close(code, data) {
-    if (this.readyState === WebSocket$1.CLOSED) return;
-    if (this.readyState === WebSocket$1.CONNECTING) {
-      const msg = 'WebSocket was closed before the connection was established';
-      return abortHandshake$1(this, this._req, msg);
-    }
-
-    if (this.readyState === WebSocket$1.CLOSING) {
-      if (
-        this._closeFrameSent &&
-        (this._closeFrameReceived || this._receiver._writableState.errorEmitted)
-      ) {
-        this._socket.end();
-      }
-
-      return;
-    }
-
-    this._readyState = WebSocket$1.CLOSING;
-    this._sender.close(code, data, !this._isServer, (err) => {
-      //
-      // This error is handled by the `'error'` listener on the socket. We only
-      // want to know if the close frame has been sent here.
-      //
-      if (err) return;
-
-      this._closeFrameSent = true;
-
-      if (
-        this._closeFrameReceived ||
-        this._receiver._writableState.errorEmitted
-      ) {
-        this._socket.end();
-      }
-    });
-
-    //
-    // Specify a timeout for the closing handshake to complete.
-    //
-    this._closeTimer = setTimeout(
-      this._socket.destroy.bind(this._socket),
-      closeTimeout
-    );
-  }
-
-  /**
-   * Pause the socket.
-   *
-   * @public
-   */
-  pause() {
-    if (
-      this.readyState === WebSocket$1.CONNECTING ||
-      this.readyState === WebSocket$1.CLOSED
-    ) {
-      return;
-    }
-
-    this._paused = true;
-    this._socket.pause();
-  }
-
-  /**
-   * Send a ping.
-   *
-   * @param {*} [data] The data to send
-   * @param {Boolean} [mask] Indicates whether or not to mask `data`
-   * @param {Function} [cb] Callback which is executed when the ping is sent
-   * @public
-   */
-  ping(data, mask, cb) {
-    if (this.readyState === WebSocket$1.CONNECTING) {
-      throw new Error('WebSocket is not open: readyState 0 (CONNECTING)');
-    }
-
-    if (typeof data === 'function') {
-      cb = data;
-      data = mask = undefined;
-    } else if (typeof mask === 'function') {
-      cb = mask;
-      mask = undefined;
-    }
-
-    if (typeof data === 'number') data = data.toString();
-
-    if (this.readyState !== WebSocket$1.OPEN) {
-      sendAfterClose(this, data, cb);
-      return;
-    }
-
-    if (mask === undefined) mask = !this._isServer;
-    this._sender.ping(data || EMPTY_BUFFER, mask, cb);
-  }
-
-  /**
-   * Send a pong.
-   *
-   * @param {*} [data] The data to send
-   * @param {Boolean} [mask] Indicates whether or not to mask `data`
-   * @param {Function} [cb] Callback which is executed when the pong is sent
-   * @public
-   */
-  pong(data, mask, cb) {
-    if (this.readyState === WebSocket$1.CONNECTING) {
-      throw new Error('WebSocket is not open: readyState 0 (CONNECTING)');
-    }
-
-    if (typeof data === 'function') {
-      cb = data;
-      data = mask = undefined;
-    } else if (typeof mask === 'function') {
-      cb = mask;
-      mask = undefined;
-    }
-
-    if (typeof data === 'number') data = data.toString();
-
-    if (this.readyState !== WebSocket$1.OPEN) {
-      sendAfterClose(this, data, cb);
-      return;
-    }
-
-    if (mask === undefined) mask = !this._isServer;
-    this._sender.pong(data || EMPTY_BUFFER, mask, cb);
-  }
-
-  /**
-   * Resume the socket.
-   *
-   * @public
-   */
-  resume() {
-    if (
-      this.readyState === WebSocket$1.CONNECTING ||
-      this.readyState === WebSocket$1.CLOSED
-    ) {
-      return;
-    }
-
-    this._paused = false;
-    if (!this._receiver._writableState.needDrain) this._socket.resume();
-  }
-
-  /**
-   * Send a data message.
-   *
-   * @param {*} data The message to send
-   * @param {Object} [options] Options object
-   * @param {Boolean} [options.binary] Specifies whether `data` is binary or
-   *     text
-   * @param {Boolean} [options.compress] Specifies whether or not to compress
-   *     `data`
-   * @param {Boolean} [options.fin=true] Specifies whether the fragment is the
-   *     last one
-   * @param {Boolean} [options.mask] Specifies whether or not to mask `data`
-   * @param {Function} [cb] Callback which is executed when data is written out
-   * @public
-   */
-  send(data, options, cb) {
-    if (this.readyState === WebSocket$1.CONNECTING) {
-      throw new Error('WebSocket is not open: readyState 0 (CONNECTING)');
-    }
-
-    if (typeof options === 'function') {
-      cb = options;
-      options = {};
-    }
-
-    if (typeof data === 'number') data = data.toString();
-
-    if (this.readyState !== WebSocket$1.OPEN) {
-      sendAfterClose(this, data, cb);
-      return;
-    }
-
-    const opts = {
-      binary: typeof data !== 'string',
-      mask: !this._isServer,
-      compress: true,
-      fin: true,
-      ...options
-    };
-
-    if (!this._extensions[permessageDeflate.extensionName]) {
-      opts.compress = false;
-    }
-
-    this._sender.send(data || EMPTY_BUFFER, opts, cb);
-  }
-
-  /**
-   * Forcibly close the connection.
-   *
-   * @public
-   */
-  terminate() {
-    if (this.readyState === WebSocket$1.CLOSED) return;
-    if (this.readyState === WebSocket$1.CONNECTING) {
-      const msg = 'WebSocket was closed before the connection was established';
-      return abortHandshake$1(this, this._req, msg);
-    }
-
-    if (this._socket) {
-      this._readyState = WebSocket$1.CLOSING;
-      this._socket.destroy();
-    }
-  }
-}
-
-/**
- * @constant {Number} CONNECTING
- * @memberof WebSocket
- */
-Object.defineProperty(WebSocket$1, 'CONNECTING', {
-  enumerable: true,
-  value: readyStates.indexOf('CONNECTING')
-});
-
-/**
- * @constant {Number} CONNECTING
- * @memberof WebSocket.prototype
- */
-Object.defineProperty(WebSocket$1.prototype, 'CONNECTING', {
-  enumerable: true,
-  value: readyStates.indexOf('CONNECTING')
-});
-
-/**
- * @constant {Number} OPEN
- * @memberof WebSocket
- */
-Object.defineProperty(WebSocket$1, 'OPEN', {
-  enumerable: true,
-  value: readyStates.indexOf('OPEN')
-});
-
-/**
- * @constant {Number} OPEN
- * @memberof WebSocket.prototype
- */
-Object.defineProperty(WebSocket$1.prototype, 'OPEN', {
-  enumerable: true,
-  value: readyStates.indexOf('OPEN')
-});
-
-/**
- * @constant {Number} CLOSING
- * @memberof WebSocket
- */
-Object.defineProperty(WebSocket$1, 'CLOSING', {
-  enumerable: true,
-  value: readyStates.indexOf('CLOSING')
-});
-
-/**
- * @constant {Number} CLOSING
- * @memberof WebSocket.prototype
- */
-Object.defineProperty(WebSocket$1.prototype, 'CLOSING', {
-  enumerable: true,
-  value: readyStates.indexOf('CLOSING')
-});
-
-/**
- * @constant {Number} CLOSED
- * @memberof WebSocket
- */
-Object.defineProperty(WebSocket$1, 'CLOSED', {
-  enumerable: true,
-  value: readyStates.indexOf('CLOSED')
-});
-
-/**
- * @constant {Number} CLOSED
- * @memberof WebSocket.prototype
- */
-Object.defineProperty(WebSocket$1.prototype, 'CLOSED', {
-  enumerable: true,
-  value: readyStates.indexOf('CLOSED')
-});
-
-[
-  'binaryType',
-  'bufferedAmount',
-  'extensions',
-  'isPaused',
-  'protocol',
-  'readyState',
-  'url'
-].forEach((property) => {
-  Object.defineProperty(WebSocket$1.prototype, property, { enumerable: true });
-});
-
-//
-// Add the `onopen`, `onerror`, `onclose`, and `onmessage` attributes.
-// See https://html.spec.whatwg.org/multipage/comms.html#the-websocket-interface
-//
-['open', 'error', 'close', 'message'].forEach((method) => {
-  Object.defineProperty(WebSocket$1.prototype, `on${method}`, {
-    enumerable: true,
-    get() {
-      for (const listener of this.listeners(method)) {
-        if (listener[kForOnEventAttribute]) return listener[kListener];
-      }
-
-      return null;
-    },
-    set(handler) {
-      for (const listener of this.listeners(method)) {
-        if (listener[kForOnEventAttribute]) {
-          this.removeListener(method, listener);
-          break;
-        }
-      }
-
-      if (typeof handler !== 'function') return;
-
-      this.addEventListener(method, handler, {
-        [kForOnEventAttribute]: true
-      });
-    }
-  });
-});
-
-WebSocket$1.prototype.addEventListener = addEventListener;
-WebSocket$1.prototype.removeEventListener = removeEventListener;
-
-var websocket = WebSocket$1;
-
-/**
- * Initialize a WebSocket client.
- *
- * @param {WebSocket} websocket The client to initialize
- * @param {(String|URL)} address The URL to which to connect
- * @param {Array} protocols The subprotocols
- * @param {Object} [options] Connection options
- * @param {Boolean} [options.followRedirects=false] Whether or not to follow
- *     redirects
- * @param {Function} [options.generateMask] The function used to generate the
- *     masking key
- * @param {Number} [options.handshakeTimeout] Timeout in milliseconds for the
- *     handshake request
- * @param {Number} [options.maxPayload=104857600] The maximum allowed message
- *     size
- * @param {Number} [options.maxRedirects=10] The maximum number of redirects
- *     allowed
- * @param {String} [options.origin] Value of the `Origin` or
- *     `Sec-WebSocket-Origin` header
- * @param {(Boolean|Object)} [options.perMessageDeflate=true] Enable/disable
- *     permessage-deflate
- * @param {Number} [options.protocolVersion=13] Value of the
- *     `Sec-WebSocket-Version` header
- * @param {Boolean} [options.skipUTF8Validation=false] Specifies whether or
- *     not to skip UTF-8 validation for text and close messages
- * @private
- */
-function initAsClient(websocket, address, protocols, options) {
-  const opts = {
-    protocolVersion: protocolVersions[1],
-    maxPayload: 100 * 1024 * 1024,
-    skipUTF8Validation: false,
-    perMessageDeflate: true,
-    followRedirects: false,
-    maxRedirects: 10,
-    ...options,
-    createConnection: undefined,
-    socketPath: undefined,
-    hostname: undefined,
-    protocol: undefined,
-    timeout: undefined,
-    method: undefined,
-    host: undefined,
-    path: undefined,
-    port: undefined
-  };
-
-  if (!protocolVersions.includes(opts.protocolVersion)) {
-    throw new RangeError(
-      `Unsupported protocol version: ${opts.protocolVersion} ` +
-        `(supported versions: ${protocolVersions.join(', ')})`
-    );
-  }
-
-  let parsedUrl;
-
-  if (address instanceof URL$1) {
-    parsedUrl = address;
-    websocket._url = address.href;
-  } else {
-    try {
-      parsedUrl = new URL$1(address);
-    } catch (e) {
-      throw new SyntaxError(`Invalid URL: ${address}`);
-    }
-
-    websocket._url = address;
-  }
-
-  const isSecure = parsedUrl.protocol === 'wss:';
-  const isUnixSocket = parsedUrl.protocol === 'ws+unix:';
-  let invalidURLMessage;
-
-  if (parsedUrl.protocol !== 'ws:' && !isSecure && !isUnixSocket) {
-    invalidURLMessage =
-      'The URL\'s protocol must be one of "ws:", "wss:", or "ws+unix:"';
-  } else if (isUnixSocket && !parsedUrl.pathname) {
-    invalidURLMessage = "The URL's pathname is empty";
-  } else if (parsedUrl.hash) {
-    invalidURLMessage = 'The URL contains a fragment identifier';
-  }
-
-  if (invalidURLMessage) {
-    const err = new SyntaxError(invalidURLMessage);
-
-    if (websocket._redirects === 0) {
-      throw err;
-    } else {
-      emitErrorAndClose(websocket, err);
-      return;
-    }
-  }
-
-  const defaultPort = isSecure ? 443 : 80;
-  const key = randomBytes(16).toString('base64');
-  const get = isSecure ? https.get : http.get;
-  const protocolSet = new Set();
-  let perMessageDeflate;
-
-  opts.createConnection = isSecure ? tlsConnect : netConnect;
-  opts.defaultPort = opts.defaultPort || defaultPort;
-  opts.port = parsedUrl.port || defaultPort;
-  opts.host = parsedUrl.hostname.startsWith('[')
-    ? parsedUrl.hostname.slice(1, -1)
-    : parsedUrl.hostname;
-  opts.headers = {
-    'Sec-WebSocket-Version': opts.protocolVersion,
-    'Sec-WebSocket-Key': key,
-    Connection: 'Upgrade',
-    Upgrade: 'websocket',
-    ...opts.headers
-  };
-  opts.path = parsedUrl.pathname + parsedUrl.search;
-  opts.timeout = opts.handshakeTimeout;
-
-  if (opts.perMessageDeflate) {
-    perMessageDeflate = new permessageDeflate(
-      opts.perMessageDeflate !== true ? opts.perMessageDeflate : {},
-      false,
-      opts.maxPayload
-    );
-    opts.headers['Sec-WebSocket-Extensions'] = format({
-      [permessageDeflate.extensionName]: perMessageDeflate.offer()
-    });
-  }
-  if (protocols.length) {
-    for (const protocol of protocols) {
-      if (
-        typeof protocol !== 'string' ||
-        !subprotocolRegex.test(protocol) ||
-        protocolSet.has(protocol)
-      ) {
-        throw new SyntaxError(
-          'An invalid or duplicated subprotocol was specified'
-        );
-      }
-
-      protocolSet.add(protocol);
-    }
-
-    opts.headers['Sec-WebSocket-Protocol'] = protocols.join(',');
-  }
-  if (opts.origin) {
-    if (opts.protocolVersion < 13) {
-      opts.headers['Sec-WebSocket-Origin'] = opts.origin;
-    } else {
-      opts.headers.Origin = opts.origin;
-    }
-  }
-  if (parsedUrl.username || parsedUrl.password) {
-    opts.auth = `${parsedUrl.username}:${parsedUrl.password}`;
-  }
-
-  if (isUnixSocket) {
-    const parts = opts.path.split(':');
-
-    opts.socketPath = parts[0];
-    opts.path = parts[1];
-  }
-
-  if (opts.followRedirects) {
-    if (websocket._redirects === 0) {
-      websocket._originalHost = parsedUrl.host;
-
-      const headers = options && options.headers;
-
-      //
-      // Shallow copy the user provided options so that headers can be changed
-      // without mutating the original object.
-      //
-      options = { ...options, headers: {} };
-
-      if (headers) {
-        for (const [key, value] of Object.entries(headers)) {
-          options.headers[key.toLowerCase()] = value;
-        }
-      }
-    } else if (parsedUrl.host !== websocket._originalHost) {
-      //
-      // Match curl 7.77.0 behavior and drop the following headers. These
-      // headers are also dropped when following a redirect to a subdomain.
-      //
-      delete opts.headers.authorization;
-      delete opts.headers.cookie;
-      delete opts.headers.host;
-      opts.auth = undefined;
-    }
-
-    //
-    // Match curl 7.77.0 behavior and make the first `Authorization` header win.
-    // If the `Authorization` header is set, then there is nothing to do as it
-    // will take precedence.
-    //
-    if (opts.auth && !options.headers.authorization) {
-      options.headers.authorization =
-        'Basic ' + Buffer$1.from(opts.auth).toString('base64');
-    }
-  }
-
-  let req = (websocket._req = get(opts));
-
-  if (opts.timeout) {
-    req.on('timeout', () => {
-      abortHandshake$1(websocket, req, 'Opening handshake has timed out');
-    });
-  }
-
-  req.on('error', (err) => {
-    if (req === null || req.aborted) return;
-
-    req = websocket._req = null;
-    emitErrorAndClose(websocket, err);
-  });
-
-  req.on('response', (res) => {
-    const location = res.headers.location;
-    const statusCode = res.statusCode;
-
-    if (
-      location &&
-      opts.followRedirects &&
-      statusCode >= 300 &&
-      statusCode < 400
-    ) {
-      if (++websocket._redirects > opts.maxRedirects) {
-        abortHandshake$1(websocket, req, 'Maximum redirects exceeded');
-        return;
-      }
-
-      req.abort();
-
-      let addr;
-
-      try {
-        addr = new URL$1(location, address);
-      } catch (e) {
-        const err = new SyntaxError(`Invalid URL: ${location}`);
-        emitErrorAndClose(websocket, err);
-        return;
-      }
-
-      initAsClient(websocket, addr, protocols, options);
-    } else if (!websocket.emit('unexpected-response', req, res)) {
-      abortHandshake$1(
-        websocket,
-        req,
-        `Unexpected server response: ${res.statusCode}`
-      );
-    }
-  });
-
-  req.on('upgrade', (res, socket, head) => {
-    websocket.emit('upgrade', res);
-
-    //
-    // The user may have closed the connection from a listener of the `upgrade`
-    // event.
-    //
-    if (websocket.readyState !== WebSocket$1.CONNECTING) return;
-
-    req = websocket._req = null;
-
-    const digest = createHash$1('sha1')
-      .update(key + GUID$1)
-      .digest('base64');
-
-    if (res.headers['sec-websocket-accept'] !== digest) {
-      abortHandshake$1(websocket, socket, 'Invalid Sec-WebSocket-Accept header');
-      return;
-    }
-
-    const serverProt = res.headers['sec-websocket-protocol'];
-    let protError;
-
-    if (serverProt !== undefined) {
-      if (!protocolSet.size) {
-        protError = 'Server sent a subprotocol but none was requested';
-      } else if (!protocolSet.has(serverProt)) {
-        protError = 'Server sent an invalid subprotocol';
-      }
-    } else if (protocolSet.size) {
-      protError = 'Server sent no subprotocol';
-    }
-
-    if (protError) {
-      abortHandshake$1(websocket, socket, protError);
-      return;
-    }
-
-    if (serverProt) websocket._protocol = serverProt;
-
-    const secWebSocketExtensions = res.headers['sec-websocket-extensions'];
-
-    if (secWebSocketExtensions !== undefined) {
-      if (!perMessageDeflate) {
-        const message =
-          'Server sent a Sec-WebSocket-Extensions header but no extension ' +
-          'was requested';
-        abortHandshake$1(websocket, socket, message);
-        return;
-      }
-
-      let extensions;
-
-      try {
-        extensions = parse$1(secWebSocketExtensions);
-      } catch (err) {
-        const message = 'Invalid Sec-WebSocket-Extensions header';
-        abortHandshake$1(websocket, socket, message);
-        return;
-      }
-
-      const extensionNames = Object.keys(extensions);
-
-      if (
-        extensionNames.length !== 1 ||
-        extensionNames[0] !== permessageDeflate.extensionName
-      ) {
-        const message = 'Server indicated an extension that was not requested';
-        abortHandshake$1(websocket, socket, message);
-        return;
-      }
-
-      try {
-        perMessageDeflate.accept(extensions[permessageDeflate.extensionName]);
-      } catch (err) {
-        const message = 'Invalid Sec-WebSocket-Extensions header';
-        abortHandshake$1(websocket, socket, message);
-        return;
-      }
-
-      websocket._extensions[permessageDeflate.extensionName] =
-        perMessageDeflate;
-    }
-
-    websocket.setSocket(socket, head, {
-      generateMask: opts.generateMask,
-      maxPayload: opts.maxPayload,
-      skipUTF8Validation: opts.skipUTF8Validation
-    });
-  });
-}
-
-/**
- * Emit the `'error'` and `'close'` event.
- *
- * @param {WebSocket} websocket The WebSocket instance
- * @param {Error} The error to emit
- * @private
- */
-function emitErrorAndClose(websocket, err) {
-  websocket._readyState = WebSocket$1.CLOSING;
-  websocket.emit('error', err);
-  websocket.emitClose();
-}
-
-/**
- * Create a `net.Socket` and initiate a connection.
- *
- * @param {Object} options Connection options
- * @return {net.Socket} The newly created socket used to start the connection
- * @private
- */
-function netConnect(options) {
-  options.path = options.socketPath;
-  return net.connect(options);
-}
-
-/**
- * Create a `tls.TLSSocket` and initiate a connection.
- *
- * @param {Object} options Connection options
- * @return {tls.TLSSocket} The newly created socket used to start the connection
- * @private
- */
-function tlsConnect(options) {
-  options.path = undefined;
-
-  if (!options.servername && options.servername !== '') {
-    options.servername = net.isIP(options.host) ? '' : options.host;
-  }
-
-  return tls.connect(options);
-}
-
-/**
- * Abort the handshake and emit an error.
- *
- * @param {WebSocket} websocket The WebSocket instance
- * @param {(http.ClientRequest|net.Socket|tls.Socket)} stream The request to
- *     abort or the socket to destroy
- * @param {String} message The error message
- * @private
- */
-function abortHandshake$1(websocket, stream, message) {
-  websocket._readyState = WebSocket$1.CLOSING;
-
-  const err = new Error(message);
-  Error.captureStackTrace(err, abortHandshake$1);
-
-  if (stream.setHeader) {
-    stream.abort();
-
-    if (stream.socket && !stream.socket.destroyed) {
-      //
-      // On Node.js >= 14.3.0 `request.abort()` does not destroy the socket if
-      // called after the request completed. See
-      // https://github.com/websockets/ws/issues/1869.
-      //
-      stream.socket.destroy();
-    }
-
-    stream.once('abort', websocket.emitClose.bind(websocket));
-    websocket.emit('error', err);
-  } else {
-    stream.destroy(err);
-    stream.once('error', websocket.emit.bind(websocket, 'error'));
-    stream.once('close', websocket.emitClose.bind(websocket));
-  }
-}
-
-/**
- * Handle cases where the `ping()`, `pong()`, or `send()` methods are called
- * when the `readyState` attribute is `CLOSING` or `CLOSED`.
- *
- * @param {WebSocket} websocket The WebSocket instance
- * @param {*} [data] The data to send
- * @param {Function} [cb] Callback
- * @private
- */
-function sendAfterClose(websocket, data, cb) {
-  if (data) {
-    const length = toBuffer(data).length;
-
-    //
-    // The `_bufferedAmount` property is used only when the peer is a client and
-    // the opening handshake fails. Under these circumstances, in fact, the
-    // `setSocket()` method is not called, so the `_socket` and `_sender`
-    // properties are set to `null`.
-    //
-    if (websocket._socket) websocket._sender._bufferedBytes += length;
-    else websocket._bufferedAmount += length;
-  }
-
-  if (cb) {
-    const err = new Error(
-      `WebSocket is not open: readyState ${websocket.readyState} ` +
-        `(${readyStates[websocket.readyState]})`
-    );
-    cb(err);
-  }
-}
-
-/**
- * The listener of the `Receiver` `'conclude'` event.
- *
- * @param {Number} code The status code
- * @param {Buffer} reason The reason for closing
- * @private
- */
-function receiverOnConclude(code, reason) {
-  const websocket = this[kWebSocket$1];
-
-  websocket._closeFrameReceived = true;
-  websocket._closeMessage = reason;
-  websocket._closeCode = code;
-
-  if (websocket._socket[kWebSocket$1] === undefined) return;
-
-  websocket._socket.removeListener('data', socketOnData);
-  browser$1.nextTick(resume, websocket._socket);
-
-  if (code === 1005) websocket.close();
-  else websocket.close(code, reason);
-}
-
-/**
- * The listener of the `Receiver` `'drain'` event.
- *
- * @private
- */
-function receiverOnDrain() {
-  const websocket = this[kWebSocket$1];
-
-  if (!websocket.isPaused) websocket._socket.resume();
-}
-
-/**
- * The listener of the `Receiver` `'error'` event.
- *
- * @param {(RangeError|Error)} err The emitted error
- * @private
- */
-function receiverOnError(err) {
-  const websocket = this[kWebSocket$1];
-
-  if (websocket._socket[kWebSocket$1] !== undefined) {
-    websocket._socket.removeListener('data', socketOnData);
-
-    //
-    // On Node.js < 14.0.0 the `'error'` event is emitted synchronously. See
-    // https://github.com/websockets/ws/issues/1940.
-    //
-    browser$1.nextTick(resume, websocket._socket);
-
-    websocket.close(err[kStatusCode]);
-  }
-
-  websocket.emit('error', err);
-}
-
-/**
- * The listener of the `Receiver` `'finish'` event.
- *
- * @private
- */
-function receiverOnFinish() {
-  this[kWebSocket$1].emitClose();
-}
-
-/**
- * The listener of the `Receiver` `'message'` event.
- *
- * @param {Buffer|ArrayBuffer|Buffer[])} data The message
- * @param {Boolean} isBinary Specifies whether the message is binary or not
- * @private
- */
-function receiverOnMessage(data, isBinary) {
-  this[kWebSocket$1].emit('message', data, isBinary);
-}
-
-/**
- * The listener of the `Receiver` `'ping'` event.
- *
- * @param {Buffer} data The data included in the ping frame
- * @private
- */
-function receiverOnPing(data) {
-  const websocket = this[kWebSocket$1];
-
-  websocket.pong(data, !websocket._isServer, NOOP);
-  websocket.emit('ping', data);
-}
-
-/**
- * The listener of the `Receiver` `'pong'` event.
- *
- * @param {Buffer} data The data included in the pong frame
- * @private
- */
-function receiverOnPong(data) {
-  this[kWebSocket$1].emit('pong', data);
-}
-
-/**
- * Resume a readable stream
- *
- * @param {Readable} stream The readable stream
- * @private
- */
-function resume(stream) {
-  stream.resume();
-}
-
-/**
- * The listener of the `net.Socket` `'close'` event.
- *
- * @private
- */
-function socketOnClose() {
-  const websocket = this[kWebSocket$1];
-
-  this.removeListener('close', socketOnClose);
-  this.removeListener('data', socketOnData);
-  this.removeListener('end', socketOnEnd);
-
-  websocket._readyState = WebSocket$1.CLOSING;
-
-  let chunk;
-
-  //
-  // The close frame might not have been received or the `'end'` event emitted,
-  // for example, if the socket was destroyed due to an error. Ensure that the
-  // `receiver` stream is closed after writing any remaining buffered data to
-  // it. If the readable side of the socket is in flowing mode then there is no
-  // buffered data as everything has been already written and `readable.read()`
-  // will return `null`. If instead, the socket is paused, any possible buffered
-  // data will be read as a single chunk.
-  //
-  if (
-    !this._readableState.endEmitted &&
-    !websocket._closeFrameReceived &&
-    !websocket._receiver._writableState.errorEmitted &&
-    (chunk = websocket._socket.read()) !== null
-  ) {
-    websocket._receiver.write(chunk);
-  }
-
-  websocket._receiver.end();
-
-  this[kWebSocket$1] = undefined;
-
-  clearTimeout(websocket._closeTimer);
-
-  if (
-    websocket._receiver._writableState.finished ||
-    websocket._receiver._writableState.errorEmitted
-  ) {
-    websocket.emitClose();
-  } else {
-    websocket._receiver.on('error', receiverOnFinish);
-    websocket._receiver.on('finish', receiverOnFinish);
-  }
-}
-
-/**
- * The listener of the `net.Socket` `'data'` event.
- *
- * @param {Buffer} chunk A chunk of data
- * @private
- */
-function socketOnData(chunk) {
-  if (!this[kWebSocket$1]._receiver.write(chunk)) {
-    this.pause();
-  }
-}
-
-/**
- * The listener of the `net.Socket` `'end'` event.
- *
- * @private
- */
-function socketOnEnd() {
-  const websocket = this[kWebSocket$1];
-
-  websocket._readyState = WebSocket$1.CLOSING;
-  websocket._receiver.end();
-  this.end();
-}
-
-/**
- * The listener of the `net.Socket` `'error'` event.
- *
- * @private
- */
-function socketOnError$1() {
-  const websocket = this[kWebSocket$1];
-
-  this.removeListener('error', socketOnError$1);
-  this.on('error', NOOP);
-
-  if (websocket) {
-    websocket._readyState = WebSocket$1.CLOSING;
-    this.destroy();
-  }
-}
-
-const { tokenChars } = validation;
-
-/**
- * Parses the `Sec-WebSocket-Protocol` header into a set of subprotocol names.
- *
- * @param {String} header The field value of the header
- * @return {Set} The subprotocol names
- * @public
- */
-function parse(header) {
-  const protocols = new Set();
-  let start = -1;
-  let end = -1;
-  let i = 0;
-
-  for (i; i < header.length; i++) {
-    const code = header.charCodeAt(i);
-
-    if (end === -1 && tokenChars[code] === 1) {
-      if (start === -1) start = i;
-    } else if (
-      i !== 0 &&
-      (code === 0x20 /* ' ' */ || code === 0x09) /* '\t' */
-    ) {
-      if (end === -1 && start !== -1) end = i;
-    } else if (code === 0x2c /* ',' */) {
-      if (start === -1) {
-        throw new SyntaxError(`Unexpected character at index ${i}`);
-      }
-
-      if (end === -1) end = i;
-
-      const protocol = header.slice(start, end);
-
-      if (protocols.has(protocol)) {
-        throw new SyntaxError(`The "${protocol}" subprotocol is duplicated`);
-      }
-
-      protocols.add(protocol);
-      start = end = -1;
-    } else {
-      throw new SyntaxError(`Unexpected character at index ${i}`);
-    }
-  }
-
-  if (start === -1 || end !== -1) {
-    throw new SyntaxError('Unexpected end of input');
-  }
-
-  const protocol = header.slice(start, i);
-
-  if (protocols.has(protocol)) {
-    throw new SyntaxError(`The "${protocol}" subprotocol is duplicated`);
-  }
-
-  protocols.add(protocol);
-  return protocols;
-}
-
-var subprotocol = { parse };
-
-const { createHash } = require$$0$1;
-
-
-
-
-
-const { GUID, kWebSocket } = constants;
-
-const keyRegex = /^[+/0-9A-Za-z]{22}==$/;
-
-const RUNNING = 0;
-const CLOSING = 1;
-const CLOSED = 2;
-
-/**
- * Class representing a WebSocket server.
- *
- * @extends EventEmitter
- */
-class WebSocketServer$1 extends EventEmitter {
-  /**
-   * Create a `WebSocketServer` instance.
-   *
-   * @param {Object} options Configuration options
-   * @param {Number} [options.backlog=511] The maximum length of the queue of
-   *     pending connections
-   * @param {Boolean} [options.clientTracking=true] Specifies whether or not to
-   *     track clients
-   * @param {Function} [options.handleProtocols] A hook to handle protocols
-   * @param {String} [options.host] The hostname where to bind the server
-   * @param {Number} [options.maxPayload=104857600] The maximum allowed message
-   *     size
-   * @param {Boolean} [options.noServer=false] Enable no server mode
-   * @param {String} [options.path] Accept only connections matching this path
-   * @param {(Boolean|Object)} [options.perMessageDeflate=false] Enable/disable
-   *     permessage-deflate
-   * @param {Number} [options.port] The port where to bind the server
-   * @param {(http.Server|https.Server)} [options.server] A pre-created HTTP/S
-   *     server to use
-   * @param {Boolean} [options.skipUTF8Validation=false] Specifies whether or
-   *     not to skip UTF-8 validation for text and close messages
-   * @param {Function} [options.verifyClient] A hook to reject connections
-   * @param {Function} [options.WebSocket=WebSocket] Specifies the `WebSocket`
-   *     class to use. It must be the `WebSocket` class or class that extends it
-   * @param {Function} [callback] A listener for the `listening` event
-   */
-  constructor(options, callback) {
-    super();
-
-    options = {
-      maxPayload: 100 * 1024 * 1024,
-      skipUTF8Validation: false,
-      perMessageDeflate: false,
-      handleProtocols: null,
-      clientTracking: true,
-      verifyClient: null,
-      noServer: false,
-      backlog: null, // use default (511 as implemented in net.js)
-      server: null,
-      host: null,
-      path: null,
-      port: null,
-      WebSocket: websocket,
-      ...options
-    };
-
-    if (
-      (options.port == null && !options.server && !options.noServer) ||
-      (options.port != null && (options.server || options.noServer)) ||
-      (options.server && options.noServer)
-    ) {
-      throw new TypeError(
-        'One and only one of the "port", "server", or "noServer" options ' +
-          'must be specified'
-      );
-    }
-
-    if (options.port != null) {
-      this._server = http.createServer((req, res) => {
-        const body = http.STATUS_CODES[426];
-
-        res.writeHead(426, {
-          'Content-Length': body.length,
-          'Content-Type': 'text/plain'
-        });
-        res.end(body);
-      });
-      this._server.listen(
-        options.port,
-        options.host,
-        options.backlog,
-        callback
-      );
-    } else if (options.server) {
-      this._server = options.server;
-    }
-
-    if (this._server) {
-      const emitConnection = this.emit.bind(this, 'connection');
-
-      this._removeListeners = addListeners(this._server, {
-        listening: this.emit.bind(this, 'listening'),
-        error: this.emit.bind(this, 'error'),
-        upgrade: (req, socket, head) => {
-          this.handleUpgrade(req, socket, head, emitConnection);
-        }
-      });
-    }
-
-    if (options.perMessageDeflate === true) options.perMessageDeflate = {};
-    if (options.clientTracking) {
-      this.clients = new Set();
-      this._shouldEmitClose = false;
-    }
-
-    this.options = options;
-    this._state = RUNNING;
-  }
-
-  /**
-   * Returns the bound address, the address family name, and port of the server
-   * as reported by the operating system if listening on an IP socket.
-   * If the server is listening on a pipe or UNIX domain socket, the name is
-   * returned as a string.
-   *
-   * @return {(Object|String|null)} The address of the server
-   * @public
-   */
-  address() {
-    if (this.options.noServer) {
-      throw new Error('The server is operating in "noServer" mode');
-    }
-
-    if (!this._server) return null;
-    return this._server.address();
-  }
-
-  /**
-   * Stop the server from accepting new connections and emit the `'close'` event
-   * when all existing connections are closed.
-   *
-   * @param {Function} [cb] A one-time listener for the `'close'` event
-   * @public
-   */
-  close(cb) {
-    if (this._state === CLOSED) {
-      if (cb) {
-        this.once('close', () => {
-          cb(new Error('The server is not running'));
-        });
-      }
-
-      browser$1.nextTick(emitClose, this);
-      return;
-    }
-
-    if (cb) this.once('close', cb);
-
-    if (this._state === CLOSING) return;
-    this._state = CLOSING;
-
-    if (this.options.noServer || this.options.server) {
-      if (this._server) {
-        this._removeListeners();
-        this._removeListeners = this._server = null;
-      }
-
-      if (this.clients) {
-        if (!this.clients.size) {
-          browser$1.nextTick(emitClose, this);
-        } else {
-          this._shouldEmitClose = true;
-        }
-      } else {
-        browser$1.nextTick(emitClose, this);
-      }
-    } else {
-      const server = this._server;
-
-      this._removeListeners();
-      this._removeListeners = this._server = null;
-
-      //
-      // The HTTP/S server was created internally. Close it, and rely on its
-      // `'close'` event.
-      //
-      server.close(() => {
-        emitClose(this);
-      });
-    }
-  }
-
-  /**
-   * See if a given request should be handled by this server instance.
-   *
-   * @param {http.IncomingMessage} req Request object to inspect
-   * @return {Boolean} `true` if the request is valid, else `false`
-   * @public
-   */
-  shouldHandle(req) {
-    if (this.options.path) {
-      const index = req.url.indexOf('?');
-      const pathname = index !== -1 ? req.url.slice(0, index) : req.url;
-
-      if (pathname !== this.options.path) return false;
-    }
-
-    return true;
-  }
-
-  /**
-   * Handle a HTTP Upgrade request.
-   *
-   * @param {http.IncomingMessage} req The request object
-   * @param {(net.Socket|tls.Socket)} socket The network socket between the
-   *     server and client
-   * @param {Buffer} head The first packet of the upgraded stream
-   * @param {Function} cb Callback
-   * @public
-   */
-  handleUpgrade(req, socket, head, cb) {
-    socket.on('error', socketOnError);
-
-    const key =
-      req.headers['sec-websocket-key'] !== undefined
-        ? req.headers['sec-websocket-key']
-        : false;
-    const version = +req.headers['sec-websocket-version'];
-
-    if (
-      req.method !== 'GET' ||
-      req.headers.upgrade.toLowerCase() !== 'websocket' ||
-      !key ||
-      !keyRegex.test(key) ||
-      (version !== 8 && version !== 13) ||
-      !this.shouldHandle(req)
-    ) {
-      return abortHandshake(socket, 400);
-    }
-
-    const secWebSocketProtocol = req.headers['sec-websocket-protocol'];
-    let protocols = new Set();
-
-    if (secWebSocketProtocol !== undefined) {
-      try {
-        protocols = subprotocol.parse(secWebSocketProtocol);
-      } catch (err) {
-        return abortHandshake(socket, 400);
-      }
-    }
-
-    const secWebSocketExtensions = req.headers['sec-websocket-extensions'];
-    const extensions = {};
-
-    if (
-      this.options.perMessageDeflate &&
-      secWebSocketExtensions !== undefined
-    ) {
-      const perMessageDeflate = new permessageDeflate(
-        this.options.perMessageDeflate,
-        true,
-        this.options.maxPayload
-      );
-
-      try {
-        const offers = extension.parse(secWebSocketExtensions);
-
-        if (offers[permessageDeflate.extensionName]) {
-          perMessageDeflate.accept(offers[permessageDeflate.extensionName]);
-          extensions[permessageDeflate.extensionName] = perMessageDeflate;
-        }
-      } catch (err) {
-        return abortHandshake(socket, 400);
-      }
-    }
-
-    //
-    // Optionally call external client verification handler.
-    //
-    if (this.options.verifyClient) {
-      const info = {
-        origin:
-          req.headers[`${version === 8 ? 'sec-websocket-origin' : 'origin'}`],
-        secure: !!(req.socket.authorized || req.socket.encrypted),
-        req
-      };
-
-      if (this.options.verifyClient.length === 2) {
-        this.options.verifyClient(info, (verified, code, message, headers) => {
-          if (!verified) {
-            return abortHandshake(socket, code || 401, message, headers);
-          }
-
-          this.completeUpgrade(
-            extensions,
-            key,
-            protocols,
-            req,
-            socket,
-            head,
-            cb
-          );
-        });
-        return;
-      }
-
-      if (!this.options.verifyClient(info)) return abortHandshake(socket, 401);
-    }
-
-    this.completeUpgrade(extensions, key, protocols, req, socket, head, cb);
-  }
-
-  /**
-   * Upgrade the connection to WebSocket.
-   *
-   * @param {Object} extensions The accepted extensions
-   * @param {String} key The value of the `Sec-WebSocket-Key` header
-   * @param {Set} protocols The subprotocols
-   * @param {http.IncomingMessage} req The request object
-   * @param {(net.Socket|tls.Socket)} socket The network socket between the
-   *     server and client
-   * @param {Buffer} head The first packet of the upgraded stream
-   * @param {Function} cb Callback
-   * @throws {Error} If called more than once with the same socket
-   * @private
-   */
-  completeUpgrade(extensions, key, protocols, req, socket, head, cb) {
-    //
-    // Destroy the socket if the client has already sent a FIN packet.
-    //
-    if (!socket.readable || !socket.writable) return socket.destroy();
-
-    if (socket[kWebSocket]) {
-      throw new Error(
-        'server.handleUpgrade() was called more than once with the same ' +
-          'socket, possibly due to a misconfiguration'
-      );
-    }
-
-    if (this._state > RUNNING) return abortHandshake(socket, 503);
-
-    const digest = createHash('sha1')
-      .update(key + GUID)
-      .digest('base64');
-
-    const headers = [
-      'HTTP/1.1 101 Switching Protocols',
-      'Upgrade: websocket',
-      'Connection: Upgrade',
-      `Sec-WebSocket-Accept: ${digest}`
-    ];
-
-    const ws = new this.options.WebSocket(null);
-
-    if (protocols.size) {
-      //
-      // Optionally call external protocol selection handler.
-      //
-      const protocol = this.options.handleProtocols
-        ? this.options.handleProtocols(protocols, req)
-        : protocols.values().next().value;
-
-      if (protocol) {
-        headers.push(`Sec-WebSocket-Protocol: ${protocol}`);
-        ws._protocol = protocol;
-      }
-    }
-
-    if (extensions[permessageDeflate.extensionName]) {
-      const params = extensions[permessageDeflate.extensionName].params;
-      const value = extension.format({
-        [permessageDeflate.extensionName]: [params]
-      });
-      headers.push(`Sec-WebSocket-Extensions: ${value}`);
-      ws._extensions = extensions;
-    }
-
-    //
-    // Allow external modification/inspection of handshake headers.
-    //
-    this.emit('headers', headers, req);
-
-    socket.write(headers.concat('\r\n').join('\r\n'));
-    socket.removeListener('error', socketOnError);
-
-    ws.setSocket(socket, head, {
-      maxPayload: this.options.maxPayload,
-      skipUTF8Validation: this.options.skipUTF8Validation
-    });
-
-    if (this.clients) {
-      this.clients.add(ws);
-      ws.on('close', () => {
-        this.clients.delete(ws);
-
-        if (this._shouldEmitClose && !this.clients.size) {
-          browser$1.nextTick(emitClose, this);
-        }
-      });
-    }
-
-    cb(ws, req);
-  }
-}
-
-var websocketServer = WebSocketServer$1;
-
-/**
- * Add event listeners on an `EventEmitter` using a map of <event, listener>
- * pairs.
- *
- * @param {EventEmitter} server The event emitter
- * @param {Object.<String, Function>} map The listeners to add
- * @return {Function} A function that will remove the added listeners when
- *     called
- * @private
- */
-function addListeners(server, map) {
-  for (const event of Object.keys(map)) server.on(event, map[event]);
-
-  return function removeListeners() {
-    for (const event of Object.keys(map)) {
-      server.removeListener(event, map[event]);
-    }
-  };
-}
-
-/**
- * Emit a `'close'` event on an `EventEmitter`.
- *
- * @param {EventEmitter} server The event emitter
- * @private
- */
-function emitClose(server) {
-  server._state = CLOSED;
-  server.emit('close');
-}
-
-/**
- * Handle premature socket errors.
- *
- * @private
- */
-function socketOnError() {
-  this.destroy();
-}
-
-/**
- * Close the connection when preconditions are not fulfilled.
- *
- * @param {(net.Socket|tls.Socket)} socket The socket of the upgrade request
- * @param {Number} code The HTTP response status code
- * @param {String} [message] The HTTP response body
- * @param {Object} [headers] Additional HTTP response headers
- * @private
- */
-function abortHandshake(socket, code, message, headers) {
-  if (socket.writable) {
-    message = message || http.STATUS_CODES[code];
-    headers = {
-      Connection: 'close',
-      'Content-Type': 'text/html',
-      'Content-Length': Buffer$1.byteLength(message),
-      ...headers
-    };
-
-    socket.write(
-      `HTTP/1.1 ${code} ${http.STATUS_CODES[code]}\r\n` +
-        Object.keys(headers)
-          .map((h) => `${h}: ${headers[h]}`)
-          .join('\r\n') +
-        '\r\n\r\n' +
-        message
-    );
-  }
-
-  socket.removeListener('error', socketOnError);
-  socket.destroy();
-}
 
 function compareVersions(v1, v2) {
   // validate input and split into segments
@@ -35800,8 +35800,9 @@ class Job$1{
     //a callback, but that causes some problems with where these fns are used. ARGGG
     //relavent in Messaging, dexter_user_interface2, instruction start_job, and maybe a few more places.
     static async define_and_start_job(job_file_path){
+        out("out: top of define_and_start_job passed path: " + job_file_path);
         let job_instances = await Job$1.instances_in_file(job_file_path);
-        console.log("NEW in Job.instances_in_file got job_instances:" + job_instances);
+        console.log("in Job.define_and_start_job got job_instances:" + job_instances);
         if(job_instances.length == 0) {
             warning("Could not find a Job definition in the file: " + job_file_path);
             if((platform === "node") && !globalThis.keep_alive_value){
@@ -36356,7 +36357,7 @@ class Job$1{
         let job_name = file_path.substring(job_name_start_pos, job_name_end_pos);
         return job_name
     }
-    //called by httpd.js when keep_alive_value == true
+    //called by httpd.mjs when keep_alive_value == true
     static maybe_define_and_server_job_button_click(job_file_path){
         let job_name = Job$1.extract_job_name_from_file_path(job_file_path);
         let job_instance = Job$1[job_name];
@@ -37247,7 +37248,8 @@ Job$1.prototype.finish_job = function(){
           Dexter.remove_from_busy_job_arrays(this); //remove from ALL Dexters' busy_job_arrays.
           this.color_job_button(); //possibly redundant but maybe not and just called on finishing job so leave it in
           this.show_progress_maybe();
-          out("Done with Job." + this.name + ", for reason: " + this.stop_reason);
+          out("Done with Job." + this.name + ", for reason: " + this.stop_reason +
+              " platform: " + globalThis.platform + " keep_alive: " + globalThis.keep_alive_value);
           if(globalThis.platform === "node") { //only calls close_readline to end process, or doesn't
             if(globalThis.keep_alive_value) ; //keep the process alive
             else {
@@ -37264,7 +37266,8 @@ Job$1.prototype.finish_job = function(){
                 ) { //don't close the readline if there's a job that still wants to use it.
                     //as our orig job might have launched a 2nd job, so keep it open
                     //until all are done.
-                    console.log("finish job calling close_readline");
+                    out("OUT: finish job, now calling close_readline");
+                    console.log("finish job, now calling close_readline");
                     globalThis.close_readline(); //causes the process running this job to finish.
                 }
             }
@@ -44854,12 +44857,16 @@ class Dexter$1 extends Robot$1 {
     set_robot_status(robot_status) {
         let old_robot_status_button_down = this.is_phui_button_down(); //do this first before setting robot_status
         this.robot_status = robot_status; //thus rob.robot_status always has the latest rs we got from Dexter.
-        if(globalThis.platform == "dde"){
-            if(this.rs) { this.rs.robot_status = robot_status; }
-            else {
-                this.rs = new RobotStatus({robot_status: robot_status});
-            }
+        //the below use to happen only in dde, but may 2, 2022 changed it to happen always (on node/job_engine as well)
+        if(this.rs) { this.rs.robot_status = robot_status; }
+        else {
+            this.rs = new RobotStatus({robot_status: robot_status});
         }
+        out("In set_robot_status for Job." + Job.job_id_to_job_instance(robot_status[Dexter$1.JOB_ID]).name +
+            " Dexter." + this.name +
+            " oplet: " + robot_status[Dexter$1.INSTRUCTION_TYPE] +
+            " J1 angle: " + robot_status[Dexter$1.J1_MEASURED_ANGLE] +
+            " measured_angles in rs: " + this.rs.measured_angles());
         let new_robot_status_button_down = this.is_phui_button_down(); //tricky. Not the same as 2 lines up!
         if((!old_robot_status_button_down) &&
             new_robot_status_button_down) {
@@ -45002,6 +45009,10 @@ class Dexter$1 extends Robot$1 {
         let oplet        = robot_status[Dexter$1.INSTRUCTION_TYPE];
         let error_code   = robot_status[Dexter$1.ERROR_CODE];
         let rob          = this; //job_instance.robot
+        out("In robot_done_with_instruction for Job." + job_instance.name +
+            " Dexter." + this.name +
+            " oplet: " + oplet +
+            " J1 angle: " + robot_status[Dexter$1.J1_MEASURED_ANGLE]);
         if(oplet === "F") {
             rob.waiting_for_flush_ack = false;
         }
@@ -47316,7 +47327,7 @@ class Socket$1{
                     }
                 }; //end of on("error"
                 net_soc_inst.onclose = function(err){
-                    console.log("websocket closed.");
+                    console.log("net socket closed.");
 
                 };
                 setTimeout(function() {
@@ -47675,6 +47686,7 @@ class Socket$1{
         let oplet_array_or_string_du = Socket$1.instruction_array_degrees_to_arcseconds_maybe(oplet_array_or_string, rob);
         let job_id = Instruction.extract_job_id(oplet_array_or_string);
         let job_instance = Job.job_id_to_job_instance(job_id);
+
         if(!job_instance){
             shouldnt("Socket.send passed: " + robot_name + " " + oplet_array_or_string +
                      "<br/>extracted job_id:" + job_id + " but no defined Job with that ID.");
@@ -47682,18 +47694,21 @@ class Socket$1{
         //out(job_instance.name + " " + robot_name + " Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
 
         let oplet = oplet_array_or_string[Instruction.INSTRUCTION_TYPE];
+        out("In send for Job." + job_instance.name +
+            " Dexter." + rob.name +
+            " oplet: " + oplet +
+            " instr: " + oplet_array_or_string);
         let instr_id = oplet_array_or_string[Instruction.INSTRUCTION_ID];
         let got_first_non_monitor_instr = false;
-        out("top of Socket.send with: " + job_instance.name + " " + robot_name +  " " + oplet_array_or_string);
+        out("Top of Socket.send with: " + job_instance.name + " " + robot_name +  " " + oplet_array_or_string, undefined, true);
 
         if((oplet === "g") && (instr_id > 0)) {
             got_first_non_monitor_instr = true;
-            out("send for: " + job_instance.name);
+            out("in Socket,send for job: " + job_instance.name);
             //debugger;
         }
         else if ((job_instance !== "monitor_job") && (oplet !== "g") && got_first_non_monitor_instr){
-            debugger;
-            out("send for: " + job_instance.name);
+            out("in Socket.send for job: " + job_instance.name);
         }
 
         const str =  Socket$1.oplet_array_or_string_to_string(oplet_array_or_string_du);
@@ -47722,7 +47737,7 @@ class Socket$1{
             let net_soc_inst = Socket$1.robot_name_to_soc_instance_map[robot_name];
             if(net_soc_inst && (net_soc_inst.readyState === WebSocket.OPEN)) {
                 try {
-                    console.log("Socket.send about to send str: " + str);
+                    console.log("Socket.send about to send str: " + str, undefined, true);
                     //net_soc_inst.write(arr_buff) //dde3
                     net_soc_inst.send(str); //dde4
                     //console.log("Socket.send just sent:     " + str)
@@ -47781,8 +47796,8 @@ class Socket$1{
     //
     static on_receive(data, payload_string_maybe, dexter_instance){
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
-        console.log("top of Socket.on_receive.");
-        out("Socket.on_receive passed data:        " + data);
+        //console.log("top of Socket.on_receive.")
+        out("Socket.on_receive passed data: " + data, undefined, true);
         let robot_status;
         let oplet;
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
@@ -47827,6 +47842,13 @@ class Socket$1{
         //the simulator automatically does this so we have to do it here in non-simulation
         //out("on_receive got back oplet of " + oplet)
         robot_status[Dexter.INSTRUCTION_TYPE] = oplet;
+        let job_id = robot_status[Dexter.JOB_ID];
+        let job_instance = Job.job_id_to_job_instance(job_id);
+        out("In on_receive_aux for Job." + job_instance.name +
+            " Dexter." + dexter_instance.name +
+            " oplet: " + oplet +
+            " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE]);
+        if(job_instance.name === "monitor_dexter"){ debugger;}
         if(oplet == "r"){ //Dexter.read_file
             if(typeof(payload_string_maybe) == "number") { //only can hit im sim.// should be 2 if it hits
                 robot_status[Dexter.ERROR_CODE] = 0; //even though we got an error from file_not_found,
@@ -47848,7 +47870,7 @@ class Socket$1{
         }
         else {
             Socket$1.convert_robot_status_to_degrees(robot_status);
-            this.handle_monitor_dexter_maybe(robot_status); //just show the measured angles in the sim pane, no extra sim
+            //this.handle_monitor_dexter_maybe(robot_status) //just show the measured angles in the sim pane, no extra sim
         }
 
         //the below line became unnecessary, and too complex, too hieruasic once we
@@ -47858,8 +47880,6 @@ class Socket$1{
         if (oplet === "F") {
             dexter_instance.waiting_for_flush_ack = false;
         }
-        let job_id = robot_status[Dexter.JOB_ID];
-        Job.job_id_to_job_instance(job_id);
         //out(job_instance.name + " " + rob.name + " bottom of Socket.on_receive with: " + robot_status)
         dexter_instance.robot_done_with_instruction(robot_status); //robot_status ERROR_CODE *might* be 1
     }
@@ -48162,7 +48182,7 @@ class DexterSim$1{
     simout(string){
        let sim_html = '<span style="color:black; background-color:#ab99ff;"> &nbsp;Simulator: </span> &nbsp;&nbsp;';
         let rob_name = "Dexter." + this.robot_name;
-        out(sim_html + rob_name + " " + string);
+        out(sim_html + rob_name + " " + string, undefined, true); //temp printout
     }
 
     //sim_actual passed in is either true or "both"
@@ -48986,14 +49006,8 @@ class Simqueue$1{
         //know about Jobs and don't care. Useful for debugging perhaps, but
         //causes problems as in above.
         let rob_name  = this.sim_instance.robot_name;
-        if(SimUtils.is_simulator_showing()) { //globalThis.platform == "dde") //even if we're in dde, unless the sim pane is up, don't attempt to render
+        { //globalThis.platform == "dde") //even if we're in dde, unless the sim pane is up, don't attempt to render
             SimUtils.render_multi(this.sim_instance, ins_args, rob_name, dur_in_ms);
-        }
-        else {
-            warning('To see a graphical simulation,<br/>choose from the Misc pane menu: "Simulate" then select: "Simulate."');
-            let the_job = this.sim_instance.job_of_last_instruction_sent();
-
-            this.render_once_node(instruction_array, the_job.name, rob_name); //renders after dur, ie when the dexter move is completed.
         }
     }
     render_once_node(instruction_array, job_name, rob_name, dur_in_ms){
@@ -49403,7 +49417,9 @@ class SimUtils$1{
                 dur_to_show = dur_to_show_secs + "." + last(dur_to_show);
             }
             else { dur_to_show = "0." + dur_to_show; }
-            sim_pane_move_dur_id.innerHTML = dur_to_show;
+            if(this.is_simulator_showing()) {
+                sim_pane_move_dur_id.innerHTML = dur_to_show;
+            }
             let total_frames = Math.ceil(dur_in_ms / SimUtils$1.ms_per_frame); //total_frames might be 0. that's ok.
             let js_inc_per_frame = [];
             for(let joint = 0; joint < new_angles_dexter_units.length; joint++){
@@ -49540,7 +49556,7 @@ class SimUtils$1{
         }
     }
 
-    //never called in a job engine job, only called by dde_ide
+    //never called in a job engine job, only called by dde_ide for "debugging".
     static render_joints_smart(src = null) {
         let evaled_src;
         if (src == null) {
@@ -49659,19 +49675,24 @@ class SimUtils$1{
         let x = xyz[0];
         if(x < 0) { str_length = 6;} //so we get the minus sign plus 3 digits after decimal point, ie MM
         else      { str_length = 5;}
-        sim_pane_x_id.innerHTML = ("" + x).substring(0, str_length);
-
+        if(this.is_simulator_showing()) {
+            sim_pane_x_id.innerHTML = ("" + x).substring(0, str_length);
+        }
         let y = xyz[1];
         if(y < 0) { str_length = 6;} //so we get the minus sign plus 3 digits after decimal point, ie MM
         else      { str_length = 5;}
-        sim_pane_y_id.innerHTML = ("" + y).substring(0, str_length);
-
+        if(this.is_simulator_showing()) {
+            sim_pane_y_id.innerHTML = ("" + y).substring(0, str_length);
+        }
         let z = xyz[2];
         if(z < 0) { str_length = 6;} //so we get the minus sign plus 3 digits after decimal point, ie MM
         else      { str_length = 5;}
-        sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length);
-
-        Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+        if(this.is_simulator_showing()) {
+            sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length);
+        }
+        if(this.is_simulator_showing()) {
+            Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+        }
     }
 
     //joint number is 1 thru 7
@@ -49681,26 +49702,32 @@ class SimUtils$1{
             let j_angle_degrees_rounded = Math.round(angle_degrees);
             let rads = SimUtils$1.degrees_to_radians(angle_degrees);
             let id_str = "J" + joint_number;
-            Simulate.sim[id_str].rotation[y_or_z] = rads * -1;
-            globalThis["sim_pane_j" + joint_number + "_id"].innerHTML = j_angle_degrees_rounded;
+            if(this.is_simulator_showing()) {
+                Simulate.sim[id_str].rotation[y_or_z] = rads * -1;
+                globalThis["sim_pane_j" + joint_number + "_id"].innerHTML = j_angle_degrees_rounded;
+            }
         }
         else if(joint_number === 6){
             let rads = SimUtils$1.degrees_to_radians(angle_degrees);
             let j_angle_degrees_rounded = Math.round(angle_degrees);
-            if(Simulate.sim.J6) {
-                Simulate.sim.J6.rotation.z = rads;
+            if(this.is_simulator_showing()) {
+                if (Simulate.sim.J6) {
+                    Simulate.sim.J6.rotation.z = rads;
+                }
+                sim_pane_j6_id.innerHTML = j_angle_degrees_rounded;
             }
-            sim_pane_j6_id.innerHTML = j_angle_degrees_rounded;
         }
         else if(joint_number === 7){
             SimUtils$1.degrees_to_radians(angle_degrees);
             let j_angle_degrees_rounded = Math.round(angle_degrees);
-            if(Simulate.sim.J7) { //330 degrees = 0.05 meters
-                let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1; //more precise version from James W aug 25.
-                new_xpos *= 10;
-                Simulate.sim.J7.position.setX(new_xpos); //see https://threejs.org/docs/#api/en/math/Vector3
+            if(this.is_simulator_showing()) {
+                if (Simulate.sim.J7) { //330 degrees = 0.05 meters
+                    let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1; //more precise version from James W aug 25.
+                    new_xpos *= 10;
+                    Simulate.sim.J7.position.setX(new_xpos); //see https://threejs.org/docs/#api/en/math/Vector3
+                }
+                sim_pane_j7_id.innerHTML = j_angle_degrees_rounded;
             }
-            sim_pane_j7_id.innerHTML = j_angle_degrees_rounded;
         }
     }
 
@@ -49919,37 +49946,41 @@ class SimUtils$1{
         let angle_degrees = ds_instance.compute_measured_angle_degrees(6);
         let rads = SimUtils$1.degrees_to_radians(angle_degrees);
         let j_angle_degrees_rounded = Math.round(angle_degrees);
-        if(Simulate.sim.J6) {
-            Simulate.sim.J6.rotation.z = rads;
+        if(this.is_simulator_showing()) {
+            if (Simulate.sim.J6) {
+                Simulate.sim.J6.rotation.z = rads;
+            }
+            sim_pane_j6_id.innerHTML = j_angle_degrees_rounded;
         }
-        sim_pane_j6_id.innerHTML = j_angle_degrees_rounded;
     }
 
     static render_j7(ds_instance, xyz){ //xyz only needs to be passed in if using SimBuild
         let angle_degrees = ds_instance.compute_measured_angle_degrees(7);
         SimUtils$1.degrees_to_radians(angle_degrees);
         let j_angle_degrees_rounded = Math.round(angle_degrees);
-        if(Simulate.sim.J7) { //330 degrees = 0.05 meters
-            let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1; //more precise version from James W aug 25.
-            new_xpos *= 10;
-            //out("J7 angle_degrees: " + angle_degrees + " new xpos: " + new_xpos)
-            Simulate.sim.J7.position.setX(new_xpos); //see https://threejs.org/docs/#api/en/math/Vector3
-            //all below fail to change render
-            //Simulate.sim.J7.position.x = new_pos
-            //Simulate.sim.J7.updateMatrix() //no effect
-            //Simulate.sim.j7.updateWorldMatrix(true, true)
-            // prev new_pos value;
-            // ((angle_degrees * 0.05) / 330 ) * -1 //meters of new location
-            // but has the below problems
-            // x causes no movement, but at least inited correctly
-            // y sends the finger to move to outer space upon init, but still visible, however moving j7 doesn't move it
-            // z causes the finger to be somewhat dislocated upon dui init, however moving j7 doesn't move it
-            //Simulate.sim.J7.rotation.y = rads
-        }
-        sim_pane_j7_id.innerHTML = j_angle_degrees_rounded;
-        if(SimBuild.template_object) {
-            let rob_pose = ds_instance.robot.pose;
-            SimBuild.handle_j7_change(angle_degrees, xyz, rob_pose);
+        if(this.is_simulator_showing()) {
+            if (Simulate.sim.J7) { //330 degrees = 0.05 meters
+                let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1; //more precise version from James W aug 25.
+                new_xpos *= 10;
+                //out("J7 angle_degrees: " + angle_degrees + " new xpos: " + new_xpos)
+                Simulate.sim.J7.position.setX(new_xpos); //see https://threejs.org/docs/#api/en/math/Vector3
+                //all below fail to change render
+                //Simulate.sim.J7.position.x = new_pos
+                //Simulate.sim.J7.updateMatrix() //no effect
+                //Simulate.sim.j7.updateWorldMatrix(true, true)
+                // prev new_pos value;
+                // ((angle_degrees * 0.05) / 330 ) * -1 //meters of new location
+                // but has the below problems
+                // x causes no movement, but at least inited correctly
+                // y sends the finger to move to outer space upon init, but still visible, however moving j7 doesn't move it
+                // z causes the finger to be somewhat dislocated upon dui init, however moving j7 doesn't move it
+                //Simulate.sim.J7.rotation.y = rads
+            }
+            sim_pane_j7_id.innerHTML = j_angle_degrees_rounded;
+            if (SimBuild.template_object) {
+                let rob_pose = ds_instance.robot.pose;
+                SimBuild.handle_j7_change(angle_degrees, xyz, rob_pose);
+            }
         }
     }
 
@@ -49959,8 +49990,12 @@ class SimUtils$1{
             this.render_once(SimUtils$1.prev_robot_status,
                              SimUtils$1.prev_robot_name);
         }
-        else { Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera); } //just the initial condition, dex straight up
-    }
+        else {
+            if (this.is_simulator_showing()) {
+                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+            } //just the initial condition, dex straight up
+        }
+        }
 
     //called from video.js
     static render_multi_with_prev_args_maybe(){
@@ -49968,13 +50003,18 @@ class SimUtils$1{
             this.render_multi(SimUtils$1.prev_robot_status,
                 SimUtils$1.prev_robot_name);
         }
-        else { Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera); } //just the initial condition, dex straight up
+        else {
+            if (this.is_simulator_showing()) {
+                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+            }
+        } //just the initial condition, dex straight up
     }
 
+    /* apparently not called May 2, 2022 use SimUtils.is_simulator_showing() instead
     static is_shown(){
         if(globalThis["sim_graphics_pane_id"]) { return true }
         else { return false }
-    }
+    }*/
 
     static inspect_dexter_sim_instance(robot_name){
         if(!robot_name) {
@@ -50995,6 +51035,7 @@ class DDEFile$1 {
         console.log("load_file passed path: " + path);
         let full_url = this.make_url(defaulted_path, "/edit?edit=");
         console.log("load_file made url: " + full_url);
+        //console.log("about to call fetch that has value: " + fetch)
         let file_info_response = await fetch(full_url);
         console.log("load_file after 1st fetch with response: " + file_info_response.ok);
         if(file_info_response.ok) {
@@ -51012,10 +51053,11 @@ class DDEFile$1 {
                 let result;
                 if(globalThis.eval_js_part2) { //we're in IDE
                     console.log("load_file in clause globalThis.eval_js_part2");
-                    result = eval_js_part2(content).value;
+                    result = globalThis.eval_js_part2(content).value;
                 }
                 else { //we're in node
                     console.log("load_file in clause node");
+                    //console.log("Dexter.dexter0: " + Dexter.dexter0)
                     result = globalThis.eval(content);
                 }
                 console.log("load_file got result: " + result);
@@ -52569,7 +52611,9 @@ class Monitor {
      
 	//browser side code (uses server, doesn't create it)
      static init(){
-         this.websocket = new WebSocket(this.ws_uri()); //WebSocket defined in chrome browser
+         let the_uri = this.ws_uri();
+         this.websocket = new WebSocket(the_uri); //WebSocket defined in chrome browser
+         out("Created Monitor.websocket at: " + the_uri);
     
          this.websocket.onopen = function(evt) {
             out("Monitor websocket opened."); //onOpen(evt)
@@ -52581,19 +52625,57 @@ class Monitor {
 		
          this.websocket.onmessage = function(evt) {
              let data_str = evt.data;
-             out("Monitor onmessage got: " + evt.data);
-             let json_data = JSON.parse(data_str);
-             if(json_data.type === "measured_angles") {
-                 SimUtils.render_joints(json_data.value);
+             out("Monitor onmessage got: " + data_str);
+             try {
+                 let json_data = JSON.parse(data_str);
+                 if (json_data.type === "show_measured_angles") {
+                     SimUtils.render_joints(json_data.value);
+                 } else if (json_data.type === "evaled") {
+                     let new_val;
+                     if (json_data.callback) {
+                         let response_str_to_eval = json_data.callback + "(" + json_data.value + ")";
+                         try {
+                             new_val = globalThis.eval(response_str_to_eval);
+                         } catch (err) {
+                             dde_err("Monitor evaled callback errored with: " + err.message);
+                         }
+                     } else {
+                         new_val = globalThis.eval(json_data.value);
+                     }
+                     out("Monitor got evaled of: " + new_val);
+                 } else if (json_data.type === "out") {
+                     out(json_data.value);
+                 }
+             }
+             catch(err){
+                 out("Monitor got message that might not be a JSON object: " + data_str +
+                 " with err: " + err.message);
              }
          };
 		
          this.websocket.onerror = function(evt) {
-            warning("Monitor got error: " + evt.data);
+            warning("Monitor got an error: ");
          };
       }
+
+      static readyStateInt_to_string(int){
+            let states = ["CONNECTING", "OPEN", "CLOSING", "CLOSED"];
+            if(int >= states.length) { return "UNKNOWN STATE" }
+            else                     { return states[int] }
+      }
+
+      static state(){
+         if(!this.websocket) { return "Monitor.websocket not created"}
+         else {
+             let state_str = this.readyStateInt_to_string(this.websocket.readyState);
+             return state_str
+         }
+      }
 	
-      static send(message) {
+      static send(message){
+         if(typeof(message) !== "string") {
+             message = JSON.stringify(message);
+         }
          out("Monitor sending: " + message);
          this.websocket.send(message);
       }
@@ -52616,43 +52698,138 @@ globalThis.Monitor = Monitor;
 class MonitorServer$1 {
    static server = null
    static init(){
-      this.server = new WebSocketServer(Monitor.ws_uri());
-      this.server.on('connection', function connection(ws) {
-        ws.on('message', function message(data) {
-             out('MonitorServer got message: ' + data);
-             let data_obj = JSON.parse(data);
-             if(data_obj.type = "get_measured_angles"){
-                 let ma = dexter0.rs.measured_angles();
-                 let json_obj = {type: "measured_angles",
-                                 value: ma};
-                 let json_str = JSON.stringify(json_obj);
-                 ws.send(json_str);
-             }
-        });
-        ws.on('close', function (data) {
-          out("MonitorServer closed " + data);
-          this.server = null;
-        });
-        ws.send("MonitorServer connected.");
-        new Job({name: "monitor_dexter",
-                 inter_do_item_dur: 0.5, //todo speed up
-                 robot: new Brain({name: "brain_for_monitor_default"}),
-                 do_list: [ Control.loop(true, function(){
-                                 out("in monitor_dexter loop");
-                                 let ma = dexter0.rs.measured_angles();
-                                 let json_obj = {type: "measured_angles",
-                                                 value: ma};
-                                 let json_str = JSON.stringify(json_obj);
-                                 ws.send(json_str);
-                                 return Dexter.default.get_robot_status()
-                      } ) ]
-        } ); //end of Job def
+       out("Top of MonitorServer.init");
+       this.server = new WebSocketServer({port: Monitor.port, clientTracking: true});    //Monitor.ws_uri()
+       this.server.on('connection', function connection(ws_connection) { //ws_connection is the WebSocket connection for one client
+           MonitorServer$1.send_one("MonitorServer top of connection passed ws_connection: " + ws_connection, ws_connection);
+           ws_connection.on('message',
+                  function message(data) {
+              out('MonitorServer got message: ' + data);
+              try {
+                  let data_obj = JSON.parse(data);
+                  if (data_obj.type === "get_measured_angles") {
+                      out("MonitorServer got type: get_measured_angles");
+                      let ma;
+                      if (!Job.monitor_dexter || !Job.monitor_dexter.is_active()) {
+                          out("MonitorServer starting Job.monitor_dexter");
+                          Job.monitor_dexter.start();
+                          ma = Dexter.HOME_ANGLES;
+                      }
+                      else {
+                          out("MonitorServer getting ma to send");
+                          let ma = Dexter.dexter0.rs.measured_angles();
+                      }
+                      let json_obj = {
+                          type: "show_measured_angles",
+                          value: ma
+                      };
+                      let json_str = JSON.stringify(json_obj);
+                      MonitorServer$1.send_one(json_str, ws_connection);
+                  } else if (data_obj.type === "eval") {
+                      let new_val;
+                      try {
+                          new_val = globalThis.eval(data_obj.value);
+                      } catch (err) {
+                          new_val = "Error: " + err.message;
+                      }
+                      let json_obj = {
+                          type: "evaled",
+                          value: new_val,
+                          callback: data_obj.callback
+                      };
+                      let json_str = JSON.Stringify(json_obj);
+                      out("MonitorServer sending: " + json_str);
+                      MonitorServer$1.send_one(json_str, ws_connection);
+                  }
+              }
+              catch(err) {
+                  out("MonitorServer got message that isn't a JSON object: " + data);
+              }
+          });
+           ws_connection.on('close', function (data) {
+              out("MonitorServer closed " + data);
+              if (Job.monitor_dexter &&
+                  Job.monitor_dexter.is_active() &&
+                  this.server.clients.length === 0){
+                  Job.monitor_dexter.stop_for_reason("interrupted", "MonitorServer closed");
+              }
+              this.server = null;
+          });
+          if (!Job.monitor_dexter) {
+              new Job({
+                  name: "monitor_dexter",
+                  inter_do_item_dur: 0.5, //todo speed up
+                  robot: new Brain({name: "brain_for_monitor_default"}),
+                  do_list: [Control.loop(true, function () {
+                      out("in Job.monitor_dexter loop");
+                      out("in Job.monitor_dexter loop with Dexter.dexter0.name: " + Dexter.dexter0.name);
+                      let ma;
+                      out("in Job.monitor_dexter Dexter.dexter0.robot_status: " + Dexter.dexter0.robot_status);
+                      out("in Job.monitor_dexter Dexter.dexter0.rs: " + Dexter.dexter0.rs);
+
+                      if(Dexter.dexter0.rs) {
+                          out("in Job.monitor_dexter loop getting measured_angles");
+                          ma = Dexter.dexter0.rs.measured_angles();
+                      }
+                      else { //hits on the first loop iteration
+                          out("in Job.monitor_dexter loop getting HOME_ANGLES");
+                          ma = Dexter.HOME_ANGLES;
+                      }
+                      out("in Job.monitor_dexter loop got ma: " + ma);
+                      let json_obj = {
+                          type: "show_measured_angles",
+                          value: ma
+                      };
+                      MonitorServer$1.send_all(json_obj); //send to all clients
+                      return Dexter.dexter0.get_robot_status()
+                  })]
+              }); //end of Job def
+         }
       });    
 	}
+
+    static readyStateInt_to_string(int){
+        let states = ["CONNECTING", "OPEN", "CLOSING", "CLOSED"];
+        if(int >= states.length) { return "UNKNOWN STATE" }
+        else                     { return states[int] }
+    }
     
-    static send(message) {
-        out('MonitorServer sending: ' + str);
-        this.server.send(str);
+    static send_one(message, ws_connection) { //this is "send_first"
+        if (typeof (message) !== "string") {
+            message = JSON.stringify(message);
+        }
+        out("MonitorServer.send_one passed message: " + message + " wsc: " + ws_connection);
+        if (ws_connection){
+            let state_str = this.readyStateInt_to_string(ws_connection.readyState);
+            if(state_str === "OPEN") {
+                //console.log("ws_connection.send bound to: " + ws_connection.send)
+                console.log("MonitorServer.send_one passed wdc and sending message: " + message);
+                ws_connection.send(message);
+            }
+            else {
+                console.log("send_one can't send because we_connection is not open, its: " + state_str);
+            }
+        }
+        else if (this.server.clients.length > 0) {
+            ws_connection = this.server.clients[0];
+            let state_str = this.readyStateInt_to_string(ws_connection.readyState);
+            if(state_str === "OPEN") {
+                console.log('MonitorServer sending: ' + message);
+                ws_connection.send(message);
+            }
+            else {
+                console.log("WebSocketServer.send_one can't send message: " + message +
+                            " because readyState is not OPEN, its: " + status_str);
+            }
+        }
+        //else no one to send to so do nothing
+    }
+
+    static send_all(message){
+        out("MonitorServer.send_all passed: " + message);
+        this.server.clients.forEach(function(client){
+            MonitorServer$1.send_one(message, client);
+        });
     }
 }
    
@@ -52913,9 +53090,8 @@ globalThis.operating_system = "not inited"; //"mac", "win" or "linux"(for Ubuntu
 globalThis.dde_apps_folder  = "not inited";
 globalThis.platform         = "not inited"; //"dde" or "node"
 
-globalThis.keep_alive_value = true;
+globalThis.keep_alive_value = false; //true
 globalThis.Espree = Espree$1;
-globalThis.WebSocketServer = websocketServer;
 Promise.resolve().then(function () { return instruction_control; }); //makes  class Control global
 
 
@@ -52924,6 +53100,8 @@ Promise.resolve().then(function () { return instruction_control; }); //makes  cl
 //end  of Job Engine imports
 
 async function init_job_engine(){
+    //out("out: top of init_job_engine") //DO NOT CALL "out" here. It willl error.
+    console.log("top of init_job_engine");
     globalThis.dde_version = package_json.version;
     globalThis.dde_release_date = package_json.release_date;
     console.log("DDE version: " + dde_version);
@@ -53007,12 +53185,17 @@ globalThis.write_to_stdout = write_to_stdout;
 
 
 function close_readline(){
-    rl.close();
+    console.log("top of  job engine node stdio.js close_readline"); //even wit the setTimeout,
+    //I still don't see this print statement come to the JE browser interface Out pane.
+    setTimeout( function() {
+        rl.close();
+    }, 1000);
 }
 
 globalThis.close_readline = close_readline;
 
 console.log("top of ready_je.js");
+globalThis.WebSocketServer = websocketServer;
          //makes global: close_readline, set_keep_alive_value, write_to_stdout
 //import fetch from 'node-fetch' //not part of node 16, but coming in 17 or 18 so need this
       //to let job_engine call fetch used in DDEFile
@@ -53020,6 +53203,7 @@ console.log("top of ready_je.js");
 //see https://stackabuse.com/making-http-requests-in-node-js-with-node-fetch/
 
 //import fetch from 'fetch'
+
 
 function run_node_command(args){
     console.log("top of run_node_command with args:\n" + args);
@@ -53038,6 +53222,7 @@ function run_node_command(args){
 }
 
 function define_and_start_job(job_file_path){
+    debugger;
     if(job_file_path.endsWith("/keep_alive")) {
         globalThis.keep_alive_value = true; //set to false by stdio readline evaling "globalThis.set_keep_alive_value(false)" made in httpd.mjs
         //and sent to job engine process stdin.
@@ -53054,18 +53239,23 @@ globalThis.define_and_start_job = define_and_start_job; //shouldn't be necessary
 //beware, different def than in dde IDE
 //see https://stackoverflow.com/questions/8683895/how-do-i-determine-the-current-operating-system-with-node-js
 function set_operating_system() {
+    console.log("top of set_operating_system with process: " + process);
+    console.log("in set_operating_system with process.platform: " + process.platform);
     if      (process.platform === "win32")   { globalThis.operating_system="win";} //even 64 bit winos is called win32
-    else if (process.platform === "darwin")  { globalThis.operating_system="mac";}
+    else if (process.platform === "darwin")  { console.log("found darwin"); globalThis.operating_system="mac";}
     else if (process.platform === "linux")   { globalThis.operating_system="linux";}
     else                                     { globalThis.operating_system=process.platform;}
+    console.log("bottom of set_operating_system globalThis.operating_system: " + globalThis.operating_system);
 }
 
-function on_ready_je(){
+async function on_ready_je(){
     console.log("top of on_ready_je");
     console.log("Using node version: " + process.versions.node);
     set_operating_system();
+    console.log("globalThis.operating_system is now: " + globalThis.operating_system);
     globalThis.platform = "node";
-    init_job_engine();
+    console.log("init_job_engine: " + init_job_engine);
+    await init_job_engine();
 
     //below 3 are same as on_ready. This must be after loading series, which is only for dde IDE,
     //so can't stick the below in the shared

@@ -309,13 +309,15 @@ class Simqueue{
         //know about Jobs and don't care. Useful for debugging perhaps, but
         //causes problems as in above.
         let rob_name  = this.sim_instance.robot_name
-        if(SimUtils.is_simulator_showing()) { //globalThis.platform == "dde") //even if we're in dde, unless the sim pane is up, don't attempt to render
+        if(true //SimUtils.is_simulator_showing()  //todo probbly change away from "true"
+          ) { //globalThis.platform == "dde") //even if we're in dde, unless the sim pane is up, don't attempt to render
             SimUtils.render_multi(this.sim_instance, ins_args, rob_name, dur_in_ms)
         }
         else {
-            warning('To see a graphical simulation,<br/>choose from the Misc pane menu: "Simulate" then select: "Simulate."')
+            if(platform !== "node") {
+                warning('To see a graphical simulation, choose from the Misc pane menu: "Simulate" then select: "Simulate."')
+            }
             let the_job = this.sim_instance.job_of_last_instruction_sent()
-
             this.render_once_node(instruction_array, the_job.name, rob_name) //renders after dur, ie when the dexter move is completed.
         }
     }

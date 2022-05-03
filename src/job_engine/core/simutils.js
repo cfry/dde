@@ -71,7 +71,9 @@ class SimUtils{
                 dur_to_show = dur_to_show_secs + "." + last(dur_to_show)
             }
             else { dur_to_show = "0." + dur_to_show }
-            sim_pane_move_dur_id.innerHTML = dur_to_show
+            if(this.is_simulator_showing()) {
+                sim_pane_move_dur_id.innerHTML = dur_to_show
+            }
             let total_frames = Math.ceil(dur_in_ms / SimUtils.ms_per_frame) //total_frames might be 0. that's ok.
             let js_inc_per_frame = []
             for(let joint = 0; joint < new_angles_dexter_units.length; joint++){
@@ -216,7 +218,7 @@ class SimUtils{
         }
     }
 
-    //never called in a job engine job, only called by dde_ide
+    //never called in a job engine job, only called by dde_ide for "debugging".
     static render_joints_smart(src = null) {
         let evaled_src
         if (src == null) {
@@ -335,19 +337,24 @@ class SimUtils{
         let x = xyz[0]
         if(x < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
         else      { str_length = 5}
-        sim_pane_x_id.innerHTML = ("" + x).substring(0, str_length)
-
+        if(this.is_simulator_showing()) {
+            sim_pane_x_id.innerHTML = ("" + x).substring(0, str_length)
+        }
         let y = xyz[1]
         if(y < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
         else      { str_length = 5}
-        sim_pane_y_id.innerHTML = ("" + y).substring(0, str_length)
-
+        if(this.is_simulator_showing()) {
+            sim_pane_y_id.innerHTML = ("" + y).substring(0, str_length)
+        }
         let z = xyz[2]
         if(z < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
         else      { str_length = 5}
-        sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length)
-
-        Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+        if(this.is_simulator_showing()) {
+            sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length)
+        }
+        if(this.is_simulator_showing()) {
+            Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+        }
     }
 
     //joint number is 1 thru 7
@@ -357,26 +364,32 @@ class SimUtils{
             let j_angle_degrees_rounded = Math.round(angle_degrees)
             let rads = SimUtils.degrees_to_radians(angle_degrees)
             let id_str = "J" + joint_number
-            Simulate.sim[id_str].rotation[y_or_z] = rads * -1
-            globalThis["sim_pane_j" + joint_number + "_id"].innerHTML = j_angle_degrees_rounded
+            if(this.is_simulator_showing()) {
+                Simulate.sim[id_str].rotation[y_or_z] = rads * -1
+                globalThis["sim_pane_j" + joint_number + "_id"].innerHTML = j_angle_degrees_rounded
+            }
         }
         else if(joint_number === 6){
             let rads = SimUtils.degrees_to_radians(angle_degrees)
             let j_angle_degrees_rounded = Math.round(angle_degrees)
-            if(Simulate.sim.J6) {
-                Simulate.sim.J6.rotation.z = rads
+            if(this.is_simulator_showing()) {
+                if (Simulate.sim.J6) {
+                    Simulate.sim.J6.rotation.z = rads
+                }
+                sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
             }
-            sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
         }
         else if(joint_number === 7){
             let rads = SimUtils.degrees_to_radians(angle_degrees)
             let j_angle_degrees_rounded = Math.round(angle_degrees)
-            if(Simulate.sim.J7) { //330 degrees = 0.05 meters
-                let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
-                new_xpos *= 10
-                Simulate.sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
+            if(this.is_simulator_showing()) {
+                if (Simulate.sim.J7) { //330 degrees = 0.05 meters
+                    let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
+                    new_xpos *= 10
+                    Simulate.sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
+                }
+                sim_pane_j7_id.innerHTML = j_angle_degrees_rounded
             }
-            sim_pane_j7_id.innerHTML = j_angle_degrees_rounded
         }
     }
 
@@ -596,37 +609,41 @@ class SimUtils{
         let angle_degrees = ds_instance.compute_measured_angle_degrees(6)
         let rads = SimUtils.degrees_to_radians(angle_degrees)
         let j_angle_degrees_rounded = Math.round(angle_degrees)
-        if(Simulate.sim.J6) {
-            Simulate.sim.J6.rotation.z = rads
+        if(this.is_simulator_showing()) {
+            if (Simulate.sim.J6) {
+                Simulate.sim.J6.rotation.z = rads
+            }
+            sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
         }
-        sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
     }
 
     static render_j7(ds_instance, xyz){ //xyz only needs to be passed in if using SimBuild
         let angle_degrees = ds_instance.compute_measured_angle_degrees(7)
         let rads = SimUtils.degrees_to_radians(angle_degrees)
         let j_angle_degrees_rounded = Math.round(angle_degrees)
-        if(Simulate.sim.J7) { //330 degrees = 0.05 meters
-            let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
-            new_xpos *= 10
-            //out("J7 angle_degrees: " + angle_degrees + " new xpos: " + new_xpos)
-            Simulate.sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
-            //all below fail to change render
-            //Simulate.sim.J7.position.x = new_pos
-            //Simulate.sim.J7.updateMatrix() //no effect
-            //Simulate.sim.j7.updateWorldMatrix(true, true)
-            // prev new_pos value;
-            // ((angle_degrees * 0.05) / 330 ) * -1 //meters of new location
-            // but has the below problems
-            // x causes no movement, but at least inited correctly
-            // y sends the finger to move to outer space upon init, but still visible, however moving j7 doesn't move it
-            // z causes the finger to be somewhat dislocated upon dui init, however moving j7 doesn't move it
-            //Simulate.sim.J7.rotation.y = rads
-        }
-        sim_pane_j7_id.innerHTML = j_angle_degrees_rounded
-        if(SimBuild.template_object) {
-            let rob_pose = ds_instance.robot.pose
-            SimBuild.handle_j7_change(angle_degrees, xyz, rob_pose)
+        if(this.is_simulator_showing()) {
+            if (Simulate.sim.J7) { //330 degrees = 0.05 meters
+                let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
+                new_xpos *= 10
+                //out("J7 angle_degrees: " + angle_degrees + " new xpos: " + new_xpos)
+                Simulate.sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
+                //all below fail to change render
+                //Simulate.sim.J7.position.x = new_pos
+                //Simulate.sim.J7.updateMatrix() //no effect
+                //Simulate.sim.j7.updateWorldMatrix(true, true)
+                // prev new_pos value;
+                // ((angle_degrees * 0.05) / 330 ) * -1 //meters of new location
+                // but has the below problems
+                // x causes no movement, but at least inited correctly
+                // y sends the finger to move to outer space upon init, but still visible, however moving j7 doesn't move it
+                // z causes the finger to be somewhat dislocated upon dui init, however moving j7 doesn't move it
+                //Simulate.sim.J7.rotation.y = rads
+            }
+            sim_pane_j7_id.innerHTML = j_angle_degrees_rounded
+            if (SimBuild.template_object) {
+                let rob_pose = ds_instance.robot.pose
+                SimBuild.handle_j7_change(angle_degrees, xyz, rob_pose)
+            }
         }
     }
 
@@ -636,8 +653,12 @@ class SimUtils{
             this.render_once(SimUtils.prev_robot_status,
                              SimUtils.prev_robot_name)
         }
-        else { Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera) } //just the initial condition, dex straight up
-    }
+        else {
+            if (this.is_simulator_showing()) {
+                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+            } //just the initial condition, dex straight up
+        }
+        }
 
     //called from video.js
     static render_multi_with_prev_args_maybe(){
@@ -645,13 +666,18 @@ class SimUtils{
             this.render_multi(SimUtils.prev_robot_status,
                 SimUtils.prev_robot_name)
         }
-        else { Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera) } //just the initial condition, dex straight up
+        else {
+            if (this.is_simulator_showing()) {
+                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+            }
+        } //just the initial condition, dex straight up
     }
 
+    /* apparently not called May 2, 2022 use SimUtils.is_simulator_showing() instead
     static is_shown(){
         if(globalThis["sim_graphics_pane_id"]) { return true }
         else { return false }
-    }
+    }*/
 
     static inspect_dexter_sim_instance(robot_name){
         if(!robot_name) {

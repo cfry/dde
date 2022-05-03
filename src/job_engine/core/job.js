@@ -350,8 +350,9 @@ class Job{
     //a callback, but that causes some problems with where these fns are used. ARGGG
     //relavent in Messaging, dexter_user_interface2, instruction start_job, and maybe a few more places.
     static async define_and_start_job(job_file_path){
+        out("out: top of define_and_start_job passed path: " + job_file_path)
         let job_instances = await Job.instances_in_file(job_file_path)
-        console.log("NEW in Job.instances_in_file got job_instances:" + job_instances)
+        console.log("in Job.define_and_start_job got job_instances:" + job_instances)
         if(job_instances.length == 0) {
             warning("Could not find a Job definition in the file: " + job_file_path)
             if((platform === "node") && !globalThis.keep_alive_value){
@@ -909,7 +910,7 @@ class Job{
         let job_name = file_path.substring(job_name_start_pos, job_name_end_pos)
         return job_name
     }
-    //called by httpd.js when keep_alive_value == true
+    //called by httpd.mjs when keep_alive_value == true
     static maybe_define_and_server_job_button_click(job_file_path){
         let job_name = Job.extract_job_name_from_file_path(job_file_path)
         let job_instance = Job[job_name]
@@ -1804,7 +1805,8 @@ Job.prototype.finish_job = function(){
           Dexter.remove_from_busy_job_arrays(this) //remove from ALL Dexters' busy_job_arrays.
           this.color_job_button() //possibly redundant but maybe not and just called on finishing job so leave it in
           this.show_progress_maybe()
-          out("Done with Job." + this.name + ", for reason: " + this.stop_reason)
+          out("Done with Job." + this.name + ", for reason: " + this.stop_reason +
+              " platform: " + globalThis.platform + " keep_alive: " + globalThis.keep_alive_value)
           if(globalThis.platform === "node") { //only calls close_readline to end process, or doesn't
             if(globalThis.keep_alive_value) {} //keep the process alive
             else {
@@ -1823,7 +1825,8 @@ Job.prototype.finish_job = function(){
                 ) { //don't close the readline if there's a job that still wants to use it.
                     //as our orig job might have launched a 2nd job, so keep it open
                     //until all are done.
-                    console.log("finish job calling close_readline")
+                    out("OUT: finish job, now calling close_readline")
+                    console.log("finish job, now calling close_readline")
                     globalThis.close_readline() //causes the process running this job to finish.
                 }
             }

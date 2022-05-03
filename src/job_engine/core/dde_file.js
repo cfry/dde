@@ -509,6 +509,7 @@ class DDEFile {
         console.log("load_file passed path: " + path)
         let full_url = this.make_url(defaulted_path, "/edit?edit=")
         console.log("load_file made url: " + full_url)
+        //console.log("about to call fetch that has value: " + fetch)
         let file_info_response = await fetch(full_url)
         console.log("load_file after 1st fetch with response: " + file_info_response.ok)
         if(file_info_response.ok) {
@@ -527,10 +528,11 @@ class DDEFile {
                 let result
                 if(globalThis.eval_js_part2) { //we're in IDE
                     console.log("load_file in clause globalThis.eval_js_part2")
-                    result = eval_js_part2(content).value
+                    result = globalThis.eval_js_part2(content).value
                 }
                 else { //we're in node
                     console.log("load_file in clause node")
+                    //console.log("Dexter.dexter0: " + Dexter.dexter0)
                     result = globalThis.eval(content)
                 }
                 console.log("load_file got result: " + result)

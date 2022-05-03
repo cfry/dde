@@ -48,7 +48,7 @@ class DexterSim{
     simout(string){
        let sim_html = '<span style="color:black; background-color:#ab99ff;"> &nbsp;Simulator: </span> &nbsp;&nbsp;'
         let rob_name = "Dexter." + this.robot_name
-        out(sim_html + rob_name + " " + string)
+        out(sim_html + rob_name + " " + string, undefined, true) //temp printout
     }
 
     //sim_actual passed in is either true or "both"

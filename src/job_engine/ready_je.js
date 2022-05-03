@@ -1,5 +1,8 @@
 console.log("top of ready_je.js")
 
+import { WebSocketServer } from 'ws'; //websocket server
+globalThis.WebSocketServer = WebSocketServer
+
 import {init_job_engine, init_units, package_json} from "../job_engine/load_job_engine.js" //imports je files
 import "../job_engine/core/stdio.js"   //ONLY in Job Engine so can't go in load_job_engine.js
          //makes global: close_readline, set_keep_alive_value, write_to_stdout
@@ -9,6 +12,7 @@ import "../job_engine/core/stdio.js"   //ONLY in Job Engine so can't go in load_
 //see https://stackabuse.com/making-http-requests-in-node-js-with-node-fetch/
 
 //import fetch from 'fetch'
+
 
 function run_node_command(args){
     console.log("top of run_node_command with args:\n" + args)
@@ -35,6 +39,7 @@ function start_job(job_name){
 }
 
 function define_and_start_job(job_file_path){
+    debugger;
     if(job_file_path.endsWith("/keep_alive")) {
         globalThis.keep_alive_value = true //set to false by stdio readline evaling "globalThis.set_keep_alive_value(false)" made in httpd.mjs
         //and sent to job engine process stdin.
@@ -67,18 +72,23 @@ function run_shell_cmd(cmd_string, options={}, cb=run_shell_cmd_default_cb){
 //beware, different def than in dde IDE
 //see https://stackoverflow.com/questions/8683895/how-do-i-determine-the-current-operating-system-with-node-js
 function set_operating_system() {
+    console.log("top of set_operating_system with process: " + process)
+    console.log("in set_operating_system with process.platform: " + process.platform)
     if      (process.platform === "win32")   { globalThis.operating_system="win"} //even 64 bit winos is called win32
-    else if (process.platform === "darwin")  { globalThis.operating_system="mac"}
+    else if (process.platform === "darwin")  { console.log("found darwin"); globalThis.operating_system="mac"}
     else if (process.platform === "linux")   { globalThis.operating_system="linux"}
     else                                     { globalThis.operating_system=process.platform}
+    console.log("bottom of set_operating_system globalThis.operating_system: " + globalThis.operating_system)
 }
 
-function on_ready_je(){
+async function on_ready_je(){
     console.log("top of on_ready_je")
     console.log("Using node version: " + process.versions.node)
     set_operating_system()
+    console.log("globalThis.operating_system is now: " + globalThis.operating_system)
     globalThis.platform = "node"
-    init_job_engine()
+    console.log("init_job_engine: " + init_job_engine)
+    await init_job_engine()
 
     //below 3 are same as on_ready. This must be after loading series, which is only for dde IDE,
     //so can't stick the below in the shared
