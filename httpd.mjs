@@ -92,8 +92,7 @@ function compute_dde_install_folder(){ //new in dde4 //todo dde4 result proably 
           return  SHARE_FOLDER + "/www/dde/build"  //'/root/Documents/dde'
     }
     else {
-        return os.homedir()  //example: "/Users/Fry"
-            + "/WebstormProjects/dde4/dde/build" //todo move to a generic folder likely to be on user's machine
+        return path.join(process.cwd(), 'dde', 'build')
     }
 }
 
