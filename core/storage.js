@@ -339,13 +339,19 @@ function read_file_async_from_dexter_using_node_server(dex_instance, path, callb
                                     // so we add the dde_apps to be consistent with dde's default dir.
     }
     let url = "http://" + dex_instance.ip_address + "/edit?edit=" + path //example: "http://192.168.1.142/edit?edit=root/dde_apps/dde_init.js" whereby no beiginning slas actually means going from the server's top level of file system
-    let content = get_page(url) //does not error if file doens't exist so ...
-    let the_err = null
-    if(content.startsWith("Error:")){
-        the_err = new Error()
-        the_err.message = content
-        content = null
+    let req = {
+        uri: url,
+        encoding: null
     }
+    let content_array = get_page(req) //does not error if file doens't exist so ...
+    let content = content_array.toString("binary"); //Strings can contain binary file content
+    let the_err = null
+
+    //if(content.startsWith("Error:")){
+    //    the_err = new Error()
+    //    the_err.message = content
+    //    content = null
+    //}
     callback(the_err, content)
 }
 
@@ -575,8 +581,9 @@ function copy_file_async(source_path, destination_path, callback=null){
             }
         }
     }
-   read_file_async(source_path, "ascii", //"binary" should faithfully read and write content without modification.
-                                          // "ascii" fails on jpg files.
+   read_file_async(source_path, null, //"ascii" was used up thru dde3.8.3, but doesn't copy binary files properly
+                                               // "binary" *should* faithfully read and write content without modification but doesn't
+                                               // "ascii" fails on jpg files.
 
       function(err, data){
         if(err) { //only call the callback for the read IF there's a read error.
