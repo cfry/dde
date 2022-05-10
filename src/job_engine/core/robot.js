@@ -82,7 +82,7 @@ class Robot {
     }
 
     static simulate_or_both_selected(){
-        if(DDE_DB.persistent_get("default_dexter_simulate")) { return true} //persistent_get call returns true or "both"
+        if(DDE_DB && DDE_DB.persistent_get("default_dexter_simulate")) { return true} //persistent_get call returns true or "both"
         else { return false } //DDE_DB.persistent_get call returns false
     }
 
@@ -2559,8 +2559,6 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
                  " Link1: " + this.Link1 +
                  " this.simulate: " + this.simulate)
     console.log("globalThis.platform: " + globalThis.platform)
-    console.log("globalThis.platform: " + globalThis.platform)
-    console.log("DDE_DB: " + globalThis.DDE_DB)
     //console.log("persistent_values: " + DDE_DB.persistent_values) //will error if DDE_DB is undefined as is true in job engine
     let sim_actual = Robot.get_simulate_actual(this.simulate)
     console.log("sim_actual: " + sim_actual)

@@ -52,12 +52,12 @@ class Inspect{
     }
 
     //the main entry point. Don't use "this"
-    static inspect(item, src){
+    static inspect(item, src, src_label){
         if(src === undefined) {
             try { src = to_source_code({value: item})  } //might get into an infinite loop
             catch(err) { src = "" + item }
         }
-        Inspect.inspect_out(item, undefined, undefined, undefined, undefined, undefined, src)
+        Inspect.inspect_out(item, undefined, undefined, undefined, undefined, undefined, src, src_label)
         return "dont_print"
     } //global
 
@@ -68,7 +68,7 @@ class Inspect{
 //as the stack_postion of the new item, ie push it on the end.
 //called by job.js
 //Don't use "this"
-    static inspect_out(item, stack_number, in_stack_position, html_elt_to_replace, collapse=false, increase_max_display_length=false, src){
+    static inspect_out(item, stack_number, in_stack_position, html_elt_to_replace, collapse=false, increase_max_display_length=false, src, src_label){
         if(!item && (item != 0) && (typeof(stack_number) == "number") && (typeof(in_stack_position) == "number")) {
               item = Inspect.inspect_stacks[stack_number][in_stack_position]
         }
@@ -112,7 +112,7 @@ class Inspect{
                 html_elt_to_replace = globalThis[html_elt_to_replace]
             }
             $(html_elt_to_replace).replaceWith(new_inspect_html) } //must use query repalceWith here as regular DOM replaceWith doesn't work
-        else {  out_eval_result(new_inspect_html, undefined, src) }
+        else {  out_eval_result(new_inspect_html, undefined, src, src_label) }
         return item
     } //global called outside of this file, sometimes as onclick methods in HTML buttons.
 

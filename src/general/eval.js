@@ -115,11 +115,9 @@ export function eval_js_part1(step=false){
         if(html_db.string_looks_like_html(src)){
             render_html(src)
         }
-        //else if(Editor.current_file_path.endsWith(".py") && //todo needs current_file_path and global def of Py
-        //        src_comes_from_editor
-        //       ){
-        //    Py.eval_part2(src)
-        //}
+        else if(Editor.current_file_path.endsWith(".py") && src_comes_from_editor){
+            Py.eval_py_part2(src)
+        }
         else {
             eval_js_part2((step? "debugger; ": "") + src) //LEAVE THIS IN RELEASED CODE
         }
@@ -188,8 +186,8 @@ function eval_js_part2(command, call_eval_part3_if_no_error=true){ //2nd arg pas
     }
     catch(err) { //probably  a syntax error. Can't get starting_index so won't be able to highlight offending code
         result.error_type         = err.name
-        result.full_error_message = err.stack
         result.error_message      = err.message
+        result.full_error_message = err.stack
         eval_js_part3(result)
         return "Error: " + err.message
     }
@@ -200,7 +198,7 @@ function eval_js_part2(command, call_eval_part3_if_no_error=true){ //2nd arg pas
 globalThis.eval_js_part2 = eval_js_part2
 
 // in UI.
-function eval_js_part3(result){
+function eval_js_part3(result, src_label){
     var string_to_print
     var start_of_selection = 0
     if (Editor.is_selection()){
@@ -218,7 +216,7 @@ function eval_js_part3(result){
         stack_trace = Utils.replace_substrings(stack_trace, "\n", "<br/>")
         string_to_print = "<details><summary><span class='dde_error_css_class'>" + string_to_print +
                           "</span></summary>" + stack_trace + "</details>"
-        out_eval_result(string_to_print, undefined, result.command)
+        out_eval_result(string_to_print, undefined, result.command, src_label)
     }
     else if (result.value_string == '"dont_print"') {}
     else {
@@ -234,9 +232,9 @@ function eval_js_part3(result){
             }
             string_to_print =  str +
                             " <span style='padding-left:50px;font-size:10px;'>" + result.duration + " ms</span>" //beware, format_text_for_code depends on this exact string
-            out_eval_result(string_to_print, undefined, result.command)
+            out_eval_result(string_to_print, undefined, result.command, src_label)
         }
-        else { inspect(result.value, result.command) }
+        else { inspect(result.value, result.command, src_label) }
     }
     //highlight erroring source code if possible. If result.starting_index == undefined, that means no error.
     if (result.starting_index && (result.starting_index != 0)){ //we've got an error
@@ -248,6 +246,8 @@ function eval_js_part3(result){
     }
     //else if(Editor.get_cmd_selection.length > 0) { cmd_input_id.focus() }
 }
+
+globalThis.eval_js_part3 = eval_js_part3
 
 //doesn't really need to return result as this side_effects result
 //src evaled which might not be the whole editor buffer if there's a selection

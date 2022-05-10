@@ -53,6 +53,7 @@ import "../job_engine/core/html_db.js" //makes: html_db, make_html, make_dom_elt
 import "../job_engine/core/to_source_code.js" //defined to_source_code globally
 import "../job_engine/core/duration.js"
 import "../job_engine/core/monitor.js" //defines Monitor and MonitorServer
+import "../job_engine/core/py.js"      //defines class Py
 
 import {init_units} from "../job_engine/core/units.js"
 export {init_units}
@@ -84,7 +85,7 @@ export async function init_job_engine(){
 
     Job.class_init()
     Dexter.class_init()
-    new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 3000}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
+    Dexter.default = new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 3000}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
     //the only thing dde_init.js really MUST do is define dexter0, so just stick
     //it here and now user can screw up dde_init.js and still win.
 

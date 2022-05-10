@@ -1120,6 +1120,24 @@ class Job{
         return result
     }
 
+    static active_job_names(){
+        let result = []
+        for(let a_job of Job.all_jobs()){
+            if (a_job.is_active()){
+                result.push(a_job.name)
+            }
+        }
+        return result
+    }
+
+    static defined_job_names(){
+        let result = []
+        for(let a_job of Job.all_jobs()){
+            result.push(a_job.name)
+        }
+        return result
+    }
+
     //returns the active job that has robot as its default robot OR null if none.
     static active_job_with_robot(robot){
         for(let a_job of Job.all_jobs()){

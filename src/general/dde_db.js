@@ -86,7 +86,7 @@ class DDE_DB{
    }
 
    static persistent_get(key) {
-       console.log("this.persistent_values: " + this.persistent_values)
+       //onsole.log("this.persistent_values: " + this.persistent_values)
        return this.persistent_values[key]
    }
 
@@ -108,7 +108,7 @@ class DDE_DB{
            const dos_put_request = dde_object_store.put(data, "persistent_values");
            // When this new request succeeds, run the displayData() function again to update the display
            dos_put_request.onsuccess = function(event) {
-               console.log("DDE_DB successfully stored persistent_value: " + key + " of " + value)
+               //onsole.log("DDE_DB successfully stored persistent_value: " + key + " of " + value)
            }
            dos_put_request.onerror = function(event) {
                 console.log("ERROR: DDE_DB could not store persistent_value: " + key + " of " + value)
@@ -214,7 +214,7 @@ class DDE_DB{
             const dos_put_request = dde_object_store.put(data, "metrics");
             // When this new request succeeds, run the displayData() function again to update the display
             dos_put_request.onsuccess = function(event) {
-                console.log("DDE_DB successfully stored metrics: " + key + " of " + value)
+                //onsole.log("DDE_DB successfully stored metrics: " + key + " of " + value)
             }
             dos_put_request.onerror = function(event) {
                 console.log("ERROR: DDE_DB could not store metrics: " + key + " of " + value)
@@ -231,7 +231,7 @@ class DDE_DB{
             const dos_put_request = dde_object_store.put(metrics_state_obj, "metrics");
             // When this new request succeeds, run the displayData() function again to update the display
             dos_put_request.onsuccess = function(event) {
-                console.log("DDE_DB successfully stored all metrics: " + metrics_state_obj)
+                //onsole.log("DDE_DB successfully stored all metrics: " + metrics_state_obj)
             }
             dos_put_request.onerror = function(event) {
                 console.log("ERROR: DDE_DB could not store metrics: " + metrics_state_obj)

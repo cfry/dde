@@ -36563,6 +36563,24 @@ class Job$1{
         return result
     }
 
+    static active_job_names(){
+        let result = [];
+        for(let a_job of Job$1.all_jobs()){
+            if (a_job.is_active()){
+                result.push(a_job.name);
+            }
+        }
+        return result
+    }
+
+    static defined_job_names(){
+        let result = [];
+        for(let a_job of Job$1.all_jobs()){
+            result.push(a_job.name);
+        }
+        return result
+    }
+
     //returns the active job that has robot as its default robot OR null if none.
     static active_job_with_robot(robot){
         for(let a_job of Job$1.all_jobs()){
@@ -43667,7 +43685,7 @@ class Robot$1 {
     }
 
     static simulate_or_both_selected(){
-        if(DDE_DB.persistent_get("default_dexter_simulate")) { return true} //persistent_get call returns true or "both"
+        if(DDE_DB && DDE_DB.persistent_get("default_dexter_simulate")) { return true} //persistent_get call returns true or "both"
         else { return false } //DDE_DB.persistent_get call returns false
     }
 
@@ -46137,8 +46155,6 @@ Dexter$1.prototype.set_link_lengths = function(job_to_start_when_done = null){
                  " Link1: " + this.Link1 +
                  " this.simulate: " + this.simulate);
     console.log("globalThis.platform: " + globalThis.platform);
-    console.log("globalThis.platform: " + globalThis.platform);
-    console.log("DDE_DB: " + globalThis.DDE_DB);
     //console.log("persistent_values: " + DDE_DB.persistent_values) //will error if DDE_DB is undefined as is true in job engine
     let sim_actual = Robot$1.get_simulate_actual(this.simulate);
     console.log("sim_actual: " + sim_actual);
@@ -47694,17 +47710,16 @@ class Socket$1{
         //out(job_instance.name + " " + robot_name + " Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
 
         let oplet = oplet_array_or_string[Instruction.INSTRUCTION_TYPE];
-        out("In send for Job." + job_instance.name +
+        out("In Socket.send for Job." + job_instance.name +
             " Dexter." + rob.name +
             " oplet: " + oplet +
             " instr: " + oplet_array_or_string);
         let instr_id = oplet_array_or_string[Instruction.INSTRUCTION_ID];
         let got_first_non_monitor_instr = false;
-        out("Top of Socket.send with: " + job_instance.name + " " + robot_name +  " " + oplet_array_or_string, undefined, true);
 
         if((oplet === "g") && (instr_id > 0)) {
             got_first_non_monitor_instr = true;
-            out("in Socket,send for job: " + job_instance.name);
+            //out("in Socket.send for job: " + job_instance.name)
             //debugger;
         }
         else if ((job_instance !== "monitor_job") && (oplet !== "g") && got_first_non_monitor_instr){
@@ -49409,6 +49424,8 @@ class SimUtils$1{
     //robot_name example: "Dexter.dexter0"
     static render_multi(ds_instance, new_angles_dexter_units, robot_name, dur_in_ms=0){ //inputs in arc_seconds
         //console.log("render_multi passed: " +  new_angles_dexter_units)
+        console.log("Dexter.default: " + Dexter.default);
+        console.log("Dexter.dexter0: " + Dexter.dexter0);
         if (Dexter.default.name === robot_name){
             let dur_to_show = Math.round(dur_in_ms / 100); //in 10ths of seconds, rounded
             dur_to_show = "" + dur_to_show;
@@ -49467,8 +49484,6 @@ class SimUtils$1{
                 //                      " j_angle deg: " + (Math.round(j_angle) / 3600 ))
                 //}
                 Socket.dexter_units_to_degrees(j_angle, joint + 1);
-                if(((joint === 1) || (joint === 2) || (joint === 3)) &&
-                    Simulate.sim.hi_rez) ;
 
                /* let j_angle_degrees_rounded = Math.round(angle_degrees)
                 let rads = SimUtils.degrees_to_radians(angle_degrees)
@@ -52602,61 +52617,104 @@ globalThis.Duration = Duration$1;
 
 // the client
 class Monitor {
-     static port = 3002
-     
-     //also used by MonitorServer
-     static ws_uri(){ return  "ws://localhost:" + this.port }
-     
-     static websocket = null
+     static port = 3002 //the monitor port for a Dexter. also used by MonitorServer
+
+     static domain_to_websocket_map = {}
+
+     //static default_domain = "192.168.1.142"
+
+     //domain is the domain of the Job Engine you want to  monitor.
+     //It can be "localhost", "102.168.1.142" (and friends), Dexter.dexter0 (or any Dexter instance)
+     static domain_to_websocket(domain=Dexter.default){
+         if(domain instanceof Dexter) {
+             domain = domain.ip_address;
+         }
+         return this.domain_to_websocket_map[domain]
+     }
+
+     static set_domain_to_websocket(domain=Dexter.default, websocket){
+         if(domain instanceof Dexter) {
+             domain = domain.ip_address;
+         }
+         this.domain_to_websocket_map[domain] = websocket;
+     }
+
+    static delete_domain(domain=Dexter.default){
+        if(domain instanceof Dexter) {
+            domain = domain.ip_address;
+        }
+        delete this.domain_to_websocket_map[domain];
+    }
+
+     //domain can be a string:  use "localhost" for the simulator running on your pc,
+     //or something like "192.168.1.142"
+     static ws_uri(domain=Dexter.default){
+         if(domain instanceof Dexter) {
+             domain = domain.ip_address;
+         }
+         return  "ws://" + domain + ":" + this.port
+     }
      
 	//browser side code (uses server, doesn't create it)
-     static init(){
-         let the_uri = this.ws_uri();
-         this.websocket = new WebSocket(the_uri); //WebSocket defined in chrome browser
-         out("Created Monitor.websocket at: " + the_uri);
+     static init(domain="localhost"){
+         let the_uri = this.ws_uri(domain);
+         let websocket = new WebSocket(the_uri); //WebSocket defined in chrome browser
+         this.set_domain_to_websocket(domain, websocket);
+         out("Created Monitor for: " + the_uri);
     
-         this.websocket.onopen = function(evt) {
-            out("Monitor websocket opened."); //onOpen(evt)
+         websocket.onopen = function(evt) {
+            out("Monitor for: " + websocket.url + " websocket opened."); //onOpen(evt)
          };
 		
-         this.websocket.onclose = function(evt) {
-            out("Monitor websocket closed."); //onClose(evt)
+         websocket.onclose = function(evt) {
+            out("Monitor for: " + websocket.url + " websocket closed."); //onClose(evt)
          };
 		
-         this.websocket.onmessage = function(evt) {
+         websocket.onmessage = function(evt) {
              let data_str = evt.data;
-             out("Monitor onmessage got: " + data_str);
+             out("Monitor for: " + websocket.url + " onmessage got: " + data_str, undefined, true);
              try {
                  let json_data = JSON.parse(data_str);
+                 let callback_src = json_data.callback;
+                 if(callback_src) {
+                     let callback_fn = globalThis.eval(callback_src);
+                     let value       = globalThis.eval(json_data.value);
+                     out("Monitor for: " + websocket.url + " got value of: " + value);
+                     let result = callback_fn.call(null, value, websocket, json_data); //usually done for side effect.
+                 }
+                 //delete the below?
+                /*
                  if (json_data.type === "show_measured_angles") {
-                     SimUtils.render_joints(json_data.value);
+                     SimUtils.render_joints(json_data.value)
                  } else if (json_data.type === "evaled") {
-                     let new_val;
+                     let new_val
                      if (json_data.callback) {
-                         let response_str_to_eval = json_data.callback + "(" + json_data.value + ")";
+                         let response_str_to_eval = json_data.callback + "(" + json_data.value + ")"
                          try {
-                             new_val = globalThis.eval(response_str_to_eval);
+                             new_val = globalThis.eval(response_str_to_eval)
                          } catch (err) {
-                             dde_err("Monitor evaled callback errored with: " + err.message);
+                             dde_err("Monitor evaled callback errored with: " + err.message)
                          }
                      } else {
-                         new_val = globalThis.eval(json_data.value);
+                         new_val = globalThis.eval(json_data.value)
                      }
-                     out("Monitor got evaled of: " + new_val);
+                     out("Monitor got evaled of: " + new_val)
                  } else if (json_data.type === "out") {
-                     out(json_data.value);
-                 }
+                     out(json_data.value)
+                 } */
              }
              catch(err){
-                 out("Monitor got message that might not be a JSON object: " + data_str +
+                 dde_error("Monitor for: " + websocket.url +
+                           " got error message back from MonitorServer of: " + data_str +
                  " with err: " + err.message);
              }
          };
 		
-         this.websocket.onerror = function(evt) {
-            warning("Monitor got an error: ");
+         websocket.onerror = function(evt) {
+            warning("Monitor for: " + websocket.url + " got an error of: " + evt);
          };
-      }
+      } //end of init
+
 
       static readyStateInt_to_string(int){
             let states = ["CONNECTING", "OPEN", "CLOSING", "CLOSED"];
@@ -52664,25 +52722,98 @@ class Monitor {
             else                     { return states[int] }
       }
 
-      static state(){
-         if(!this.websocket) { return "Monitor.websocket not created"}
+      static state(domain){
+         let websocket = this.domain_to_websocket(domain);
+         if(!websocket) { return "Monitor.websocket not created"}
          else {
-             let state_str = this.readyStateInt_to_string(this.websocket.readyState);
+             let state_str = this.readyStateInt_to_string(websocket.readyState);
              return state_str
          }
       }
+
+      // source is JS source code to eval in the job engine at domain.
+      //   If source has multiple expressions, ie "foo(); bar()",
+      //   both will be evaled but only the value of the last expression will
+      //   be the returned value. The value is converted to a string with to_source_code
+      //   in the MonitorServer and sent back to the Monitor computer as that string,
+      //   then converted back to an object via globalThis.eval(value_str) before its
+      //   passed to the callback.
+      // callback is a function that takes one argument, the result
+      //   of evaling source (value). It is called on the Monitor computer with the
+      //   value. If callback is null, the job engine will not
+      //   send a message back to the Monitor computer.
+      // period indicates when source is evaled.
+      //   "once" means just once the job engine recieves this message.
+      //   A number means the number of seconds between evals of the source.
+      //   the source continue to be evaled until it is stopped.
+      // examples: Monitor.send("localhost", "Job.active_job_names()",  "out", "once")
+      //           Monitor.send("localhost", "Job.defined_job_names()", "out", "once")
 	
-      static send(message){
-         if(typeof(message) !== "string") {
-             message = JSON.stringify(message);
+      static send(domain, source, callback="Monitor.out", period="once" //can also be a positive number of seconds to repeatedly eval message
+          ){
+         if(typeof(callback) === "function") {
+             let fn_name = Utils.function_name(callback);
+             if(fn_name !== "") { callback = fn_name;}
          }
-         out("Monitor sending: " + message);
-         this.websocket.send(message);
+         let websocket = this.domain_to_websocket(domain);
+         if(websocket) { this.send_aux(websocket, source, callback, period); }
+         else {
+             this.init(domain);
+             websocket = this.domain_to_websocket(domain);
+             if(websocket) {
+                 setTimeout(function () {
+                     Monitor.send_aux(websocket, source, callback, period);
+                 }, 500);
+             }
+             else {
+                 dde_error("Couldn't make websocket for domain: " + domain);
+             }
+         }
+
+      }
+
+      static send_aux(websocket, source, callback, period){
+          let message_object = {source:   source,
+                                callback: callback,
+                                period:   period};
+          let message_str = JSON.stringify(message_object);
+          out("Monitor for: " + websocket.url + " sending: " + message_str);
+          websocket.send(message_str);
+      }
+
+      //used as the default callback in a send.
+      static out(value, websocket=null, json_data){
+         let url_message = "";
+         if(websocket) {
+             url_message = "for websocket: " + websocket.url + " ";
+         }
+         let result = {value: value, command: json_data.source, value_string: json_data.value,
+                       error_type: json_data.error_type, error_message: json_data.error_message,
+                       full_error_message: json_data.full_error_message};
+         let src_label = "Monitor " + url_message + " <i>the result of evaling:</i> ";
+         eval_js_part3(result, src_label);
+         /*let src_truncated = ((json_data.source.length > 22) ?
+                               json_data.source.substring(0, 20) + "..." :
+                               json_data.source)
+         out("<fieldset><legend>Monitor " + url_message + " <i>the result of evaling:</i> " +
+              `<code title='` + json_data.source + `'>` + src_truncated + "</code> is...</legend>" +
+             value + "</fieldset>")*/
+      }
+
+      //higher levels sends:
+      //example: Monitor.render_measured_angles()
+      static render_measured_angles(domain, period=0.05){
+          this.send(domain,
+                    "Dexter.dexter0.rs.measured_angles()",
+                    "(function(angles) { SimUtils.render_joints(angles) })",
+                    period
+                   );
       }
 	
-      static close(){
-         this.websocket.close();
-         this.websocket = null;
+      static close(domain){
+          let websocket = this.domain_to_websocket(domain);
+          websocket.close();
+          this.delete_domain(domain);
       }	
 }
 /*
@@ -52696,56 +52827,37 @@ globalThis.Monitor = Monitor;
 
 // https://www.tutorialspoint.com/websockets/websockets_server_working.htm
 class MonitorServer$1 {
+   static source_to_interval_id_map = {}
+
+   static active_monitor_sources(){
+       return Object.keys(source_to_interval_id_map)
+   }
+
+   static stop_active_monitor(source){
+       let interval_id = this.source_to_interval_id_map[source];
+       clearInterval(interval_id);
+   }
+
+   static stop_active_monitors(){
+        for(let source of Object.keys(this.source_to_interval_id_map)) {
+            this.stop_active_monitor(source);
+        }
+   }
+
+
    static server = null
-   static init(){
+
+   static init(){ //called by load_job_engine.js
        out("Top of MonitorServer.init");
        this.server = new WebSocketServer({port: Monitor.port, clientTracking: true});    //Monitor.ws_uri()
        this.server.on('connection', function connection(ws_connection) { //ws_connection is the WebSocket connection for one client
-           MonitorServer$1.send_one("MonitorServer top of connection passed ws_connection: " + ws_connection, ws_connection);
-           ws_connection.on('message',
-                  function message(data) {
-              out('MonitorServer got message: ' + data);
-              try {
-                  let data_obj = JSON.parse(data);
-                  if (data_obj.type === "get_measured_angles") {
-                      out("MonitorServer got type: get_measured_angles");
-                      let ma;
-                      if (!Job.monitor_dexter || !Job.monitor_dexter.is_active()) {
-                          out("MonitorServer starting Job.monitor_dexter");
-                          Job.monitor_dexter.start();
-                          ma = Dexter.HOME_ANGLES;
-                      }
-                      else {
-                          out("MonitorServer getting ma to send");
-                          let ma = Dexter.dexter0.rs.measured_angles();
-                      }
-                      let json_obj = {
-                          type: "show_measured_angles",
-                          value: ma
-                      };
-                      let json_str = JSON.stringify(json_obj);
-                      MonitorServer$1.send_one(json_str, ws_connection);
-                  } else if (data_obj.type === "eval") {
-                      let new_val;
-                      try {
-                          new_val = globalThis.eval(data_obj.value);
-                      } catch (err) {
-                          new_val = "Error: " + err.message;
-                      }
-                      let json_obj = {
-                          type: "evaled",
-                          value: new_val,
-                          callback: data_obj.callback
-                      };
-                      let json_str = JSON.Stringify(json_obj);
-                      out("MonitorServer sending: " + json_str);
-                      MonitorServer$1.send_one(json_str, ws_connection);
-                  }
-              }
-              catch(err) {
-                  out("MonitorServer got message that isn't a JSON object: " + data);
-              }
-          });
+           MonitorServer$1.send(ws_connection,
+               {value: "'" + "MonitorServer top of connection passed ws_connection: " + ws_connection + "'",
+                              callback: "out"
+                              });
+           ws_connection.on('message', function(data) {
+               MonitorServer$1.handle_message( ws_connection, data);
+           });
            ws_connection.on('close', function (data) {
               out("MonitorServer closed " + data);
               if (Job.monitor_dexter &&
@@ -52755,38 +52867,60 @@ class MonitorServer$1 {
               }
               this.server = null;
           });
-          if (!Job.monitor_dexter) {
-              new Job({
-                  name: "monitor_dexter",
-                  inter_do_item_dur: 0.5, //todo speed up
-                  robot: new Brain({name: "brain_for_monitor_default"}),
-                  do_list: [Control.loop(true, function () {
-                      out("in Job.monitor_dexter loop");
-                      out("in Job.monitor_dexter loop with Dexter.dexter0.name: " + Dexter.dexter0.name);
-                      let ma;
-                      out("in Job.monitor_dexter Dexter.dexter0.robot_status: " + Dexter.dexter0.robot_status);
-                      out("in Job.monitor_dexter Dexter.dexter0.rs: " + Dexter.dexter0.rs);
-
-                      if(Dexter.dexter0.rs) {
-                          out("in Job.monitor_dexter loop getting measured_angles");
-                          ma = Dexter.dexter0.rs.measured_angles();
-                      }
-                      else { //hits on the first loop iteration
-                          out("in Job.monitor_dexter loop getting HOME_ANGLES");
-                          ma = Dexter.HOME_ANGLES;
-                      }
-                      out("in Job.monitor_dexter loop got ma: " + ma);
-                      let json_obj = {
-                          type: "show_measured_angles",
-                          value: ma
-                      };
-                      MonitorServer$1.send_all(json_obj); //send to all clients
-                      return Dexter.dexter0.get_robot_status()
-                  })]
-              }); //end of Job def
-         }
       });    
 	}
+
+    static handle_message(ws_connection, data) {
+        out('MonitorServer got message: ' + data);
+        let data_obj;
+        try {
+            data_obj = JSON.parse(data);
+        }
+        catch (err) {
+            this.handle_message_error(ws_connection, data, data_obj, err); //data_obj is undefined, and that's ok for JSON.parse errors
+        }
+        if (data_obj.period === "once") {
+            this.handle_message_one_eval(ws_connection, data, data_obj);
+        }
+        else { //got a period so repeating eval
+            let interval_id = setInterval(function() {
+                   MonitorServer$1.handle_message_one_eval(ws_connection, data, data_obj);
+                },
+                data_obj.period * 1000);  //convert seconds to milliseconds
+            this.source_to_interval_id_map[data_obj.source] = interval_id; //so that we have a list of the active_monitors for status and for stopping
+        }
+    }
+    static handle_message_one_eval(ws_connection, data, data_obj) {
+        try{
+            let value = globalThis.eval(data_obj.source);
+            if (data_obj.callback) {
+                let message_object = {
+                    source:   data_obj.source, //not really needed by Monitor but useful for debugging
+                    callback: data_obj.callback,
+                    value:    to_source_code({value: value})
+                };
+                let message_str = JSON.stringify(message_object);
+                MonitorServer$1.send(ws_connection, message_str);
+            }
+        }
+        catch(err){
+            this.handle_message_error(ws_connection, data, data_obj, err);
+        }
+    }
+
+    static handle_message_error(ws_connection, data, data_obj, err) {
+        let message_object = {
+            source:             (data_obj ? data_obj.source : data), //If we have a data_obj, that means the JSON.parse call above didn't error, else it did
+            callback:           "Monitor.out", //always do Monitor.out for the calleback when there is an error
+            //value: err.message,
+            //the below is similar to eval_part2 bottom
+            error_type:         err.name,
+            error_message:      err.message,
+            full_error_message: err.stack
+        };
+        let message_str = JSON.stringify(message_object);
+        MonitorServer$1.send(ws_connection, message_str);
+    }
 
     static readyStateInt_to_string(int){
         let states = ["CONNECTING", "OPEN", "CLOSING", "CLOSED"];
@@ -52794,41 +52928,32 @@ class MonitorServer$1 {
         else                     { return states[int] }
     }
     
-    static send_one(message, ws_connection) { //this is "send_first"
-        if (typeof (message) !== "string") {
-            message = JSON.stringify(message);
+    static send(ws_connection, message_object) {
+        let message_str;
+        if (typeof (message_object) !== "string") {
+            message_str = JSON.stringify(message_object);
         }
-        out("MonitorServer.send_one passed message: " + message + " wsc: " + ws_connection);
+        else { message_str = message_object;}
+        out("MonitorServer.send passed message: " + message_str + " wsc: " + ws_connection.url);
         if (ws_connection){
             let state_str = this.readyStateInt_to_string(ws_connection.readyState);
             if(state_str === "OPEN") {
                 //console.log("ws_connection.send bound to: " + ws_connection.send)
-                console.log("MonitorServer.send_one passed wdc and sending message: " + message);
-                ws_connection.send(message);
+                console.log("MonitorServer.send passed wdc and sending message: " + message_str);
+                ws_connection.send(message_str);
             }
             else {
-                console.log("send_one can't send because we_connection is not open, its: " + state_str);
+                console.log("MessageServer.send can't send message: " + message_str + "<br/> because ws_connection is not open, its: " + state_str);
             }
         }
-        else if (this.server.clients.length > 0) {
-            ws_connection = this.server.clients[0];
-            let state_str = this.readyStateInt_to_string(ws_connection.readyState);
-            if(state_str === "OPEN") {
-                console.log('MonitorServer sending: ' + message);
-                ws_connection.send(message);
-            }
-            else {
-                console.log("WebSocketServer.send_one can't send message: " + message +
-                            " because readyState is not OPEN, its: " + status_str);
-            }
+        else {
+            console.log("MessageServer.send can't send message: " + message_str + "<br/> because no ws_connection passed: " + ws_connection);
         }
-        //else no one to send to so do nothing
     }
 
-    static send_all(message){
-        out("MonitorServer.send_all passed: " + message);
+    static send_all(message_object){
         this.server.clients.forEach(function(client){
-            MonitorServer$1.send_one(message, client);
+            MonitorServer$1.send(client, message_object);
         });
     }
 }
@@ -52837,6 +52962,40 @@ globalThis.MonitorServer = MonitorServer$1;
 /*
 MonitorServer.init()
 */
+
+//see https://pyodide.org/en/stable/usage/api-reference.html
+globalThis.Py = class Py {
+    static eval(src){
+        let proxy_maybe = pyodide.runPython(src);
+        if(pyodide.isPyProxy(proxy_maybe)) {
+            let value = proxy_maybe.toJs();
+            proxy_maybe.destroy(); //get rid of the memory
+            return value
+        }
+        else { return proxy_maybe }
+    }
+    static eval_py_part2(command){
+        let result;
+        try {
+            let value = Py.eval(command);
+            result = {
+                command: command,
+                value: value,
+                value_string: Utils.stringify_value(value)
+            };
+        }
+        catch(err) {
+            result = {
+                command: command,
+                error_type: err.name,
+                error_message: err.message,
+                full_error_message: err.stack
+            };
+        }
+        let src_label = "The result of evaling Python: ";
+        eval_js_part3(result, src_label);
+    }
+};
 
 //after using this fn to define a global constant,
 //foo: [ 42 doesn't error. however
@@ -53121,7 +53280,7 @@ async function init_job_engine(){
 
     Job.class_init();
     Dexter.class_init();
-    new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 3000}); //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
+    Dexter.default = new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 3000}); //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
     //the only thing dde_init.js really MUST do is define dexter0, so just stick
     //it here and now user can screw up dde_init.js and still win.
 

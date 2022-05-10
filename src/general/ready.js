@@ -304,7 +304,7 @@ export function on_ready() {
                 eval_js_part2(src)
             }
             else if(cmd_lang_id.value == "Python"){
-                Py.eval(src)
+                Py.eval_py_part2(src)
             }
             else if (cmd_lang_id.value == "SSH"){
                 cmd_input_id.placeholder = "Type in a shell 'bash' command & hit the Enter key to run."

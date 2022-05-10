@@ -507,17 +507,16 @@ class Socket{
         //out(job_instance.name + " " + robot_name + " Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
 
         let oplet = oplet_array_or_string[Instruction.INSTRUCTION_TYPE]
-        out("In send for Job." + job_instance.name +
+        out("In Socket.send for Job." + job_instance.name +
             " Dexter." + rob.name +
             " oplet: " + oplet +
             " instr: " + oplet_array_or_string)
         let instr_id = oplet_array_or_string[Instruction.INSTRUCTION_ID]
         let got_first_non_monitor_instr = false
-        out("Top of Socket.send with: " + job_instance.name + " " + robot_name +  " " + oplet_array_or_string, undefined, true)
 
         if((oplet === "g") && (instr_id > 0)) {
             got_first_non_monitor_instr = true
-            out("in Socket,send for job: " + job_instance.name)
+            //out("in Socket.send for job: " + job_instance.name)
             //debugger;
         }
         else if ((job_instance !== "monitor_job") && (oplet !== "g") && got_first_non_monitor_instr){

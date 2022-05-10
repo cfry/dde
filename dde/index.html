@@ -755,5 +755,16 @@
 
 <!-- <script type="module" src="./src/general/ready.js" defer></script> -->
 
+<!-- from: https://pyodide.org/en/stable/usage/index.html -->
+<script src="https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js"></script>
+<script type="text/javascript">
+    async function main(){
+        globalThis.pyodide = await loadPyodide();
+        console.log(pyodide.runPython("1 + 2"));
+    }
+    main();
+</script>
+
+
 </body>
 </html>
