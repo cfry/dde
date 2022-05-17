@@ -1,3 +1,6 @@
+import grpc from '@grpc/grpc-js'
+globalThis.grpc = grpc
+
 console.log("top of ready_je.js")
 
 import { WebSocketServer } from 'ws'; //websocket server

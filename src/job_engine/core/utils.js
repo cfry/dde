@@ -10,7 +10,9 @@
 
 //import pkg2 from 'compare-versions';
 //const { compare_semversions } = pkg2;
-import {compare as compare_semversions} from 'compare-versions';
+
+import compareVersions from 'compare-versions';
+const compare_semversions = compareVersions.compare;
 
 //see https://stackoverflow.com/questions/65547827/how-to-import-npm-semver-on-an-ionic-project-with-angular
 //which lies.
