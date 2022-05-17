@@ -561,8 +561,9 @@ class Inspect{
         }
     }
 
+    //returns a string but might be ""
     static inspect_extra_info(item){
-        var info
+        let info = ""
         if (Utils.typed_array_name(item)){ //an array of some sort
            item = item.slice(0, 10) //just in case we have a really long array, don't want to have JSON.stringify try to make a super long string
            info = "["
@@ -604,12 +605,15 @@ class Inspect{
             //info = "extra info cannot inspect"
             //causes infinit loop when inspecting window, but it must be some field within window, not window itself
             try{ info = JSON.stringify(item) } //JSON.stringify(Ammo) causes infinit loop so I must catch this above.
-            catch(err) { return "" }
+            catch(err)             { return "" }
         }
-        if (info.length > 55) {
+        if(info === undefined)     { return "" }
+        else if(info.length === 0) { return "" }
+        else if(info === "{}")     { return "" }
+        else if (info.length > 55) {
             info = info.substring(0, 50) + " &nbsp;..."
-            if      (info[0] == "{") { info += "}" }
-            else if (info[0] == "[") { info += "]" }
+            if      ((info[0] == "{") && (last(info) !== "}")) { info += "}" }
+            else if ((info[0] == "[") && (last(info) !== "]")) { info += "]" }
         }
         return "&nbsp;&nbsp;" + info
     }

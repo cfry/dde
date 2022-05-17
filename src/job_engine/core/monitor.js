@@ -2,55 +2,77 @@
 class Monitor {
      static port = 3002 //the monitor port for a Dexter. also used by MonitorServer
 
-     static domain_to_websocket_map = {}
+    //static default_domain = "192.168.1.142"  //not now used but *could( be used in
+    //resolve_domain a la else if (domain_maybe === undefined) { return default_domain }
 
-     //static default_domain = "192.168.1.142"
+     static resolve_domain(domain_maybe){
+        if     (typeof(domain_maybe) === "string") { return domain_maybe }
+        else if(domain_maybe instanceof Dexter)    { return domain_maybe.ip_address }
+        else if(domain_maybe instanceof WebSocket) {
+            let the_url = domain_maybe.url //something like "ws://localhost:3002/"
+            let colon_pos = the_url.indexOf(":", 5)
+            let domain = the_url.substring(5, colon_pos)
+            return domain
+        }
+        else { dde_error("resolve_domain passsed: " + domain_maybe +
+            " which is not a domain, Dexter instance or Websocket instance.")
+        }
+     }
+
+     static domain_to_websocket_map = {} //contains only OPEN websockets
 
      //domain is the domain of the Job Engine you want to  monitor.
-     //It can be "localhost", "102.168.1.142" (and friends), Dexter.dexter0 (or any Dexter instance)
+     //It can be "localhost", "102.168.1.142" (and friends), Dexter.dexter0 (or any Dexter instance) or a websocket thats in domain_to_websocket_map
      static domain_to_websocket(domain=Dexter.default){
-         if(domain instanceof Dexter) {
-             domain = domain.ip_address
-         }
+         domain = this.resolve_domain(domain)
          return this.domain_to_websocket_map[domain]
      }
 
+
      static set_domain_to_websocket(domain=Dexter.default, websocket){
-         if(domain instanceof Dexter) {
-             domain = domain.ip_address
-         }
+         domain = this.resolve_domain(domain)
          this.domain_to_websocket_map[domain] = websocket
      }
 
     static delete_domain(domain=Dexter.default){
-        if(domain instanceof Dexter) {
-            domain = domain.ip_address
-        }
+        domain = this.resolve_domain(domain)
         delete this.domain_to_websocket_map[domain]
     }
 
      //domain can be a string:  use "localhost" for the simulator running on your pc,
      //or something like "192.168.1.142"
-     static ws_uri(domain=Dexter.default){
-         if(domain instanceof Dexter) {
-             domain = domain.ip_address
-         }
+     static ws_url(domain=Dexter.default){
+         domain = this.resolve_domain(domain)
          return  "ws://" + domain + ":" + this.port
      }
      
 	//browser side code (uses server, doesn't create it)
-     static init(domain="localhost"){
-         let the_uri = this.ws_uri(domain)
-         let websocket = new WebSocket(the_uri) //WebSocket defined in chrome browser
-         this.set_domain_to_websocket(domain, websocket)
-         out("Created Monitor for: " + the_uri)
+    //if source is passed, we're going to do a SEND after the init opens the websocket
+     static init(domain="localhost", source, callback, period){
+         domain = this.resolve_domain(domain) //
+         let the_url        = this.ws_url(domain)
+         this.send_source   = source    //ok if undefined
+         this.send_callback = callback  //ok if undefined
+         this.send_period   = period    //ok if undefined
+         let websocket = new WebSocket(the_url) //WebSocket defined in chrome browser
     
          websocket.onopen = function(evt) {
-            out("Monitor for: " + websocket.url + " websocket opened.") //onOpen(evt)
+             out("Monitor for: " + websocket.url + " websocket opened.") //onOpen(evt)
+             Monitor.set_domain_to_websocket(domain, websocket)
+             if(Monitor.send_source) {
+                 let source   = Monitor.send_source
+                 let callback = Monitor.send_callback
+                 let period   = Monitor.send_period
+                 Monitor.send_source   = undefined
+                 Monitor.send_callback = undefined
+                 Monitor.send_period   = undefined
+                 Monitor.send_aux(websocket, source, callback, period)
+             }
          }
 		
          websocket.onclose = function(evt) {
-            out("Monitor for: " + websocket.url + " websocket closed.") //onClose(evt)
+             Monitor.delete_domain(websocket)
+             out("Monitor for: " + websocket.url + " websocket closed.") //onClose(evt)
          }
 		
          websocket.onmessage = function(evt) {
@@ -60,9 +82,12 @@ class Monitor {
                  let json_data = JSON.parse(data_str)
                  let callback_src = json_data.callback
                  if(callback_src) {
+                     if(callback_src.startsWith("function(")){
+                         callback_src = "(" + callback_src + ")"
+                     }
                      let callback_fn = globalThis.eval(callback_src)
                      let value       = globalThis.eval(json_data.value)
-                     out("Monitor for: " + websocket.url + " got value of: " + value)
+                     //out("Monitor for: " + websocket.url + " got value of: " + value)
                      let result = callback_fn.call(null, value, websocket, json_data) //usually done for side effect.
                  }
                  //delete the below?
@@ -88,13 +113,12 @@ class Monitor {
              }
              catch(err){
                  dde_error("Monitor for: " + websocket.url +
-                           " got error message back from MonitorServer of: " + data_str +
-                 " with err: " + err.message)
+                           " got error message back from MonitorServer of: " + err.message)
              }
          }
 		
          websocket.onerror = function(evt) {
-            warning("Monitor for: " + websocket.url + " got an error of: " + evt)
+            dde_error("Monitor for: " + websocket.url + " errored probably because no Job Engine running at that url.")
          }
       } //end of init
 
@@ -106,12 +130,12 @@ class Monitor {
       }
 
       static state(domain){
-         let websocket = this.domain_to_websocket(domain)
-         if(!websocket) { return "Monitor.websocket not created"}
-         else {
+          let websocket = this.domain_to_websocket(domain)
+          if(!websocket) { return "websocket for " + domain + " has not been created."}
+          else {
              let state_str = this.readyStateInt_to_string(websocket.readyState)
              return state_str
-         }
+          }
       }
 
       // source is JS source code to eval in the job engine at domain.
@@ -132,7 +156,7 @@ class Monitor {
       // examples: Monitor.send("localhost", "Job.active_job_names()",  "out", "once")
       //           Monitor.send("localhost", "Job.defined_job_names()", "out", "once")
 	
-      static send(domain, source, callback="Monitor.out", period="once" //can also be a positive number of seconds to repeatedly eval message
+     static send(domain, source, callback="Monitor.out", period="run_once" //can also be a positive number of seconds to repeatedly eval message
           ){
          if(typeof(callback) === "function") {
              let fn_name = Utils.function_name(callback)
@@ -141,31 +165,44 @@ class Monitor {
          let websocket = this.domain_to_websocket(domain)
          if(websocket) { this.send_aux(websocket, source, callback, period) }
          else {
-             this.init(domain)
-             websocket = this.domain_to_websocket(domain)
-             if(websocket) {
-                 setTimeout(function () {
-                     Monitor.send_aux(websocket, source, callback, period)
-                 }, 500)
-             }
-             else {
-                 dde_error("Couldn't make websocket for domain: " + domain)
-             }
+             this.init(domain, source, callback, period)
          }
+     }
 
-      }
+     static send_aux(websocket, source, callback, period) {
+          let state = Monitor.state(websocket)
+          if (!(state === "OPEN")) {
+              //dde_error("The websocket for: " + websocket.url + " is not open, its: " + state )
+              websocket = new WebSocket(websocket.url) //try one more time.
+              setTimeout(function () {
+                  let state = Monitor.state(websocket)
+                  if(state !== "OPEN"){
+                      Monitor.delete_domain(websocket) //start afresh next time we try to send
+                      dde_error("websocket for: " + websocket.url + " is not OPEN, its: " + state)
+                  }
+                  else {
+                      Monitor.send_aux_aux(websocket, source, callback, period)
+                  }
+              }, 1000)
+          }
+          else {
+              this.send_aux_aux(websocket, source, callback, period)
+          }
+     }
 
-      static send_aux(websocket, source, callback, period){
-          let message_object = {source:   source,
-                                callback: callback,
-                                period:   period}
-          let message_str = JSON.stringify(message_object)
-          out("Monitor for: " + websocket.url + " sending: " + message_str)
-          websocket.send(message_str);
-      }
+     static send_aux_aux(websocket, source, callback, period) {
+              let message_object = {
+                  source: source,
+                  callback: callback,
+                  period: period
+              }
+              let message_str = JSON.stringify(message_object)
+              out("Monitor for: " + websocket.url + " sending: " + message_str)
+              websocket.send(message_str)
+     }
 
       //used as the default callback in a send.
-      static out(value, websocket=null, json_data){
+     static out(value, websocket=null, json_data){
          let url_message = ""
          if(websocket) {
              url_message = "for websocket: " + websocket.url + " "
@@ -185,22 +222,147 @@ class Monitor {
 
       //higher levels sends:
       //example: Monitor.render_measured_angles()
-      static render_measured_angles(domain, period=0.05){
+     static render_measured_angles(domain, period=0.05){
           this.send(domain,
                     "Dexter.dexter0.rs.measured_angles()",
                     "(function(angles) { SimUtils.render_joints(angles) })",
                     period
                    )
-      }
+     }
+
+     static stop_active_monitors(domain){
+            this.send(domain,
+                "MonitorServer.stop_active_monitors()",
+                "(function() { out('Monitor: active monitors stopped.') })",
+                "run_once"
+            )
+     }
 	
-      static close(domain){
-          let websocket = this.domain_to_websocket(domain)
-          websocket.close()
-          this.delete_domain(domain)
-      }	
+     static close(domain){
+              let websocket = this.domain_to_websocket(domain)
+              websocket.close()
+              this.delete_domain(domain)
+     }
+
+     static show_dialog(){
+         show_window({
+             title: "Monitor Dexter <i>in the Job Engine</i>",
+             x: 300, y: 50, width: 420, height: 550,
+             content: `
+<fieldset><legend>Domain: <i>what Dexter to monitor</i></legend> 
+<input name="domain_kind" type="radio" value="localhost"      style="margin-left:10px;"/> Use DDE4 installed on Local PC (localhost)<br/>
+<input name="domain_kind" type="radio" value="Dexter.default" style="margin-left:10px;" checked/> Use Dexter.default (see Misc Pane header menu)<br/>
+<input name="domain_kind" type="radio" value="type_in"        style="margin-left:10px;"/> Type in ip_address: 
+     <input name="domain_type_in" value="192.168.1.142"/>
+</fieldset>
+<div style="margin:10px;">
+    <a href="#" id="job_engine_user_interface_id" onclick="Monitor.browse_job_engine()">
+        Browse Job Engine User Interface
+    </a>
+</div>
+<input type="button" name="copy_job_to_job_engine" value="Copy Job to Job Engine" style="margin: 5px 0px 10px 10px;"
+       title="Copy the selection, or if no selection,&#013;the whole file in the Editor&#013;to a Job Engine file&#013;named by the contained Job definition."/>
+
+
+<!--<input name="job_engine_user_interface" type="button" style="margin: 4px;" value="Job Engine User Interface"/><br/>
+<input name="show_defined_jobs"       type="button" style="margin: 4px;" value="Show Defined Jobs"/><br/>
+-->
+
+
+<fieldset style="margin-top:10px;"><legend>Operations: <i>to be performed in the Job Engine</i></legend> 
+<input name="show_active_jobs"        type="button" style="margin: 4px;" value="Show Active Jobs"/><br/>
+<input name="show_active_monitors"    type="button" style="margin: 4px;" value="Show Active Monitors"/>
+<input name="stop_active_monitors"    type="button" style="margin: 4px 28px; 4px 4px;" value="Stop Active Monitors"
+       title='Stops all periodic operations.&#013;Always runs just once,&#013;ignoring the "once" ckeckbox.'/><br/>
+
+<input name="render_measured_angles"  type="button" style="margin: 4px;" value="Render Measured Angles"/> 
+<input name="show_robot_status"       type="button" style="margin: 4px;" value="Show Robot Status"/><br/>
+<input name="send"                    type="button" style="margin: 4px;" value="Send"/> code to run in Job Engine:<br/>
+<textarea name="source" rows="2" cols="80">Job.active_job_names() //returns array of strings</textarea>
+<div style="margin-left:63px;"> callback to run in DDE:</div>
+<textarea name="callback" rows="3" cols="80">function(val){\n    out("Job count: " + val.length, "green")\n}</textarea>
+</fieldset>
+<fieldset><legend>Period: <i>how often to run the operation</i></legend> 
+<input name="run_once" type="checkbox" style="margin-left:10px;" checked/>
+     once
+     &nbsp; <i>OR</i> &nbsp; every
+     <input name="period_duration" type="number" value="0.1" step="0.05" min="0" style="width:60px;"/> seconds
+</fieldset>
+`,
+             callback: "Monitor.handle_show_dialog"
+         })
+      }
+      /*static browse_job_engine(){
+          let domain_kind = vals.domain_kind
+          let domain
+          if      (domain_kind === "localhost")      { domain = "localhost"}
+          else if (domain_kind === "Dexter.default") { domain = Dexter.default.ip_address}
+          else if (domain_kind === "type_in")        { domain = val.domain_type_in}
+          let url = "http://" + domain + ":/dde/jobs.html"
+          browse_page(url)
+      }*/
+      static copy_job_to_job_engine(domain) {
+          let src = Editor.get_javascript()
+          let job_name = Job.source_to_job_name(src)
+          if(job_name === null){
+              dde_error("Job.copy_job_to_job_engine could not find a valid Job Definition in the editor.")
+          }
+          else {
+              let path = "http://" + domain + "/srv/samba/share/dde_apps/" + job_name + ".dde"
+              out("Copying Job definition to: " + path)
+              DDEFile.write_file_async(path, src)
+          }
+      }
+
+      static handle_show_dialog(vals){
+          //ebugger;
+          let domain_kind = vals.domain_kind
+          let domain
+          if      (domain_kind === "localhost")      { domain = "localhost"}
+          else if (domain_kind === "Dexter.default") { domain = Dexter.default.ip_address}
+          else if (domain_kind === "type_in")        { domain = val.domain_type_in}
+          let the_period
+          if(vals.run_once){
+              the_period = "run_once"
+          }
+          else { the_period = vals.period_duration }
+
+          if(vals.clicked_button_value === "close_button") {}
+
+          else if (vals.clicked_button_value === "job_engine_user_interface_id") {
+              let url = "http://" + domain + "/dde/jobs.html"
+              try { browse_page(url) }
+              catch(err) {
+                  dde_error("Could not browse: " + url  + "<br/>Verify that the domain of: " + domain +
+                            " is correct<br/>and that a server is running on Dexter or the server is simulated.")
+              }
+          }
+          else if (vals.clicked_button_value === "copy_job_to_job_engine") {
+              Monitor.copy_job_to_job_engine(domain)
+          }
+          else if(vals.clicked_button_value === "show_defined_jobs"){
+              Monitor.send(domain, "Job.defined_job_names()",  "Monitor.out", the_period)
+          }
+          else if(vals.clicked_button_value === "show_active_jobs"){
+             Monitor.send(domain, "Job.active_job_names()",  "Monitor.out", the_period)
+          }
+          else if(vals.clicked_button_value === "show_active_monitors"){
+              Monitor.send(domain, "MonitorServer.active_monitor_sources()", "Monitor.out", the_period)
+          }
+          else if(vals.clicked_button_value === "stop_active_monitors"){
+              Monitor.stop_active_monitors(domain) //don't run periodically.
+          }
+          else if(vals.clicked_button_value === "render_measured_angles"){
+              Monitor.render_measured_angles(domain, the_period)
+          }
+          else if(vals.clicked_button_value === "send"){
+              Monitor.send(domain, vals.source, vals.callback, the_period )
+          }
+          else {shouldnt("got unhandled click button value of: " + vals.clicked_button_value)}
+      }
 }
 /*
-Monitor.ws_uri()
+Monitor.ws_url()
 Monitor.init()
 Monitor.send("hey")
 Monitor.close()
@@ -213,12 +375,14 @@ class MonitorServer {
    static source_to_interval_id_map = {}
 
    static active_monitor_sources(){
-       return Object.keys(source_to_interval_id_map)
+       return Object.keys(this.source_to_interval_id_map)
    }
 
    static stop_active_monitor(source){
        let interval_id = this.source_to_interval_id_map[source]
        clearInterval(interval_id)
+       delete this.source_to_interval_id_map[source]
+
    }
 
    static stop_active_monitors(){
@@ -231,11 +395,12 @@ class MonitorServer {
    static server = null
 
    static init(){ //called by load_job_engine.js
-       out("Top of MonitorServer.init")
-       this.server = new WebSocketServer({port: Monitor.port, clientTracking: true})    //Monitor.ws_uri()
+       console.log("Top of MonitorServer.init")
+       this.server = new WebSocketServer({port: Monitor.port, clientTracking: true})    //Monitor.ws_url()
        this.server.on('connection', function connection(ws_connection) { //ws_connection is the WebSocket connection for one client
+           console.log("Top of MonitorServer onconnection")
            MonitorServer.send(ws_connection,
-               {value: "'" + "MonitorServer top of connection passed ws_connection: " + ws_connection + "'",
+               {value: "'" + "MonitorServer top of connection, passed ws_connection: " + ws_connection + "'",
                               callback: "out"
                               })
            ws_connection.on('message', function(data) {
@@ -262,7 +427,7 @@ class MonitorServer {
         catch (err) {
             this.handle_message_error(ws_connection, data, data_obj, err) //data_obj is undefined, and that's ok for JSON.parse errors
         }
-        if (data_obj.period === "once") {
+        if (data_obj.period === "run_once") {
             this.handle_message_one_eval(ws_connection, data, data_obj)
         }
         else { //got a period so repeating eval

@@ -9,7 +9,7 @@
         Both MicroSoft Excel and Apple Numbers spreadsheets can read and write CSV files.
         <p></p>
         CSV is not a tight standard. There are variants so beware.
-        DDE's CSV methods convert a string of CSV into a two dimensional array,
+        DDE's CSV methods convert a string of CSV into a two-dimensional array,
         and converts 2 dimensional arrays into strings.
         These functions are simple, not meant to handle complex data or lots
         of variants.
@@ -17,8 +17,8 @@
             Converts a two dimensional array into a string that has
             its rows separated by the newline character, \n and
             the "cells" within each row separated by commas.<br/>
-            <i>Parameter:</i></br/>
-            <b>an_array</b> The array is expected to be two dimensional
+            <i>Parameter:</i><br/>
+            <b>an_array</b> The array is expected to be two-dimensional
             with the outer arrays representing rows, and
             the inner arrays representing cells.<br/>
             <i>Example:</i>
@@ -34,14 +34,14 @@
             to write the result of calling <code>Utils.array_to_csv</code> to a file.
             </details>
             <details class="doc_details"><summary>Utils.csv_to_array</summary>
-                Converts a string of csv format into a two dimensional array.
+                Converts a string of csv format into a two-dimensional array.
                 If the string has a newline char, \n, then newline is used
                 for the row separator, otherwise \r is used.
                 (Excel uses \r.)<br/>
                 If the string has a comma char, then comma is used as the
                 separator between cells in a row, otherwise tab, \t, is used.
                 <br/>
-                <i>Parameter:</i></br/>
+                <i>Parameter:</i><br/>
                 <b>a_string</b> The string is expected to have newlines or \r separate rows
                 and commas or tab characters separate cells within a row.<br/>
                 <i>Example:</i>
@@ -57,7 +57,7 @@
         </details> <!-- end CSV -->
 
         <details class="doc_details"><summary>File Access</summary>
-            Web clients reading an writing files to their local file system has been impossible in the past.
+            Web clients reading and writing files to their local file system has been impossible in the past.
             DDE gives you programmatic read/write access to all files under the dde_apps folder
             under your Documents folder, typically under the user's home folder.
             <p></p>
@@ -104,7 +104,7 @@
             Pops up a dialog box allowing you to enter a name to save a file as,
             and navigate the file system &amp; choose a directory to save it in.
             Returns a string of the full path of the file.
-            Does not actualy <i>save</i> the contents of the file. Use
+            Does not actually <i>save</i> the contents of the file. Use
             <code>DDEFile.write_file_async</code> for that.
             <br/>
             <i>Parameter:</i><br/>
@@ -158,7 +158,7 @@
 
         <code title="not in Testsuite">DDEFile.copy_file_async("foo.js", "Dexter.dexter0:foo_copy.js")</code>
         Copies the file "dde_apps/foo.js"<br/>
-        to the ip address in</br/>
+        to the ip address in<br/>
         Dexter.dexter0, and file: /srv/samba/share/dde_apps/foo_copy.js<br/>
         The callback defaults to one that prints success or failure
         to DDE's output pane.
@@ -175,15 +175,15 @@
                   they will be created.<br>
          <b>callback</b>
             A function of one arg, an error object. If the arg passed is <code>null</code>
-            that means that their is no error and the copy succeeded.
-            Default: A function that just prints its error object arg's message
+            that means that there is no error and the copy succeeded.
+            Default: A function that just prints its error object argument's message
              to the Output pane.<br/>
          <i>Example:</i><br/>
          <code title="unEVALable">copy_folder_async("old", "new")</code><br/>
          The parent folders of both "old" and "new" is the normal default in dde,
          i.e. the "dde_apps" folder.
          Upon successful completion, the dde_apps folder will contain a new sub-folder
-         named "new", whose contents is a copy of the contents of the "old" folder.
+         named "new", whose content is a copy of the content of the "old" folder.
         </details>
 
        <!--not inn dde4 <details id="dde_apps_folder_doc_id" class="doc_details"><summary>dde_apps_folder</summary>
@@ -214,9 +214,9 @@
             <i>Parameters:</i><br/>
             <b>npm_package_name</b> A string. Required.<br/>
             <b>global variable name</b> A string. Optional. If supplied,
-              binds the returned module to the global varible.
+              binds the returned module to the global variable.
               Will error if you include a hyphen in the variable name, which
-              is a common mistake because the mis-desiged syntax of package names
+              is a common mistake because the mis-designed syntax of package names
               allows a hyphen. Usually you should replace hyphens with underscores.
             <p></p>
             <i>Example:</i><br/>
@@ -235,8 +235,8 @@
             The default saves the content of the current buffer if it has changed
             since the last time it was saved.<br/>
             <b>callback</b> A function of two arguments: <i>error_message</i> and <i>content</i><br/>
-               If their is an error, the callback is called with one argument, the error messsage.<br/>
-               Otherwise the calleback is called with a first argument of <code>null</code>
+               If there is an error, the callback is called with one argument, the error message.<br/>
+               Otherwise the callback is called with a first argument of <code>null</code>
                and a 2nd argument of a string of the content of the file to be edited.
             <p></p>
             <b>Example:</b> <code>DDEFile.edit_file("dde_init.js")</code> edits the
@@ -295,7 +295,7 @@
         </details> -->
        <!-- not in dde4  ... yet
         <details id="get_latest_path_doc_id"class="doc_details"><summary>get_latest_path</summary>
-           DDE has a file versioning convention. File pathames of the format
+           DDE has a file versioning convention. File pathnames of the format
            <code>"/foo/bar/baz_2.txt"</code> are considered to be "version 2" of
            the file <code>"/foo/bar/baz.txt"</code>
            Version numbers start at 0 and increment up.
@@ -328,7 +328,7 @@
         </details>
         -->
 
-        <details id="DDEFile.is_folder_doc_id"class="doc_details"><summary>DDEFile.is_folder</summary>
+        <details id="DDEFile.is_folder_doc_id" class="doc_details"><summary>DDEFile.is_folder</summary>
              Returns <code>true</code> if the argument represents a folder, <code>false</code> otherwise.
              <i>Parameters:</i><br/>
              <b>path</b> Default: <code>dde_apps_folder</code> The string naming the
@@ -392,8 +392,8 @@ DDEFile.load_file("two_plus_three.js",
         <i>Example:</i><br/>
         <code>DDEFile.make_folder("junk_fold_for_test",
               function(err, success){ out("make_folder err: " + err + " success: " + success)})</code>
-        Makes the folder dde_apps/foo. Inside of it is placed
-        a folder named "bar", and inside of that is placed a folder "baz".
+        Makes the folder dde_apps/foo. Inside is placed
+        a folder named "bar", and inside is placed a folder "baz".
         </details>
 
       <!--  <details id="make_full_path_doc_id" class="doc_details"><summary>make_full_path</summary>
@@ -469,8 +469,7 @@ DDEFile.load_file("two_plus_three.js",
             <p></p>
             <span style="color:red;">file_content</span> has been deprecated.
             Please use <code>read_file</code> instead.
-        </details> <!-- end read_file -->
-        -->
+        </details> --> <!-- end read_file -->
         <details id="read_file_async_doc_id" class="doc_details"><summary>read_file_async</summary>
            Similar to <a href="#" onclick="DocCode.open_doc(read_file_doc_id)">read_file</a>
            but does not return the
@@ -568,7 +567,7 @@ DDEFile.load_file("two_plus_three.js",
               beneath the <b>dde_apps</b> folder. This function only works if you have
               <i>Web Server for Chrome</i> installed. (See the doc for <b>load_files</b>.)<br/>
           Arguments:<br/>
-          <b>folder</b> Default: <code>"/"</code>. The name of the folder to retreive the listing of.
+          <b>folder</b> Default: <code>"/"</code>. The name of the folder to retrieve the listing of.
                     A folder of "/" finds the files and/or folders immediately below the <b>dde_apps</b> folder.
                     Folder should begin and end with a slash, but if it doesn't, it will be added.<br/>
           <b>include_folders</b> Default: <code>true</code>. Retrieved folder names end in slash.<br/>
@@ -669,10 +668,10 @@ and reliability.
                  its down. It would be <code>0</code> when its up, but
                  down_keys only tells you about down keys.<br/>
                  Gamepad "LEFT_TRIGGER" and "RIGHT_TRIGGER" are a float varying between 0 and 1.
-                 If the "LEFT_TRIGGER" was indicated using the keyboard equialent of
+                 If the "LEFT_TRIGGER" was indicated using the keyboard equivalent of
                  the digit keys 1, 2, 3, or 4, the values will be, correspondingly:
                  0.25, 0.5, 0.75, or 1.<br/>
-                 If the "RIGHT_TRIGGER" was indicated using the keyboard equialent of
+                 If the "RIGHT_TRIGGER" was indicated using the keyboard equivalent of
                  the digit keys 5, 6, 7, or 8, the values will be, correspondingly:
                  0.25, 0.5, 0.75, or 1.
         <p></p>
@@ -688,7 +687,7 @@ and reliability.
     }]</samp></pre>
     </details> <!-- end down_keys -->
 
-    <details id="Gamepad.is_key_down_doc_id"class="doc_details"><summary>is_key_down</summary>
+    <details id="Gamepad.is_key_down_doc_id" class="doc_details"><summary>is_key_down</summary>
        This method returns true if the given key is down and false otherwise.<br/>
        <i>Parameter:</i><br/>
        <b>keycode_or_keyname</b> If the given keycode (a non-negative integer)
@@ -1086,7 +1085,7 @@ new Job({
     and added to the Job's do_list each time an appropriate key or gamepad button
     is pressed.
     <p></p>
-    These calls just rotate a Dexter join by 1 degree so it moves slowly.
+    These calls just rotate a Dexter join by 1 degree, so it moves slowly.
     You can increase that 1 degree to move faster.
     The Job's argument of <code title="unEVALable JS fragment">inter_do_item_dur: 0.05</code>
     also affects speed.
@@ -1184,10 +1183,10 @@ new Job({name: "gamepad_job2",
     Each of its array elements is a JS literal object with properties:
         <ul>
             <li><b>categoryID</b>: A unique string</li>
-            <li><b>name</b>:       A human readable meaningful string such as "A", or "Default Category".</li>
+            <li><b>name</b>:       A human-readable meaningful string such as "A", or "Default Category".</li>
             <li><b>parentCategoryID</b>:  If there is a parent category, its ID string.
                    Otherwise: <code>null</code>.</li>
-            <li><b>timeStamp</b>:  A string of a Hexidecimal number indictating when
+            <li><b>timeStamp</b>:  A string of a Hexadecimal number indicating when
                  the category was last modified.</li>
         </ul>
         Note that by default, get returns a maximum of 20 records. You can increase this,
@@ -1210,10 +1209,10 @@ new Job({name: "gamepad_job2",
         <code title="not in TestSuite">Inflow.categories</code> An array of the categories (or any slashless path) retrieved.<br/>
         <code title="not in TestSuite">Inflow.get("categories/" + Inflow.categories[0].categoryId)</code>
               passes to the callback function a JS lit object that looks like:
-        <!-- bug in JS eval that it can't eval the below. Maybe because its not set to a variable-->
+        <!-- bug in JS eval that it can't eval the below. Maybe because it is not set to a variable-->
         <pre><code title="not in TestSuite">
 {name: "3Dprint",
-catgoryId: "12345c6...",
+categoryId: "12345c6...",
 parentCategoryId: null,
 timestamp: "000000000001E074"
 } </code></pre>
@@ -1248,7 +1247,7 @@ You can use this pattern for:
         <b>path</b>: Default <code>"categories"</code>
            See <a href="#" onclick="DocCode.open_doc('Inflow.get_doc_id')">Inflow.get</a> for options.<br/>
         <b>put_data</b>:  A JSON object of the data to be put into Inflow.
-        For properites, browse <a target="_blank" href="https://cloudapi.inflowinventory.com/docs/index.html">
+        For properties, browse <a target="_blank" href="https://cloudapi.inflowinventory.com/docs/index.html">
             https://cloudapi.inflowinventory.com/docs/index.html</a>
         then in the left column click a data item to show its details.<br/>
         Click the "PUT" details to show properties.
@@ -1276,7 +1275,7 @@ Inflow.put("products",
     <code>out</code> prints html that is rendered in the Output pane.<br/>
     <i>Parameters:</i><br/>
     <b>val</b> Default: <code>""</code>. The JavaScript data to be printed.
-               Typically this is a string.<br/>
+               Typically, this is a string.<br/>
     <b>color</b> Default: <code>"black"</code>. The color of the text to be printed.<br/>
     <b>temp</b> Default: <code>false</code>. With the default, printed output stays in the
        Output pane until DDE is relaunched.
@@ -1290,8 +1289,8 @@ Inflow.put("products",
        the previous call to out with that temp string will be over-ridden in place.
        However, when another call to out with a different value for temp occurs,
        the output of out with a temp string will <i>not</i> be erased.
-       Thus the last call to out with a given temp string remains in the Output pane,
-       in its place, regardless of other out calls.<br/>
+       Thus, the last call to <code>out</code> with a given temp string remains in the Output pane,
+       in its place, regardless of other <code>out</code> calls.<br/>
     <b>code</b> A boolean or null. Default: <code>null</code>. A <code>false</code> value renders the
     first argument's string as HTML. <code>true</code> renders the
     string as code. Newline chars actual cause a newline in the output
@@ -1299,20 +1298,20 @@ Inflow.put("products",
     A <code>true</code> value is useful for some kinds of debugging.
     <p></p>
     A <code>null</code> value looks at the value of the "Code" checkbox
-    in the Output pane header to get its real value. The checked or uncheched status
-    (true or false) is saved persistently accross DDE sessions.
+    in the Output pane header to get its real value. The checked or unchecked status
+    (true or false) is saved persistently across DDE sessions.
     If the checkbox is checked, <code>out</code> behaves as if its code
     argument was <code>true</code>, otherwise as if its code argument was <code>false</code>.
     <p></p>
     <i>Example:</i><code>out("hi", "blue")</code><p></p>
     If you have a lot of out calls, it can be helpful to give them
-    different colors so you can easily find a particular one.
+    different colors, so you can easily find a particular one.
     <p></p>
     See also <a href="#" onclick="DocCode.open_doc(print_statements_doc_id, event)">print statements</a>
 </details>
 
     <details class="doc_details"><summary>Persistent Database</summary>
-        DDE has a very simple database, whose values remain in tact accross DDE sessions.
+        DDE has a very simple database, whose values remain intact across DDE sessions.
         The DB stores a JSON object. The top level is a literal object
         with string keys and values that can be any JSON objects, including null, booleans,
         numbers, strings, arrays and other literal objects nested as deep as you like.
@@ -1328,11 +1327,11 @@ Inflow.put("products",
         get the JSON syntax correct.
 
         <details id="DDE_DB.persistent_get_doc_id" style="margin-left:40px;"><summary>DDE_DB.persistent_get</summary>
-            Retreives a literal that was set with <code>DDE_DB.persistent_set</code>
-            The argument is the key to retreive. Its default value is <code>"get_all"</code>
+            Retrieves a literal that was set with <code>DDE_DB.persistent_set</code>
+            The argument is the key to retrieve. Its default value is <code>"get_all"</code>
             which gets a JavaScript literal object that has key-value pairs for all the
             calls to <code>DDE_DB.persistent_set</code>. If a key is not in the database,
-            <code>undefined</code> will be retreived.
+            <code>undefined</code> will be retrieved.
             <p></p>
             DDE_DB.persistent_get returns the value of the variable in the argument.<br/>
             <b>Example:</b> <br/>
@@ -1356,7 +1355,7 @@ Inflow.put("products",
         <details id="DDE_DB.persistent_remove_doc_id" style="margin-left:40px;"><summary>DDE_DB.persistent_remove</summary>
             Removes the binding between the first argument (key) and a stored value in the persistent db.<br/>
             <b>Example:</b> <code>DDE_DB.persistent_remove("test4")</code><br/>
-            After such a call, attempting to retreive the value of that key will get <code>undefined</code>.
+            After such a call, attempting to retrieve the value of that key will get <code>undefined</code>.
         </details>
 
         <!--<details id="persistent_save_doc_id" style="margin-left:40px;"><summary>persistent_save</summary>
@@ -1376,7 +1375,7 @@ DDE_DB.persistent_set("my_array", orig_array)</code><br/>
         </details>
        -->
         <details id="DDE_DB.persistent_set_doc_id" style="margin-left:40px;"><summary>DDE_DB.persistent_set</summary>
-            Binds a literal to a string key that can be retreived in a later DDE session.
+            Binds a literal to a string key that can be retrieved in a later DDE session.
             Null, booleans, numbers, strings, arrays, and literal objects can all be stored.<br/>
             <b>Example:</b> <code>DDE_DB.persistent_set("test4", 44)</code><br/>
             <code>DDE_DB.persistent_get("test4")</code> => <samp>44</samp>
@@ -1425,7 +1424,7 @@ Many (but probably not all) computer cameras have an aspect ratio matching
 the default width/height of: 320 x 240 (1/4 VGA).
 This would include:<br/>
 648 x 480 (VGA) and<br/>
-1440 x 1080 (the height of 1080p. 1080p width is 1920, which nakes
+1440 x 1080 (the height of 1080p. 1080p width is 1920, which makes
  a different aspect ratio than VGA.  But 1440 x 1080 is VGA aspect ratio.)
 <p></p>
 Picture.init need not be called for the Robot instructions
@@ -1499,10 +1498,10 @@ a base64 string of the actual image to show.<br/>
 
 <b>title</b> Default: <code>undefined</code>. If undefined or null, and a new window is
 created for showing this picture, a title for the window will be made up
-based on the <i>content</i> arg. If its a string, that string will be shown in the title.<br/>
+based on the <i>content</i> arg. If it is a string, that string will be shown in the title.<br/>
 
 <b>x</b> Default: <code>200</code> If a new window is created, the x location
-    of that window. 0 means left.</b><br/>
+    of that window. 0 means left.<br/>
 
 <b>y</b> Default: <code>40</code> If a new window is created, the y location
     of that window. 0 means top.<br/>
@@ -1544,7 +1543,7 @@ rect_to_draw:[20, 20, 50, 50]})</code></pre>
 A picture file in DDE.<p><p/>
 <pre><code>Picture.show_picture({canvas_id: "mycan", x: 20, y: 100,
         width: 200, height: 300})</code></pre>
- The default picture in a canvas with id: "mycan".</pre>
+ The default picture in a canvas with id: "mycan".
 <pre><code>Picture.show_picture({canvas_id: "mycan", content:
     "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"})</code></pre>
   Another picture displayed in "mycan".
@@ -1552,31 +1551,31 @@ A picture file in DDE.<p><p/>
   There is a corresponding instruction, <a href="#" onclick="DocCode.open_doc('IO.show_picture_doc_id', event)">IO.show_picture</a>
 </details>
 
-<details id="Picture.show_video_cameras_doc_id"class="doc_details">
+<details id="Picture.show_video_cameras_doc_id" class="doc_details">
          <summary>show_video_cameras</summary>
 A given computer may have 0 or more cameras.
 If you don't have one on your computer, "webcams" that plug into
 a USB port are cheap and plentiful. We bought a Logitec c170 Webcam for $20
-in June, 2018. It has 640 x 480 video resolution and works fine with the DDE software.
+in June 2018. It has 640 x 480 video resolution and works fine with the DDE software.
 <br/>
 A higher end camera, especially good for pictures of tiny objects that
 we've used is <a target="_blank" href="https://www.amazon.com/Opti-Tekscope-Digital-Microscope-Definition-1600x1200/dp/B00PEZ3GMK/ref=pd_sbs_421_7">
 Opti-Tekscope</a>
 <p></p>
 Even if you do have a webcam on your computer, you may want one or more to attach
-to your Dexter. The above Logitec has a small table top stand. If you hacked
-that off, you'd be left with a 2 inch wide, 1 inch high, 1/2 inch deep camera.
+to your Dexter. The above Logitec has a small table-top stand. If you hacked
+that off, you'd be left with a 2-inch wide, 1 inch high, 1/2 inch deep camera.
 <p></p>
 Its 3 foot USB cord isn't long enough to allow mounting on Dexter, but you can
-get USB extention cables. We have seen 10 feet long USB cables work.
+get USB extension cables. We have seen 10 feet long USB cables work.
 The USB 2 spec says 16 feet is the maximum length. USB 2 is the most common
-version in use in 2018, but USB 3 is the new version and it is not recommended
+version in use in 2018, but USB 3 is the new version, and it is not recommended
 to be longer than 10 feet.
 <p></p>
 The "default" webcam for the DDE software will be the one built-in to
 your computer (if any). But if you're attaching a webcam to a computer,
 you'll have to specify the ID of the camera you intend to use.<br/>
-<code>Picture.show_video_cameras() </code></br> prints out a list of the video cameras
+<code>Picture.show_video_cameras() </code><br/> prints out a list of the video cameras
 that are currently connected to your computer. Each camera has a:
 <ul>
 <li><b>kind</b> Always "videoinput"</li>
@@ -1605,7 +1604,7 @@ all with string values.<br/>
 <details  id="Picture.show_video_doc_id" class="doc_details"><summary>show_video</summary>
 In order to take a picture for machine vision, you need to set up a video
 stream and take a snapshot of it. This is quite difficult using web-based
-sofware so we've made a wrapper for it.<br/>
+software, so we've made a wrapper for it.<br/>
 <i>Parameters:</i><br/>
 <b>video_id</b> Default: <code>"video_id"</code>. The location
 that the video will be put in. This can be the id of a dom element
@@ -1678,11 +1677,11 @@ the camera and take a snapshot. This is what take_picture does.<br/>
 <i>Parameters:</i><br/>
 <b>video_id</b> Default: <code>"video_id"</code> This can be a string of
 the id of a VIDEO DOM element to show the video, or the DOM element itself.
-If its a string and the corresponding DOM element doesn't exist,
+If it is a string and the corresponding DOM element doesn't exist,
 one is created in a new show_window.<br/>
 <b>camera_id</b> Default: <code>undefined</code> If there is already
 a DOM element in, or pointed to, by video_id, this argument is ignored.
-Otherwise its the ID of the camera to take the picture with.<br/>
+Otherwise, it is the ID of the camera to take the picture with.<br/>
 <b>width</b> Default: <code>320</code>. Picture width in pixels.<br/>
 <b>height</b> Default: <code>240</code>. Picture height in pixels.<br/>
 <b>callback</b> Default: <code>Picture.show_picture_of_mat</code>
@@ -1705,13 +1704,13 @@ DDE's easier-to-use wrappers for them slows them down a bit, but for many uses, 
 enough to matter. (The slowest code is non-working code!)
 <p></p>
 We've tried to design
-Picture such that it is essentially compatible with OpenCV.js so you can
+Picture such that it is essentially compatible with OpenCV.js, so you can
 mix and match Picture constructs with OpenCV.js's.
 <p></p>
 <i>The most important of the data structures are ...</i>
 <details id="cv.Scalar_doc_id" class="doc_details"><summary>Scalar</summary>
 In computer software, usually this term refers to a single number.
-OpenCV uses it to mean an array of 4 numbers, usally representing a pixel's
+OpenCV uses it to mean an array of 4 numbers, usually representing a pixel's
 red, green, blue, and alpha channels. In OpenCV.js you can often use<br/>
 <code>[0, 55, 128, 255]</code><br/>
 in place of<br/>
@@ -1725,14 +1724,14 @@ with different number of bytes, etc. Picture concerns itself with just two.<br/>
 1. A mat with a single byte for an element used for gray pictures (values 0 through
 255 inclusive).<br/>
 2. A mat with 4 bytes, one for each of red, green, blue, and alpha (rgba).
-Alpha is transparency wherein 0 is completely transparent and 255 is opague.
+Alpha is transparency wherein 0 is completely transparent and 255 is opaque.
 Picture defaults alpha to 255.<br/>
 These two mat types can get you through a lot of image processing.
 </details>
 
 <details id="Utils.is_string_base64_doc_id" class="doc_details"><summary>is_string_base64</summary>
     Returns <code>true</code> if the passed in string is base64 format, often
-    used in tranferring image data on the web.
+    used in transferring image data on the web.
     The primary characters of Base64 strings are:<br/>
      letters, digits, plus_sign and slash.<br/>
     Sometimes they can contain newlines every 76 characters.
@@ -1742,7 +1741,7 @@ These two mat types can get you through a lot of image processing.
     <br/>
     <i>Parameters:</i><br/>
     <b>a_string</b> Required. If the passed in value is a string of
-    base64 format, <code>true</code> is returned</br/>
+    base64 format, <code>true</code> is returned<br/>
     <b>permit_trailing_newline</b> Boolean. Default: <code>false</code>.
     If true, a_string can have an extra newline on the end and still
     be considered as a base64 string if the rest of the string
@@ -1758,7 +1757,7 @@ These two mat types can get you through a lot of image processing.
 
     <details id="Picture.is_mat_doc_id" class="doc_details"><summary>is_mat</summary>
 Returns true if the passed in object is a mat, otherwise false.<br/>
-<i>Parameters:</i></br/>
+<i>Parameters:</i><br/>
 <b>mat</b> A mat. Required.<br/>
 <b>type</b> Default: <code>null</code> meaning any type of mat is ok.<br/>
 Possible values:<br/>
@@ -1794,7 +1793,7 @@ Creates an OpenCV image.<br/>
     <code>Picture.make_mat({type: "gray", color: 75} )</code><br/>
     A gray-scale mat initialized to a dark gray.<p></p>
     <code>Picture.make_mat({type: "rgba", color: [255, 0, 200, 255]})</code><br/>
-    A color mat initiaized to magenta.
+    A color mat initialized to magenta.
 </details>
 <details id="Picture.mat_width_doc_id" class="doc_details"><summary>mat_width</summary>
 Returns the width of the mat argument.<br/>
@@ -1939,7 +1938,7 @@ Returns the width of the mat argument.<br/>
     <b>y</b> Required. An integer between 0 and (mat width - 1) inclusive.<br/>
     <b>value</b> Default: <code>0</code> The new value of the pixel's alpha component.
     An integer between 0 and 255 inclusive.<br/>
-    0 means transparent. 255 means opague.
+    0 means transparent. 255 means opaque.
     <i>Example:</i><br/>
     <pre><code> let mat = Picture.make_mat()
  Picture.set_mat_alpha(mat, 2, 3, 128)
@@ -2039,7 +2038,7 @@ Returns the width of the mat argument.<br/>
 <details id="Picture.set_mat_pixels_doc_id" class="doc_details"><summary>set_mat_pixels</summary>
     Sets all the pixels in the given mat to the given value.<br/>
     <i>Parameters:</i><br/>
-    <b>mat</b> Required. May be an "rgba" or a "gray" mat.<br/>
+    <b>mat</b> Required. This may be an "rgba" or a "gray" mat.<br/>
     <b>value</b> Default: <code>[0, 0, 0, 255]</code> The new value of all the pixels.
     An array of integers between 0 and 255 inclusive.
     If the value is an integer, it is converted to [value, value, value, 255]
@@ -2068,7 +2067,7 @@ Regardless of whether the mat is created, the mat_out is returned
 by the method. It is efficient to "reuse" output mats.
 
 <details id="Picture.mat_average_color_doc_id" class="doc_details"><summary>mat_average_color</summary>
-Returns the average of all the pixels in the passed in mat.
+Returns the average of all the pixels in the passed-in mat.
 Think of this as a drastic simplification of a picture, which
 is sometimes all you need. You can use it to compare two
 pictures for "overall color balance".<br/>
@@ -2077,7 +2076,7 @@ The workhorse of this method is <code>cv.mean</code>
 <i>Parameters:</i><br/>
 <b>mat</b> Required. May be of type "rgba" or "gray".<br/>
 <b>return_integer</b> Default: <code>false</code>
-When  <code>false</code>, an array of 4 nuumbers is returned.
+When  <code>false</code>, an array of 4 numbers is returned.
 If the mat is "gray", the first number in the array will be the
 average gray value of all the pixels and the other array elements
 will be 0. <br/>
@@ -2134,7 +2133,7 @@ A value closer to 1 than 0 indicates a more lighted area.<br/>
     pixels of the foreground. Note that because the foreground region
     will also have the background "behind it" subtracted, the
     colors of resultant image in the foreground region will not
-    be the same as the forefround in the original picture,
+    be the same as the foreground in the original picture,
     but they are very likely to have positive (not zero) values.
 </details>
 
@@ -2249,7 +2248,7 @@ lines is less than 180 degrees from the standpoint of the center of the object.
  If there are no points for a located object, <code>null</code> will be returned
  from locate_object.
 <b>avg_center</b> Default: <code>true</code>.
-Only relevent for "min_area_rect". If this is <code>false</code>,
+Only relevant for "min_area_rect". If this is <code>false</code>,
  the center_x and center_y properties of the returned object
  represent the center of the rectangle locating the object.
  If it is <code>true</code>, center_x and center_y represent
@@ -2259,10 +2258,10 @@ Only relevent for "min_area_rect". If this is <code>false</code>,
  If the recognized object's pixels solidly fill in the rectangle
  with no external points, the rect center and  average center are
  the same. But often the recognized object's pixels are more "clumped"
- with lots of blackspace in between clumps.
+ with lots of black space in between clumps.
  If there happen to be a few "noise points" not part of the object,
  these are effectively averaged out by the more numerous in-object points.
- Thus the noise points are less damaging to the accuracy of the real
+ Thus, the noise points are less damaging to the accuracy of the real
  center of the object.<br/>
 <b>show</b> Default: <code>true</code>.
 After location of the object, display a show_window containing the
@@ -2300,7 +2299,7 @@ It returns an array of objects, one for each blob.<br/>
     This converts the mat_in to a black and white image wherein the all the values
     in mat_in that are between 0 and 128 are converted to 255 (white) and
      the values above white_level are converted to 0 (black).
-     Thus it inverts the colors. mat_in light areas are converted to black.
+     Thus, it inverts the colors. mat_in light areas are converted to black.
      mat_in dark areas are converted to white.
      Our blobs are formed by the lighter areas in mat_in.
      white_level is used as the "lowerb" in <code>cv.inRange</code> to implement this
@@ -2374,7 +2373,7 @@ for use by <code>Picture.classifier_detect</code>.<br/>
 <i>Parameter:</i><br/>
 <b>path</b> Default: <code>null</code> which uses the file
 at the path: <code>__dirname + "/vision/lbpcascade_frontalface.xml"</code>,
-stored inside of DDE.
+stored inside DDE.
 This is a small, simple face recognition classifier.
 Beware, it works poorly on faces with glasses on.
 A larger, 1Mbyte face classifier is available at:<br/>
@@ -2401,7 +2400,7 @@ This is not easy, but can be done with OpenCV.
 Finds objects specified by a classifier in a given picture.
 The returned value is an array of rectangles where the recognized objects
 appear in the given picture.<br/>
-It is a wrapper for OpenCV's <code title="unEVALable psuedocode">classifier.detectMultiScale()</code><br/>
+It is a wrapper for OpenCV's <code title="unEVALable pseudocode">classifier.detectMultiScale()</code><br/>
 <i>Parameters:</i><br/>
     <b>classifier</b> Required. A classifier object made with
         <code>Picture.make_classifier()</code><br/>
@@ -2428,8 +2427,8 @@ It is a wrapper for OpenCV's <code title="unEVALable psuedocode">classifier.dete
  Picture.classifier_detect({classifier: my_classifier,
                             mat_in: mat1})
     </code></pre>
-In the above example, the first line creates the cloassifier object
-that is used as an arugment in the last line.
+In the above example, the first line creates the classifier object
+that is used as an argument in the last line.
 The 2nd line declares a global variable which
 is set in the callback of the 3rd line.
 This global variable is used in the last line as the mat_in
@@ -2442,7 +2441,7 @@ Understanding how similar two pictures are can help classify pictures into categ
 tell you if the scene is as expected and a variety of other useful machine vision tasks.
 <p></p>
 Similarity has many potential dimensions. The Picture class contains
-some methods for telling you how similar two mats are along different dimentions.
+some methods for telling you how similar two mats are along different dimensions.
 They all take 2 mats as inputs and return a floating point number between
 0 and 1, with 0 meaning very dissimilar and 1 meaning very similar.
 
@@ -2450,9 +2449,9 @@ They all take 2 mats as inputs and return a floating point number between
     This method gets the average color of the two input methods,
     subtracts them, takes the absolute value of that,
     divides it by 255 and subtracts it from 1.
-    Its a crude similarity wherein what counts is the overall color balance
+    It is a crude similarity wherein what counts is the overall color balance
     of a picture, not <i>where</i> those colors are in the picture.
-    Thus its possible that a picture of white clouds and a picture of a white wedding dress
+    Thus, it is possible that a picture of white clouds and a picture of a white wedding dress
     would be very similar. But different camera angles or lighting on those two subjects
     might have very different similarities.<br/>
     <i>Parameters:</i><br/>
@@ -2470,7 +2469,7 @@ They all take 2 mats as inputs and return a floating point number between
 </details>
 
 <details id="Picture.mats_similarity_by_color_doc_id" class="doc_details"><summary>mats_similarity_by_color</summary>
-    Uses Picture.mats_diff to substract one mat from another, then
+    Uses Picture.mats_diff to subtract one mat from another, then
     gets the average value of that mat to return a number
     between 0 and 1. The result is adjusted such that
     0 means the pictures are very different, and 1 means they are very similar.
@@ -2509,7 +2508,7 @@ of the input mats.<br/>
 in each input mat are sorted by this. As blobs are compared,
 the first blob from mat_in1 is compared to the first blob in mat_in2,
 then the second blob from each input mat is compared, etc. on up
-to point_count blobs. Thus the value of sort_by is crucial for determining
+to point_count blobs. Thus, the value of sort_by is crucial for determining
 the kind of similarity you will get.
 See <a href="#" onclick="DocCode.open_doc('Picture.detect_blob_doc_id', event)">Picture.detect_blob</a>
 for sort_by details.
@@ -2550,7 +2549,7 @@ Plays an electronic sound.<br/>
 <b>dur</b> The duration in number seconds to beep. Default: 0.5<br/>
 <b>frequency</b> A number in Hertz. Default: 400<br/>
 <b>volume</b> A number between zero and 1. Default: 1<br/>
-<b>waveform</b> The timbre or waverform of the sound. Default: "triangle".
+<b>waveform</b> The timbre or waveform of the sound. Default: "triangle".
     Other options are: "sine", "square", "sawtooth".<br/>
 <b>callback</b> A function of no arguments that is called when the beep finishes playing.
                Default: null, meaning do nothing.<br/>
@@ -2584,43 +2583,42 @@ There are higher level "phrase processors" that make creating scores
 relatively easy. <a href="#" onclick="DocCode.open_doc(music_article_doc_id, event)">
 The Language of Music</a> describes DDE's approach to music in broad themes.<br/>
 For a video presentation of many of these ideas, watch
-<a href="https://drive.google.com/open?id=0B6PCkmO9RJLJU2VUVkhReGd6RjA">Making Music</a>
-     target="blank">Making Music</a>
+<a href="https://drive.google.com/open?id=0B6PCkmO9RJLJU2VUVkhReGd6RjA" target="blank">Making Music</a>
 <p></p>
 The fundamental class is Note, that represents a musical note, including
 its duration (and, effectively, its ending time).
-Phrase is a class who's instances hold sequences of Note instances.
+Phrase is a class whose instances hold sequences of Note instances.
 Notes and Phrases share nearly the same instances variables and methods.
 <p></p>
 In order to play notes, we need to interface to MIDI.
 <details id="MIDI_doc_id" class="doc_details"><summary>MIDI</summary>
-MIDI is an acroymn for Musical Instrument Digital Interface.
-Its a decades old standard for how to control sounds using
+MIDI is an acronym for Musical Instrument Digital Interface.
+It is a decades old standard for how to control sounds using
 electronics, that has been applied to lighting and other
 remote control situations.
 <p></p>
 DDE uses the <a href="https://github.com/cotejp/webmidi" target="_blank">WebMidi</a> Javascript library to connect
 DDE and MIDI. DDE layers software on top of WebMidi to form higher level
-msuic data structures and methods including integrating them into Jobs
+music data structures and methods including integrating them into Jobs
 for making things. One of the things you can make in DDE is music.
 <p></p>
 DDE can be used to both create MIDI events and receive them.
 To hear a MIDI note that DDE creates, you must connect a synthesizer to
-the computer running DDE. Numerous hardware synthesizers are avaiable
+the computer running DDE. Numerous hardware synthesizers are available
 starting at about $100. You can also use free or commercial "software synthesizers".
 </details>
 <details  class="doc_details"><summary>Synthesizers</summary>
 One such software synthesizer is in Apple's GarageBand,
 which is now free for Mac and Windows.
 On modern Macs, in your Applications folder
-you should see GarageBand.app which comes comes with the OS.
-Double click on it. This will cause its full contents
-to download. I takes 15 minutes or so because GarageBand uses
-mmany digitally recorded instruments to create natural sounds.
-(Other synthesizers uses alorithms to create sounds which are typcally
+you should see GarageBand.app which comes with the OS.
+Double-click on it. This will cause its full contents
+to download. It takes 15 minutes or so because GarageBand uses
+many digitally recorded instruments to create natural sounds.
+(Other synthesizers uses algorithms to create sounds which are typically
 much smaller, have lots of "variations" but none of them sound
 like acoustic instruments.)
-Once GarageBand downloading complete, launch it by double clicking the file,
+Once GarageBand downloading complete, launch it by double-clicking the file,
 if it isn' already up.
 <p></p>
 On WindowsOS, see https://garagebandforwindowspc.org/ for the more
@@ -2631,7 +2629,7 @@ VirtualMIDISynth</a> with some sampled instrument
 "sound fonts" such as
 <a target="_blank" href="http://www.synthfont.com/soundfonts.html">FluidR3 GM Bank</a>
 <p></p>
-With GB launched, double click on "Keyboard Collection".
+With GB launched, double-click on "Keyboard Collection".
 You can leave the default instrument, or
 select another one from the left side of GB.
 Then choose GB menu bar/Window/Show Keyboard.  The image of a piano
@@ -2655,7 +2653,7 @@ This can also be called by choosing Insert menu/Music/Midi.init().<br/>
 <i>Parameters:</i> None.
 <p></p>
 <b id="Midi.all_notes_off_doc_id">Midi.all_notes_off</b> Turns off
-all curently on notes on all channels. Does not work when using
+all currently on notes on all channels. Does not work when using
 GarageBand for a synthesizer.<br/>
 <i>Parameters:</i> None.
 <p></p>
@@ -2670,7 +2668,7 @@ In DDE, Eval <code title="not in TestSuite">Midi.init()</code><br/>
 Now eval <code title="not in TestSuite">new Note("C").start()</code><br/>
 OR select <code>new Note("C")</code><br/>
 and click <button>Eval&Start</button><br/>
-Often the first note or two will get lost so do it a few times
+Often the first note or two will get lost so do it a few times,
 and you should hear Middle C played on the instrument you have
 selected in GarageBand. <br/>
 <code>Midi.init</code> can also be called by choosing
@@ -2703,8 +2701,8 @@ This is tricky.
 <b>On Windows OS</b><br/>
     One of our most savvy tech users advises:
     <ol>
-        <li>Install <a target="_blank" href="http://coolsoft.altervista.org/en/virtualmidisynth#soundfonts">VirtualMIDISynth</a></li></li>
-        <li>From <a target="_blank" ref="http://www.synthfont.com/soundfonts.html">synthfont</a>
+        <li>Install <a target="_blank" href="http://coolsoft.altervista.org/en/virtualmidisynth#soundfonts">VirtualMIDISynth</a></li>
+        <li>From <a target="_blank" href="http://www.synthfont.com/soundfonts.html">synthfont</a>
                  download and extract "FluidR3 GM Bank"</li>
         <li>In VirtualMIDISynth, import the "FuidR3 GM Bank" sound fonts.</li>
         <li>Restart DDE land oad a MIDI example code and eval it.</li>
@@ -2733,10 +2731,10 @@ and a bunch of methods to manipulate Notes.
              <p></p>
              When you are creating notes, you can use the more friendly notation of "C" for
              Middle C, "C5" for C an octave higher, "C#" for C sharp, "Db" for D flat, etc.<br/>
-             "R" is used to mean "rest", useful when you're making a sequnce of
+             "R" is used to mean "rest", useful when you're making a sequence of
              notes in a phrase.
              Beware: Sometimes MIDIcians use the term "note" to mean pitch.
-             Beware: Middle C can be refered to as "C4" (as is a somewhat
+             Beware: Middle C can be referred to as "C4" (as is a somewhat
              standard practice in music) but it produces
              the MIDI pitch of 60. It would have been more logical to have
              "C4" map to 48 since that's 4 times 12 (the number of pitches in an octave).
@@ -2753,7 +2751,7 @@ and a bunch of methods to manipulate Notes.
         </li>
         <li><b>channel</b> Default 1. An integer between 1 and 16 inclusive,
             determining the MIDI channel of the note. Think of this as the instrument
-            to play the note on, though beware. Channel can be remapped by syntheizer software
+            to play the note on, though beware. Channel can be remapped by synthesizer software
             to play different instruments.
         </li>
         </ul>
@@ -2768,7 +2766,7 @@ and a bunch of methods to manipulate Notes.
           velocity: 0.5,
           channel:  1})
       </code></pre>
-      The above values are the defaults. Leave a property out and you
+      The above values are the defaults. Leave a property out, and you
       get its default value.
       <p></p>
       The easy way is to use a string with
@@ -2818,7 +2816,7 @@ and a bunch of methods to manipulate Notes.
         <b>interval_or_array</b> If this is one number, it represents an interval from the
         incoming pitch to be output. If this is an array, it represents several intervals,
         each of which will be made into a new pitch (and note). Usually this is an array
-        since a 1 note arpegio is easier to accomplish in other ways.<br/>
+        since a 1 note arpeggio is easier to accomplish in other ways.<br/>
         <b>key</b> Default: <code>"chromatic"</code>. If "chromatic", interpret the
         intervals as half-steps to add to the incoming pitch to form the new pitch(es).
         If this is a pitch class, ie "C", "D#", etc. interpret the intervals as diatonic,
@@ -2883,7 +2881,7 @@ and a bunch of methods to manipulate Notes.
             <b>max_is_inclusive</b> Default <code>true</code>. A boolean.
             If the corresponding values of this and max_note are equal,
             then if max_is_inclusive is true, then this is returned.
-            Otherwise null is returned.
+            Otherwise, null is returned.
             <br/>
             <b>filter_in</b> Default: <code>true</code> A boolean.
             If true, the above descriptions of the returned value are correct.
@@ -2908,7 +2906,7 @@ and a bunch of methods to manipulate Notes.
             <p></p>
             <b>Rests</b><br/>
             If min_note's pitch is a rest, then max_note's pitch is not considered.
-            If this' pitch is also a rest, the note is "filtered in", but
+            If this's pitch is also a rest, the note is "filtered in", but
             if this's pitch is not a rest, it is filtered out.
             If this's pitch is a rest and min_note's pitch is not a rest.
             the note is filtered in. (unless of course, filter_in is false,
@@ -2946,7 +2944,7 @@ and a bunch of methods to manipulate Notes.
             <p></p>
             <i>Parameters:</i><br/>
             <b>start_time</b> Default: <code>0</code>. Returns a note whose start time
-            is more than or equal to this arg's value.<br/>
+            is more than or equal to this argument's value.<br/>
             <b>end_time</b> Default: the time + dur of this.<br/>
             Returns a note whose time + dur is less than or equal to end_time.
             <p></p>
@@ -2963,12 +2961,12 @@ and a bunch of methods to manipulate Notes.
         or positive. If an array, create a note for each interval in the array
         and return a phrase. The number (or numbers in the array) are usually
         whole numbers but can be mixed numbers with a 0.5 fractional part.
-        These <i>may</i> yeild out-of-key pitches. See below.
+        These <i>may</i> yield out-of-key pitches. See below.
         <br/>
             <b>key</b> Default: "chromatic". If "chromatic", treats each interval as
             half_steps and directly adds them to the pitch. If a pitch class
             ("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
-            or the flat equivlents, ie "Db"),
+            or the flat equivalents, ie "Db"),
             considers the intervals to be
             "diatonic". 1 is unison (no change from original pitch). 2 is a 2nd, either
             major or minor to keep the new pitch within the key specified. Same for a
@@ -2985,7 +2983,7 @@ and a bunch of methods to manipulate Notes.
             or might not be within the given key depending on the whole number of the interval.
             For instance, in the key of "C", an interval of 3.5 yields an "F', ie the
             same as an interval of 4 and in the given key.
-            However 4.5 yields F#, out of the key.
+            However, 4.5 yields F#, out of the key.
             <i>Examples:</i><br/>
             <code>new Note("D4").transpose(1)</code><br/>=> <samp>new Note("D#4")</samp><br/>
             <code>new Note("D4").transpose(1, "C")</code><br/>=> <samp>new Note("D4")</samp><br/>
@@ -2993,10 +2991,10 @@ and a bunch of methods to manipulate Notes.
             <code>new Note("D4").transpose(3, "C")</code><br/>=> <samp>new Note("F4")</samp><br/>
             Using a negative number in the <code>"chromatic"</code> key, just subtracts
             that number from the pitch to transpose it. Using a negative number for
-            a diatonic key also "subtracts" it, but is more compelex.
+            a diatonic key also "subtracts" it, but is more complex.
             A negative interval does NOT mean
             a "minor second interval". It means go down 1 "scale degree".
-            Thus In the key of "C", starting with a pitch of "C4", if we have -2,
+            Thus, In the key of "C", starting with a pitch of "C4", if we have -2,
             it transposes "C" to "B3". -3 transposes to "A3".
 
             <p></p>
@@ -3007,10 +3005,10 @@ and a bunch of methods to manipulate Notes.
             <code>new Note("D4").transpose(-3, "C")</code><br/>=> <samp>new Note("B3")</samp>
             <p></p>
             The discrepancy between one-based and zero-based
-            is not just an inconsistency in DDE, its a descrepancy in the English
+            is not just an inconsistency in DDE, it is a discrepancy in the English
             designators for items in a list and math. If the first item in a list was
             called "zeroth" instead of "first", that would fix the problem. I suspect
-            the concept and term of "first" occured before the concept of zero. Such "off by one"
+            the concept and term of "first" occurred before the concept of zero. Such "off by one"
             issues account for an astoundingly high percentage of bugs in programs, so
             be on the lookout for them.<br/>
             <code>new Note("D4").transpose([1, 3, 5], "C")</code><br/>
@@ -3018,7 +3016,7 @@ and a bunch of methods to manipulate Notes.
             <i>A D minor triad (chord), all of whose pitches are in the designated key of C.</i>
             <p></p>
             Diatonic intervals are normally whole numbers. When they are, transposing
-            an in-key pitch using an integer interval will yeild another in-key pitch.
+            an in-key pitch using an integer interval will yield another in-key pitch.
             However, you can also use intervals such as 1.5, 2.5, etc.
             These use the whole number to transpose as above, then add a half step to
             the resulting pitch. That might or might not end up with an in-key pitch
@@ -3092,7 +3090,7 @@ and a bunch of methods to manipulate Notes.
             </li>
             <li><b>dur</b> A positive number indicating the phrase duration. The amount of time from <i>0</i> that the phrase ends,
                 in beats. Defaults to the ending tome of the last note in the phrase or 0 if no
-                notes in the phrase. dur repressents the "logical duration of the phrase from time 0 to the end of the phrase.
+                notes in the phrase. dur represents the "logical duration of the phrase from time 0 to the end of the phrase.
                 This is often <i>not</i> the duration from the start time of the first note to the
                 end time of the last note. For instance a phrase might have some negative time "pick-up" notes,
                 and have the last note end before or after the logical end. dur is used for concat in
@@ -3113,7 +3111,7 @@ and a bunch of methods to manipulate Notes.
             </li>
             <li><b>channel</b> Default <code>1</code>. An integer between 1 and 16 inclusive,
                 determining the MIDI channel of the note. Think of this as the instrument
-                to play the note on, though beware. Channel can be remapped by syntheizer software
+                to play the note on, though beware. Channel can be remapped by synthesizer software
                 to play different instruments.
             </li>
         </ul>
@@ -3142,10 +3140,10 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         <b>time</b> Default <code>0</code>. A number. time in beats that the first note will have
             when the "notes" parameter is a string.<br/>
         <b>seconds_per_beat</b> Default: <code>1</code>. A non-negative number. The duration in seconds of a beat.
-         The default corrsponds to 60 beats per minute. A typical value for modern music is
+         The default corresponds to 60 beats per minute. A typical value for modern music is
          <code>0.5</code><br/>
          <b>dur</b> Default: <code>null</code> meaning the ending time of the last note in the phrase.
-         dur representes the "logical duration of the phrase from time 0 to the end of the phrase.
+         dur represents the "logical duration of the phrase from time 0 to the end of the phrase.
          This is often <i>not</i> the duration from the start time of the first note to the
          end time of the last note. For instance a phrase might have some negative time "pick-up" notes,
          and have the last note end before or after the logical end. dur is used for concat in
@@ -3197,7 +3195,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
     <details id="Phrase.start_doc_id" class="doc_details"><summary>start</summary>
     Plays the phrase. Will call Midi.init() if Midi has yet to be enabled.
     Returns the input phrase as is.
-    You can also play a phrase by selecting it's soruce code and clicking <button>Eval&Start</button>
+    You can also play a phrase by selecting it's source code and clicking <button>Eval&Start</button>
     </details>
 
     <details id="Phrase.arpeggio_doc_id" class="doc_details"><summary>arpeggio</summary>
@@ -3213,7 +3211,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
     <details id="Phrase.concat_doc_id" class="doc_details"><summary>concat</summary>
     Takes any number of Phrases as arguments and
     concatenates them together with the subject. Each Phrase's "dur" is used
-    to deterime the starting time of the next phrase. Use concat for
+    to determine the starting time of the next phrase. Use concat for
     making long phrases.
     </details>
 
@@ -3224,7 +3222,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
     </details>
 
     <details id="Phrase.merge_doc_id" class="doc_details"><summary>merge</summary>
-    akes any number of Phrases as arguments and merges them together.
+    Makes any number of Phrases as arguments and merges them together.
     The notes in the new returned phrase will have their same start times as
     their input start times. The resultant Phrase will have a dur that is the
     maximum of all the input phrases. Use merge for layering the parts of a piece
@@ -3246,7 +3244,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
     <code>[0, 0, 1, 0]</code><br/>
     Here we are playing the first phrase in the phrase library, followed by playing
     that same phrase again, then the 2nd phrase in the phrase library and concluding
-    with the first phrase. This implements the common pattern in poopular music of "AABA".<br/>
+    with the first phrase. This implements the common pattern in popular music of "AABA".<br/>
     <b>phrase_library</b> Required. An array of Notes and Phrases of possibilities to use
     in the output phrase. Each may be used zero or more times.<br/>
     <b>merge</b> Default: <code>false</code>. A boolean. If false,
@@ -3304,7 +3302,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         to filter in or out notes.
         Takes the same parameters as Note.time_interval.
         <p></p>
-        It is different than filter in that it only deals with times and durs.
+        It is different from filter in that it only deals with times and durs.
         time_interval will modify the time
         of notes that overlap start_time to start at the start time.
         It also changes the dur of any notes that overlap end_time such
@@ -3320,7 +3318,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         <samp>new Phrase("C# D#")</samp>
          If an array, create a note for each interval in the array
         and include them all in the output phrase. This is quite useful for
-        turning a base line into a chord progression.<br/>
+        turning a bass line into a chord progression.<br/>
         <code>new Phrase("C D").transpose([0, 4, 7])</code><br/>=>
         <samp>new Phrase("CEG DF#A")</samp>
         <br/>
@@ -3331,7 +3329,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
     </details>
 
     <details id="Phrase.set_property_doc_id" class="doc_details"><summary>set_property</summary>
-        Returns a copy of "this" except that eacn note in
+        Returns a copy of "this" except that each note in
         the phrase will have one of its properties set to a new value.<br/>
         <i>Parameters:</i><br/>
         <b>prop_name</b> The property within the Notes to set. One of:
@@ -3395,7 +3393,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         and also in the same sub menu, "Mouse".<br/>
         Now click on the keyboard or hit a key (like "q")<br/>
         and you should see "Got Midi event..." in DDE.
-        You should also hear the note played in GarageBand or any synthezier you have
+        You should also hear the note played in GarageBand or any synthesizer you have
         that listens to the appropriate MIDI channel.
         <p></p>
         VMPK has a nice feature for labeling the keys on its
@@ -3431,12 +3429,12 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
     </ul>
     DDE goes a long ways towards solving these problems.
     <ul><li>DDE uses Google's speech recognition. Although it isn't perfect,
-           its much better than past systems and improving.</li>
+           it is much better than past systems and improving.</li>
         <li>DDE hides Google's API behind a much easier to call function and
-            an comparitively easy to use do_list instruction, named
+            a comparitively easy to use do_list instruction, named
             Human.recognize_speech</li>
         <li>DDE's dialog box provides clear help to users with an option to
-            type in text should recognition (or your network connnetion) fail.
+            type in text should recognition (or your network connetion) fail.
             We also have a mechanism to correct recognition mistakes. (ie "for" vs "four").</li>
     </ul>
     Don't expect recognition to be as reliable as a human. Google's speech
@@ -3450,12 +3448,12 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         don't use recognize_speech.
         However, because of the type-in capability, programs written to take
         advantage of speech recognition in poor conditions can still
-        be servicable via typing in instead of talking.
+        be serviceable via typing in instead of talking.
     <b><i>Be sure to crank up the volume of your mic.</i></b>
     <p></p>
     Recognized text comes with a <b>confidence</b> number indicating
     how good the recognizer <i>thinks</i> the text is at matching what you've said.
-    In theory its nice to have this confidence number but in practice, it might
+    In theory it is nice to have this confidence number but in practice, it might
     not matter much. The number varies from 0 (unconfident) to 100 (very unconfident)
     though these numbers themselves might not be so, ahem, confident.
     Also in the middle of a session, you may well see network bugs even though
@@ -3545,7 +3543,7 @@ the text to be spoken is in. The syntax for "lang"
 <b>voice</b> An integer from 0 through 3. Default: <code>0</code>
     Though the underlying software claims to support different "voices", we've
     noticed that changing the voice parameter from 0 through 3 does not change the
-    actualy quality of the voice. Perhaps some day this will work.<br/>
+    actually quality of the voice. Perhaps some day this will work.<br/>
 <b>callback</b> A function that is called when the call is performed in DDE (not on the Job Engine)
                and the speaking is done.
                The callback is passed one argument: "event".
@@ -3576,7 +3574,7 @@ The most useful properties of the event are:
     you need a speaker connected to a sound card, which is connected to Dexter's micro USB port.
     We've tested the <a target="_blank" href="https://www.amazon.com/dp/B01J7P0OGI">
          TechRise USB External Stereo Sound Adapter</a>
-    You get an, ahem, more robotic voice than when running in DDE.
+    You get a more robotic voice than when running in DDE.
 <p></p>
 <i>Examples:</i><br/>
 <code>speak("testing 1, 2, 3")</code><br/>
@@ -3622,8 +3620,8 @@ This will not work for Jobs run on the Job Engine on Dexter.
         If there is an error, the returned string will start with "Error:"
         and be followed by some clues as to why the error happened.
         <p></p>
-        It will not eval scripts on the page
-        so you may see an error when retriving a page containing JavaScript.
+        It will not eval scripts on the page,
+        so you may see an error when retrieving a page containing JavaScript.
         Also, pages that refer to another file for CSS won't have the required
         CSS on them. With get_page you literally just get the string of the content
         of that one page.
@@ -3641,7 +3639,7 @@ This will not work for Jobs run on the Job Engine on Dexter.
     </details>
 
     <details id="get_page_async_doc_id" class="doc_details"><summary>get_page_async</summary>
-        A call to get_page_async is asynchronus. It returns immediately,
+        A call to get_page_async is asynchronous. It returns immediately,
         but when the actual page content is finally retrieved from the web,
         a callback is called and passed an error object, a response object, and the body string
         of the page.
@@ -3677,9 +3675,9 @@ This will not work for Jobs run on the Job Engine on Dexter.
     </details>
 
     <details id="make_url_doc_id" class="doc_details"><summary>make_url</summary>
-        <i>url</i> is a poorly designed language for transfering data on the web.
+        <i>url</i> is a poorly designed language for transferring data on the web.
         <a target="_blank" href="https://en.wikipedia.org/wiki/Uniform_Resource_Locator">Documentation.</a>
-        It's normal behavior is as an asyncrhonous function call, where the
+        It's normal behavior is as an asynchronous function call, where the
         call is typically on a web device known as a 'client', and it is sent to
         a different device on the web known as a 'server'.
         <p></p>
@@ -3693,7 +3691,7 @@ This will not work for Jobs run on the Job Engine on Dexter.
             there is no protocol in the url already. If there is no "://" in the
             first 16 chars of the url, it prepends "http://". If you want a
             different protocol, such as https, or you are using "://" in the value
-            of an argument, you should include the protocol in the passed in url.</li>
+            of an argument, you should include the protocol in the passed-in url.</li>
             <li>Makes creating arguments easier and appends them to the end of the url.</li>
         </ol>
         <i>Parameters</i>:<br/>
@@ -3705,7 +3703,7 @@ This will not work for Jobs run on the Job Engine on Dexter.
         Example: <code>"x=123&y=45&color=blue"</code> <i>OR</i>
         A literal object with name-value pairs representing the arguments.<br/>
         Example:<br/><code>{x: 123, y: 45, color: "blue"}</code><br/>
-        This later form makes it easy to compute and set indivudal args.<br/>
+        This later form makes it easy to compute and set individual args.<br/>
         Example:<pre><code>
       var args = {x: 12.3 * 10}
       args.y = 40 + 5
@@ -3736,8 +3734,8 @@ This will cause a button for the Job to be placed in the Output Pane header, suc
     <button>my_job</button>.  Clicking the button runs the Job.
 <p></p>
 Webinar videos for Job:<br/>
-<a target="_blank" href="http://hdrobotic.com/webinar#making_jobs"   target="_blank">Making Jobs</a><br/>
-<a target="_blank" href="http://hdrobotic.com/webinar#advanced_jobs" target="_blank">Advanced Jobs</a><br/>
+<a target="_blank" href="http://hdrobotic.com/webinar#making_jobs"   >Making Jobs</a><br/>
+<a target="_blank" href="http://hdrobotic.com/webinar#advanced_jobs" >Advanced Jobs</a><br/>
 
 <details class="doc_details"><summary>Starting and Stopping Jobs</summary>
 Defined jobs remain inert until they are started by clicking their button in the Output pane header
@@ -3778,13 +3776,13 @@ Jobs either run to completion, error, or are stopped by the user via:
                 for documentation on all the different kinds of instruction_locations.
             </li>
             <li><b>initial_instruction</b> Add an initial instruction to the do_list at
-                the location of program_counter. Thus this instruction will be executed
+                the location of program_counter. Thus, this instruction will be executed
                 first when the job is run. Default null (no instruction added).
             </li>
         </ul>
         Note that these parameters override the same-named properties used in making
         a new job, but they are only used for this call to start. They
-        do not perminently affect the job definition.<br/>
+        do not permanently affect the job definition.<br/>
         <i>Examples</i>:<br/>
         <code title="not in TestSuite"> Job.my_job.start()</code> which uses
         all the original new Job parameters, or<br/>
@@ -3800,7 +3798,7 @@ Jobs either run to completion, error, or are stopped by the user via:
     To fully understand how a Job operates, you must understand the difference
     between <i>Job Definition Time</i> and <i>Job Run Time</i>.
     <p></p>
-    <b>Job Definition Time</b></br/>
+    <b>Job Definition Time</b><br/>
     When you select and evaluate the source code of a job, you are
     <i>defining</i> the Job. This simply uses JavaScript's <code>eval</code>
     function to evaluate the source code, just like evaling any source code.
@@ -3828,7 +3826,7 @@ new Job({name: "my_job",
     This instance will have its joint1 angle set to 90 because <code>ang1</code>
     is evaled when the Job definition is evaluated, and <code>ang1</code> evals
     to 90. By using a global variable in multiple instructions or even multiple Jobs,
-    we can change lots of instructions to have a particular consitent value
+    we can change lots of instructions to have a particular consistent value
     with just one <code>var ang1 = 90</code> .
     <p></p>
     If you simply eval <code>Dexter.move_all_joints(90)</code>,
@@ -3836,7 +3834,7 @@ new Job({name: "my_job",
     <i>array_of_angles</i> property storing where the Dexter's angles will
     be commanded to go when the Job is actually run.
     <p></p>
-    <b>Job Run time</b></br/>
+    <b>Job Run time</b><br/>
     Now let's walk through <i>Job Run Time</i>. You run a Job
     by clicking its <button>job name</button> button or by calling
     <code title="unEVALable">Job.my_job.start()</code><br/>
@@ -3844,16 +3842,16 @@ new Job({name: "my_job",
     of the Job. Only this time, it is not using JavaScript's <code>eval</code>, it is using
     Job's special evaluator. Instead of taking an input of JavaScript source code,
     its taking input of the items on the do_list (created via JS eval when defining the Job)
-    which can be of many different types.
+    which can be of many types.
     Each instruction is "evaluated" by the Job differently, depending on its type.
     (similar to JavaScript's eval!)
     In the case of an instance of the move_all_joints instruction,
     that instance is transformed to a lower level instruction
     that is very similar to what you get when evaluating
-    <code>make_ins("a", 90)</code>, then the 90 is convertered from
+    <code>make_ins("a", 90)</code>, then the 90 is converted from
     degrees into arcseconds, and sent to the Job's default robot, which better be a Dexter.
     <p></p>
-    <b>Re-Running a Job</b></br/>
+    <b>Re-Running a Job</b><br/>
     After a Job has finished, you can rerun it by clicking its
     <button>job name</button> button or calling its <code title="not Evalable">start</code> method again.
     This does not redefine the job.
@@ -3873,7 +3871,7 @@ new Job({name: "my_job",
     so in our 2nd running, the robot won't move. But besides this initial
     "set up move", following moves would be the same between the two runnings.
     <p></p>
-    <b>Functions on the do_list</b></br/>
+    <b>Functions on the do_list</b><br/>
     A Job definition can look like it contains random old JS code.
     But like calling any constructor or function in JS
     (or any popular general purpose programming language), it can't be random old JS code.
@@ -3889,7 +3887,7 @@ new Job({name: "my_job",
     and the kinds of instructions they can take  <a href="#" onclick="DocCode.open_doc(Robot_doc_id, event)">Robot</a>.
     <p></p>
     The most flexible of instruction types is a JavaScript function.
-    This allows you to execute arbritary JavaScript at Job Run Time.
+    This allows you to execute arbitrary JavaScript at Job Run Time.
     You might need to do this because you want to use the current environment
     to help determine what instruction to run next. That current environment
     may not be knowable at Job Definition Time. Perhaps you want to
@@ -3907,7 +3905,7 @@ new Job({name: "my_job",
 new Job({name: "my_job1",
          do_list: [move_it_buddy]
         })</code></pre>
-    particulary helpful for long functions or functions we want to
+    particularly helpful for long functions or functions we want to
     call multiple times.
     <p></p>
     We are not doing:
@@ -3982,16 +3980,16 @@ new Job({name: "my_job1",
             Authoring and running Jobs for a robot in DDE is a
             complex process implemented with a huge amount of code.
             A lot of that code simplifies the process by elevating the level
-            of coding a Job author must to. None the less,
+            of coding a Job author must to. Nonetheless,
             to have an accurate-enough model of authoring and running
             Jobs is not trivial. The advantage of this "non-trivial"
             is a tremendous amount of flexibility.
             <p></p>
             You can grasp the essence of this process by
             examining a simplified model of authoring Jobs and
-            their running. We've constructed one in a bare bones
+            their running. We've constructed one in a bare-bones
             JavaScript representation. It lacks the bells and whistles of
-            full blown DDE,
+            full-blown DDE,
             but hopefully is just enough for you to mentally model
             the process of authoring and running Jobs to take advantage of DDE's power.
             <p></p>
@@ -4007,7 +4005,7 @@ new Job({name: "my_job1",
 <b>Job author model:</b><br/>
 <code>var my_job = model_new_job([[15, 30, 45], "abc" + "def"])</code>
 <p></p>
-<b>Explanation:</b></br>
+<b>Explanation:</b><br/>
 A Job is essentially a named do_list.
 So to make one, we pass in an array and
 set the resulting Job to a variable: <code>my_job </code>
@@ -4092,7 +4090,7 @@ to start the process all over again.
 This keeps going until we run out of items
 in the do_list.
 <p></p>
-DDE has many different kinds of instructions,
+DDE has many kinds of instructions,
 but we'll describe just one particularly versatile one here,
 a function definition.
 If you have a function call in the do_list source code,
@@ -4173,8 +4171,8 @@ so a function can return multiple instructions in an array.
 We can return a different number of instructions based on
 run-time conditions. Each can be a different kind of instruction.
 All this computation can happen
-<i>while</i> the Job is running, giving DDE controled robots the
-ability to respond to conditions not exiting
+<i>while</i> the Job is running, giving DDE controlled robots the
+ability to respond to conditions not existing
 at Job definition time.
 This "self-modifying code"
 makes Jobs exceedingly dynamic and powerful.
@@ -4293,7 +4291,7 @@ new Job({name: "my_job",
            is started, it will see <i>the same</i> top level keys as the first time,
            and all the top level values that are immutable (booleans, strings, numbers).
            However, if there is a mutable value (say an element of an array or a literal object,
-           the first job might have modified that and that modification will be see
+           the first job might have modified that and that modification will be seen
            when the job is run a 2nd time. Mostly all this doesn't matter because
            most jobs don't use user_data at all. Others look at it but don't
            write to it, and most of the others would only write top level, immutable
@@ -4332,9 +4330,9 @@ new Job({name: "my_job",
         </li>
         <li id="job_param_program_counter_doc_id"><b>program_counter</b> Default: <code>0</code> Initialize the program_counter to an instruction id.
          Use this when you want  a job to start with an instruction other than
-         the first instruction in the do_list. Thus you can skip performing some of
-         the initial instructions when running the job.
-         This is most commonly a non-negative integer but
+         the first instruction in the do_list. Thus, you can skip performing some
+            initial instructions when running the job.
+         This is most commonly a non-negative integer, but
          you can use any instruction_location here.
         See <a href="#" onclick="DocCode.open_doc('Control.go_to_doc_id', event)">Control.go_to</a>
         for documentation on all the different kinds of instruction_locations.
@@ -4374,7 +4372,7 @@ new Job({name: "my_job",
             <p></p>
             The value of this Job param is placed on the do_list immediately after the program_counter
             when a robot_status error is received back from Dexter.
-            It can be any valid do_list item including an annoymous function.
+            It can be any valid do_list item including an anonymous function.
             It behaves like a usual do_list item.
             If an instance of a <code>Control.stop_job</code> or <code>Control.error</code>
             instruction is the value, that will cause the job to stop but otherwise
@@ -4395,7 +4393,7 @@ new Job({name: "my_job",
             <p></p>
             The value of this Job param is placed on the do_list immediately after the program_counter
             when an error in running an instruction occurs.
-            It can be any valid do_list item including an annoymous function.
+            It can be any valid do_list item including an anonymous function.
             It behaves like a usual do_list item. If an instance of a <code>Control.stop_job</code> or <code>Control.error</code>
             instruction is the value of if_instruction_error, that will cause the job to stop.
             <p></p>
@@ -4405,7 +4403,7 @@ new Job({name: "my_job",
         </li>
         <li id="job_param_if_dexter_connect_error_doc_id"><b>if_dexter_connect_error</b> Unlike the other if...error
             Job params, the value of if_dexter_connect_error is a function.
-            That funciton is <i>not</i> placed on the do_list, but rather called directly
+            That function is <i>not</i> placed on the do_list, but rather called directly
             when connection to the Job's Dexter robot fails. This param is ignored if
             the Job doesn't have a Dexter robot.
             <p></p>
@@ -4492,7 +4490,7 @@ new Job({name: "my_job",
                 this is the when_stopped_condition. Usually you want
                 this to be true because we want the when_stopped instruction
                 (if any) to run. This can be the status_code of a finished Job.<br/>
-              <b>errored</b> A non-specific error has occured.
+              <b>errored</b> A non-specific error has occurred.
                  This can be the status_code of a finished Job.<br/>
               <b>errored_from_dexter</b> An error from Dexter, usually
                reflected in the robot_status error slot.
@@ -4563,7 +4561,7 @@ on how to continually add and execute a new instruction in a running job.
 </details>
 
 <details  class="doc_details"><summary>Error Handling</summary>
-As Jobs become more complex, more critical and operatate with potentially
+As Jobs become more complex, more critical and operate with potentially
 dangerous tools or in dangerous situations, reliability becomes
 increasingly important. We recommend lots of testing, including
 capturing tests to automatically run via DDE's
@@ -4571,12 +4569,12 @@ capturing tests to automatically run via DDE's
 <p></p>
 None-the-less, you can still run into errors and other unexpected behavior.
 Job's have a number of mechanisms that allow a Job author to
-"expect the unexpected" and handle errors in a controlled manor,
+"expect the unexpected" and handle errors in a controlled manner,
 to turn a bad situation into a manageable one.
 <p></p>
 There are a number of new Job parameters that let you run some code,
 including put instructions on the do_list to be run when a Job
-errors but before it stops.<br/>
+errors, but before it stops.<br/>
 <a href="#" onclick="DocCode.open_doc('job_param_if_robot_status_error_doc_id', event)">if_robot_status_error</a>
  and<br/>
 <a href="#" onclick="DocCode.open_doc('job_param_if_instruction_error_doc_id', event)">if_instruction_error</a>
@@ -4584,13 +4582,13 @@ allow you to specify
 any valid do_list item to place on the do_list right after the offending
 instruction. Since this includes a JS function definition,
 you can run arbitrary code giving you a wide range of possibilities.
-these possibilites include doing nothing, making print statements
+these possibilities include doing nothing, making print statements
 to warn you of the errors, popping up windows, moving a robot,
 all while either allowing the Job to continue or to stop.<br/>
 <a href="#" onclick="DocCode.open_doc('job_param_if_dexter_connect_error_doc_id', event)">if_connect_error</a><br/>
-doens't let you specify an instruction to put on the do_list because these
+doesn't let you specify an instruction to put on the do_list because these
 errors happen before the do_list processing begins, but
-do allow an arbitrary JS function that can peform clean-up or restart
+do allow an arbitrary JS function that can perform clean-up or restart
 code from Dexter connection errors.
 <p></p>
 The <a href="#" onclick="DocCode.open_doc('job_param_when_stopped_doc_id', event)">when_stopped</a>
@@ -4601,7 +4599,7 @@ This comes in handy when you have to "take down" something that a Job has
 turned on by the Job. Regardless of how a job stops, we
 want to make sure anything dangerous is rendered harmless.<p/>
 The <a href="#" onclick="DocCode.open_doc('job_param_when_stopped_doc_id', event)">when_stopped_conditions</a>
-Job parameter gives you fine grained control over just what stopping
+Job parameter gives you fine-grained control over just what stopping
 conditions will trigger the when_stopped instruction.
 <p></p>
 Some useful instructions when writing robust and safe Jobs.<br/>
@@ -4610,7 +4608,7 @@ Some useful instructions when writing robust and safe Jobs.<br/>
 both allow you to run the when_stopped instruction on a case-by-case basis.<br/>
 <a href="#" onclick="DocCode.open_doc('Control.if_any_errors_doc_id', event)">if_any_errors</a>
 allows you to detect errors in <i>other</i> Jobs and run a
-do_list item of your choosing if such an error has occured.<br/>
+do_list item of your choosing if such an error has occurred.<br/>
 The <a href="#" onclick="DocCode.open_doc('Control.debugger_doc_id', event)">debugger</a>
 instruction is handy to place on the do_list right before some
 erroring instruction to pause the job and allow you to step through
@@ -4631,7 +4629,7 @@ the JavaScript code that implements Job instructions.
   each kind of robot will have its own instruction set. The primary
   difference between robots is the difference in their instruction sets,
   though there are some kinds of instructions that can be run on any kind of Robot.
-  Those "common instructions" opperate completely within DDE as they have
+  Those "common instructions" operate completely within DDE as they have
   no need to be sent to a special piece of hardware.
   <p></p>
   All Jobs have a default <i>robot</i> property. You can access the robot property
@@ -4650,7 +4648,7 @@ the Human robot.
     <details  class="doc_details"><summary>Any Array of Instructions</summary>
         Any valid instruction can be wrapped in an array of any length
         and put on a do_list. This is often useful when you have a function
-        that makes a number of instuctions. The instructions need not be of the same type.
+        that makes a number of instructions. The instructions need not be of the same type.
         <p></p>
         An empty array is valid but will have no effect.<br/>
         Arrays may be nested to any depth.<br/>
@@ -4666,7 +4664,7 @@ the Human robot.
                     }
                    ]})
      </code></pre>
-        The first insruction above puts 1 array with two instructions on the do_list.
+        The first instruction above puts 1 array with two instructions on the do_list.
         Both will be run in order.
         The second instruction, an anonymous function definition,
         creates an array of <code>Dexter.move_all_joints</code> instructions.
@@ -4687,7 +4685,7 @@ the Human robot.
          </code></pre>
         as long as those functions take no arguments.<br/>
         We could also just put both at top level on the do_list,
-        i.e. <pre><code title="unEVALable"/>new Job({name: "Job1",
+        i.e. <pre><code title="unEVALable">new Job({name: "Job1",
          do_list: [fun1, fun2]
         })
             </code></pre>
@@ -4716,7 +4714,7 @@ Keep reading to understand what are valid instructions.
 The function
 body might have an <code title="unEVALable code fragment"> if</code> in it. Under certain
 conditions the function will return one instruction,
-and it other cases, it will return another (or <code>null</code>, meaning
+and in other cases, it will return another (or <code>null</code>, meaning
 just do the next instruction on the do_list, or an array of
 instructions to do them all).
 <p></p>
@@ -4775,7 +4773,7 @@ might be to just stick it on the do_list like so
 What happens here is that when the <i>definition</i> of the job is evaled,
 the function my_fn will be called with args 12 and 34.
 Whatever that function returns will be put on the do list
-between the other 2 instuctions.
+between the other 2 instructions.
 So if my_fn  <i>returns</i> an instruction to run, and the making of that instruction
 does not depend on anything that happens while running the instructions of the job,
 then you're all set.
@@ -4811,10 +4809,10 @@ yield statements, or a return statement is executed.
 Generators are useful when you want to dynamically compute
 a bunch of instructions, but are not sure how many until
 after you've started generating the instructions. Real-time
-control or interaction with other jobs often have these chracteristics.
+control or interaction with other jobs often have these characteristics.
 <p></p>
 Usually a generator will have one or more yield statements
-with a following value of a dynamcially computed instruction
+with a following value of a dynamically computed instruction
 to insert and run in the job. The software that controls
 the execution of instructions in a Job will call a generator's
 "next" method until the "done" flag is returned,
@@ -4862,13 +4860,13 @@ In the body of an ordinary JavaScript function with a sequence
 of top level function calls, a function call will begin
 executing as soon as the previous function call returns.
 But sometimes we don't want that
-because a preceeding call may "return" but it is not really done,
+because a preceding call may "return" but it is not really done,
 since it has passed processing off to another process. In order to
 delay the start of another call, there are various tricks in
 JS.
 <p></p>
 One of the tricks JS uses is to pass a function a "callback" function
-as an argument. Then when the original function is really "done",
+as an argument. Then, when the original function is really "done",
 it calls the callback function.
 <p></p>
 A DDE Job and its do_list is another way to carefully control
@@ -4886,7 +4884,7 @@ accomplish a wide variety of tasks by reusing code written by others
 within a Job that you create.
 <p></p>
 A start_object is any JS object that has a method named start.
-After a Job's instruction prcessing has exhausted all other possibilities,
+After a Job's instruction processing has exhausted all other possibilities,
 it looks to see if an instruction has a start method.
 If it does not, it errors with "invalid instruction type".
 But if it does, it calls the <code title="unEVALable">start</code> method with the instruction object
@@ -4952,7 +4950,7 @@ call will look like: <br/>
 function will set the given user_data variable in the job to an array of
 the arguments passed to the callback function. This is so that
 subsequent instructions can retrieve the real result of the start method
-and use them. For instance, if the value the of user_data_variable is <code>"foo"</code>,
+and use them. For instance, if the value of the user_data_variable is <code>"foo"</code>,
 then after this instruction has completed,<br/>
 <code title="unEVALable">job_instance.user_data.foo = ["array", "of", "args", "passed", "to the callback"]</code></li>
 </ul>
@@ -4964,7 +4962,7 @@ new Job({name: "my_job2",
          do_list: [Job.my_job1]})
          </code></pre>
 When Job.my_job2 is started, it will cause my_job1 to start
-by calling its start method (the same way you can programmatcally
+by calling its start method (the same way you can programmatically
 start a Job).
 Immediately after starting my_job1,
 my_job2 runs its "next" instruction, but since there isn't one,
@@ -4984,7 +4982,7 @@ new Job({name: "my_job",
 When a note is created, it has a duration (default 1 second).
 The above plays a melody, with each note waiting for the previous note to
 complete because running start_object checks for a "dur" field and,
-if present, waits for that amount of time before proceedng to the next
+if present, waits for that amount of time before proceeding to the next
 instruction.<br/>
 See <a href="#" onclick="DocCode.open_doc('music_with_midi_doc_id', event)">Music with MIDI</a>.
 <pre><code>
@@ -4997,7 +4995,7 @@ new Job({name: "my_job",
     called, which prints in the Output pane, "wait a sec or 3".
     Then there's a pause of 3 seconds
     (the value of "dur" in the start_object).
-    Finally the Job's 2nd instruction is run
+    Finally, the Job's 2nd instruction is run
     and prints out "done waiting".
 
 <pre><code>new Job({name: "my_job4",
@@ -5028,7 +5026,7 @@ new Job({name: "my_job",
                                     job_instance.wait_until_this_prop_is_false = false
                         }})
             </code></pre>
-    When its all done, Job.my_job.user_data.the_text has a value of the
+    When it is all done, Job.my_job.user_data.the_text has a value of the
     array of args passed to the synthesized callback function,
     for use by subsequent instructions.
     <pre><code>function test_cb(a, b, callback){
@@ -5043,7 +5041,7 @@ new Job({name: "my_job5",
     user_data_variable: "the_args_to_the_cb"
     }]})
     </code></pre>
-    Above we define a "start" method so you can get a little deeper insight.
+    Above we define a "start" method, so you can get a little deeper insight.
     We call it "test_cb". It looks like a normal method in that it has
     args. The first thing it does is print out its first two arguments.
     But its 3rd argument is a method that is called in the 2nd (and last) line
@@ -5099,7 +5097,7 @@ new Job({name: "my_job5",
     <p></p><p></p>
     If you have nested loops, Control.break ends the inner loop only.
     However, here's a technique to break from the outer loop based on a condition
-    set by an innner loop:
+    set by an inner loop:
 <pre><code>new Job({
     name: "my_job",
     user_data: {break_outer_loop: false},
@@ -5131,7 +5129,7 @@ new Job({name: "my_job5",
     When in the body of a
     <a href="#" onclick="DocCode.open_doc('Control.loop_doc_id', event)">Control.loop</a>,
     instruction, it immediately jumps to the top of the next iteration of the
-    loop, skipping passed instructions after the continue instructions within
+    loop, skipping passed instructions after the <code>Control.continue</code> instructions within
     the loop body.
     <p></p>
     <i>Parameters:</i> None.<br/>
@@ -5208,7 +5206,7 @@ of instructions that are executed sequentially. DDE provides the
 more conventional function calling, including return, if, and for loops.
 But sometimes the most convenient thing to do is "leap over" some instructions
 on a job's do_list and proceed from there.
-Thus DDE provides the taboo <code title="unEVALable code fragment"> go_to</code> instruction.
+Thus, DDE provides the taboo <code title="unEVALable code fragment"> go_to</code> instruction.
 Don't use it a lot. Going backwards is particularly dangerous.
 But we give you enough rope to hang yourself or build a masterpiece.
 <p></p>
@@ -5220,7 +5218,7 @@ It has a number of different kinds of arguments.<br/>
 <b>a positive integer</b> Moves the program counter to the indicated instruction id.
 The instruction at that id will be the one executed after the go_to instruction.<br/>
 <b>a negative integer</b> Sets the program counter to the length of the
-do_list, plus this negative integer. Thus an integer of -1 sets the program counter
+do_list, plus this negative integer. Thus, an integer of -1 sets the program counter
 to the last instruction, so that it will be executed next. -2 goes to the second to last
 instruction, etc.<br/>
 <b>the name of a label instruction</b> The program counter is set to that label's id.<br/>
@@ -5259,7 +5257,7 @@ executed instruction will be the first instruction in the do_list.
 Generally <code>"highest_completed_instruction_or_zero"</code> is more useful than
     <code>"highest_completed_instruction"</code>.
 <br/>
-<b id="Control.go_to_literal_doc_id">A literal object</b> The literal object can have up to three properites.
+<b id="Control.go_to_literal_doc_id">A literal object</b> The literal object can have up to three properties.
 <ul><li><b>offset</b> Can be any one of the above instruction_locations.<br/>
     <i>Example</i>: <code>{offset: 12}</code>
     </li>
@@ -5297,7 +5295,7 @@ Generally <code>"highest_completed_instruction_or_zero"</code> is more useful th
     <code>["program_counter", {offset: "sync_point", process: "backward"}]</code>
     Searches backwards from the program_counter to
     the first instruction of type "sync_point".
-</ul>
+
 Instruction_locations are also used in
 initializing a Job's <code title="unEVALable code fragment"> program_counter</code> in defining the job, as well as
 in calling a job's start method. The <code>Control.send_to_job</code> instruction
@@ -5354,7 +5352,7 @@ Control.include_job has a large number of very specific error messages to help y
             AFTER the Job definition containing the <code>Control.include_job</code> instruction.
             String formats:
             <ul><li><b>Job.a_job_name</b> <i>Example:</i> <code>"Job.my_job"</code><br/>
-                     This is the prefered way to reference a Job.
+                     This is the preferred way to reference a Job.
                      If a Job of that name is not defined when this instruction is run, error.
                 </li>
                 <li><b>a_job_name</b> <i>Example:</i> <code>"my_job"</code><br/>
@@ -5366,7 +5364,7 @@ Control.include_job has a large number of very specific error messages to help y
                       of instructions. If a_variable_name is both a Job name and a global variable,
                       the Job name will be used.
                 </li>
-                <li><b>file_path</b></li> <i>Example:</i> <code>"my_job.dde"</code><br/>
+                <li><b>file_path</b> <i>Example:</i> <code>"my_job.dde"</code><br/>
                     Any string that isn't prefixed by "Job." but has a dot in it,
                     is considered to be a file_path.<br/>
                      A file path that doesn't start with a slash refers to a job in your "dde_apps" folder under
@@ -5375,7 +5373,7 @@ Control.include_job has a large number of very specific error messages to help y
                     <ul><li><b>A Job</b> The Job used will be the <i>first</i> Job definition in the file.</li>
                         <li><b>A variable assignment</b> The first JavaScript code in the file should be<br/>
                             <code title="unEvalable">var some_name = [instr1, instr2, ...]</code><br/>
-                             preceeded only by comments and whitespace, if any.
+                             preceded only by comments and whitespace, if any.
                         <br/>
                          <i>Example:</i><br/>
                           <code>var my_do_items = [[36000, 72000], [37000, 73000]]</code>
@@ -5384,7 +5382,7 @@ Control.include_job has a large number of very specific error messages to help y
                             <code>[[36000, 72000], [37000, 73000]]</code><br/>
                             The instructions array should be the <i>last</i> top-level expression in the file.
                             <span style="color:red;">Warning</span>: Sometimes the last top-level expression
-                            is NOT returned, so its safer if the file contains only ONE top-level
+                            is NOT returned, so it is safer if the file contains only ONE top-level
                             expression.
                             </li>
                     </ul>
@@ -5455,7 +5453,7 @@ new Job({
     the end of the first time.
     Note that the first argument can be a boolean or any expression that evaluates to a boolean.
     If a loop instruction is at top level in a do_list, that evaluation will happen at
-    Job definition time, but if it is nested inside of a function definiton on the do_list,
+    Job definition time, but if it is nested inside a function definition on the do_list,
     that evaluation will happen while the Job is running.
     <p></p>
     <span style="color:red">Warning: </span> Using a first argument to loop that always evaluates to
@@ -5538,7 +5536,7 @@ new Job({
     are used to call times_to_loop when it is a function.<br/>
     <ol>
         <li>this=the_job_instance</li>
-        <li>iter_index= a non negative integer of the iteration number i.e. 0, 1, 2, etc.</li>
+        <li>iter_index= a non-negative integer of the iteration number i.e. 0, 1, 2, etc.</li>
         <li>iter_val If times_to_loop is:
            <ul><li> true: So is this arg.</li>
                <li> integer: This arg is the same as iter_index</li>
@@ -5552,12 +5550,12 @@ new Job({
                <li> array: Uses length of the array.</li>
            </ul>
         </li>
-        <li>iter_key</li> the same as iter_index except if the times_to_loop
+        <li>iter_key the same as iter_index except if the times_to_loop
             is an object (or a function that returns one), in which case
             iter_key is the property name of the property being looped
             through for this iteration.<br/>
              Note that the order that the properties
-            are used in looping is strictly speaking indeterminant as JS does not
+            are used in looping is, strictly speaking, indeterminate as JS does not
             specify an order to object properties. However, we've found that
             the order of string-named properties are usually the order in
             which they were added to the object. <br/>
@@ -5568,7 +5566,7 @@ new Job({
             Its best if you don't depend on an ordering of the properties.</li>
     </ol>
     Loop instructions may be nested. <code>Control.break()</code> instructions will
-    end the inner-most loop that contains the <code>Control.break()</code>.
+    end the innermost loop that contains the <code>Control.break()</code>.
     <p></p>
     Much of the time that you'd be tempted to use a backwards
     <a href="#" onclick="DocCode.open_doc('Control.go_to_doc_id', event)">Control.go_to</a>,
@@ -5657,7 +5655,7 @@ new Job({
     </ul>
     <b>wait_until_job_done</b> Boolean. Default: <code>false</code>
     If the value of this argument is <code>false</code>, start_job behaves
-    as documented above. However if it is <code>true</code>,
+    as documented above. However, if it is <code>true</code>,
     generally this instruction will wait until the Job named in job_name
     is completed before proceeding to the next instruction.
     Thus, a <code>false</code> value is good for running the job_name in
@@ -5727,7 +5725,7 @@ new Job({name: "job2",
   not indicate a job, then the job that this instruction is in will be stopped.
   If <code title="unEVALable code fragment"> instruction_location</code> is not given, then
   the offset will be <code>"program_counter"</code>, i.e. the job will
-  stop before executing its next instruction. Thus the default is that
+  stop before executing its next instruction. Thus, the default is that
   the current job will be stopped immediately.
   See <a href="#" onclick="DocCode.open_doc('Control.go_to_doc_id', event)">Control.go_to</a> for details
   on the <code title="unEVALable code fragment"> instruction_location</code> format.<br/>
@@ -5785,7 +5783,7 @@ The method takes 1 arg, "stop_reason" that behaves as documented above.
               with a given name in a job.<br/>
   <b>job_names</b> An array of job names containing same_named sync points that
     you want to all pause at the same place. A sync_point instruction may
-    contain the name of the job its in. Effectly that doesn't matter,
+    contain the name of the job its in. Effectively that doesn't matter,
     but does allow all the same-named sync points to have the same list of job_names.<br/>
     Example: <code>Control.sync_point("midway", ["job_one", "job_two"])</code><br/>
    <p></p>
@@ -5823,7 +5821,7 @@ Control.send_to_job({do_list_item: Dexter.move_to([0, 0.5, 0.075]),
   in the referenced job.
   If a function do_list item in to_job returns an array of instructions,
   this ensures that the inserted do_list_item will not go in the middle of such instructions.
-  Thus if the instructions from the function must be executed as a continuous group, 
+  Thus, if the instructions from the function must be executed as a continuous group,
   "next_top_level" is a safe place to insert additional do_list items.</li>
     <li><code>"after_program_counter"</code> Immediately after the destination job's program_counter.
     Not as safe as "next_top_level".</li>
@@ -5836,7 +5834,7 @@ Control.send_to_job({do_list_item: Dexter.move_to([0, 0.5, 0.075]),
  <li><b>start</b> (default false) If true, and the to_job has yet to be started,
     it will be started after the do_list_item is inserted into its do_list.
     <p></p>
-    If a job has yet to be started and you send instructions to it, those
+    If a job has yet to be started, and you send instructions to it, those
     instructions will be stored in a special place until the job is started.
     During the start process, after the do_list is made but before the
     initial_instruction (if any) is prepended to the do_list,
@@ -5855,12 +5853,12 @@ Control.send_to_job({do_list_item: Dexter.move_to([0, 0.5, 0.075]),
   <li><b>other variable names</b> If a parameter to send_to_job is not one of the above,
     it is assumed to be the name of a field to create in the user_data of the to_job.
     "Other variable names" have a value of a function. After the do_list_item is executed,
-    the function for each of the other varible names is called within the to_job and
+    the function for each of the other variable names is called within the to_job and
     the returned value is set to its corresponding other variable name in the 
     user_data of the from_job. This allows the from_job to get data from the to_job
     immediately after the do_list_item is run. </li>
  </ul>
- To achieve the same effect of send_to_job, see documention on the method
+ To achieve the same effect of send_to_job, see documentation on the method
     <code>Job.insert_instruction</code>.
 </details> <!-- end send_to_job -->
 
@@ -5899,7 +5897,7 @@ Example:<code>Control.wait_until(2)</code><br/>
     </li>
     <li><b>a Job Instance</b> Waits until the passed in Job instance completes.
           If the passed in Job Instance, errors or is interrupted then
-         then this job also errors or is interrupted.
+          this job also errors or is interrupted.
     </li>
     <li><b>"new_instruction"</b> Causes a wait_until instruction to be added
     just below this instruction on the do_list. If this is the last instruction
@@ -5937,7 +5935,7 @@ Example:<code>Control.wait_until(2)</code><br/>
          specified in the instruction_location, but not the other way around.
          Its advantage over <code>Control.sync_point</code> is that you don't have
          to have a Control.sync_point instruction in the job you're waiting for.
-         Thus you can wait for a job reaching one of its instructions
+         Thus, you can wait for a job reaching one of its instructions
          that never expected it to be waited for.<br/>
          Warning: If the instruction_location specifies the job
          that this <code>Control.wait_until</code> instruction is in, or lets the instruction_location
@@ -5984,7 +5982,7 @@ Example:<code>Control.wait_until(2)</code><br/>
         <b>user_data_variable</b> Default: <code>"grabbed_robot_status"</code> A string of the name of the job's
         <code title="unEVALable code fragment"> user_data</code> variable to shove the grabbed
         robot_status data into. If there is already such a variable,
-        its value is over-written. If not, it is created and intialized
+        its value is over-written. If not, it is created and initialized
         with the new value.
         <p></p>
         After this instruction is run, the grabbed value
@@ -6032,7 +6030,7 @@ Example:<code>Control.wait_until(2)</code><br/>
         <code>Dexter.INSTRUCTION_TYPE</code> //a letter signifying the instruction type.<br/>
         <br/>
         <code>Dexter.ERROR_CODE</code> //0 means no error.<br/>
-        <code>Dexter.STATUS_MODE</code> //0 for g0. In general, a small non-negative interger. The kind of data that's in the robot_status array.<br/>
+        <code>Dexter.STATUS_MODE</code> //0 for g0. In general, a small non-negative integer. The kind of data that's in the robot_status array.<br/>
         <code>Dexter.END_EFFECTOR_IO_IN</code><br/>
         <br/>
         <code>Dexter.J6_MEASURED_ANGLE</code><br/>
@@ -6070,7 +6068,7 @@ Example:<code>Control.wait_until(2)</code><br/>
         <code>Serial.DATA9</code><br/>
         <br/>
 
-        In order to insure that the Dexter robot_status array is up to date,
+        In order to ensure that the Dexter robot_status array is up-to-date,
         you should place <code>Dexter.get_robot_status()</code> in your do_list before
         the grab_robot_status instruction.<br/>
         <i>Examples of 2 adjacent instructions on a job's do_list:</i><br/>
@@ -6165,7 +6163,7 @@ Example:<code>Control.wait_until(2)</code><br/>
         the callback is called with <code>this</code> bound to the job
         that this instruction is running in.<br/>
         If the callback is a string instead of a function definition,
-        there is added funtionality from Picture.take_picture_doc_id.
+        there is added functionality from Picture.take_picture_doc_id.
         The string is considered to be the name of
         a user_data variable that is set to the mat created
         with take_picture. You can then use this mat in further instructions.
@@ -6191,7 +6189,7 @@ Example:<code>Control.wait_until(2)</code><br/>
 <details id="Brain_doc_id" class="doc_details"><summary>Brain</summary>
 <b>Brain</b> is a virtual robot used to manage other robots or do purely software tasks.
 It has few special instructions of its own, but can use Control, Human, IO and the
-miscellaneous Robot instructions (function definitions, etc),
+miscellaneous Robot instructions (function definitions, etc.),
 just like all the other robots.
     <details id="Brain.eval_python_doc_id" class="doc_details"><summary>eval_python</summary>
        Evals python code, puts result in user_data and pauses the Job until its done.<br/>
@@ -6291,7 +6289,7 @@ The parameters used to define an instance of Dexter are:
                  of the actual robot.</li>
              <li><b>null</b> (the default). The value for simulate will be taken from
                  the Misc pane header's simulate radio buttons. The value you choose
-                 will be persistent accross DDE launches.</li>
+                 will be persistent across DDE launches.</li>
           </ul>
     </li>
     <li id="dexter_param_ip_address_doc_id"><b>ip_address</b> A string of an ip_address such as: <code>"192.168.1.1"</code>
@@ -6339,7 +6337,7 @@ and arguments for that oplet.
 </li>
 <li><b>empty array</b> An array containing potentially other arrays of any nested depth,
 but with no "leaf" values. Such arrays are "no-ops" meaning they are just thrown out.
-Sometimes they are accidently automatically generated by filtering code that
+Sometimes they are accidentally automatically generated by filtering code that
 filters out all useful instructions. Throwing out empty arrays simplifies
 writing functions that create instructions arrays.
 </li>
@@ -6500,12 +6498,12 @@ You might want to do this in an emergency situation or if the environment unexpe
     job's <code title="unEVALable code fragment"> rs_history</code> array.
     <p/>
     When any an instruction is sent to Dexter, Dexter immediately returns a robot status array.
-    Dexter can return several different kinds of status modes, each represented by a small
+    Dexter can return several kinds of status modes, each represented by a small
     non-negative integer. The kind of status mode that
     is sent back from Dexter is the kind passed in as the argument to get_robot_status or
     its lower level oplet "g" instructions. A given get_robot_status  mode sent to Dexter remains
     in effect until over-ridden by the next get_robot_status instruction.
-<i>Paramenter:</i> <br/>
+<i>Parameter:</i> <br/>
 <b>status_mode</b> Default: <code>0</code><br/>
     <code>null</code> Same as passing in 0.<br/>
     <code>0</code> The original status array returned by Dexter. Dexter boots up
@@ -6641,7 +6639,7 @@ See also the instruction: <code>IO.grab_robot_status</code>
 </details> <!-- end make_ins -->
 
 <details id="Dexter.move_all_joints_doc_id" class="doc_details"><summary>move_all_joints</summary>
-move_all_joints is a lower level instruction than move_to, giving you the ability to dicate
+move_all_joints is a lower level instruction than move_to, giving you the ability to specify
 the angle of each of Dexter's 5 main joints, J1 through J5
 as well as the two "end effector" joints J6 and J7. A joint's angle is specified in degrees.
 The min and max angles of each joint are in constants: <br/>
@@ -6688,7 +6686,7 @@ an angle that is 15 degrees <i>more</i> than it is currently at.
 Joints 3, 4, 5, 6 and 7 stay the same.
 <p></p>
 Note that the syntax used for move_all_joints to declare that an
-individual joint angle is relavtive (i.e. wrapping it in square brackets) cannot be used for
+individual joint angle is relative (i.e. wrapping it in square brackets) cannot be used for
 move_all_joints_relative, as those joint angles are already relative.
 </details>
 
@@ -6737,7 +6735,7 @@ causes Link 5 to be horizontal pointing forwards.<br/>
         causes the end effector to point straight down.
         <p></p>
         J5_direction can alternatively be an array of two angles (in degrees)
-        indicating a direction (pitch and yaw). However it cannot be<br/>
+        indicating a direction (pitch and yaw). However, it cannot be<br/>
         [90, 90], [-90, 90], [90, -90] or [-90, -90]<br/>
         because they represent singularities. If that's the direction you
         want, use an array of 3 numbers.<br/>
@@ -6756,7 +6754,7 @@ causes Link 5 to be horizontal pointing forwards.<br/>
         They are: <ul>
             <li><i>base-rotation</i> <code title="unEVALable code fragment"> LEFT</code> means J1, the base joint has a negative value,
                 ie it is to the right of facing front. Looking down from the top at Dexter this would
-                mean its rotated counter clockwise. The opposite direction is
+                mean its rotated counterclockwise. The opposite direction is
                 <code title="unEVALable code fragment"> RIGHT</code>
                 or clockwise.</li>
             <li><i>J3-position</i> Joint 3 can be thought of as Dexter's elbow. The elbow can be either
@@ -6845,7 +6843,7 @@ Dexter.move_to([0.1, 0.2, 0.3],      // xyz position
      record the position that they've told Dexter to move to. Then Dexter.move_to_relative
      uses that stored position and "increments" it by the supplied delta_xyz.
      Note this "base" is not exactly the position of Dexter, but rather
-     the position that its been told to go by previous instructions.
+     the position that it has been told to go by previous instructions.
     <b>workspace_pose</b> If not passed in or <code>null</code>, this
     defaults to the containing Job's
     <a href="#" onclick="DocCode.open_doc('job_param_default_workspace_pose_doc_id', event)">default_workspace_pose</a>
@@ -6870,7 +6868,7 @@ the same spot. The difference is the path that Dexter's end effector takes
 to getting to the destination. move_to's path is the path that results
 from moving all the joints such that they all start moving at the same
 time and stop moving at the same time, but each joint may move at
-a different speed than the others. In move_to_straignt,
+a different speed than the others. In move_to_straight,
 the path approximates a straight line.
 <p></p>
 Dexter achieves this by breaking up the distance between the start
@@ -6885,7 +6883,7 @@ a straight line between the starting and ending locations.
     the move is complete. Same as move_to.<br/>
 <b>config</b>  Default: <code>Dexter.RIGHT_UP_OUT</code> The configuration of the joints at the end of the move.
     Same as move_to.<br/>
-<b>tool_speed</b> Incindates the maximum speed that Dexter's end effector can move.
+<b>tool_speed</b> Indicates the maximum speed that Dexter's end effector can move.
     It is specified in meters per second.
     The default is  0.005 (meaning 5 millimeters per second.)
     This parameter is not in the instruction  Dexter.move_to.<br/>
@@ -6893,9 +6891,9 @@ a straight line between the starting and ending locations.
     This is specified in meters. The  default is 0.0005
     (meaning 0.5 millimeters). This parameter is not in the instruction
     Dexter.move_to.<br/>
-<b>j6_angle</b>  Default <code>[0]</code> The degrees move move Joint 6 to.
+<b>j6_angle</b>  Default <code>[0]</code> The degrees to move Joint 6 to.
 If it is wrapped in an array, move relative by that amount.<br/>
-<b>j7_angle</b>  Default <code>[0]</code> The degrees move move Joint 7 to.
+<b>j7_angle</b>  Default <code>[0]</code> The degrees to move Joint 7 to.
     If it is wrapped in an array, move relative by that amount.<br/>
 <b>single_instruction</b> Default: <code>false</code> False means generate
 many instructions within DDE to send to Dexter to cause it to
@@ -6935,7 +6933,7 @@ proportional–integral–derivative controller</a>.<br/>
     except that it uses a
     <a href="https://en.wikipedia.org/wiki/PID_controller" target="_blank">
         proportional–integral–derivative controller</a>.<br/>
-    <i>Example:</i></br/>
+    <i>Example:</i><br/>
     <code>Dexter.pid_move_to([0, 0.1, 0.2])</code>
 </details>
 
@@ -6948,7 +6946,7 @@ proportional–integral–derivative controller</a>.<br/>
     the computer running DDE) into a user_data variable.
     <br/>
     <i>Parameters:</i><br/>
-    <b>source</b> A string. Required. The path of a file on Dexter's file system who's
+    <b>source</b> A string. Required. The path of a file on Dexter's file system whose
     contents you want to get.<br/>
     If the file starts with a letter (not a slash), then, for example,<br/>
     <code>"foo.txt"</code> resolves to:<br/>
@@ -6988,7 +6986,7 @@ proportional–integral–derivative controller</a>.<br/>
 </details>
 
 <details id="Dexter.reboot_joints_doc_id" class="doc_details"><summary>reboot_joints</summary>
-Dexters build before March, 2021, have Dynamixel 320 motors for Joints 6 and 7.
+Dexters build before March 2021, have Dynamixel 320 motors for Joints 6 and 7.
 When these motors are commanded to push past an immovable object,
 the motors overheat. After about 5 seconds, a motor will
 stop trying to push, become disabled, and start flashing a red light
@@ -7002,12 +7000,12 @@ You can start this process via the Jobs menu/Dexter Tools/Reboot Joints,
 or start it with the reboot_joints instruction in a Job.
 This instruction will stop DDE from sending new instructions to Dexter
 until it is complete,
-but will not prevent instructions that are already in Dexter's queue (for Joint's 1 thru 5)
+but will not prevent instructions that are already in Dexter's queue (for Joint's 1 through 5)
 from running.
 <p></p>
 <i>Parameter:</i><br/>
 <b>joint_number_array</b> Default: <code>"all"</code>. An array of integers of
-the number of a joint to reboot. The only permissible numbers as of March, 2021 are
+the number of a joint to reboot. The only permissible numbers as of March 2021 are
 6 and 7. Passing <code>"all"</code> is the same as passing <code>[6, 7]</code> .
 <p></p>
 <i>Example:</i><br/>
@@ -7023,7 +7021,7 @@ to move Dexter to "draw the lines" indicated by the gcode file. Most of
 the instructions created are <code>Dexter.move_to</code> instructions.
 <ul><li><b>filepath</b> Default: <code>null</code> A string representing the name of the gcode file under the <b>dde_apps</b> folder
     containing the gcode instructions. The file can be directly under dde_apps or
-    nested in subfolders of any depth. Typically the filepath will have an extension of ".gcode"
+    nested in subfolders of any depth. Typically, the filepath will have an extension of ".gcode"
     but that isn't required by filepath.
     If this defaults to <code>null</code>, only the <i>gcode</i> argument supplies the
     actual gcode to use.
@@ -7046,13 +7044,13 @@ the instructions created are <code>Dexter.move_to</code> instructions.
        is <code>_mm</code>
        as it is in the default for workspace_pose,
        you are declaring that the position numbers in the gcode
-       are intended to be in millimeters. The position numbers will be multipled
+       are intended to be in millimeters. The position numbers will be multiplied
        by the value of _mm (which is 0.001) before they are passed into
-       the generated move_to instructions. Thus a gcode position value of 2
-       will be multipled by 0.001 to yield 0.002 and that is the number
+       the generated move_to instructions. Thus, a gcode position value of 2
+       will be multiplied by 0.001 to yield 0.002 and that is the number
        used in the move_to argument, since move_to expects meters.
        Conversely, if you pass in <code>_m</code> (which is 1),
-       your gcode position values are expeceted to be in meters.
+       your gcode position values are expected to be in meters.
        <p></p>
        See <a href="#" onclick="DocCode.open_doc(units_system_help_doc_id, event)">Units System</a>
     </li>
@@ -7176,7 +7174,7 @@ see: <a  target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki
 <!-- <details id="Dexter.write_file_doc_id" class="doc_details"><summary>write_file</summary>
     A Dexter instruction that Writes a file on Dexter's file system.
     The file is transmitted through
-   DDE's socket interface to the Linux OS runnning on Dexter's processor
+   DDE's socket interface to the Linux OS running on Dexter's processor
    board.<br/>
    <i>Parameters:</i><br/>
     <b>file_name</b> The name of the file to be written on Dexter.
@@ -7213,9 +7211,9 @@ see: <a  target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki
     See <a href="#" onclick="DocCode.open_doc('fpga_addresses_doc_id', event)">FPGA Addresses</a><br/>
     and the Series menu/DDE/Dexter Robot/w oplet address.
     <br/>
-    <b>value</b> The 32 bit integer to be written into the above address.
+    <b>value</b> The 32-bit integer to be written into the above address.
     Any integer between -2147483648 and 2147483647 inclusive is valid.
-    Beware: Javascript uses 64 bit floats for all its numbers which can
+    Beware: Javascript uses 64-bit floats for all its numbers which can
     represent integers higher or lower than the above.
     <p></p>
     <i>Example:</i><br/>
@@ -7284,7 +7282,7 @@ If it is passed, the instruction will be sent to that robot.
     When an instruction is sent to Dexter from DDE, Dexter sends back to DDE
     an array of 60 numbers containing robot status information. The DDE menu
     item <b>Jobs/Show robot status</b> presents this array in a chart labeling
-    each number so you can make sense of it.
+    each number, so you can make sense of it.
     <p></p>
     The Robot status array is stored on each Dexter instance under, for example:<br/>
     <code>Dexter.dexter0.robot_status</code><br/>
@@ -7328,7 +7326,7 @@ If it is passed, the instruction will be sent to that robot.
         Takes no parameters.
     </details>
     <details id="RobotStatus.stop_time_doc_id" class="doc_details"><summary>stop_time</summary>
-        The time this robot status was revieved by DDE from Dexter in milliseconds form Jan 1, 1970.<br/>
+        The time this robot status was reviewed by DDE from Dexter in milliseconds form Jan 1, 1970.<br/>
         Takes no parameters.
     </details>
     <details id="RobotStatus.instruction_type_doc_id" class="doc_details"><summary>instruction_type</summary>
@@ -7433,7 +7431,7 @@ If it is passed, the instruction will be sent to that robot.
 
 <details  class="doc_details"><summary>Dexter Utilities</summary>
 <details id="Instruction.add_robot_to_instruction_id" class="doc_details"><summary>add_robot_to_instruction</summary>
-This static method on the Instructon class adds the given robot to the instruction.
+This static method on the Instruction class adds the given robot to the instruction.
 If the instruction already has a robot, it is replaced. If there is no robot,
 the instruction is given one.
 If the instruction cannot take a robot, nothing is done.<br/>
@@ -7527,19 +7525,19 @@ Show the given joint angles in the simulator pane.<br/>
     indicate the angles to set the joints in the simulator.<br/>
     <b>rob_pose</b> Optional robot pose. used when converting the
     angle_degrees_array to XYZ for display in the simulator pane header. <br/>
-    <i>Example:<i><br/>
+    <i>Example:</i><br/>
         <code> SimUtils.render_joints([10, 20, 30, 40, 50])</code>
 </details>
 
 <!--
 <details id="Robot.dexter0.prop_doc_id" class="doc_details"><summary>prop</summary>
 <b>prop</b> is a Dexter instance method that takes a string
-naming a property and returns it's value.
+naming a property and returns its value.
 Most of the values are numbers.<br/>
 <i>Example</i>:<br/>
 <code>Robot.dexter0.prop("LINK1")</code> => <samp>0.1651</samp><p></p>
 <i>Parameters</i>:<br/>
-<b>prop</b> A string naming the property who's value will be returned.<br/>
+<b>prop</b> A string naming the property whose value will be returned.<br/>
 <b>get_from_dexter</b> If <code>true</code>, the value will be retrieved from the
 current value of the file //robot.ip_address./share/robot_props.json<br/>
 If <code>false</code> (the default):<br/>
@@ -7568,8 +7566,7 @@ If you want this value to persist accross DDE launches,
 just stick<br/>
 <code title="unEVALable code fragment"> Robot.dexter0.my_val = 123</code><br/>
 in the file "dde_apps/dde_init.js"
-</details>
-end Dexter prop-->
+</details>  end Dexter prop-->
 </details> <!-- end Dexter Utilities -->
 
 <details class="doc_details"><summary>Dexter Instance Properties</summary>
@@ -7642,14 +7639,14 @@ values in degrees<br/>
 <code>Dexter.NEUTRAL_ANGLES</code> => <samp>[0, 45, 90, -45, 0, 0, 0]</samp><br/>
 <code>Dexter.PARKED_ANGLES</code> => <samp>[0, 0, 135, 45, 0, 0, 0]</samp><br/>
 <p></p>
-First array of 3 values is in meters,<br/>2nd is J5_direction,<br/>3rd is config.</i><br/>
+First array of 3 values is in meters,<br/>2nd is J5_direction,<br/>3rd is config.<br/>
 <code>Dexter.HOME_POSITION</code> => <samp>[[0, 0.08255, 0.866775],[0, 1, 0], [1, 1, 1]]</samp><br/>
 <code>Dexter.NEUTRAL_POSITION</code> => <samp>[[0, 0.5,     0.075],[0, 0, -1],[1, 1, 1]]</samp><br/>
 <p></p>
 <code>Dexter.MAX_SPEED</code> => <samp>30</samp> degrees per second<br/>
 <code>Dexter.START_SPEED</code> => <samp>0.5</samp> degrees per second<br/>
 <code>Dexter.ACCELERATION</code> => <samp>0.000129</samp> degrees/(second^2)<br/>
-</details> <!--end Dexter Contantants -->
+</details> <!--end Dexter Constants -->
 
 </details> <!-- end Dexter -->
 
@@ -7662,7 +7659,7 @@ or proceed.
 <p></p>
 Human instructions are a way to encode tasks that Dexter can't do or information
 that it can't know. The inclusion of human instructions in DDE permits the design and
-running of jobs that need coodination between humans and machines.
+running of jobs that need coordination between humans and machines.
 <p></p>
 Although the "home" of human instructions is in the <i>Human</i> robot, you can use
 these instructions in a job with <i>any</i> type of robot. They do not attempt to
@@ -7678,7 +7675,7 @@ For instance, enter_number's default is <code>"a_number"</code>.<br/>
 The <i>output</i> of most Human Instructions goes into the Job's user_data property
 with this name. Then a subsequent instruction can get that value and do something with it.<br/>
 <b>add_stop_button</b> Default: <code>true</code> If true, a button is added to
- the bottom of the dialog named "Stop Job", that let's the user stop
+ the bottom of the dialog named "Stop Job", that lets the user stop
  the Job that this instruction is in.<br/>
  All Human Instruction dialogs also have a "Continue" button
  that the user should click when they're done filling in the requested information.<br/>
@@ -7716,7 +7713,7 @@ is a video describing most of the Human instructions.
   it takes one extra arg:<br/>
   <i>Parameter:</i><br/>
   <b>wait</b> Boolean, default: <code>true</code>. When true
-  the job pauses while the speaking is occuring, then performs the
+  the job pauses while the speaking is occurring, then performs the
   next instruction when the speaking is done.
   <p></p>
   Human.speak does <i>not</i> take <b>add_stop_button</b> as
@@ -7786,7 +7783,7 @@ is a video describing most of the Human instructions.
   <i>Uncommon Parameters:</i><br/>
   <b>choices</b> Default: <code>[["Yes", true], ["No", false]]</code>. An array of choices.
       The user is allowed to select one of the given choices.<br/>
-      Their are several different formats for a choice.
+      Their are several formats for a choice.
       <ul><li>A string. The string is displayed as the choice, and used as the value
               for the user_data_variable.</li>
           <li>An array of one string. Same as using just a string.</li>
@@ -7845,7 +7842,7 @@ is a video describing most of the Human instructions.
   Above we define 3 choices and display them in the default select menu.
   The default user_data_variable_name is <code>"choice"</code>, which
   can be read by any subsequent instruction. Using the default is a bit dangerous
-  because it will be overwritten by a subsquent Human.enter_choice instruction
+  because it will be overwritten by a subsequent Human.enter_choice instruction
   (though that <i>might</i> be what you want).
 
   <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
@@ -7883,7 +7880,7 @@ is a video describing most of the Human instructions.
     We've used all the different kinds of choices described above. <br/>
     <b>"bb"</b> behaves the same as "aa"<br/>
     <b>"cc"</b> sets our user_data_variable to <code>true</code><br/>
-    <b>"dd"</b> set our user_data_varabie to a string of 3 chars, joe.<br/>
+    <b>"dd"</b> set our user_data variable to a string of 3 chars, joe.<br/>
     <b>"ee"</b> has the given source code evaled with <code>this</code> bound to
                 the Job instance.<br/>
     <b>"ff"</b> calls <code title="unEVALable">myfn</code>. If you have
@@ -7892,7 +7889,7 @@ is a video describing most of the Human instructions.
                 easier to test and is overal more reliable.
                 By using <code title="unEVALable">call</code> with a first arg,
                 the value of <code>this</code> inside the function body will be
-                that first arg's value.<br/>
+                that first argumment's value.<br/>
     <b>"gg"</b> creates a new instruction and inserts it in the Job's do_list
                 right below this Human.enter_choice instruction.
 </details>
@@ -7928,7 +7925,7 @@ If no file is chosen, the variable is bound to <code>null</code>
   See <a href="#" onclick="DocCode.open_doc('Human.task_doc_id', event)">Human.task</a> for behavior common to all Human instructions.<p></p>
   This instruction does not use <code title="unEVALable">user_data_variable_name</code>.<p></p>
   This instruction can only be used on jobs with a Dexter robot.<p></p>
-  <i>Uncommon Paramaters:</i><br/>
+  <i>Uncommon Parameters:</i><br/>
   <b>instruction_type</b> Default: <code>"Dexter.move_all_joints"</code>. Set's the dialog's default instruction type.<br/>
   <b>instruction_args</b> Default <code>"0, 0, 0, 0, 0"</code>.
     Set's the dialog's default instruction args.
@@ -7955,12 +7952,12 @@ If no file is chosen, the variable is bound to <code>null</code>
   See <a href="#" onclick="DocCode.open_doc('Human.enter_choice_doc_id', event)">Human.enter_choice</a> for documentation on the
   <b>user_data_variable_name</b> parameter.
   <p></p>
-  <i>Uncommon Paramaters:</i><br/>
-  <b>initial_value</b> Default: <code>0</code>.</br/>
-  <b>min</b> Default: <code>0</code>. The minimun acceptable value.<br/>
+  <i>Uncommon Parameters:</i><br/>
+  <b>initial_value</b> Default: <code>0</code>.<br/>
+  <b>min</b> Default: <code>0</code>. The minimum acceptable value.<br/>
   <b>max</b> Default: <code>100</code>. The maximum acceptable value.<br/>
   <b>step</b> Default: <code>1</code>. The step size that clicking on the
-            increment and decriment arrows will add or subtract
+            increment and decrement arrows will add or subtract
              to the current value.<br/>
   <b>user_data_variable_name</b> Default: <code>"a_number"</code>.
        Where the chosen number is stored.
@@ -7982,7 +7979,7 @@ If no file is chosen, the variable is bound to <code>null</code>
     By wrapping this in a function, we get the critical code
     evaled at the time the 2nd instruction is called,
     AND we have <code title="unEVALable">this</code> bound to the
-    job instance so we don't have to mention the Job's name inside
+    job instance, so we don't have to mention the Job's name inside
     the code. This is important because you might want to change its name and
     don't want the code to break if you do.
 
@@ -7999,7 +7996,7 @@ If no file is chosen, the variable is bound to <code>null</code>
 <details id="Human.enter_text_doc_id" class="doc_details"><summary>enter_text</summary>
     <code>Human.enter_text</code> presents a dialog allowing the user to enter text via typing.
   See <a href="#" onclick="DocCode.open_doc('Human.task_doc_id', event)">Human.task</a> for behavior common to all Human instructions.<p></p>
-  <i>Uncommon Paramaters:</i><br/>
+  <i>Uncommon Parameters:</i><br/>
   <b>initial_value</b> Default: <code>""</code>.<br/>
   <b>line_count</b> Default <code>1</code>. The number of lines that the input control will be configured for.
      If this is more than 1, a user will be able to drag the lower right corner of the text field
@@ -8041,7 +8038,7 @@ If no file is chosen, the variable is bound to <code>null</code>
   <b>close_same_titled_windows</b> Default: <code>false</code> This parameter
      is also in <code>show_window</code> but there, it has a default of <code>true</code>.
      Human.notify has a different default, as notifications, in general, should
-     all be read by a human and explictly closed. <i>But</i>, you might
+     all be read by a human and explicitly closed. <i>But</i>, you might
      just want the human to see the latest notification with the same title,
      in which case you should pass in a close_same_titled_windows of <code>true</code>.
    <p></p>
@@ -8066,13 +8063,13 @@ be called from any JS code.
 It is documented under<br/><a href="#" onclick="DocCode.open_doc(show_window_doc_id, event)">
 Ref Man/Window System/show_window</a>
 <p></p>
-The second is as a Human robot instruction. It is documented here but
+The second is as a Human robot instruction. It is documented here, but
 you will need the function-equivalent documentation to understand the show_window instruction.
 <code>Human.show_window</code> is very similar to  <code>show_window</code>,
 but intended to be an instruction in a job. When the show_window instruction
 is run, a dialog box pops up containing its content, just like the function,
 except that it pauses the job that it is in.
-Clicking on buttons, etc, calls the callback function, just like the function.
+Clicking on buttons, etc., calls the callback function, just like the function.
 But when a "submit" button is clicked or something else in the
 callback function that also closes the window, such as a call to
 <code title="unEVALable code fragment.">SW.close_window(vals.window_index)</code>,
@@ -8086,7 +8083,7 @@ here's what happens:
         do-list (if any) is run.</li>
 </ol>
 <p></p>
-If you just want to get one value at a time from a user, its easier to
+If you just want to get one value at a time from a user, it is easier to
 use the other Human instructions for number, text, etc. But
 if you want to get multiple values in one dialog, using this
 instruction is the way to go.
@@ -8141,8 +8138,8 @@ input elements are stored when the dialog is closed.
 </details> <!-- end Human -->
 
 <details id="Serial_doc_id" class="doc_details"><summary>Serial</summary>
-<i>Serial</i> is not a specific robot per se, its a connection to another computer via its serial port.
-This connection is very general. It knows nothing about the actual capabilities of what its
+<i>Serial</i> is not a specific robot per se, it is a connection to another computer via its serial port.
+This connection is very general. It knows nothing about the actual capabilities of what it is
 connected to, only that it can send and receive strings on its serial port.
 <p></p>
 DDE's Serial robot is quite similar to Dexter from DDE's perspective. It
@@ -8153,11 +8150,11 @@ similar devices.
 
 <details class="doc_details"><summary>Arduino</summary>
 In order for the serial port connection to work with Arduino, you need to have
-the Arduino IDE installed. Its a free and easy download from 
+the Arduino IDE installed. It is a free and easy download from
 <a target="_blank" href="https://www.arduino.cc">https://www.arduino.cc</a>
 <p></p>If you don't get a connection, sometimes unplugging and replugging the 
 USB cable will help. You can also try relaunching DDE.
-Another debugging techinque is using the Arduino IDE's menubar/Tools/Serial Monitor.
+Another debugging technique is using the Arduino IDE's menubar/Tools/Serial Monitor.
 The upper type in area is for a string that you want to send to the board.
 The lower area displays strings coming back from the board.
 </details>
@@ -8168,7 +8165,7 @@ We've been unsuccessful at connecting a Sparkfun RedBoard with Mac and
 have heard of other problems between Arduino's Uno R3 boards. We've had success
 with Arduino Leonardo and believe Arduino Micro will also work due to its
 similar communication architecture. (Feb 2017) The Arduino Micro cannot
-accomodate standard Arduino add-on (shield) boards but the Leonardo can.
+accommodate standard Arduino add-on (shield) boards but the Leonardo can.
 </details> <!-- end Arduino and Mac-->
 
 Create an instance of Serial similar to the other robots. Example: <br/>
@@ -8239,12 +8236,12 @@ This arrangement gets around our society's failure to set one standard for the m
 operation, breaking up of lines, with <code title="unEVALable code fragment"> \\n</code> being used by Unix and Mac, and
 <code title="unEVALable code fragment"> \\r\\n</code> being used by Windows and Arduino. DDE tries to use the more
 sensible <code title="unEVALable code fragment"> \\n</code> where possible. Thus <code title="unEVALable code fragment"> \\n</code> can be our
-default item_delimiter and we still win calling Arduino's
+default item_delimiter, and we still win calling Arduino's
 <code title="unEVALable code fragment"> Serial.println</code>.
 <br/>
 
 <b>parse_items</b> true or false. Default true. If true, the returned items will be converted from strings to
-primitive JS data types: booleans, numbers, arrays, literal objects, strings, and aggrigates of such using
+primitive JS data types: booleans, numbers, arrays, literal objects, strings, and aggregates of such using
 <code>JSON.parse</code>
 Example: In Arduino C, you could have a program that executes: 
 <br/><code title="unEVALable code fragment"> Serial.println("[1, 20, 300]");</code><br/>
@@ -8300,7 +8297,7 @@ with any robot. It captures the robot_status, or some portion of it,
 and saves it away in a user_data variable on the Job instance for
 use by subsequent instructions.
 <p></p>
-When a Serial.string_instruction is run and the device retruns a value,
+When a Serial.string_instruction is run and the device returns a value,
 that string is placed in the robot_status. You can then use
 IO.grab_robot_status to extract it from the robot status
 and stick it in a user_data variable.
@@ -8308,15 +8305,13 @@ See <a href="#" onclick="DocCode.open_doc('IO.grab_robot_status_doc_id', event)"
         IO.grab_robot_status</a>
 </details>
 
-
-</details> <!-- end of Serial Instructions -->
 <details class="doc_details"><summary>Multiple Serial Ports</summary>
 Normally, each Job has a robot. If you must connect to multiple
 serial ports, you can set up a Job for each one and give
 its robot one of the serial ports you need to connect to.
 <p></p>
 However, you can also use the serial port robot as a <i>subject</i> to
-the call to a string_instruction. Thus you can call multiple serial
+the call to a string_instruction. Thus, you can call multiple serial
 ports in one job. The job will pause until each completes.
 In other words, the serial string_instructions run <i>in serial</i>,
 not parallel.
@@ -8450,9 +8445,11 @@ Though strictly unnecessary, we recommend:
 while debugging.<br/>
 See Job Example <i>Serial Port</i> for examples.
 </details> <!-- End Low Level Serial -->
+</details> <!-- end of Serial Instructions -->
+</details> <!-- End Serial -->
 
 <details class="doc_details"><summary>Modbus</summary>
-Modbus is a serial communications prototcol used to share information
+Modbus is a serial communications protocol used to share information
 between PLC (Programmable Logic Controller) devices and computers.
 It is commonly used in automating industrial machines.
 DDE has the npm package <b>modbus-serial</b> installed in it.<br/>
@@ -8462,7 +8459,7 @@ This loads the modbus-serial software into DDE.
 For documentation, see
 <a target="_blank" href="https://www.npmjs.com/package/modbus-serial">modbus_serial</a>.
 </details>
-</details> <!-- End Serial -->
+
 
 </details> <!-- end Robots -->
 
@@ -8509,7 +8506,7 @@ For documentation, see
          <ul>
              <li>We're using a vanilla JS <code title="Unevalable">for</code> loop,
                  not a <code>Control.loop</code> instruction.</li>
-             <li>The 8 instuctions in the body are executed 3 times, with
+             <li>The 8 instructions in the body are executed 3 times, with
                  incrementing joint angles each time in the first <code>Dex.m_joint</code> instruction.</li>
              <li><code>Dex.run</code> is a function with one argument, which can be anything
                  you would put on the do_list in a Job, such as:<br/>
@@ -8519,7 +8516,7 @@ For documentation, see
                  after the previous instruction has completed moving.
                  So the first <code>Dex.m_joint</code> instruction
                  in the first iteration of the loop, prints <code>10</code> for joint 1.<br/>
-                 In the second interation, it prints <code>20</code> for joint 1.
+                 In the second iteration, it prints <code>20</code> for joint 1.
              </li>
              <li>
                  We must wrap this printing of measured_angles in a function,
@@ -8558,8 +8555,8 @@ For documentation, see
     in this case 360. To go backwards from a base unit to a desired unit simply divide.
     If you were wondering how many revolutions 1 million degrees is eval what's in white below:
     1000000 / _rev
-    It works for combination of unit too. For example the Base Unit for speed is meter / second.
-    If you are not familiar with how much a m/s is you specify your speed,
+    It works for a combination of unit too. For example, the Base Unit for speed is meter / second.
+    If you are not familiar with how much m/s is you need,
      then multiply by _mile / _hour for MPH or _in / _s inches per second.
      These can help with complicated conversions for example:
     <p></p>
@@ -8784,7 +8781,7 @@ is called with no arguments. However, <code>this</code>
 is our new object with all the fields populated from the properties
 passed in the call to <code>newObject</code>, saving a ton of boiler plate code.
 In the body of <code title="unEVALable code fragment"> constructor</code>, you can call any code you like,
-including code that modifies the property values, of code title="unEVALable code fragment">this</code>,
+including code that modifies the property values, of <code title="unEVALable code fragment">this</code>,
 create
 entirely new properties or remove ones from <code>this</code>.
 <p></p>
@@ -8923,7 +8920,7 @@ Returns true if all arguments have the same prototype,
 Otherwise returns false.
 <i>Examples:</i>
 <code>Object.areSiblings(newObject({}), newObject({}))</code> => <samp>true</samp><br/>
-<code>Object.areSiblings(newObject({}), "hey")</code> => <samp>false</samp></br/>
+<code>Object.areSiblings(newObject({}), "hey")</code> => <samp>false</samp><br/>
 </details>
 
 <details id="inheritsPropertyFrom_doc_id" class="doc_details"><summary>inheritsPropertyFrom</summary>
@@ -8934,7 +8931,6 @@ Returns <code>null</code> if no such prop name.
 <i>Examples:</i><br/>
 <code>newObject({}).inheritsPropertyFrom("Coor")</code> => <samp>Root</samp><br/>
 <code>newObject({}).inheritsPropertyFrom("isn't a prop name")</code> => <samp>null</samp>
-</code>
 </details>
 
 <details id="ancestors_doc_id" class="doc_details"><summary>ancestors</summary>
@@ -9100,8 +9096,9 @@ If include_this is true, the returned source, when evaled, will return a copy of
 </details>
 </details> <!-- Existing JS methods-->
 </details> <!-- ob sys -->
+
 <details id="operating_system_etc_doc_id" class="doc_details"><summary>Operating System, etc.</summary>
-    <details id="operating_system_doc_id"class="doc_details"><summary>operating_system</summary>
+    <details id="operating_system_doc_id" class="doc_details"><summary>operating_system</summary>
      <code>operating_system</code>
      is a global constant that has
     a value of the name of the current operating system.
@@ -9111,33 +9108,33 @@ If include_this is true, the returned source, when evaled, will return a copy of
     Ubuntu's have the value "linux".<br/>
     If you find the value of other operating systems, please tell us!
     </details>
-    <details id="dde_version_doc_id"class="doc_details"><summary>dde_version</summary>
+    <details id="dde_version_doc_id" class="doc_details"><summary>dde_version</summary>
     A global variable that contains a semantic version string
     of the format: <code>"1.2.3"</code> indicating the running version number of DDE.<br/>
     <i>Example:</i> <code>dde_version</code>
     </details>
-    <details id="Utils.version_equal_doc_id"class="doc_details"><summary>version_equal</summary>
+    <details id="Utils.version_equal_doc_id" class="doc_details"><summary>version_equal</summary>
      Compare semantic version numbers.<br/>
     <i>Parameters:</i><br/>
     <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
     <b>version_string2</b> Default: <code>dde_version</code><br/>
     <i>Example:</i> <code>Utils.version_equal("1.0.2")</code> => <samp>false</samp>
     </details>
-    <details id="Utils.version_less_than_doc_id"class="doc_details"><summary>version_less_than</summary>
+    <details id="Utils.version_less_than_doc_id" class="doc_details"><summary>version_less_than</summary>
         Compare semantic version numbers.<br/>
     <i>Parameters:</i><br/>
     <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
     <b>version_string2</b> Default: <code>dde_version</code><br/>
     <i>Example:</i> <code>Utils.version_less_than("1.0.2")</code> => <samp>true</samp>
     </details>
-    <details id="Utils.version_more_than_doc_id"class="doc_details"><summary>version_more_than</summary>
+    <details id="Utils.version_more_than_doc_id" class="doc_details"><summary>version_more_than</summary>
         Compare semantic version numbers.<br/>
     <i>Parameters:</i><br/>
     <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
     <b>version_string2</b> Default: <code>dde_version</code><br/>
     <i>Example:</i> <code>Utils.version_more_than("1.0.2")</code> => <samp>false</samp>
     </details>
-    <details id="Utils.dde_version_between_doc_id"class="doc_details"><summary>dde_version_between</summary>
+    <details id="Utils.dde_version_between_doc_id" class="doc_details"><summary>dde_version_between</summary>
      A call to this method is meant to go above code that you want to declare the
      version of DDE that it can safely run in.<br/>
      <i>Parameters:</i><br/>
@@ -9156,19 +9153,18 @@ If include_this is true, the returned source, when evaled, will return a copy of
         If <code>"error"</code>, this function will error.<br/>
         If <code>"warn"</code>, this function will print a warning message and
         return <code>false</code><br/>
-        If <code>"boolean"</code>, return </code>true</code> if dde_version is between min and max (inclusive) or
-        </code>false</code> if it is not.
+        If <code>"boolean"</code>, return <code>true</code> if dde_version is between min and max (inclusive) or
+        <code>false</code> if it is not.
         <p></p>
         <i>Examples:</i><br/>
         <code>Utils.dde_version_between("0.1.0", "100.1.1")</code> => <samp>true</samp>
     </details>
-    <details id="quit_dde_doc_id"class="doc_details"><summary>quit_dde</summary>
+    <details id="quit_dde_doc_id" class="doc_details"><summary>quit_dde</summary>
         Exits DDE immediately. Make sure you have files saved first!<br/>
         <i>Example:</i><br/>
         <code title="Not in TestSuite">quit_dde()</code>
     </details>
-
-    </details> <!-- end operating system etc -->
+</details> <!-- end operating system, etc -->
 
 <details class="doc_details"><summary>Window System</summary>
     Dealing with HTML, CSS and JavaScript of traditional web apps is complex.
@@ -9424,7 +9420,7 @@ mat.delete()</code></pre>
      The error/warning messages are very explicit about what's wrong.
      <p></p>
      When debugging calls to make_html, its useful to check the Output pane checkbox
-     <br>Code</b> to see the returned HTML.
+     <b>Code</b> to see the returned HTML.
     </details>
 
     <details id="make_dom_elt_doc_id" class="doc_details"><summary>make_dom_elt</summary>
@@ -9435,7 +9431,7 @@ mat.delete()</code></pre>
         <code>make_dom_elt("span", {color:"blue"}, "hi")</code>
     </details>
 
-        <details class="doc_details"><summary>Mouse Input</summary>
+    <details class="doc_details"><summary>Mouse Input</summary>
     <b>Position</b><br/>
     Javascript doesn't have just a method you can call to get the mouse position.
     JS does support getting the mouse position from an event.
@@ -9857,7 +9853,7 @@ Plot.show(null, [trace0, trace1])   </code></pre>
       See <a href="#" onclick="browse_page('https://plotly.com/javascript/colorscales/')">Plotly doc</a>
       for more on colorscales.
     </details>
-    <details class="doc_details"><summary>Job move points</summary>Job move points</i></b><br/>
+    <details class="doc_details"><summary>Job move points</summary>
       The move_all_joints, move_to, and friends instructions
       have their target xyz points plotted in a 3D line.<br/>
      <code> Plot.show(null, Job.latest_defined_job()) </code><br/>
@@ -9899,86 +9895,86 @@ Plot.show(null, [trace0, trace1])   </code></pre>
 
 
     <details class="doc_details"><summary>Set DDE Colors</summary>
-    Users can customize the DDE colors by calling the below functions.
-    Calls to these functions appear in the default <code title="unEVALable code fragment"> dde_init.js</code> file
-    commented out. By commenting them in, the DDE colors will be
-    modified when DDE launches. Their default color values are given
-    in the examples below.
-    <ul>
-        <li><code id="set_window_frame_background_color_doc_id" title="not in TestSuite">set_window_frame_background_color("#b8bbff")</code></li>
-        <li><code id="set_pane_header_background_color_doc_id"  title="not in TestSuite">set_pane_header_background_color("#bae5fe")</code></li>
-        <li><code id="set_menu_background_color_doc_id"         title="not in TestSuite">set_menu_background_color("#93dfff")</code></li>
-        <li><code id="set_button_background_color_doc_id"       title="not in TestSuite">set_button_background_color("#93dfff")</code></li>
-    </ul>
-</details>
+        Users can customize the DDE colors by calling the below functions.
+        Calls to these functions appear in the default <code title="unEVALable code fragment"> dde_init.js</code> file
+        commented out. By commenting them in, the DDE colors will be
+        modified when DDE launches. Their default color values are given
+        in the examples below.
+        <ul>
+            <li><code id="set_window_frame_background_color_doc_id" title="not in TestSuite">set_window_frame_background_color("#b8bbff")</code></li>
+            <li><code id="set_pane_header_background_color_doc_id"  title="not in TestSuite">set_pane_header_background_color("#bae5fe")</code></li>
+            <li><code id="set_menu_background_color_doc_id"         title="not in TestSuite">set_menu_background_color("#93dfff")</code></li>
+            <li><code id="set_button_background_color_doc_id"       title="not in TestSuite">set_button_background_color("#93dfff")</code></li>
+        </ul>
+    </details>
 
-<details id="set_css_properties_doc_id" class="doc_details"><summary>set_css_properties</summary>
-You can dynamically set <i>any</i> CSS properties with this function by including
-the selector and the properties in the argument with the same syntax as in
-a css style sheet. This will immediately change all the existing HTML that matches
-the selector as well as future HTML that matches the selector.
-<p></p>
-If you make two calls to <code>set_css_properties</code>, the second will override the
-first. To keep such modifications accross DDE sessions,
-put calls to <code>set_css_properties</code> in
-your dde_apps/dde_init.js file.
-<p></p>
-<i>Parameter:</i><br/>
-<b>css_string</b> A string. Required. Change the values of the CSS properties in the
-HTML tags matching the selectors. You can have multiple selector-properties pairs
-in the string. Separate them with a newline.
-<p></p>
-<i>Examples:</i>
-<pre><code title="Not in TestSuite">set_css_properties(".dde_error_css_class {font-style: italic;}")
+    <details id="set_css_properties_doc_id" class="doc_details"><summary>set_css_properties</summary>
+    You can dynamically set <i>any</i> CSS properties with this function by including
+    the selector and the properties in the argument with the same syntax as in
+    a css style sheet. This will immediately change all the existing HTML that matches
+    the selector as well as future HTML that matches the selector.
+    <p></p>
+    If you make two calls to <code>set_css_properties</code>, the second will override the
+    first. To keep such modifications accross DDE sessions,
+    put calls to <code>set_css_properties</code> in
+    your dde_apps/dde_init.js file.
+    <p></p>
+    <i>Parameter:</i><br/>
+    <b>css_string</b> A string. Required. Change the values of the CSS properties in the
+    HTML tags matching the selectors. You can have multiple selector-properties pairs
+    in the string. Separate them with a newline.
+    <p></p>
+    <i>Examples:</i>
+    <pre><code title="Not in TestSuite">set_css_properties(".dde_error_css_class {font-style: italic;}")
 set_css_properties(".warning_css_class   {font-weight: bold;}")
-set_css_properties('div.CodeMirror span.CodeMirror-matchingbracket { color:#0000FF; }' +
-                   '\n.cm-keyword {color:#666666;}' +
-                   '\n.CodeMirror { background:#CCCCCC;}')
-    </code></pre>
-In that last example, we set colors of DDE's editor for:
-<ol>
- <li>matching parens</li>
- <li>JavaScript keywords like "function" and "var"</li>
- <li>the background color of the whole text editor.</li>
-</ol>
-Here's the CSS for a bunch more editor properties.
-<pre><code title="unEVALable">.cm-s-default .cm-header {color: blue;}
-.cm-s-default .cm-quote {color: #090;}
-.cm-negative {color: #d44;}
-.cm-positive {color: #292;}
-.cm-header, .cm-strong {font-weight: bold;}
-.cm-em {font-style: italic;}
-.cm-link {text-decoration: underline;}
-.cm-strikethrough {text-decoration: line-through;}
+set_css_properties('div.CodeMirror span.CodeMirror-matchingbracket { color:#0000FF; }'
+set_css_properties('.cm-keyword {color:#666666;}'
+set_css_properties('.CodeMirror { background:#CCCCCC;}') //background color of the text editor
+        </code></pre>
+    In that last example, we set colors of DDE's editor for:
+    <ol>
+     <li>matching parens</li>
+     <li>JavaScript keywords like "function" and "var"</li>
+     <li>the background color of the whole text editor.</li>
+    </ol>
+    Here's the CSS for a bunch more editor properties.
+    <pre><code title="unEVALable">.cm-s-default .cm-header {color: blue;}
+    .cm-s-default .cm-quote {color: #090;}
+    .cm-negative {color: #d44;}
+    .cm-positive {color: #292;}
+    .cm-header, .cm-strong {font-weight: bold;}
+    .cm-em {font-style: italic;}
+    .cm-link {text-decoration: underline;}
+    .cm-strikethrough {text-decoration: line-through;}
 
-.cm-s-default .cm-keyword {font-weight: bold;} /*orig "color: #708"  font-weight: bold; doesn't make keywords bolc*/
-.cm-s-default .cm-atom {color: #219;}
-.cm-s-default .cm-number {color: #164;}
-.cm-s-default .cm-def {color: #00f;}
-.cm-s-default .cm-variable,
-.cm-s-default .cm-punctuation,
-.cm-s-default .cm-property,
-.cm-s-default .cm-operator {}
-.cm-s-default .cm-variable-2 {color: #05a;}
-.cm-s-default .cm-variable-3, .cm-s-default .cm-type {color: #085;}
-.cm-s-default .cm-comment {color: #a50;}
-.cm-s-default .cm-string {color: #a11;}
-.cm-s-default .cm-string-2 {color: #f50;}
-.cm-s-default .cm-meta {color: #555;}
-.cm-s-default .cm-qualifier {color: #555;}
-.cm-s-default .cm-builtin {color: #30a;}
-.cm-s-default .cm-bracket {color: #997;}
-.cm-s-default .cm-tag {color: #170;}
-.cm-s-default .cm-attribute {color: #00c;}
-.cm-s-default .cm-hr {color: #999;}
-.cm-s-default .cm-link {color: #00c;}
+    .cm-s-default .cm-keyword {font-weight: bold;} /*orig "color: #708"  font-weight: bold; doesn't make keywords bolc*/
+    .cm-s-default .cm-atom {color: #219;}
+    .cm-s-default .cm-number {color: #164;}
+    .cm-s-default .cm-def {color: #00f;}
+    .cm-s-default .cm-variable,
+    .cm-s-default .cm-punctuation,
+    .cm-s-default .cm-property,
+    .cm-s-default .cm-operator {}
+    .cm-s-default .cm-variable-2 {color: #05a;}
+    .cm-s-default .cm-variable-3, .cm-s-default .cm-type {color: #085;}
+    .cm-s-default .cm-comment {color: #a50;}
+    .cm-s-default .cm-string {color: #a11;}
+    .cm-s-default .cm-string-2 {color: #f50;}
+    .cm-s-default .cm-meta {color: #555;}
+    .cm-s-default .cm-qualifier {color: #555;}
+    .cm-s-default .cm-builtin {color: #30a;}
+    .cm-s-default .cm-bracket {color: #997;}
+    .cm-s-default .cm-tag {color: #170;}
+    .cm-s-default .cm-attribute {color: #00c;}
+    .cm-s-default .cm-hr {color: #999;}
+    .cm-s-default .cm-link {color: #00c;}
 
-.cm-s-default .cm-error {color: #f00;}
-.cm-invalidchar {color: #f00;}
+    .cm-s-default .cm-error {color: #f00;}
+    .cm-invalidchar {color: #f00;}
 
-.CodeMirror-composing { border-bottom: 2px solid; }
-    </code></pre>
-</details>
+    .CodeMirror-composing { border-bottom: 2px solid; }
+        </code></pre>
+    </details>
 
 <details id="show_window_doc_id" class="doc_details"><summary>show_window</summary>
         A call to <code>show_window</code> creates a dialog box using HTML and JavaScript.<br/>
@@ -10078,7 +10074,7 @@ Here's the CSS for a bunch more editor properties.
         is: <br/>If the element has a "name" property, use the value of that.<br/>
         else if the element has an "id" property, use that. Note that "id" properties
         become global variables bound to the element, which can be useful
-        if you want to programatically change them.<br/>
+        if you want to programmatically change them.<br/>
         else if the element has a "value" property, use that. Note that an
         "input" element of type "button" will have its displayed label be
         the value of its "value" property.
@@ -10146,7 +10142,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
     callback: show_vals})
 </code></pre>
     <span style="color:red;">Beware</span>: The callback function cannot be a closure.
-    It can be an annonymous function, but its really better if it has a top level name.
+    It can be an anonymous function, but it is really better if it has a top level name.
     This restriction is due to implementation complexities with show_window.<br/>
 
     <b>init_elt_id</b> Default: <code>null</code>
@@ -10160,7 +10156,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
     initialization of the show_window that needs the default values of the inputs,
     this argument is quite useful.<br/>
     <i>Example:</i>
-    <pre><code title="not in testsuite"/>function handle_my_win(vals){
+    <pre><code title="not in testsuite">function handle_my_win(vals){
     if(vals.clicked_button_value == "init_my_win_id"){
         out("initing my_win")
         SW.close_window(vals.window_index)
@@ -10215,13 +10211,13 @@ show_window({
     <details id="show_page_doc_id" class="doc_details"><summary>show_page</summary>
        Creates a new browser window and shows a web page in it.<br/>
        show_page is a wrapper that attempts to make sense of the
-        ideosyncractic, poorly documented,
+        idiosyncratic, poorly documented,
         <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/open" target="_blank">window.open</a>.
        <i>Parameters:</i><br/>
        <b>url</b> A string. The url to show in the new browser window.<br/>
-       <b>title</b> A string. This is not a title that shows in the window, but meerely used internally.
+       <b>title</b> A string. This is not a title that shows in the window, but merely used internally.
                     If not passed, it defaults to <i>url</i>.
-                    If there is a 2nd arg and it is not a string, it will be considered to
+                    If there is a 2nd arg, and it is not a string, it will be considered to
                     be the <i>options</i> arg.<br/>
        <b>options</b> A literal object. You can see additional documentation at the above URL for <code>window.open</code>.
        <ul> <li><b>x</b> An integer. Default: <code>0</code>
@@ -10274,7 +10270,7 @@ show_window({
 
     <details id="browse_page_doc_id" class="doc_details"><summary>browse_pages</summary>
        Shows a url in your default browser, which includes an editable url at the top.
-       Ofen this will open a new tab for the given url in an already open browser.<br/>
+       Often this will open a new tab for the given url in an already open browser.<br/>
        <i>Parameter:</i><br/>
        <b>url</b> Required. A string.<br/>
        <br/>
@@ -10332,7 +10328,7 @@ show_window({
             Gets the value of an attribute of an HTML tag (usually from a <code>show_window</code> window). <br/>
             <i>Parameter:</i><br/>
             <b>path_string</b> The path to a shown html element. This is often
-            the id of an element followed by a dot, follwed by an attribute name.<br/>
+            the id of an element followed by a dot, followed by an attribute name.<br/>
             Note that for svg objects, this is a bit tricky, but will get the value
             of the given attribute.<br/>
             If the actual value is the string of a number, the number,
@@ -10360,7 +10356,7 @@ show_window({
             Set the value of an HTML element attribute (usually from a <code>show_window</code> window). <br/>
             <i>Parameters:</i><br/>
             <b>path_string</b> The path to a shown html element's attribute.
-            This is often the id of an element followed by a dot, followed by an attributre name.<br/>
+            This is often the id of an element followed by a dot, followed by an attribute name.<br/>
             <b>value</b>: The value of an HTML element's attribute. Usually this is a string.<p></p>
             <i>Example</i>: <code title="unEVALable code fragment"> set_in_ui("my_in_id.value", "aluminum")</code><br/>
         </details>
@@ -10387,7 +10383,7 @@ show_window({
         <samp>#foo</samp>The ID of an element. Usually this is the first path part.
         DDE uses the convention of element id's having a suffix of "_id". We recommend this
         for your code too.<br/>
-        <samp>.bar</samp> The class of an element <i>within</i> the previously idendified element
+        <samp>.bar</samp> The class of an element <i>within</i> the previously identified element
         in the path_string.<br/>
         <samp>[baz]</samp> An HTML property of an element.
         <p></p>
@@ -10402,16 +10398,16 @@ show_window({
             to be plain text and will not be rendered.
         <p></p>
         The next four are for adding content.<br/>
-        <samp>[beforebegin]</samp> Use to insert HTML before the previously idendified element
+        <samp>[beforebegin]</samp> Use to insert HTML before the previously identified element
             in the path_string.<br/>
-        <samp>[afterbegin]</samp> Use to insert HTML as the new first child of the previously idendified element
+        <samp>[afterbegin]</samp> Use to insert HTML as the new first child of the previously identified element
             in the path_string.<br/>
         <samp>[beforeend]</samp> Use to insert HTML after the last child of the previously identified element
             in the path_string.<br/>
         <samp>[afterend]</samp>  Use to insert HTML after the previously identified element
             in the path_string.<br/>
         <p></p>
-        <samp>[baz=val]</samp> Identifies an element <i>within</i> the previously idendified element
+        <samp>[baz=val]</samp> Identifies an element <i>within</i> the previously identified element
             in the path_string that has the property "baz" with a value of "val".<br/>
         <samp>[style]</samp>  Identifies the style property of an element.
         If you want to set the entire style string (all the properties), tben use this
@@ -10439,7 +10435,7 @@ show_window({
         <code title="unEVALable">SW.selector_set_in_ui("#my_elt_id [name=mydiv] [style] [color]", "red")</code>
         <p></p>
         Below we are popping up a show_window with just one button.
-        Clicking on the button calls <code title="not_in_tesetsuite">modify_window_cb</code>
+        Clicking on the button calls <code title="not_in_testsuite">modify_window_cb</code>
         which creates a new random color, then sets the button's "style" property of "background"
         to that new color. Then the string used to indicate that new color is
         added to the window just below the button.<pre><code>
@@ -10488,7 +10484,7 @@ show_window({title: "Modify Window",
         <i>Parameters for all svg functions</i>:<br/>
         <b>id</b> The html id of the element, useful in calls to window utility functions
         such as <code>SW.append_in_ui</code>.<br/>
-        <b>html_class</b>: Default: <code>""</code> Used to set the <code title="unEVALable code fragment"> class</code> attrbute of the element.
+        <b>html_class</b>: Default: <code>""</code> Used to set the <code title="unEVALable code fragment"> class</code> attribute of the element.
         Due to a name conflict with <code title="unEVALable code fragment"> class</code> in JavaScript, we had to name this
         <code title="unEVALable code fragment"> html_class</code>.<br/>
         With a value of <code>"clickable"</code>, clicking this element will call the show_window
@@ -10674,7 +10670,7 @@ See DDE menu bar/Learn JS/Math for examples to insert.
 The class <code>Number</code> has a few constants and utility functions.<br/>
 Eval <code>Number</code> to see them.
 <p></p>
-The class <code>Math</code> has quite a few more contants and functions
+The class <code>Math</code> has quite a few more constants and functions
 including trigonometry and exponents.<br/>
 Eval <code>Math</code> to see them.
 <p></p>
@@ -10757,7 +10753,7 @@ of relevant npm packages.-->
        fields plus:<br/>
        <b>from:</b> A string. The user name that you originally sent the message to.<br/>
        <b>to:</b> A string. Your user name. This is because the automatic response to
-         a message with get_result=true is really just anoother one-way message
+         a message with get_result=true is really just another one-way message
          that is send back to the original sender.<br/>
        <b>result:</b> This is a string. It can be:
         <ul><li>An error message, which starts with "Error:"</li>
@@ -10857,7 +10853,7 @@ Messaging.permit_default = function(mess_obj){
    <a href="#" onclick="DocCode.open_doc('Messaging.get_result_doc_id')">get_result</a> arguments.
 
    <details id="Messaging.chat_doc_id" class="doc_details"><summary>chat</summary>
-       Send a message to another logged in user. It will appear in the
+       Send a message to another logged-in user. It will appear in the
        "Sent & Received Messages" area of their DDE Messaging dialog box.
        If that box is not up, it will automatically pop up when a chat message
        is received.
@@ -10954,7 +10950,7 @@ Messaging.permit_default = function(mess_obj){
        This makes it easy for the sender to test if a requested variable is undefined.<br/>
        <b>get_result</b> Default: <code>true</code>.
          The result field will be a string for transfer of the variable value to
-         the orginal sender.
+         the original sender.
        <p></p>
        <i>Example:</i><pre><code title="not in TestSuite"> Messaging.get_variable({
        variable_name: "foo",
@@ -11016,7 +11012,7 @@ Messaging.job_instruction({do_list_item: Dexter.move_all_joints(10, 20, 30, 40, 
        printout will be replaced by the next call to out<br/>
        <b>code</b> Default: <code>null</code> possible values:
        <ul><li><code>true</code>  val is printed in fixed-width (code) font.</li>
-           <li><code>false</code> val is printed in variable-width (nomral) font.</li>
+           <li><code>false</code> val is printed in variable-width (normal) font.</li>
            <li><code>null</code>  val is printed in a font depending on the
            value of the "code" checkbox in the Output pane header.</li>
        </ul>
@@ -11047,7 +11043,7 @@ Messaging.job_instruction({do_list_item: Dexter.move_all_joints(10, 20, 30, 40, 
        <br/>
        <i>Parameters:</i><br/>
        <b>variable_name</b> Required. A string of a variable name.
-       If the string has dots in it, its a path to the actual var set.
+       If the string has dots in it, it is a path to the actual var set.
        If there's a part of the path that doesn't exist, then it is
        created with the value of {} so the next part of the path
        will be a property within that new value. <br/>
@@ -11058,7 +11054,7 @@ Messaging.job_instruction({do_list_item: Dexter.move_all_joints(10, 20, 30, 40, 
        of the eval_kind.<br/>
        <b>job_name</b> Default: <code>null</code>
        If null, variable_name is a global variable.
-       Otherwise its a user_data variable in the indicated Job,
+       Otherwise it is a user_data variable in the indicated Job,
        which must be running on the receiving DDE.<br/>
        Using a Job name of <code>"foo"</code> and<br/>
        a variable name of <code>"bar"</code> is the same as<br/>
@@ -11143,7 +11139,7 @@ Messaging.set_variable({variable_name: "joint_angles",
                 with the start_options.
            </li>
        </ul>
-       <b>callback</b> Default: <code>null</code> A function that takes one agument,
+       <b>callback</b> Default: <code>null</code> A function that takes one argument,
        a mess_obj literal object <br/>
        <p></p>
        By default, get_result is <code>true</code>.<br/>
@@ -11168,8 +11164,8 @@ Messaging.start_job({job_name: "my_job",
           determines whether the Job should perform its usual when_stopped behavior.<br/>
        <b>callback</b> Default: <code>null</code> Optional. If this is a function,
            it takes one argument, the mess_obj. If non-null, it is called
-           in the orginal sender when the result comes back from the receiver.
-           Only relavent when get_result == true. <br/>
+           in the original sender when the result comes back from the receiver.
+           Only relevant when get_result == true. <br/>
        <p></p>
        By default, get_result is <code>true</code>. The result field will be
        a string. If the Job could not be stopped successfully, the string starts with "Error:".
@@ -11182,7 +11178,7 @@ Messaging.stop_job({job_name: "wait_for_message",
        See also: <a href="#" onclick="DocCode.open_doc('Control.stop_job_doc_id')">Control.stop_job</a>
    </details>
 
-       --- templaete for Messaging fns
+       --- template for Messaging fns
            <details id="Messaging._doc_id" class="doc_details"><summary></summary>
 
            <br/>
@@ -11205,9 +11201,9 @@ Messaging.stop_job({job_name: "wait_for_message",
 </details>  --> <!-- end Messaging -->
 
 <details id="Lesson_doc_id" class="doc_details"><summary>Lesson</summary>
-In many ways, DDE is a cirriculua delivery platform for highly
+In many ways, DDE is a curricula delivery platform for highly
 interactive ways to learn about programming JavaScript, with an emphasis
-on programming Dexter. Dexter and JavaScript are well matched because
+on programming Dexter. Dexter and JavaScript are well-matched because
 both are general purpose tools; one in the hardware domain and one in software.
 Both are also complex, hence the need for quality educational material.
 <p></p>
@@ -11227,7 +11223,7 @@ Below are some of DDE's lesson authoring tools.
     <b>summary_text_path</b> Usually a string. Default: <code>null</code>.
         This indicates the header near which to insert the html in the Doc pane.
         <code>null</code> inserts the html directly into the top level of the Doc pane.
-        Separate Doc pane hierachical headers with a slash ie <code>"Reference Manual/Lesson"</code>
+        Separate Doc pane hierarchical headers with a slash ie <code>"Reference Manual/Lesson"</code>
     <br/>
     <b>position</b> One of: <code>"beforebegin"</code>, <code>"afterbegin"</code>, <code>"beforeend"</code>, <code>"afterend"</code>.
                  Default: <code>"beforeend"</code>
@@ -11311,12 +11307,12 @@ DocCode.insert_html_into_doc_pane(&#96;&lt;details id="foo_doc_id" style="font-s
   many individual components.
   <p></p>
   Each step can be any HTML, most commonly shown in the Misc pane.
-  A step can also be a button, most commonly of a snipet of video
+  A step can also be a button, most commonly of a snippet of video
   played in the Misc pane.
   See <a href="#" onclick=DocCode.open_doc("Lesson.make_button_html_doc_id")>Lesson.make_button_html</a>
   <p></p>
   <i>Parameters:</i><br/>
-      <b>name</b> Default: <code>null</code> The name of this lession.
+      <b>name</b> Default: <code>null</code> The name of this lesson.
         Use <code>null</code> for no displayed name.<br/>
       <b>steps</b> Default: <code>[]</code> The array of steps for this lesson.
       A step may be a string of any HTML.
@@ -11328,7 +11324,7 @@ DocCode.insert_html_into_doc_pane(&#96;&lt;details id="foo_doc_id" style="font-s
 
       <b>location</b> Default: <code>null</code> The location that the
       lesson is to be shown <i>near</i>. <code>null</code> doesn't display the generated HTML
-      anywhere. Regardless of the location, the grenerated HTML is returned
+      anywhere. Regardless of the location, the generated HTML is returned
       by each call to <code>Lesson.make_button_column</code>. This is useful
       if you'd like to save the HTML to be displayed later.<br/>
       Possible values:
@@ -11338,11 +11334,10 @@ DocCode.insert_html_into_doc_pane(&#96;&lt;details id="foo_doc_id" style="font-s
              <li><i>A DOM element</i> show the lesson near that DOM element.</li>
              <li><i>The ID of a DOM element</i> show the lesson near that DOM element.</li>
              <li><i>A string of a header in the Doc pane.</i>
-                Separate Doc pane hierachical headers with a slash
+                Separate Doc pane hierarchical headers with a slash
                 i.e. <code>"Reference Manual/Lesson"</code>
              </li>
           </ul>
-      </li>
       <b>position</b> A string indicating the position of the inserted HTML W.R.T. the location.<br/>
               Possible values:
               <ul>
@@ -11449,7 +11444,7 @@ DocCode.insert_html_into_doc_pane(&#96;&lt;details id="foo_doc_id" style="font-s
     <b>steps</b> Default: <code>[[]]</code> An array of the "fancy tooltips" of the tour.
        Each step is represented by an array whose elements describe the steps.
        Elements of the array themselves default.
-       Thus the default for steps, <code>[[]]</code>, consists of one
+       Thus, the default for steps, <code>[[]]</code>, consists of one
        step, all of whose elements default to the values provided in defaultStepOptions.
        See below for details. <br/>
     <b>useModalOverlay</b> Default: <code>true</code> If true, a gray, transparent
@@ -11522,11 +11517,11 @@ Lesson.make_tour({name: "Author Lessons", steps: [
     <code title="not in Testsuite"> Lesson.start_tour("Author Lessons") </code>
 </details>
 <details class="doc_details"><summary>Job as a Lesson</summary>
-  A Lesson is comprised of a sequence of steps for a student to perform.
-  A Job is comprised of a sequence of steps (usually called "instructions") for
+  A Lesson is composed of a sequence of steps for a student to perform.
+  A Job is composed of a sequence of steps (usually called "instructions") for
   a robot to perform. We can think of a Job as a "lesson" for a robot.
   <p></p>
-  A Job's instruction can run many different kinds of instructions.
+  A Job's instruction can run many kinds of instructions.
   One important class of instructions is called "Human" to direct a
   human "robot" to perform some action. Usually Human instructions are
   used to collect information from the robot operator, but they also
@@ -11598,7 +11593,7 @@ Here we point out just a few that are especially easy and useful for teaching.
         It causes the Job to pause while a human fills in values.
         Once the human clicks the <button>Continue</button> button,
         the next instruction is run in the job. It and all subsequent instructions
-        can access the values filled in. <code>Human.show_window</code> is particularly useful for coordinating activites
+        can access the values filled in. <code>Human.show_window</code> is particularly useful for coordinating activities
         between humans and robots.<br/>
         <i>Example:</i><br/>
         <code> show_window("&lt;h1 style='color:blue;'>Wake up!&lt;/h1>") </code>
@@ -11619,10 +11614,10 @@ Here we point out just a few that are especially easy and useful for teaching.
          If the name is defined by a compatibility file, you'll
          be told which one and how to load it.
          You may also be given a bit of documentation on how to
-         work-around no longer supported names.
+         work around no longer supported names.
          <p></p>
          <i>Example:</i><br/>
-         Click on the below code to see the deprecate click_help.<br/>
+         Click on the below code to see the deprecated click_help.<br/>
          <code title="not in TestSuite">dde_apps_dir </code>
    </details>
    <details class="doc_details"><summary>Backwards Compatibility</summary>
@@ -11652,7 +11647,7 @@ Here we point out just a few that are especially easy and useful for teaching.
          <p></p>
 
          <b id="PatchDDE.show_dde_2_to_3_doc_id">PatchDDE.show_dde_2_to_3</b>
-         Calling this function prints the dde_2_to_3 code in the Output pane
+         Calling this function prints the dde_2_to_3 code in the Output pane,
          so you can see exactly what its doing.
          <p></p>
          <i>Example:</i><br/>
@@ -11672,7 +11667,7 @@ Here we point out just a few that are especially easy and useful for teaching.
     DDE Launch will also ensure that a subfolder of dde_patches
     exists named "patches_for_(your dde version). For example:
     "Documents/dde_patches/patches_for_3.6.5/".
-    Its fine for users to look inside these folders, but you're
+    It is fine for users to look inside these folders, but you're
     not expected to modify them. If you delete them,
     they will be recreated upon the next launch of DDE.
     <p></p>
@@ -11683,7 +11678,7 @@ Here we point out just a few that are especially easy and useful for teaching.
      the previous fixes, plus likely some new, larger amounts of code.
 
    <details id="PatchDDE.download_all_doc_id" class="doc_details"><summary>download_all</summary>
-       This method downloads patch files from github into the folder
+       This method downloads patch files from GitHub into the folder
        Documents/dde_patches/patches_for_(your dde version number).
        Each patch file will have a small amount of code. The file's
        name will include the DDE version number that it is intended for
@@ -11713,7 +11708,7 @@ Here we point out just a few that are especially easy and useful for teaching.
                    Many users will want
                    <code title="not in Testsuite">PatchDDE.load()</code>
                    in their dde_init.js file.
-                   BUT: if you're giving a big demo and you want to be
+                   BUT: if you're giving a big demo, and you want to be
                    confident that you don't modify your DDE environment
                    in an unexpected way when launching DDE, we recommend NOT calling
                    load with "all" (or no) arguments.
@@ -11793,7 +11788,7 @@ Here we point out just a few that are especially easy and useful for teaching.
    </details> <!-- End PatchDDE -->
    <details id="python_doc_id" class="doc_details"><summary>Python</summary>
        A language is a collection of tools that are designed to work synergistically
-       with each other. When possible, its good to keep the code for a program in
+       with each other. When possible, it is good to keep the code for a program in
        one language for this reason.
        <p></p>
        JavaScript was chosen for DDE because:
@@ -11807,15 +11802,15 @@ Here we point out just a few that are especially easy and useful for teaching.
        especially those popular now, is far from perfect. DDE helps programmers
        work around those imperfections.
        <p></p>
-       None-the-less, sometimes its worth it to put up with the difficulties of
+       None-the-less, sometimes it is worth it to put up with the difficulties of
        "foreign function calls" to get the functionality in other languages.
        This can happen because a given functionality isn't available in the primary
-       language of the app, and its too big to write. Or it may be that the programmer
+       language of the app, and it is too big to write. Or it may be that the programmer
        is more familiar with a library in another language. There are "cultural"
        reasons as well, or simply matters of personal taste.
        <p></p>
        DDE is a JavaScript-based development environment. When you have code in DDE,
-       it is expected to be JavaScript. But to accomodate useful functionality
+       it is expected to be JavaScript. But to accommodate useful functionality
        in Python, DDE has several ways that DDE programs can take advantage of
        existing Python code, or even write new bits of "glue code" between
        existing Python and DDE/JavaScript.
@@ -11830,7 +11825,7 @@ Here we point out just a few that are especially easy and useful for teaching.
        <p/>
        Behind the scenes, DDE can create a process to run Python.
        Python code will be evaluated in that process until you kill, it, init a fresh one,
-       or relaunch DDE. Thus you can set global variables or def's in it, import files into
+       or relaunch DDE. Thus, you can set global variables or def's in it, import files into
        it and expect those modifications to be there when you attempt to get values or call
        functions.
        <p></p> At this time we're not expecting DDE to become an IDE for Python.
@@ -11838,7 +11833,7 @@ Here we point out just a few that are especially easy and useful for teaching.
        into DDE, call them with simple arguments from DDE, and get back results
        (in the simple data structures that can be encoded in JSON format).
        This doesn't provide all kinds of Python structures, but does provide a lot of them.
-       If your Python code returns simple data or you can write some Python
+       If your Python code returns simple data, or you can write some Python
        wrappers than coerce more complicated data into simpler data structures,
        DDE can be a bridge to taking advantage of Python libraries.
        <p></p>
@@ -11855,14 +11850,14 @@ Here we point out just a few that are especially easy and useful for teaching.
           to get a read_eval_print loop for Python.
           <p></p>
           For a more recent version, browse
-              <a href="#" onclick="browse_page('https://www.python.org/downloads/')"/>Python.org</a>
+              <a href="#" onclick="browse_page('https://www.python.org/downloads/')">Python.org</a>
               for download instructions.
           </details>
           <details class="doc_details"><summary>WinOS</summary>
             <b>Windows7</b><br/> We've had a hard time installing Python3 on Windows 7
               from the download direction in
-              <a href="#" onclick="browse_page('https://www.python.org/downloads/')"/>Python.org</a> .
-              There is a "missing file". The web documents some work arounds,
+              <a href="#" onclick="browse_page('https://www.python.org/downloads/')">Python.org</a> .
+              There is a "missing file". The web documents some workarounds,
               but they aren't easy. We recommend using Windows 10.
             <p/>
             <b>Windows 10</b>
@@ -11871,7 +11866,7 @@ Here we point out just a few that are especially easy and useful for teaching.
             <li>In the terminal window that comes up, type in "python" and hit the ENTER key.</li>
             <li>If Python is installed on your computer, you should see a >>> prompt
                  after it prints out the Python version number.
-                 If its a recent version 3 python, you're all set.
+                 If it is a recent version 3 python, you're all set.
                  <p></p>
                   If there's NO Python installed, you get a new browser window in the Microsoft store.
                   On Feb 6, 2021, that window says Python 3.91.</li>
@@ -11879,7 +11874,7 @@ Here we point out just a few that are especially easy and useful for teaching.
             <li>You'll be asked to log in, but you can click "no thanks" and still get it.</li>
             <li> The size of the download is hard to determine from the confusing "progress bar"
                but looks like about 30Mbytes.</li>
-            <li> After its installed, again type in "python" into your terminal window
+            <li> After its installed, again type in "python" into your terminal window,
                 and you should see the python prompt >>> proceeded by a version number of Python.</li>
             <li>This install puts two items on your start menu: Python and IDLE(python).<br/>
                  Choosing <b>Python</b> launches the terminal window in Python.<br/>
@@ -11889,14 +11884,14 @@ Here we point out just a few that are especially easy and useful for teaching.
           </details>
           <details class="doc_details"><summary>Linux, etc</summary>
             To install Python on other Operating Systems browse
-            <a href="#" onclick="browse_page('https://www.python.org/downloads/')"/>Python.org</a>
+            <a href="#" onclick="browse_page('https://www.python.org/downloads/')">Python.org</a>
             for download instructions.
           </details>
        </details>
 
        <details id="python_user_interface_doc_id" class="doc_details"><summary>DDE's Python User Interface</summary>
            <ul>
-           <li>When you are editing a file who's name ends in ".py",
+           <li>When you are editing a file whose name ends in ".py",
            clicking <button>Eval</button> will evaluate the selection (or whole editor text if
            no selection) as Python code.<br/>
             The result will appear in the Output pane.
@@ -11909,7 +11904,7 @@ Here we point out just a few that are especially easy and useful for teaching.
            <p/>
            </li>
            <li>
-           The File menu/Load ... item let's you choose a file.
+           The File menu/Load ... item allows you to choose a file.
            If you choose one with a ".py" extension,
            you will be prompted to enter an "as name".
            If you then click <button>OK</button>,
@@ -11974,7 +11969,7 @@ Here we point out just a few that are especially easy and useful for teaching.
        <p></p>
        Set the variable "foo".<br/>
        <code>Py.eval('foo = "hi from Py"') </code><br/>
-       Get the value of the varible foo:<br/>
+       Get the value of the variable foo:<br/>
        <code>Py.eval('foo') </code>
        <p></p>
        See the installed modules<br/>
@@ -12061,7 +12056,7 @@ new Job({
                before defining the inner function.
                <p></p>
                That inner function is the 2nd argument to
-               <code>Py.eval</code> i.e. our callback. Once Python has completed the multiply,
+               <code>Py.eval</code> i.e. our callback. Once Python has completed the multiplication,
                this callback will be called with a json_object containing the result.
                The callback sets <code title="unEVALable">Job.my_job.user_data.j2</code>
                to the result from Python.
@@ -12070,7 +12065,7 @@ new Job({
                until it returns a truthy value.
                When our callback changes the value of <code title="unEVALable">user_data.j2</code>
                from <code>null</code> to <code>31.4</code>, <code>Control.wait_until</code> is
-               done waiting and we move on to the next instruction.
+               done waiting, and we move on to the next instruction.
                <p></p>
                In this wait_until function, we print out the value of <code title="unEVALable">user_data.j2</code>
                just so you can see that the code is still working, and exactly when
@@ -12141,10 +12136,10 @@ def main():
          Python's sys.path, then it is added before the file is imported.
          <p></p>
          See <a href="#" onclick='DocCode.open_doc(load_files_doc_id)'>load_files</a> for loading
-         JavaScript files</a>
+         JavaScript files.
        </details>
        <details id="Py.kill_doc_id" class="doc_details"><summary>Py.kill</summary>
-           Ends the Python process. The Python process shouldn't take up much resources
+           Ends the Python process. The Python process shouldn't take up many resources
            when idle. One reason to kill it is to get rid of the state currently
            in the Python process so the next time <code>Py.eval</code> is called,
            it will start afresh.<br/>
@@ -12187,7 +12182,7 @@ def main():
            <p></p>
            Python has numerous packages on the web that you can download and install on
            your computer for use in your Python packages.
-           The easist ones to use can be found at
+           The easiest ones to use can be found at
            <a target="_blank" href="https://pypi.org/">Python Package Index. (PyPI)</a>
            From a command line terminal, you can install a PyPI package via, for example:<br/>
            <code title="unEVALable">sudo pip3 install numpy</code><br/>
@@ -12198,14 +12193,14 @@ def main():
            You can install this installer from
            <a target="_blank" href="https://pypi.org/project/pip/">pip installation</a></li>
            <li><b>Numpy</b> is an often-used Python library for advanced math.
-           Its not included in Python distributions so you have to download it using pip</li>
+           It is not included in Python distributions, so you have to download it using pip</li>
 
-           <li>numpy install is complex, requing compiling on your computer.
+           <li>numpy install is complex, requiring compiling on your computer.
            If you're lucky, pip will handle this compiling and installing automatically.</li>
 
            <li>pip attempts to install Python packages globally. You may run into
            "permissions" problems doing this, which explains the need for the
-           <code code title="unEVALable">sudo</code> prefix in the above example.</li>
+           <code title="unEVALable">sudo</code> prefix in the above example.</li>
            </ul>
        </details>
 
@@ -12221,14 +12216,14 @@ def main():
        <li>The simplest is just perform some operation once.<br/>
             Example: In DDE's command line, type in <code>2 + 3</code> and hit the Enter key.
             It adds the two numbers, prints out 5 in the output pane and that's it.
-            This doesn't extended DDE in any meaningful way, through you can hit the
+            This doesn't extend DDE in any meaningful way, through you can hit the
             enter key a 2nd time and get it to compute 5 again.
        </li>
        <li> Next we can enter our <code>2 + 3</code> into the file dde_apps/dde_init.js
            Now every time we launch DDE, it will perform the computation.
            But we won't even be able to see the result unless we do<br/>
            <code>out(2 + 3)</code> which will print 5 in the output pane.
-           That's more of a modification but it doesn't make this computation available
+           That's more of a modification, but it doesn't make this computation available
            to other software within DDE.
        </li>
        <li> We could wrap our computation in a function, say:<br/>
@@ -12239,7 +12234,7 @@ def main():
            see 5 in the output pane.
        </li>
        <li> Modifying dde_init.js isn't somewhere we want to put a lot of code.
-           Its mostly for "configuration" tasks. So we can enter our
+           It is mostly for "configuration" tasks. So we can enter our
            <code>function add(a=2, b=3){ out(a + b) }</code> into the editor buffer.
            We can select that code, and click the <button>Eval</button> button
            and we'll define our function.
@@ -12249,7 +12244,7 @@ def main():
            all code in the editor buffer.
        </li>
        <li> If we SAVE our file, say in dde_apps/math.js, we can get it back
-            in subsequent sessions of DDE. If its in the editor buffer when
+            in subsequent sessions of DDE. If it is in the editor buffer when
             we quit DDE, it will be there the next time we launch DDE.
             If not, we can use the File menu/Open... item to edit it.
        </li>
@@ -12271,10 +12266,10 @@ def main():
              can load multiple files in one call.
        </li>
        <li>You can get JavaScript files from other people (say via email) or
-           downloaded from web sites, stick them in a convenient location,
+           downloaded from websites, stick them in a convenient location,
            say documents/dde_apps/ and then use them as above.
        </li>
-       <li>Programs of multiple files are often put in a ".zip" file so you can
+       <li>Programs of multiple files are often put in a ".zip" file, so you can
            grab them as one file, then "unzip" them on your computer
            and load its "main" file (often called "index.js") which
            may have calls to load in the other files.
@@ -12293,12 +12288,12 @@ def main():
            Use the search bar on the site, or just Google to find
            packages you're interested in.
            <p></p>
-           If a package has been on NPM for at least a couple months, and
+           If a package has been on NPM for at least a couple of months, and
            has a 1000 or more downloads, you can be fairly confident that
-           it doesn't contain malicious code. Its also fairly likely to
+           it doesn't contain malicious code. It is also fairly likely to
            not have show-stopper bugs, at least for its main functionality.
            You can also be fairly confident that the documentation
-           is lousy. If its a popular program, use Google to search for
+           is lousy. If it is a popular program, use Google to search for
            examples or bug reports/fixes, often found on
            <a href="https://stackoverflow.com/" target="_blank">Stack Overflow</a>.
            <p></p>

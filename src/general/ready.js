@@ -1470,6 +1470,8 @@ window_modify_id.onclick=function(){Editor.insert(
           //Job.define_and_start_job(__dirname + "/user_tools/dexter_user_interface2.js")
           dui2.make_job()
       }
+
+      monitor_id.onclick           = function() { Monitor.show_dialog() }
       ping_dexter_id.onclick       = function() { DexterUtils.ping_a_dexter(); DocCode.open_doc(ping_doc_id) }
 
       reboot_joints_id.onclick  = function(){

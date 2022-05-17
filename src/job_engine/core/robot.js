@@ -1280,11 +1280,11 @@ class Dexter extends Robot {
         else {
             this.rs = new RobotStatus({robot_status: robot_status})
         }
-        out("In set_robot_status for Job." + Job.job_id_to_job_instance(robot_status[Dexter.JOB_ID]).name +
-            " Dexter." + this.name +
-            " oplet: " + robot_status[Dexter.INSTRUCTION_TYPE] +
-            " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE] +
-            " measured_angles in rs: " + this.rs.measured_angles())
+        //out("In set_robot_status for Job." + Job.job_id_to_job_instance(robot_status[Dexter.JOB_ID]).name +
+        //    " Dexter." + this.name +
+        //    " oplet: " + robot_status[Dexter.INSTRUCTION_TYPE] +
+        //    " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE] +
+        //    " measured_angles in rs: " + this.rs.measured_angles())
         let new_robot_status_button_down = this.is_phui_button_down() //tricky. Not the same as 2 lines up!
         if((!old_robot_status_button_down) &&
             new_robot_status_button_down) {
@@ -1331,7 +1331,7 @@ class Dexter extends Robot {
                                         //If there are more jobs, finish_job does nothing except return false
             }
             else if (this_dex.waiting_for_heartbeat){ //stop recursive timeout
-                out("Dexter " + this_dex.name + " did not receive a response to the heartbeat. Stopping Job.")
+                //out("Dexter " + this_dex.name + " did not receive a response to the heartbeat. Stopping Job.")
                 //this_dex.is_connected      = false //should be done by stop_for_reaason and next item
                 //this_dex.socket_id         = null  //should be done by stop_for_reaason and next item
                 for (let job_instance of this.active_jobs_using_this_robot()){
@@ -1429,10 +1429,10 @@ class Dexter extends Robot {
         let oplet        = robot_status[Dexter.INSTRUCTION_TYPE]
         let error_code   = robot_status[Dexter.ERROR_CODE]
         let rob          = this //job_instance.robot
-        out("In robot_done_with_instruction for Job." + job_instance.name +
-            " Dexter." + this.name +
-            " oplet: " + oplet +
-            " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE])
+        //out("In robot_done_with_instruction for Job." + job_instance.name +
+        //    " Dexter." + this.name +
+        //    " oplet: " + oplet +
+        //    " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE])
         if(oplet === "F") {
             rob.waiting_for_flush_ack = false
         }

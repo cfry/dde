@@ -901,6 +901,42 @@ class Job{
            //we want to change the buttons' color.
            //add_job_button_maybe is ONLY called by Job constructor.
     }
+
+    //returns the first job name found in the first job definition, or null
+    //if it can't find one.
+    static source_to_job_name(source){
+        let new_job_index = source.indexOf("new Job(")
+        if (new_job_index === -1) {
+            warning("Could not find <code>new Job(</code> in the Editor.")
+            return null
+        }
+        let name_index = source.indexOf("name:", new_job_index)
+        if (name_index === -1) {
+            warning("Could not find Job name in the Editor.")
+            return null
+        }
+        let start_of_job_name_index = source.indexOf('"', name_index)
+        let name_str_delim = '"'
+        if (start_of_job_name_index === -1) {
+            start_of_job_name_index = source.indexOf("'", name_index)
+            name_str_delim = "'"
+        }
+        if (start_of_job_name_index === -1) {
+            warning("Could not find Job name in the Editor.")
+            return null
+        }
+        let end_of_job_name_index = source.indexOf(name_str_delim, start_of_job_name_index + 1)
+        if (end_of_job_name_index === -1) {
+            warning("Could not find end of Job name in the Editor.")
+            return null
+        }
+        let job_name = source.substring(start_of_job_name_index + 1, end_of_job_name_index)
+        if(job_name.includes("\n")) {
+            warning("Found an invalid Job name containing a new line in the Editor: " + job_name)
+            return null
+        }
+        return job_name
+    }
     static extract_job_name_from_file_path(file_path){
         let job_name_start_pos = file_path.lastIndexOf("/")
         if (job_name_start_pos == -1) { job_name_start_pos = 0 }

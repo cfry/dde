@@ -11,12 +11,14 @@ globalThis.Py = class Py {
     }
     static eval_py_part2(command){
         let result
+        let start_time = Date.now()
         try {
             let value = Py.eval(command)
             result = {
                 command: command,
                 value: value,
-                value_string: Utils.stringify_value(value)
+                value_string: Utils.stringify_value(value),
+                duration: Date.now() - start_time
             }
         }
         catch(err) {

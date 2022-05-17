@@ -1,5 +1,5 @@
 DDE4 Install and Launch Instructions
-Fry Feb 16, 2022,  updated apr 15.1, 2022
+Fry Feb 16, 2022,  updated May 12, 2022
 
 You can see instructions by browsing:
  https://github.com/cfry/dde/blob/dde4/dde/dde4_install_launch.txt
@@ -8,7 +8,7 @@ DDE4 can be installed on your Mac or Windows computer,
 OR installed on Dexter itself. This documentation tells you how.
 
 _________DDE4 Install on Mac or Windows__________
-DDE4 requires Node v 16 to be installed.
+DDE4 requires Node v 18 to be installed.
 To check if your computer already has this:
    - Launch a Terminal (or Command Prompt)
          - MacOS:  - double click on Applications/terminal
@@ -191,5 +191,6 @@ For Server on MacOS or WinOS to launch Job Engine:
 
 For Server on Dexter to launch Job Engine:
   - In the Chrome Web browser, browse: 192.168.1.142/dde/jobs.html 
+
                                
 

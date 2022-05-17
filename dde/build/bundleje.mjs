@@ -1,13 +1,19 @@
-import require$$0 from 'stream';
+import stream_1 from 'stream';
 import zlib from 'zlib';
-import net from 'net';
-import tls from 'tls';
-import require$$0$1 from 'crypto';
-import EventEmitter from 'events';
+import net_1 from 'net';
+import tls_1 from 'tls';
+import require$$0$3 from 'crypto';
+import events_1 from 'events';
 import https from 'https';
 import http from 'http';
-import require$$2 from 'url';
-import require$$0$2 from 'domain';
+import require$$2$1 from 'url';
+import http2 from 'http2';
+import os from 'os';
+import fs$2 from 'fs';
+import path from 'path';
+import dns from 'dns';
+import util$2 from 'util';
+import require$$0$4 from 'domain';
 import * as readline from 'readline';
 
 var global$1 = (typeof global !== "undefined" ? global :
@@ -152,20 +158,20 @@ var platform$1 = 'browser';
 var browser = true;
 var env = {};
 var argv = [];
-var version$4 = ''; // empty string to avoid regexp issues
+var version$5 = ''; // empty string to avoid regexp issues
 var versions = {};
 var release = {};
 var config = {};
 
-function noop() {}
+function noop$1() {}
 
-var on = noop;
-var addListener = noop;
-var once = noop;
-var off = noop;
-var removeListener = noop;
-var removeAllListeners = noop;
-var emit = noop;
+var on = noop$1;
+var addListener = noop$1;
+var once = noop$1;
+var off = noop$1;
+var removeListener = noop$1;
+var removeAllListeners = noop$1;
+var emit = noop$1;
 
 function binding(name) {
     throw new Error('process.binding is not supported');
@@ -216,7 +222,7 @@ var browser$1 = {
   browser: browser,
   env: env,
   argv: argv,
-  version: version$4,
+  version: version$5,
   versions: versions,
   on: on,
   addListener: addListener,
@@ -431,10 +437,10 @@ function write (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 }
 
-var toString$1 = {}.toString;
+var toString$2 = {}.toString;
 
 var isArray$1 = Array.isArray || function (arr) {
-  return toString$1.call(arr) == '[object Array]';
+  return toString$2.call(arr) == '[object Array]';
 };
 
 /*!
@@ -544,7 +550,7 @@ function from (that, value, encodingOrOffset, length) {
   }
 
   if (typeof value === 'string') {
-    return fromString(that, value, encodingOrOffset)
+    return fromString$1(that, value, encodingOrOffset)
   }
 
   return fromObject(that, value)
@@ -623,7 +629,7 @@ Buffer$1.allocUnsafeSlow = function (size) {
   return allocUnsafe(null, size)
 };
 
-function fromString (that, string, encoding) {
+function fromString$1 (that, string, encoding) {
   if (typeof encoding !== 'string' || encoding === '') {
     encoding = 'utf8';
   }
@@ -2211,7 +2217,7 @@ function createCommonjsModule(fn) {
 	return fn(module, module.exports), module.exports;
 }
 
-var constants = {
+var constants$1 = {
   BINARY_TYPES: ['nodebuffer', 'arraybuffer', 'fragments'],
   EMPTY_BUFFER: Buffer$1.alloc(0),
   GUID: '258EAFA5-E914-47DA-95CA-C5AB0DC85B11',
@@ -2224,7 +2230,7 @@ var constants = {
 
 var bufferUtil = createCommonjsModule(function (module) {
 
-const { EMPTY_BUFFER } = constants;
+const { EMPTY_BUFFER } = constants$1;
 
 /**
  * Merges an array of buffers into a new buffer.
@@ -2404,7 +2410,7 @@ class Limiter {
 
 var limiter = Limiter;
 
-const { kStatusCode: kStatusCode$2 } = constants;
+const { kStatusCode: kStatusCode$2 } = constants$1;
 
 const TRAILER = Buffer$1.from([0x00, 0x00, 0xff, 0xff]);
 const kPerMessageDeflate = Symbol('permessage-deflate');
@@ -3036,7 +3042,7 @@ try {
 }
 });
 
-const { Writable } = require$$0;
+const { Writable } = stream_1;
 
 
 const {
@@ -3044,7 +3050,7 @@ const {
   EMPTY_BUFFER: EMPTY_BUFFER$2,
   kStatusCode: kStatusCode$1,
   kWebSocket: kWebSocket$2
-} = constants;
+} = constants$1;
 const { concat, toArrayBuffer, unmask } = bufferUtil;
 const { isValidStatusCode: isValidStatusCode$1, isValidUTF8 } = validation;
 
@@ -3653,10 +3659,10 @@ function error$1(ErrorCtor, message, prefix, statusCode, errorCode) {
   return err;
 }
 
-const { randomFillSync } = require$$0$1;
+const { randomFillSync } = require$$0$3;
 
 
-const { EMPTY_BUFFER: EMPTY_BUFFER$1 } = constants;
+const { EMPTY_BUFFER: EMPTY_BUFFER$1 } = constants$1;
 const { isValidStatusCode } = validation;
 const { mask: applyMask, toBuffer: toBuffer$1 } = bufferUtil;
 
@@ -4126,7 +4132,7 @@ class Sender {
 
 var sender = Sender;
 
-const { kForOnEventAttribute: kForOnEventAttribute$1, kListener: kListener$1 } = constants;
+const { kForOnEventAttribute: kForOnEventAttribute$1, kListener: kListener$1 } = constants$1;
 
 const kCode = Symbol('kCode');
 const kData = Symbol('kData');
@@ -4415,7 +4421,7 @@ function push(dest, name, elem) {
  * @return {Object} The parsed object
  * @public
  */
-function parse$3(header) {
+function parse$5(header) {
   const offers = Object.create(null);
   let params = Object.create(null);
   let mustUnescape = false;
@@ -4591,10 +4597,10 @@ function format$1(extensions) {
     .join(', ');
 }
 
-var extension = { format: format$1, parse: parse$3 };
+var extension = { format: format$1, parse: parse$5 };
 
-const { randomBytes, createHash: createHash$1 } = require$$0$1;
-const { URL: URL$1 } = require$$2;
+const { randomBytes, createHash: createHash$1 } = require$$0$3;
+const { URL: URL$1 } = require$$2$1;
 
 
 
@@ -4608,11 +4614,11 @@ const {
   kStatusCode,
   kWebSocket: kWebSocket$1,
   NOOP
-} = constants;
+} = constants$1;
 const {
   EventTarget: { addEventListener, removeEventListener }
 } = eventTarget;
-const { format, parse: parse$2 } = extension;
+const { format, parse: parse$4 } = extension;
 const { toBuffer } = bufferUtil;
 
 const readyStates = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
@@ -4625,7 +4631,7 @@ const closeTimeout = 30 * 1000;
  *
  * @extends EventEmitter
  */
-class WebSocket$1 extends EventEmitter {
+class WebSocket$1 extends events_1 {
   /**
    * Create a new `WebSocket`.
    *
@@ -5496,7 +5502,7 @@ function initAsClient(websocket, address, protocols, options) {
       let extensions;
 
       try {
-        extensions = parse$2(secWebSocketExtensions);
+        extensions = parse$4(secWebSocketExtensions);
       } catch (err) {
         const message = 'Invalid Sec-WebSocket-Extensions header';
         abortHandshake$1(websocket, socket, message);
@@ -5556,7 +5562,7 @@ function emitErrorAndClose(websocket, err) {
  */
 function netConnect(options) {
   options.path = options.socketPath;
-  return net.connect(options);
+  return net_1.connect(options);
 }
 
 /**
@@ -5570,10 +5576,10 @@ function tlsConnect(options) {
   options.path = undefined;
 
   if (!options.servername && options.servername !== '') {
-    options.servername = net.isIP(options.host) ? '' : options.host;
+    options.servername = net_1.isIP(options.host) ? '' : options.host;
   }
 
-  return tls.connect(options);
+  return tls_1.connect(options);
 }
 
 /**
@@ -5857,7 +5863,7 @@ const { tokenChars } = validation;
  * @return {Set} The subprotocol names
  * @public
  */
-function parse$1(header) {
+function parse$3(header) {
   const protocols = new Set();
   let start = -1;
   let end = -1;
@@ -5907,15 +5913,15 @@ function parse$1(header) {
   return protocols;
 }
 
-var subprotocol = { parse: parse$1 };
+var subprotocol = { parse: parse$3 };
 
-const { createHash } = require$$0$1;
-
-
+const { createHash } = require$$0$3;
 
 
 
-const { GUID, kWebSocket } = constants;
+
+
+const { GUID, kWebSocket } = constants$1;
 
 const keyRegex = /^[+/0-9A-Za-z]{22}==$/;
 
@@ -5928,7 +5934,7 @@ const CLOSED = 2;
  *
  * @extends EventEmitter
  */
-class WebSocketServer$1 extends EventEmitter {
+class WebSocketServer$1 extends events_1 {
   /**
    * Create a `WebSocketServer` instance.
    *
@@ -6389,14 +6395,14 @@ function abortHandshake(socket, code, message, headers) {
   socket.destroy();
 }
 
-var name = "dde4";
-var version$3 = "4.0.0";
+var name$1 = "dde4";
+var version$4 = "4.0.0";
 var release_date = "Aug 26, 2021";
-var description = "test rollup";
-var author = "Fry";
-var license = "GPL-3.0";
-var type = "module";
-var scripts = {
+var description$1 = "test rollup";
+var author$1 = "Fry";
+var license$1 = "GPL-3.0";
+var type$1 = "module";
+var scripts$1 = {
 	test: "echo \"Error: no test specified\" && exit 1",
 	watch: "npm run build -- --watch",
 	buildje: "rollup --config rollupje.config.js",
@@ -6405,7 +6411,7 @@ var scripts = {
 	dde_server: "node httpd.mjs",
 	copy_then_transform_rotating_calipers: "copyfiles --flat node_modules/rotating-calipers/rotating-calipers.js src/third_party && node replace-in-file.js"
 };
-var devDependencies = {
+var devDependencies$1 = {
 	"@rollup/plugin-commonjs": "^17.0.0",
 	"@rollup/plugin-node-resolve": "^11.0.1",
 	"@rollup/plugin-replace": "^2.3.4",
@@ -6416,7 +6422,8 @@ var devDependencies = {
 	"rollup-plugin-polyfill-node": "^0.8.0",
 	"rollup-plugin-styles": "^3.14.1"
 };
-var dependencies = {
+var dependencies$1 = {
+	"@grpc/grpc-js": "^1.6.7",
 	"@rollup/plugin-json": "^4.1.0",
 	acorn: "^8.4.1",
 	"adm-zip": "^0.5.5",
@@ -6466,16 +6473,16 @@ var dependencies = {
 	ws: "^8.5.0"
 };
 var package_json = {
-	name: name,
-	version: version$3,
+	name: name$1,
+	version: version$4,
 	release_date: release_date,
-	description: description,
-	author: author,
-	license: license,
-	type: type,
-	scripts: scripts,
-	devDependencies: devDependencies,
-	dependencies: dependencies
+	description: description$1,
+	author: author$1,
+	license: license$1,
+	type: type$1,
+	scripts: scripts$1,
+	devDependencies: devDependencies$1,
+	dependencies: dependencies$1
 };
 
 // Reserved word lists for various dialects of the language
@@ -6611,14 +6618,14 @@ var beforeExpr = {beforeExpr: true}, startsExpr = {startsExpr: true};
 
 // Map keyword names to token types.
 
-var keywords = {};
+var keywords$2 = {};
 
 // Succinct definitions of keyword token types
 function kw(name, options) {
   if ( options === void 0 ) options = {};
 
   options.keyword = name;
-  return keywords[name] = new TokenType(name, options)
+  return keywords$2[name] = new TokenType(name, options)
 }
 
 var types$1 = {
@@ -6747,14 +6754,14 @@ var skipWhiteSpace = /(?:\s|\/\/.*|\/\*[^]*?\*\/)*/g;
 
 var ref = Object.prototype;
 var hasOwnProperty = ref.hasOwnProperty;
-var toString = ref.toString;
+var toString$1 = ref.toString;
 
 var hasOwn = Object.hasOwn || (function (obj, propName) { return (
   hasOwnProperty.call(obj, propName)
 ); });
 
 var isArray = Array.isArray || (function (obj) { return (
-  toString.call(obj) === "[object Array]"
+  toString$1.call(obj) === "[object Array]"
 ); });
 
 function wordsRegexp(words) {
@@ -8685,7 +8692,7 @@ var TokContext = function TokContext(token, isExpr, preserveSpace, override, gen
   this.generator = !!generator;
 };
 
-var types = {
+var types$2 = {
   b_stat: new TokContext("{", false),
   b_expr: new TokContext("{", true),
   b_tmpl: new TokContext("${", false),
@@ -8701,7 +8708,7 @@ var types = {
 var pp$6 = Parser.prototype;
 
 pp$6.initialContext = function() {
-  return [types.b_stat]
+  return [types$2.b_stat]
 };
 
 pp$6.curContext = function() {
@@ -8710,9 +8717,9 @@ pp$6.curContext = function() {
 
 pp$6.braceIsBlock = function(prevType) {
   var parent = this.curContext();
-  if (parent === types.f_expr || parent === types.f_stat)
+  if (parent === types$2.f_expr || parent === types$2.f_stat)
     { return true }
-  if (prevType === types$1.colon && (parent === types.b_stat || parent === types.b_expr))
+  if (prevType === types$1.colon && (parent === types$2.b_stat || parent === types$2.b_expr))
     { return !parent.isExpr }
 
   // The check for `tt.name && exprAllowed` detects whether we are
@@ -8723,7 +8730,7 @@ pp$6.braceIsBlock = function(prevType) {
   if (prevType === types$1._else || prevType === types$1.semi || prevType === types$1.eof || prevType === types$1.parenR || prevType === types$1.arrow)
     { return true }
   if (prevType === types$1.braceL)
-    { return parent === types.b_stat }
+    { return parent === types$2.b_stat }
   if (prevType === types$1._var || prevType === types$1._const || prevType === types$1.name)
     { return false }
   return !this.exprAllowed
@@ -8763,25 +8770,25 @@ types$1.parenR.updateContext = types$1.braceR.updateContext = function() {
     return
   }
   var out = this.context.pop();
-  if (out === types.b_stat && this.curContext().token === "function") {
+  if (out === types$2.b_stat && this.curContext().token === "function") {
     out = this.context.pop();
   }
   this.exprAllowed = !out.isExpr;
 };
 
 types$1.braceL.updateContext = function(prevType) {
-  this.context.push(this.braceIsBlock(prevType) ? types.b_stat : types.b_expr);
+  this.context.push(this.braceIsBlock(prevType) ? types$2.b_stat : types$2.b_expr);
   this.exprAllowed = true;
 };
 
 types$1.dollarBraceL.updateContext = function() {
-  this.context.push(types.b_tmpl);
+  this.context.push(types$2.b_tmpl);
   this.exprAllowed = true;
 };
 
 types$1.parenL.updateContext = function(prevType) {
   var statementParens = prevType === types$1._if || prevType === types$1._for || prevType === types$1._with || prevType === types$1._while;
-  this.context.push(statementParens ? types.p_stat : types.p_expr);
+  this.context.push(statementParens ? types$2.p_stat : types$2.p_expr);
   this.exprAllowed = true;
 };
 
@@ -8791,30 +8798,30 @@ types$1.incDec.updateContext = function() {
 
 types$1._function.updateContext = types$1._class.updateContext = function(prevType) {
   if (prevType.beforeExpr && prevType !== types$1._else &&
-      !(prevType === types$1.semi && this.curContext() !== types.p_stat) &&
+      !(prevType === types$1.semi && this.curContext() !== types$2.p_stat) &&
       !(prevType === types$1._return && lineBreak.test(this.input.slice(this.lastTokEnd, this.start))) &&
-      !((prevType === types$1.colon || prevType === types$1.braceL) && this.curContext() === types.b_stat))
-    { this.context.push(types.f_expr); }
+      !((prevType === types$1.colon || prevType === types$1.braceL) && this.curContext() === types$2.b_stat))
+    { this.context.push(types$2.f_expr); }
   else
-    { this.context.push(types.f_stat); }
+    { this.context.push(types$2.f_stat); }
   this.exprAllowed = false;
 };
 
 types$1.backQuote.updateContext = function() {
-  if (this.curContext() === types.q_tmpl)
+  if (this.curContext() === types$2.q_tmpl)
     { this.context.pop(); }
   else
-    { this.context.push(types.q_tmpl); }
+    { this.context.push(types$2.q_tmpl); }
   this.exprAllowed = false;
 };
 
 types$1.star.updateContext = function(prevType) {
   if (prevType === types$1._function) {
     var index = this.context.length - 1;
-    if (this.context[index] === types.f_expr)
-      { this.context[index] = types.f_expr_gen; }
+    if (this.context[index] === types$2.f_expr)
+      { this.context[index] = types$2.f_expr_gen; }
     else
-      { this.context[index] = types.f_gen; }
+      { this.context[index] = types$2.f_gen; }
   }
   this.exprAllowed = true;
 };
@@ -9232,7 +9239,7 @@ pp$5.parseExprAtom = function(refDestructuringErrors, forInit) {
     var startPos = this.start, startLoc = this.startLoc, containsEsc = this.containsEsc;
     var id = this.parseIdent(false);
     if (this.options.ecmaVersion >= 8 && !containsEsc && id.name === "async" && !this.canInsertSemicolon() && this.eat(types$1._function)) {
-      this.overrideContext(types.f_expr);
+      this.overrideContext(types$2.f_expr);
       return this.parseFunction(this.startNodeAt(startPos, startLoc), 0, false, true, forInit)
     }
     if (canBeArrow && !this.canInsertSemicolon()) {
@@ -9281,7 +9288,7 @@ pp$5.parseExprAtom = function(refDestructuringErrors, forInit) {
     return this.finishNode(node, "ArrayExpression")
 
   case types$1.braceL:
-    this.overrideContext(types.b_expr);
+    this.overrideContext(types$2.b_expr);
     return this.parseObj(false, refDestructuringErrors)
 
   case types$1._function:
@@ -12008,18 +12015,18 @@ pp.readWord = function() {
   var word = this.readWord1();
   var type = types$1.name;
   if (this.keywords.test(word)) {
-    type = keywords[word];
+    type = keywords$2[word];
   }
   return this.finishToken(type, word)
 };
 
 // Acorn is a tiny, fast JavaScript parser written in JavaScript.
 
-var version$2 = "8.7.0";
+var version$3 = "8.7.0";
 
 Parser.acorn = {
   Parser: Parser,
-  version: version$2,
+  version: version$3,
   defaultOptions: defaultOptions,
   Position: Position,
   SourceLocation: SourceLocation,
@@ -12027,9 +12034,9 @@ Parser.acorn = {
   Node: Node$1,
   TokenType: TokenType,
   tokTypes: types$1,
-  keywordTypes: keywords,
+  keywordTypes: keywords$2,
   TokContext: TokContext,
-  tokContexts: types,
+  tokContexts: types$2,
   isIdentifierChar: isIdentifierChar,
   isIdentifierStart: isIdentifierStart,
   Token: Token$1,
@@ -19113,7 +19120,7 @@ var espree = () => Parser => {
     };
 };
 
-const version$1 = "9.3.1";
+const version$2 = "9.3.1";
 
 /**
  * @typedef {import('./index.js').VisitorKeys} VisitorKeys
@@ -19526,7 +19533,7 @@ const parsers = {
  * @throws {SyntaxError} If the input code is invalid.
  * @private
  */
-function tokenize(code, options) {
+function tokenize$1(code, options) {
     const Parser = parsers.get(options);
 
     // Ensure to collect tokens.
@@ -19548,7 +19555,7 @@ function tokenize(code, options) {
  * @returns {ASTNode} The "Program" AST node.
  * @throws {SyntaxError} If the input code is invalid.
  */
-function parse(code, options) {
+function parse$2(code, options) {
     const Parser = parsers.get(options);
 
     return new Parser(options, code).parse();
@@ -19558,7 +19565,7 @@ function parse(code, options) {
 // Public
 //------------------------------------------------------------------------------
 
-const version = version$1;
+const version$1 = version$2;
 
 /* istanbul ignore next */
 const VisitorKeys = (function() {
@@ -19594,13 +19601,23774 @@ const supportedEcmaVersions = getSupportedEcmaVersions();
 
 var Espree$1 = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  tokenize: tokenize,
-  parse: parse,
-  version: version,
+  tokenize: tokenize$1,
+  parse: parse$2,
+  version: version$1,
   VisitorKeys: VisitorKeys,
   Syntax: Syntax,
   latestEcmaVersion: latestEcmaVersion,
   supportedEcmaVersions: supportedEcmaVersions
+});
+
+var constants = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DEFAULT_MAX_RECEIVE_MESSAGE_LENGTH = exports.DEFAULT_MAX_SEND_MESSAGE_LENGTH = exports.Propagate = exports.LogVerbosity = exports.Status = void 0;
+(function (Status) {
+    Status[Status["OK"] = 0] = "OK";
+    Status[Status["CANCELLED"] = 1] = "CANCELLED";
+    Status[Status["UNKNOWN"] = 2] = "UNKNOWN";
+    Status[Status["INVALID_ARGUMENT"] = 3] = "INVALID_ARGUMENT";
+    Status[Status["DEADLINE_EXCEEDED"] = 4] = "DEADLINE_EXCEEDED";
+    Status[Status["NOT_FOUND"] = 5] = "NOT_FOUND";
+    Status[Status["ALREADY_EXISTS"] = 6] = "ALREADY_EXISTS";
+    Status[Status["PERMISSION_DENIED"] = 7] = "PERMISSION_DENIED";
+    Status[Status["RESOURCE_EXHAUSTED"] = 8] = "RESOURCE_EXHAUSTED";
+    Status[Status["FAILED_PRECONDITION"] = 9] = "FAILED_PRECONDITION";
+    Status[Status["ABORTED"] = 10] = "ABORTED";
+    Status[Status["OUT_OF_RANGE"] = 11] = "OUT_OF_RANGE";
+    Status[Status["UNIMPLEMENTED"] = 12] = "UNIMPLEMENTED";
+    Status[Status["INTERNAL"] = 13] = "INTERNAL";
+    Status[Status["UNAVAILABLE"] = 14] = "UNAVAILABLE";
+    Status[Status["DATA_LOSS"] = 15] = "DATA_LOSS";
+    Status[Status["UNAUTHENTICATED"] = 16] = "UNAUTHENTICATED";
+})(exports.Status || (exports.Status = {}));
+(function (LogVerbosity) {
+    LogVerbosity[LogVerbosity["DEBUG"] = 0] = "DEBUG";
+    LogVerbosity[LogVerbosity["INFO"] = 1] = "INFO";
+    LogVerbosity[LogVerbosity["ERROR"] = 2] = "ERROR";
+    LogVerbosity[LogVerbosity["NONE"] = 3] = "NONE";
+})(exports.LogVerbosity || (exports.LogVerbosity = {}));
+(function (Propagate) {
+    Propagate[Propagate["DEADLINE"] = 1] = "DEADLINE";
+    Propagate[Propagate["CENSUS_STATS_CONTEXT"] = 2] = "CENSUS_STATS_CONTEXT";
+    Propagate[Propagate["CENSUS_TRACING_CONTEXT"] = 4] = "CENSUS_TRACING_CONTEXT";
+    Propagate[Propagate["CANCELLATION"] = 8] = "CANCELLATION";
+    // https://github.com/grpc/grpc/blob/master/include/grpc/impl/codegen/propagation_bits.h#L43
+    Propagate[Propagate["DEFAULTS"] = 65535] = "DEFAULTS";
+})(exports.Propagate || (exports.Propagate = {}));
+// -1 means unlimited
+exports.DEFAULT_MAX_SEND_MESSAGE_LENGTH = -1;
+// 4 MB default
+exports.DEFAULT_MAX_RECEIVE_MESSAGE_LENGTH = 4 * 1024 * 1024;
+
+});
+
+var logging = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+var _a, _b, _c, _d;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.isTracerEnabled = exports.trace = exports.log = exports.setLoggerVerbosity = exports.setLogger = exports.getLogger = void 0;
+
+const DEFAULT_LOGGER = {
+    error: (message, ...optionalParams) => {
+        console.error('E ' + message, ...optionalParams);
+    },
+    info: (message, ...optionalParams) => {
+        console.error('I ' + message, ...optionalParams);
+    },
+    debug: (message, ...optionalParams) => {
+        console.error('D ' + message, ...optionalParams);
+    },
+};
+let _logger = DEFAULT_LOGGER;
+let _logVerbosity = constants.LogVerbosity.ERROR;
+const verbosityString = (_b = (_a = browser$1.env.GRPC_NODE_VERBOSITY) !== null && _a !== void 0 ? _a : browser$1.env.GRPC_VERBOSITY) !== null && _b !== void 0 ? _b : '';
+switch (verbosityString.toUpperCase()) {
+    case 'DEBUG':
+        _logVerbosity = constants.LogVerbosity.DEBUG;
+        break;
+    case 'INFO':
+        _logVerbosity = constants.LogVerbosity.INFO;
+        break;
+    case 'ERROR':
+        _logVerbosity = constants.LogVerbosity.ERROR;
+        break;
+    case 'NONE':
+        _logVerbosity = constants.LogVerbosity.NONE;
+        break;
+    // Ignore any other values
+}
+exports.getLogger = () => {
+    return _logger;
+};
+exports.setLogger = (logger) => {
+    _logger = logger;
+};
+exports.setLoggerVerbosity = (verbosity) => {
+    _logVerbosity = verbosity;
+};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+exports.log = (severity, ...args) => {
+    let logFunction;
+    if (severity >= _logVerbosity) {
+        switch (severity) {
+            case constants.LogVerbosity.DEBUG:
+                logFunction = _logger.debug;
+                break;
+            case constants.LogVerbosity.INFO:
+                logFunction = _logger.info;
+                break;
+            case constants.LogVerbosity.ERROR:
+                logFunction = _logger.error;
+                break;
+        }
+        /* Fall back to _logger.error when other methods are not available for
+         * compatiblity with older behavior that always logged to _logger.error */
+        if (!logFunction) {
+            logFunction = _logger.error;
+        }
+        if (logFunction) {
+            logFunction.bind(_logger)(...args);
+        }
+    }
+};
+const tracersString = (_d = (_c = browser$1.env.GRPC_NODE_TRACE) !== null && _c !== void 0 ? _c : browser$1.env.GRPC_TRACE) !== null && _d !== void 0 ? _d : '';
+const enabledTracers = new Set();
+const disabledTracers = new Set();
+for (const tracerName of tracersString.split(',')) {
+    if (tracerName.startsWith('-')) {
+        disabledTracers.add(tracerName.substring(1));
+    }
+    else {
+        enabledTracers.add(tracerName);
+    }
+}
+const allEnabled = enabledTracers.has('all');
+function trace(severity, tracer, text) {
+    if (isTracerEnabled(tracer)) {
+        exports.log(severity, new Date().toISOString() + ' | ' + tracer + ' | ' + text);
+    }
+}
+exports.trace = trace;
+function isTracerEnabled(tracer) {
+    return !disabledTracers.has(tracer) &&
+        (allEnabled || enabledTracers.has(tracer));
+}
+exports.isTracerEnabled = isTracerEnabled;
+
+});
+
+var metadata = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Metadata = void 0;
+
+
+const LEGAL_KEY_REGEX = /^[0-9a-z_.-]+$/;
+const LEGAL_NON_BINARY_VALUE_REGEX = /^[ -~]*$/;
+function isLegalKey(key) {
+    return LEGAL_KEY_REGEX.test(key);
+}
+function isLegalNonBinaryValue(value) {
+    return LEGAL_NON_BINARY_VALUE_REGEX.test(value);
+}
+function isBinaryKey(key) {
+    return key.endsWith('-bin');
+}
+function isCustomMetadata(key) {
+    return !key.startsWith('grpc-');
+}
+function normalizeKey(key) {
+    return key.toLowerCase();
+}
+function validate(key, value) {
+    if (!isLegalKey(key)) {
+        throw new Error('Metadata key "' + key + '" contains illegal characters');
+    }
+    if (value !== null && value !== undefined) {
+        if (isBinaryKey(key)) {
+            if (!(value instanceof Buffer$1)) {
+                throw new Error("keys that end with '-bin' must have Buffer values");
+            }
+        }
+        else {
+            if (value instanceof Buffer$1) {
+                throw new Error("keys that don't end with '-bin' must have String values");
+            }
+            if (!isLegalNonBinaryValue(value)) {
+                throw new Error('Metadata string value "' + value + '" contains illegal characters');
+            }
+        }
+    }
+}
+/**
+ * A class for storing metadata. Keys are normalized to lowercase ASCII.
+ */
+class Metadata {
+    constructor(options) {
+        this.internalRepr = new Map();
+        if (options === undefined) {
+            this.options = {};
+        }
+        else {
+            this.options = options;
+        }
+    }
+    /**
+     * Sets the given value for the given key by replacing any other values
+     * associated with that key. Normalizes the key.
+     * @param key The key to whose value should be set.
+     * @param value The value to set. Must be a buffer if and only
+     *   if the normalized key ends with '-bin'.
+     */
+    set(key, value) {
+        key = normalizeKey(key);
+        validate(key, value);
+        this.internalRepr.set(key, [value]);
+    }
+    /**
+     * Adds the given value for the given key by appending to a list of previous
+     * values associated with that key. Normalizes the key.
+     * @param key The key for which a new value should be appended.
+     * @param value The value to add. Must be a buffer if and only
+     *   if the normalized key ends with '-bin'.
+     */
+    add(key, value) {
+        key = normalizeKey(key);
+        validate(key, value);
+        const existingValue = this.internalRepr.get(key);
+        if (existingValue === undefined) {
+            this.internalRepr.set(key, [value]);
+        }
+        else {
+            existingValue.push(value);
+        }
+    }
+    /**
+     * Removes the given key and any associated values. Normalizes the key.
+     * @param key The key whose values should be removed.
+     */
+    remove(key) {
+        key = normalizeKey(key);
+        validate(key);
+        this.internalRepr.delete(key);
+    }
+    /**
+     * Gets a list of all values associated with the key. Normalizes the key.
+     * @param key The key whose value should be retrieved.
+     * @return A list of values associated with the given key.
+     */
+    get(key) {
+        key = normalizeKey(key);
+        validate(key);
+        return this.internalRepr.get(key) || [];
+    }
+    /**
+     * Gets a plain object mapping each key to the first value associated with it.
+     * This reflects the most common way that people will want to see metadata.
+     * @return A key/value mapping of the metadata.
+     */
+    getMap() {
+        const result = {};
+        this.internalRepr.forEach((values, key) => {
+            if (values.length > 0) {
+                const v = values[0];
+                result[key] = v instanceof Buffer$1 ? v.slice() : v;
+            }
+        });
+        return result;
+    }
+    /**
+     * Clones the metadata object.
+     * @return The newly cloned object.
+     */
+    clone() {
+        const newMetadata = new Metadata(this.options);
+        const newInternalRepr = newMetadata.internalRepr;
+        this.internalRepr.forEach((value, key) => {
+            const clonedValue = value.map((v) => {
+                if (v instanceof Buffer$1) {
+                    return Buffer$1.from(v);
+                }
+                else {
+                    return v;
+                }
+            });
+            newInternalRepr.set(key, clonedValue);
+        });
+        return newMetadata;
+    }
+    /**
+     * Merges all key-value pairs from a given Metadata object into this one.
+     * If both this object and the given object have values in the same key,
+     * values from the other Metadata object will be appended to this object's
+     * values.
+     * @param other A Metadata object.
+     */
+    merge(other) {
+        other.internalRepr.forEach((values, key) => {
+            const mergedValue = (this.internalRepr.get(key) || []).concat(values);
+            this.internalRepr.set(key, mergedValue);
+        });
+    }
+    setOptions(options) {
+        this.options = options;
+    }
+    getOptions() {
+        return this.options;
+    }
+    /**
+     * Creates an OutgoingHttpHeaders object that can be used with the http2 API.
+     */
+    toHttp2Headers() {
+        // NOTE: Node <8.9 formats http2 headers incorrectly.
+        const result = {};
+        this.internalRepr.forEach((values, key) => {
+            // We assume that the user's interaction with this object is limited to
+            // through its public API (i.e. keys and values are already validated).
+            result[key] = values.map((value) => {
+                if (value instanceof Buffer$1) {
+                    return value.toString('base64');
+                }
+                else {
+                    return value;
+                }
+            });
+        });
+        return result;
+    }
+    // For compatibility with the other Metadata implementation
+    _getCoreRepresentation() {
+        return this.internalRepr;
+    }
+    /**
+     * This modifies the behavior of JSON.stringify to show an object
+     * representation of the metadata map.
+     */
+    toJSON() {
+        const result = {};
+        for (const [key, values] of this.internalRepr.entries()) {
+            result[key] = values;
+        }
+        return result;
+    }
+    /**
+     * Returns a new Metadata object based fields in a given IncomingHttpHeaders
+     * object.
+     * @param headers An IncomingHttpHeaders object.
+     */
+    static fromHttp2Headers(headers) {
+        const result = new Metadata();
+        Object.keys(headers).forEach((key) => {
+            // Reserved headers (beginning with `:`) are not valid keys.
+            if (key.charAt(0) === ':') {
+                return;
+            }
+            const values = headers[key];
+            try {
+                if (isBinaryKey(key)) {
+                    if (Array.isArray(values)) {
+                        values.forEach((value) => {
+                            result.add(key, Buffer$1.from(value, 'base64'));
+                        });
+                    }
+                    else if (values !== undefined) {
+                        if (isCustomMetadata(key)) {
+                            values.split(',').forEach((v) => {
+                                result.add(key, Buffer$1.from(v.trim(), 'base64'));
+                            });
+                        }
+                        else {
+                            result.add(key, Buffer$1.from(values, 'base64'));
+                        }
+                    }
+                }
+                else {
+                    if (Array.isArray(values)) {
+                        values.forEach((value) => {
+                            result.add(key, value);
+                        });
+                    }
+                    else if (values !== undefined) {
+                        result.add(key, values);
+                    }
+                }
+            }
+            catch (error) {
+                const message = `Failed to add metadata entry ${key}: ${values}. ${error.message}. For more information see https://github.com/grpc/grpc-node/issues/1173`;
+                logging.log(constants.LogVerbosity.ERROR, message);
+            }
+        });
+        return result;
+    }
+}
+exports.Metadata = Metadata;
+
+});
+
+var callCredentials = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CallCredentials = void 0;
+
+function isCurrentOauth2Client(client) {
+    return ('getRequestHeaders' in client &&
+        typeof client.getRequestHeaders === 'function');
+}
+/**
+ * A class that represents a generic method of adding authentication-related
+ * metadata on a per-request basis.
+ */
+class CallCredentials {
+    /**
+     * Creates a new CallCredentials object from a given function that generates
+     * Metadata objects.
+     * @param metadataGenerator A function that accepts a set of options, and
+     * generates a Metadata object based on these options, which is passed back
+     * to the caller via a supplied (err, metadata) callback.
+     */
+    static createFromMetadataGenerator(metadataGenerator) {
+        return new SingleCallCredentials(metadataGenerator);
+    }
+    /**
+     * Create a gRPC credential from a Google credential object.
+     * @param googleCredentials The authentication client to use.
+     * @return The resulting CallCredentials object.
+     */
+    static createFromGoogleCredential(googleCredentials) {
+        return CallCredentials.createFromMetadataGenerator((options, callback) => {
+            let getHeaders;
+            if (isCurrentOauth2Client(googleCredentials)) {
+                getHeaders = googleCredentials.getRequestHeaders(options.service_url);
+            }
+            else {
+                getHeaders = new Promise((resolve, reject) => {
+                    googleCredentials.getRequestMetadata(options.service_url, (err, headers) => {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
+                        resolve(headers);
+                    });
+                });
+            }
+            getHeaders.then((headers) => {
+                const metadata$1 = new metadata.Metadata();
+                for (const key of Object.keys(headers)) {
+                    metadata$1.add(key, headers[key]);
+                }
+                callback(null, metadata$1);
+            }, (err) => {
+                callback(err);
+            });
+        });
+    }
+    static createEmpty() {
+        return new EmptyCallCredentials();
+    }
+}
+exports.CallCredentials = CallCredentials;
+class ComposedCallCredentials extends CallCredentials {
+    constructor(creds) {
+        super();
+        this.creds = creds;
+    }
+    async generateMetadata(options) {
+        const base = new metadata.Metadata();
+        const generated = await Promise.all(this.creds.map((cred) => cred.generateMetadata(options)));
+        for (const gen of generated) {
+            base.merge(gen);
+        }
+        return base;
+    }
+    compose(other) {
+        return new ComposedCallCredentials(this.creds.concat([other]));
+    }
+    _equals(other) {
+        if (this === other) {
+            return true;
+        }
+        if (other instanceof ComposedCallCredentials) {
+            return this.creds.every((value, index) => value._equals(other.creds[index]));
+        }
+        else {
+            return false;
+        }
+    }
+}
+class SingleCallCredentials extends CallCredentials {
+    constructor(metadataGenerator) {
+        super();
+        this.metadataGenerator = metadataGenerator;
+    }
+    generateMetadata(options) {
+        return new Promise((resolve, reject) => {
+            this.metadataGenerator(options, (err, metadata) => {
+                if (metadata !== undefined) {
+                    resolve(metadata);
+                }
+                else {
+                    reject(err);
+                }
+            });
+        });
+    }
+    compose(other) {
+        return new ComposedCallCredentials([this, other]);
+    }
+    _equals(other) {
+        if (this === other) {
+            return true;
+        }
+        if (other instanceof SingleCallCredentials) {
+            return this.metadataGenerator === other.metadataGenerator;
+        }
+        else {
+            return false;
+        }
+    }
+}
+class EmptyCallCredentials extends CallCredentials {
+    generateMetadata(options) {
+        return Promise.resolve(new metadata.Metadata());
+    }
+    compose(other) {
+        return other;
+    }
+    _equals(other) {
+        return other instanceof EmptyCallCredentials;
+    }
+}
+
+});
+
+var streamDecoder = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.StreamDecoder = void 0;
+var ReadState;
+(function (ReadState) {
+    ReadState[ReadState["NO_DATA"] = 0] = "NO_DATA";
+    ReadState[ReadState["READING_SIZE"] = 1] = "READING_SIZE";
+    ReadState[ReadState["READING_MESSAGE"] = 2] = "READING_MESSAGE";
+})(ReadState || (ReadState = {}));
+class StreamDecoder {
+    constructor() {
+        this.readState = ReadState.NO_DATA;
+        this.readCompressFlag = Buffer$1.alloc(1);
+        this.readPartialSize = Buffer$1.alloc(4);
+        this.readSizeRemaining = 4;
+        this.readMessageSize = 0;
+        this.readPartialMessage = [];
+        this.readMessageRemaining = 0;
+    }
+    write(data) {
+        let readHead = 0;
+        let toRead;
+        const result = [];
+        while (readHead < data.length) {
+            switch (this.readState) {
+                case ReadState.NO_DATA:
+                    this.readCompressFlag = data.slice(readHead, readHead + 1);
+                    readHead += 1;
+                    this.readState = ReadState.READING_SIZE;
+                    this.readPartialSize.fill(0);
+                    this.readSizeRemaining = 4;
+                    this.readMessageSize = 0;
+                    this.readMessageRemaining = 0;
+                    this.readPartialMessage = [];
+                    break;
+                case ReadState.READING_SIZE:
+                    toRead = Math.min(data.length - readHead, this.readSizeRemaining);
+                    data.copy(this.readPartialSize, 4 - this.readSizeRemaining, readHead, readHead + toRead);
+                    this.readSizeRemaining -= toRead;
+                    readHead += toRead;
+                    // readSizeRemaining >=0 here
+                    if (this.readSizeRemaining === 0) {
+                        this.readMessageSize = this.readPartialSize.readUInt32BE(0);
+                        this.readMessageRemaining = this.readMessageSize;
+                        if (this.readMessageRemaining > 0) {
+                            this.readState = ReadState.READING_MESSAGE;
+                        }
+                        else {
+                            const message = Buffer$1.concat([this.readCompressFlag, this.readPartialSize], 5);
+                            this.readState = ReadState.NO_DATA;
+                            result.push(message);
+                        }
+                    }
+                    break;
+                case ReadState.READING_MESSAGE:
+                    toRead = Math.min(data.length - readHead, this.readMessageRemaining);
+                    this.readPartialMessage.push(data.slice(readHead, readHead + toRead));
+                    this.readMessageRemaining -= toRead;
+                    readHead += toRead;
+                    // readMessageRemaining >=0 here
+                    if (this.readMessageRemaining === 0) {
+                        // At this point, we have read a full message
+                        const framedMessageBuffers = [
+                            this.readCompressFlag,
+                            this.readPartialSize,
+                        ].concat(this.readPartialMessage);
+                        const framedMessage = Buffer$1.concat(framedMessageBuffers, this.readMessageSize + 5);
+                        this.readState = ReadState.NO_DATA;
+                        result.push(framedMessage);
+                    }
+                    break;
+                default:
+                    throw new Error('Unexpected read state');
+            }
+        }
+        return result;
+    }
+}
+exports.StreamDecoder = StreamDecoder;
+
+});
+
+var callStream = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Http2CallStream = exports.InterceptingListenerImpl = exports.isInterceptingListener = void 0;
+
+
+
+
+
+
+const constants_2 = constants;
+const TRACER_NAME = 'call_stream';
+const { HTTP2_HEADER_STATUS, HTTP2_HEADER_CONTENT_TYPE, NGHTTP2_CANCEL, } = http2.constants;
+/**
+ * Should do approximately the same thing as util.getSystemErrorName but the
+ * TypeScript types don't have that function for some reason so I just made my
+ * own.
+ * @param errno
+ */
+function getSystemErrorName(errno) {
+    for (const [name, num] of Object.entries(os.constants.errno)) {
+        if (num === errno) {
+            return name;
+        }
+    }
+    return 'Unknown system error ' + errno;
+}
+function getMinDeadline(deadlineList) {
+    let minValue = Infinity;
+    for (const deadline of deadlineList) {
+        const deadlineMsecs = deadline instanceof Date ? deadline.getTime() : deadline;
+        if (deadlineMsecs < minValue) {
+            minValue = deadlineMsecs;
+        }
+    }
+    return minValue;
+}
+function isInterceptingListener(listener) {
+    return (listener.onReceiveMetadata !== undefined &&
+        listener.onReceiveMetadata.length === 1);
+}
+exports.isInterceptingListener = isInterceptingListener;
+class InterceptingListenerImpl {
+    constructor(listener, nextListener) {
+        this.listener = listener;
+        this.nextListener = nextListener;
+        this.processingMetadata = false;
+        this.hasPendingMessage = false;
+        this.processingMessage = false;
+        this.pendingStatus = null;
+    }
+    processPendingMessage() {
+        if (this.hasPendingMessage) {
+            this.nextListener.onReceiveMessage(this.pendingMessage);
+            this.pendingMessage = null;
+            this.hasPendingMessage = false;
+        }
+    }
+    processPendingStatus() {
+        if (this.pendingStatus) {
+            this.nextListener.onReceiveStatus(this.pendingStatus);
+        }
+    }
+    onReceiveMetadata(metadata) {
+        this.processingMetadata = true;
+        this.listener.onReceiveMetadata(metadata, (metadata) => {
+            this.processingMetadata = false;
+            this.nextListener.onReceiveMetadata(metadata);
+            this.processPendingMessage();
+            this.processPendingStatus();
+        });
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onReceiveMessage(message) {
+        /* If this listener processes messages asynchronously, the last message may
+         * be reordered with respect to the status */
+        this.processingMessage = true;
+        this.listener.onReceiveMessage(message, (msg) => {
+            this.processingMessage = false;
+            if (this.processingMetadata) {
+                this.pendingMessage = msg;
+                this.hasPendingMessage = true;
+            }
+            else {
+                this.nextListener.onReceiveMessage(msg);
+                this.processPendingStatus();
+            }
+        });
+    }
+    onReceiveStatus(status) {
+        this.listener.onReceiveStatus(status, (processedStatus) => {
+            if (this.processingMetadata || this.processingMessage) {
+                this.pendingStatus = processedStatus;
+            }
+            else {
+                this.nextListener.onReceiveStatus(processedStatus);
+            }
+        });
+    }
+}
+exports.InterceptingListenerImpl = InterceptingListenerImpl;
+class Http2CallStream {
+    constructor(methodName, channel, options, filterStackFactory, channelCallCredentials, callNumber) {
+        this.methodName = methodName;
+        this.channel = channel;
+        this.options = options;
+        this.channelCallCredentials = channelCallCredentials;
+        this.callNumber = callNumber;
+        this.http2Stream = null;
+        this.pendingRead = false;
+        this.isWriteFilterPending = false;
+        this.pendingWrite = null;
+        this.pendingWriteCallback = null;
+        this.writesClosed = false;
+        this.decoder = new streamDecoder.StreamDecoder();
+        this.isReadFilterPending = false;
+        this.canPush = false;
+        /**
+         * Indicates that an 'end' event has come from the http2 stream, so there
+         * will be no more data events.
+         */
+        this.readsClosed = false;
+        this.statusOutput = false;
+        this.unpushedReadMessages = [];
+        this.unfilteredReadMessages = [];
+        // Status code mapped from :status. To be used if grpc-status is not received
+        this.mappedStatusCode = constants.Status.UNKNOWN;
+        // This is populated (non-null) if and only if the call has ended
+        this.finalStatus = null;
+        this.subchannel = null;
+        this.listener = null;
+        this.internalError = null;
+        this.configDeadline = Infinity;
+        this.statusWatchers = [];
+        this.streamEndWatchers = [];
+        this.callStatsTracker = null;
+        this.filterStack = filterStackFactory.createFilter(this);
+        this.credentials = channelCallCredentials;
+        this.disconnectListener = () => {
+            this.endCall({
+                code: constants.Status.UNAVAILABLE,
+                details: 'Connection dropped',
+                metadata: new metadata.Metadata(),
+            });
+        };
+        if (this.options.parentCall &&
+            this.options.flags & constants.Propagate.CANCELLATION) {
+            this.options.parentCall.on('cancelled', () => {
+                this.cancelWithStatus(constants.Status.CANCELLED, 'Cancelled by parent call');
+            });
+        }
+    }
+    outputStatus() {
+        /* Precondition: this.finalStatus !== null */
+        if (this.listener && !this.statusOutput) {
+            this.statusOutput = true;
+            const filteredStatus = this.filterStack.receiveTrailers(this.finalStatus);
+            this.trace('ended with status: code=' +
+                filteredStatus.code +
+                ' details="' +
+                filteredStatus.details +
+                '"');
+            this.statusWatchers.forEach(watcher => watcher(filteredStatus));
+            /* We delay the actual action of bubbling up the status to insulate the
+             * cleanup code in this class from any errors that may be thrown in the
+             * upper layers as a result of bubbling up the status. In particular,
+             * if the status is not OK, the "error" event may be emitted
+             * synchronously at the top level, which will result in a thrown error if
+             * the user does not handle that event. */
+            browser$1.nextTick(() => {
+                var _a;
+                (_a = this.listener) === null || _a === void 0 ? void 0 : _a.onReceiveStatus(filteredStatus);
+            });
+            if (this.subchannel) {
+                this.subchannel.callUnref();
+                this.subchannel.removeDisconnectListener(this.disconnectListener);
+            }
+        }
+    }
+    trace(text) {
+        logging.trace(constants_2.LogVerbosity.DEBUG, TRACER_NAME, '[' + this.callNumber + '] ' + text);
+    }
+    /**
+     * On first call, emits a 'status' event with the given StatusObject.
+     * Subsequent calls are no-ops.
+     * @param status The status of the call.
+     */
+    endCall(status) {
+        /* If the status is OK and a new status comes in (e.g. from a
+         * deserialization failure), that new status takes priority */
+        if (this.finalStatus === null || this.finalStatus.code === constants.Status.OK) {
+            this.finalStatus = status;
+            this.maybeOutputStatus();
+        }
+        this.destroyHttp2Stream();
+    }
+    maybeOutputStatus() {
+        if (this.finalStatus !== null) {
+            /* The combination check of readsClosed and that the two message buffer
+             * arrays are empty checks that there all incoming data has been fully
+             * processed */
+            if (this.finalStatus.code !== constants.Status.OK ||
+                (this.readsClosed &&
+                    this.unpushedReadMessages.length === 0 &&
+                    this.unfilteredReadMessages.length === 0 &&
+                    !this.isReadFilterPending)) {
+                this.outputStatus();
+            }
+        }
+    }
+    push(message) {
+        this.trace('pushing to reader message of length ' +
+            (message instanceof Buffer$1 ? message.length : null));
+        this.canPush = false;
+        browser$1.nextTick(() => {
+            var _a;
+            /* If we have already output the status any later messages should be
+             * ignored, and can cause out-of-order operation errors higher up in the
+             * stack. Checking as late as possible here to avoid any race conditions.
+             */
+            if (this.statusOutput) {
+                return;
+            }
+            (_a = this.listener) === null || _a === void 0 ? void 0 : _a.onReceiveMessage(message);
+            this.maybeOutputStatus();
+        });
+    }
+    handleFilterError(error) {
+        this.cancelWithStatus(constants.Status.INTERNAL, error.message);
+    }
+    handleFilteredRead(message) {
+        /* If we the call has already ended with an error, we don't want to do
+         * anything with this message. Dropping it on the floor is correct
+         * behavior */
+        if (this.finalStatus !== null && this.finalStatus.code !== constants.Status.OK) {
+            this.maybeOutputStatus();
+            return;
+        }
+        this.isReadFilterPending = false;
+        if (this.canPush) {
+            this.http2Stream.pause();
+            this.push(message);
+        }
+        else {
+            this.trace('unpushedReadMessages.push message of length ' + message.length);
+            this.unpushedReadMessages.push(message);
+        }
+        if (this.unfilteredReadMessages.length > 0) {
+            /* nextMessage is guaranteed not to be undefined because
+               unfilteredReadMessages is non-empty */
+            const nextMessage = this.unfilteredReadMessages.shift();
+            this.filterReceivedMessage(nextMessage);
+        }
+    }
+    filterReceivedMessage(framedMessage) {
+        /* If we the call has already ended with an error, we don't want to do
+         * anything with this message. Dropping it on the floor is correct
+         * behavior */
+        if (this.finalStatus !== null && this.finalStatus.code !== constants.Status.OK) {
+            this.maybeOutputStatus();
+            return;
+        }
+        this.trace('filterReceivedMessage of length ' + framedMessage.length);
+        this.isReadFilterPending = true;
+        this.filterStack
+            .receiveMessage(Promise.resolve(framedMessage))
+            .then(this.handleFilteredRead.bind(this), this.handleFilterError.bind(this));
+    }
+    tryPush(messageBytes) {
+        if (this.isReadFilterPending) {
+            this.trace('unfilteredReadMessages.push message of length ' +
+                (messageBytes && messageBytes.length));
+            this.unfilteredReadMessages.push(messageBytes);
+        }
+        else {
+            this.filterReceivedMessage(messageBytes);
+        }
+    }
+    handleTrailers(headers) {
+        this.streamEndWatchers.forEach(watcher => watcher(true));
+        let headersString = '';
+        for (const header of Object.keys(headers)) {
+            headersString += '\t\t' + header + ': ' + headers[header] + '\n';
+        }
+        this.trace('Received server trailers:\n' + headersString);
+        let metadata$1;
+        try {
+            metadata$1 = metadata.Metadata.fromHttp2Headers(headers);
+        }
+        catch (e) {
+            metadata$1 = new metadata.Metadata();
+        }
+        const metadataMap = metadata$1.getMap();
+        let code = this.mappedStatusCode;
+        if (code === constants.Status.UNKNOWN &&
+            typeof metadataMap['grpc-status'] === 'string') {
+            const receivedStatus = Number(metadataMap['grpc-status']);
+            if (receivedStatus in constants.Status) {
+                code = receivedStatus;
+                this.trace('received status code ' + receivedStatus + ' from server');
+            }
+            metadata$1.remove('grpc-status');
+        }
+        let details = '';
+        if (typeof metadataMap['grpc-message'] === 'string') {
+            details = decodeURI(metadataMap['grpc-message']);
+            metadata$1.remove('grpc-message');
+            this.trace('received status details string "' + details + '" from server');
+        }
+        const status = { code, details, metadata: metadata$1 };
+        // This is a no-op if the call was already ended when handling headers.
+        this.endCall(status);
+    }
+    writeMessageToStream(message, callback) {
+        var _a;
+        (_a = this.callStatsTracker) === null || _a === void 0 ? void 0 : _a.addMessageSent();
+        this.http2Stream.write(message, callback);
+    }
+    attachHttp2Stream(stream, subchannel, extraFilters, callStatsTracker) {
+        this.filterStack.push(extraFilters);
+        if (this.finalStatus !== null) {
+            stream.close(NGHTTP2_CANCEL);
+        }
+        else {
+            this.trace('attachHttp2Stream from subchannel ' + subchannel.getAddress());
+            this.http2Stream = stream;
+            this.subchannel = subchannel;
+            this.callStatsTracker = callStatsTracker;
+            subchannel.addDisconnectListener(this.disconnectListener);
+            subchannel.callRef();
+            stream.on('response', (headers, flags) => {
+                var _a;
+                let headersString = '';
+                for (const header of Object.keys(headers)) {
+                    headersString += '\t\t' + header + ': ' + headers[header] + '\n';
+                }
+                this.trace('Received server headers:\n' + headersString);
+                switch (headers[':status']) {
+                    // TODO(murgatroid99): handle 100 and 101
+                    case 400:
+                        this.mappedStatusCode = constants.Status.INTERNAL;
+                        break;
+                    case 401:
+                        this.mappedStatusCode = constants.Status.UNAUTHENTICATED;
+                        break;
+                    case 403:
+                        this.mappedStatusCode = constants.Status.PERMISSION_DENIED;
+                        break;
+                    case 404:
+                        this.mappedStatusCode = constants.Status.UNIMPLEMENTED;
+                        break;
+                    case 429:
+                    case 502:
+                    case 503:
+                    case 504:
+                        this.mappedStatusCode = constants.Status.UNAVAILABLE;
+                        break;
+                    default:
+                        this.mappedStatusCode = constants.Status.UNKNOWN;
+                }
+                if (flags & http2.constants.NGHTTP2_FLAG_END_STREAM) {
+                    this.handleTrailers(headers);
+                }
+                else {
+                    let metadata$1;
+                    try {
+                        metadata$1 = metadata.Metadata.fromHttp2Headers(headers);
+                    }
+                    catch (error) {
+                        this.endCall({
+                            code: constants.Status.UNKNOWN,
+                            details: error.message,
+                            metadata: new metadata.Metadata(),
+                        });
+                        return;
+                    }
+                    try {
+                        const finalMetadata = this.filterStack.receiveMetadata(metadata$1);
+                        (_a = this.listener) === null || _a === void 0 ? void 0 : _a.onReceiveMetadata(finalMetadata);
+                    }
+                    catch (error) {
+                        this.endCall({
+                            code: constants.Status.UNKNOWN,
+                            details: error.message,
+                            metadata: new metadata.Metadata(),
+                        });
+                    }
+                }
+            });
+            stream.on('trailers', this.handleTrailers.bind(this));
+            stream.on('data', (data) => {
+                this.trace('receive HTTP/2 data frame of length ' + data.length);
+                const messages = this.decoder.write(data);
+                for (const message of messages) {
+                    this.trace('parsed message of length ' + message.length);
+                    this.callStatsTracker.addMessageReceived();
+                    this.tryPush(message);
+                }
+            });
+            stream.on('end', () => {
+                this.readsClosed = true;
+                this.maybeOutputStatus();
+            });
+            stream.on('close', () => {
+                /* Use process.next tick to ensure that this code happens after any
+                 * "error" event that may be emitted at about the same time, so that
+                 * we can bubble up the error message from that event. */
+                browser$1.nextTick(() => {
+                    var _a;
+                    this.trace('HTTP/2 stream closed with code ' + stream.rstCode);
+                    /* If we have a final status with an OK status code, that means that
+                     * we have received all of the messages and we have processed the
+                     * trailers and the call completed successfully, so it doesn't matter
+                     * how the stream ends after that */
+                    if (((_a = this.finalStatus) === null || _a === void 0 ? void 0 : _a.code) === constants.Status.OK) {
+                        return;
+                    }
+                    let code;
+                    let details = '';
+                    switch (stream.rstCode) {
+                        case http2.constants.NGHTTP2_NO_ERROR:
+                            /* If we get a NO_ERROR code and we already have a status, the
+                             * stream completed properly and we just haven't fully processed
+                             * it yet */
+                            if (this.finalStatus !== null) {
+                                return;
+                            }
+                            code = constants.Status.INTERNAL;
+                            details = `Received RST_STREAM with code ${stream.rstCode}`;
+                            break;
+                        case http2.constants.NGHTTP2_REFUSED_STREAM:
+                            code = constants.Status.UNAVAILABLE;
+                            details = 'Stream refused by server';
+                            break;
+                        case http2.constants.NGHTTP2_CANCEL:
+                            code = constants.Status.CANCELLED;
+                            details = 'Call cancelled';
+                            break;
+                        case http2.constants.NGHTTP2_ENHANCE_YOUR_CALM:
+                            code = constants.Status.RESOURCE_EXHAUSTED;
+                            details = 'Bandwidth exhausted or memory limit exceeded';
+                            break;
+                        case http2.constants.NGHTTP2_INADEQUATE_SECURITY:
+                            code = constants.Status.PERMISSION_DENIED;
+                            details = 'Protocol not secure enough';
+                            break;
+                        case http2.constants.NGHTTP2_INTERNAL_ERROR:
+                            code = constants.Status.INTERNAL;
+                            if (this.internalError === null) {
+                                /* This error code was previously handled in the default case, and
+                                 * there are several instances of it online, so I wanted to
+                                 * preserve the original error message so that people find existing
+                                 * information in searches, but also include the more recognizable
+                                 * "Internal server error" message. */
+                                details = `Received RST_STREAM with code ${stream.rstCode} (Internal server error)`;
+                            }
+                            else {
+                                if (this.internalError.code === 'ECONNRESET' || this.internalError.code === 'ETIMEDOUT') {
+                                    code = constants.Status.UNAVAILABLE;
+                                    details = this.internalError.message;
+                                }
+                                else {
+                                    /* The "Received RST_STREAM with code ..." error is preserved
+                                     * here for continuity with errors reported online, but the
+                                     * error message at the end will probably be more relevant in
+                                     * most cases. */
+                                    details = `Received RST_STREAM with code ${stream.rstCode} triggered by internal client error: ${this.internalError.message}`;
+                                }
+                            }
+                            break;
+                        default:
+                            code = constants.Status.INTERNAL;
+                            details = `Received RST_STREAM with code ${stream.rstCode}`;
+                    }
+                    // This is a no-op if trailers were received at all.
+                    // This is OK, because status codes emitted here correspond to more
+                    // catastrophic issues that prevent us from receiving trailers in the
+                    // first place.
+                    this.endCall({ code, details, metadata: new metadata.Metadata() });
+                });
+            });
+            stream.on('error', (err) => {
+                /* We need an error handler here to stop "Uncaught Error" exceptions
+                 * from bubbling up. However, errors here should all correspond to
+                 * "close" events, where we will handle the error more granularly */
+                /* Specifically looking for stream errors that were *not* constructed
+                 * from a RST_STREAM response here:
+                 * https://github.com/nodejs/node/blob/8b8620d580314050175983402dfddf2674e8e22a/lib/internal/http2/core.js#L2267
+                 */
+                if (err.code !== 'ERR_HTTP2_STREAM_ERROR') {
+                    this.trace('Node error event: message=' +
+                        err.message +
+                        ' code=' +
+                        err.code +
+                        ' errno=' +
+                        getSystemErrorName(err.errno) +
+                        ' syscall=' +
+                        err.syscall);
+                    this.internalError = err;
+                }
+                this.streamEndWatchers.forEach(watcher => watcher(false));
+            });
+            if (!this.pendingRead) {
+                stream.pause();
+            }
+            if (this.pendingWrite) {
+                if (!this.pendingWriteCallback) {
+                    throw new Error('Invalid state in write handling code');
+                }
+                this.trace('sending data chunk of length ' +
+                    this.pendingWrite.length +
+                    ' (deferred)');
+                try {
+                    this.writeMessageToStream(this.pendingWrite, this.pendingWriteCallback);
+                }
+                catch (error) {
+                    this.endCall({
+                        code: constants.Status.UNAVAILABLE,
+                        details: `Write failed with error ${error.message}`,
+                        metadata: new metadata.Metadata()
+                    });
+                }
+            }
+            this.maybeCloseWrites();
+        }
+    }
+    start(metadata, listener) {
+        this.trace('Sending metadata');
+        this.listener = listener;
+        this.channel._startCallStream(this, metadata);
+        this.maybeOutputStatus();
+    }
+    destroyHttp2Stream() {
+        var _a;
+        // The http2 stream could already have been destroyed if cancelWithStatus
+        // is called in response to an internal http2 error.
+        if (this.http2Stream !== null && !this.http2Stream.destroyed) {
+            /* If the call has ended with an OK status, communicate that when closing
+             * the stream, partly to avoid a situation in which we detect an error
+             * RST_STREAM as a result after we have the status */
+            let code;
+            if (((_a = this.finalStatus) === null || _a === void 0 ? void 0 : _a.code) === constants.Status.OK) {
+                code = http2.constants.NGHTTP2_NO_ERROR;
+            }
+            else {
+                code = http2.constants.NGHTTP2_CANCEL;
+            }
+            this.trace('close http2 stream with code ' + code);
+            this.http2Stream.close(code);
+        }
+    }
+    cancelWithStatus(status, details) {
+        this.trace('cancelWithStatus code: ' + status + ' details: "' + details + '"');
+        this.endCall({ code: status, details, metadata: new metadata.Metadata() });
+    }
+    getDeadline() {
+        const deadlineList = [this.options.deadline];
+        if (this.options.parentCall && this.options.flags & constants.Propagate.DEADLINE) {
+            deadlineList.push(this.options.parentCall.getDeadline());
+        }
+        if (this.configDeadline) {
+            deadlineList.push(this.configDeadline);
+        }
+        return getMinDeadline(deadlineList);
+    }
+    getCredentials() {
+        return this.credentials;
+    }
+    setCredentials(credentials) {
+        this.credentials = this.channelCallCredentials.compose(credentials);
+    }
+    getStatus() {
+        return this.finalStatus;
+    }
+    getPeer() {
+        var _a, _b;
+        return (_b = (_a = this.subchannel) === null || _a === void 0 ? void 0 : _a.getAddress()) !== null && _b !== void 0 ? _b : this.channel.getTarget();
+    }
+    getMethod() {
+        return this.methodName;
+    }
+    getHost() {
+        return this.options.host;
+    }
+    setConfigDeadline(configDeadline) {
+        this.configDeadline = configDeadline;
+    }
+    addStatusWatcher(watcher) {
+        this.statusWatchers.push(watcher);
+    }
+    addStreamEndWatcher(watcher) {
+        this.streamEndWatchers.push(watcher);
+    }
+    addFilters(extraFilters) {
+        this.filterStack.push(extraFilters);
+    }
+    getCallNumber() {
+        return this.callNumber;
+    }
+    startRead() {
+        /* If the stream has ended with an error, we should not emit any more
+         * messages and we should communicate that the stream has ended */
+        if (this.finalStatus !== null && this.finalStatus.code !== constants.Status.OK) {
+            this.readsClosed = true;
+            this.maybeOutputStatus();
+            return;
+        }
+        this.canPush = true;
+        if (this.http2Stream === null) {
+            this.pendingRead = true;
+        }
+        else {
+            if (this.unpushedReadMessages.length > 0) {
+                const nextMessage = this.unpushedReadMessages.shift();
+                this.push(nextMessage);
+                return;
+            }
+            /* Only resume reading from the http2Stream if we don't have any pending
+             * messages to emit */
+            this.http2Stream.resume();
+        }
+    }
+    maybeCloseWrites() {
+        if (this.writesClosed &&
+            !this.isWriteFilterPending &&
+            this.http2Stream !== null) {
+            this.trace('calling end() on HTTP/2 stream');
+            this.http2Stream.end();
+        }
+    }
+    sendMessageWithContext(context, message) {
+        this.trace('write() called with message of length ' + message.length);
+        const writeObj = {
+            message,
+            flags: context.flags,
+        };
+        const cb = (error) => {
+            var _a, _b;
+            let code = constants.Status.UNAVAILABLE;
+            if (((_a = error) === null || _a === void 0 ? void 0 : _a.code) === 'ERR_STREAM_WRITE_AFTER_END') {
+                code = constants.Status.INTERNAL;
+            }
+            if (error) {
+                this.cancelWithStatus(code, `Write error: ${error.message}`);
+            }
+            (_b = context.callback) === null || _b === void 0 ? void 0 : _b.call(context);
+        };
+        this.isWriteFilterPending = true;
+        this.filterStack.sendMessage(Promise.resolve(writeObj)).then((message) => {
+            this.isWriteFilterPending = false;
+            if (this.http2Stream === null) {
+                this.trace('deferring writing data chunk of length ' + message.message.length);
+                this.pendingWrite = message.message;
+                this.pendingWriteCallback = cb;
+            }
+            else {
+                this.trace('sending data chunk of length ' + message.message.length);
+                try {
+                    this.writeMessageToStream(message.message, cb);
+                }
+                catch (error) {
+                    this.endCall({
+                        code: constants.Status.UNAVAILABLE,
+                        details: `Write failed with error ${error.message}`,
+                        metadata: new metadata.Metadata()
+                    });
+                }
+                this.maybeCloseWrites();
+            }
+        }, this.handleFilterError.bind(this));
+    }
+    halfClose() {
+        this.trace('end() called');
+        this.writesClosed = true;
+        this.maybeCloseWrites();
+    }
+}
+exports.Http2CallStream = Http2CallStream;
+
+});
+
+var tlsHelpers = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getDefaultRootsData = exports.CIPHER_SUITES = void 0;
+
+exports.CIPHER_SUITES = browser$1.env.GRPC_SSL_CIPHER_SUITES;
+const DEFAULT_ROOTS_FILE_PATH = browser$1.env.GRPC_DEFAULT_SSL_ROOTS_FILE_PATH;
+let defaultRootsData = null;
+function getDefaultRootsData() {
+    if (DEFAULT_ROOTS_FILE_PATH) {
+        if (defaultRootsData === null) {
+            defaultRootsData = fs$2.readFileSync(DEFAULT_ROOTS_FILE_PATH);
+        }
+        return defaultRootsData;
+    }
+    return null;
+}
+exports.getDefaultRootsData = getDefaultRootsData;
+
+});
+
+var channelCredentials = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ChannelCredentials = void 0;
+
+
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function verifyIsBufferOrNull(obj, friendlyName) {
+    if (obj && !(obj instanceof Buffer$1)) {
+        throw new TypeError(`${friendlyName}, if provided, must be a Buffer.`);
+    }
+}
+/**
+ * A class that contains credentials for communicating over a channel, as well
+ * as a set of per-call credentials, which are applied to every method call made
+ * over a channel initialized with an instance of this class.
+ */
+class ChannelCredentials {
+    constructor(callCredentials$1) {
+        this.callCredentials = callCredentials$1 || callCredentials.CallCredentials.createEmpty();
+    }
+    /**
+     * Gets the set of per-call credentials associated with this instance.
+     */
+    _getCallCredentials() {
+        return this.callCredentials;
+    }
+    /**
+     * Return a new ChannelCredentials instance with a given set of credentials.
+     * The resulting instance can be used to construct a Channel that communicates
+     * over TLS.
+     * @param rootCerts The root certificate data.
+     * @param privateKey The client certificate private key, if available.
+     * @param certChain The client certificate key chain, if available.
+     * @param verifyOptions Additional options to modify certificate verification
+     */
+    static createSsl(rootCerts, privateKey, certChain, verifyOptions) {
+        var _a;
+        verifyIsBufferOrNull(rootCerts, 'Root certificate');
+        verifyIsBufferOrNull(privateKey, 'Private key');
+        verifyIsBufferOrNull(certChain, 'Certificate chain');
+        if (privateKey && !certChain) {
+            throw new Error('Private key must be given with accompanying certificate chain');
+        }
+        if (!privateKey && certChain) {
+            throw new Error('Certificate chain must be given with accompanying private key');
+        }
+        const secureContext = tls_1.createSecureContext({
+            ca: (_a = rootCerts !== null && rootCerts !== void 0 ? rootCerts : tlsHelpers.getDefaultRootsData()) !== null && _a !== void 0 ? _a : undefined,
+            key: privateKey !== null && privateKey !== void 0 ? privateKey : undefined,
+            cert: certChain !== null && certChain !== void 0 ? certChain : undefined,
+            ciphers: tlsHelpers.CIPHER_SUITES,
+        });
+        return new SecureChannelCredentialsImpl(secureContext, verifyOptions !== null && verifyOptions !== void 0 ? verifyOptions : {});
+    }
+    /**
+     * Return a new ChannelCredentials instance with credentials created using
+     * the provided secureContext. The resulting instances can be used to
+     * construct a Channel that communicates over TLS. gRPC will not override
+     * anything in the provided secureContext, so the environment variables
+     * GRPC_SSL_CIPHER_SUITES and GRPC_DEFAULT_SSL_ROOTS_FILE_PATH will
+     * not be applied.
+     * @param secureContext The return value of tls.createSecureContext()
+     * @param verifyOptions Additional options to modify certificate verification
+     */
+    static createFromSecureContext(secureContext, verifyOptions) {
+        return new SecureChannelCredentialsImpl(secureContext, verifyOptions !== null && verifyOptions !== void 0 ? verifyOptions : {});
+    }
+    /**
+     * Return a new ChannelCredentials instance with no credentials.
+     */
+    static createInsecure() {
+        return new InsecureChannelCredentialsImpl();
+    }
+}
+exports.ChannelCredentials = ChannelCredentials;
+class InsecureChannelCredentialsImpl extends ChannelCredentials {
+    constructor(callCredentials) {
+        super(callCredentials);
+    }
+    compose(callCredentials) {
+        throw new Error('Cannot compose insecure credentials');
+    }
+    _getConnectionOptions() {
+        return null;
+    }
+    _isSecure() {
+        return false;
+    }
+    _equals(other) {
+        return other instanceof InsecureChannelCredentialsImpl;
+    }
+}
+class SecureChannelCredentialsImpl extends ChannelCredentials {
+    constructor(secureContext, verifyOptions) {
+        super();
+        this.secureContext = secureContext;
+        this.verifyOptions = verifyOptions;
+        this.connectionOptions = {
+            secureContext
+        };
+        // Node asserts that this option is a function, so we cannot pass undefined
+        if (verifyOptions === null || verifyOptions === void 0 ? void 0 : verifyOptions.checkServerIdentity) {
+            this.connectionOptions.checkServerIdentity = verifyOptions.checkServerIdentity;
+        }
+    }
+    compose(callCredentials) {
+        const combinedCallCredentials = this.callCredentials.compose(callCredentials);
+        return new ComposedChannelCredentialsImpl(this, combinedCallCredentials);
+    }
+    _getConnectionOptions() {
+        // Copy to prevent callers from mutating this.connectionOptions
+        return Object.assign({}, this.connectionOptions);
+    }
+    _isSecure() {
+        return true;
+    }
+    _equals(other) {
+        if (this === other) {
+            return true;
+        }
+        if (other instanceof SecureChannelCredentialsImpl) {
+            return (this.secureContext === other.secureContext &&
+                this.verifyOptions.checkServerIdentity === other.verifyOptions.checkServerIdentity);
+        }
+        else {
+            return false;
+        }
+    }
+}
+class ComposedChannelCredentialsImpl extends ChannelCredentials {
+    constructor(channelCredentials, callCreds) {
+        super(callCreds);
+        this.channelCredentials = channelCredentials;
+    }
+    compose(callCredentials) {
+        const combinedCallCredentials = this.callCredentials.compose(callCredentials);
+        return new ComposedChannelCredentialsImpl(this.channelCredentials, combinedCallCredentials);
+    }
+    _getConnectionOptions() {
+        return this.channelCredentials._getConnectionOptions();
+    }
+    _isSecure() {
+        return true;
+    }
+    _equals(other) {
+        if (this === other) {
+            return true;
+        }
+        if (other instanceof ComposedChannelCredentialsImpl) {
+            return (this.channelCredentials._equals(other.channelCredentials) &&
+                this.callCredentials._equals(other.callCredentials));
+        }
+        else {
+            return false;
+        }
+    }
+}
+
+});
+
+var loadBalancer = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.validateLoadBalancingConfig = exports.getFirstUsableConfig = exports.isLoadBalancerNameRegistered = exports.createLoadBalancer = exports.registerDefaultLoadBalancerType = exports.registerLoadBalancerType = exports.createChildChannelControlHelper = void 0;
+/**
+ * Create a child ChannelControlHelper that overrides some methods of the
+ * parent while letting others pass through to the parent unmodified. This
+ * allows other code to create these children without needing to know about
+ * all of the methods to be passed through.
+ * @param parent
+ * @param overrides
+ */
+function createChildChannelControlHelper(parent, overrides) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+    return {
+        createSubchannel: (_b = (_a = overrides.createSubchannel) === null || _a === void 0 ? void 0 : _a.bind(overrides)) !== null && _b !== void 0 ? _b : parent.createSubchannel.bind(parent),
+        updateState: (_d = (_c = overrides.updateState) === null || _c === void 0 ? void 0 : _c.bind(overrides)) !== null && _d !== void 0 ? _d : parent.updateState.bind(parent),
+        requestReresolution: (_f = (_e = overrides.requestReresolution) === null || _e === void 0 ? void 0 : _e.bind(overrides)) !== null && _f !== void 0 ? _f : parent.requestReresolution.bind(parent),
+        addChannelzChild: (_h = (_g = overrides.addChannelzChild) === null || _g === void 0 ? void 0 : _g.bind(overrides)) !== null && _h !== void 0 ? _h : parent.addChannelzChild.bind(parent),
+        removeChannelzChild: (_k = (_j = overrides.removeChannelzChild) === null || _j === void 0 ? void 0 : _j.bind(overrides)) !== null && _k !== void 0 ? _k : parent.removeChannelzChild.bind(parent)
+    };
+}
+exports.createChildChannelControlHelper = createChildChannelControlHelper;
+const registeredLoadBalancerTypes = {};
+let defaultLoadBalancerType = null;
+function registerLoadBalancerType(typeName, loadBalancerType, loadBalancingConfigType) {
+    registeredLoadBalancerTypes[typeName] = {
+        LoadBalancer: loadBalancerType,
+        LoadBalancingConfig: loadBalancingConfigType,
+    };
+}
+exports.registerLoadBalancerType = registerLoadBalancerType;
+function registerDefaultLoadBalancerType(typeName) {
+    defaultLoadBalancerType = typeName;
+}
+exports.registerDefaultLoadBalancerType = registerDefaultLoadBalancerType;
+function createLoadBalancer(config, channelControlHelper) {
+    const typeName = config.getLoadBalancerName();
+    if (typeName in registeredLoadBalancerTypes) {
+        return new registeredLoadBalancerTypes[typeName].LoadBalancer(channelControlHelper);
+    }
+    else {
+        return null;
+    }
+}
+exports.createLoadBalancer = createLoadBalancer;
+function isLoadBalancerNameRegistered(typeName) {
+    return typeName in registeredLoadBalancerTypes;
+}
+exports.isLoadBalancerNameRegistered = isLoadBalancerNameRegistered;
+function getFirstUsableConfig(configs, fallbackTodefault = false) {
+    for (const config of configs) {
+        if (config.getLoadBalancerName() in registeredLoadBalancerTypes) {
+            return config;
+        }
+    }
+    if (fallbackTodefault) {
+        if (defaultLoadBalancerType) {
+            return new registeredLoadBalancerTypes[defaultLoadBalancerType].LoadBalancingConfig();
+        }
+        else {
+            return null;
+        }
+    }
+    else {
+        return null;
+    }
+}
+exports.getFirstUsableConfig = getFirstUsableConfig;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function validateLoadBalancingConfig(obj) {
+    if (!(obj !== null && typeof obj === 'object')) {
+        throw new Error('Load balancing config must be an object');
+    }
+    const keys = Object.keys(obj);
+    if (keys.length !== 1) {
+        throw new Error('Provided load balancing config has multiple conflicting entries');
+    }
+    const typeName = keys[0];
+    if (typeName in registeredLoadBalancerTypes) {
+        return registeredLoadBalancerTypes[typeName].LoadBalancingConfig.createFromJson(obj[typeName]);
+    }
+    else {
+        throw new Error(`Unrecognized load balancing config name ${typeName}`);
+    }
+}
+exports.validateLoadBalancingConfig = validateLoadBalancingConfig;
+
+});
+
+var serviceConfig = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.extractAndSelectServiceConfig = exports.validateServiceConfig = void 0;
+/* This file implements gRFC A2 and the service config spec:
+ * https://github.com/grpc/proposal/blob/master/A2-service-configs-in-dns.md
+ * https://github.com/grpc/grpc/blob/master/doc/service_config.md. Each
+ * function here takes an object with unknown structure and returns its
+ * specific object type if the input has the right structure, and throws an
+ * error otherwise. */
+/* The any type is purposely used here. All functions validate their input at
+ * runtime */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+
+/**
+ * Recognizes a number with up to 9 digits after the decimal point, followed by
+ * an "s", representing a number of seconds.
+ */
+const TIMEOUT_REGEX = /^\d+(\.\d{1,9})?s$/;
+/**
+ * Client language name used for determining whether this client matches a
+ * `ServiceConfigCanaryConfig`'s `clientLanguage` list.
+ */
+const CLIENT_LANGUAGE_STRING = 'node';
+function validateName(obj) {
+    if (!('service' in obj) || typeof obj.service !== 'string') {
+        throw new Error('Invalid method config name: invalid service');
+    }
+    const result = {
+        service: obj.service,
+    };
+    if ('method' in obj) {
+        if (typeof obj.method === 'string') {
+            result.method = obj.method;
+        }
+        else {
+            throw new Error('Invalid method config name: invalid method');
+        }
+    }
+    return result;
+}
+function validateMethodConfig(obj) {
+    var _a;
+    const result = {
+        name: [],
+    };
+    if (!('name' in obj) || !Array.isArray(obj.name)) {
+        throw new Error('Invalid method config: invalid name array');
+    }
+    for (const name of obj.name) {
+        result.name.push(validateName(name));
+    }
+    if ('waitForReady' in obj) {
+        if (typeof obj.waitForReady !== 'boolean') {
+            throw new Error('Invalid method config: invalid waitForReady');
+        }
+        result.waitForReady = obj.waitForReady;
+    }
+    if ('timeout' in obj) {
+        if (typeof obj.timeout === 'object') {
+            if (!('seconds' in obj.timeout) ||
+                !(typeof obj.timeout.seconds === 'number')) {
+                throw new Error('Invalid method config: invalid timeout.seconds');
+            }
+            if (!('nanos' in obj.timeout) ||
+                !(typeof obj.timeout.nanos === 'number')) {
+                throw new Error('Invalid method config: invalid timeout.nanos');
+            }
+            result.timeout = obj.timeout;
+        }
+        else if (typeof obj.timeout === 'string' &&
+            TIMEOUT_REGEX.test(obj.timeout)) {
+            const timeoutParts = obj.timeout
+                .substring(0, obj.timeout.length - 1)
+                .split('.');
+            result.timeout = {
+                seconds: timeoutParts[0] | 0,
+                nanos: ((_a = timeoutParts[1]) !== null && _a !== void 0 ? _a : 0) | 0,
+            };
+        }
+        else {
+            throw new Error('Invalid method config: invalid timeout');
+        }
+    }
+    if ('maxRequestBytes' in obj) {
+        if (typeof obj.maxRequestBytes !== 'number') {
+            throw new Error('Invalid method config: invalid maxRequestBytes');
+        }
+        result.maxRequestBytes = obj.maxRequestBytes;
+    }
+    if ('maxResponseBytes' in obj) {
+        if (typeof obj.maxResponseBytes !== 'number') {
+            throw new Error('Invalid method config: invalid maxRequestBytes');
+        }
+        result.maxResponseBytes = obj.maxResponseBytes;
+    }
+    return result;
+}
+function validateServiceConfig(obj) {
+    const result = {
+        loadBalancingConfig: [],
+        methodConfig: [],
+    };
+    if ('loadBalancingPolicy' in obj) {
+        if (typeof obj.loadBalancingPolicy === 'string') {
+            result.loadBalancingPolicy = obj.loadBalancingPolicy;
+        }
+        else {
+            throw new Error('Invalid service config: invalid loadBalancingPolicy');
+        }
+    }
+    if ('loadBalancingConfig' in obj) {
+        if (Array.isArray(obj.loadBalancingConfig)) {
+            for (const config of obj.loadBalancingConfig) {
+                result.loadBalancingConfig.push(loadBalancer.validateLoadBalancingConfig(config));
+            }
+        }
+        else {
+            throw new Error('Invalid service config: invalid loadBalancingConfig');
+        }
+    }
+    if ('methodConfig' in obj) {
+        if (Array.isArray(obj.methodConfig)) {
+            for (const methodConfig of obj.methodConfig) {
+                result.methodConfig.push(validateMethodConfig(methodConfig));
+            }
+        }
+    }
+    // Validate method name uniqueness
+    const seenMethodNames = [];
+    for (const methodConfig of result.methodConfig) {
+        for (const name of methodConfig.name) {
+            for (const seenName of seenMethodNames) {
+                if (name.service === seenName.service &&
+                    name.method === seenName.method) {
+                    throw new Error(`Invalid service config: duplicate name ${name.service}/${name.method}`);
+                }
+            }
+            seenMethodNames.push(name);
+        }
+    }
+    return result;
+}
+exports.validateServiceConfig = validateServiceConfig;
+function validateCanaryConfig(obj) {
+    if (!('serviceConfig' in obj)) {
+        throw new Error('Invalid service config choice: missing service config');
+    }
+    const result = {
+        serviceConfig: validateServiceConfig(obj.serviceConfig),
+    };
+    if ('clientLanguage' in obj) {
+        if (Array.isArray(obj.clientLanguage)) {
+            result.clientLanguage = [];
+            for (const lang of obj.clientLanguage) {
+                if (typeof lang === 'string') {
+                    result.clientLanguage.push(lang);
+                }
+                else {
+                    throw new Error('Invalid service config choice: invalid clientLanguage');
+                }
+            }
+        }
+        else {
+            throw new Error('Invalid service config choice: invalid clientLanguage');
+        }
+    }
+    if ('clientHostname' in obj) {
+        if (Array.isArray(obj.clientHostname)) {
+            result.clientHostname = [];
+            for (const lang of obj.clientHostname) {
+                if (typeof lang === 'string') {
+                    result.clientHostname.push(lang);
+                }
+                else {
+                    throw new Error('Invalid service config choice: invalid clientHostname');
+                }
+            }
+        }
+        else {
+            throw new Error('Invalid service config choice: invalid clientHostname');
+        }
+    }
+    if ('percentage' in obj) {
+        if (typeof obj.percentage === 'number' &&
+            0 <= obj.percentage &&
+            obj.percentage <= 100) {
+            result.percentage = obj.percentage;
+        }
+        else {
+            throw new Error('Invalid service config choice: invalid percentage');
+        }
+    }
+    // Validate that no unexpected fields are present
+    const allowedFields = [
+        'clientLanguage',
+        'percentage',
+        'clientHostname',
+        'serviceConfig',
+    ];
+    for (const field in obj) {
+        if (!allowedFields.includes(field)) {
+            throw new Error(`Invalid service config choice: unexpected field ${field}`);
+        }
+    }
+    return result;
+}
+function validateAndSelectCanaryConfig(obj, percentage) {
+    if (!Array.isArray(obj)) {
+        throw new Error('Invalid service config list');
+    }
+    for (const config of obj) {
+        const validatedConfig = validateCanaryConfig(config);
+        /* For each field, we check if it is present, then only discard the
+         * config if the field value does not match the current client */
+        if (typeof validatedConfig.percentage === 'number' &&
+            percentage > validatedConfig.percentage) {
+            continue;
+        }
+        if (Array.isArray(validatedConfig.clientHostname)) {
+            let hostnameMatched = false;
+            for (const hostname of validatedConfig.clientHostname) {
+                if (hostname === os.hostname()) {
+                    hostnameMatched = true;
+                }
+            }
+            if (!hostnameMatched) {
+                continue;
+            }
+        }
+        if (Array.isArray(validatedConfig.clientLanguage)) {
+            let languageMatched = false;
+            for (const language of validatedConfig.clientLanguage) {
+                if (language === CLIENT_LANGUAGE_STRING) {
+                    languageMatched = true;
+                }
+            }
+            if (!languageMatched) {
+                continue;
+            }
+        }
+        return validatedConfig.serviceConfig;
+    }
+    throw new Error('No matching service config found');
+}
+/**
+ * Find the "grpc_config" record among the TXT records, parse its value as JSON, validate its contents,
+ * and select a service config with selection fields that all match this client. Most of these steps
+ * can fail with an error; the caller must handle any errors thrown this way.
+ * @param txtRecord The TXT record array that is output from a successful call to dns.resolveTxt
+ * @param percentage A number chosen from the range [0, 100) that is used to select which config to use
+ * @return The service configuration to use, given the percentage value, or null if the service config
+ *     data has a valid format but none of the options match the current client.
+ */
+function extractAndSelectServiceConfig(txtRecord, percentage) {
+    for (const record of txtRecord) {
+        if (record.length > 0 && record[0].startsWith('grpc_config=')) {
+            /* Treat the list of strings in this record as a single string and remove
+             * "grpc_config=" from the beginning. The rest should be a JSON string */
+            const recordString = record.join('').substring('grpc_config='.length);
+            const recordJson = JSON.parse(recordString);
+            return validateAndSelectCanaryConfig(recordJson, percentage);
+        }
+    }
+    return null;
+}
+exports.extractAndSelectServiceConfig = extractAndSelectServiceConfig;
+
+});
+
+var connectivityState = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2021 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ConnectivityState = void 0;
+(function (ConnectivityState) {
+    ConnectivityState[ConnectivityState["IDLE"] = 0] = "IDLE";
+    ConnectivityState[ConnectivityState["CONNECTING"] = 1] = "CONNECTING";
+    ConnectivityState[ConnectivityState["READY"] = 2] = "READY";
+    ConnectivityState[ConnectivityState["TRANSIENT_FAILURE"] = 3] = "TRANSIENT_FAILURE";
+    ConnectivityState[ConnectivityState["SHUTDOWN"] = 4] = "SHUTDOWN";
+})(exports.ConnectivityState || (exports.ConnectivityState = {}));
+
+});
+
+var uriParser = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2020 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.uriToString = exports.splitHostPort = exports.parseUri = void 0;
+/*
+ * The groups correspond to URI parts as follows:
+ * 1. scheme
+ * 2. authority
+ * 3. path
+ */
+const URI_REGEX = /^(?:([A-Za-z0-9+.-]+):)?(?:\/\/([^/]*)\/)?(.+)$/;
+function parseUri(uriString) {
+    const parsedUri = URI_REGEX.exec(uriString);
+    if (parsedUri === null) {
+        return null;
+    }
+    return {
+        scheme: parsedUri[1],
+        authority: parsedUri[2],
+        path: parsedUri[3],
+    };
+}
+exports.parseUri = parseUri;
+const NUMBER_REGEX = /^\d+$/;
+function splitHostPort(path) {
+    if (path.startsWith('[')) {
+        const hostEnd = path.indexOf(']');
+        if (hostEnd === -1) {
+            return null;
+        }
+        const host = path.substring(1, hostEnd);
+        /* Only an IPv6 address should be in bracketed notation, and an IPv6
+         * address should have at least one colon */
+        if (host.indexOf(':') === -1) {
+            return null;
+        }
+        if (path.length > hostEnd + 1) {
+            if (path[hostEnd + 1] === ':') {
+                const portString = path.substring(hostEnd + 2);
+                if (NUMBER_REGEX.test(portString)) {
+                    return {
+                        host: host,
+                        port: +portString,
+                    };
+                }
+                else {
+                    return null;
+                }
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            return {
+                host,
+            };
+        }
+    }
+    else {
+        const splitPath = path.split(':');
+        /* Exactly one colon means that this is host:port. Zero colons means that
+         * there is no port. And multiple colons means that this is a bare IPv6
+         * address with no port */
+        if (splitPath.length === 2) {
+            if (NUMBER_REGEX.test(splitPath[1])) {
+                return {
+                    host: splitPath[0],
+                    port: +splitPath[1],
+                };
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            return {
+                host: path,
+            };
+        }
+    }
+}
+exports.splitHostPort = splitHostPort;
+function uriToString(uri) {
+    let result = '';
+    if (uri.scheme !== undefined) {
+        result += uri.scheme + ':';
+    }
+    if (uri.authority !== undefined) {
+        result += '//' + uri.authority + '/';
+    }
+    result += uri.path;
+    return result;
+}
+exports.uriToString = uriToString;
+
+});
+
+var resolver = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.mapUriDefaultScheme = exports.getDefaultAuthority = exports.createResolver = exports.registerDefaultScheme = exports.registerResolver = void 0;
+
+const registeredResolvers = {};
+let defaultScheme = null;
+/**
+ * Register a resolver class to handle target names prefixed with the `prefix`
+ * string. This prefix should correspond to a URI scheme name listed in the
+ * [gRPC Name Resolution document](https://github.com/grpc/grpc/blob/master/doc/naming.md)
+ * @param prefix
+ * @param resolverClass
+ */
+function registerResolver(scheme, resolverClass) {
+    registeredResolvers[scheme] = resolverClass;
+}
+exports.registerResolver = registerResolver;
+/**
+ * Register a default resolver to handle target names that do not start with
+ * any registered prefix.
+ * @param resolverClass
+ */
+function registerDefaultScheme(scheme) {
+    defaultScheme = scheme;
+}
+exports.registerDefaultScheme = registerDefaultScheme;
+/**
+ * Create a name resolver for the specified target, if possible. Throws an
+ * error if no such name resolver can be created.
+ * @param target
+ * @param listener
+ */
+function createResolver(target, listener, options) {
+    if (target.scheme !== undefined && target.scheme in registeredResolvers) {
+        return new registeredResolvers[target.scheme](target, listener, options);
+    }
+    else {
+        throw new Error(`No resolver could be created for target ${uriParser.uriToString(target)}`);
+    }
+}
+exports.createResolver = createResolver;
+/**
+ * Get the default authority for the specified target, if possible. Throws an
+ * error if no registered name resolver can parse that target string.
+ * @param target
+ */
+function getDefaultAuthority(target) {
+    if (target.scheme !== undefined && target.scheme in registeredResolvers) {
+        return registeredResolvers[target.scheme].getDefaultAuthority(target);
+    }
+    else {
+        throw new Error(`Invalid target ${uriParser.uriToString(target)}`);
+    }
+}
+exports.getDefaultAuthority = getDefaultAuthority;
+function mapUriDefaultScheme(target) {
+    if (target.scheme === undefined || !(target.scheme in registeredResolvers)) {
+        if (defaultScheme !== null) {
+            return {
+                scheme: defaultScheme,
+                authority: undefined,
+                path: uriParser.uriToString(target),
+            };
+        }
+        else {
+            return null;
+        }
+    }
+    return target;
+}
+exports.mapUriDefaultScheme = mapUriDefaultScheme;
+
+});
+
+var picker = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.QueuePicker = exports.UnavailablePicker = exports.PickResultType = void 0;
+
+
+var PickResultType;
+(function (PickResultType) {
+    PickResultType[PickResultType["COMPLETE"] = 0] = "COMPLETE";
+    PickResultType[PickResultType["QUEUE"] = 1] = "QUEUE";
+    PickResultType[PickResultType["TRANSIENT_FAILURE"] = 2] = "TRANSIENT_FAILURE";
+    PickResultType[PickResultType["DROP"] = 3] = "DROP";
+})(PickResultType = exports.PickResultType || (exports.PickResultType = {}));
+/**
+ * A standard picker representing a load balancer in the TRANSIENT_FAILURE
+ * state. Always responds to every pick request with an UNAVAILABLE status.
+ */
+class UnavailablePicker {
+    constructor(status) {
+        if (status !== undefined) {
+            this.status = status;
+        }
+        else {
+            this.status = {
+                code: constants.Status.UNAVAILABLE,
+                details: 'No connection established',
+                metadata: new metadata.Metadata(),
+            };
+        }
+    }
+    pick(pickArgs) {
+        return {
+            pickResultType: PickResultType.TRANSIENT_FAILURE,
+            subchannel: null,
+            status: this.status,
+            extraFilterFactories: [],
+            onCallStarted: null,
+        };
+    }
+}
+exports.UnavailablePicker = UnavailablePicker;
+/**
+ * A standard picker representing a load balancer in the IDLE or CONNECTING
+ * state. Always responds to every pick request with a QUEUE pick result
+ * indicating that the pick should be tried again with the next `Picker`. Also
+ * reports back to the load balancer that a connection should be established
+ * once any pick is attempted.
+ */
+class QueuePicker {
+    // Constructed with a load balancer. Calls exitIdle on it the first time pick is called
+    constructor(loadBalancer) {
+        this.loadBalancer = loadBalancer;
+        this.calledExitIdle = false;
+    }
+    pick(pickArgs) {
+        if (!this.calledExitIdle) {
+            browser$1.nextTick(() => {
+                this.loadBalancer.exitIdle();
+            });
+            this.calledExitIdle = true;
+        }
+        return {
+            pickResultType: PickResultType.QUEUE,
+            subchannel: null,
+            status: null,
+            extraFilterFactories: [],
+            onCallStarted: null,
+        };
+    }
+}
+exports.QueuePicker = QueuePicker;
+
+});
+
+var backoffTimeout = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BackoffTimeout = void 0;
+const INITIAL_BACKOFF_MS = 1000;
+const BACKOFF_MULTIPLIER = 1.6;
+const MAX_BACKOFF_MS = 120000;
+const BACKOFF_JITTER = 0.2;
+/**
+ * Get a number uniformly at random in the range [min, max)
+ * @param min
+ * @param max
+ */
+function uniformRandom(min, max) {
+    return Math.random() * (max - min) + min;
+}
+class BackoffTimeout {
+    constructor(callback, options) {
+        this.callback = callback;
+        /**
+         * The delay time at the start, and after each reset.
+         */
+        this.initialDelay = INITIAL_BACKOFF_MS;
+        /**
+         * The exponential backoff multiplier.
+         */
+        this.multiplier = BACKOFF_MULTIPLIER;
+        /**
+         * The maximum delay time
+         */
+        this.maxDelay = MAX_BACKOFF_MS;
+        /**
+         * The maximum fraction by which the delay time can randomly vary after
+         * applying the multiplier.
+         */
+        this.jitter = BACKOFF_JITTER;
+        /**
+         * Indicates whether the timer is currently running.
+         */
+        this.running = false;
+        /**
+         * Indicates whether the timer should keep the Node process running if no
+         * other async operation is doing so.
+         */
+        this.hasRef = true;
+        /**
+         * The time that the currently running timer was started. Only valid if
+         * running is true.
+         */
+        this.startTime = new Date();
+        if (options) {
+            if (options.initialDelay) {
+                this.initialDelay = options.initialDelay;
+            }
+            if (options.multiplier) {
+                this.multiplier = options.multiplier;
+            }
+            if (options.jitter) {
+                this.jitter = options.jitter;
+            }
+            if (options.maxDelay) {
+                this.maxDelay = options.maxDelay;
+            }
+        }
+        this.nextDelay = this.initialDelay;
+        this.timerId = setTimeout(() => { }, 0);
+        clearTimeout(this.timerId);
+    }
+    runTimer(delay) {
+        var _a, _b;
+        clearTimeout(this.timerId);
+        this.timerId = setTimeout(() => {
+            this.callback();
+            this.running = false;
+        }, delay);
+        if (!this.hasRef) {
+            (_b = (_a = this.timerId).unref) === null || _b === void 0 ? void 0 : _b.call(_a);
+        }
+    }
+    /**
+     * Call the callback after the current amount of delay time
+     */
+    runOnce() {
+        this.running = true;
+        this.startTime = new Date();
+        this.runTimer(this.nextDelay);
+        const nextBackoff = Math.min(this.nextDelay * this.multiplier, this.maxDelay);
+        const jitterMagnitude = nextBackoff * this.jitter;
+        this.nextDelay =
+            nextBackoff + uniformRandom(-jitterMagnitude, jitterMagnitude);
+    }
+    /**
+     * Stop the timer. The callback will not be called until `runOnce` is called
+     * again.
+     */
+    stop() {
+        clearTimeout(this.timerId);
+        this.running = false;
+    }
+    /**
+     * Reset the delay time to its initial value. If the timer is still running,
+     * retroactively apply that reset to the current timer.
+     */
+    reset() {
+        this.nextDelay = this.initialDelay;
+        if (this.running) {
+            const now = new Date();
+            const newEndTime = this.startTime;
+            newEndTime.setMilliseconds(newEndTime.getMilliseconds() + this.nextDelay);
+            clearTimeout(this.timerId);
+            if (now < newEndTime) {
+                this.runTimer(newEndTime.getTime() - now.getTime());
+            }
+            else {
+                this.running = false;
+            }
+        }
+    }
+    /**
+     * Check whether the timer is currently running.
+     */
+    isRunning() {
+        return this.running;
+    }
+    /**
+     * Set that while the timer is running, it should keep the Node process
+     * running.
+     */
+    ref() {
+        var _a, _b;
+        this.hasRef = true;
+        (_b = (_a = this.timerId).ref) === null || _b === void 0 ? void 0 : _b.call(_a);
+    }
+    /**
+     * Set that while the timer is running, it should not keep the Node process
+     * running.
+     */
+    unref() {
+        var _a, _b;
+        this.hasRef = false;
+        (_b = (_a = this.timerId).unref) === null || _b === void 0 ? void 0 : _b.call(_a);
+    }
+}
+exports.BackoffTimeout = BackoffTimeout;
+
+});
+
+var loadBalancerChildHandler = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2020 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ChildLoadBalancerHandler = void 0;
+
+
+const TYPE_NAME = 'child_load_balancer_helper';
+class ChildLoadBalancerHandler {
+    constructor(channelControlHelper) {
+        this.channelControlHelper = channelControlHelper;
+        this.currentChild = null;
+        this.pendingChild = null;
+        this.ChildPolicyHelper = class {
+            constructor(parent) {
+                this.parent = parent;
+                this.child = null;
+            }
+            createSubchannel(subchannelAddress, subchannelArgs) {
+                return this.parent.channelControlHelper.createSubchannel(subchannelAddress, subchannelArgs);
+            }
+            updateState(connectivityState$1, picker) {
+                var _a;
+                if (this.calledByPendingChild()) {
+                    if (connectivityState$1 !== connectivityState.ConnectivityState.READY) {
+                        return;
+                    }
+                    (_a = this.parent.currentChild) === null || _a === void 0 ? void 0 : _a.destroy();
+                    this.parent.currentChild = this.parent.pendingChild;
+                    this.parent.pendingChild = null;
+                }
+                else if (!this.calledByCurrentChild()) {
+                    return;
+                }
+                this.parent.channelControlHelper.updateState(connectivityState$1, picker);
+            }
+            requestReresolution() {
+                var _a;
+                const latestChild = (_a = this.parent.pendingChild) !== null && _a !== void 0 ? _a : this.parent.currentChild;
+                if (this.child === latestChild) {
+                    this.parent.channelControlHelper.requestReresolution();
+                }
+            }
+            setChild(newChild) {
+                this.child = newChild;
+            }
+            addChannelzChild(child) {
+                this.parent.channelControlHelper.addChannelzChild(child);
+            }
+            removeChannelzChild(child) {
+                this.parent.channelControlHelper.removeChannelzChild(child);
+            }
+            calledByPendingChild() {
+                return this.child === this.parent.pendingChild;
+            }
+            calledByCurrentChild() {
+                return this.child === this.parent.currentChild;
+            }
+        };
+    }
+    /**
+     * Prerequisites: lbConfig !== null and lbConfig.name is registered
+     * @param addressList
+     * @param lbConfig
+     * @param attributes
+     */
+    updateAddressList(addressList, lbConfig, attributes) {
+        let childToUpdate;
+        if (this.currentChild === null ||
+            this.currentChild.getTypeName() !== lbConfig.getLoadBalancerName()) {
+            const newHelper = new this.ChildPolicyHelper(this);
+            const newChild = loadBalancer.createLoadBalancer(lbConfig, newHelper);
+            newHelper.setChild(newChild);
+            if (this.currentChild === null) {
+                this.currentChild = newChild;
+                childToUpdate = this.currentChild;
+            }
+            else {
+                if (this.pendingChild) {
+                    this.pendingChild.destroy();
+                }
+                this.pendingChild = newChild;
+                childToUpdate = this.pendingChild;
+            }
+        }
+        else {
+            if (this.pendingChild === null) {
+                childToUpdate = this.currentChild;
+            }
+            else {
+                childToUpdate = this.pendingChild;
+            }
+        }
+        childToUpdate.updateAddressList(addressList, lbConfig, attributes);
+    }
+    exitIdle() {
+        if (this.currentChild) {
+            this.currentChild.exitIdle();
+            if (this.pendingChild) {
+                this.pendingChild.exitIdle();
+            }
+        }
+    }
+    resetBackoff() {
+        if (this.currentChild) {
+            this.currentChild.resetBackoff();
+            if (this.pendingChild) {
+                this.pendingChild.resetBackoff();
+            }
+        }
+    }
+    destroy() {
+        if (this.currentChild) {
+            this.currentChild.destroy();
+            this.currentChild = null;
+        }
+        if (this.pendingChild) {
+            this.pendingChild.destroy();
+            this.pendingChild = null;
+        }
+    }
+    getTypeName() {
+        return TYPE_NAME;
+    }
+}
+exports.ChildLoadBalancerHandler = ChildLoadBalancerHandler;
+
+});
+
+var resolvingLoadBalancer = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ResolvingLoadBalancer = void 0;
+
+
+
+
+
+
+
+
+
+const constants_2 = constants;
+
+
+const TRACER_NAME = 'resolving_load_balancer';
+function trace(text) {
+    logging.trace(constants_2.LogVerbosity.DEBUG, TRACER_NAME, text);
+}
+function getDefaultConfigSelector(serviceConfig) {
+    return function defaultConfigSelector(methodName, metadata) {
+        var _a, _b;
+        const splitName = methodName.split('/').filter((x) => x.length > 0);
+        const service = (_a = splitName[0]) !== null && _a !== void 0 ? _a : '';
+        const method = (_b = splitName[1]) !== null && _b !== void 0 ? _b : '';
+        if (serviceConfig && serviceConfig.methodConfig) {
+            for (const methodConfig of serviceConfig.methodConfig) {
+                for (const name of methodConfig.name) {
+                    if (name.service === service &&
+                        (name.method === undefined || name.method === method)) {
+                        return {
+                            methodConfig: methodConfig,
+                            pickInformation: {},
+                            status: constants.Status.OK,
+                            dynamicFilterFactories: []
+                        };
+                    }
+                }
+            }
+        }
+        return {
+            methodConfig: { name: [] },
+            pickInformation: {},
+            status: constants.Status.OK,
+            dynamicFilterFactories: []
+        };
+    };
+}
+class ResolvingLoadBalancer {
+    /**
+     * Wrapper class that behaves like a `LoadBalancer` and also handles name
+     * resolution internally.
+     * @param target The address of the backend to connect to.
+     * @param channelControlHelper `ChannelControlHelper` instance provided by
+     *     this load balancer's owner.
+     * @param defaultServiceConfig The default service configuration to be used
+     *     if none is provided by the name resolver. A `null` value indicates
+     *     that the default behavior should be the default unconfigured behavior.
+     *     In practice, that means using the "pick first" load balancer
+     *     implmentation
+     */
+    constructor(target, channelControlHelper, channelOptions, onSuccessfulResolution, onFailedResolution) {
+        this.target = target;
+        this.channelControlHelper = channelControlHelper;
+        this.channelOptions = channelOptions;
+        this.onSuccessfulResolution = onSuccessfulResolution;
+        this.onFailedResolution = onFailedResolution;
+        this.latestChildState = connectivityState.ConnectivityState.IDLE;
+        this.latestChildPicker = new picker.QueuePicker(this);
+        /**
+         * This resolving load balancer's current connectivity state.
+         */
+        this.currentState = connectivityState.ConnectivityState.IDLE;
+        /**
+         * The service config object from the last successful resolution, if
+         * available. A value of null indicates that we have not yet received a valid
+         * service config from the resolver.
+         */
+        this.previousServiceConfig = null;
+        /**
+         * Indicates whether we should attempt to resolve again after the backoff
+         * timer runs out.
+         */
+        this.continueResolving = false;
+        if (channelOptions['grpc.service_config']) {
+            this.defaultServiceConfig = serviceConfig.validateServiceConfig(JSON.parse(channelOptions['grpc.service_config']));
+        }
+        else {
+            this.defaultServiceConfig = {
+                loadBalancingConfig: [],
+                methodConfig: [],
+            };
+        }
+        this.updateState(connectivityState.ConnectivityState.IDLE, new picker.QueuePicker(this));
+        this.childLoadBalancer = new loadBalancerChildHandler.ChildLoadBalancerHandler({
+            createSubchannel: channelControlHelper.createSubchannel.bind(channelControlHelper),
+            requestReresolution: () => {
+                /* If the backoffTimeout is running, we're still backing off from
+                 * making resolve requests, so we shouldn't make another one here.
+                 * In that case, the backoff timer callback will call
+                 * updateResolution */
+                if (this.backoffTimeout.isRunning()) {
+                    this.continueResolving = true;
+                }
+                else {
+                    this.updateResolution();
+                }
+            },
+            updateState: (newState, picker) => {
+                this.latestChildState = newState;
+                this.latestChildPicker = picker;
+                this.updateState(newState, picker);
+            },
+            addChannelzChild: channelControlHelper.addChannelzChild.bind(channelControlHelper),
+            removeChannelzChild: channelControlHelper.removeChannelzChild.bind(channelControlHelper)
+        });
+        this.innerResolver = resolver.createResolver(target, {
+            onSuccessfulResolution: (addressList, serviceConfig, serviceConfigError, configSelector, attributes) => {
+                var _a;
+                let workingServiceConfig = null;
+                /* This first group of conditionals implements the algorithm described
+                 * in https://github.com/grpc/proposal/blob/master/A21-service-config-error-handling.md
+                 * in the section called "Behavior on receiving a new gRPC Config".
+                 */
+                if (serviceConfig === null) {
+                    // Step 4 and 5
+                    if (serviceConfigError === null) {
+                        // Step 5
+                        this.previousServiceConfig = null;
+                        workingServiceConfig = this.defaultServiceConfig;
+                    }
+                    else {
+                        // Step 4
+                        if (this.previousServiceConfig === null) {
+                            // Step 4.ii
+                            this.handleResolutionFailure(serviceConfigError);
+                        }
+                        else {
+                            // Step 4.i
+                            workingServiceConfig = this.previousServiceConfig;
+                        }
+                    }
+                }
+                else {
+                    // Step 3
+                    workingServiceConfig = serviceConfig;
+                    this.previousServiceConfig = serviceConfig;
+                }
+                const workingConfigList = (_a = workingServiceConfig === null || workingServiceConfig === void 0 ? void 0 : workingServiceConfig.loadBalancingConfig) !== null && _a !== void 0 ? _a : [];
+                const loadBalancingConfig = loadBalancer.getFirstUsableConfig(workingConfigList, true);
+                if (loadBalancingConfig === null) {
+                    // There were load balancing configs but none are supported. This counts as a resolution failure
+                    this.handleResolutionFailure({
+                        code: constants.Status.UNAVAILABLE,
+                        details: 'All load balancer options in service config are not compatible',
+                        metadata: new metadata.Metadata(),
+                    });
+                    return;
+                }
+                this.childLoadBalancer.updateAddressList(addressList, loadBalancingConfig, attributes);
+                const finalServiceConfig = workingServiceConfig !== null && workingServiceConfig !== void 0 ? workingServiceConfig : this.defaultServiceConfig;
+                this.onSuccessfulResolution(configSelector !== null && configSelector !== void 0 ? configSelector : getDefaultConfigSelector(finalServiceConfig));
+            },
+            onError: (error) => {
+                this.handleResolutionFailure(error);
+            },
+        }, channelOptions);
+        const backoffOptions = {
+            initialDelay: channelOptions['grpc.initial_reconnect_backoff_ms'],
+            maxDelay: channelOptions['grpc.max_reconnect_backoff_ms'],
+        };
+        this.backoffTimeout = new backoffTimeout.BackoffTimeout(() => {
+            if (this.continueResolving) {
+                this.updateResolution();
+                this.continueResolving = false;
+            }
+            else {
+                this.updateState(this.latestChildState, this.latestChildPicker);
+            }
+        }, backoffOptions);
+        this.backoffTimeout.unref();
+    }
+    updateResolution() {
+        this.innerResolver.updateResolution();
+        if (this.currentState === connectivityState.ConnectivityState.IDLE) {
+            this.updateState(connectivityState.ConnectivityState.CONNECTING, new picker.QueuePicker(this));
+        }
+        this.backoffTimeout.runOnce();
+    }
+    updateState(connectivityState$1, picker$1) {
+        trace(uriParser.uriToString(this.target) +
+            ' ' +
+            connectivityState.ConnectivityState[this.currentState] +
+            ' -> ' +
+            connectivityState.ConnectivityState[connectivityState$1]);
+        // Ensure that this.exitIdle() is called by the picker
+        if (connectivityState$1 === connectivityState.ConnectivityState.IDLE) {
+            picker$1 = new picker.QueuePicker(this);
+        }
+        this.currentState = connectivityState$1;
+        this.channelControlHelper.updateState(connectivityState$1, picker$1);
+    }
+    handleResolutionFailure(error) {
+        if (this.latestChildState === connectivityState.ConnectivityState.IDLE) {
+            this.updateState(connectivityState.ConnectivityState.TRANSIENT_FAILURE, new picker.UnavailablePicker(error));
+            this.onFailedResolution(error);
+        }
+    }
+    exitIdle() {
+        if (this.currentState === connectivityState.ConnectivityState.IDLE || this.currentState === connectivityState.ConnectivityState.TRANSIENT_FAILURE) {
+            if (this.backoffTimeout.isRunning()) {
+                this.continueResolving = true;
+            }
+            else {
+                this.updateResolution();
+            }
+        }
+        this.childLoadBalancer.exitIdle();
+    }
+    updateAddressList(addressList, lbConfig) {
+        throw new Error('updateAddressList not supported on ResolvingLoadBalancer');
+    }
+    resetBackoff() {
+        this.backoffTimeout.reset();
+        this.childLoadBalancer.resetBackoff();
+    }
+    destroy() {
+        this.childLoadBalancer.destroy();
+        this.innerResolver.destroy();
+        this.updateState(connectivityState.ConnectivityState.SHUTDOWN, new picker.UnavailablePicker());
+    }
+    getTypeName() {
+        return 'resolving_load_balancer';
+    }
+}
+exports.ResolvingLoadBalancer = ResolvingLoadBalancer;
+
+});
+
+var channelOptions = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.channelOptionsEqual = exports.recognizedOptions = void 0;
+/**
+ * This is for checking provided options at runtime. This is an object for
+ * easier membership checking.
+ */
+exports.recognizedOptions = {
+    'grpc.ssl_target_name_override': true,
+    'grpc.primary_user_agent': true,
+    'grpc.secondary_user_agent': true,
+    'grpc.default_authority': true,
+    'grpc.keepalive_time_ms': true,
+    'grpc.keepalive_timeout_ms': true,
+    'grpc.keepalive_permit_without_calls': true,
+    'grpc.service_config': true,
+    'grpc.max_concurrent_streams': true,
+    'grpc.initial_reconnect_backoff_ms': true,
+    'grpc.max_reconnect_backoff_ms': true,
+    'grpc.use_local_subchannel_pool': true,
+    'grpc.max_send_message_length': true,
+    'grpc.max_receive_message_length': true,
+    'grpc.enable_http_proxy': true,
+    'grpc.enable_channelz': true,
+    'grpc.dns_min_time_between_resolutions_ms': true,
+    'grpc-node.max_session_memory': true,
+};
+function channelOptionsEqual(options1, options2) {
+    const keys1 = Object.keys(options1).sort();
+    const keys2 = Object.keys(options2).sort();
+    if (keys1.length !== keys2.length) {
+        return false;
+    }
+    for (let i = 0; i < keys1.length; i += 1) {
+        if (keys1[i] !== keys2[i]) {
+            return false;
+        }
+        if (options1[keys1[i]] !== options2[keys2[i]]) {
+            return false;
+        }
+    }
+    return true;
+}
+exports.channelOptionsEqual = channelOptionsEqual;
+
+});
+
+var subchannelAddress = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2021 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.stringToSubchannelAddress = exports.subchannelAddressToString = exports.subchannelAddressEqual = exports.isTcpSubchannelAddress = void 0;
+
+function isTcpSubchannelAddress(address) {
+    return 'port' in address;
+}
+exports.isTcpSubchannelAddress = isTcpSubchannelAddress;
+function subchannelAddressEqual(address1, address2) {
+    if (isTcpSubchannelAddress(address1)) {
+        return (isTcpSubchannelAddress(address2) &&
+            address1.host === address2.host &&
+            address1.port === address2.port);
+    }
+    else {
+        return !isTcpSubchannelAddress(address2) && address1.path === address2.path;
+    }
+}
+exports.subchannelAddressEqual = subchannelAddressEqual;
+function subchannelAddressToString(address) {
+    if (isTcpSubchannelAddress(address)) {
+        return address.host + ':' + address.port;
+    }
+    else {
+        return address.path;
+    }
+}
+exports.subchannelAddressToString = subchannelAddressToString;
+const DEFAULT_PORT = 443;
+function stringToSubchannelAddress(addressString, port) {
+    if (net_1.isIP(addressString)) {
+        return {
+            host: addressString,
+            port: port !== null && port !== void 0 ? port : DEFAULT_PORT
+        };
+    }
+    else {
+        return {
+            path: addressString
+        };
+    }
+}
+exports.stringToSubchannelAddress = stringToSubchannelAddress;
+
+});
+
+var http_proxy = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getProxiedConnection = exports.mapProxyName = void 0;
+
+
+
+
+
+const logging$1 = logging;
+
+
+
+const TRACER_NAME = 'proxy';
+function trace(text) {
+    logging$1.trace(constants.LogVerbosity.DEBUG, TRACER_NAME, text);
+}
+function getProxyInfo() {
+    let proxyEnv = '';
+    let envVar = '';
+    /* Prefer using 'grpc_proxy'. Fallback on 'http_proxy' if it is not set.
+     * Also prefer using 'https_proxy' with fallback on 'http_proxy'. The
+     * fallback behavior can be removed if there's a demand for it.
+     */
+    if (browser$1.env.grpc_proxy) {
+        envVar = 'grpc_proxy';
+        proxyEnv = browser$1.env.grpc_proxy;
+    }
+    else if (browser$1.env.https_proxy) {
+        envVar = 'https_proxy';
+        proxyEnv = browser$1.env.https_proxy;
+    }
+    else if (browser$1.env.http_proxy) {
+        envVar = 'http_proxy';
+        proxyEnv = browser$1.env.http_proxy;
+    }
+    else {
+        return {};
+    }
+    let proxyUrl;
+    try {
+        proxyUrl = new require$$2$1.URL(proxyEnv);
+    }
+    catch (e) {
+        logging.log(constants.LogVerbosity.ERROR, `cannot parse value of "${envVar}" env var`);
+        return {};
+    }
+    if (proxyUrl.protocol !== 'http:') {
+        logging.log(constants.LogVerbosity.ERROR, `"${proxyUrl.protocol}" scheme not supported in proxy URI`);
+        return {};
+    }
+    let userCred = null;
+    if (proxyUrl.username) {
+        if (proxyUrl.password) {
+            logging.log(constants.LogVerbosity.INFO, 'userinfo found in proxy URI');
+            userCred = `${proxyUrl.username}:${proxyUrl.password}`;
+        }
+        else {
+            userCred = proxyUrl.username;
+        }
+    }
+    const hostname = proxyUrl.hostname;
+    let port = proxyUrl.port;
+    /* The proxy URL uses the scheme "http:", which has a default port number of
+     * 80. We need to set that explicitly here if it is omitted because otherwise
+     * it will use gRPC's default port 443. */
+    if (port === '') {
+        port = '80';
+    }
+    const result = {
+        address: `${hostname}:${port}`,
+    };
+    if (userCred) {
+        result.creds = userCred;
+    }
+    trace('Proxy server ' + result.address + ' set by environment variable ' + envVar);
+    return result;
+}
+function getNoProxyHostList() {
+    /* Prefer using 'no_grpc_proxy'. Fallback on 'no_proxy' if it is not set. */
+    let noProxyStr = browser$1.env.no_grpc_proxy;
+    let envVar = 'no_grpc_proxy';
+    if (!noProxyStr) {
+        noProxyStr = browser$1.env.no_proxy;
+        envVar = 'no_proxy';
+    }
+    if (noProxyStr) {
+        trace('No proxy server list set by environment variable ' + envVar);
+        return noProxyStr.split(',');
+    }
+    else {
+        return [];
+    }
+}
+function mapProxyName(target, options) {
+    var _a;
+    const noProxyResult = {
+        target: target,
+        extraOptions: {},
+    };
+    if (((_a = options['grpc.enable_http_proxy']) !== null && _a !== void 0 ? _a : 1) === 0) {
+        return noProxyResult;
+    }
+    if (target.scheme === 'unix') {
+        return noProxyResult;
+    }
+    const proxyInfo = getProxyInfo();
+    if (!proxyInfo.address) {
+        return noProxyResult;
+    }
+    const hostPort = uriParser.splitHostPort(target.path);
+    if (!hostPort) {
+        return noProxyResult;
+    }
+    const serverHost = hostPort.host;
+    for (const host of getNoProxyHostList()) {
+        if (host === serverHost) {
+            trace('Not using proxy for target in no_proxy list: ' + uriParser.uriToString(target));
+            return noProxyResult;
+        }
+    }
+    const extraOptions = {
+        'grpc.http_connect_target': uriParser.uriToString(target),
+    };
+    if (proxyInfo.creds) {
+        extraOptions['grpc.http_connect_creds'] = proxyInfo.creds;
+    }
+    return {
+        target: {
+            scheme: 'dns',
+            path: proxyInfo.address,
+        },
+        extraOptions: extraOptions,
+    };
+}
+exports.mapProxyName = mapProxyName;
+function getProxiedConnection(address, channelOptions, connectionOptions) {
+    if (!('grpc.http_connect_target' in channelOptions)) {
+        return Promise.resolve({});
+    }
+    const realTarget = channelOptions['grpc.http_connect_target'];
+    const parsedTarget = uriParser.parseUri(realTarget);
+    if (parsedTarget === null) {
+        return Promise.resolve({});
+    }
+    const options = {
+        method: 'CONNECT',
+        path: parsedTarget.path,
+    };
+    const headers = {
+        Host: parsedTarget.path,
+    };
+    // Connect to the subchannel address as a proxy
+    if (subchannelAddress.isTcpSubchannelAddress(address)) {
+        options.host = address.host;
+        options.port = address.port;
+    }
+    else {
+        options.socketPath = address.path;
+    }
+    if ('grpc.http_connect_creds' in channelOptions) {
+        headers['Proxy-Authorization'] =
+            'Basic ' +
+                Buffer$1.from(channelOptions['grpc.http_connect_creds']).toString('base64');
+    }
+    options.headers = headers;
+    const proxyAddressString = subchannelAddress.subchannelAddressToString(address);
+    trace('Using proxy ' + proxyAddressString + ' to connect to ' + options.path);
+    return new Promise((resolve, reject) => {
+        const request = http.request(options);
+        request.once('connect', (res, socket, head) => {
+            var _a;
+            request.removeAllListeners();
+            socket.removeAllListeners();
+            if (res.statusCode === 200) {
+                trace('Successfully connected to ' +
+                    options.path +
+                    ' through proxy ' +
+                    proxyAddressString);
+                if ('secureContext' in connectionOptions) {
+                    /* The proxy is connecting to a TLS server, so upgrade this socket
+                     * connection to a TLS connection.
+                     * This is a workaround for https://github.com/nodejs/node/issues/32922
+                     * See https://github.com/grpc/grpc-node/pull/1369 for more info. */
+                    const targetPath = resolver.getDefaultAuthority(parsedTarget);
+                    const hostPort = uriParser.splitHostPort(targetPath);
+                    const remoteHost = (_a = hostPort === null || hostPort === void 0 ? void 0 : hostPort.host) !== null && _a !== void 0 ? _a : targetPath;
+                    const cts = tls_1.connect(Object.assign({ host: remoteHost, servername: remoteHost, socket: socket }, connectionOptions), () => {
+                        trace('Successfully established a TLS connection to ' +
+                            options.path +
+                            ' through proxy ' +
+                            proxyAddressString);
+                        resolve({ socket: cts, realTarget: parsedTarget });
+                    });
+                    cts.on('error', (error) => {
+                        trace('Failed to establish a TLS connection to ' +
+                            options.path +
+                            ' through proxy ' +
+                            proxyAddressString +
+                            ' with error ' +
+                            error.message);
+                        reject();
+                    });
+                }
+                else {
+                    trace('Successfully established a plaintext connection to ' +
+                        options.path +
+                        ' through proxy ' +
+                        proxyAddressString);
+                    resolve({
+                        socket,
+                        realTarget: parsedTarget,
+                    });
+                }
+            }
+            else {
+                logging.log(constants.LogVerbosity.ERROR, 'Failed to connect to ' +
+                    options.path +
+                    ' through proxy ' +
+                    proxyAddressString +
+                    ' with status ' +
+                    res.statusCode);
+                reject();
+            }
+        });
+        request.once('error', (err) => {
+            request.removeAllListeners();
+            logging.log(constants.LogVerbosity.ERROR, 'Failed to connect to proxy ' +
+                proxyAddressString +
+                ' with error ' +
+                err.message);
+            reject();
+        });
+        request.end();
+    });
+}
+exports.getProxiedConnection = getProxiedConnection;
+
+});
+
+var __dirname = '/Users/Fry/WebstormProjects/dde4/node_modules/@grpc/grpc-js/build/src';
+
+var admin = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2021 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.addAdminServicesToServer = exports.registerAdminService = void 0;
+const registeredAdminServices = [];
+function registerAdminService(getServiceDefinition, getHandlers) {
+    registeredAdminServices.push({ getServiceDefinition, getHandlers });
+}
+exports.registerAdminService = registerAdminService;
+function addAdminServicesToServer(server) {
+    for (const { getServiceDefinition, getHandlers } of registeredAdminServices) {
+        server.addService(getServiceDefinition(), getHandlers());
+    }
+}
+exports.addAdminServicesToServer = addAdminServicesToServer;
+
+});
+
+var call = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ClientDuplexStreamImpl = exports.ClientWritableStreamImpl = exports.ClientReadableStreamImpl = exports.ClientUnaryCallImpl = exports.callErrorFromStatus = void 0;
+
+
+
+/**
+ * Construct a ServiceError from a StatusObject. This function exists primarily
+ * as an attempt to make the error stack trace clearly communicate that the
+ * error is not necessarily a problem in gRPC itself.
+ * @param status
+ */
+function callErrorFromStatus(status) {
+    const message = `${status.code} ${constants.Status[status.code]}: ${status.details}`;
+    return Object.assign(new Error(message), status);
+}
+exports.callErrorFromStatus = callErrorFromStatus;
+class ClientUnaryCallImpl extends events_1.EventEmitter {
+    constructor() {
+        super();
+    }
+    cancel() {
+        var _a;
+        (_a = this.call) === null || _a === void 0 ? void 0 : _a.cancelWithStatus(constants.Status.CANCELLED, 'Cancelled on client');
+    }
+    getPeer() {
+        var _a, _b;
+        return (_b = (_a = this.call) === null || _a === void 0 ? void 0 : _a.getPeer()) !== null && _b !== void 0 ? _b : 'unknown';
+    }
+}
+exports.ClientUnaryCallImpl = ClientUnaryCallImpl;
+class ClientReadableStreamImpl extends stream_1.Readable {
+    constructor(deserialize) {
+        super({ objectMode: true });
+        this.deserialize = deserialize;
+    }
+    cancel() {
+        var _a;
+        (_a = this.call) === null || _a === void 0 ? void 0 : _a.cancelWithStatus(constants.Status.CANCELLED, 'Cancelled on client');
+    }
+    getPeer() {
+        var _a, _b;
+        return (_b = (_a = this.call) === null || _a === void 0 ? void 0 : _a.getPeer()) !== null && _b !== void 0 ? _b : 'unknown';
+    }
+    _read(_size) {
+        var _a;
+        (_a = this.call) === null || _a === void 0 ? void 0 : _a.startRead();
+    }
+}
+exports.ClientReadableStreamImpl = ClientReadableStreamImpl;
+class ClientWritableStreamImpl extends stream_1.Writable {
+    constructor(serialize) {
+        super({ objectMode: true });
+        this.serialize = serialize;
+    }
+    cancel() {
+        var _a;
+        (_a = this.call) === null || _a === void 0 ? void 0 : _a.cancelWithStatus(constants.Status.CANCELLED, 'Cancelled on client');
+    }
+    getPeer() {
+        var _a, _b;
+        return (_b = (_a = this.call) === null || _a === void 0 ? void 0 : _a.getPeer()) !== null && _b !== void 0 ? _b : 'unknown';
+    }
+    _write(chunk, encoding, cb) {
+        var _a;
+        const context = {
+            callback: cb,
+        };
+        const flags = Number(encoding);
+        if (!Number.isNaN(flags)) {
+            context.flags = flags;
+        }
+        (_a = this.call) === null || _a === void 0 ? void 0 : _a.sendMessageWithContext(context, chunk);
+    }
+    _final(cb) {
+        var _a;
+        (_a = this.call) === null || _a === void 0 ? void 0 : _a.halfClose();
+        cb();
+    }
+}
+exports.ClientWritableStreamImpl = ClientWritableStreamImpl;
+class ClientDuplexStreamImpl extends stream_1.Duplex {
+    constructor(serialize, deserialize) {
+        super({ objectMode: true });
+        this.serialize = serialize;
+        this.deserialize = deserialize;
+    }
+    cancel() {
+        var _a;
+        (_a = this.call) === null || _a === void 0 ? void 0 : _a.cancelWithStatus(constants.Status.CANCELLED, 'Cancelled on client');
+    }
+    getPeer() {
+        var _a, _b;
+        return (_b = (_a = this.call) === null || _a === void 0 ? void 0 : _a.getPeer()) !== null && _b !== void 0 ? _b : 'unknown';
+    }
+    _read(_size) {
+        var _a;
+        (_a = this.call) === null || _a === void 0 ? void 0 : _a.startRead();
+    }
+    _write(chunk, encoding, cb) {
+        var _a;
+        const context = {
+            callback: cb,
+        };
+        const flags = Number(encoding);
+        if (!Number.isNaN(flags)) {
+            context.flags = flags;
+        }
+        (_a = this.call) === null || _a === void 0 ? void 0 : _a.sendMessageWithContext(context, chunk);
+    }
+    _final(cb) {
+        var _a;
+        (_a = this.call) === null || _a === void 0 ? void 0 : _a.halfClose();
+        cb();
+    }
+}
+exports.ClientDuplexStreamImpl = ClientDuplexStreamImpl;
+
+});
+
+var clientInterceptors = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getInterceptingCall = exports.InterceptingCall = exports.RequesterBuilder = exports.ListenerBuilder = exports.InterceptorConfigurationError = void 0;
+
+
+
+/**
+ * Error class associated with passing both interceptors and interceptor
+ * providers to a client constructor or as call options.
+ */
+class InterceptorConfigurationError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'InterceptorConfigurationError';
+        Error.captureStackTrace(this, InterceptorConfigurationError);
+    }
+}
+exports.InterceptorConfigurationError = InterceptorConfigurationError;
+class ListenerBuilder {
+    constructor() {
+        this.metadata = undefined;
+        this.message = undefined;
+        this.status = undefined;
+    }
+    withOnReceiveMetadata(onReceiveMetadata) {
+        this.metadata = onReceiveMetadata;
+        return this;
+    }
+    withOnReceiveMessage(onReceiveMessage) {
+        this.message = onReceiveMessage;
+        return this;
+    }
+    withOnReceiveStatus(onReceiveStatus) {
+        this.status = onReceiveStatus;
+        return this;
+    }
+    build() {
+        return {
+            onReceiveMetadata: this.metadata,
+            onReceiveMessage: this.message,
+            onReceiveStatus: this.status,
+        };
+    }
+}
+exports.ListenerBuilder = ListenerBuilder;
+class RequesterBuilder {
+    constructor() {
+        this.start = undefined;
+        this.message = undefined;
+        this.halfClose = undefined;
+        this.cancel = undefined;
+    }
+    withStart(start) {
+        this.start = start;
+        return this;
+    }
+    withSendMessage(sendMessage) {
+        this.message = sendMessage;
+        return this;
+    }
+    withHalfClose(halfClose) {
+        this.halfClose = halfClose;
+        return this;
+    }
+    withCancel(cancel) {
+        this.cancel = cancel;
+        return this;
+    }
+    build() {
+        return {
+            start: this.start,
+            sendMessage: this.message,
+            halfClose: this.halfClose,
+            cancel: this.cancel,
+        };
+    }
+}
+exports.RequesterBuilder = RequesterBuilder;
+/**
+ * A Listener with a default pass-through implementation of each method. Used
+ * for filling out Listeners with some methods omitted.
+ */
+const defaultListener = {
+    onReceiveMetadata: (metadata, next) => {
+        next(metadata);
+    },
+    onReceiveMessage: (message, next) => {
+        next(message);
+    },
+    onReceiveStatus: (status, next) => {
+        next(status);
+    },
+};
+/**
+ * A Requester with a default pass-through implementation of each method. Used
+ * for filling out Requesters with some methods omitted.
+ */
+const defaultRequester = {
+    start: (metadata, listener, next) => {
+        next(metadata, listener);
+    },
+    sendMessage: (message, next) => {
+        next(message);
+    },
+    halfClose: (next) => {
+        next();
+    },
+    cancel: (next) => {
+        next();
+    },
+};
+class InterceptingCall {
+    constructor(nextCall, requester) {
+        var _a, _b, _c, _d;
+        this.nextCall = nextCall;
+        /**
+         * Indicates that metadata has been passed to the requester's start
+         * method but it has not been passed to the corresponding next callback
+         */
+        this.processingMetadata = false;
+        /**
+         * Message context for a pending message that is waiting for
+         */
+        this.pendingMessageContext = null;
+        /**
+         * Indicates that a message has been passed to the requester's sendMessage
+         * method but it has not been passed to the corresponding next callback
+         */
+        this.processingMessage = false;
+        /**
+         * Indicates that a status was received but could not be propagated because
+         * a message was still being processed.
+         */
+        this.pendingHalfClose = false;
+        if (requester) {
+            this.requester = {
+                start: (_a = requester.start) !== null && _a !== void 0 ? _a : defaultRequester.start,
+                sendMessage: (_b = requester.sendMessage) !== null && _b !== void 0 ? _b : defaultRequester.sendMessage,
+                halfClose: (_c = requester.halfClose) !== null && _c !== void 0 ? _c : defaultRequester.halfClose,
+                cancel: (_d = requester.cancel) !== null && _d !== void 0 ? _d : defaultRequester.cancel,
+            };
+        }
+        else {
+            this.requester = defaultRequester;
+        }
+    }
+    cancelWithStatus(status, details) {
+        this.requester.cancel(() => {
+            this.nextCall.cancelWithStatus(status, details);
+        });
+    }
+    getPeer() {
+        return this.nextCall.getPeer();
+    }
+    processPendingMessage() {
+        if (this.pendingMessageContext) {
+            this.nextCall.sendMessageWithContext(this.pendingMessageContext, this.pendingMessage);
+            this.pendingMessageContext = null;
+            this.pendingMessage = null;
+        }
+    }
+    processPendingHalfClose() {
+        if (this.pendingHalfClose) {
+            this.nextCall.halfClose();
+        }
+    }
+    start(metadata, interceptingListener) {
+        var _a, _b, _c, _d, _e, _f;
+        const fullInterceptingListener = {
+            onReceiveMetadata: (_b = (_a = interceptingListener === null || interceptingListener === void 0 ? void 0 : interceptingListener.onReceiveMetadata) === null || _a === void 0 ? void 0 : _a.bind(interceptingListener)) !== null && _b !== void 0 ? _b : ((metadata) => { }),
+            onReceiveMessage: (_d = (_c = interceptingListener === null || interceptingListener === void 0 ? void 0 : interceptingListener.onReceiveMessage) === null || _c === void 0 ? void 0 : _c.bind(interceptingListener)) !== null && _d !== void 0 ? _d : ((message) => { }),
+            onReceiveStatus: (_f = (_e = interceptingListener === null || interceptingListener === void 0 ? void 0 : interceptingListener.onReceiveStatus) === null || _e === void 0 ? void 0 : _e.bind(interceptingListener)) !== null && _f !== void 0 ? _f : ((status) => { }),
+        };
+        this.processingMetadata = true;
+        this.requester.start(metadata, fullInterceptingListener, (md, listener) => {
+            var _a, _b, _c;
+            this.processingMetadata = false;
+            let finalInterceptingListener;
+            if (callStream.isInterceptingListener(listener)) {
+                finalInterceptingListener = listener;
+            }
+            else {
+                const fullListener = {
+                    onReceiveMetadata: (_a = listener.onReceiveMetadata) !== null && _a !== void 0 ? _a : defaultListener.onReceiveMetadata,
+                    onReceiveMessage: (_b = listener.onReceiveMessage) !== null && _b !== void 0 ? _b : defaultListener.onReceiveMessage,
+                    onReceiveStatus: (_c = listener.onReceiveStatus) !== null && _c !== void 0 ? _c : defaultListener.onReceiveStatus,
+                };
+                finalInterceptingListener = new callStream.InterceptingListenerImpl(fullListener, fullInterceptingListener);
+            }
+            this.nextCall.start(md, finalInterceptingListener);
+            this.processPendingMessage();
+            this.processPendingHalfClose();
+        });
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sendMessageWithContext(context, message) {
+        this.processingMessage = true;
+        this.requester.sendMessage(message, (finalMessage) => {
+            this.processingMessage = false;
+            if (this.processingMetadata) {
+                this.pendingMessageContext = context;
+                this.pendingMessage = message;
+            }
+            else {
+                this.nextCall.sendMessageWithContext(context, finalMessage);
+                this.processPendingHalfClose();
+            }
+        });
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sendMessage(message) {
+        this.sendMessageWithContext({}, message);
+    }
+    startRead() {
+        this.nextCall.startRead();
+    }
+    halfClose() {
+        this.requester.halfClose(() => {
+            if (this.processingMetadata || this.processingMessage) {
+                this.pendingHalfClose = true;
+            }
+            else {
+                this.nextCall.halfClose();
+            }
+        });
+    }
+    setCredentials(credentials) {
+        this.nextCall.setCredentials(credentials);
+    }
+}
+exports.InterceptingCall = InterceptingCall;
+function getCall(channel, path, options) {
+    var _a, _b;
+    const deadline = (_a = options.deadline) !== null && _a !== void 0 ? _a : Infinity;
+    const host = options.host;
+    const parent = (_b = options.parent) !== null && _b !== void 0 ? _b : null;
+    const propagateFlags = options.propagate_flags;
+    const credentials = options.credentials;
+    const call = channel.createCall(path, deadline, host, parent, propagateFlags);
+    if (credentials) {
+        call.setCredentials(credentials);
+    }
+    return call;
+}
+/**
+ * InterceptingCall implementation that directly owns the underlying Call
+ * object and handles serialization and deseraizliation.
+ */
+class BaseInterceptingCall {
+    constructor(call, 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    methodDefinition) {
+        this.call = call;
+        this.methodDefinition = methodDefinition;
+    }
+    cancelWithStatus(status, details) {
+        this.call.cancelWithStatus(status, details);
+    }
+    getPeer() {
+        return this.call.getPeer();
+    }
+    setCredentials(credentials) {
+        this.call.setCredentials(credentials);
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sendMessageWithContext(context, message) {
+        let serialized;
+        try {
+            serialized = this.methodDefinition.requestSerialize(message);
+        }
+        catch (e) {
+            this.call.cancelWithStatus(constants.Status.INTERNAL, `Request message serialization failure: ${e.message}`);
+            return;
+        }
+        this.call.sendMessageWithContext(context, serialized);
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sendMessage(message) {
+        this.sendMessageWithContext({}, message);
+    }
+    start(metadata$1, interceptingListener) {
+        let readError = null;
+        this.call.start(metadata$1, {
+            onReceiveMetadata: (metadata) => {
+                var _a;
+                (_a = interceptingListener === null || interceptingListener === void 0 ? void 0 : interceptingListener.onReceiveMetadata) === null || _a === void 0 ? void 0 : _a.call(interceptingListener, metadata);
+            },
+            onReceiveMessage: (message) => {
+                var _a;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                let deserialized;
+                try {
+                    deserialized = this.methodDefinition.responseDeserialize(message);
+                }
+                catch (e) {
+                    readError = {
+                        code: constants.Status.INTERNAL,
+                        details: `Response message parsing error: ${e.message}`,
+                        metadata: new metadata.Metadata(),
+                    };
+                    this.call.cancelWithStatus(readError.code, readError.details);
+                    return;
+                }
+                (_a = interceptingListener === null || interceptingListener === void 0 ? void 0 : interceptingListener.onReceiveMessage) === null || _a === void 0 ? void 0 : _a.call(interceptingListener, deserialized);
+            },
+            onReceiveStatus: (status) => {
+                var _a, _b;
+                if (readError) {
+                    (_a = interceptingListener === null || interceptingListener === void 0 ? void 0 : interceptingListener.onReceiveStatus) === null || _a === void 0 ? void 0 : _a.call(interceptingListener, readError);
+                }
+                else {
+                    (_b = interceptingListener === null || interceptingListener === void 0 ? void 0 : interceptingListener.onReceiveStatus) === null || _b === void 0 ? void 0 : _b.call(interceptingListener, status);
+                }
+            },
+        });
+    }
+    startRead() {
+        this.call.startRead();
+    }
+    halfClose() {
+        this.call.halfClose();
+    }
+}
+/**
+ * BaseInterceptingCall with special-cased behavior for methods with unary
+ * responses.
+ */
+class BaseUnaryInterceptingCall extends BaseInterceptingCall {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    constructor(call, methodDefinition) {
+        super(call, methodDefinition);
+    }
+    start(metadata, listener) {
+        var _a, _b;
+        let receivedMessage = false;
+        const wrapperListener = {
+            onReceiveMetadata: (_b = (_a = listener === null || listener === void 0 ? void 0 : listener.onReceiveMetadata) === null || _a === void 0 ? void 0 : _a.bind(listener)) !== null && _b !== void 0 ? _b : ((metadata) => { }),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onReceiveMessage: (message) => {
+                var _a;
+                receivedMessage = true;
+                (_a = listener === null || listener === void 0 ? void 0 : listener.onReceiveMessage) === null || _a === void 0 ? void 0 : _a.call(listener, message);
+            },
+            onReceiveStatus: (status) => {
+                var _a, _b;
+                if (!receivedMessage) {
+                    (_a = listener === null || listener === void 0 ? void 0 : listener.onReceiveMessage) === null || _a === void 0 ? void 0 : _a.call(listener, null);
+                }
+                (_b = listener === null || listener === void 0 ? void 0 : listener.onReceiveStatus) === null || _b === void 0 ? void 0 : _b.call(listener, status);
+            },
+        };
+        super.start(metadata, wrapperListener);
+        this.call.startRead();
+    }
+}
+/**
+ * BaseInterceptingCall with special-cased behavior for methods with streaming
+ * responses.
+ */
+class BaseStreamingInterceptingCall extends BaseInterceptingCall {
+}
+function getBottomInterceptingCall(channel, options, 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+methodDefinition) {
+    const call = getCall(channel, methodDefinition.path, options);
+    if (methodDefinition.responseStream) {
+        return new BaseStreamingInterceptingCall(call, methodDefinition);
+    }
+    else {
+        return new BaseUnaryInterceptingCall(call, methodDefinition);
+    }
+}
+function getInterceptingCall(interceptorArgs, 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+methodDefinition, options, channel) {
+    if (interceptorArgs.clientInterceptors.length > 0 &&
+        interceptorArgs.clientInterceptorProviders.length > 0) {
+        throw new InterceptorConfigurationError('Both interceptors and interceptor_providers were passed as options ' +
+            'to the client constructor. Only one of these is allowed.');
+    }
+    if (interceptorArgs.callInterceptors.length > 0 &&
+        interceptorArgs.callInterceptorProviders.length > 0) {
+        throw new InterceptorConfigurationError('Both interceptors and interceptor_providers were passed as call ' +
+            'options. Only one of these is allowed.');
+    }
+    let interceptors = [];
+    // Interceptors passed to the call override interceptors passed to the client constructor
+    if (interceptorArgs.callInterceptors.length > 0 ||
+        interceptorArgs.callInterceptorProviders.length > 0) {
+        interceptors = []
+            .concat(interceptorArgs.callInterceptors, interceptorArgs.callInterceptorProviders.map((provider) => provider(methodDefinition)))
+            .filter((interceptor) => interceptor);
+        // Filter out falsy values when providers return nothing
+    }
+    else {
+        interceptors = []
+            .concat(interceptorArgs.clientInterceptors, interceptorArgs.clientInterceptorProviders.map((provider) => provider(methodDefinition)))
+            .filter((interceptor) => interceptor);
+        // Filter out falsy values when providers return nothing
+    }
+    const interceptorOptions = Object.assign({}, options, {
+        method_definition: methodDefinition,
+    });
+    /* For each interceptor in the list, the nextCall function passed to it is
+     * based on the next interceptor in the list, using a nextCall function
+     * constructed with the following interceptor in the list, and so on. The
+     * initialValue, which is effectively at the end of the list, is a nextCall
+     * function that invokes getBottomInterceptingCall, the result of which
+     * handles (de)serialization and also gets the underlying call from the
+     * channel. */
+    const getCall = interceptors.reduceRight((nextCall, nextInterceptor) => {
+        return (currentOptions) => nextInterceptor(currentOptions, nextCall);
+    }, (finalOptions) => getBottomInterceptingCall(channel, finalOptions, methodDefinition));
+    return getCall(interceptorOptions);
+}
+exports.getInterceptingCall = getInterceptingCall;
+
+});
+
+var channel_1 = channel;
+
+var client = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Client = void 0;
+
+
+
+
+
+
+const CHANNEL_SYMBOL = Symbol();
+const INTERCEPTOR_SYMBOL = Symbol();
+const INTERCEPTOR_PROVIDER_SYMBOL = Symbol();
+const CALL_INVOCATION_TRANSFORMER_SYMBOL = Symbol();
+function isFunction(arg) {
+    return typeof arg === 'function';
+}
+/**
+ * A generic gRPC client. Primarily useful as a base class for all generated
+ * clients.
+ */
+class Client {
+    constructor(address, credentials, options = {}) {
+        var _a, _b;
+        options = Object.assign({}, options);
+        this[INTERCEPTOR_SYMBOL] = (_a = options.interceptors) !== null && _a !== void 0 ? _a : [];
+        delete options.interceptors;
+        this[INTERCEPTOR_PROVIDER_SYMBOL] = (_b = options.interceptor_providers) !== null && _b !== void 0 ? _b : [];
+        delete options.interceptor_providers;
+        if (this[INTERCEPTOR_SYMBOL].length > 0 &&
+            this[INTERCEPTOR_PROVIDER_SYMBOL].length > 0) {
+            throw new Error('Both interceptors and interceptor_providers were passed as options ' +
+                'to the client constructor. Only one of these is allowed.');
+        }
+        this[CALL_INVOCATION_TRANSFORMER_SYMBOL] =
+            options.callInvocationTransformer;
+        delete options.callInvocationTransformer;
+        if (options.channelOverride) {
+            this[CHANNEL_SYMBOL] = options.channelOverride;
+        }
+        else if (options.channelFactoryOverride) {
+            const channelFactoryOverride = options.channelFactoryOverride;
+            delete options.channelFactoryOverride;
+            this[CHANNEL_SYMBOL] = channelFactoryOverride(address, credentials, options);
+        }
+        else {
+            this[CHANNEL_SYMBOL] = new channel_1.ChannelImplementation(address, credentials, options);
+        }
+    }
+    close() {
+        this[CHANNEL_SYMBOL].close();
+    }
+    getChannel() {
+        return this[CHANNEL_SYMBOL];
+    }
+    waitForReady(deadline, callback) {
+        const checkState = (err) => {
+            if (err) {
+                callback(new Error('Failed to connect before the deadline'));
+                return;
+            }
+            let newState;
+            try {
+                newState = this[CHANNEL_SYMBOL].getConnectivityState(true);
+            }
+            catch (e) {
+                callback(new Error('The channel has been closed'));
+                return;
+            }
+            if (newState === connectivityState.ConnectivityState.READY) {
+                callback();
+            }
+            else {
+                try {
+                    this[CHANNEL_SYMBOL].watchConnectivityState(newState, deadline, checkState);
+                }
+                catch (e) {
+                    callback(new Error('The channel has been closed'));
+                }
+            }
+        };
+        setImmediate(checkState);
+    }
+    checkOptionalUnaryResponseArguments(arg1, arg2, arg3) {
+        if (isFunction(arg1)) {
+            return { metadata: new metadata.Metadata(), options: {}, callback: arg1 };
+        }
+        else if (isFunction(arg2)) {
+            if (arg1 instanceof metadata.Metadata) {
+                return { metadata: arg1, options: {}, callback: arg2 };
+            }
+            else {
+                return { metadata: new metadata.Metadata(), options: arg1, callback: arg2 };
+            }
+        }
+        else {
+            if (!(arg1 instanceof metadata.Metadata &&
+                arg2 instanceof Object &&
+                isFunction(arg3))) {
+                throw new Error('Incorrect arguments passed');
+            }
+            return { metadata: arg1, options: arg2, callback: arg3 };
+        }
+    }
+    makeUnaryRequest(method, serialize, deserialize, argument, metadata, options, callback) {
+        var _a, _b;
+        const checkedArguments = this.checkOptionalUnaryResponseArguments(metadata, options, callback);
+        const methodDefinition = {
+            path: method,
+            requestStream: false,
+            responseStream: false,
+            requestSerialize: serialize,
+            responseDeserialize: deserialize,
+        };
+        let callProperties = {
+            argument: argument,
+            metadata: checkedArguments.metadata,
+            call: new call.ClientUnaryCallImpl(),
+            channel: this[CHANNEL_SYMBOL],
+            methodDefinition: methodDefinition,
+            callOptions: checkedArguments.options,
+            callback: checkedArguments.callback,
+        };
+        if (this[CALL_INVOCATION_TRANSFORMER_SYMBOL]) {
+            callProperties = this[CALL_INVOCATION_TRANSFORMER_SYMBOL](callProperties);
+        }
+        const emitter = callProperties.call;
+        const interceptorArgs = {
+            clientInterceptors: this[INTERCEPTOR_SYMBOL],
+            clientInterceptorProviders: this[INTERCEPTOR_PROVIDER_SYMBOL],
+            callInterceptors: (_a = callProperties.callOptions.interceptors) !== null && _a !== void 0 ? _a : [],
+            callInterceptorProviders: (_b = callProperties.callOptions.interceptor_providers) !== null && _b !== void 0 ? _b : [],
+        };
+        const call$1 = clientInterceptors.getInterceptingCall(interceptorArgs, callProperties.methodDefinition, callProperties.callOptions, callProperties.channel);
+        /* This needs to happen before the emitter is used. Unfortunately we can't
+         * enforce this with the type system. We need to construct this emitter
+         * before calling the CallInvocationTransformer, and we need to create the
+         * call after that. */
+        emitter.call = call$1;
+        if (callProperties.callOptions.credentials) {
+            call$1.setCredentials(callProperties.callOptions.credentials);
+        }
+        let responseMessage = null;
+        let receivedStatus = false;
+        call$1.start(callProperties.metadata, {
+            onReceiveMetadata: (metadata) => {
+                emitter.emit('metadata', metadata);
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onReceiveMessage(message) {
+                if (responseMessage !== null) {
+                    call$1.cancelWithStatus(constants.Status.INTERNAL, 'Too many responses received');
+                }
+                responseMessage = message;
+            },
+            onReceiveStatus(status) {
+                if (receivedStatus) {
+                    return;
+                }
+                receivedStatus = true;
+                if (status.code === constants.Status.OK) {
+                    if (responseMessage === null) {
+                        callProperties.callback(call.callErrorFromStatus({
+                            code: constants.Status.INTERNAL,
+                            details: 'No message received',
+                            metadata: status.metadata
+                        }));
+                    }
+                    else {
+                        callProperties.callback(null, responseMessage);
+                    }
+                }
+                else {
+                    callProperties.callback(call.callErrorFromStatus(status));
+                }
+                emitter.emit('status', status);
+            },
+        });
+        call$1.sendMessage(argument);
+        call$1.halfClose();
+        return emitter;
+    }
+    makeClientStreamRequest(method, serialize, deserialize, metadata, options, callback) {
+        var _a, _b;
+        const checkedArguments = this.checkOptionalUnaryResponseArguments(metadata, options, callback);
+        const methodDefinition = {
+            path: method,
+            requestStream: true,
+            responseStream: false,
+            requestSerialize: serialize,
+            responseDeserialize: deserialize,
+        };
+        let callProperties = {
+            metadata: checkedArguments.metadata,
+            call: new call.ClientWritableStreamImpl(serialize),
+            channel: this[CHANNEL_SYMBOL],
+            methodDefinition: methodDefinition,
+            callOptions: checkedArguments.options,
+            callback: checkedArguments.callback,
+        };
+        if (this[CALL_INVOCATION_TRANSFORMER_SYMBOL]) {
+            callProperties = this[CALL_INVOCATION_TRANSFORMER_SYMBOL](callProperties);
+        }
+        const emitter = callProperties.call;
+        const interceptorArgs = {
+            clientInterceptors: this[INTERCEPTOR_SYMBOL],
+            clientInterceptorProviders: this[INTERCEPTOR_PROVIDER_SYMBOL],
+            callInterceptors: (_a = callProperties.callOptions.interceptors) !== null && _a !== void 0 ? _a : [],
+            callInterceptorProviders: (_b = callProperties.callOptions.interceptor_providers) !== null && _b !== void 0 ? _b : [],
+        };
+        const call$1 = clientInterceptors.getInterceptingCall(interceptorArgs, callProperties.methodDefinition, callProperties.callOptions, callProperties.channel);
+        /* This needs to happen before the emitter is used. Unfortunately we can't
+         * enforce this with the type system. We need to construct this emitter
+         * before calling the CallInvocationTransformer, and we need to create the
+         * call after that. */
+        emitter.call = call$1;
+        if (callProperties.callOptions.credentials) {
+            call$1.setCredentials(callProperties.callOptions.credentials);
+        }
+        let responseMessage = null;
+        let receivedStatus = false;
+        call$1.start(callProperties.metadata, {
+            onReceiveMetadata: (metadata) => {
+                emitter.emit('metadata', metadata);
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onReceiveMessage(message) {
+                if (responseMessage !== null) {
+                    call$1.cancelWithStatus(constants.Status.INTERNAL, 'Too many responses received');
+                }
+                responseMessage = message;
+            },
+            onReceiveStatus(status) {
+                if (receivedStatus) {
+                    return;
+                }
+                receivedStatus = true;
+                if (status.code === constants.Status.OK) {
+                    if (responseMessage === null) {
+                        callProperties.callback(call.callErrorFromStatus({
+                            code: constants.Status.INTERNAL,
+                            details: 'No message received',
+                            metadata: status.metadata
+                        }));
+                    }
+                    else {
+                        callProperties.callback(null, responseMessage);
+                    }
+                }
+                else {
+                    callProperties.callback(call.callErrorFromStatus(status));
+                }
+                emitter.emit('status', status);
+            },
+        });
+        return emitter;
+    }
+    checkMetadataAndOptions(arg1, arg2) {
+        let metadata$1;
+        let options;
+        if (arg1 instanceof metadata.Metadata) {
+            metadata$1 = arg1;
+            if (arg2) {
+                options = arg2;
+            }
+            else {
+                options = {};
+            }
+        }
+        else {
+            if (arg1) {
+                options = arg1;
+            }
+            else {
+                options = {};
+            }
+            metadata$1 = new metadata.Metadata();
+        }
+        return { metadata: metadata$1, options };
+    }
+    makeServerStreamRequest(method, serialize, deserialize, argument, metadata, options) {
+        var _a, _b;
+        const checkedArguments = this.checkMetadataAndOptions(metadata, options);
+        const methodDefinition = {
+            path: method,
+            requestStream: false,
+            responseStream: true,
+            requestSerialize: serialize,
+            responseDeserialize: deserialize,
+        };
+        let callProperties = {
+            argument: argument,
+            metadata: checkedArguments.metadata,
+            call: new call.ClientReadableStreamImpl(deserialize),
+            channel: this[CHANNEL_SYMBOL],
+            methodDefinition: methodDefinition,
+            callOptions: checkedArguments.options,
+        };
+        if (this[CALL_INVOCATION_TRANSFORMER_SYMBOL]) {
+            callProperties = this[CALL_INVOCATION_TRANSFORMER_SYMBOL](callProperties);
+        }
+        const stream = callProperties.call;
+        const interceptorArgs = {
+            clientInterceptors: this[INTERCEPTOR_SYMBOL],
+            clientInterceptorProviders: this[INTERCEPTOR_PROVIDER_SYMBOL],
+            callInterceptors: (_a = callProperties.callOptions.interceptors) !== null && _a !== void 0 ? _a : [],
+            callInterceptorProviders: (_b = callProperties.callOptions.interceptor_providers) !== null && _b !== void 0 ? _b : [],
+        };
+        const call$1 = clientInterceptors.getInterceptingCall(interceptorArgs, callProperties.methodDefinition, callProperties.callOptions, callProperties.channel);
+        /* This needs to happen before the emitter is used. Unfortunately we can't
+         * enforce this with the type system. We need to construct this emitter
+         * before calling the CallInvocationTransformer, and we need to create the
+         * call after that. */
+        stream.call = call$1;
+        if (callProperties.callOptions.credentials) {
+            call$1.setCredentials(callProperties.callOptions.credentials);
+        }
+        let receivedStatus = false;
+        call$1.start(callProperties.metadata, {
+            onReceiveMetadata(metadata) {
+                stream.emit('metadata', metadata);
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onReceiveMessage(message) {
+                stream.push(message);
+            },
+            onReceiveStatus(status) {
+                if (receivedStatus) {
+                    return;
+                }
+                receivedStatus = true;
+                stream.push(null);
+                if (status.code !== constants.Status.OK) {
+                    stream.emit('error', call.callErrorFromStatus(status));
+                }
+                stream.emit('status', status);
+            },
+        });
+        call$1.sendMessage(argument);
+        call$1.halfClose();
+        return stream;
+    }
+    makeBidiStreamRequest(method, serialize, deserialize, metadata, options) {
+        var _a, _b;
+        const checkedArguments = this.checkMetadataAndOptions(metadata, options);
+        const methodDefinition = {
+            path: method,
+            requestStream: true,
+            responseStream: true,
+            requestSerialize: serialize,
+            responseDeserialize: deserialize,
+        };
+        let callProperties = {
+            metadata: checkedArguments.metadata,
+            call: new call.ClientDuplexStreamImpl(serialize, deserialize),
+            channel: this[CHANNEL_SYMBOL],
+            methodDefinition: methodDefinition,
+            callOptions: checkedArguments.options,
+        };
+        if (this[CALL_INVOCATION_TRANSFORMER_SYMBOL]) {
+            callProperties = this[CALL_INVOCATION_TRANSFORMER_SYMBOL](callProperties);
+        }
+        const stream = callProperties.call;
+        const interceptorArgs = {
+            clientInterceptors: this[INTERCEPTOR_SYMBOL],
+            clientInterceptorProviders: this[INTERCEPTOR_PROVIDER_SYMBOL],
+            callInterceptors: (_a = callProperties.callOptions.interceptors) !== null && _a !== void 0 ? _a : [],
+            callInterceptorProviders: (_b = callProperties.callOptions.interceptor_providers) !== null && _b !== void 0 ? _b : [],
+        };
+        const call$1 = clientInterceptors.getInterceptingCall(interceptorArgs, callProperties.methodDefinition, callProperties.callOptions, callProperties.channel);
+        /* This needs to happen before the emitter is used. Unfortunately we can't
+         * enforce this with the type system. We need to construct this emitter
+         * before calling the CallInvocationTransformer, and we need to create the
+         * call after that. */
+        stream.call = call$1;
+        if (callProperties.callOptions.credentials) {
+            call$1.setCredentials(callProperties.callOptions.credentials);
+        }
+        let receivedStatus = false;
+        call$1.start(callProperties.metadata, {
+            onReceiveMetadata(metadata) {
+                stream.emit('metadata', metadata);
+            },
+            onReceiveMessage(message) {
+                stream.push(message);
+            },
+            onReceiveStatus(status) {
+                if (receivedStatus) {
+                    return;
+                }
+                receivedStatus = true;
+                stream.push(null);
+                if (status.code !== constants.Status.OK) {
+                    stream.emit('error', call.callErrorFromStatus(status));
+                }
+                stream.emit('status', status);
+            },
+        });
+        return stream;
+    }
+}
+exports.Client = Client;
+
+});
+
+var makeClient = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.loadPackageDefinition = exports.makeClientConstructor = void 0;
+
+/**
+ * Map with short names for each of the requester maker functions. Used in
+ * makeClientConstructor
+ * @private
+ */
+const requesterFuncs = {
+    unary: client.Client.prototype.makeUnaryRequest,
+    server_stream: client.Client.prototype.makeServerStreamRequest,
+    client_stream: client.Client.prototype.makeClientStreamRequest,
+    bidi: client.Client.prototype.makeBidiStreamRequest,
+};
+/**
+ * Returns true, if given key is included in the blacklisted
+ * keys.
+ * @param key key for check, string.
+ */
+function isPrototypePolluted(key) {
+    return ['__proto__', 'prototype', 'constructor'].includes(key);
+}
+/**
+ * Creates a constructor for a client with the given methods, as specified in
+ * the methods argument. The resulting class will have an instance method for
+ * each method in the service, which is a partial application of one of the
+ * [Client]{@link grpc.Client} request methods, depending on `requestSerialize`
+ * and `responseSerialize`, with the `method`, `serialize`, and `deserialize`
+ * arguments predefined.
+ * @param methods An object mapping method names to
+ *     method attributes
+ * @param serviceName The fully qualified name of the service
+ * @param classOptions An options object.
+ * @return New client constructor, which is a subclass of
+ *     {@link grpc.Client}, and has the same arguments as that constructor.
+ */
+function makeClientConstructor(methods, serviceName, classOptions) {
+    class ServiceClientImpl extends client.Client {
+    }
+    Object.keys(methods).forEach((name) => {
+        if (isPrototypePolluted(name)) {
+            return;
+        }
+        const attrs = methods[name];
+        let methodType;
+        // TODO(murgatroid99): Verify that we don't need this anymore
+        if (typeof name === 'string' && name.charAt(0) === '$') {
+            throw new Error('Method names cannot start with $');
+        }
+        if (attrs.requestStream) {
+            if (attrs.responseStream) {
+                methodType = 'bidi';
+            }
+            else {
+                methodType = 'client_stream';
+            }
+        }
+        else {
+            if (attrs.responseStream) {
+                methodType = 'server_stream';
+            }
+            else {
+                methodType = 'unary';
+            }
+        }
+        const serialize = attrs.requestSerialize;
+        const deserialize = attrs.responseDeserialize;
+        const methodFunc = partial(requesterFuncs[methodType], attrs.path, serialize, deserialize);
+        ServiceClientImpl.prototype[name] = methodFunc;
+        // Associate all provided attributes with the method
+        Object.assign(ServiceClientImpl.prototype[name], attrs);
+        if (attrs.originalName && !isPrototypePolluted(attrs.originalName)) {
+            ServiceClientImpl.prototype[attrs.originalName] =
+                ServiceClientImpl.prototype[name];
+        }
+    });
+    ServiceClientImpl.service = methods;
+    ServiceClientImpl.serviceName = serviceName;
+    return ServiceClientImpl;
+}
+exports.makeClientConstructor = makeClientConstructor;
+function partial(fn, path, serialize, deserialize) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return function (...args) {
+        return fn.call(this, path, serialize, deserialize, ...args);
+    };
+}
+function isProtobufTypeDefinition(obj) {
+    return 'format' in obj;
+}
+/**
+ * Load a gRPC package definition as a gRPC object hierarchy.
+ * @param packageDef The package definition object.
+ * @return The resulting gRPC object.
+ */
+function loadPackageDefinition(packageDef) {
+    const result = {};
+    for (const serviceFqn in packageDef) {
+        if (Object.prototype.hasOwnProperty.call(packageDef, serviceFqn)) {
+            const service = packageDef[serviceFqn];
+            const nameComponents = serviceFqn.split('.');
+            if (nameComponents.some((comp) => isPrototypePolluted(comp))) {
+                continue;
+            }
+            const serviceName = nameComponents[nameComponents.length - 1];
+            let current = result;
+            for (const packageName of nameComponents.slice(0, -1)) {
+                if (!current[packageName]) {
+                    current[packageName] = {};
+                }
+                current = current[packageName];
+            }
+            if (isProtobufTypeDefinition(service)) {
+                current[serviceName] = service;
+            }
+            else {
+                current[serviceName] = makeClientConstructor(service, serviceName);
+            }
+        }
+    }
+    return result;
+}
+exports.loadPackageDefinition = loadPackageDefinition;
+
+});
+
+/**
+ * lodash (Custom Build) <https://lodash.com/>
+ * Build: `lodash modularize exports="npm" -o ./`
+ * Copyright jQuery Foundation and other contributors <https://jquery.org/>
+ * Released under MIT license <https://lodash.com/license>
+ * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+ * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ */
+
+/** Used as references for various `Number` constants. */
+var INFINITY = 1 / 0;
+
+/** `Object#toString` result references. */
+var symbolTag = '[object Symbol]';
+
+/** Used to match words composed of alphanumeric characters. */
+var reAsciiWord = /[^\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]+/g;
+
+/** Used to match Latin Unicode letters (excluding mathematical operators). */
+var reLatin = /[\xc0-\xd6\xd8-\xf6\xf8-\xff\u0100-\u017f]/g;
+
+/** Used to compose unicode character classes. */
+var rsAstralRange = '\\ud800-\\udfff',
+    rsComboMarksRange = '\\u0300-\\u036f\\ufe20-\\ufe23',
+    rsComboSymbolsRange = '\\u20d0-\\u20f0',
+    rsDingbatRange = '\\u2700-\\u27bf',
+    rsLowerRange = 'a-z\\xdf-\\xf6\\xf8-\\xff',
+    rsMathOpRange = '\\xac\\xb1\\xd7\\xf7',
+    rsNonCharRange = '\\x00-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\xbf',
+    rsPunctuationRange = '\\u2000-\\u206f',
+    rsSpaceRange = ' \\t\\x0b\\f\\xa0\\ufeff\\n\\r\\u2028\\u2029\\u1680\\u180e\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u202f\\u205f\\u3000',
+    rsUpperRange = 'A-Z\\xc0-\\xd6\\xd8-\\xde',
+    rsVarRange = '\\ufe0e\\ufe0f',
+    rsBreakRange = rsMathOpRange + rsNonCharRange + rsPunctuationRange + rsSpaceRange;
+
+/** Used to compose unicode capture groups. */
+var rsApos = "['\u2019]",
+    rsAstral = '[' + rsAstralRange + ']',
+    rsBreak = '[' + rsBreakRange + ']',
+    rsCombo = '[' + rsComboMarksRange + rsComboSymbolsRange + ']',
+    rsDigits = '\\d+',
+    rsDingbat = '[' + rsDingbatRange + ']',
+    rsLower = '[' + rsLowerRange + ']',
+    rsMisc = '[^' + rsAstralRange + rsBreakRange + rsDigits + rsDingbatRange + rsLowerRange + rsUpperRange + ']',
+    rsFitz = '\\ud83c[\\udffb-\\udfff]',
+    rsModifier = '(?:' + rsCombo + '|' + rsFitz + ')',
+    rsNonAstral = '[^' + rsAstralRange + ']',
+    rsRegional = '(?:\\ud83c[\\udde6-\\uddff]){2}',
+    rsSurrPair = '[\\ud800-\\udbff][\\udc00-\\udfff]',
+    rsUpper = '[' + rsUpperRange + ']',
+    rsZWJ = '\\u200d';
+
+/** Used to compose unicode regexes. */
+var rsLowerMisc = '(?:' + rsLower + '|' + rsMisc + ')',
+    rsUpperMisc = '(?:' + rsUpper + '|' + rsMisc + ')',
+    rsOptLowerContr = '(?:' + rsApos + '(?:d|ll|m|re|s|t|ve))?',
+    rsOptUpperContr = '(?:' + rsApos + '(?:D|LL|M|RE|S|T|VE))?',
+    reOptMod = rsModifier + '?',
+    rsOptVar = '[' + rsVarRange + ']?',
+    rsOptJoin = '(?:' + rsZWJ + '(?:' + [rsNonAstral, rsRegional, rsSurrPair].join('|') + ')' + rsOptVar + reOptMod + ')*',
+    rsSeq = rsOptVar + reOptMod + rsOptJoin,
+    rsEmoji = '(?:' + [rsDingbat, rsRegional, rsSurrPair].join('|') + ')' + rsSeq,
+    rsSymbol = '(?:' + [rsNonAstral + rsCombo + '?', rsCombo, rsRegional, rsSurrPair, rsAstral].join('|') + ')';
+
+/** Used to match apostrophes. */
+var reApos = RegExp(rsApos, 'g');
+
+/**
+ * Used to match [combining diacritical marks](https://en.wikipedia.org/wiki/Combining_Diacritical_Marks) and
+ * [combining diacritical marks for symbols](https://en.wikipedia.org/wiki/Combining_Diacritical_Marks_for_Symbols).
+ */
+var reComboMark = RegExp(rsCombo, 'g');
+
+/** Used to match [string symbols](https://mathiasbynens.be/notes/javascript-unicode). */
+var reUnicode = RegExp(rsFitz + '(?=' + rsFitz + ')|' + rsSymbol + rsSeq, 'g');
+
+/** Used to match complex or compound words. */
+var reUnicodeWord = RegExp([
+  rsUpper + '?' + rsLower + '+' + rsOptLowerContr + '(?=' + [rsBreak, rsUpper, '$'].join('|') + ')',
+  rsUpperMisc + '+' + rsOptUpperContr + '(?=' + [rsBreak, rsUpper + rsLowerMisc, '$'].join('|') + ')',
+  rsUpper + '?' + rsLowerMisc + '+' + rsOptLowerContr,
+  rsUpper + '+' + rsOptUpperContr,
+  rsDigits,
+  rsEmoji
+].join('|'), 'g');
+
+/** Used to detect strings with [zero-width joiners or code points from the astral planes](http://eev.ee/blog/2015/09/12/dark-corners-of-unicode/). */
+var reHasUnicode = RegExp('[' + rsZWJ + rsAstralRange  + rsComboMarksRange + rsComboSymbolsRange + rsVarRange + ']');
+
+/** Used to detect strings that need a more robust regexp to match words. */
+var reHasUnicodeWord = /[a-z][A-Z]|[A-Z]{2,}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/;
+
+/** Used to map Latin Unicode letters to basic Latin letters. */
+var deburredLetters = {
+  // Latin-1 Supplement block.
+  '\xc0': 'A',  '\xc1': 'A', '\xc2': 'A', '\xc3': 'A', '\xc4': 'A', '\xc5': 'A',
+  '\xe0': 'a',  '\xe1': 'a', '\xe2': 'a', '\xe3': 'a', '\xe4': 'a', '\xe5': 'a',
+  '\xc7': 'C',  '\xe7': 'c',
+  '\xd0': 'D',  '\xf0': 'd',
+  '\xc8': 'E',  '\xc9': 'E', '\xca': 'E', '\xcb': 'E',
+  '\xe8': 'e',  '\xe9': 'e', '\xea': 'e', '\xeb': 'e',
+  '\xcc': 'I',  '\xcd': 'I', '\xce': 'I', '\xcf': 'I',
+  '\xec': 'i',  '\xed': 'i', '\xee': 'i', '\xef': 'i',
+  '\xd1': 'N',  '\xf1': 'n',
+  '\xd2': 'O',  '\xd3': 'O', '\xd4': 'O', '\xd5': 'O', '\xd6': 'O', '\xd8': 'O',
+  '\xf2': 'o',  '\xf3': 'o', '\xf4': 'o', '\xf5': 'o', '\xf6': 'o', '\xf8': 'o',
+  '\xd9': 'U',  '\xda': 'U', '\xdb': 'U', '\xdc': 'U',
+  '\xf9': 'u',  '\xfa': 'u', '\xfb': 'u', '\xfc': 'u',
+  '\xdd': 'Y',  '\xfd': 'y', '\xff': 'y',
+  '\xc6': 'Ae', '\xe6': 'ae',
+  '\xde': 'Th', '\xfe': 'th',
+  '\xdf': 'ss',
+  // Latin Extended-A block.
+  '\u0100': 'A',  '\u0102': 'A', '\u0104': 'A',
+  '\u0101': 'a',  '\u0103': 'a', '\u0105': 'a',
+  '\u0106': 'C',  '\u0108': 'C', '\u010a': 'C', '\u010c': 'C',
+  '\u0107': 'c',  '\u0109': 'c', '\u010b': 'c', '\u010d': 'c',
+  '\u010e': 'D',  '\u0110': 'D', '\u010f': 'd', '\u0111': 'd',
+  '\u0112': 'E',  '\u0114': 'E', '\u0116': 'E', '\u0118': 'E', '\u011a': 'E',
+  '\u0113': 'e',  '\u0115': 'e', '\u0117': 'e', '\u0119': 'e', '\u011b': 'e',
+  '\u011c': 'G',  '\u011e': 'G', '\u0120': 'G', '\u0122': 'G',
+  '\u011d': 'g',  '\u011f': 'g', '\u0121': 'g', '\u0123': 'g',
+  '\u0124': 'H',  '\u0126': 'H', '\u0125': 'h', '\u0127': 'h',
+  '\u0128': 'I',  '\u012a': 'I', '\u012c': 'I', '\u012e': 'I', '\u0130': 'I',
+  '\u0129': 'i',  '\u012b': 'i', '\u012d': 'i', '\u012f': 'i', '\u0131': 'i',
+  '\u0134': 'J',  '\u0135': 'j',
+  '\u0136': 'K',  '\u0137': 'k', '\u0138': 'k',
+  '\u0139': 'L',  '\u013b': 'L', '\u013d': 'L', '\u013f': 'L', '\u0141': 'L',
+  '\u013a': 'l',  '\u013c': 'l', '\u013e': 'l', '\u0140': 'l', '\u0142': 'l',
+  '\u0143': 'N',  '\u0145': 'N', '\u0147': 'N', '\u014a': 'N',
+  '\u0144': 'n',  '\u0146': 'n', '\u0148': 'n', '\u014b': 'n',
+  '\u014c': 'O',  '\u014e': 'O', '\u0150': 'O',
+  '\u014d': 'o',  '\u014f': 'o', '\u0151': 'o',
+  '\u0154': 'R',  '\u0156': 'R', '\u0158': 'R',
+  '\u0155': 'r',  '\u0157': 'r', '\u0159': 'r',
+  '\u015a': 'S',  '\u015c': 'S', '\u015e': 'S', '\u0160': 'S',
+  '\u015b': 's',  '\u015d': 's', '\u015f': 's', '\u0161': 's',
+  '\u0162': 'T',  '\u0164': 'T', '\u0166': 'T',
+  '\u0163': 't',  '\u0165': 't', '\u0167': 't',
+  '\u0168': 'U',  '\u016a': 'U', '\u016c': 'U', '\u016e': 'U', '\u0170': 'U', '\u0172': 'U',
+  '\u0169': 'u',  '\u016b': 'u', '\u016d': 'u', '\u016f': 'u', '\u0171': 'u', '\u0173': 'u',
+  '\u0174': 'W',  '\u0175': 'w',
+  '\u0176': 'Y',  '\u0177': 'y', '\u0178': 'Y',
+  '\u0179': 'Z',  '\u017b': 'Z', '\u017d': 'Z',
+  '\u017a': 'z',  '\u017c': 'z', '\u017e': 'z',
+  '\u0132': 'IJ', '\u0133': 'ij',
+  '\u0152': 'Oe', '\u0153': 'oe',
+  '\u0149': "'n", '\u017f': 'ss'
+};
+
+/** Detect free variable `global` from Node.js. */
+var freeGlobal = typeof commonjsGlobal == 'object' && commonjsGlobal && commonjsGlobal.Object === Object && commonjsGlobal;
+
+/** Detect free variable `self`. */
+var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
+
+/** Used as a reference to the global object. */
+var root$1 = freeGlobal || freeSelf || Function('return this')();
+
+/**
+ * A specialized version of `_.reduce` for arrays without support for
+ * iteratee shorthands.
+ *
+ * @private
+ * @param {Array} [array] The array to iterate over.
+ * @param {Function} iteratee The function invoked per iteration.
+ * @param {*} [accumulator] The initial value.
+ * @param {boolean} [initAccum] Specify using the first element of `array` as
+ *  the initial value.
+ * @returns {*} Returns the accumulated value.
+ */
+function arrayReduce(array, iteratee, accumulator, initAccum) {
+  var index = -1,
+      length = array ? array.length : 0;
+
+  if (initAccum && length) {
+    accumulator = array[++index];
+  }
+  while (++index < length) {
+    accumulator = iteratee(accumulator, array[index], index, array);
+  }
+  return accumulator;
+}
+
+/**
+ * Converts an ASCII `string` to an array.
+ *
+ * @private
+ * @param {string} string The string to convert.
+ * @returns {Array} Returns the converted array.
+ */
+function asciiToArray(string) {
+  return string.split('');
+}
+
+/**
+ * Splits an ASCII `string` into an array of its words.
+ *
+ * @private
+ * @param {string} The string to inspect.
+ * @returns {Array} Returns the words of `string`.
+ */
+function asciiWords(string) {
+  return string.match(reAsciiWord) || [];
+}
+
+/**
+ * The base implementation of `_.propertyOf` without support for deep paths.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @returns {Function} Returns the new accessor function.
+ */
+function basePropertyOf(object) {
+  return function(key) {
+    return object == null ? undefined : object[key];
+  };
+}
+
+/**
+ * Used by `_.deburr` to convert Latin-1 Supplement and Latin Extended-A
+ * letters to basic Latin letters.
+ *
+ * @private
+ * @param {string} letter The matched letter to deburr.
+ * @returns {string} Returns the deburred letter.
+ */
+var deburrLetter = basePropertyOf(deburredLetters);
+
+/**
+ * Checks if `string` contains Unicode symbols.
+ *
+ * @private
+ * @param {string} string The string to inspect.
+ * @returns {boolean} Returns `true` if a symbol is found, else `false`.
+ */
+function hasUnicode(string) {
+  return reHasUnicode.test(string);
+}
+
+/**
+ * Checks if `string` contains a word composed of Unicode symbols.
+ *
+ * @private
+ * @param {string} string The string to inspect.
+ * @returns {boolean} Returns `true` if a word is found, else `false`.
+ */
+function hasUnicodeWord(string) {
+  return reHasUnicodeWord.test(string);
+}
+
+/**
+ * Converts `string` to an array.
+ *
+ * @private
+ * @param {string} string The string to convert.
+ * @returns {Array} Returns the converted array.
+ */
+function stringToArray(string) {
+  return hasUnicode(string)
+    ? unicodeToArray(string)
+    : asciiToArray(string);
+}
+
+/**
+ * Converts a Unicode `string` to an array.
+ *
+ * @private
+ * @param {string} string The string to convert.
+ * @returns {Array} Returns the converted array.
+ */
+function unicodeToArray(string) {
+  return string.match(reUnicode) || [];
+}
+
+/**
+ * Splits a Unicode `string` into an array of its words.
+ *
+ * @private
+ * @param {string} The string to inspect.
+ * @returns {Array} Returns the words of `string`.
+ */
+function unicodeWords(string) {
+  return string.match(reUnicodeWord) || [];
+}
+
+/** Used for built-in method references. */
+var objectProto = Object.prototype;
+
+/**
+ * Used to resolve the
+ * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var objectToString = objectProto.toString;
+
+/** Built-in value references. */
+var Symbol$1 = root$1.Symbol;
+
+/** Used to convert symbols to primitives and strings. */
+var symbolProto = Symbol$1 ? Symbol$1.prototype : undefined,
+    symbolToString = symbolProto ? symbolProto.toString : undefined;
+
+/**
+ * The base implementation of `_.slice` without an iteratee call guard.
+ *
+ * @private
+ * @param {Array} array The array to slice.
+ * @param {number} [start=0] The start position.
+ * @param {number} [end=array.length] The end position.
+ * @returns {Array} Returns the slice of `array`.
+ */
+function baseSlice(array, start, end) {
+  var index = -1,
+      length = array.length;
+
+  if (start < 0) {
+    start = -start > length ? 0 : (length + start);
+  }
+  end = end > length ? length : end;
+  if (end < 0) {
+    end += length;
+  }
+  length = start > end ? 0 : ((end - start) >>> 0);
+  start >>>= 0;
+
+  var result = Array(length);
+  while (++index < length) {
+    result[index] = array[index + start];
+  }
+  return result;
+}
+
+/**
+ * The base implementation of `_.toString` which doesn't convert nullish
+ * values to empty strings.
+ *
+ * @private
+ * @param {*} value The value to process.
+ * @returns {string} Returns the string.
+ */
+function baseToString(value) {
+  // Exit early for strings to avoid a performance hit in some environments.
+  if (typeof value == 'string') {
+    return value;
+  }
+  if (isSymbol(value)) {
+    return symbolToString ? symbolToString.call(value) : '';
+  }
+  var result = (value + '');
+  return (result == '0' && (1 / value) == -INFINITY) ? '-0' : result;
+}
+
+/**
+ * Casts `array` to a slice if it's needed.
+ *
+ * @private
+ * @param {Array} array The array to inspect.
+ * @param {number} start The start position.
+ * @param {number} [end=array.length] The end position.
+ * @returns {Array} Returns the cast slice.
+ */
+function castSlice(array, start, end) {
+  var length = array.length;
+  end = end === undefined ? length : end;
+  return (!start && end >= length) ? array : baseSlice(array, start, end);
+}
+
+/**
+ * Creates a function like `_.lowerFirst`.
+ *
+ * @private
+ * @param {string} methodName The name of the `String` case method to use.
+ * @returns {Function} Returns the new case function.
+ */
+function createCaseFirst(methodName) {
+  return function(string) {
+    string = toString(string);
+
+    var strSymbols = hasUnicode(string)
+      ? stringToArray(string)
+      : undefined;
+
+    var chr = strSymbols
+      ? strSymbols[0]
+      : string.charAt(0);
+
+    var trailing = strSymbols
+      ? castSlice(strSymbols, 1).join('')
+      : string.slice(1);
+
+    return chr[methodName]() + trailing;
+  };
+}
+
+/**
+ * Creates a function like `_.camelCase`.
+ *
+ * @private
+ * @param {Function} callback The function to combine each word.
+ * @returns {Function} Returns the new compounder function.
+ */
+function createCompounder(callback) {
+  return function(string) {
+    return arrayReduce(words(deburr(string).replace(reApos, '')), callback, '');
+  };
+}
+
+/**
+ * Checks if `value` is object-like. A value is object-like if it's not `null`
+ * and has a `typeof` result of "object".
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
+ * @example
+ *
+ * _.isObjectLike({});
+ * // => true
+ *
+ * _.isObjectLike([1, 2, 3]);
+ * // => true
+ *
+ * _.isObjectLike(_.noop);
+ * // => false
+ *
+ * _.isObjectLike(null);
+ * // => false
+ */
+function isObjectLike(value) {
+  return !!value && typeof value == 'object';
+}
+
+/**
+ * Checks if `value` is classified as a `Symbol` primitive or object.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a symbol, else `false`.
+ * @example
+ *
+ * _.isSymbol(Symbol.iterator);
+ * // => true
+ *
+ * _.isSymbol('abc');
+ * // => false
+ */
+function isSymbol(value) {
+  return typeof value == 'symbol' ||
+    (isObjectLike(value) && objectToString.call(value) == symbolTag);
+}
+
+/**
+ * Converts `value` to a string. An empty string is returned for `null`
+ * and `undefined` values. The sign of `-0` is preserved.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to process.
+ * @returns {string} Returns the string.
+ * @example
+ *
+ * _.toString(null);
+ * // => ''
+ *
+ * _.toString(-0);
+ * // => '-0'
+ *
+ * _.toString([1, 2, 3]);
+ * // => '1,2,3'
+ */
+function toString(value) {
+  return value == null ? '' : baseToString(value);
+}
+
+/**
+ * Converts `string` to [camel case](https://en.wikipedia.org/wiki/CamelCase).
+ *
+ * @static
+ * @memberOf _
+ * @since 3.0.0
+ * @category String
+ * @param {string} [string=''] The string to convert.
+ * @returns {string} Returns the camel cased string.
+ * @example
+ *
+ * _.camelCase('Foo Bar');
+ * // => 'fooBar'
+ *
+ * _.camelCase('--foo-bar--');
+ * // => 'fooBar'
+ *
+ * _.camelCase('__FOO_BAR__');
+ * // => 'fooBar'
+ */
+var camelCase = createCompounder(function(result, word, index) {
+  word = word.toLowerCase();
+  return result + (index ? capitalize(word) : word);
+});
+
+/**
+ * Converts the first character of `string` to upper case and the remaining
+ * to lower case.
+ *
+ * @static
+ * @memberOf _
+ * @since 3.0.0
+ * @category String
+ * @param {string} [string=''] The string to capitalize.
+ * @returns {string} Returns the capitalized string.
+ * @example
+ *
+ * _.capitalize('FRED');
+ * // => 'Fred'
+ */
+function capitalize(string) {
+  return upperFirst(toString(string).toLowerCase());
+}
+
+/**
+ * Deburrs `string` by converting
+ * [Latin-1 Supplement](https://en.wikipedia.org/wiki/Latin-1_Supplement_(Unicode_block)#Character_table)
+ * and [Latin Extended-A](https://en.wikipedia.org/wiki/Latin_Extended-A)
+ * letters to basic Latin letters and removing
+ * [combining diacritical marks](https://en.wikipedia.org/wiki/Combining_Diacritical_Marks).
+ *
+ * @static
+ * @memberOf _
+ * @since 3.0.0
+ * @category String
+ * @param {string} [string=''] The string to deburr.
+ * @returns {string} Returns the deburred string.
+ * @example
+ *
+ * _.deburr('déjà vu');
+ * // => 'deja vu'
+ */
+function deburr(string) {
+  string = toString(string);
+  return string && string.replace(reLatin, deburrLetter).replace(reComboMark, '');
+}
+
+/**
+ * Converts the first character of `string` to upper case.
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category String
+ * @param {string} [string=''] The string to convert.
+ * @returns {string} Returns the converted string.
+ * @example
+ *
+ * _.upperFirst('fred');
+ * // => 'Fred'
+ *
+ * _.upperFirst('FRED');
+ * // => 'FRED'
+ */
+var upperFirst = createCaseFirst('toUpperCase');
+
+/**
+ * Splits `string` into an array of its words.
+ *
+ * @static
+ * @memberOf _
+ * @since 3.0.0
+ * @category String
+ * @param {string} [string=''] The string to inspect.
+ * @param {RegExp|string} [pattern] The pattern to match words.
+ * @param- {Object} [guard] Enables use as an iteratee for methods like `_.map`.
+ * @returns {Array} Returns the words of `string`.
+ * @example
+ *
+ * _.words('fred, barney, & pebbles');
+ * // => ['fred', 'barney', 'pebbles']
+ *
+ * _.words('fred, barney, & pebbles', /[^, ]+/g);
+ * // => ['fred', 'barney', '&', 'pebbles']
+ */
+function words(string, pattern, guard) {
+  string = toString(string);
+  pattern = guard ? undefined : pattern;
+
+  if (pattern === undefined) {
+    return hasUnicodeWord(string) ? unicodeWords(string) : asciiWords(string);
+  }
+  return string.match(pattern) || [];
+}
+
+var lodash_camelcase = camelCase;
+
+var aspromise = asPromise;
+
+/**
+ * Callback as used by {@link util.asPromise}.
+ * @typedef asPromiseCallback
+ * @type {function}
+ * @param {Error|null} error Error, if any
+ * @param {...*} params Additional arguments
+ * @returns {undefined}
+ */
+
+/**
+ * Returns a promise from a node-style callback function.
+ * @memberof util
+ * @param {asPromiseCallback} fn Function to call
+ * @param {*} ctx Function context
+ * @param {...*} params Function arguments
+ * @returns {Promise<*>} Promisified function
+ */
+function asPromise(fn, ctx/*, varargs */) {
+    var params  = new Array(arguments.length - 1),
+        offset  = 0,
+        index   = 2,
+        pending = true;
+    while (index < arguments.length)
+        params[offset++] = arguments[index++];
+    return new Promise(function executor(resolve, reject) {
+        params[offset] = function callback(err/*, varargs */) {
+            if (pending) {
+                pending = false;
+                if (err)
+                    reject(err);
+                else {
+                    var params = new Array(arguments.length - 1),
+                        offset = 0;
+                    while (offset < params.length)
+                        params[offset++] = arguments[offset];
+                    resolve.apply(null, params);
+                }
+            }
+        };
+        try {
+            fn.apply(ctx || null, params);
+        } catch (err) {
+            if (pending) {
+                pending = false;
+                reject(err);
+            }
+        }
+    });
+}
+
+var base64_1 = createCommonjsModule(function (module, exports) {
+
+/**
+ * A minimal base64 implementation for number arrays.
+ * @memberof util
+ * @namespace
+ */
+var base64 = exports;
+
+/**
+ * Calculates the byte length of a base64 encoded string.
+ * @param {string} string Base64 encoded string
+ * @returns {number} Byte length
+ */
+base64.length = function length(string) {
+    var p = string.length;
+    if (!p)
+        return 0;
+    var n = 0;
+    while (--p % 4 > 1 && string.charAt(p) === "=")
+        ++n;
+    return Math.ceil(string.length * 3) / 4 - n;
+};
+
+// Base64 encoding table
+var b64 = new Array(64);
+
+// Base64 decoding table
+var s64 = new Array(123);
+
+// 65..90, 97..122, 48..57, 43, 47
+for (var i = 0; i < 64;)
+    s64[b64[i] = i < 26 ? i + 65 : i < 52 ? i + 71 : i < 62 ? i - 4 : i - 59 | 43] = i++;
+
+/**
+ * Encodes a buffer to a base64 encoded string.
+ * @param {Uint8Array} buffer Source buffer
+ * @param {number} start Source start
+ * @param {number} end Source end
+ * @returns {string} Base64 encoded string
+ */
+base64.encode = function encode(buffer, start, end) {
+    var parts = null,
+        chunk = [];
+    var i = 0, // output index
+        j = 0, // goto index
+        t;     // temporary
+    while (start < end) {
+        var b = buffer[start++];
+        switch (j) {
+            case 0:
+                chunk[i++] = b64[b >> 2];
+                t = (b & 3) << 4;
+                j = 1;
+                break;
+            case 1:
+                chunk[i++] = b64[t | b >> 4];
+                t = (b & 15) << 2;
+                j = 2;
+                break;
+            case 2:
+                chunk[i++] = b64[t | b >> 6];
+                chunk[i++] = b64[b & 63];
+                j = 0;
+                break;
+        }
+        if (i > 8191) {
+            (parts || (parts = [])).push(String.fromCharCode.apply(String, chunk));
+            i = 0;
+        }
+    }
+    if (j) {
+        chunk[i++] = b64[t];
+        chunk[i++] = 61;
+        if (j === 1)
+            chunk[i++] = 61;
+    }
+    if (parts) {
+        if (i)
+            parts.push(String.fromCharCode.apply(String, chunk.slice(0, i)));
+        return parts.join("");
+    }
+    return String.fromCharCode.apply(String, chunk.slice(0, i));
+};
+
+var invalidEncoding = "invalid encoding";
+
+/**
+ * Decodes a base64 encoded string to a buffer.
+ * @param {string} string Source string
+ * @param {Uint8Array} buffer Destination buffer
+ * @param {number} offset Destination offset
+ * @returns {number} Number of bytes written
+ * @throws {Error} If encoding is invalid
+ */
+base64.decode = function decode(string, buffer, offset) {
+    var start = offset;
+    var j = 0, // goto index
+        t;     // temporary
+    for (var i = 0; i < string.length;) {
+        var c = string.charCodeAt(i++);
+        if (c === 61 && j > 1)
+            break;
+        if ((c = s64[c]) === undefined)
+            throw Error(invalidEncoding);
+        switch (j) {
+            case 0:
+                t = c;
+                j = 1;
+                break;
+            case 1:
+                buffer[offset++] = t << 2 | (c & 48) >> 4;
+                t = c;
+                j = 2;
+                break;
+            case 2:
+                buffer[offset++] = (t & 15) << 4 | (c & 60) >> 2;
+                t = c;
+                j = 3;
+                break;
+            case 3:
+                buffer[offset++] = (t & 3) << 6 | c;
+                j = 0;
+                break;
+        }
+    }
+    if (j === 1)
+        throw Error(invalidEncoding);
+    return offset - start;
+};
+
+/**
+ * Tests if the specified string appears to be base64 encoded.
+ * @param {string} string String to test
+ * @returns {boolean} `true` if probably base64 encoded, otherwise false
+ */
+base64.test = function test(string) {
+    return /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(string);
+};
+});
+
+var eventemitter = EventEmitter;
+
+/**
+ * Constructs a new event emitter instance.
+ * @classdesc A minimal event emitter.
+ * @memberof util
+ * @constructor
+ */
+function EventEmitter() {
+
+    /**
+     * Registered listeners.
+     * @type {Object.<string,*>}
+     * @private
+     */
+    this._listeners = {};
+}
+
+/**
+ * Registers an event listener.
+ * @param {string} evt Event name
+ * @param {function} fn Listener
+ * @param {*} [ctx] Listener context
+ * @returns {util.EventEmitter} `this`
+ */
+EventEmitter.prototype.on = function on(evt, fn, ctx) {
+    (this._listeners[evt] || (this._listeners[evt] = [])).push({
+        fn  : fn,
+        ctx : ctx || this
+    });
+    return this;
+};
+
+/**
+ * Removes an event listener or any matching listeners if arguments are omitted.
+ * @param {string} [evt] Event name. Removes all listeners if omitted.
+ * @param {function} [fn] Listener to remove. Removes all listeners of `evt` if omitted.
+ * @returns {util.EventEmitter} `this`
+ */
+EventEmitter.prototype.off = function off(evt, fn) {
+    if (evt === undefined)
+        this._listeners = {};
+    else {
+        if (fn === undefined)
+            this._listeners[evt] = [];
+        else {
+            var listeners = this._listeners[evt];
+            for (var i = 0; i < listeners.length;)
+                if (listeners[i].fn === fn)
+                    listeners.splice(i, 1);
+                else
+                    ++i;
+        }
+    }
+    return this;
+};
+
+/**
+ * Emits an event by calling its listeners with the specified arguments.
+ * @param {string} evt Event name
+ * @param {...*} args Arguments
+ * @returns {util.EventEmitter} `this`
+ */
+EventEmitter.prototype.emit = function emit(evt) {
+    var listeners = this._listeners[evt];
+    if (listeners) {
+        var args = [],
+            i = 1;
+        for (; i < arguments.length;)
+            args.push(arguments[i++]);
+        for (i = 0; i < listeners.length;)
+            listeners[i].fn.apply(listeners[i++].ctx, args);
+    }
+    return this;
+};
+
+var float = factory(factory);
+
+/**
+ * Reads / writes floats / doubles from / to buffers.
+ * @name util.float
+ * @namespace
+ */
+
+/**
+ * Writes a 32 bit float to a buffer using little endian byte order.
+ * @name util.float.writeFloatLE
+ * @function
+ * @param {number} val Value to write
+ * @param {Uint8Array} buf Target buffer
+ * @param {number} pos Target buffer offset
+ * @returns {undefined}
+ */
+
+/**
+ * Writes a 32 bit float to a buffer using big endian byte order.
+ * @name util.float.writeFloatBE
+ * @function
+ * @param {number} val Value to write
+ * @param {Uint8Array} buf Target buffer
+ * @param {number} pos Target buffer offset
+ * @returns {undefined}
+ */
+
+/**
+ * Reads a 32 bit float from a buffer using little endian byte order.
+ * @name util.float.readFloatLE
+ * @function
+ * @param {Uint8Array} buf Source buffer
+ * @param {number} pos Source buffer offset
+ * @returns {number} Value read
+ */
+
+/**
+ * Reads a 32 bit float from a buffer using big endian byte order.
+ * @name util.float.readFloatBE
+ * @function
+ * @param {Uint8Array} buf Source buffer
+ * @param {number} pos Source buffer offset
+ * @returns {number} Value read
+ */
+
+/**
+ * Writes a 64 bit double to a buffer using little endian byte order.
+ * @name util.float.writeDoubleLE
+ * @function
+ * @param {number} val Value to write
+ * @param {Uint8Array} buf Target buffer
+ * @param {number} pos Target buffer offset
+ * @returns {undefined}
+ */
+
+/**
+ * Writes a 64 bit double to a buffer using big endian byte order.
+ * @name util.float.writeDoubleBE
+ * @function
+ * @param {number} val Value to write
+ * @param {Uint8Array} buf Target buffer
+ * @param {number} pos Target buffer offset
+ * @returns {undefined}
+ */
+
+/**
+ * Reads a 64 bit double from a buffer using little endian byte order.
+ * @name util.float.readDoubleLE
+ * @function
+ * @param {Uint8Array} buf Source buffer
+ * @param {number} pos Source buffer offset
+ * @returns {number} Value read
+ */
+
+/**
+ * Reads a 64 bit double from a buffer using big endian byte order.
+ * @name util.float.readDoubleBE
+ * @function
+ * @param {Uint8Array} buf Source buffer
+ * @param {number} pos Source buffer offset
+ * @returns {number} Value read
+ */
+
+// Factory function for the purpose of node-based testing in modified global environments
+function factory(exports) {
+
+    // float: typed array
+    if (typeof Float32Array !== "undefined") (function() {
+
+        var f32 = new Float32Array([ -0 ]),
+            f8b = new Uint8Array(f32.buffer),
+            le  = f8b[3] === 128;
+
+        function writeFloat_f32_cpy(val, buf, pos) {
+            f32[0] = val;
+            buf[pos    ] = f8b[0];
+            buf[pos + 1] = f8b[1];
+            buf[pos + 2] = f8b[2];
+            buf[pos + 3] = f8b[3];
+        }
+
+        function writeFloat_f32_rev(val, buf, pos) {
+            f32[0] = val;
+            buf[pos    ] = f8b[3];
+            buf[pos + 1] = f8b[2];
+            buf[pos + 2] = f8b[1];
+            buf[pos + 3] = f8b[0];
+        }
+
+        /* istanbul ignore next */
+        exports.writeFloatLE = le ? writeFloat_f32_cpy : writeFloat_f32_rev;
+        /* istanbul ignore next */
+        exports.writeFloatBE = le ? writeFloat_f32_rev : writeFloat_f32_cpy;
+
+        function readFloat_f32_cpy(buf, pos) {
+            f8b[0] = buf[pos    ];
+            f8b[1] = buf[pos + 1];
+            f8b[2] = buf[pos + 2];
+            f8b[3] = buf[pos + 3];
+            return f32[0];
+        }
+
+        function readFloat_f32_rev(buf, pos) {
+            f8b[3] = buf[pos    ];
+            f8b[2] = buf[pos + 1];
+            f8b[1] = buf[pos + 2];
+            f8b[0] = buf[pos + 3];
+            return f32[0];
+        }
+
+        /* istanbul ignore next */
+        exports.readFloatLE = le ? readFloat_f32_cpy : readFloat_f32_rev;
+        /* istanbul ignore next */
+        exports.readFloatBE = le ? readFloat_f32_rev : readFloat_f32_cpy;
+
+    // float: ieee754
+    })(); else (function() {
+
+        function writeFloat_ieee754(writeUint, val, buf, pos) {
+            var sign = val < 0 ? 1 : 0;
+            if (sign)
+                val = -val;
+            if (val === 0)
+                writeUint(1 / val > 0 ? /* positive */ 0 : /* negative 0 */ 2147483648, buf, pos);
+            else if (isNaN(val))
+                writeUint(2143289344, buf, pos);
+            else if (val > 3.4028234663852886e+38) // +-Infinity
+                writeUint((sign << 31 | 2139095040) >>> 0, buf, pos);
+            else if (val < 1.1754943508222875e-38) // denormal
+                writeUint((sign << 31 | Math.round(val / 1.401298464324817e-45)) >>> 0, buf, pos);
+            else {
+                var exponent = Math.floor(Math.log(val) / Math.LN2),
+                    mantissa = Math.round(val * Math.pow(2, -exponent) * 8388608) & 8388607;
+                writeUint((sign << 31 | exponent + 127 << 23 | mantissa) >>> 0, buf, pos);
+            }
+        }
+
+        exports.writeFloatLE = writeFloat_ieee754.bind(null, writeUintLE);
+        exports.writeFloatBE = writeFloat_ieee754.bind(null, writeUintBE);
+
+        function readFloat_ieee754(readUint, buf, pos) {
+            var uint = readUint(buf, pos),
+                sign = (uint >> 31) * 2 + 1,
+                exponent = uint >>> 23 & 255,
+                mantissa = uint & 8388607;
+            return exponent === 255
+                ? mantissa
+                ? NaN
+                : sign * Infinity
+                : exponent === 0 // denormal
+                ? sign * 1.401298464324817e-45 * mantissa
+                : sign * Math.pow(2, exponent - 150) * (mantissa + 8388608);
+        }
+
+        exports.readFloatLE = readFloat_ieee754.bind(null, readUintLE);
+        exports.readFloatBE = readFloat_ieee754.bind(null, readUintBE);
+
+    })();
+
+    // double: typed array
+    if (typeof Float64Array !== "undefined") (function() {
+
+        var f64 = new Float64Array([-0]),
+            f8b = new Uint8Array(f64.buffer),
+            le  = f8b[7] === 128;
+
+        function writeDouble_f64_cpy(val, buf, pos) {
+            f64[0] = val;
+            buf[pos    ] = f8b[0];
+            buf[pos + 1] = f8b[1];
+            buf[pos + 2] = f8b[2];
+            buf[pos + 3] = f8b[3];
+            buf[pos + 4] = f8b[4];
+            buf[pos + 5] = f8b[5];
+            buf[pos + 6] = f8b[6];
+            buf[pos + 7] = f8b[7];
+        }
+
+        function writeDouble_f64_rev(val, buf, pos) {
+            f64[0] = val;
+            buf[pos    ] = f8b[7];
+            buf[pos + 1] = f8b[6];
+            buf[pos + 2] = f8b[5];
+            buf[pos + 3] = f8b[4];
+            buf[pos + 4] = f8b[3];
+            buf[pos + 5] = f8b[2];
+            buf[pos + 6] = f8b[1];
+            buf[pos + 7] = f8b[0];
+        }
+
+        /* istanbul ignore next */
+        exports.writeDoubleLE = le ? writeDouble_f64_cpy : writeDouble_f64_rev;
+        /* istanbul ignore next */
+        exports.writeDoubleBE = le ? writeDouble_f64_rev : writeDouble_f64_cpy;
+
+        function readDouble_f64_cpy(buf, pos) {
+            f8b[0] = buf[pos    ];
+            f8b[1] = buf[pos + 1];
+            f8b[2] = buf[pos + 2];
+            f8b[3] = buf[pos + 3];
+            f8b[4] = buf[pos + 4];
+            f8b[5] = buf[pos + 5];
+            f8b[6] = buf[pos + 6];
+            f8b[7] = buf[pos + 7];
+            return f64[0];
+        }
+
+        function readDouble_f64_rev(buf, pos) {
+            f8b[7] = buf[pos    ];
+            f8b[6] = buf[pos + 1];
+            f8b[5] = buf[pos + 2];
+            f8b[4] = buf[pos + 3];
+            f8b[3] = buf[pos + 4];
+            f8b[2] = buf[pos + 5];
+            f8b[1] = buf[pos + 6];
+            f8b[0] = buf[pos + 7];
+            return f64[0];
+        }
+
+        /* istanbul ignore next */
+        exports.readDoubleLE = le ? readDouble_f64_cpy : readDouble_f64_rev;
+        /* istanbul ignore next */
+        exports.readDoubleBE = le ? readDouble_f64_rev : readDouble_f64_cpy;
+
+    // double: ieee754
+    })(); else (function() {
+
+        function writeDouble_ieee754(writeUint, off0, off1, val, buf, pos) {
+            var sign = val < 0 ? 1 : 0;
+            if (sign)
+                val = -val;
+            if (val === 0) {
+                writeUint(0, buf, pos + off0);
+                writeUint(1 / val > 0 ? /* positive */ 0 : /* negative 0 */ 2147483648, buf, pos + off1);
+            } else if (isNaN(val)) {
+                writeUint(0, buf, pos + off0);
+                writeUint(2146959360, buf, pos + off1);
+            } else if (val > 1.7976931348623157e+308) { // +-Infinity
+                writeUint(0, buf, pos + off0);
+                writeUint((sign << 31 | 2146435072) >>> 0, buf, pos + off1);
+            } else {
+                var mantissa;
+                if (val < 2.2250738585072014e-308) { // denormal
+                    mantissa = val / 5e-324;
+                    writeUint(mantissa >>> 0, buf, pos + off0);
+                    writeUint((sign << 31 | mantissa / 4294967296) >>> 0, buf, pos + off1);
+                } else {
+                    var exponent = Math.floor(Math.log(val) / Math.LN2);
+                    if (exponent === 1024)
+                        exponent = 1023;
+                    mantissa = val * Math.pow(2, -exponent);
+                    writeUint(mantissa * 4503599627370496 >>> 0, buf, pos + off0);
+                    writeUint((sign << 31 | exponent + 1023 << 20 | mantissa * 1048576 & 1048575) >>> 0, buf, pos + off1);
+                }
+            }
+        }
+
+        exports.writeDoubleLE = writeDouble_ieee754.bind(null, writeUintLE, 0, 4);
+        exports.writeDoubleBE = writeDouble_ieee754.bind(null, writeUintBE, 4, 0);
+
+        function readDouble_ieee754(readUint, off0, off1, buf, pos) {
+            var lo = readUint(buf, pos + off0),
+                hi = readUint(buf, pos + off1);
+            var sign = (hi >> 31) * 2 + 1,
+                exponent = hi >>> 20 & 2047,
+                mantissa = 4294967296 * (hi & 1048575) + lo;
+            return exponent === 2047
+                ? mantissa
+                ? NaN
+                : sign * Infinity
+                : exponent === 0 // denormal
+                ? sign * 5e-324 * mantissa
+                : sign * Math.pow(2, exponent - 1075) * (mantissa + 4503599627370496);
+        }
+
+        exports.readDoubleLE = readDouble_ieee754.bind(null, readUintLE, 0, 4);
+        exports.readDoubleBE = readDouble_ieee754.bind(null, readUintBE, 4, 0);
+
+    })();
+
+    return exports;
+}
+
+// uint helpers
+
+function writeUintLE(val, buf, pos) {
+    buf[pos    ] =  val        & 255;
+    buf[pos + 1] =  val >>> 8  & 255;
+    buf[pos + 2] =  val >>> 16 & 255;
+    buf[pos + 3] =  val >>> 24;
+}
+
+function writeUintBE(val, buf, pos) {
+    buf[pos    ] =  val >>> 24;
+    buf[pos + 1] =  val >>> 16 & 255;
+    buf[pos + 2] =  val >>> 8  & 255;
+    buf[pos + 3] =  val        & 255;
+}
+
+function readUintLE(buf, pos) {
+    return (buf[pos    ]
+          | buf[pos + 1] << 8
+          | buf[pos + 2] << 16
+          | buf[pos + 3] << 24) >>> 0;
+}
+
+function readUintBE(buf, pos) {
+    return (buf[pos    ] << 24
+          | buf[pos + 1] << 16
+          | buf[pos + 2] << 8
+          | buf[pos + 3]) >>> 0;
+}
+
+var inquire_1 = inquire;
+
+/**
+ * Requires a module only if available.
+ * @memberof util
+ * @param {string} moduleName Module to require
+ * @returns {?Object} Required module if available and not empty, otherwise `null`
+ */
+function inquire(moduleName) {
+    try {
+        var mod = eval("quire".replace(/^/,"re"))(moduleName); // eslint-disable-line no-eval
+        if (mod && (mod.length || Object.keys(mod).length))
+            return mod;
+    } catch (e) {} // eslint-disable-line no-empty
+    return null;
+}
+
+var utf8_1 = createCommonjsModule(function (module, exports) {
+
+/**
+ * A minimal UTF8 implementation for number arrays.
+ * @memberof util
+ * @namespace
+ */
+var utf8 = exports;
+
+/**
+ * Calculates the UTF8 byte length of a string.
+ * @param {string} string String
+ * @returns {number} Byte length
+ */
+utf8.length = function utf8_length(string) {
+    var len = 0,
+        c = 0;
+    for (var i = 0; i < string.length; ++i) {
+        c = string.charCodeAt(i);
+        if (c < 128)
+            len += 1;
+        else if (c < 2048)
+            len += 2;
+        else if ((c & 0xFC00) === 0xD800 && (string.charCodeAt(i + 1) & 0xFC00) === 0xDC00) {
+            ++i;
+            len += 4;
+        } else
+            len += 3;
+    }
+    return len;
+};
+
+/**
+ * Reads UTF8 bytes as a string.
+ * @param {Uint8Array} buffer Source buffer
+ * @param {number} start Source start
+ * @param {number} end Source end
+ * @returns {string} String read
+ */
+utf8.read = function utf8_read(buffer, start, end) {
+    var len = end - start;
+    if (len < 1)
+        return "";
+    var parts = null,
+        chunk = [],
+        i = 0, // char offset
+        t;     // temporary
+    while (start < end) {
+        t = buffer[start++];
+        if (t < 128)
+            chunk[i++] = t;
+        else if (t > 191 && t < 224)
+            chunk[i++] = (t & 31) << 6 | buffer[start++] & 63;
+        else if (t > 239 && t < 365) {
+            t = ((t & 7) << 18 | (buffer[start++] & 63) << 12 | (buffer[start++] & 63) << 6 | buffer[start++] & 63) - 0x10000;
+            chunk[i++] = 0xD800 + (t >> 10);
+            chunk[i++] = 0xDC00 + (t & 1023);
+        } else
+            chunk[i++] = (t & 15) << 12 | (buffer[start++] & 63) << 6 | buffer[start++] & 63;
+        if (i > 8191) {
+            (parts || (parts = [])).push(String.fromCharCode.apply(String, chunk));
+            i = 0;
+        }
+    }
+    if (parts) {
+        if (i)
+            parts.push(String.fromCharCode.apply(String, chunk.slice(0, i)));
+        return parts.join("");
+    }
+    return String.fromCharCode.apply(String, chunk.slice(0, i));
+};
+
+/**
+ * Writes a string as UTF8 bytes.
+ * @param {string} string Source string
+ * @param {Uint8Array} buffer Destination buffer
+ * @param {number} offset Destination offset
+ * @returns {number} Bytes written
+ */
+utf8.write = function utf8_write(string, buffer, offset) {
+    var start = offset,
+        c1, // character 1
+        c2; // character 2
+    for (var i = 0; i < string.length; ++i) {
+        c1 = string.charCodeAt(i);
+        if (c1 < 128) {
+            buffer[offset++] = c1;
+        } else if (c1 < 2048) {
+            buffer[offset++] = c1 >> 6       | 192;
+            buffer[offset++] = c1       & 63 | 128;
+        } else if ((c1 & 0xFC00) === 0xD800 && ((c2 = string.charCodeAt(i + 1)) & 0xFC00) === 0xDC00) {
+            c1 = 0x10000 + ((c1 & 0x03FF) << 10) + (c2 & 0x03FF);
+            ++i;
+            buffer[offset++] = c1 >> 18      | 240;
+            buffer[offset++] = c1 >> 12 & 63 | 128;
+            buffer[offset++] = c1 >> 6  & 63 | 128;
+            buffer[offset++] = c1       & 63 | 128;
+        } else {
+            buffer[offset++] = c1 >> 12      | 224;
+            buffer[offset++] = c1 >> 6  & 63 | 128;
+            buffer[offset++] = c1       & 63 | 128;
+        }
+    }
+    return offset - start;
+};
+});
+
+var pool_1 = pool;
+
+/**
+ * An allocator as used by {@link util.pool}.
+ * @typedef PoolAllocator
+ * @type {function}
+ * @param {number} size Buffer size
+ * @returns {Uint8Array} Buffer
+ */
+
+/**
+ * A slicer as used by {@link util.pool}.
+ * @typedef PoolSlicer
+ * @type {function}
+ * @param {number} start Start offset
+ * @param {number} end End offset
+ * @returns {Uint8Array} Buffer slice
+ * @this {Uint8Array}
+ */
+
+/**
+ * A general purpose buffer pool.
+ * @memberof util
+ * @function
+ * @param {PoolAllocator} alloc Allocator
+ * @param {PoolSlicer} slice Slicer
+ * @param {number} [size=8192] Slab size
+ * @returns {PoolAllocator} Pooled allocator
+ */
+function pool(alloc, slice, size) {
+    var SIZE   = size || 8192;
+    var MAX    = SIZE >>> 1;
+    var slab   = null;
+    var offset = SIZE;
+    return function pool_alloc(size) {
+        if (size < 1 || size > MAX)
+            return alloc(size);
+        if (offset + size > SIZE) {
+            slab = alloc(SIZE);
+            offset = 0;
+        }
+        var buf = slice.call(slab, offset, offset += size);
+        if (offset & 7) // align to 32 bit
+            offset = (offset | 7) + 1;
+        return buf;
+    };
+}
+
+var require$$0$2 = minimal;
+
+var longbits = LongBits$2;
+
+
+
+/**
+ * Constructs new long bits.
+ * @classdesc Helper class for working with the low and high bits of a 64 bit value.
+ * @memberof util
+ * @constructor
+ * @param {number} lo Low 32 bits, unsigned
+ * @param {number} hi High 32 bits, unsigned
+ */
+function LongBits$2(lo, hi) {
+
+    // note that the casts below are theoretically unnecessary as of today, but older statically
+    // generated converter code might still call the ctor with signed 32bits. kept for compat.
+
+    /**
+     * Low bits.
+     * @type {number}
+     */
+    this.lo = lo >>> 0;
+
+    /**
+     * High bits.
+     * @type {number}
+     */
+    this.hi = hi >>> 0;
+}
+
+/**
+ * Zero bits.
+ * @memberof util.LongBits
+ * @type {util.LongBits}
+ */
+var zero = LongBits$2.zero = new LongBits$2(0, 0);
+
+zero.toNumber = function() { return 0; };
+zero.zzEncode = zero.zzDecode = function() { return this; };
+zero.length = function() { return 1; };
+
+/**
+ * Zero hash.
+ * @memberof util.LongBits
+ * @type {string}
+ */
+var zeroHash = LongBits$2.zeroHash = "\0\0\0\0\0\0\0\0";
+
+/**
+ * Constructs new long bits from the specified number.
+ * @param {number} value Value
+ * @returns {util.LongBits} Instance
+ */
+LongBits$2.fromNumber = function fromNumber(value) {
+    if (value === 0)
+        return zero;
+    var sign = value < 0;
+    if (sign)
+        value = -value;
+    var lo = value >>> 0,
+        hi = (value - lo) / 4294967296 >>> 0;
+    if (sign) {
+        hi = ~hi >>> 0;
+        lo = ~lo >>> 0;
+        if (++lo > 4294967295) {
+            lo = 0;
+            if (++hi > 4294967295)
+                hi = 0;
+        }
+    }
+    return new LongBits$2(lo, hi);
+};
+
+/**
+ * Constructs new long bits from a number, long or string.
+ * @param {Long|number|string} value Value
+ * @returns {util.LongBits} Instance
+ */
+LongBits$2.from = function from(value) {
+    if (typeof value === "number")
+        return LongBits$2.fromNumber(value);
+    if (require$$0$2.isString(value)) {
+        /* istanbul ignore else */
+        if (require$$0$2.Long)
+            value = require$$0$2.Long.fromString(value);
+        else
+            return LongBits$2.fromNumber(parseInt(value, 10));
+    }
+    return value.low || value.high ? new LongBits$2(value.low >>> 0, value.high >>> 0) : zero;
+};
+
+/**
+ * Converts this long bits to a possibly unsafe JavaScript number.
+ * @param {boolean} [unsigned=false] Whether unsigned or not
+ * @returns {number} Possibly unsafe number
+ */
+LongBits$2.prototype.toNumber = function toNumber(unsigned) {
+    if (!unsigned && this.hi >>> 31) {
+        var lo = ~this.lo + 1 >>> 0,
+            hi = ~this.hi     >>> 0;
+        if (!lo)
+            hi = hi + 1 >>> 0;
+        return -(lo + hi * 4294967296);
+    }
+    return this.lo + this.hi * 4294967296;
+};
+
+/**
+ * Converts this long bits to a long.
+ * @param {boolean} [unsigned=false] Whether unsigned or not
+ * @returns {Long} Long
+ */
+LongBits$2.prototype.toLong = function toLong(unsigned) {
+    return require$$0$2.Long
+        ? new require$$0$2.Long(this.lo | 0, this.hi | 0, Boolean(unsigned))
+        /* istanbul ignore next */
+        : { low: this.lo | 0, high: this.hi | 0, unsigned: Boolean(unsigned) };
+};
+
+var charCodeAt = String.prototype.charCodeAt;
+
+/**
+ * Constructs new long bits from the specified 8 characters long hash.
+ * @param {string} hash Hash
+ * @returns {util.LongBits} Bits
+ */
+LongBits$2.fromHash = function fromHash(hash) {
+    if (hash === zeroHash)
+        return zero;
+    return new LongBits$2(
+        ( charCodeAt.call(hash, 0)
+        | charCodeAt.call(hash, 1) << 8
+        | charCodeAt.call(hash, 2) << 16
+        | charCodeAt.call(hash, 3) << 24) >>> 0
+    ,
+        ( charCodeAt.call(hash, 4)
+        | charCodeAt.call(hash, 5) << 8
+        | charCodeAt.call(hash, 6) << 16
+        | charCodeAt.call(hash, 7) << 24) >>> 0
+    );
+};
+
+/**
+ * Converts this long bits to a 8 characters long hash.
+ * @returns {string} Hash
+ */
+LongBits$2.prototype.toHash = function toHash() {
+    return String.fromCharCode(
+        this.lo        & 255,
+        this.lo >>> 8  & 255,
+        this.lo >>> 16 & 255,
+        this.lo >>> 24      ,
+        this.hi        & 255,
+        this.hi >>> 8  & 255,
+        this.hi >>> 16 & 255,
+        this.hi >>> 24
+    );
+};
+
+/**
+ * Zig-zag encodes this long bits.
+ * @returns {util.LongBits} `this`
+ */
+LongBits$2.prototype.zzEncode = function zzEncode() {
+    var mask =   this.hi >> 31;
+    this.hi  = ((this.hi << 1 | this.lo >>> 31) ^ mask) >>> 0;
+    this.lo  = ( this.lo << 1                   ^ mask) >>> 0;
+    return this;
+};
+
+/**
+ * Zig-zag decodes this long bits.
+ * @returns {util.LongBits} `this`
+ */
+LongBits$2.prototype.zzDecode = function zzDecode() {
+    var mask = -(this.lo & 1);
+    this.lo  = ((this.lo >>> 1 | this.hi << 31) ^ mask) >>> 0;
+    this.hi  = ( this.hi >>> 1                  ^ mask) >>> 0;
+    return this;
+};
+
+/**
+ * Calculates the length of this longbits when encoded as a varint.
+ * @returns {number} Length
+ */
+LongBits$2.prototype.length = function length() {
+    var part0 =  this.lo,
+        part1 = (this.lo >>> 28 | this.hi << 4) >>> 0,
+        part2 =  this.hi >>> 24;
+    return part2 === 0
+         ? part1 === 0
+           ? part0 < 16384
+             ? part0 < 128 ? 1 : 2
+             : part0 < 2097152 ? 3 : 4
+           : part1 < 16384
+             ? part1 < 128 ? 5 : 6
+             : part1 < 2097152 ? 7 : 8
+         : part2 < 128 ? 9 : 10;
+};
+
+var minimal = createCommonjsModule(function (module, exports) {
+var util = exports;
+
+// used to return a Promise where callback is omitted
+util.asPromise = aspromise;
+
+// converts to / from base64 encoded strings
+util.base64 = base64_1;
+
+// base class of rpc.Service
+util.EventEmitter = eventemitter;
+
+// float handling accross browsers
+util.float = float;
+
+// requires modules optionally and hides the call from bundlers
+util.inquire = inquire_1;
+
+// converts to / from utf8 encoded strings
+util.utf8 = utf8_1;
+
+// provides a node-like buffer pool in the browser
+util.pool = pool_1;
+
+// utility to work with the low and high bits of a 64 bit value
+util.LongBits = longbits;
+
+/**
+ * Whether running within node or not.
+ * @memberof util
+ * @type {boolean}
+ */
+util.isNode = Boolean(typeof commonjsGlobal !== "undefined"
+                   && commonjsGlobal
+                   && commonjsGlobal.process
+                   && commonjsGlobal.process.versions
+                   && commonjsGlobal.process.versions.node);
+
+/**
+ * Global object reference.
+ * @memberof util
+ * @type {Object}
+ */
+util.global = util.isNode && commonjsGlobal
+           || typeof window !== "undefined" && window
+           || typeof self   !== "undefined" && self
+           || commonjsGlobal; // eslint-disable-line no-invalid-this
+
+/**
+ * An immuable empty array.
+ * @memberof util
+ * @type {Array.<*>}
+ * @const
+ */
+util.emptyArray = Object.freeze ? Object.freeze([]) : /* istanbul ignore next */ []; // used on prototypes
+
+/**
+ * An immutable empty object.
+ * @type {Object}
+ * @const
+ */
+util.emptyObject = Object.freeze ? Object.freeze({}) : /* istanbul ignore next */ {}; // used on prototypes
+
+/**
+ * Tests if the specified value is an integer.
+ * @function
+ * @param {*} value Value to test
+ * @returns {boolean} `true` if the value is an integer
+ */
+util.isInteger = Number.isInteger || /* istanbul ignore next */ function isInteger(value) {
+    return typeof value === "number" && isFinite(value) && Math.floor(value) === value;
+};
+
+/**
+ * Tests if the specified value is a string.
+ * @param {*} value Value to test
+ * @returns {boolean} `true` if the value is a string
+ */
+util.isString = function isString(value) {
+    return typeof value === "string" || value instanceof String;
+};
+
+/**
+ * Tests if the specified value is a non-null object.
+ * @param {*} value Value to test
+ * @returns {boolean} `true` if the value is a non-null object
+ */
+util.isObject = function isObject(value) {
+    return value && typeof value === "object";
+};
+
+/**
+ * Checks if a property on a message is considered to be present.
+ * This is an alias of {@link util.isSet}.
+ * @function
+ * @param {Object} obj Plain object or message instance
+ * @param {string} prop Property name
+ * @returns {boolean} `true` if considered to be present, otherwise `false`
+ */
+util.isset =
+
+/**
+ * Checks if a property on a message is considered to be present.
+ * @param {Object} obj Plain object or message instance
+ * @param {string} prop Property name
+ * @returns {boolean} `true` if considered to be present, otherwise `false`
+ */
+util.isSet = function isSet(obj, prop) {
+    var value = obj[prop];
+    if (value != null && obj.hasOwnProperty(prop)) // eslint-disable-line eqeqeq, no-prototype-builtins
+        return typeof value !== "object" || (Array.isArray(value) ? value.length : Object.keys(value).length) > 0;
+    return false;
+};
+
+/**
+ * Any compatible Buffer instance.
+ * This is a minimal stand-alone definition of a Buffer instance. The actual type is that exported by node's typings.
+ * @interface Buffer
+ * @extends Uint8Array
+ */
+
+/**
+ * Node's Buffer class if available.
+ * @type {Constructor<Buffer>}
+ */
+util.Buffer = (function() {
+    try {
+        var Buffer = util.inquire("buffer").Buffer;
+        // refuse to use non-node buffers if not explicitly assigned (perf reasons):
+        return Buffer.prototype.utf8Write ? Buffer : /* istanbul ignore next */ null;
+    } catch (e) {
+        /* istanbul ignore next */
+        return null;
+    }
+})();
+
+// Internal alias of or polyfull for Buffer.from.
+util._Buffer_from = null;
+
+// Internal alias of or polyfill for Buffer.allocUnsafe.
+util._Buffer_allocUnsafe = null;
+
+/**
+ * Creates a new buffer of whatever type supported by the environment.
+ * @param {number|number[]} [sizeOrArray=0] Buffer size or number array
+ * @returns {Uint8Array|Buffer} Buffer
+ */
+util.newBuffer = function newBuffer(sizeOrArray) {
+    /* istanbul ignore next */
+    return typeof sizeOrArray === "number"
+        ? util.Buffer
+            ? util._Buffer_allocUnsafe(sizeOrArray)
+            : new util.Array(sizeOrArray)
+        : util.Buffer
+            ? util._Buffer_from(sizeOrArray)
+            : typeof Uint8Array === "undefined"
+                ? sizeOrArray
+                : new Uint8Array(sizeOrArray);
+};
+
+/**
+ * Array implementation used in the browser. `Uint8Array` if supported, otherwise `Array`.
+ * @type {Constructor<Uint8Array>}
+ */
+util.Array = typeof Uint8Array !== "undefined" ? Uint8Array /* istanbul ignore next */ : Array;
+
+/**
+ * Any compatible Long instance.
+ * This is a minimal stand-alone definition of a Long instance. The actual type is that exported by long.js.
+ * @interface Long
+ * @property {number} low Low bits
+ * @property {number} high High bits
+ * @property {boolean} unsigned Whether unsigned or not
+ */
+
+/**
+ * Long.js's Long class if available.
+ * @type {Constructor<Long>}
+ */
+util.Long = /* istanbul ignore next */ util.global.dcodeIO && /* istanbul ignore next */ util.global.dcodeIO.Long
+         || /* istanbul ignore next */ util.global.Long
+         || util.inquire("long");
+
+/**
+ * Regular expression used to verify 2 bit (`bool`) map keys.
+ * @type {RegExp}
+ * @const
+ */
+util.key2Re = /^true|false|0|1$/;
+
+/**
+ * Regular expression used to verify 32 bit (`int32` etc.) map keys.
+ * @type {RegExp}
+ * @const
+ */
+util.key32Re = /^-?(?:0|[1-9][0-9]*)$/;
+
+/**
+ * Regular expression used to verify 64 bit (`int64` etc.) map keys.
+ * @type {RegExp}
+ * @const
+ */
+util.key64Re = /^(?:[\\x00-\\xff]{8}|-?(?:0|[1-9][0-9]*))$/;
+
+/**
+ * Converts a number or long to an 8 characters long hash string.
+ * @param {Long|number} value Value to convert
+ * @returns {string} Hash
+ */
+util.longToHash = function longToHash(value) {
+    return value
+        ? util.LongBits.from(value).toHash()
+        : util.LongBits.zeroHash;
+};
+
+/**
+ * Converts an 8 characters long hash string to a long or number.
+ * @param {string} hash Hash
+ * @param {boolean} [unsigned=false] Whether unsigned or not
+ * @returns {Long|number} Original value
+ */
+util.longFromHash = function longFromHash(hash, unsigned) {
+    var bits = util.LongBits.fromHash(hash);
+    if (util.Long)
+        return util.Long.fromBits(bits.lo, bits.hi, unsigned);
+    return bits.toNumber(Boolean(unsigned));
+};
+
+/**
+ * Merges the properties of the source object into the destination object.
+ * @memberof util
+ * @param {Object.<string,*>} dst Destination object
+ * @param {Object.<string,*>} src Source object
+ * @param {boolean} [ifNotSet=false] Merges only if the key is not already set
+ * @returns {Object.<string,*>} Destination object
+ */
+function merge(dst, src, ifNotSet) { // used by converters
+    for (var keys = Object.keys(src), i = 0; i < keys.length; ++i)
+        if (dst[keys[i]] === undefined || !ifNotSet)
+            dst[keys[i]] = src[keys[i]];
+    return dst;
+}
+
+util.merge = merge;
+
+/**
+ * Converts the first character of a string to lower case.
+ * @param {string} str String to convert
+ * @returns {string} Converted string
+ */
+util.lcFirst = function lcFirst(str) {
+    return str.charAt(0).toLowerCase() + str.substring(1);
+};
+
+/**
+ * Creates a custom error constructor.
+ * @memberof util
+ * @param {string} name Error name
+ * @returns {Constructor<Error>} Custom error constructor
+ */
+function newError(name) {
+
+    function CustomError(message, properties) {
+
+        if (!(this instanceof CustomError))
+            return new CustomError(message, properties);
+
+        // Error.call(this, message);
+        // ^ just returns a new error instance because the ctor can be called as a function
+
+        Object.defineProperty(this, "message", { get: function() { return message; } });
+
+        /* istanbul ignore next */
+        if (Error.captureStackTrace) // node
+            Error.captureStackTrace(this, CustomError);
+        else
+            Object.defineProperty(this, "stack", { value: new Error().stack || "" });
+
+        if (properties)
+            merge(this, properties);
+    }
+
+    (CustomError.prototype = Object.create(Error.prototype)).constructor = CustomError;
+
+    Object.defineProperty(CustomError.prototype, "name", { get: function() { return name; } });
+
+    CustomError.prototype.toString = function toString() {
+        return this.name + ": " + this.message;
+    };
+
+    return CustomError;
+}
+
+util.newError = newError;
+
+/**
+ * Constructs a new protocol error.
+ * @classdesc Error subclass indicating a protocol specifc error.
+ * @memberof util
+ * @extends Error
+ * @template T extends Message<T>
+ * @constructor
+ * @param {string} message Error message
+ * @param {Object.<string,*>} [properties] Additional properties
+ * @example
+ * try {
+ *     MyMessage.decode(someBuffer); // throws if required fields are missing
+ * } catch (e) {
+ *     if (e instanceof ProtocolError && e.instance)
+ *         console.log("decoded so far: " + JSON.stringify(e.instance));
+ * }
+ */
+util.ProtocolError = newError("ProtocolError");
+
+/**
+ * So far decoded message instance.
+ * @name util.ProtocolError#instance
+ * @type {Message<T>}
+ */
+
+/**
+ * A OneOf getter as returned by {@link util.oneOfGetter}.
+ * @typedef OneOfGetter
+ * @type {function}
+ * @returns {string|undefined} Set field name, if any
+ */
+
+/**
+ * Builds a getter for a oneof's present field name.
+ * @param {string[]} fieldNames Field names
+ * @returns {OneOfGetter} Unbound getter
+ */
+util.oneOfGetter = function getOneOf(fieldNames) {
+    var fieldMap = {};
+    for (var i = 0; i < fieldNames.length; ++i)
+        fieldMap[fieldNames[i]] = 1;
+
+    /**
+     * @returns {string|undefined} Set field name, if any
+     * @this Object
+     * @ignore
+     */
+    return function() { // eslint-disable-line consistent-return
+        for (var keys = Object.keys(this), i = keys.length - 1; i > -1; --i)
+            if (fieldMap[keys[i]] === 1 && this[keys[i]] !== undefined && this[keys[i]] !== null)
+                return keys[i];
+    };
+};
+
+/**
+ * A OneOf setter as returned by {@link util.oneOfSetter}.
+ * @typedef OneOfSetter
+ * @type {function}
+ * @param {string|undefined} value Field name
+ * @returns {undefined}
+ */
+
+/**
+ * Builds a setter for a oneof's present field name.
+ * @param {string[]} fieldNames Field names
+ * @returns {OneOfSetter} Unbound setter
+ */
+util.oneOfSetter = function setOneOf(fieldNames) {
+
+    /**
+     * @param {string} name Field name
+     * @returns {undefined}
+     * @this Object
+     * @ignore
+     */
+    return function(name) {
+        for (var i = 0; i < fieldNames.length; ++i)
+            if (fieldNames[i] !== name)
+                delete this[fieldNames[i]];
+    };
+};
+
+/**
+ * Default conversion options used for {@link Message#toJSON} implementations.
+ *
+ * These options are close to proto3's JSON mapping with the exception that internal types like Any are handled just like messages. More precisely:
+ *
+ * - Longs become strings
+ * - Enums become string keys
+ * - Bytes become base64 encoded strings
+ * - (Sub-)Messages become plain objects
+ * - Maps become plain objects with all string keys
+ * - Repeated fields become arrays
+ * - NaN and Infinity for float and double fields become strings
+ *
+ * @type {IConversionOptions}
+ * @see https://developers.google.com/protocol-buffers/docs/proto3?hl=en#json
+ */
+util.toJSONOptions = {
+    longs: String,
+    enums: String,
+    bytes: String,
+    json: true
+};
+
+// Sets up buffer utility according to the environment (called in index-minimal)
+util._configure = function() {
+    var Buffer = util.Buffer;
+    /* istanbul ignore if */
+    if (!Buffer) {
+        util._Buffer_from = util._Buffer_allocUnsafe = null;
+        return;
+    }
+    // because node 4.x buffers are incompatible & immutable
+    // see: https://github.com/dcodeIO/protobuf.js/pull/665
+    util._Buffer_from = Buffer.from !== Uint8Array.from && Buffer.from ||
+        /* istanbul ignore next */
+        function Buffer_from(value, encoding) {
+            return new Buffer(value, encoding);
+        };
+    util._Buffer_allocUnsafe = Buffer.allocUnsafe ||
+        /* istanbul ignore next */
+        function Buffer_allocUnsafe(size) {
+            return new Buffer(size);
+        };
+};
+});
+
+var writer = Writer;
+
+
+
+var BufferWriter$1; // cyclic
+
+var LongBits$1  = require$$0$2.LongBits,
+    base64    = require$$0$2.base64,
+    utf8$1      = require$$0$2.utf8;
+
+/**
+ * Constructs a new writer operation instance.
+ * @classdesc Scheduled writer operation.
+ * @constructor
+ * @param {function(*, Uint8Array, number)} fn Function to call
+ * @param {number} len Value byte length
+ * @param {*} val Value to write
+ * @ignore
+ */
+function Op(fn, len, val) {
+
+    /**
+     * Function to call.
+     * @type {function(Uint8Array, number, *)}
+     */
+    this.fn = fn;
+
+    /**
+     * Value byte length.
+     * @type {number}
+     */
+    this.len = len;
+
+    /**
+     * Next operation.
+     * @type {Writer.Op|undefined}
+     */
+    this.next = undefined;
+
+    /**
+     * Value to write.
+     * @type {*}
+     */
+    this.val = val; // type varies
+}
+
+/* istanbul ignore next */
+function noop() {} // eslint-disable-line no-empty-function
+
+/**
+ * Constructs a new writer state instance.
+ * @classdesc Copied writer state.
+ * @memberof Writer
+ * @constructor
+ * @param {Writer} writer Writer to copy state from
+ * @ignore
+ */
+function State(writer) {
+
+    /**
+     * Current head.
+     * @type {Writer.Op}
+     */
+    this.head = writer.head;
+
+    /**
+     * Current tail.
+     * @type {Writer.Op}
+     */
+    this.tail = writer.tail;
+
+    /**
+     * Current buffer length.
+     * @type {number}
+     */
+    this.len = writer.len;
+
+    /**
+     * Next state.
+     * @type {State|null}
+     */
+    this.next = writer.states;
+}
+
+/**
+ * Constructs a new writer instance.
+ * @classdesc Wire format writer using `Uint8Array` if available, otherwise `Array`.
+ * @constructor
+ */
+function Writer() {
+
+    /**
+     * Current length.
+     * @type {number}
+     */
+    this.len = 0;
+
+    /**
+     * Operations head.
+     * @type {Object}
+     */
+    this.head = new Op(noop, 0, 0);
+
+    /**
+     * Operations tail
+     * @type {Object}
+     */
+    this.tail = this.head;
+
+    /**
+     * Linked forked states.
+     * @type {Object|null}
+     */
+    this.states = null;
+
+    // When a value is written, the writer calculates its byte length and puts it into a linked
+    // list of operations to perform when finish() is called. This both allows us to allocate
+    // buffers of the exact required size and reduces the amount of work we have to do compared
+    // to first calculating over objects and then encoding over objects. In our case, the encoding
+    // part is just a linked list walk calling operations with already prepared values.
+}
+
+var create$1 = function create() {
+    return require$$0$2.Buffer
+        ? function create_buffer_setup() {
+            return (Writer.create = function create_buffer() {
+                return new BufferWriter$1();
+            })();
+        }
+        /* istanbul ignore next */
+        : function create_array() {
+            return new Writer();
+        };
+};
+
+/**
+ * Creates a new writer.
+ * @function
+ * @returns {BufferWriter|Writer} A {@link BufferWriter} when Buffers are supported, otherwise a {@link Writer}
+ */
+Writer.create = create$1();
+
+/**
+ * Allocates a buffer of the specified size.
+ * @param {number} size Buffer size
+ * @returns {Uint8Array} Buffer
+ */
+Writer.alloc = function alloc(size) {
+    return new require$$0$2.Array(size);
+};
+
+// Use Uint8Array buffer pool in the browser, just like node does with buffers
+/* istanbul ignore else */
+if (require$$0$2.Array !== Array)
+    Writer.alloc = require$$0$2.pool(Writer.alloc, require$$0$2.Array.prototype.subarray);
+
+/**
+ * Pushes a new operation to the queue.
+ * @param {function(Uint8Array, number, *)} fn Function to call
+ * @param {number} len Value byte length
+ * @param {number} val Value to write
+ * @returns {Writer} `this`
+ * @private
+ */
+Writer.prototype._push = function push(fn, len, val) {
+    this.tail = this.tail.next = new Op(fn, len, val);
+    this.len += len;
+    return this;
+};
+
+function writeByte(val, buf, pos) {
+    buf[pos] = val & 255;
+}
+
+function writeVarint32(val, buf, pos) {
+    while (val > 127) {
+        buf[pos++] = val & 127 | 128;
+        val >>>= 7;
+    }
+    buf[pos] = val;
+}
+
+/**
+ * Constructs a new varint writer operation instance.
+ * @classdesc Scheduled varint writer operation.
+ * @extends Op
+ * @constructor
+ * @param {number} len Value byte length
+ * @param {number} val Value to write
+ * @ignore
+ */
+function VarintOp(len, val) {
+    this.len = len;
+    this.next = undefined;
+    this.val = val;
+}
+
+VarintOp.prototype = Object.create(Op.prototype);
+VarintOp.prototype.fn = writeVarint32;
+
+/**
+ * Writes an unsigned 32 bit value as a varint.
+ * @param {number} value Value to write
+ * @returns {Writer} `this`
+ */
+Writer.prototype.uint32 = function write_uint32(value) {
+    // here, the call to this.push has been inlined and a varint specific Op subclass is used.
+    // uint32 is by far the most frequently used operation and benefits significantly from this.
+    this.len += (this.tail = this.tail.next = new VarintOp(
+        (value = value >>> 0)
+                < 128       ? 1
+        : value < 16384     ? 2
+        : value < 2097152   ? 3
+        : value < 268435456 ? 4
+        :                     5,
+    value)).len;
+    return this;
+};
+
+/**
+ * Writes a signed 32 bit value as a varint.
+ * @function
+ * @param {number} value Value to write
+ * @returns {Writer} `this`
+ */
+Writer.prototype.int32 = function write_int32(value) {
+    return value < 0
+        ? this._push(writeVarint64, 10, LongBits$1.fromNumber(value)) // 10 bytes per spec
+        : this.uint32(value);
+};
+
+/**
+ * Writes a 32 bit value as a varint, zig-zag encoded.
+ * @param {number} value Value to write
+ * @returns {Writer} `this`
+ */
+Writer.prototype.sint32 = function write_sint32(value) {
+    return this.uint32((value << 1 ^ value >> 31) >>> 0);
+};
+
+function writeVarint64(val, buf, pos) {
+    while (val.hi) {
+        buf[pos++] = val.lo & 127 | 128;
+        val.lo = (val.lo >>> 7 | val.hi << 25) >>> 0;
+        val.hi >>>= 7;
+    }
+    while (val.lo > 127) {
+        buf[pos++] = val.lo & 127 | 128;
+        val.lo = val.lo >>> 7;
+    }
+    buf[pos++] = val.lo;
+}
+
+/**
+ * Writes an unsigned 64 bit value as a varint.
+ * @param {Long|number|string} value Value to write
+ * @returns {Writer} `this`
+ * @throws {TypeError} If `value` is a string and no long library is present.
+ */
+Writer.prototype.uint64 = function write_uint64(value) {
+    var bits = LongBits$1.from(value);
+    return this._push(writeVarint64, bits.length(), bits);
+};
+
+/**
+ * Writes a signed 64 bit value as a varint.
+ * @function
+ * @param {Long|number|string} value Value to write
+ * @returns {Writer} `this`
+ * @throws {TypeError} If `value` is a string and no long library is present.
+ */
+Writer.prototype.int64 = Writer.prototype.uint64;
+
+/**
+ * Writes a signed 64 bit value as a varint, zig-zag encoded.
+ * @param {Long|number|string} value Value to write
+ * @returns {Writer} `this`
+ * @throws {TypeError} If `value` is a string and no long library is present.
+ */
+Writer.prototype.sint64 = function write_sint64(value) {
+    var bits = LongBits$1.from(value).zzEncode();
+    return this._push(writeVarint64, bits.length(), bits);
+};
+
+/**
+ * Writes a boolish value as a varint.
+ * @param {boolean} value Value to write
+ * @returns {Writer} `this`
+ */
+Writer.prototype.bool = function write_bool(value) {
+    return this._push(writeByte, 1, value ? 1 : 0);
+};
+
+function writeFixed32(val, buf, pos) {
+    buf[pos    ] =  val         & 255;
+    buf[pos + 1] =  val >>> 8   & 255;
+    buf[pos + 2] =  val >>> 16  & 255;
+    buf[pos + 3] =  val >>> 24;
+}
+
+/**
+ * Writes an unsigned 32 bit value as fixed 32 bits.
+ * @param {number} value Value to write
+ * @returns {Writer} `this`
+ */
+Writer.prototype.fixed32 = function write_fixed32(value) {
+    return this._push(writeFixed32, 4, value >>> 0);
+};
+
+/**
+ * Writes a signed 32 bit value as fixed 32 bits.
+ * @function
+ * @param {number} value Value to write
+ * @returns {Writer} `this`
+ */
+Writer.prototype.sfixed32 = Writer.prototype.fixed32;
+
+/**
+ * Writes an unsigned 64 bit value as fixed 64 bits.
+ * @param {Long|number|string} value Value to write
+ * @returns {Writer} `this`
+ * @throws {TypeError} If `value` is a string and no long library is present.
+ */
+Writer.prototype.fixed64 = function write_fixed64(value) {
+    var bits = LongBits$1.from(value);
+    return this._push(writeFixed32, 4, bits.lo)._push(writeFixed32, 4, bits.hi);
+};
+
+/**
+ * Writes a signed 64 bit value as fixed 64 bits.
+ * @function
+ * @param {Long|number|string} value Value to write
+ * @returns {Writer} `this`
+ * @throws {TypeError} If `value` is a string and no long library is present.
+ */
+Writer.prototype.sfixed64 = Writer.prototype.fixed64;
+
+/**
+ * Writes a float (32 bit).
+ * @function
+ * @param {number} value Value to write
+ * @returns {Writer} `this`
+ */
+Writer.prototype.float = function write_float(value) {
+    return this._push(require$$0$2.float.writeFloatLE, 4, value);
+};
+
+/**
+ * Writes a double (64 bit float).
+ * @function
+ * @param {number} value Value to write
+ * @returns {Writer} `this`
+ */
+Writer.prototype.double = function write_double(value) {
+    return this._push(require$$0$2.float.writeDoubleLE, 8, value);
+};
+
+var writeBytes = require$$0$2.Array.prototype.set
+    ? function writeBytes_set(val, buf, pos) {
+        buf.set(val, pos); // also works for plain array values
+    }
+    /* istanbul ignore next */
+    : function writeBytes_for(val, buf, pos) {
+        for (var i = 0; i < val.length; ++i)
+            buf[pos + i] = val[i];
+    };
+
+/**
+ * Writes a sequence of bytes.
+ * @param {Uint8Array|string} value Buffer or base64 encoded string to write
+ * @returns {Writer} `this`
+ */
+Writer.prototype.bytes = function write_bytes(value) {
+    var len = value.length >>> 0;
+    if (!len)
+        return this._push(writeByte, 1, 0);
+    if (require$$0$2.isString(value)) {
+        var buf = Writer.alloc(len = base64.length(value));
+        base64.decode(value, buf, 0);
+        value = buf;
+    }
+    return this.uint32(len)._push(writeBytes, len, value);
+};
+
+/**
+ * Writes a string.
+ * @param {string} value Value to write
+ * @returns {Writer} `this`
+ */
+Writer.prototype.string = function write_string(value) {
+    var len = utf8$1.length(value);
+    return len
+        ? this.uint32(len)._push(utf8$1.write, len, value)
+        : this._push(writeByte, 1, 0);
+};
+
+/**
+ * Forks this writer's state by pushing it to a stack.
+ * Calling {@link Writer#reset|reset} or {@link Writer#ldelim|ldelim} resets the writer to the previous state.
+ * @returns {Writer} `this`
+ */
+Writer.prototype.fork = function fork() {
+    this.states = new State(this);
+    this.head = this.tail = new Op(noop, 0, 0);
+    this.len = 0;
+    return this;
+};
+
+/**
+ * Resets this instance to the last state.
+ * @returns {Writer} `this`
+ */
+Writer.prototype.reset = function reset() {
+    if (this.states) {
+        this.head   = this.states.head;
+        this.tail   = this.states.tail;
+        this.len    = this.states.len;
+        this.states = this.states.next;
+    } else {
+        this.head = this.tail = new Op(noop, 0, 0);
+        this.len  = 0;
+    }
+    return this;
+};
+
+/**
+ * Resets to the last state and appends the fork state's current write length as a varint followed by its operations.
+ * @returns {Writer} `this`
+ */
+Writer.prototype.ldelim = function ldelim() {
+    var head = this.head,
+        tail = this.tail,
+        len  = this.len;
+    this.reset().uint32(len);
+    if (len) {
+        this.tail.next = head.next; // skip noop
+        this.tail = tail;
+        this.len += len;
+    }
+    return this;
+};
+
+/**
+ * Finishes the write operation.
+ * @returns {Uint8Array} Finished buffer
+ */
+Writer.prototype.finish = function finish() {
+    var head = this.head.next, // skip noop
+        buf  = this.constructor.alloc(this.len),
+        pos  = 0;
+    while (head) {
+        head.fn(head.val, buf, pos);
+        pos += head.len;
+        head = head.next;
+    }
+    // this.head = this.tail = null;
+    return buf;
+};
+
+Writer._configure = function(BufferWriter_) {
+    BufferWriter$1 = BufferWriter_;
+    Writer.create = create$1();
+    BufferWriter$1._configure();
+};
+
+var writer_buffer = BufferWriter;
+
+// extends Writer
+
+(BufferWriter.prototype = Object.create(writer.prototype)).constructor = BufferWriter;
+
+
+
+/**
+ * Constructs a new buffer writer instance.
+ * @classdesc Wire format writer using node buffers.
+ * @extends Writer
+ * @constructor
+ */
+function BufferWriter() {
+    writer.call(this);
+}
+
+BufferWriter._configure = function () {
+    /**
+     * Allocates a buffer of the specified size.
+     * @function
+     * @param {number} size Buffer size
+     * @returns {Buffer} Buffer
+     */
+    BufferWriter.alloc = require$$0$2._Buffer_allocUnsafe;
+
+    BufferWriter.writeBytesBuffer = require$$0$2.Buffer && require$$0$2.Buffer.prototype instanceof Uint8Array && require$$0$2.Buffer.prototype.set.name === "set"
+        ? function writeBytesBuffer_set(val, buf, pos) {
+          buf.set(val, pos); // faster than copy (requires node >= 4 where Buffers extend Uint8Array and set is properly inherited)
+          // also works for plain array values
+        }
+        /* istanbul ignore next */
+        : function writeBytesBuffer_copy(val, buf, pos) {
+          if (val.copy) // Buffer values
+            val.copy(buf, pos, 0, val.length);
+          else for (var i = 0; i < val.length;) // plain array values
+            buf[pos++] = val[i++];
+        };
+};
+
+
+/**
+ * @override
+ */
+BufferWriter.prototype.bytes = function write_bytes_buffer(value) {
+    if (require$$0$2.isString(value))
+        value = require$$0$2._Buffer_from(value, "base64");
+    var len = value.length >>> 0;
+    this.uint32(len);
+    if (len)
+        this._push(BufferWriter.writeBytesBuffer, len, value);
+    return this;
+};
+
+function writeStringBuffer(val, buf, pos) {
+    if (val.length < 40) // plain js is faster for short strings (probably due to redundant assertions)
+        require$$0$2.utf8.write(val, buf, pos);
+    else if (buf.utf8Write)
+        buf.utf8Write(val, pos);
+    else
+        buf.write(val, pos);
+}
+
+/**
+ * @override
+ */
+BufferWriter.prototype.string = function write_string_buffer(value) {
+    var len = require$$0$2.Buffer.byteLength(value);
+    this.uint32(len);
+    if (len)
+        this._push(writeStringBuffer, len, value);
+    return this;
+};
+
+
+/**
+ * Finishes the write operation.
+ * @name BufferWriter#finish
+ * @function
+ * @returns {Buffer} Finished buffer
+ */
+
+BufferWriter._configure();
+
+var reader = Reader;
+
+
+
+var BufferReader$1; // cyclic
+
+var LongBits  = require$$0$2.LongBits,
+    utf8      = require$$0$2.utf8;
+
+/* istanbul ignore next */
+function indexOutOfRange(reader, writeLength) {
+    return RangeError("index out of range: " + reader.pos + " + " + (writeLength || 1) + " > " + reader.len);
+}
+
+/**
+ * Constructs a new reader instance using the specified buffer.
+ * @classdesc Wire format reader using `Uint8Array` if available, otherwise `Array`.
+ * @constructor
+ * @param {Uint8Array} buffer Buffer to read from
+ */
+function Reader(buffer) {
+
+    /**
+     * Read buffer.
+     * @type {Uint8Array}
+     */
+    this.buf = buffer;
+
+    /**
+     * Read buffer position.
+     * @type {number}
+     */
+    this.pos = 0;
+
+    /**
+     * Read buffer length.
+     * @type {number}
+     */
+    this.len = buffer.length;
+}
+
+var create_array = typeof Uint8Array !== "undefined"
+    ? function create_typed_array(buffer) {
+        if (buffer instanceof Uint8Array || Array.isArray(buffer))
+            return new Reader(buffer);
+        throw Error("illegal buffer");
+    }
+    /* istanbul ignore next */
+    : function create_array(buffer) {
+        if (Array.isArray(buffer))
+            return new Reader(buffer);
+        throw Error("illegal buffer");
+    };
+
+var create = function create() {
+    return require$$0$2.Buffer
+        ? function create_buffer_setup(buffer) {
+            return (Reader.create = function create_buffer(buffer) {
+                return require$$0$2.Buffer.isBuffer(buffer)
+                    ? new BufferReader$1(buffer)
+                    /* istanbul ignore next */
+                    : create_array(buffer);
+            })(buffer);
+        }
+        /* istanbul ignore next */
+        : create_array;
+};
+
+/**
+ * Creates a new reader using the specified buffer.
+ * @function
+ * @param {Uint8Array|Buffer} buffer Buffer to read from
+ * @returns {Reader|BufferReader} A {@link BufferReader} if `buffer` is a Buffer, otherwise a {@link Reader}
+ * @throws {Error} If `buffer` is not a valid buffer
+ */
+Reader.create = create();
+
+Reader.prototype._slice = require$$0$2.Array.prototype.subarray || /* istanbul ignore next */ require$$0$2.Array.prototype.slice;
+
+/**
+ * Reads a varint as an unsigned 32 bit value.
+ * @function
+ * @returns {number} Value read
+ */
+Reader.prototype.uint32 = (function read_uint32_setup() {
+    var value = 4294967295; // optimizer type-hint, tends to deopt otherwise (?!)
+    return function read_uint32() {
+        value = (         this.buf[this.pos] & 127       ) >>> 0; if (this.buf[this.pos++] < 128) return value;
+        value = (value | (this.buf[this.pos] & 127) <<  7) >>> 0; if (this.buf[this.pos++] < 128) return value;
+        value = (value | (this.buf[this.pos] & 127) << 14) >>> 0; if (this.buf[this.pos++] < 128) return value;
+        value = (value | (this.buf[this.pos] & 127) << 21) >>> 0; if (this.buf[this.pos++] < 128) return value;
+        value = (value | (this.buf[this.pos] &  15) << 28) >>> 0; if (this.buf[this.pos++] < 128) return value;
+
+        /* istanbul ignore if */
+        if ((this.pos += 5) > this.len) {
+            this.pos = this.len;
+            throw indexOutOfRange(this, 10);
+        }
+        return value;
+    };
+})();
+
+/**
+ * Reads a varint as a signed 32 bit value.
+ * @returns {number} Value read
+ */
+Reader.prototype.int32 = function read_int32() {
+    return this.uint32() | 0;
+};
+
+/**
+ * Reads a zig-zag encoded varint as a signed 32 bit value.
+ * @returns {number} Value read
+ */
+Reader.prototype.sint32 = function read_sint32() {
+    var value = this.uint32();
+    return value >>> 1 ^ -(value & 1) | 0;
+};
+
+/* eslint-disable no-invalid-this */
+
+function readLongVarint() {
+    // tends to deopt with local vars for octet etc.
+    var bits = new LongBits(0, 0);
+    var i = 0;
+    if (this.len - this.pos > 4) { // fast route (lo)
+        for (; i < 4; ++i) {
+            // 1st..4th
+            bits.lo = (bits.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
+            if (this.buf[this.pos++] < 128)
+                return bits;
+        }
+        // 5th
+        bits.lo = (bits.lo | (this.buf[this.pos] & 127) << 28) >>> 0;
+        bits.hi = (bits.hi | (this.buf[this.pos] & 127) >>  4) >>> 0;
+        if (this.buf[this.pos++] < 128)
+            return bits;
+        i = 0;
+    } else {
+        for (; i < 3; ++i) {
+            /* istanbul ignore if */
+            if (this.pos >= this.len)
+                throw indexOutOfRange(this);
+            // 1st..3th
+            bits.lo = (bits.lo | (this.buf[this.pos] & 127) << i * 7) >>> 0;
+            if (this.buf[this.pos++] < 128)
+                return bits;
+        }
+        // 4th
+        bits.lo = (bits.lo | (this.buf[this.pos++] & 127) << i * 7) >>> 0;
+        return bits;
+    }
+    if (this.len - this.pos > 4) { // fast route (hi)
+        for (; i < 5; ++i) {
+            // 6th..10th
+            bits.hi = (bits.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
+            if (this.buf[this.pos++] < 128)
+                return bits;
+        }
+    } else {
+        for (; i < 5; ++i) {
+            /* istanbul ignore if */
+            if (this.pos >= this.len)
+                throw indexOutOfRange(this);
+            // 6th..10th
+            bits.hi = (bits.hi | (this.buf[this.pos] & 127) << i * 7 + 3) >>> 0;
+            if (this.buf[this.pos++] < 128)
+                return bits;
+        }
+    }
+    /* istanbul ignore next */
+    throw Error("invalid varint encoding");
+}
+
+/* eslint-enable no-invalid-this */
+
+/**
+ * Reads a varint as a signed 64 bit value.
+ * @name Reader#int64
+ * @function
+ * @returns {Long} Value read
+ */
+
+/**
+ * Reads a varint as an unsigned 64 bit value.
+ * @name Reader#uint64
+ * @function
+ * @returns {Long} Value read
+ */
+
+/**
+ * Reads a zig-zag encoded varint as a signed 64 bit value.
+ * @name Reader#sint64
+ * @function
+ * @returns {Long} Value read
+ */
+
+/**
+ * Reads a varint as a boolean.
+ * @returns {boolean} Value read
+ */
+Reader.prototype.bool = function read_bool() {
+    return this.uint32() !== 0;
+};
+
+function readFixed32_end(buf, end) { // note that this uses `end`, not `pos`
+    return (buf[end - 4]
+          | buf[end - 3] << 8
+          | buf[end - 2] << 16
+          | buf[end - 1] << 24) >>> 0;
+}
+
+/**
+ * Reads fixed 32 bits as an unsigned 32 bit integer.
+ * @returns {number} Value read
+ */
+Reader.prototype.fixed32 = function read_fixed32() {
+
+    /* istanbul ignore if */
+    if (this.pos + 4 > this.len)
+        throw indexOutOfRange(this, 4);
+
+    return readFixed32_end(this.buf, this.pos += 4);
+};
+
+/**
+ * Reads fixed 32 bits as a signed 32 bit integer.
+ * @returns {number} Value read
+ */
+Reader.prototype.sfixed32 = function read_sfixed32() {
+
+    /* istanbul ignore if */
+    if (this.pos + 4 > this.len)
+        throw indexOutOfRange(this, 4);
+
+    return readFixed32_end(this.buf, this.pos += 4) | 0;
+};
+
+/* eslint-disable no-invalid-this */
+
+function readFixed64(/* this: Reader */) {
+
+    /* istanbul ignore if */
+    if (this.pos + 8 > this.len)
+        throw indexOutOfRange(this, 8);
+
+    return new LongBits(readFixed32_end(this.buf, this.pos += 4), readFixed32_end(this.buf, this.pos += 4));
+}
+
+/* eslint-enable no-invalid-this */
+
+/**
+ * Reads fixed 64 bits.
+ * @name Reader#fixed64
+ * @function
+ * @returns {Long} Value read
+ */
+
+/**
+ * Reads zig-zag encoded fixed 64 bits.
+ * @name Reader#sfixed64
+ * @function
+ * @returns {Long} Value read
+ */
+
+/**
+ * Reads a float (32 bit) as a number.
+ * @function
+ * @returns {number} Value read
+ */
+Reader.prototype.float = function read_float() {
+
+    /* istanbul ignore if */
+    if (this.pos + 4 > this.len)
+        throw indexOutOfRange(this, 4);
+
+    var value = require$$0$2.float.readFloatLE(this.buf, this.pos);
+    this.pos += 4;
+    return value;
+};
+
+/**
+ * Reads a double (64 bit float) as a number.
+ * @function
+ * @returns {number} Value read
+ */
+Reader.prototype.double = function read_double() {
+
+    /* istanbul ignore if */
+    if (this.pos + 8 > this.len)
+        throw indexOutOfRange(this, 4);
+
+    var value = require$$0$2.float.readDoubleLE(this.buf, this.pos);
+    this.pos += 8;
+    return value;
+};
+
+/**
+ * Reads a sequence of bytes preceeded by its length as a varint.
+ * @returns {Uint8Array} Value read
+ */
+Reader.prototype.bytes = function read_bytes() {
+    var length = this.uint32(),
+        start  = this.pos,
+        end    = this.pos + length;
+
+    /* istanbul ignore if */
+    if (end > this.len)
+        throw indexOutOfRange(this, length);
+
+    this.pos += length;
+    if (Array.isArray(this.buf)) // plain array
+        return this.buf.slice(start, end);
+    return start === end // fix for IE 10/Win8 and others' subarray returning array of size 1
+        ? new this.buf.constructor(0)
+        : this._slice.call(this.buf, start, end);
+};
+
+/**
+ * Reads a string preceeded by its byte length as a varint.
+ * @returns {string} Value read
+ */
+Reader.prototype.string = function read_string() {
+    var bytes = this.bytes();
+    return utf8.read(bytes, 0, bytes.length);
+};
+
+/**
+ * Skips the specified number of bytes if specified, otherwise skips a varint.
+ * @param {number} [length] Length if known, otherwise a varint is assumed
+ * @returns {Reader} `this`
+ */
+Reader.prototype.skip = function skip(length) {
+    if (typeof length === "number") {
+        /* istanbul ignore if */
+        if (this.pos + length > this.len)
+            throw indexOutOfRange(this, length);
+        this.pos += length;
+    } else {
+        do {
+            /* istanbul ignore if */
+            if (this.pos >= this.len)
+                throw indexOutOfRange(this);
+        } while (this.buf[this.pos++] & 128);
+    }
+    return this;
+};
+
+/**
+ * Skips the next element of the specified wire type.
+ * @param {number} wireType Wire type received
+ * @returns {Reader} `this`
+ */
+Reader.prototype.skipType = function(wireType) {
+    switch (wireType) {
+        case 0:
+            this.skip();
+            break;
+        case 1:
+            this.skip(8);
+            break;
+        case 2:
+            this.skip(this.uint32());
+            break;
+        case 3:
+            while ((wireType = this.uint32() & 7) !== 4) {
+                this.skipType(wireType);
+            }
+            break;
+        case 5:
+            this.skip(4);
+            break;
+
+        /* istanbul ignore next */
+        default:
+            throw Error("invalid wire type " + wireType + " at offset " + this.pos);
+    }
+    return this;
+};
+
+Reader._configure = function(BufferReader_) {
+    BufferReader$1 = BufferReader_;
+    Reader.create = create();
+    BufferReader$1._configure();
+
+    var fn = require$$0$2.Long ? "toLong" : /* istanbul ignore next */ "toNumber";
+    require$$0$2.merge(Reader.prototype, {
+
+        int64: function read_int64() {
+            return readLongVarint.call(this)[fn](false);
+        },
+
+        uint64: function read_uint64() {
+            return readLongVarint.call(this)[fn](true);
+        },
+
+        sint64: function read_sint64() {
+            return readLongVarint.call(this).zzDecode()[fn](false);
+        },
+
+        fixed64: function read_fixed64() {
+            return readFixed64.call(this)[fn](true);
+        },
+
+        sfixed64: function read_sfixed64() {
+            return readFixed64.call(this)[fn](false);
+        }
+
+    });
+};
+
+var reader_buffer = BufferReader;
+
+// extends Reader
+
+(BufferReader.prototype = Object.create(reader.prototype)).constructor = BufferReader;
+
+
+
+/**
+ * Constructs a new buffer reader instance.
+ * @classdesc Wire format reader using node buffers.
+ * @extends Reader
+ * @constructor
+ * @param {Buffer} buffer Buffer to read from
+ */
+function BufferReader(buffer) {
+    reader.call(this, buffer);
+
+    /**
+     * Read buffer.
+     * @name BufferReader#buf
+     * @type {Buffer}
+     */
+}
+
+BufferReader._configure = function () {
+    /* istanbul ignore else */
+    if (require$$0$2.Buffer)
+        BufferReader.prototype._slice = require$$0$2.Buffer.prototype.slice;
+};
+
+
+/**
+ * @override
+ */
+BufferReader.prototype.string = function read_string_buffer() {
+    var len = this.uint32(); // modifies pos
+    return this.buf.utf8Slice
+        ? this.buf.utf8Slice(this.pos, this.pos = Math.min(this.pos + len, this.len))
+        : this.buf.toString("utf-8", this.pos, this.pos = Math.min(this.pos + len, this.len));
+};
+
+/**
+ * Reads a sequence of bytes preceeded by its length as a varint.
+ * @name BufferReader#bytes
+ * @function
+ * @returns {Buffer} Value read
+ */
+
+BufferReader._configure();
+
+var service$1 = Service$2;
+
+
+
+// Extends EventEmitter
+(Service$2.prototype = Object.create(require$$0$2.EventEmitter.prototype)).constructor = Service$2;
+
+/**
+ * A service method callback as used by {@link rpc.ServiceMethod|ServiceMethod}.
+ *
+ * Differs from {@link RPCImplCallback} in that it is an actual callback of a service method which may not return `response = null`.
+ * @typedef rpc.ServiceMethodCallback
+ * @template TRes extends Message<TRes>
+ * @type {function}
+ * @param {Error|null} error Error, if any
+ * @param {TRes} [response] Response message
+ * @returns {undefined}
+ */
+
+/**
+ * A service method part of a {@link rpc.Service} as created by {@link Service.create}.
+ * @typedef rpc.ServiceMethod
+ * @template TReq extends Message<TReq>
+ * @template TRes extends Message<TRes>
+ * @type {function}
+ * @param {TReq|Properties<TReq>} request Request message or plain object
+ * @param {rpc.ServiceMethodCallback<TRes>} [callback] Node-style callback called with the error, if any, and the response message
+ * @returns {Promise<Message<TRes>>} Promise if `callback` has been omitted, otherwise `undefined`
+ */
+
+/**
+ * Constructs a new RPC service instance.
+ * @classdesc An RPC service as returned by {@link Service#create}.
+ * @exports rpc.Service
+ * @extends util.EventEmitter
+ * @constructor
+ * @param {RPCImpl} rpcImpl RPC implementation
+ * @param {boolean} [requestDelimited=false] Whether requests are length-delimited
+ * @param {boolean} [responseDelimited=false] Whether responses are length-delimited
+ */
+function Service$2(rpcImpl, requestDelimited, responseDelimited) {
+
+    if (typeof rpcImpl !== "function")
+        throw TypeError("rpcImpl must be a function");
+
+    require$$0$2.EventEmitter.call(this);
+
+    /**
+     * RPC implementation. Becomes `null` once the service is ended.
+     * @type {RPCImpl|null}
+     */
+    this.rpcImpl = rpcImpl;
+
+    /**
+     * Whether requests are length-delimited.
+     * @type {boolean}
+     */
+    this.requestDelimited = Boolean(requestDelimited);
+
+    /**
+     * Whether responses are length-delimited.
+     * @type {boolean}
+     */
+    this.responseDelimited = Boolean(responseDelimited);
+}
+
+/**
+ * Calls a service method through {@link rpc.Service#rpcImpl|rpcImpl}.
+ * @param {Method|rpc.ServiceMethod<TReq,TRes>} method Reflected or static method
+ * @param {Constructor<TReq>} requestCtor Request constructor
+ * @param {Constructor<TRes>} responseCtor Response constructor
+ * @param {TReq|Properties<TReq>} request Request message or plain object
+ * @param {rpc.ServiceMethodCallback<TRes>} callback Service callback
+ * @returns {undefined}
+ * @template TReq extends Message<TReq>
+ * @template TRes extends Message<TRes>
+ */
+Service$2.prototype.rpcCall = function rpcCall(method, requestCtor, responseCtor, request, callback) {
+
+    if (!request)
+        throw TypeError("request must be specified");
+
+    var self = this;
+    if (!callback)
+        return require$$0$2.asPromise(rpcCall, self, method, requestCtor, responseCtor, request);
+
+    if (!self.rpcImpl) {
+        setTimeout(function() { callback(Error("already ended")); }, 0);
+        return undefined;
+    }
+
+    try {
+        return self.rpcImpl(
+            method,
+            requestCtor[self.requestDelimited ? "encodeDelimited" : "encode"](request).finish(),
+            function rpcCallback(err, response) {
+
+                if (err) {
+                    self.emit("error", err, method);
+                    return callback(err);
+                }
+
+                if (response === null) {
+                    self.end(/* endedByRPC */ true);
+                    return undefined;
+                }
+
+                if (!(response instanceof responseCtor)) {
+                    try {
+                        response = responseCtor[self.responseDelimited ? "decodeDelimited" : "decode"](response);
+                    } catch (err) {
+                        self.emit("error", err, method);
+                        return callback(err);
+                    }
+                }
+
+                self.emit("data", response, method);
+                return callback(null, response);
+            }
+        );
+    } catch (err) {
+        self.emit("error", err, method);
+        setTimeout(function() { callback(err); }, 0);
+        return undefined;
+    }
+};
+
+/**
+ * Ends this service and emits the `end` event.
+ * @param {boolean} [endedByRPC=false] Whether the service has been ended by the RPC implementation.
+ * @returns {rpc.Service} `this`
+ */
+Service$2.prototype.end = function end(endedByRPC) {
+    if (this.rpcImpl) {
+        if (!endedByRPC) // signal end to rpcImpl
+            this.rpcImpl(null, null, null);
+        this.rpcImpl = null;
+        this.emit("end").off();
+    }
+    return this;
+};
+
+var rpc_1 = createCommonjsModule(function (module, exports) {
+
+/**
+ * Streaming RPC helpers.
+ * @namespace
+ */
+var rpc = exports;
+
+/**
+ * RPC implementation passed to {@link Service#create} performing a service request on network level, i.e. by utilizing http requests or websockets.
+ * @typedef RPCImpl
+ * @type {function}
+ * @param {Method|rpc.ServiceMethod<Message<{}>,Message<{}>>} method Reflected or static method being called
+ * @param {Uint8Array} requestData Request data
+ * @param {RPCImplCallback} callback Callback function
+ * @returns {undefined}
+ * @example
+ * function rpcImpl(method, requestData, callback) {
+ *     if (protobuf.util.lcFirst(method.name) !== "myMethod") // compatible with static code
+ *         throw Error("no such method");
+ *     asynchronouslyObtainAResponse(requestData, function(err, responseData) {
+ *         callback(err, responseData);
+ *     });
+ * }
+ */
+
+/**
+ * Node-style callback as used by {@link RPCImpl}.
+ * @typedef RPCImplCallback
+ * @type {function}
+ * @param {Error|null} error Error, if any, otherwise `null`
+ * @param {Uint8Array|null} [response] Response data or `null` to signal end of stream, if there hasn't been an error
+ * @returns {undefined}
+ */
+
+rpc.Service = service$1;
+});
+
+var roots = {};
+
+var indexMinimal = createCommonjsModule(function (module, exports) {
+var protobuf = exports;
+
+/**
+ * Build type, one of `"full"`, `"light"` or `"minimal"`.
+ * @name build
+ * @type {string}
+ * @const
+ */
+protobuf.build = "minimal";
+
+// Serialization
+protobuf.Writer       = writer;
+protobuf.BufferWriter = writer_buffer;
+protobuf.Reader       = reader;
+protobuf.BufferReader = reader_buffer;
+
+// Utility
+protobuf.util         = require$$0$2;
+protobuf.rpc          = rpc_1;
+protobuf.roots        = roots;
+protobuf.configure    = configure;
+
+/* istanbul ignore next */
+/**
+ * Reconfigures the library according to the environment.
+ * @returns {undefined}
+ */
+function configure() {
+    protobuf.util._configure();
+    protobuf.Writer._configure(protobuf.BufferWriter);
+    protobuf.Reader._configure(protobuf.BufferReader);
+}
+
+// Set up buffer utility according to the environment
+configure();
+});
+
+var codegen_1 = codegen;
+
+/**
+ * Begins generating a function.
+ * @memberof util
+ * @param {string[]} functionParams Function parameter names
+ * @param {string} [functionName] Function name if not anonymous
+ * @returns {Codegen} Appender that appends code to the function's body
+ */
+function codegen(functionParams, functionName) {
+
+    /* istanbul ignore if */
+    if (typeof functionParams === "string") {
+        functionName = functionParams;
+        functionParams = undefined;
+    }
+
+    var body = [];
+
+    /**
+     * Appends code to the function's body or finishes generation.
+     * @typedef Codegen
+     * @type {function}
+     * @param {string|Object.<string,*>} [formatStringOrScope] Format string or, to finish the function, an object of additional scope variables, if any
+     * @param {...*} [formatParams] Format parameters
+     * @returns {Codegen|Function} Itself or the generated function if finished
+     * @throws {Error} If format parameter counts do not match
+     */
+
+    function Codegen(formatStringOrScope) {
+        // note that explicit array handling below makes this ~50% faster
+
+        // finish the function
+        if (typeof formatStringOrScope !== "string") {
+            var source = toString();
+            if (codegen.verbose)
+                console.log("codegen: " + source); // eslint-disable-line no-console
+            source = "return " + source;
+            if (formatStringOrScope) {
+                var scopeKeys   = Object.keys(formatStringOrScope),
+                    scopeParams = new Array(scopeKeys.length + 1),
+                    scopeValues = new Array(scopeKeys.length),
+                    scopeOffset = 0;
+                while (scopeOffset < scopeKeys.length) {
+                    scopeParams[scopeOffset] = scopeKeys[scopeOffset];
+                    scopeValues[scopeOffset] = formatStringOrScope[scopeKeys[scopeOffset++]];
+                }
+                scopeParams[scopeOffset] = source;
+                return Function.apply(null, scopeParams).apply(null, scopeValues); // eslint-disable-line no-new-func
+            }
+            return Function(source)(); // eslint-disable-line no-new-func
+        }
+
+        // otherwise append to body
+        var formatParams = new Array(arguments.length - 1),
+            formatOffset = 0;
+        while (formatOffset < formatParams.length)
+            formatParams[formatOffset] = arguments[++formatOffset];
+        formatOffset = 0;
+        formatStringOrScope = formatStringOrScope.replace(/%([%dfijs])/g, function replace($0, $1) {
+            var value = formatParams[formatOffset++];
+            switch ($1) {
+                case "d": case "f": return String(Number(value));
+                case "i": return String(Math.floor(value));
+                case "j": return JSON.stringify(value);
+                case "s": return String(value);
+            }
+            return "%";
+        });
+        if (formatOffset !== formatParams.length)
+            throw Error("parameter count mismatch");
+        body.push(formatStringOrScope);
+        return Codegen;
+    }
+
+    function toString(functionNameOverride) {
+        return "function " + (functionNameOverride || functionName || "") + "(" + (functionParams && functionParams.join(",") || "") + "){\n  " + body.join("\n  ") + "\n}";
+    }
+
+    Codegen.toString = toString;
+    return Codegen;
+}
+
+/**
+ * Begins generating a function.
+ * @memberof util
+ * @function codegen
+ * @param {string} [functionName] Function name if not anonymous
+ * @returns {Codegen} Appender that appends code to the function's body
+ * @variation 2
+ */
+
+/**
+ * When set to `true`, codegen will log generated code to console. Useful for debugging.
+ * @name util.codegen.verbose
+ * @type {boolean}
+ */
+codegen.verbose = false;
+
+var fetch_1 = fetch$1;
+
+
+
+var fs$1 = inquire_1("fs");
+
+/**
+ * Node-style callback as used by {@link util.fetch}.
+ * @typedef FetchCallback
+ * @type {function}
+ * @param {?Error} error Error, if any, otherwise `null`
+ * @param {string} [contents] File contents, if there hasn't been an error
+ * @returns {undefined}
+ */
+
+/**
+ * Options as used by {@link util.fetch}.
+ * @typedef FetchOptions
+ * @type {Object}
+ * @property {boolean} [binary=false] Whether expecting a binary response
+ * @property {boolean} [xhr=false] If `true`, forces the use of XMLHttpRequest
+ */
+
+/**
+ * Fetches the contents of a file.
+ * @memberof util
+ * @param {string} filename File path or url
+ * @param {FetchOptions} options Fetch options
+ * @param {FetchCallback} callback Callback function
+ * @returns {undefined}
+ */
+function fetch$1(filename, options, callback) {
+    if (typeof options === "function") {
+        callback = options;
+        options = {};
+    } else if (!options)
+        options = {};
+
+    if (!callback)
+        return aspromise(fetch$1, this, filename, options); // eslint-disable-line no-invalid-this
+
+    // if a node-like filesystem is present, try it first but fall back to XHR if nothing is found.
+    if (!options.xhr && fs$1 && fs$1.readFile)
+        return fs$1.readFile(filename, function fetchReadFileCallback(err, contents) {
+            return err && typeof XMLHttpRequest !== "undefined"
+                ? fetch$1.xhr(filename, options, callback)
+                : err
+                ? callback(err)
+                : callback(null, options.binary ? contents : contents.toString("utf8"));
+        });
+
+    // use the XHR version otherwise.
+    return fetch$1.xhr(filename, options, callback);
+}
+
+/**
+ * Fetches the contents of a file.
+ * @name util.fetch
+ * @function
+ * @param {string} path File path or url
+ * @param {FetchCallback} callback Callback function
+ * @returns {undefined}
+ * @variation 2
+ */
+
+/**
+ * Fetches the contents of a file.
+ * @name util.fetch
+ * @function
+ * @param {string} path File path or url
+ * @param {FetchOptions} [options] Fetch options
+ * @returns {Promise<string|Uint8Array>} Promise
+ * @variation 3
+ */
+
+/**/
+fetch$1.xhr = function fetch_xhr(filename, options, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange /* works everywhere */ = function fetchOnReadyStateChange() {
+
+        if (xhr.readyState !== 4)
+            return undefined;
+
+        // local cors security errors return status 0 / empty string, too. afaik this cannot be
+        // reliably distinguished from an actually empty file for security reasons. feel free
+        // to send a pull request if you are aware of a solution.
+        if (xhr.status !== 0 && xhr.status !== 200)
+            return callback(Error("status " + xhr.status));
+
+        // if binary data is expected, make sure that some sort of array is returned, even if
+        // ArrayBuffers are not supported. the binary string fallback, however, is unsafe.
+        if (options.binary) {
+            var buffer = xhr.response;
+            if (!buffer) {
+                buffer = [];
+                for (var i = 0; i < xhr.responseText.length; ++i)
+                    buffer.push(xhr.responseText.charCodeAt(i) & 255);
+            }
+            return callback(null, typeof Uint8Array !== "undefined" ? new Uint8Array(buffer) : buffer);
+        }
+        return callback(null, xhr.responseText);
+    };
+
+    if (options.binary) {
+        // ref: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Sending_and_Receiving_Binary_Data#Receiving_binary_data_in_older_browsers
+        if ("overrideMimeType" in xhr)
+            xhr.overrideMimeType("text/plain; charset=x-user-defined");
+        xhr.responseType = "arraybuffer";
+    }
+
+    xhr.open("GET", filename);
+    xhr.send();
+};
+
+var path_1 = createCommonjsModule(function (module, exports) {
+
+/**
+ * A minimal path module to resolve Unix, Windows and URL paths alike.
+ * @memberof util
+ * @namespace
+ */
+var path = exports;
+
+var isAbsolute =
+/**
+ * Tests if the specified path is absolute.
+ * @param {string} path Path to test
+ * @returns {boolean} `true` if path is absolute
+ */
+path.isAbsolute = function isAbsolute(path) {
+    return /^(?:\/|\w+:)/.test(path);
+};
+
+var normalize =
+/**
+ * Normalizes the specified path.
+ * @param {string} path Path to normalize
+ * @returns {string} Normalized path
+ */
+path.normalize = function normalize(path) {
+    path = path.replace(/\\/g, "/")
+               .replace(/\/{2,}/g, "/");
+    var parts    = path.split("/"),
+        absolute = isAbsolute(path),
+        prefix   = "";
+    if (absolute)
+        prefix = parts.shift() + "/";
+    for (var i = 0; i < parts.length;) {
+        if (parts[i] === "..") {
+            if (i > 0 && parts[i - 1] !== "..")
+                parts.splice(--i, 2);
+            else if (absolute)
+                parts.splice(i, 1);
+            else
+                ++i;
+        } else if (parts[i] === ".")
+            parts.splice(i, 1);
+        else
+            ++i;
+    }
+    return prefix + parts.join("/");
+};
+
+/**
+ * Resolves the specified include path against the specified origin path.
+ * @param {string} originPath Path to the origin file
+ * @param {string} includePath Include path relative to origin path
+ * @param {boolean} [alreadyNormalized=false] `true` if both paths are already known to be normalized
+ * @returns {string} Path to the include file
+ */
+path.resolve = function resolve(originPath, includePath, alreadyNormalized) {
+    if (!alreadyNormalized)
+        includePath = normalize(includePath);
+    if (isAbsolute(includePath))
+        return includePath;
+    if (!alreadyNormalized)
+        originPath = normalize(originPath);
+    return (originPath = originPath.replace(/(?:\/|^)[^/]+$/, "")).length ? normalize(originPath + "/" + includePath) : includePath;
+};
+});
+
+var util$1 = util_1;
+
+var types_1 = createCommonjsModule(function (module, exports) {
+
+/**
+ * Common type constants.
+ * @namespace
+ */
+var types = exports;
+
+
+
+var s = [
+    "double",   // 0
+    "float",    // 1
+    "int32",    // 2
+    "uint32",   // 3
+    "sint32",   // 4
+    "fixed32",  // 5
+    "sfixed32", // 6
+    "int64",    // 7
+    "uint64",   // 8
+    "sint64",   // 9
+    "fixed64",  // 10
+    "sfixed64", // 11
+    "bool",     // 12
+    "string",   // 13
+    "bytes"     // 14
+];
+
+function bake(values, offset) {
+    var i = 0, o = {};
+    offset |= 0;
+    while (i < values.length) o[s[i + offset]] = values[i++];
+    return o;
+}
+
+/**
+ * Basic type wire types.
+ * @type {Object.<string,number>}
+ * @const
+ * @property {number} double=1 Fixed64 wire type
+ * @property {number} float=5 Fixed32 wire type
+ * @property {number} int32=0 Varint wire type
+ * @property {number} uint32=0 Varint wire type
+ * @property {number} sint32=0 Varint wire type
+ * @property {number} fixed32=5 Fixed32 wire type
+ * @property {number} sfixed32=5 Fixed32 wire type
+ * @property {number} int64=0 Varint wire type
+ * @property {number} uint64=0 Varint wire type
+ * @property {number} sint64=0 Varint wire type
+ * @property {number} fixed64=1 Fixed64 wire type
+ * @property {number} sfixed64=1 Fixed64 wire type
+ * @property {number} bool=0 Varint wire type
+ * @property {number} string=2 Ldelim wire type
+ * @property {number} bytes=2 Ldelim wire type
+ */
+types.basic = bake([
+    /* double   */ 1,
+    /* float    */ 5,
+    /* int32    */ 0,
+    /* uint32   */ 0,
+    /* sint32   */ 0,
+    /* fixed32  */ 5,
+    /* sfixed32 */ 5,
+    /* int64    */ 0,
+    /* uint64   */ 0,
+    /* sint64   */ 0,
+    /* fixed64  */ 1,
+    /* sfixed64 */ 1,
+    /* bool     */ 0,
+    /* string   */ 2,
+    /* bytes    */ 2
+]);
+
+/**
+ * Basic type defaults.
+ * @type {Object.<string,*>}
+ * @const
+ * @property {number} double=0 Double default
+ * @property {number} float=0 Float default
+ * @property {number} int32=0 Int32 default
+ * @property {number} uint32=0 Uint32 default
+ * @property {number} sint32=0 Sint32 default
+ * @property {number} fixed32=0 Fixed32 default
+ * @property {number} sfixed32=0 Sfixed32 default
+ * @property {number} int64=0 Int64 default
+ * @property {number} uint64=0 Uint64 default
+ * @property {number} sint64=0 Sint32 default
+ * @property {number} fixed64=0 Fixed64 default
+ * @property {number} sfixed64=0 Sfixed64 default
+ * @property {boolean} bool=false Bool default
+ * @property {string} string="" String default
+ * @property {Array.<number>} bytes=Array(0) Bytes default
+ * @property {null} message=null Message default
+ */
+types.defaults = bake([
+    /* double   */ 0,
+    /* float    */ 0,
+    /* int32    */ 0,
+    /* uint32   */ 0,
+    /* sint32   */ 0,
+    /* fixed32  */ 0,
+    /* sfixed32 */ 0,
+    /* int64    */ 0,
+    /* uint64   */ 0,
+    /* sint64   */ 0,
+    /* fixed64  */ 0,
+    /* sfixed64 */ 0,
+    /* bool     */ false,
+    /* string   */ "",
+    /* bytes    */ util$1.emptyArray,
+    /* message  */ null
+]);
+
+/**
+ * Basic long type wire types.
+ * @type {Object.<string,number>}
+ * @const
+ * @property {number} int64=0 Varint wire type
+ * @property {number} uint64=0 Varint wire type
+ * @property {number} sint64=0 Varint wire type
+ * @property {number} fixed64=1 Fixed64 wire type
+ * @property {number} sfixed64=1 Fixed64 wire type
+ */
+types.long = bake([
+    /* int64    */ 0,
+    /* uint64   */ 0,
+    /* sint64   */ 0,
+    /* fixed64  */ 1,
+    /* sfixed64 */ 1
+], 7);
+
+/**
+ * Allowed types for map keys with their associated wire type.
+ * @type {Object.<string,number>}
+ * @const
+ * @property {number} int32=0 Varint wire type
+ * @property {number} uint32=0 Varint wire type
+ * @property {number} sint32=0 Varint wire type
+ * @property {number} fixed32=5 Fixed32 wire type
+ * @property {number} sfixed32=5 Fixed32 wire type
+ * @property {number} int64=0 Varint wire type
+ * @property {number} uint64=0 Varint wire type
+ * @property {number} sint64=0 Varint wire type
+ * @property {number} fixed64=1 Fixed64 wire type
+ * @property {number} sfixed64=1 Fixed64 wire type
+ * @property {number} bool=0 Varint wire type
+ * @property {number} string=2 Ldelim wire type
+ */
+types.mapKey = bake([
+    /* int32    */ 0,
+    /* uint32   */ 0,
+    /* sint32   */ 0,
+    /* fixed32  */ 5,
+    /* sfixed32 */ 5,
+    /* int64    */ 0,
+    /* uint64   */ 0,
+    /* sint64   */ 0,
+    /* fixed64  */ 1,
+    /* sfixed64 */ 1,
+    /* bool     */ 0,
+    /* string   */ 2
+], 2);
+
+/**
+ * Allowed types for packed repeated fields with their associated wire type.
+ * @type {Object.<string,number>}
+ * @const
+ * @property {number} double=1 Fixed64 wire type
+ * @property {number} float=5 Fixed32 wire type
+ * @property {number} int32=0 Varint wire type
+ * @property {number} uint32=0 Varint wire type
+ * @property {number} sint32=0 Varint wire type
+ * @property {number} fixed32=5 Fixed32 wire type
+ * @property {number} sfixed32=5 Fixed32 wire type
+ * @property {number} int64=0 Varint wire type
+ * @property {number} uint64=0 Varint wire type
+ * @property {number} sint64=0 Varint wire type
+ * @property {number} fixed64=1 Fixed64 wire type
+ * @property {number} sfixed64=1 Fixed64 wire type
+ * @property {number} bool=0 Varint wire type
+ */
+types.packed = bake([
+    /* double   */ 1,
+    /* float    */ 5,
+    /* int32    */ 0,
+    /* uint32   */ 0,
+    /* sint32   */ 0,
+    /* fixed32  */ 5,
+    /* sfixed32 */ 5,
+    /* int64    */ 0,
+    /* uint64   */ 0,
+    /* sint64   */ 0,
+    /* fixed64  */ 1,
+    /* sfixed64 */ 1,
+    /* bool     */ 0
+]);
+});
+
+var require$$5 = object;
+
+var Enum$2 = _enum;
+
+var field = Field;
+
+// extends ReflectionObject
+
+((Field.prototype = Object.create(require$$5.prototype)).constructor = Field).className = "Field";
+
+
+
+var Type$3; // cyclic
+
+var ruleRe = /^required|optional|repeated$/;
+
+/**
+ * Constructs a new message field instance. Note that {@link MapField|map fields} have their own class.
+ * @name Field
+ * @classdesc Reflected message field.
+ * @extends FieldBase
+ * @constructor
+ * @param {string} name Unique name within its namespace
+ * @param {number} id Unique id within its namespace
+ * @param {string} type Value type
+ * @param {string|Object.<string,*>} [rule="optional"] Field rule
+ * @param {string|Object.<string,*>} [extend] Extended type if different from parent
+ * @param {Object.<string,*>} [options] Declared options
+ */
+
+/**
+ * Constructs a field from a field descriptor.
+ * @param {string} name Field name
+ * @param {IField} json Field descriptor
+ * @returns {Field} Created field
+ * @throws {TypeError} If arguments are invalid
+ */
+Field.fromJSON = function fromJSON(name, json) {
+    return new Field(name, json.id, json.type, json.rule, json.extend, json.options, json.comment);
+};
+
+/**
+ * Not an actual constructor. Use {@link Field} instead.
+ * @classdesc Base class of all reflected message fields. This is not an actual class but here for the sake of having consistent type definitions.
+ * @exports FieldBase
+ * @extends ReflectionObject
+ * @constructor
+ * @param {string} name Unique name within its namespace
+ * @param {number} id Unique id within its namespace
+ * @param {string} type Value type
+ * @param {string|Object.<string,*>} [rule="optional"] Field rule
+ * @param {string|Object.<string,*>} [extend] Extended type if different from parent
+ * @param {Object.<string,*>} [options] Declared options
+ * @param {string} [comment] Comment associated with this field
+ */
+function Field(name, id, type, rule, extend, options, comment) {
+
+    if (util$1.isObject(rule)) {
+        comment = extend;
+        options = rule;
+        rule = extend = undefined;
+    } else if (util$1.isObject(extend)) {
+        comment = options;
+        options = extend;
+        extend = undefined;
+    }
+
+    require$$5.call(this, name, options);
+
+    if (!util$1.isInteger(id) || id < 0)
+        throw TypeError("id must be a non-negative integer");
+
+    if (!util$1.isString(type))
+        throw TypeError("type must be a string");
+
+    if (rule !== undefined && !ruleRe.test(rule = rule.toString().toLowerCase()))
+        throw TypeError("rule must be a string rule");
+
+    if (extend !== undefined && !util$1.isString(extend))
+        throw TypeError("extend must be a string");
+
+    if (rule === "proto3_optional") {
+        rule = "optional";
+    }
+    /**
+     * Field rule, if any.
+     * @type {string|undefined}
+     */
+    this.rule = rule && rule !== "optional" ? rule : undefined; // toJSON
+
+    /**
+     * Field type.
+     * @type {string}
+     */
+    this.type = type; // toJSON
+
+    /**
+     * Unique field id.
+     * @type {number}
+     */
+    this.id = id; // toJSON, marker
+
+    /**
+     * Extended type if different from parent.
+     * @type {string|undefined}
+     */
+    this.extend = extend || undefined; // toJSON
+
+    /**
+     * Whether this field is required.
+     * @type {boolean}
+     */
+    this.required = rule === "required";
+
+    /**
+     * Whether this field is optional.
+     * @type {boolean}
+     */
+    this.optional = !this.required;
+
+    /**
+     * Whether this field is repeated.
+     * @type {boolean}
+     */
+    this.repeated = rule === "repeated";
+
+    /**
+     * Whether this field is a map or not.
+     * @type {boolean}
+     */
+    this.map = false;
+
+    /**
+     * Message this field belongs to.
+     * @type {Type|null}
+     */
+    this.message = null;
+
+    /**
+     * OneOf this field belongs to, if any,
+     * @type {OneOf|null}
+     */
+    this.partOf = null;
+
+    /**
+     * The field type's default value.
+     * @type {*}
+     */
+    this.typeDefault = null;
+
+    /**
+     * The field's default value on prototypes.
+     * @type {*}
+     */
+    this.defaultValue = null;
+
+    /**
+     * Whether this field's value should be treated as a long.
+     * @type {boolean}
+     */
+    this.long = util$1.Long ? types_1.long[type] !== undefined : /* istanbul ignore next */ false;
+
+    /**
+     * Whether this field's value is a buffer.
+     * @type {boolean}
+     */
+    this.bytes = type === "bytes";
+
+    /**
+     * Resolved type if not a basic type.
+     * @type {Type|Enum|null}
+     */
+    this.resolvedType = null;
+
+    /**
+     * Sister-field within the extended type if a declaring extension field.
+     * @type {Field|null}
+     */
+    this.extensionField = null;
+
+    /**
+     * Sister-field within the declaring namespace if an extended field.
+     * @type {Field|null}
+     */
+    this.declaringField = null;
+
+    /**
+     * Internally remembers whether this field is packed.
+     * @type {boolean|null}
+     * @private
+     */
+    this._packed = null;
+
+    /**
+     * Comment for this field.
+     * @type {string|null}
+     */
+    this.comment = comment;
+}
+
+/**
+ * Determines whether this field is packed. Only relevant when repeated and working with proto2.
+ * @name Field#packed
+ * @type {boolean}
+ * @readonly
+ */
+Object.defineProperty(Field.prototype, "packed", {
+    get: function() {
+        // defaults to packed=true if not explicity set to false
+        if (this._packed === null)
+            this._packed = this.getOption("packed") !== false;
+        return this._packed;
+    }
+});
+
+/**
+ * @override
+ */
+Field.prototype.setOption = function setOption(name, value, ifNotSet) {
+    if (name === "packed") // clear cached before setting
+        this._packed = null;
+    return require$$5.prototype.setOption.call(this, name, value, ifNotSet);
+};
+
+/**
+ * Field descriptor.
+ * @interface IField
+ * @property {string} [rule="optional"] Field rule
+ * @property {string} type Field type
+ * @property {number} id Field id
+ * @property {Object.<string,*>} [options] Field options
+ */
+
+/**
+ * Extension field descriptor.
+ * @interface IExtensionField
+ * @extends IField
+ * @property {string} extend Extended type
+ */
+
+/**
+ * Converts this field to a field descriptor.
+ * @param {IToJSONOptions} [toJSONOptions] JSON conversion options
+ * @returns {IField} Field descriptor
+ */
+Field.prototype.toJSON = function toJSON(toJSONOptions) {
+    var keepComments = toJSONOptions ? Boolean(toJSONOptions.keepComments) : false;
+    return util$1.toObject([
+        "rule"    , this.rule !== "optional" && this.rule || undefined,
+        "type"    , this.type,
+        "id"      , this.id,
+        "extend"  , this.extend,
+        "options" , this.options,
+        "comment" , keepComments ? this.comment : undefined
+    ]);
+};
+
+/**
+ * Resolves this field's type references.
+ * @returns {Field} `this`
+ * @throws {Error} If any reference cannot be resolved
+ */
+Field.prototype.resolve = function resolve() {
+
+    if (this.resolved)
+        return this;
+
+    if ((this.typeDefault = types_1.defaults[this.type]) === undefined) { // if not a basic type, resolve it
+        this.resolvedType = (this.declaringField ? this.declaringField.parent : this.parent).lookupTypeOrEnum(this.type);
+        if (this.resolvedType instanceof Type$3)
+            this.typeDefault = null;
+        else // instanceof Enum
+            this.typeDefault = this.resolvedType.values[Object.keys(this.resolvedType.values)[0]]; // first defined
+    }
+
+    // use explicitly set default value if present
+    if (this.options && this.options["default"] != null) {
+        this.typeDefault = this.options["default"];
+        if (this.resolvedType instanceof Enum$2 && typeof this.typeDefault === "string")
+            this.typeDefault = this.resolvedType.values[this.typeDefault];
+    }
+
+    // remove unnecessary options
+    if (this.options) {
+        if (this.options.packed === true || this.options.packed !== undefined && this.resolvedType && !(this.resolvedType instanceof Enum$2))
+            delete this.options.packed;
+        if (!Object.keys(this.options).length)
+            this.options = undefined;
+    }
+
+    // convert to internal data type if necesssary
+    if (this.long) {
+        this.typeDefault = util$1.Long.fromNumber(this.typeDefault, this.type.charAt(0) === "u");
+
+        /* istanbul ignore else */
+        if (Object.freeze)
+            Object.freeze(this.typeDefault); // long instances are meant to be immutable anyway (i.e. use small int cache that even requires it)
+
+    } else if (this.bytes && typeof this.typeDefault === "string") {
+        var buf;
+        if (util$1.base64.test(this.typeDefault))
+            util$1.base64.decode(this.typeDefault, buf = util$1.newBuffer(util$1.base64.length(this.typeDefault)), 0);
+        else
+            util$1.utf8.write(this.typeDefault, buf = util$1.newBuffer(util$1.utf8.length(this.typeDefault)), 0);
+        this.typeDefault = buf;
+    }
+
+    // take special care of maps and repeated fields
+    if (this.map)
+        this.defaultValue = util$1.emptyObject;
+    else if (this.repeated)
+        this.defaultValue = util$1.emptyArray;
+    else
+        this.defaultValue = this.typeDefault;
+
+    // ensure proper value on prototype
+    if (this.parent instanceof Type$3)
+        this.parent.ctor.prototype[this.name] = this.defaultValue;
+
+    return require$$5.prototype.resolve.call(this);
+};
+
+/**
+ * Decorator function as returned by {@link Field.d} and {@link MapField.d} (TypeScript).
+ * @typedef FieldDecorator
+ * @type {function}
+ * @param {Object} prototype Target prototype
+ * @param {string} fieldName Field name
+ * @returns {undefined}
+ */
+
+/**
+ * Field decorator (TypeScript).
+ * @name Field.d
+ * @function
+ * @param {number} fieldId Field id
+ * @param {"double"|"float"|"int32"|"uint32"|"sint32"|"fixed32"|"sfixed32"|"int64"|"uint64"|"sint64"|"fixed64"|"sfixed64"|"string"|"bool"|"bytes"|Object} fieldType Field type
+ * @param {"optional"|"required"|"repeated"} [fieldRule="optional"] Field rule
+ * @param {T} [defaultValue] Default value
+ * @returns {FieldDecorator} Decorator function
+ * @template T extends number | number[] | Long | Long[] | string | string[] | boolean | boolean[] | Uint8Array | Uint8Array[] | Buffer | Buffer[]
+ */
+Field.d = function decorateField(fieldId, fieldType, fieldRule, defaultValue) {
+
+    // submessage: decorate the submessage and use its name as the type
+    if (typeof fieldType === "function")
+        fieldType = util$1.decorateType(fieldType).name;
+
+    // enum reference: create a reflected copy of the enum and keep reuseing it
+    else if (fieldType && typeof fieldType === "object")
+        fieldType = util$1.decorateEnum(fieldType).name;
+
+    return function fieldDecorator(prototype, fieldName) {
+        util$1.decorateType(prototype.constructor)
+            .add(new Field(fieldName, fieldId, fieldType, fieldRule, { "default": defaultValue }));
+    };
+};
+
+/**
+ * Field decorator (TypeScript).
+ * @name Field.d
+ * @function
+ * @param {number} fieldId Field id
+ * @param {Constructor<T>|string} fieldType Field type
+ * @param {"optional"|"required"|"repeated"} [fieldRule="optional"] Field rule
+ * @returns {FieldDecorator} Decorator function
+ * @template T extends Message<T>
+ * @variation 2
+ */
+// like Field.d but without a default value
+
+// Sets up cyclic dependencies (called in index-light)
+Field._configure = function configure(Type_) {
+    Type$3 = Type_;
+};
+
+var oneof = OneOf;
+
+// extends ReflectionObject
+
+((OneOf.prototype = Object.create(require$$5.prototype)).constructor = OneOf).className = "OneOf";
+
+
+
+/**
+ * Constructs a new oneof instance.
+ * @classdesc Reflected oneof.
+ * @extends ReflectionObject
+ * @constructor
+ * @param {string} name Oneof name
+ * @param {string[]|Object.<string,*>} [fieldNames] Field names
+ * @param {Object.<string,*>} [options] Declared options
+ * @param {string} [comment] Comment associated with this field
+ */
+function OneOf(name, fieldNames, options, comment) {
+    if (!Array.isArray(fieldNames)) {
+        options = fieldNames;
+        fieldNames = undefined;
+    }
+    require$$5.call(this, name, options);
+
+    /* istanbul ignore if */
+    if (!(fieldNames === undefined || Array.isArray(fieldNames)))
+        throw TypeError("fieldNames must be an Array");
+
+    /**
+     * Field names that belong to this oneof.
+     * @type {string[]}
+     */
+    this.oneof = fieldNames || []; // toJSON, marker
+
+    /**
+     * Fields that belong to this oneof as an array for iteration.
+     * @type {Field[]}
+     * @readonly
+     */
+    this.fieldsArray = []; // declared readonly for conformance, possibly not yet added to parent
+
+    /**
+     * Comment for this field.
+     * @type {string|null}
+     */
+    this.comment = comment;
+}
+
+/**
+ * Oneof descriptor.
+ * @interface IOneOf
+ * @property {Array.<string>} oneof Oneof field names
+ * @property {Object.<string,*>} [options] Oneof options
+ */
+
+/**
+ * Constructs a oneof from a oneof descriptor.
+ * @param {string} name Oneof name
+ * @param {IOneOf} json Oneof descriptor
+ * @returns {OneOf} Created oneof
+ * @throws {TypeError} If arguments are invalid
+ */
+OneOf.fromJSON = function fromJSON(name, json) {
+    return new OneOf(name, json.oneof, json.options, json.comment);
+};
+
+/**
+ * Converts this oneof to a oneof descriptor.
+ * @param {IToJSONOptions} [toJSONOptions] JSON conversion options
+ * @returns {IOneOf} Oneof descriptor
+ */
+OneOf.prototype.toJSON = function toJSON(toJSONOptions) {
+    var keepComments = toJSONOptions ? Boolean(toJSONOptions.keepComments) : false;
+    return util$1.toObject([
+        "options" , this.options,
+        "oneof"   , this.oneof,
+        "comment" , keepComments ? this.comment : undefined
+    ]);
+};
+
+/**
+ * Adds the fields of the specified oneof to the parent if not already done so.
+ * @param {OneOf} oneof The oneof
+ * @returns {undefined}
+ * @inner
+ * @ignore
+ */
+function addFieldsToParent(oneof) {
+    if (oneof.parent)
+        for (var i = 0; i < oneof.fieldsArray.length; ++i)
+            if (!oneof.fieldsArray[i].parent)
+                oneof.parent.add(oneof.fieldsArray[i]);
+}
+
+/**
+ * Adds a field to this oneof and removes it from its current parent, if any.
+ * @param {Field} field Field to add
+ * @returns {OneOf} `this`
+ */
+OneOf.prototype.add = function add(field$1) {
+
+    /* istanbul ignore if */
+    if (!(field$1 instanceof field))
+        throw TypeError("field must be a Field");
+
+    if (field$1.parent && field$1.parent !== this.parent)
+        field$1.parent.remove(field$1);
+    this.oneof.push(field$1.name);
+    this.fieldsArray.push(field$1);
+    field$1.partOf = this; // field.parent remains null
+    addFieldsToParent(this);
+    return this;
+};
+
+/**
+ * Removes a field from this oneof and puts it back to the oneof's parent.
+ * @param {Field} field Field to remove
+ * @returns {OneOf} `this`
+ */
+OneOf.prototype.remove = function remove(field$1) {
+
+    /* istanbul ignore if */
+    if (!(field$1 instanceof field))
+        throw TypeError("field must be a Field");
+
+    var index = this.fieldsArray.indexOf(field$1);
+
+    /* istanbul ignore if */
+    if (index < 0)
+        throw Error(field$1 + " is not a member of " + this);
+
+    this.fieldsArray.splice(index, 1);
+    index = this.oneof.indexOf(field$1.name);
+
+    /* istanbul ignore else */
+    if (index > -1) // theoretical
+        this.oneof.splice(index, 1);
+
+    field$1.partOf = null;
+    return this;
+};
+
+/**
+ * @override
+ */
+OneOf.prototype.onAdd = function onAdd(parent) {
+    require$$5.prototype.onAdd.call(this, parent);
+    var self = this;
+    // Collect present fields
+    for (var i = 0; i < this.oneof.length; ++i) {
+        var field = parent.get(this.oneof[i]);
+        if (field && !field.partOf) {
+            field.partOf = self;
+            self.fieldsArray.push(field);
+        }
+    }
+    // Add not yet present fields
+    addFieldsToParent(this);
+};
+
+/**
+ * @override
+ */
+OneOf.prototype.onRemove = function onRemove(parent) {
+    for (var i = 0, field; i < this.fieldsArray.length; ++i)
+        if ((field = this.fieldsArray[i]).parent)
+            field.parent.remove(field);
+    require$$5.prototype.onRemove.call(this, parent);
+};
+
+/**
+ * Decorator function as returned by {@link OneOf.d} (TypeScript).
+ * @typedef OneOfDecorator
+ * @type {function}
+ * @param {Object} prototype Target prototype
+ * @param {string} oneofName OneOf name
+ * @returns {undefined}
+ */
+
+/**
+ * OneOf decorator (TypeScript).
+ * @function
+ * @param {...string} fieldNames Field names
+ * @returns {OneOfDecorator} Decorator function
+ * @template T extends string
+ */
+OneOf.d = function decorateOneOf() {
+    var fieldNames = new Array(arguments.length),
+        index = 0;
+    while (index < arguments.length)
+        fieldNames[index] = arguments[index++];
+    return function oneOfDecorator(prototype, oneofName) {
+        util$1.decorateType(prototype.constructor)
+            .add(new OneOf(oneofName, fieldNames));
+        Object.defineProperty(prototype, oneofName, {
+            get: util$1.oneOfGetter(fieldNames),
+            set: util$1.oneOfSetter(fieldNames)
+        });
+    };
+};
+
+var namespace = Namespace;
+
+// extends ReflectionObject
+
+((Namespace.prototype = Object.create(require$$5.prototype)).constructor = Namespace).className = "Namespace";
+
+
+
+var Type$2,    // cyclic
+    Service$1,
+    Enum$1;
+
+/**
+ * Constructs a new namespace instance.
+ * @name Namespace
+ * @classdesc Reflected namespace.
+ * @extends NamespaceBase
+ * @constructor
+ * @param {string} name Namespace name
+ * @param {Object.<string,*>} [options] Declared options
+ */
+
+/**
+ * Constructs a namespace from JSON.
+ * @memberof Namespace
+ * @function
+ * @param {string} name Namespace name
+ * @param {Object.<string,*>} json JSON object
+ * @returns {Namespace} Created namespace
+ * @throws {TypeError} If arguments are invalid
+ */
+Namespace.fromJSON = function fromJSON(name, json) {
+    return new Namespace(name, json.options).addJSON(json.nested);
+};
+
+/**
+ * Converts an array of reflection objects to JSON.
+ * @memberof Namespace
+ * @param {ReflectionObject[]} array Object array
+ * @param {IToJSONOptions} [toJSONOptions] JSON conversion options
+ * @returns {Object.<string,*>|undefined} JSON object or `undefined` when array is empty
+ */
+function arrayToJSON(array, toJSONOptions) {
+    if (!(array && array.length))
+        return undefined;
+    var obj = {};
+    for (var i = 0; i < array.length; ++i)
+        obj[array[i].name] = array[i].toJSON(toJSONOptions);
+    return obj;
+}
+
+Namespace.arrayToJSON = arrayToJSON;
+
+/**
+ * Tests if the specified id is reserved.
+ * @param {Array.<number[]|string>|undefined} reserved Array of reserved ranges and names
+ * @param {number} id Id to test
+ * @returns {boolean} `true` if reserved, otherwise `false`
+ */
+Namespace.isReservedId = function isReservedId(reserved, id) {
+    if (reserved)
+        for (var i = 0; i < reserved.length; ++i)
+            if (typeof reserved[i] !== "string" && reserved[i][0] <= id && reserved[i][1] > id)
+                return true;
+    return false;
+};
+
+/**
+ * Tests if the specified name is reserved.
+ * @param {Array.<number[]|string>|undefined} reserved Array of reserved ranges and names
+ * @param {string} name Name to test
+ * @returns {boolean} `true` if reserved, otherwise `false`
+ */
+Namespace.isReservedName = function isReservedName(reserved, name) {
+    if (reserved)
+        for (var i = 0; i < reserved.length; ++i)
+            if (reserved[i] === name)
+                return true;
+    return false;
+};
+
+/**
+ * Not an actual constructor. Use {@link Namespace} instead.
+ * @classdesc Base class of all reflection objects containing nested objects. This is not an actual class but here for the sake of having consistent type definitions.
+ * @exports NamespaceBase
+ * @extends ReflectionObject
+ * @abstract
+ * @constructor
+ * @param {string} name Namespace name
+ * @param {Object.<string,*>} [options] Declared options
+ * @see {@link Namespace}
+ */
+function Namespace(name, options) {
+    require$$5.call(this, name, options);
+
+    /**
+     * Nested objects by name.
+     * @type {Object.<string,ReflectionObject>|undefined}
+     */
+    this.nested = undefined; // toJSON
+
+    /**
+     * Cached nested objects as an array.
+     * @type {ReflectionObject[]|null}
+     * @private
+     */
+    this._nestedArray = null;
+}
+
+function clearCache$2(namespace) {
+    namespace._nestedArray = null;
+    return namespace;
+}
+
+/**
+ * Nested objects of this namespace as an array for iteration.
+ * @name NamespaceBase#nestedArray
+ * @type {ReflectionObject[]}
+ * @readonly
+ */
+Object.defineProperty(Namespace.prototype, "nestedArray", {
+    get: function() {
+        return this._nestedArray || (this._nestedArray = util$1.toArray(this.nested));
+    }
+});
+
+/**
+ * Namespace descriptor.
+ * @interface INamespace
+ * @property {Object.<string,*>} [options] Namespace options
+ * @property {Object.<string,AnyNestedObject>} [nested] Nested object descriptors
+ */
+
+/**
+ * Any extension field descriptor.
+ * @typedef AnyExtensionField
+ * @type {IExtensionField|IExtensionMapField}
+ */
+
+/**
+ * Any nested object descriptor.
+ * @typedef AnyNestedObject
+ * @type {IEnum|IType|IService|AnyExtensionField|INamespace}
+ */
+// ^ BEWARE: VSCode hangs forever when using more than 5 types (that's why AnyExtensionField exists in the first place)
+
+/**
+ * Converts this namespace to a namespace descriptor.
+ * @param {IToJSONOptions} [toJSONOptions] JSON conversion options
+ * @returns {INamespace} Namespace descriptor
+ */
+Namespace.prototype.toJSON = function toJSON(toJSONOptions) {
+    return util$1.toObject([
+        "options" , this.options,
+        "nested"  , arrayToJSON(this.nestedArray, toJSONOptions)
+    ]);
+};
+
+/**
+ * Adds nested objects to this namespace from nested object descriptors.
+ * @param {Object.<string,AnyNestedObject>} nestedJson Any nested object descriptors
+ * @returns {Namespace} `this`
+ */
+Namespace.prototype.addJSON = function addJSON(nestedJson) {
+    var ns = this;
+    /* istanbul ignore else */
+    if (nestedJson) {
+        for (var names = Object.keys(nestedJson), i = 0, nested; i < names.length; ++i) {
+            nested = nestedJson[names[i]];
+            ns.add( // most to least likely
+                ( nested.fields !== undefined
+                ? Type$2.fromJSON
+                : nested.values !== undefined
+                ? Enum$1.fromJSON
+                : nested.methods !== undefined
+                ? Service$1.fromJSON
+                : nested.id !== undefined
+                ? field.fromJSON
+                : Namespace.fromJSON )(names[i], nested)
+            );
+        }
+    }
+    return this;
+};
+
+/**
+ * Gets the nested object of the specified name.
+ * @param {string} name Nested object name
+ * @returns {ReflectionObject|null} The reflection object or `null` if it doesn't exist
+ */
+Namespace.prototype.get = function get(name) {
+    return this.nested && this.nested[name]
+        || null;
+};
+
+/**
+ * Gets the values of the nested {@link Enum|enum} of the specified name.
+ * This methods differs from {@link Namespace#get|get} in that it returns an enum's values directly and throws instead of returning `null`.
+ * @param {string} name Nested enum name
+ * @returns {Object.<string,number>} Enum values
+ * @throws {Error} If there is no such enum
+ */
+Namespace.prototype.getEnum = function getEnum(name) {
+    if (this.nested && this.nested[name] instanceof Enum$1)
+        return this.nested[name].values;
+    throw Error("no such enum: " + name);
+};
+
+/**
+ * Adds a nested object to this namespace.
+ * @param {ReflectionObject} object Nested object to add
+ * @returns {Namespace} `this`
+ * @throws {TypeError} If arguments are invalid
+ * @throws {Error} If there is already a nested object with this name
+ */
+Namespace.prototype.add = function add(object) {
+
+    if (!(object instanceof field && object.extend !== undefined || object instanceof Type$2 || object instanceof Enum$1 || object instanceof Service$1 || object instanceof Namespace || object instanceof oneof))
+        throw TypeError("object must be a valid nested object");
+
+    if (!this.nested)
+        this.nested = {};
+    else {
+        var prev = this.get(object.name);
+        if (prev) {
+            if (prev instanceof Namespace && object instanceof Namespace && !(prev instanceof Type$2 || prev instanceof Service$1)) {
+                // replace plain namespace but keep existing nested elements and options
+                var nested = prev.nestedArray;
+                for (var i = 0; i < nested.length; ++i)
+                    object.add(nested[i]);
+                this.remove(prev);
+                if (!this.nested)
+                    this.nested = {};
+                object.setOptions(prev.options, true);
+
+            } else
+                throw Error("duplicate name '" + object.name + "' in " + this);
+        }
+    }
+    this.nested[object.name] = object;
+    object.onAdd(this);
+    return clearCache$2(this);
+};
+
+/**
+ * Removes a nested object from this namespace.
+ * @param {ReflectionObject} object Nested object to remove
+ * @returns {Namespace} `this`
+ * @throws {TypeError} If arguments are invalid
+ * @throws {Error} If `object` is not a member of this namespace
+ */
+Namespace.prototype.remove = function remove(object) {
+
+    if (!(object instanceof require$$5))
+        throw TypeError("object must be a ReflectionObject");
+    if (object.parent !== this)
+        throw Error(object + " is not a member of " + this);
+
+    delete this.nested[object.name];
+    if (!Object.keys(this.nested).length)
+        this.nested = undefined;
+
+    object.onRemove(this);
+    return clearCache$2(this);
+};
+
+/**
+ * Defines additial namespaces within this one if not yet existing.
+ * @param {string|string[]} path Path to create
+ * @param {*} [json] Nested types to create from JSON
+ * @returns {Namespace} Pointer to the last namespace created or `this` if path is empty
+ */
+Namespace.prototype.define = function define(path, json) {
+
+    if (util$1.isString(path))
+        path = path.split(".");
+    else if (!Array.isArray(path))
+        throw TypeError("illegal path");
+    if (path && path.length && path[0] === "")
+        throw Error("path must be relative");
+
+    var ptr = this;
+    while (path.length > 0) {
+        var part = path.shift();
+        if (ptr.nested && ptr.nested[part]) {
+            ptr = ptr.nested[part];
+            if (!(ptr instanceof Namespace))
+                throw Error("path conflicts with non-namespace objects");
+        } else
+            ptr.add(ptr = new Namespace(part));
+    }
+    if (json)
+        ptr.addJSON(json);
+    return ptr;
+};
+
+/**
+ * Resolves this namespace's and all its nested objects' type references. Useful to validate a reflection tree, but comes at a cost.
+ * @returns {Namespace} `this`
+ */
+Namespace.prototype.resolveAll = function resolveAll() {
+    var nested = this.nestedArray, i = 0;
+    while (i < nested.length)
+        if (nested[i] instanceof Namespace)
+            nested[i++].resolveAll();
+        else
+            nested[i++].resolve();
+    return this.resolve();
+};
+
+/**
+ * Recursively looks up the reflection object matching the specified path in the scope of this namespace.
+ * @param {string|string[]} path Path to look up
+ * @param {*|Array.<*>} filterTypes Filter types, any combination of the constructors of `protobuf.Type`, `protobuf.Enum`, `protobuf.Service` etc.
+ * @param {boolean} [parentAlreadyChecked=false] If known, whether the parent has already been checked
+ * @returns {ReflectionObject|null} Looked up object or `null` if none could be found
+ */
+Namespace.prototype.lookup = function lookup(path, filterTypes, parentAlreadyChecked) {
+
+    /* istanbul ignore next */
+    if (typeof filterTypes === "boolean") {
+        parentAlreadyChecked = filterTypes;
+        filterTypes = undefined;
+    } else if (filterTypes && !Array.isArray(filterTypes))
+        filterTypes = [ filterTypes ];
+
+    if (util$1.isString(path) && path.length) {
+        if (path === ".")
+            return this.root;
+        path = path.split(".");
+    } else if (!path.length)
+        return this;
+
+    // Start at root if path is absolute
+    if (path[0] === "")
+        return this.root.lookup(path.slice(1), filterTypes);
+
+    // Test if the first part matches any nested object, and if so, traverse if path contains more
+    var found = this.get(path[0]);
+    if (found) {
+        if (path.length === 1) {
+            if (!filterTypes || filterTypes.indexOf(found.constructor) > -1)
+                return found;
+        } else if (found instanceof Namespace && (found = found.lookup(path.slice(1), filterTypes, true)))
+            return found;
+
+    // Otherwise try each nested namespace
+    } else
+        for (var i = 0; i < this.nestedArray.length; ++i)
+            if (this._nestedArray[i] instanceof Namespace && (found = this._nestedArray[i].lookup(path, filterTypes, true)))
+                return found;
+
+    // If there hasn't been a match, try again at the parent
+    if (this.parent === null || parentAlreadyChecked)
+        return null;
+    return this.parent.lookup(path, filterTypes);
+};
+
+/**
+ * Looks up the reflection object at the specified path, relative to this namespace.
+ * @name NamespaceBase#lookup
+ * @function
+ * @param {string|string[]} path Path to look up
+ * @param {boolean} [parentAlreadyChecked=false] Whether the parent has already been checked
+ * @returns {ReflectionObject|null} Looked up object or `null` if none could be found
+ * @variation 2
+ */
+// lookup(path: string, [parentAlreadyChecked: boolean])
+
+/**
+ * Looks up the {@link Type|type} at the specified path, relative to this namespace.
+ * Besides its signature, this methods differs from {@link Namespace#lookup|lookup} in that it throws instead of returning `null`.
+ * @param {string|string[]} path Path to look up
+ * @returns {Type} Looked up type
+ * @throws {Error} If `path` does not point to a type
+ */
+Namespace.prototype.lookupType = function lookupType(path) {
+    var found = this.lookup(path, [ Type$2 ]);
+    if (!found)
+        throw Error("no such type: " + path);
+    return found;
+};
+
+/**
+ * Looks up the values of the {@link Enum|enum} at the specified path, relative to this namespace.
+ * Besides its signature, this methods differs from {@link Namespace#lookup|lookup} in that it throws instead of returning `null`.
+ * @param {string|string[]} path Path to look up
+ * @returns {Enum} Looked up enum
+ * @throws {Error} If `path` does not point to an enum
+ */
+Namespace.prototype.lookupEnum = function lookupEnum(path) {
+    var found = this.lookup(path, [ Enum$1 ]);
+    if (!found)
+        throw Error("no such Enum '" + path + "' in " + this);
+    return found;
+};
+
+/**
+ * Looks up the {@link Type|type} or {@link Enum|enum} at the specified path, relative to this namespace.
+ * Besides its signature, this methods differs from {@link Namespace#lookup|lookup} in that it throws instead of returning `null`.
+ * @param {string|string[]} path Path to look up
+ * @returns {Type} Looked up type or enum
+ * @throws {Error} If `path` does not point to a type or enum
+ */
+Namespace.prototype.lookupTypeOrEnum = function lookupTypeOrEnum(path) {
+    var found = this.lookup(path, [ Type$2, Enum$1 ]);
+    if (!found)
+        throw Error("no such Type or Enum '" + path + "' in " + this);
+    return found;
+};
+
+/**
+ * Looks up the {@link Service|service} at the specified path, relative to this namespace.
+ * Besides its signature, this methods differs from {@link Namespace#lookup|lookup} in that it throws instead of returning `null`.
+ * @param {string|string[]} path Path to look up
+ * @returns {Service} Looked up service
+ * @throws {Error} If `path` does not point to a service
+ */
+Namespace.prototype.lookupService = function lookupService(path) {
+    var found = this.lookup(path, [ Service$1 ]);
+    if (!found)
+        throw Error("no such Service '" + path + "' in " + this);
+    return found;
+};
+
+// Sets up cyclic dependencies (called in index-light)
+Namespace._configure = function(Type_, Service_, Enum_) {
+    Type$2    = Type_;
+    Service$1 = Service_;
+    Enum$1    = Enum_;
+};
+
+var mapfield = MapField;
+
+// extends Field
+
+((MapField.prototype = Object.create(field.prototype)).constructor = MapField).className = "MapField";
+
+
+
+/**
+ * Constructs a new map field instance.
+ * @classdesc Reflected map field.
+ * @extends FieldBase
+ * @constructor
+ * @param {string} name Unique name within its namespace
+ * @param {number} id Unique id within its namespace
+ * @param {string} keyType Key type
+ * @param {string} type Value type
+ * @param {Object.<string,*>} [options] Declared options
+ * @param {string} [comment] Comment associated with this field
+ */
+function MapField(name, id, keyType, type, options, comment) {
+    field.call(this, name, id, type, undefined, undefined, options, comment);
+
+    /* istanbul ignore if */
+    if (!util$1.isString(keyType))
+        throw TypeError("keyType must be a string");
+
+    /**
+     * Key type.
+     * @type {string}
+     */
+    this.keyType = keyType; // toJSON, marker
+
+    /**
+     * Resolved key type if not a basic type.
+     * @type {ReflectionObject|null}
+     */
+    this.resolvedKeyType = null;
+
+    // Overrides Field#map
+    this.map = true;
+}
+
+/**
+ * Map field descriptor.
+ * @interface IMapField
+ * @extends {IField}
+ * @property {string} keyType Key type
+ */
+
+/**
+ * Extension map field descriptor.
+ * @interface IExtensionMapField
+ * @extends IMapField
+ * @property {string} extend Extended type
+ */
+
+/**
+ * Constructs a map field from a map field descriptor.
+ * @param {string} name Field name
+ * @param {IMapField} json Map field descriptor
+ * @returns {MapField} Created map field
+ * @throws {TypeError} If arguments are invalid
+ */
+MapField.fromJSON = function fromJSON(name, json) {
+    return new MapField(name, json.id, json.keyType, json.type, json.options, json.comment);
+};
+
+/**
+ * Converts this map field to a map field descriptor.
+ * @param {IToJSONOptions} [toJSONOptions] JSON conversion options
+ * @returns {IMapField} Map field descriptor
+ */
+MapField.prototype.toJSON = function toJSON(toJSONOptions) {
+    var keepComments = toJSONOptions ? Boolean(toJSONOptions.keepComments) : false;
+    return util$1.toObject([
+        "keyType" , this.keyType,
+        "type"    , this.type,
+        "id"      , this.id,
+        "extend"  , this.extend,
+        "options" , this.options,
+        "comment" , keepComments ? this.comment : undefined
+    ]);
+};
+
+/**
+ * @override
+ */
+MapField.prototype.resolve = function resolve() {
+    if (this.resolved)
+        return this;
+
+    // Besides a value type, map fields have a key type that may be "any scalar type except for floating point types and bytes"
+    if (types_1.mapKey[this.keyType] === undefined)
+        throw Error("invalid key type: " + this.keyType);
+
+    return field.prototype.resolve.call(this);
+};
+
+/**
+ * Map field decorator (TypeScript).
+ * @name MapField.d
+ * @function
+ * @param {number} fieldId Field id
+ * @param {"int32"|"uint32"|"sint32"|"fixed32"|"sfixed32"|"int64"|"uint64"|"sint64"|"fixed64"|"sfixed64"|"bool"|"string"} fieldKeyType Field key type
+ * @param {"double"|"float"|"int32"|"uint32"|"sint32"|"fixed32"|"sfixed32"|"int64"|"uint64"|"sint64"|"fixed64"|"sfixed64"|"bool"|"string"|"bytes"|Object|Constructor<{}>} fieldValueType Field value type
+ * @returns {FieldDecorator} Decorator function
+ * @template T extends { [key: string]: number | Long | string | boolean | Uint8Array | Buffer | number[] | Message<{}> }
+ */
+MapField.d = function decorateMapField(fieldId, fieldKeyType, fieldValueType) {
+
+    // submessage value: decorate the submessage and use its name as the type
+    if (typeof fieldValueType === "function")
+        fieldValueType = util$1.decorateType(fieldValueType).name;
+
+    // enum reference value: create a reflected copy of the enum and keep reuseing it
+    else if (fieldValueType && typeof fieldValueType === "object")
+        fieldValueType = util$1.decorateEnum(fieldValueType).name;
+
+    return function mapFieldDecorator(prototype, fieldName) {
+        util$1.decorateType(prototype.constructor)
+            .add(new MapField(fieldName, fieldId, fieldKeyType, fieldValueType));
+    };
+};
+
+var method = Method;
+
+// extends ReflectionObject
+
+((Method.prototype = Object.create(require$$5.prototype)).constructor = Method).className = "Method";
+
+
+
+/**
+ * Constructs a new service method instance.
+ * @classdesc Reflected service method.
+ * @extends ReflectionObject
+ * @constructor
+ * @param {string} name Method name
+ * @param {string|undefined} type Method type, usually `"rpc"`
+ * @param {string} requestType Request message type
+ * @param {string} responseType Response message type
+ * @param {boolean|Object.<string,*>} [requestStream] Whether the request is streamed
+ * @param {boolean|Object.<string,*>} [responseStream] Whether the response is streamed
+ * @param {Object.<string,*>} [options] Declared options
+ * @param {string} [comment] The comment for this method
+ * @param {Object.<string,*>} [parsedOptions] Declared options, properly parsed into an object
+ */
+function Method(name, type, requestType, responseType, requestStream, responseStream, options, comment, parsedOptions) {
+
+    /* istanbul ignore next */
+    if (util$1.isObject(requestStream)) {
+        options = requestStream;
+        requestStream = responseStream = undefined;
+    } else if (util$1.isObject(responseStream)) {
+        options = responseStream;
+        responseStream = undefined;
+    }
+
+    /* istanbul ignore if */
+    if (!(type === undefined || util$1.isString(type)))
+        throw TypeError("type must be a string");
+
+    /* istanbul ignore if */
+    if (!util$1.isString(requestType))
+        throw TypeError("requestType must be a string");
+
+    /* istanbul ignore if */
+    if (!util$1.isString(responseType))
+        throw TypeError("responseType must be a string");
+
+    require$$5.call(this, name, options);
+
+    /**
+     * Method type.
+     * @type {string}
+     */
+    this.type = type || "rpc"; // toJSON
+
+    /**
+     * Request type.
+     * @type {string}
+     */
+    this.requestType = requestType; // toJSON, marker
+
+    /**
+     * Whether requests are streamed or not.
+     * @type {boolean|undefined}
+     */
+    this.requestStream = requestStream ? true : undefined; // toJSON
+
+    /**
+     * Response type.
+     * @type {string}
+     */
+    this.responseType = responseType; // toJSON
+
+    /**
+     * Whether responses are streamed or not.
+     * @type {boolean|undefined}
+     */
+    this.responseStream = responseStream ? true : undefined; // toJSON
+
+    /**
+     * Resolved request type.
+     * @type {Type|null}
+     */
+    this.resolvedRequestType = null;
+
+    /**
+     * Resolved response type.
+     * @type {Type|null}
+     */
+    this.resolvedResponseType = null;
+
+    /**
+     * Comment for this method
+     * @type {string|null}
+     */
+    this.comment = comment;
+
+    /**
+     * Options properly parsed into an object
+     */
+    this.parsedOptions = parsedOptions;
+}
+
+/**
+ * Method descriptor.
+ * @interface IMethod
+ * @property {string} [type="rpc"] Method type
+ * @property {string} requestType Request type
+ * @property {string} responseType Response type
+ * @property {boolean} [requestStream=false] Whether requests are streamed
+ * @property {boolean} [responseStream=false] Whether responses are streamed
+ * @property {Object.<string,*>} [options] Method options
+ * @property {string} comment Method comments
+ * @property {Object.<string,*>} [parsedOptions] Method options properly parsed into an object
+ */
+
+/**
+ * Constructs a method from a method descriptor.
+ * @param {string} name Method name
+ * @param {IMethod} json Method descriptor
+ * @returns {Method} Created method
+ * @throws {TypeError} If arguments are invalid
+ */
+Method.fromJSON = function fromJSON(name, json) {
+    return new Method(name, json.type, json.requestType, json.responseType, json.requestStream, json.responseStream, json.options, json.comment, json.parsedOptions);
+};
+
+/**
+ * Converts this method to a method descriptor.
+ * @param {IToJSONOptions} [toJSONOptions] JSON conversion options
+ * @returns {IMethod} Method descriptor
+ */
+Method.prototype.toJSON = function toJSON(toJSONOptions) {
+    var keepComments = toJSONOptions ? Boolean(toJSONOptions.keepComments) : false;
+    return util$1.toObject([
+        "type"           , this.type !== "rpc" && /* istanbul ignore next */ this.type || undefined,
+        "requestType"    , this.requestType,
+        "requestStream"  , this.requestStream,
+        "responseType"   , this.responseType,
+        "responseStream" , this.responseStream,
+        "options"        , this.options,
+        "comment"        , keepComments ? this.comment : undefined,
+        "parsedOptions"  , this.parsedOptions,
+    ]);
+};
+
+/**
+ * @override
+ */
+Method.prototype.resolve = function resolve() {
+
+    /* istanbul ignore if */
+    if (this.resolved)
+        return this;
+
+    this.resolvedRequestType = this.parent.lookupType(this.requestType);
+    this.resolvedResponseType = this.parent.lookupType(this.responseType);
+
+    return require$$5.prototype.resolve.call(this);
+};
+
+var service = Service;
+
+// extends Namespace
+
+((Service.prototype = Object.create(namespace.prototype)).constructor = Service).className = "Service";
+
+
+
+/**
+ * Constructs a new service instance.
+ * @classdesc Reflected service.
+ * @extends NamespaceBase
+ * @constructor
+ * @param {string} name Service name
+ * @param {Object.<string,*>} [options] Service options
+ * @throws {TypeError} If arguments are invalid
+ */
+function Service(name, options) {
+    namespace.call(this, name, options);
+
+    /**
+     * Service methods.
+     * @type {Object.<string,Method>}
+     */
+    this.methods = {}; // toJSON, marker
+
+    /**
+     * Cached methods as an array.
+     * @type {Method[]|null}
+     * @private
+     */
+    this._methodsArray = null;
+}
+
+/**
+ * Service descriptor.
+ * @interface IService
+ * @extends INamespace
+ * @property {Object.<string,IMethod>} methods Method descriptors
+ */
+
+/**
+ * Constructs a service from a service descriptor.
+ * @param {string} name Service name
+ * @param {IService} json Service descriptor
+ * @returns {Service} Created service
+ * @throws {TypeError} If arguments are invalid
+ */
+Service.fromJSON = function fromJSON(name, json) {
+    var service = new Service(name, json.options);
+    /* istanbul ignore else */
+    if (json.methods)
+        for (var names = Object.keys(json.methods), i = 0; i < names.length; ++i)
+            service.add(method.fromJSON(names[i], json.methods[names[i]]));
+    if (json.nested)
+        service.addJSON(json.nested);
+    service.comment = json.comment;
+    return service;
+};
+
+/**
+ * Converts this service to a service descriptor.
+ * @param {IToJSONOptions} [toJSONOptions] JSON conversion options
+ * @returns {IService} Service descriptor
+ */
+Service.prototype.toJSON = function toJSON(toJSONOptions) {
+    var inherited = namespace.prototype.toJSON.call(this, toJSONOptions);
+    var keepComments = toJSONOptions ? Boolean(toJSONOptions.keepComments) : false;
+    return util$1.toObject([
+        "options" , inherited && inherited.options || undefined,
+        "methods" , namespace.arrayToJSON(this.methodsArray, toJSONOptions) || /* istanbul ignore next */ {},
+        "nested"  , inherited && inherited.nested || undefined,
+        "comment" , keepComments ? this.comment : undefined
+    ]);
+};
+
+/**
+ * Methods of this service as an array for iteration.
+ * @name Service#methodsArray
+ * @type {Method[]}
+ * @readonly
+ */
+Object.defineProperty(Service.prototype, "methodsArray", {
+    get: function() {
+        return this._methodsArray || (this._methodsArray = util$1.toArray(this.methods));
+    }
+});
+
+function clearCache$1(service) {
+    service._methodsArray = null;
+    return service;
+}
+
+/**
+ * @override
+ */
+Service.prototype.get = function get(name) {
+    return this.methods[name]
+        || namespace.prototype.get.call(this, name);
+};
+
+/**
+ * @override
+ */
+Service.prototype.resolveAll = function resolveAll() {
+    var methods = this.methodsArray;
+    for (var i = 0; i < methods.length; ++i)
+        methods[i].resolve();
+    return namespace.prototype.resolve.call(this);
+};
+
+/**
+ * @override
+ */
+Service.prototype.add = function add(object) {
+
+    /* istanbul ignore if */
+    if (this.get(object.name))
+        throw Error("duplicate name '" + object.name + "' in " + this);
+
+    if (object instanceof method) {
+        this.methods[object.name] = object;
+        object.parent = this;
+        return clearCache$1(this);
+    }
+    return namespace.prototype.add.call(this, object);
+};
+
+/**
+ * @override
+ */
+Service.prototype.remove = function remove(object) {
+    if (object instanceof method) {
+
+        /* istanbul ignore if */
+        if (this.methods[object.name] !== object)
+            throw Error(object + " is not a member of " + this);
+
+        delete this.methods[object.name];
+        object.parent = null;
+        return clearCache$1(this);
+    }
+    return namespace.prototype.remove.call(this, object);
+};
+
+/**
+ * Creates a runtime service using the specified rpc implementation.
+ * @param {RPCImpl} rpcImpl RPC implementation
+ * @param {boolean} [requestDelimited=false] Whether requests are length-delimited
+ * @param {boolean} [responseDelimited=false] Whether responses are length-delimited
+ * @returns {rpc.Service} RPC service. Useful where requests and/or responses are streamed.
+ */
+Service.prototype.create = function create(rpcImpl, requestDelimited, responseDelimited) {
+    var rpcService = new rpc_1.Service(rpcImpl, requestDelimited, responseDelimited);
+    for (var i = 0, method; i < /* initializes */ this.methodsArray.length; ++i) {
+        var methodName = util$1.lcFirst((method = this._methodsArray[i]).resolve().name).replace(/[^$\w_]/g, "");
+        rpcService[methodName] = util$1.codegen(["r","c"], util$1.isReserved(methodName) ? methodName + "_" : methodName)("return this.rpcCall(m,q,s,r,c)")({
+            m: method,
+            q: method.resolvedRequestType.ctor,
+            s: method.resolvedResponseType.ctor
+        });
+    }
+    return rpcService;
+};
+
+var message = Message;
+
+
+
+/**
+ * Constructs a new message instance.
+ * @classdesc Abstract runtime message.
+ * @constructor
+ * @param {Properties<T>} [properties] Properties to set
+ * @template T extends object = object
+ */
+function Message(properties) {
+    // not used internally
+    if (properties)
+        for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            this[keys[i]] = properties[keys[i]];
+}
+
+/**
+ * Reference to the reflected type.
+ * @name Message.$type
+ * @type {Type}
+ * @readonly
+ */
+
+/**
+ * Reference to the reflected type.
+ * @name Message#$type
+ * @type {Type}
+ * @readonly
+ */
+
+/*eslint-disable valid-jsdoc*/
+
+/**
+ * Creates a new message of this type using the specified properties.
+ * @param {Object.<string,*>} [properties] Properties to set
+ * @returns {Message<T>} Message instance
+ * @template T extends Message<T>
+ * @this Constructor<T>
+ */
+Message.create = function create(properties) {
+    return this.$type.create(properties);
+};
+
+/**
+ * Encodes a message of this type.
+ * @param {T|Object.<string,*>} message Message to encode
+ * @param {Writer} [writer] Writer to use
+ * @returns {Writer} Writer
+ * @template T extends Message<T>
+ * @this Constructor<T>
+ */
+Message.encode = function encode(message, writer) {
+    return this.$type.encode(message, writer);
+};
+
+/**
+ * Encodes a message of this type preceeded by its length as a varint.
+ * @param {T|Object.<string,*>} message Message to encode
+ * @param {Writer} [writer] Writer to use
+ * @returns {Writer} Writer
+ * @template T extends Message<T>
+ * @this Constructor<T>
+ */
+Message.encodeDelimited = function encodeDelimited(message, writer) {
+    return this.$type.encodeDelimited(message, writer);
+};
+
+/**
+ * Decodes a message of this type.
+ * @name Message.decode
+ * @function
+ * @param {Reader|Uint8Array} reader Reader or buffer to decode
+ * @returns {T} Decoded message
+ * @template T extends Message<T>
+ * @this Constructor<T>
+ */
+Message.decode = function decode(reader) {
+    return this.$type.decode(reader);
+};
+
+/**
+ * Decodes a message of this type preceeded by its length as a varint.
+ * @name Message.decodeDelimited
+ * @function
+ * @param {Reader|Uint8Array} reader Reader or buffer to decode
+ * @returns {T} Decoded message
+ * @template T extends Message<T>
+ * @this Constructor<T>
+ */
+Message.decodeDelimited = function decodeDelimited(reader) {
+    return this.$type.decodeDelimited(reader);
+};
+
+/**
+ * Verifies a message of this type.
+ * @name Message.verify
+ * @function
+ * @param {Object.<string,*>} message Plain object to verify
+ * @returns {string|null} `null` if valid, otherwise the reason why it is not
+ */
+Message.verify = function verify(message) {
+    return this.$type.verify(message);
+};
+
+/**
+ * Creates a new message of this type from a plain object. Also converts values to their respective internal types.
+ * @param {Object.<string,*>} object Plain object
+ * @returns {T} Message instance
+ * @template T extends Message<T>
+ * @this Constructor<T>
+ */
+Message.fromObject = function fromObject(object) {
+    return this.$type.fromObject(object);
+};
+
+/**
+ * Creates a plain object from a message of this type. Also converts values to other types if specified.
+ * @param {T} message Message instance
+ * @param {IConversionOptions} [options] Conversion options
+ * @returns {Object.<string,*>} Plain object
+ * @template T extends Message<T>
+ * @this Constructor<T>
+ */
+Message.toObject = function toObject(message, options) {
+    return this.$type.toObject(message, options);
+};
+
+/**
+ * Converts this message to JSON.
+ * @returns {Object.<string,*>} JSON object
+ */
+Message.prototype.toJSON = function toJSON() {
+    return this.$type.toObject(this, require$$0$2.toJSONOptions);
+};
+
+var decoder_1 = decoder;
+
+
+
+function missing(field) {
+    return "missing required '" + field.name + "'";
+}
+
+/**
+ * Generates a decoder specific to the specified message type.
+ * @param {Type} mtype Message type
+ * @returns {Codegen} Codegen instance
+ */
+function decoder(mtype) {
+    /* eslint-disable no-unexpected-multiline */
+    var gen = util$1.codegen(["r", "l"], mtype.name + "$decode")
+    ("if(!(r instanceof Reader))")
+        ("r=Reader.create(r)")
+    ("var c=l===undefined?r.len:r.pos+l,m=new this.ctor" + (mtype.fieldsArray.filter(function(field) { return field.map; }).length ? ",k,value" : ""))
+    ("while(r.pos<c){")
+        ("var t=r.uint32()");
+    if (mtype.group) gen
+        ("if((t&7)===4)")
+            ("break");
+    gen
+        ("switch(t>>>3){");
+
+    var i = 0;
+    for (; i < /* initializes */ mtype.fieldsArray.length; ++i) {
+        var field = mtype._fieldsArray[i].resolve(),
+            type  = field.resolvedType instanceof Enum$2 ? "int32" : field.type,
+            ref   = "m" + util$1.safeProp(field.name); gen
+            ("case %i:", field.id);
+
+        // Map fields
+        if (field.map) { gen
+                ("if(%s===util.emptyObject)", ref)
+                    ("%s={}", ref)
+                ("var c2 = r.uint32()+r.pos");
+
+            if (types_1.defaults[field.keyType] !== undefined) gen
+                ("k=%j", types_1.defaults[field.keyType]);
+            else gen
+                ("k=null");
+
+            if (types_1.defaults[type] !== undefined) gen
+                ("value=%j", types_1.defaults[type]);
+            else gen
+                ("value=null");
+
+            gen
+                ("while(r.pos<c2){")
+                    ("var tag2=r.uint32()")
+                    ("switch(tag2>>>3){")
+                        ("case 1: k=r.%s(); break", field.keyType)
+                        ("case 2:");
+
+            if (types_1.basic[type] === undefined) gen
+                            ("value=types[%i].decode(r,r.uint32())", i); // can't be groups
+            else gen
+                            ("value=r.%s()", type);
+
+            gen
+                            ("break")
+                        ("default:")
+                            ("r.skipType(tag2&7)")
+                            ("break")
+                    ("}")
+                ("}");
+
+            if (types_1.long[field.keyType] !== undefined) gen
+                ("%s[typeof k===\"object\"?util.longToHash(k):k]=value", ref);
+            else gen
+                ("%s[k]=value", ref);
+
+        // Repeated fields
+        } else if (field.repeated) { gen
+
+                ("if(!(%s&&%s.length))", ref, ref)
+                    ("%s=[]", ref);
+
+            // Packable (always check for forward and backward compatiblity)
+            if (types_1.packed[type] !== undefined) gen
+                ("if((t&7)===2){")
+                    ("var c2=r.uint32()+r.pos")
+                    ("while(r.pos<c2)")
+                        ("%s.push(r.%s())", ref, type)
+                ("}else");
+
+            // Non-packed
+            if (types_1.basic[type] === undefined) gen(field.resolvedType.group
+                    ? "%s.push(types[%i].decode(r))"
+                    : "%s.push(types[%i].decode(r,r.uint32()))", ref, i);
+            else gen
+                    ("%s.push(r.%s())", ref, type);
+
+        // Non-repeated
+        } else if (types_1.basic[type] === undefined) gen(field.resolvedType.group
+                ? "%s=types[%i].decode(r)"
+                : "%s=types[%i].decode(r,r.uint32())", ref, i);
+        else gen
+                ("%s=r.%s()", ref, type);
+        gen
+                ("break");
+    // Unknown fields
+    } gen
+            ("default:")
+                ("r.skipType(t&7)")
+                ("break")
+
+        ("}")
+    ("}");
+
+    // Field presence
+    for (i = 0; i < mtype._fieldsArray.length; ++i) {
+        var rfield = mtype._fieldsArray[i];
+        if (rfield.required) gen
+    ("if(!m.hasOwnProperty(%j))", rfield.name)
+        ("throw util.ProtocolError(%j,{instance:m})", missing(rfield));
+    }
+
+    return gen
+    ("return m");
+    /* eslint-enable no-unexpected-multiline */
+}
+
+var verifier_1 = verifier;
+
+
+
+function invalid(field, expected) {
+    return field.name + ": " + expected + (field.repeated && expected !== "array" ? "[]" : field.map && expected !== "object" ? "{k:"+field.keyType+"}" : "") + " expected";
+}
+
+/**
+ * Generates a partial value verifier.
+ * @param {Codegen} gen Codegen instance
+ * @param {Field} field Reflected field
+ * @param {number} fieldIndex Field index
+ * @param {string} ref Variable reference
+ * @returns {Codegen} Codegen instance
+ * @ignore
+ */
+function genVerifyValue(gen, field, fieldIndex, ref) {
+    /* eslint-disable no-unexpected-multiline */
+    if (field.resolvedType) {
+        if (field.resolvedType instanceof Enum$2) { gen
+            ("switch(%s){", ref)
+                ("default:")
+                    ("return%j", invalid(field, "enum value"));
+            for (var keys = Object.keys(field.resolvedType.values), j = 0; j < keys.length; ++j) gen
+                ("case %i:", field.resolvedType.values[keys[j]]);
+            gen
+                    ("break")
+            ("}");
+        } else {
+            gen
+            ("{")
+                ("var e=types[%i].verify(%s);", fieldIndex, ref)
+                ("if(e)")
+                    ("return%j+e", field.name + ".")
+            ("}");
+        }
+    } else {
+        switch (field.type) {
+            case "int32":
+            case "uint32":
+            case "sint32":
+            case "fixed32":
+            case "sfixed32": gen
+                ("if(!util.isInteger(%s))", ref)
+                    ("return%j", invalid(field, "integer"));
+                break;
+            case "int64":
+            case "uint64":
+            case "sint64":
+            case "fixed64":
+            case "sfixed64": gen
+                ("if(!util.isInteger(%s)&&!(%s&&util.isInteger(%s.low)&&util.isInteger(%s.high)))", ref, ref, ref, ref)
+                    ("return%j", invalid(field, "integer|Long"));
+                break;
+            case "float":
+            case "double": gen
+                ("if(typeof %s!==\"number\")", ref)
+                    ("return%j", invalid(field, "number"));
+                break;
+            case "bool": gen
+                ("if(typeof %s!==\"boolean\")", ref)
+                    ("return%j", invalid(field, "boolean"));
+                break;
+            case "string": gen
+                ("if(!util.isString(%s))", ref)
+                    ("return%j", invalid(field, "string"));
+                break;
+            case "bytes": gen
+                ("if(!(%s&&typeof %s.length===\"number\"||util.isString(%s)))", ref, ref, ref)
+                    ("return%j", invalid(field, "buffer"));
+                break;
+        }
+    }
+    return gen;
+    /* eslint-enable no-unexpected-multiline */
+}
+
+/**
+ * Generates a partial key verifier.
+ * @param {Codegen} gen Codegen instance
+ * @param {Field} field Reflected field
+ * @param {string} ref Variable reference
+ * @returns {Codegen} Codegen instance
+ * @ignore
+ */
+function genVerifyKey(gen, field, ref) {
+    /* eslint-disable no-unexpected-multiline */
+    switch (field.keyType) {
+        case "int32":
+        case "uint32":
+        case "sint32":
+        case "fixed32":
+        case "sfixed32": gen
+            ("if(!util.key32Re.test(%s))", ref)
+                ("return%j", invalid(field, "integer key"));
+            break;
+        case "int64":
+        case "uint64":
+        case "sint64":
+        case "fixed64":
+        case "sfixed64": gen
+            ("if(!util.key64Re.test(%s))", ref) // see comment above: x is ok, d is not
+                ("return%j", invalid(field, "integer|Long key"));
+            break;
+        case "bool": gen
+            ("if(!util.key2Re.test(%s))", ref)
+                ("return%j", invalid(field, "boolean key"));
+            break;
+    }
+    return gen;
+    /* eslint-enable no-unexpected-multiline */
+}
+
+/**
+ * Generates a verifier specific to the specified message type.
+ * @param {Type} mtype Message type
+ * @returns {Codegen} Codegen instance
+ */
+function verifier(mtype) {
+    /* eslint-disable no-unexpected-multiline */
+
+    var gen = util$1.codegen(["m"], mtype.name + "$verify")
+    ("if(typeof m!==\"object\"||m===null)")
+        ("return%j", "object expected");
+    var oneofs = mtype.oneofsArray,
+        seenFirstField = {};
+    if (oneofs.length) gen
+    ("var p={}");
+
+    for (var i = 0; i < /* initializes */ mtype.fieldsArray.length; ++i) {
+        var field = mtype._fieldsArray[i].resolve(),
+            ref   = "m" + util$1.safeProp(field.name);
+
+        if (field.optional) gen
+        ("if(%s!=null&&m.hasOwnProperty(%j)){", ref, field.name); // !== undefined && !== null
+
+        // map fields
+        if (field.map) { gen
+            ("if(!util.isObject(%s))", ref)
+                ("return%j", invalid(field, "object"))
+            ("var k=Object.keys(%s)", ref)
+            ("for(var i=0;i<k.length;++i){");
+                genVerifyKey(gen, field, "k[i]");
+                genVerifyValue(gen, field, i, ref + "[k[i]]")
+            ("}");
+
+        // repeated fields
+        } else if (field.repeated) { gen
+            ("if(!Array.isArray(%s))", ref)
+                ("return%j", invalid(field, "array"))
+            ("for(var i=0;i<%s.length;++i){", ref);
+                genVerifyValue(gen, field, i, ref + "[i]")
+            ("}");
+
+        // required or present fields
+        } else {
+            if (field.partOf) {
+                var oneofProp = util$1.safeProp(field.partOf.name);
+                if (seenFirstField[field.partOf.name] === 1) gen
+            ("if(p%s===1)", oneofProp)
+                ("return%j", field.partOf.name + ": multiple values");
+                seenFirstField[field.partOf.name] = 1;
+                gen
+            ("p%s=1", oneofProp);
+            }
+            genVerifyValue(gen, field, i, ref);
+        }
+        if (field.optional) gen
+        ("}");
+    }
+    return gen
+    ("return null");
+    /* eslint-enable no-unexpected-multiline */
+}
+
+var converter_1 = createCommonjsModule(function (module, exports) {
+/**
+ * Runtime message from/to plain object converters.
+ * @namespace
+ */
+var converter = exports;
+
+
+
+/**
+ * Generates a partial value fromObject conveter.
+ * @param {Codegen} gen Codegen instance
+ * @param {Field} field Reflected field
+ * @param {number} fieldIndex Field index
+ * @param {string} prop Property reference
+ * @returns {Codegen} Codegen instance
+ * @ignore
+ */
+function genValuePartial_fromObject(gen, field, fieldIndex, prop) {
+    /* eslint-disable no-unexpected-multiline, block-scoped-var, no-redeclare */
+    if (field.resolvedType) {
+        if (field.resolvedType instanceof Enum$2) { gen
+            ("switch(d%s){", prop);
+            for (var values = field.resolvedType.values, keys = Object.keys(values), i = 0; i < keys.length; ++i) {
+                if (field.repeated && values[keys[i]] === field.typeDefault) gen
+                ("default:");
+                gen
+                ("case%j:", keys[i])
+                ("case %i:", values[keys[i]])
+                    ("m%s=%j", prop, values[keys[i]])
+                    ("break");
+            } gen
+            ("}");
+        } else gen
+            ("if(typeof d%s!==\"object\")", prop)
+                ("throw TypeError(%j)", field.fullName + ": object expected")
+            ("m%s=types[%i].fromObject(d%s)", prop, fieldIndex, prop);
+    } else {
+        var isUnsigned = false;
+        switch (field.type) {
+            case "double":
+            case "float": gen
+                ("m%s=Number(d%s)", prop, prop); // also catches "NaN", "Infinity"
+                break;
+            case "uint32":
+            case "fixed32": gen
+                ("m%s=d%s>>>0", prop, prop);
+                break;
+            case "int32":
+            case "sint32":
+            case "sfixed32": gen
+                ("m%s=d%s|0", prop, prop);
+                break;
+            case "uint64":
+                isUnsigned = true;
+                // eslint-disable-line no-fallthrough
+            case "int64":
+            case "sint64":
+            case "fixed64":
+            case "sfixed64": gen
+                ("if(util.Long)")
+                    ("(m%s=util.Long.fromValue(d%s)).unsigned=%j", prop, prop, isUnsigned)
+                ("else if(typeof d%s===\"string\")", prop)
+                    ("m%s=parseInt(d%s,10)", prop, prop)
+                ("else if(typeof d%s===\"number\")", prop)
+                    ("m%s=d%s", prop, prop)
+                ("else if(typeof d%s===\"object\")", prop)
+                    ("m%s=new util.LongBits(d%s.low>>>0,d%s.high>>>0).toNumber(%s)", prop, prop, prop, isUnsigned ? "true" : "");
+                break;
+            case "bytes": gen
+                ("if(typeof d%s===\"string\")", prop)
+                    ("util.base64.decode(d%s,m%s=util.newBuffer(util.base64.length(d%s)),0)", prop, prop, prop)
+                ("else if(d%s.length)", prop)
+                    ("m%s=d%s", prop, prop);
+                break;
+            case "string": gen
+                ("m%s=String(d%s)", prop, prop);
+                break;
+            case "bool": gen
+                ("m%s=Boolean(d%s)", prop, prop);
+                break;
+            /* default: gen
+                ("m%s=d%s", prop, prop);
+                break; */
+        }
+    }
+    return gen;
+    /* eslint-enable no-unexpected-multiline, block-scoped-var, no-redeclare */
+}
+
+/**
+ * Generates a plain object to runtime message converter specific to the specified message type.
+ * @param {Type} mtype Message type
+ * @returns {Codegen} Codegen instance
+ */
+converter.fromObject = function fromObject(mtype) {
+    /* eslint-disable no-unexpected-multiline, block-scoped-var, no-redeclare */
+    var fields = mtype.fieldsArray;
+    var gen = util$1.codegen(["d"], mtype.name + "$fromObject")
+    ("if(d instanceof this.ctor)")
+        ("return d");
+    if (!fields.length) return gen
+    ("return new this.ctor");
+    gen
+    ("var m=new this.ctor");
+    for (var i = 0; i < fields.length; ++i) {
+        var field  = fields[i].resolve(),
+            prop   = util$1.safeProp(field.name);
+
+        // Map fields
+        if (field.map) { gen
+    ("if(d%s){", prop)
+        ("if(typeof d%s!==\"object\")", prop)
+            ("throw TypeError(%j)", field.fullName + ": object expected")
+        ("m%s={}", prop)
+        ("for(var ks=Object.keys(d%s),i=0;i<ks.length;++i){", prop);
+            genValuePartial_fromObject(gen, field, /* not sorted */ i, prop + "[ks[i]]")
+        ("}")
+    ("}");
+
+        // Repeated fields
+        } else if (field.repeated) { gen
+    ("if(d%s){", prop)
+        ("if(!Array.isArray(d%s))", prop)
+            ("throw TypeError(%j)", field.fullName + ": array expected")
+        ("m%s=[]", prop)
+        ("for(var i=0;i<d%s.length;++i){", prop);
+            genValuePartial_fromObject(gen, field, /* not sorted */ i, prop + "[i]")
+        ("}")
+    ("}");
+
+        // Non-repeated fields
+        } else {
+            if (!(field.resolvedType instanceof Enum$2)) gen // no need to test for null/undefined if an enum (uses switch)
+    ("if(d%s!=null){", prop); // !== undefined && !== null
+        genValuePartial_fromObject(gen, field, /* not sorted */ i, prop);
+            if (!(field.resolvedType instanceof Enum$2)) gen
+    ("}");
+        }
+    } return gen
+    ("return m");
+    /* eslint-enable no-unexpected-multiline, block-scoped-var, no-redeclare */
+};
+
+/**
+ * Generates a partial value toObject converter.
+ * @param {Codegen} gen Codegen instance
+ * @param {Field} field Reflected field
+ * @param {number} fieldIndex Field index
+ * @param {string} prop Property reference
+ * @returns {Codegen} Codegen instance
+ * @ignore
+ */
+function genValuePartial_toObject(gen, field, fieldIndex, prop) {
+    /* eslint-disable no-unexpected-multiline, block-scoped-var, no-redeclare */
+    if (field.resolvedType) {
+        if (field.resolvedType instanceof Enum$2) gen
+            ("d%s=o.enums===String?types[%i].values[m%s]:m%s", prop, fieldIndex, prop, prop);
+        else gen
+            ("d%s=types[%i].toObject(m%s,o)", prop, fieldIndex, prop);
+    } else {
+        var isUnsigned = false;
+        switch (field.type) {
+            case "double":
+            case "float": gen
+            ("d%s=o.json&&!isFinite(m%s)?String(m%s):m%s", prop, prop, prop, prop);
+                break;
+            case "uint64":
+                isUnsigned = true;
+                // eslint-disable-line no-fallthrough
+            case "int64":
+            case "sint64":
+            case "fixed64":
+            case "sfixed64": gen
+            ("if(typeof m%s===\"number\")", prop)
+                ("d%s=o.longs===String?String(m%s):m%s", prop, prop, prop)
+            ("else") // Long-like
+                ("d%s=o.longs===String?util.Long.prototype.toString.call(m%s):o.longs===Number?new util.LongBits(m%s.low>>>0,m%s.high>>>0).toNumber(%s):m%s", prop, prop, prop, prop, isUnsigned ? "true": "", prop);
+                break;
+            case "bytes": gen
+            ("d%s=o.bytes===String?util.base64.encode(m%s,0,m%s.length):o.bytes===Array?Array.prototype.slice.call(m%s):m%s", prop, prop, prop, prop, prop);
+                break;
+            default: gen
+            ("d%s=m%s", prop, prop);
+                break;
+        }
+    }
+    return gen;
+    /* eslint-enable no-unexpected-multiline, block-scoped-var, no-redeclare */
+}
+
+/**
+ * Generates a runtime message to plain object converter specific to the specified message type.
+ * @param {Type} mtype Message type
+ * @returns {Codegen} Codegen instance
+ */
+converter.toObject = function toObject(mtype) {
+    /* eslint-disable no-unexpected-multiline, block-scoped-var, no-redeclare */
+    var fields = mtype.fieldsArray.slice().sort(util$1.compareFieldsById);
+    if (!fields.length)
+        return util$1.codegen()("return {}");
+    var gen = util$1.codegen(["m", "o"], mtype.name + "$toObject")
+    ("if(!o)")
+        ("o={}")
+    ("var d={}");
+
+    var repeatedFields = [],
+        mapFields = [],
+        normalFields = [],
+        i = 0;
+    for (; i < fields.length; ++i)
+        if (!fields[i].partOf)
+            ( fields[i].resolve().repeated ? repeatedFields
+            : fields[i].map ? mapFields
+            : normalFields).push(fields[i]);
+
+    if (repeatedFields.length) { gen
+    ("if(o.arrays||o.defaults){");
+        for (i = 0; i < repeatedFields.length; ++i) gen
+        ("d%s=[]", util$1.safeProp(repeatedFields[i].name));
+        gen
+    ("}");
+    }
+
+    if (mapFields.length) { gen
+    ("if(o.objects||o.defaults){");
+        for (i = 0; i < mapFields.length; ++i) gen
+        ("d%s={}", util$1.safeProp(mapFields[i].name));
+        gen
+    ("}");
+    }
+
+    if (normalFields.length) { gen
+    ("if(o.defaults){");
+        for (i = 0; i < normalFields.length; ++i) {
+            var field = normalFields[i],
+                prop  = util$1.safeProp(field.name);
+            if (field.resolvedType instanceof Enum$2) gen
+        ("d%s=o.enums===String?%j:%j", prop, field.resolvedType.valuesById[field.typeDefault], field.typeDefault);
+            else if (field.long) gen
+        ("if(util.Long){")
+            ("var n=new util.Long(%i,%i,%j)", field.typeDefault.low, field.typeDefault.high, field.typeDefault.unsigned)
+            ("d%s=o.longs===String?n.toString():o.longs===Number?n.toNumber():n", prop)
+        ("}else")
+            ("d%s=o.longs===String?%j:%i", prop, field.typeDefault.toString(), field.typeDefault.toNumber());
+            else if (field.bytes) {
+                var arrayDefault = "[" + Array.prototype.slice.call(field.typeDefault).join(",") + "]";
+                gen
+        ("if(o.bytes===String)d%s=%j", prop, String.fromCharCode.apply(String, field.typeDefault))
+        ("else{")
+            ("d%s=%s", prop, arrayDefault)
+            ("if(o.bytes!==Array)d%s=util.newBuffer(d%s)", prop, prop)
+        ("}");
+            } else gen
+        ("d%s=%j", prop, field.typeDefault); // also messages (=null)
+        } gen
+    ("}");
+    }
+    var hasKs2 = false;
+    for (i = 0; i < fields.length; ++i) {
+        var field = fields[i],
+            index = mtype._fieldsArray.indexOf(field),
+            prop  = util$1.safeProp(field.name);
+        if (field.map) {
+            if (!hasKs2) { hasKs2 = true; gen
+    ("var ks2");
+            } gen
+    ("if(m%s&&(ks2=Object.keys(m%s)).length){", prop, prop)
+        ("d%s={}", prop)
+        ("for(var j=0;j<ks2.length;++j){");
+            genValuePartial_toObject(gen, field, /* sorted */ index, prop + "[ks2[j]]")
+        ("}");
+        } else if (field.repeated) { gen
+    ("if(m%s&&m%s.length){", prop, prop)
+        ("d%s=[]", prop)
+        ("for(var j=0;j<m%s.length;++j){", prop);
+            genValuePartial_toObject(gen, field, /* sorted */ index, prop + "[j]")
+        ("}");
+        } else { gen
+    ("if(m%s!=null&&m.hasOwnProperty(%j)){", prop, field.name); // !== undefined && !== null
+        genValuePartial_toObject(gen, field, /* sorted */ index, prop);
+        if (field.partOf) gen
+        ("if(o.oneofs)")
+            ("d%s=%j", util$1.safeProp(field.partOf.name), field.name);
+        }
+        gen
+    ("}");
+    }
+    return gen
+    ("return d");
+    /* eslint-enable no-unexpected-multiline, block-scoped-var, no-redeclare */
+};
+});
+
+var wrappers_1 = createCommonjsModule(function (module, exports) {
+
+/**
+ * Wrappers for common types.
+ * @type {Object.<string,IWrapper>}
+ * @const
+ */
+var wrappers = exports;
+
+
+
+/**
+ * From object converter part of an {@link IWrapper}.
+ * @typedef WrapperFromObjectConverter
+ * @type {function}
+ * @param {Object.<string,*>} object Plain object
+ * @returns {Message<{}>} Message instance
+ * @this Type
+ */
+
+/**
+ * To object converter part of an {@link IWrapper}.
+ * @typedef WrapperToObjectConverter
+ * @type {function}
+ * @param {Message<{}>} message Message instance
+ * @param {IConversionOptions} [options] Conversion options
+ * @returns {Object.<string,*>} Plain object
+ * @this Type
+ */
+
+/**
+ * Common type wrapper part of {@link wrappers}.
+ * @interface IWrapper
+ * @property {WrapperFromObjectConverter} [fromObject] From object converter
+ * @property {WrapperToObjectConverter} [toObject] To object converter
+ */
+
+// Custom wrapper for Any
+wrappers[".google.protobuf.Any"] = {
+
+    fromObject: function(object) {
+
+        // unwrap value type if mapped
+        if (object && object["@type"]) {
+             // Only use fully qualified type name after the last '/'
+            var name = object["@type"].substring(object["@type"].lastIndexOf("/") + 1);
+            var type = this.lookup(name);
+            /* istanbul ignore else */
+            if (type) {
+                // type_url does not accept leading "."
+                var type_url = object["@type"].charAt(0) === "." ?
+                    object["@type"].substr(1) : object["@type"];
+                // type_url prefix is optional, but path seperator is required
+                if (type_url.indexOf("/") === -1) {
+                    type_url = "/" + type_url;
+                }
+                return this.create({
+                    type_url: type_url,
+                    value: type.encode(type.fromObject(object)).finish()
+                });
+            }
+        }
+
+        return this.fromObject(object);
+    },
+
+    toObject: function(message$1, options) {
+
+        // Default prefix
+        var googleApi = "type.googleapis.com/";
+        var prefix = "";
+        var name = "";
+
+        // decode value if requested and unmapped
+        if (options && options.json && message$1.type_url && message$1.value) {
+            // Only use fully qualified type name after the last '/'
+            name = message$1.type_url.substring(message$1.type_url.lastIndexOf("/") + 1);
+            // Separate the prefix used
+            prefix = message$1.type_url.substring(0, message$1.type_url.lastIndexOf("/") + 1);
+            var type = this.lookup(name);
+            /* istanbul ignore else */
+            if (type)
+                message$1 = type.decode(message$1.value);
+        }
+
+        // wrap value if unmapped
+        if (!(message$1 instanceof this.ctor) && message$1 instanceof message) {
+            var object = message$1.$type.toObject(message$1, options);
+            var messageName = message$1.$type.fullName[0] === "." ?
+                message$1.$type.fullName.substr(1) : message$1.$type.fullName;
+            // Default to type.googleapis.com prefix if no prefix is used
+            if (prefix === "") {
+                prefix = googleApi;
+            }
+            name = prefix + messageName;
+            object["@type"] = name;
+            return object;
+        }
+
+        return this.toObject(message$1, options);
+    }
+};
+});
+
+var require$$1$1 = encoder_1;
+
+var type = Type$1;
+
+// extends Namespace
+
+((Type$1.prototype = Object.create(namespace.prototype)).constructor = Type$1).className = "Type";
+
+
+
+/**
+ * Constructs a new reflected message type instance.
+ * @classdesc Reflected message type.
+ * @extends NamespaceBase
+ * @constructor
+ * @param {string} name Message name
+ * @param {Object.<string,*>} [options] Declared options
+ */
+function Type$1(name, options) {
+    namespace.call(this, name, options);
+
+    /**
+     * Message fields.
+     * @type {Object.<string,Field>}
+     */
+    this.fields = {};  // toJSON, marker
+
+    /**
+     * Oneofs declared within this namespace, if any.
+     * @type {Object.<string,OneOf>}
+     */
+    this.oneofs = undefined; // toJSON
+
+    /**
+     * Extension ranges, if any.
+     * @type {number[][]}
+     */
+    this.extensions = undefined; // toJSON
+
+    /**
+     * Reserved ranges, if any.
+     * @type {Array.<number[]|string>}
+     */
+    this.reserved = undefined; // toJSON
+
+    /*?
+     * Whether this type is a legacy group.
+     * @type {boolean|undefined}
+     */
+    this.group = undefined; // toJSON
+
+    /**
+     * Cached fields by id.
+     * @type {Object.<number,Field>|null}
+     * @private
+     */
+    this._fieldsById = null;
+
+    /**
+     * Cached fields as an array.
+     * @type {Field[]|null}
+     * @private
+     */
+    this._fieldsArray = null;
+
+    /**
+     * Cached oneofs as an array.
+     * @type {OneOf[]|null}
+     * @private
+     */
+    this._oneofsArray = null;
+
+    /**
+     * Cached constructor.
+     * @type {Constructor<{}>}
+     * @private
+     */
+    this._ctor = null;
+}
+
+Object.defineProperties(Type$1.prototype, {
+
+    /**
+     * Message fields by id.
+     * @name Type#fieldsById
+     * @type {Object.<number,Field>}
+     * @readonly
+     */
+    fieldsById: {
+        get: function() {
+
+            /* istanbul ignore if */
+            if (this._fieldsById)
+                return this._fieldsById;
+
+            this._fieldsById = {};
+            for (var names = Object.keys(this.fields), i = 0; i < names.length; ++i) {
+                var field = this.fields[names[i]],
+                    id = field.id;
+
+                /* istanbul ignore if */
+                if (this._fieldsById[id])
+                    throw Error("duplicate id " + id + " in " + this);
+
+                this._fieldsById[id] = field;
+            }
+            return this._fieldsById;
+        }
+    },
+
+    /**
+     * Fields of this message as an array for iteration.
+     * @name Type#fieldsArray
+     * @type {Field[]}
+     * @readonly
+     */
+    fieldsArray: {
+        get: function() {
+            return this._fieldsArray || (this._fieldsArray = util$1.toArray(this.fields));
+        }
+    },
+
+    /**
+     * Oneofs of this message as an array for iteration.
+     * @name Type#oneofsArray
+     * @type {OneOf[]}
+     * @readonly
+     */
+    oneofsArray: {
+        get: function() {
+            return this._oneofsArray || (this._oneofsArray = util$1.toArray(this.oneofs));
+        }
+    },
+
+    /**
+     * The registered constructor, if any registered, otherwise a generic constructor.
+     * Assigning a function replaces the internal constructor. If the function does not extend {@link Message} yet, its prototype will be setup accordingly and static methods will be populated. If it already extends {@link Message}, it will just replace the internal constructor.
+     * @name Type#ctor
+     * @type {Constructor<{}>}
+     */
+    ctor: {
+        get: function() {
+            return this._ctor || (this.ctor = Type$1.generateConstructor(this)());
+        },
+        set: function(ctor) {
+
+            // Ensure proper prototype
+            var prototype = ctor.prototype;
+            if (!(prototype instanceof message)) {
+                (ctor.prototype = new message()).constructor = ctor;
+                util$1.merge(ctor.prototype, prototype);
+            }
+
+            // Classes and messages reference their reflected type
+            ctor.$type = ctor.prototype.$type = this;
+
+            // Mix in static methods
+            util$1.merge(ctor, message, true);
+
+            this._ctor = ctor;
+
+            // Messages have non-enumerable default values on their prototype
+            var i = 0;
+            for (; i < /* initializes */ this.fieldsArray.length; ++i)
+                this._fieldsArray[i].resolve(); // ensures a proper value
+
+            // Messages have non-enumerable getters and setters for each virtual oneof field
+            var ctorProperties = {};
+            for (i = 0; i < /* initializes */ this.oneofsArray.length; ++i)
+                ctorProperties[this._oneofsArray[i].resolve().name] = {
+                    get: util$1.oneOfGetter(this._oneofsArray[i].oneof),
+                    set: util$1.oneOfSetter(this._oneofsArray[i].oneof)
+                };
+            if (i)
+                Object.defineProperties(ctor.prototype, ctorProperties);
+        }
+    }
+});
+
+/**
+ * Generates a constructor function for the specified type.
+ * @param {Type} mtype Message type
+ * @returns {Codegen} Codegen instance
+ */
+Type$1.generateConstructor = function generateConstructor(mtype) {
+    /* eslint-disable no-unexpected-multiline */
+    var gen = util$1.codegen(["p"], mtype.name);
+    // explicitly initialize mutable object/array fields so that these aren't just inherited from the prototype
+    for (var i = 0, field; i < mtype.fieldsArray.length; ++i)
+        if ((field = mtype._fieldsArray[i]).map) gen
+            ("this%s={}", util$1.safeProp(field.name));
+        else if (field.repeated) gen
+            ("this%s=[]", util$1.safeProp(field.name));
+    return gen
+    ("if(p)for(var ks=Object.keys(p),i=0;i<ks.length;++i)if(p[ks[i]]!=null)") // omit undefined or null
+        ("this[ks[i]]=p[ks[i]]");
+    /* eslint-enable no-unexpected-multiline */
+};
+
+function clearCache(type) {
+    type._fieldsById = type._fieldsArray = type._oneofsArray = null;
+    delete type.encode;
+    delete type.decode;
+    delete type.verify;
+    return type;
+}
+
+/**
+ * Message type descriptor.
+ * @interface IType
+ * @extends INamespace
+ * @property {Object.<string,IOneOf>} [oneofs] Oneof descriptors
+ * @property {Object.<string,IField>} fields Field descriptors
+ * @property {number[][]} [extensions] Extension ranges
+ * @property {number[][]} [reserved] Reserved ranges
+ * @property {boolean} [group=false] Whether a legacy group or not
+ */
+
+/**
+ * Creates a message type from a message type descriptor.
+ * @param {string} name Message name
+ * @param {IType} json Message type descriptor
+ * @returns {Type} Created message type
+ */
+Type$1.fromJSON = function fromJSON(name, json) {
+    var type = new Type$1(name, json.options);
+    type.extensions = json.extensions;
+    type.reserved = json.reserved;
+    var names = Object.keys(json.fields),
+        i = 0;
+    for (; i < names.length; ++i)
+        type.add(
+            ( typeof json.fields[names[i]].keyType !== "undefined"
+            ? mapfield.fromJSON
+            : field.fromJSON )(names[i], json.fields[names[i]])
+        );
+    if (json.oneofs)
+        for (names = Object.keys(json.oneofs), i = 0; i < names.length; ++i)
+            type.add(oneof.fromJSON(names[i], json.oneofs[names[i]]));
+    if (json.nested)
+        for (names = Object.keys(json.nested), i = 0; i < names.length; ++i) {
+            var nested = json.nested[names[i]];
+            type.add( // most to least likely
+                ( nested.id !== undefined
+                ? field.fromJSON
+                : nested.fields !== undefined
+                ? Type$1.fromJSON
+                : nested.values !== undefined
+                ? Enum$2.fromJSON
+                : nested.methods !== undefined
+                ? service.fromJSON
+                : namespace.fromJSON )(names[i], nested)
+            );
+        }
+    if (json.extensions && json.extensions.length)
+        type.extensions = json.extensions;
+    if (json.reserved && json.reserved.length)
+        type.reserved = json.reserved;
+    if (json.group)
+        type.group = true;
+    if (json.comment)
+        type.comment = json.comment;
+    return type;
+};
+
+/**
+ * Converts this message type to a message type descriptor.
+ * @param {IToJSONOptions} [toJSONOptions] JSON conversion options
+ * @returns {IType} Message type descriptor
+ */
+Type$1.prototype.toJSON = function toJSON(toJSONOptions) {
+    var inherited = namespace.prototype.toJSON.call(this, toJSONOptions);
+    var keepComments = toJSONOptions ? Boolean(toJSONOptions.keepComments) : false;
+    return util$1.toObject([
+        "options"    , inherited && inherited.options || undefined,
+        "oneofs"     , namespace.arrayToJSON(this.oneofsArray, toJSONOptions),
+        "fields"     , namespace.arrayToJSON(this.fieldsArray.filter(function(obj) { return !obj.declaringField; }), toJSONOptions) || {},
+        "extensions" , this.extensions && this.extensions.length ? this.extensions : undefined,
+        "reserved"   , this.reserved && this.reserved.length ? this.reserved : undefined,
+        "group"      , this.group || undefined,
+        "nested"     , inherited && inherited.nested || undefined,
+        "comment"    , keepComments ? this.comment : undefined
+    ]);
+};
+
+/**
+ * @override
+ */
+Type$1.prototype.resolveAll = function resolveAll() {
+    var fields = this.fieldsArray, i = 0;
+    while (i < fields.length)
+        fields[i++].resolve();
+    var oneofs = this.oneofsArray; i = 0;
+    while (i < oneofs.length)
+        oneofs[i++].resolve();
+    return namespace.prototype.resolveAll.call(this);
+};
+
+/**
+ * @override
+ */
+Type$1.prototype.get = function get(name) {
+    return this.fields[name]
+        || this.oneofs && this.oneofs[name]
+        || this.nested && this.nested[name]
+        || null;
+};
+
+/**
+ * Adds a nested object to this type.
+ * @param {ReflectionObject} object Nested object to add
+ * @returns {Type} `this`
+ * @throws {TypeError} If arguments are invalid
+ * @throws {Error} If there is already a nested object with this name or, if a field, when there is already a field with this id
+ */
+Type$1.prototype.add = function add(object) {
+
+    if (this.get(object.name))
+        throw Error("duplicate name '" + object.name + "' in " + this);
+
+    if (object instanceof field && object.extend === undefined) {
+        // NOTE: Extension fields aren't actual fields on the declaring type, but nested objects.
+        // The root object takes care of adding distinct sister-fields to the respective extended
+        // type instead.
+
+        // avoids calling the getter if not absolutely necessary because it's called quite frequently
+        if (this._fieldsById ? /* istanbul ignore next */ this._fieldsById[object.id] : this.fieldsById[object.id])
+            throw Error("duplicate id " + object.id + " in " + this);
+        if (this.isReservedId(object.id))
+            throw Error("id " + object.id + " is reserved in " + this);
+        if (this.isReservedName(object.name))
+            throw Error("name '" + object.name + "' is reserved in " + this);
+
+        if (object.parent)
+            object.parent.remove(object);
+        this.fields[object.name] = object;
+        object.message = this;
+        object.onAdd(this);
+        return clearCache(this);
+    }
+    if (object instanceof oneof) {
+        if (!this.oneofs)
+            this.oneofs = {};
+        this.oneofs[object.name] = object;
+        object.onAdd(this);
+        return clearCache(this);
+    }
+    return namespace.prototype.add.call(this, object);
+};
+
+/**
+ * Removes a nested object from this type.
+ * @param {ReflectionObject} object Nested object to remove
+ * @returns {Type} `this`
+ * @throws {TypeError} If arguments are invalid
+ * @throws {Error} If `object` is not a member of this type
+ */
+Type$1.prototype.remove = function remove(object) {
+    if (object instanceof field && object.extend === undefined) {
+        // See Type#add for the reason why extension fields are excluded here.
+
+        /* istanbul ignore if */
+        if (!this.fields || this.fields[object.name] !== object)
+            throw Error(object + " is not a member of " + this);
+
+        delete this.fields[object.name];
+        object.parent = null;
+        object.onRemove(this);
+        return clearCache(this);
+    }
+    if (object instanceof oneof) {
+
+        /* istanbul ignore if */
+        if (!this.oneofs || this.oneofs[object.name] !== object)
+            throw Error(object + " is not a member of " + this);
+
+        delete this.oneofs[object.name];
+        object.parent = null;
+        object.onRemove(this);
+        return clearCache(this);
+    }
+    return namespace.prototype.remove.call(this, object);
+};
+
+/**
+ * Tests if the specified id is reserved.
+ * @param {number} id Id to test
+ * @returns {boolean} `true` if reserved, otherwise `false`
+ */
+Type$1.prototype.isReservedId = function isReservedId(id) {
+    return namespace.isReservedId(this.reserved, id);
+};
+
+/**
+ * Tests if the specified name is reserved.
+ * @param {string} name Name to test
+ * @returns {boolean} `true` if reserved, otherwise `false`
+ */
+Type$1.prototype.isReservedName = function isReservedName(name) {
+    return namespace.isReservedName(this.reserved, name);
+};
+
+/**
+ * Creates a new message of this type using the specified properties.
+ * @param {Object.<string,*>} [properties] Properties to set
+ * @returns {Message<{}>} Message instance
+ */
+Type$1.prototype.create = function create(properties) {
+    return new this.ctor(properties);
+};
+
+/**
+ * Sets up {@link Type#encode|encode}, {@link Type#decode|decode} and {@link Type#verify|verify}.
+ * @returns {Type} `this`
+ */
+Type$1.prototype.setup = function setup() {
+    // Sets up everything at once so that the prototype chain does not have to be re-evaluated
+    // multiple times (V8, soft-deopt prototype-check).
+
+    var fullName = this.fullName,
+        types    = [];
+    for (var i = 0; i < /* initializes */ this.fieldsArray.length; ++i)
+        types.push(this._fieldsArray[i].resolve().resolvedType);
+
+    // Replace setup methods with type-specific generated functions
+    this.encode = require$$1$1(this)({
+        Writer : writer,
+        types  : types,
+        util   : util$1
+    });
+    this.decode = decoder_1(this)({
+        Reader : reader,
+        types  : types,
+        util   : util$1
+    });
+    this.verify = verifier_1(this)({
+        types : types,
+        util  : util$1
+    });
+    this.fromObject = converter_1.fromObject(this)({
+        types : types,
+        util  : util$1
+    });
+    this.toObject = converter_1.toObject(this)({
+        types : types,
+        util  : util$1
+    });
+
+    // Inject custom wrappers for common types
+    var wrapper = wrappers_1[fullName];
+    if (wrapper) {
+        var originalThis = Object.create(this);
+        // if (wrapper.fromObject) {
+            originalThis.fromObject = this.fromObject;
+            this.fromObject = wrapper.fromObject.bind(originalThis);
+        // }
+        // if (wrapper.toObject) {
+            originalThis.toObject = this.toObject;
+            this.toObject = wrapper.toObject.bind(originalThis);
+        // }
+    }
+
+    return this;
+};
+
+/**
+ * Encodes a message of this type. Does not implicitly {@link Type#verify|verify} messages.
+ * @param {Message<{}>|Object.<string,*>} message Message instance or plain object
+ * @param {Writer} [writer] Writer to encode to
+ * @returns {Writer} writer
+ */
+Type$1.prototype.encode = function encode_setup(message, writer) {
+    return this.setup().encode(message, writer); // overrides this method
+};
+
+/**
+ * Encodes a message of this type preceeded by its byte length as a varint. Does not implicitly {@link Type#verify|verify} messages.
+ * @param {Message<{}>|Object.<string,*>} message Message instance or plain object
+ * @param {Writer} [writer] Writer to encode to
+ * @returns {Writer} writer
+ */
+Type$1.prototype.encodeDelimited = function encodeDelimited(message, writer) {
+    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
+};
+
+/**
+ * Decodes a message of this type.
+ * @param {Reader|Uint8Array} reader Reader or buffer to decode from
+ * @param {number} [length] Length of the message, if known beforehand
+ * @returns {Message<{}>} Decoded message
+ * @throws {Error} If the payload is not a reader or valid buffer
+ * @throws {util.ProtocolError<{}>} If required fields are missing
+ */
+Type$1.prototype.decode = function decode_setup(reader, length) {
+    return this.setup().decode(reader, length); // overrides this method
+};
+
+/**
+ * Decodes a message of this type preceeded by its byte length as a varint.
+ * @param {Reader|Uint8Array} reader Reader or buffer to decode from
+ * @returns {Message<{}>} Decoded message
+ * @throws {Error} If the payload is not a reader or valid buffer
+ * @throws {util.ProtocolError} If required fields are missing
+ */
+Type$1.prototype.decodeDelimited = function decodeDelimited(reader$1) {
+    if (!(reader$1 instanceof reader))
+        reader$1 = reader.create(reader$1);
+    return this.decode(reader$1, reader$1.uint32());
+};
+
+/**
+ * Verifies that field values are valid and that required fields are present.
+ * @param {Object.<string,*>} message Plain object to verify
+ * @returns {null|string} `null` if valid, otherwise the reason why it is not
+ */
+Type$1.prototype.verify = function verify_setup(message) {
+    return this.setup().verify(message); // overrides this method
+};
+
+/**
+ * Creates a new message of this type from a plain object. Also converts values to their respective internal types.
+ * @param {Object.<string,*>} object Plain object to convert
+ * @returns {Message<{}>} Message instance
+ */
+Type$1.prototype.fromObject = function fromObject(object) {
+    return this.setup().fromObject(object);
+};
+
+/**
+ * Conversion options as used by {@link Type#toObject} and {@link Message.toObject}.
+ * @interface IConversionOptions
+ * @property {Function} [longs] Long conversion type.
+ * Valid values are `String` and `Number` (the global types).
+ * Defaults to copy the present value, which is a possibly unsafe number without and a {@link Long} with a long library.
+ * @property {Function} [enums] Enum value conversion type.
+ * Only valid value is `String` (the global type).
+ * Defaults to copy the present value, which is the numeric id.
+ * @property {Function} [bytes] Bytes value conversion type.
+ * Valid values are `Array` and (a base64 encoded) `String` (the global types).
+ * Defaults to copy the present value, which usually is a Buffer under node and an Uint8Array in the browser.
+ * @property {boolean} [defaults=false] Also sets default values on the resulting object
+ * @property {boolean} [arrays=false] Sets empty arrays for missing repeated fields even if `defaults=false`
+ * @property {boolean} [objects=false] Sets empty objects for missing map fields even if `defaults=false`
+ * @property {boolean} [oneofs=false] Includes virtual oneof properties set to the present field's name, if any
+ * @property {boolean} [json=false] Performs additional JSON compatibility conversions, i.e. NaN and Infinity to strings
+ */
+
+/**
+ * Creates a plain object from a message of this type. Also converts values to other types if specified.
+ * @param {Message<{}>} message Message instance
+ * @param {IConversionOptions} [options] Conversion options
+ * @returns {Object.<string,*>} Plain object
+ */
+Type$1.prototype.toObject = function toObject(message, options) {
+    return this.setup().toObject(message, options);
+};
+
+/**
+ * Decorator function as returned by {@link Type.d} (TypeScript).
+ * @typedef TypeDecorator
+ * @type {function}
+ * @param {Constructor<T>} target Target constructor
+ * @returns {undefined}
+ * @template T extends Message<T>
+ */
+
+/**
+ * Type decorator (TypeScript).
+ * @param {string} [typeName] Type name, defaults to the constructor's name
+ * @returns {TypeDecorator<T>} Decorator function
+ * @template T extends Message<T>
+ */
+Type$1.d = function decorateType(typeName) {
+    return function typeDecorator(target) {
+        util$1.decorateType(target, typeName);
+    };
+};
+
+var root = Root$2;
+
+// extends Namespace
+
+((Root$2.prototype = Object.create(namespace.prototype)).constructor = Root$2).className = "Root";
+
+
+
+var Type,   // cyclic
+    parse$1,  // might be excluded
+    common$1; // "
+
+/**
+ * Constructs a new root namespace instance.
+ * @classdesc Root namespace wrapping all types, enums, services, sub-namespaces etc. that belong together.
+ * @extends NamespaceBase
+ * @constructor
+ * @param {Object.<string,*>} [options] Top level options
+ */
+function Root$2(options) {
+    namespace.call(this, "", options);
+
+    /**
+     * Deferred extension fields.
+     * @type {Field[]}
+     */
+    this.deferred = [];
+
+    /**
+     * Resolved file names of loaded files.
+     * @type {string[]}
+     */
+    this.files = [];
+}
+
+/**
+ * Loads a namespace descriptor into a root namespace.
+ * @param {INamespace} json Nameespace descriptor
+ * @param {Root} [root] Root namespace, defaults to create a new one if omitted
+ * @returns {Root} Root namespace
+ */
+Root$2.fromJSON = function fromJSON(json, root) {
+    if (!root)
+        root = new Root$2();
+    if (json.options)
+        root.setOptions(json.options);
+    return root.addJSON(json.nested);
+};
+
+/**
+ * Resolves the path of an imported file, relative to the importing origin.
+ * This method exists so you can override it with your own logic in case your imports are scattered over multiple directories.
+ * @function
+ * @param {string} origin The file name of the importing file
+ * @param {string} target The file name being imported
+ * @returns {string|null} Resolved path to `target` or `null` to skip the file
+ */
+Root$2.prototype.resolvePath = util$1.path.resolve;
+
+/**
+ * Fetch content from file path or url
+ * This method exists so you can override it with your own logic.
+ * @function
+ * @param {string} path File path or url
+ * @param {FetchCallback} callback Callback function
+ * @returns {undefined}
+ */
+Root$2.prototype.fetch = util$1.fetch;
+
+// A symbol-like function to safely signal synchronous loading
+/* istanbul ignore next */
+function SYNC() {} // eslint-disable-line no-empty-function
+
+/**
+ * Loads one or multiple .proto or preprocessed .json files into this root namespace and calls the callback.
+ * @param {string|string[]} filename Names of one or multiple files to load
+ * @param {IParseOptions} options Parse options
+ * @param {LoadCallback} callback Callback function
+ * @returns {undefined}
+ */
+Root$2.prototype.load = function load(filename, options, callback) {
+    if (typeof options === "function") {
+        callback = options;
+        options = undefined;
+    }
+    var self = this;
+    if (!callback)
+        return util$1.asPromise(load, self, filename, options);
+
+    var sync = callback === SYNC; // undocumented
+
+    // Finishes loading by calling the callback (exactly once)
+    function finish(err, root) {
+        /* istanbul ignore if */
+        if (!callback)
+            return;
+        var cb = callback;
+        callback = null;
+        if (sync)
+            throw err;
+        cb(err, root);
+    }
+
+    // Bundled definition existence checking
+    function getBundledFileName(filename) {
+        var idx = filename.lastIndexOf("google/protobuf/");
+        if (idx > -1) {
+            var altname = filename.substring(idx);
+            if (altname in common$1) return altname;
+        }
+        return null;
+    }
+
+    // Processes a single file
+    function process(filename, source) {
+        try {
+            if (util$1.isString(source) && source.charAt(0) === "{")
+                source = JSON.parse(source);
+            if (!util$1.isString(source))
+                self.setOptions(source.options).addJSON(source.nested);
+            else {
+                parse$1.filename = filename;
+                var parsed = parse$1(source, self, options),
+                    resolved,
+                    i = 0;
+                if (parsed.imports)
+                    for (; i < parsed.imports.length; ++i)
+                        if (resolved = getBundledFileName(parsed.imports[i]) || self.resolvePath(filename, parsed.imports[i]))
+                            fetch(resolved);
+                if (parsed.weakImports)
+                    for (i = 0; i < parsed.weakImports.length; ++i)
+                        if (resolved = getBundledFileName(parsed.weakImports[i]) || self.resolvePath(filename, parsed.weakImports[i]))
+                            fetch(resolved, true);
+            }
+        } catch (err) {
+            finish(err);
+        }
+        if (!sync && !queued)
+            finish(null, self); // only once anyway
+    }
+
+    // Fetches a single file
+    function fetch(filename, weak) {
+
+        // Skip if already loaded / attempted
+        if (self.files.indexOf(filename) > -1)
+            return;
+        self.files.push(filename);
+
+        // Shortcut bundled definitions
+        if (filename in common$1) {
+            if (sync)
+                process(filename, common$1[filename]);
+            else {
+                ++queued;
+                setTimeout(function() {
+                    --queued;
+                    process(filename, common$1[filename]);
+                });
+            }
+            return;
+        }
+
+        // Otherwise fetch from disk or network
+        if (sync) {
+            var source;
+            try {
+                source = util$1.fs.readFileSync(filename).toString("utf8");
+            } catch (err) {
+                if (!weak)
+                    finish(err);
+                return;
+            }
+            process(filename, source);
+        } else {
+            ++queued;
+            self.fetch(filename, function(err, source) {
+                --queued;
+                /* istanbul ignore if */
+                if (!callback)
+                    return; // terminated meanwhile
+                if (err) {
+                    /* istanbul ignore else */
+                    if (!weak)
+                        finish(err);
+                    else if (!queued) // can't be covered reliably
+                        finish(null, self);
+                    return;
+                }
+                process(filename, source);
+            });
+        }
+    }
+    var queued = 0;
+
+    // Assembling the root namespace doesn't require working type
+    // references anymore, so we can load everything in parallel
+    if (util$1.isString(filename))
+        filename = [ filename ];
+    for (var i = 0, resolved; i < filename.length; ++i)
+        if (resolved = self.resolvePath("", filename[i]))
+            fetch(resolved);
+
+    if (sync)
+        return self;
+    if (!queued)
+        finish(null, self);
+    return undefined;
+};
+// function load(filename:string, options:IParseOptions, callback:LoadCallback):undefined
+
+/**
+ * Loads one or multiple .proto or preprocessed .json files into this root namespace and calls the callback.
+ * @function Root#load
+ * @param {string|string[]} filename Names of one or multiple files to load
+ * @param {LoadCallback} callback Callback function
+ * @returns {undefined}
+ * @variation 2
+ */
+// function load(filename:string, callback:LoadCallback):undefined
+
+/**
+ * Loads one or multiple .proto or preprocessed .json files into this root namespace and returns a promise.
+ * @function Root#load
+ * @param {string|string[]} filename Names of one or multiple files to load
+ * @param {IParseOptions} [options] Parse options. Defaults to {@link parse.defaults} when omitted.
+ * @returns {Promise<Root>} Promise
+ * @variation 3
+ */
+// function load(filename:string, [options:IParseOptions]):Promise<Root>
+
+/**
+ * Synchronously loads one or multiple .proto or preprocessed .json files into this root namespace (node only).
+ * @function Root#loadSync
+ * @param {string|string[]} filename Names of one or multiple files to load
+ * @param {IParseOptions} [options] Parse options. Defaults to {@link parse.defaults} when omitted.
+ * @returns {Root} Root namespace
+ * @throws {Error} If synchronous fetching is not supported (i.e. in browsers) or if a file's syntax is invalid
+ */
+Root$2.prototype.loadSync = function loadSync(filename, options) {
+    if (!util$1.isNode)
+        throw Error("not supported");
+    return this.load(filename, options, SYNC);
+};
+
+/**
+ * @override
+ */
+Root$2.prototype.resolveAll = function resolveAll() {
+    if (this.deferred.length)
+        throw Error("unresolvable extensions: " + this.deferred.map(function(field) {
+            return "'extend " + field.extend + "' in " + field.parent.fullName;
+        }).join(", "));
+    return namespace.prototype.resolveAll.call(this);
+};
+
+// only uppercased (and thus conflict-free) children are exposed, see below
+var exposeRe = /^[A-Z]/;
+
+/**
+ * Handles a deferred declaring extension field by creating a sister field to represent it within its extended type.
+ * @param {Root} root Root instance
+ * @param {Field} field Declaring extension field witin the declaring type
+ * @returns {boolean} `true` if successfully added to the extended type, `false` otherwise
+ * @inner
+ * @ignore
+ */
+function tryHandleExtension(root, field$1) {
+    var extendedType = field$1.parent.lookup(field$1.extend);
+    if (extendedType) {
+        var sisterField = new field(field$1.fullName, field$1.id, field$1.type, field$1.rule, undefined, field$1.options);
+        sisterField.declaringField = field$1;
+        field$1.extensionField = sisterField;
+        extendedType.add(sisterField);
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Called when any object is added to this root or its sub-namespaces.
+ * @param {ReflectionObject} object Object added
+ * @returns {undefined}
+ * @private
+ */
+Root$2.prototype._handleAdd = function _handleAdd(object) {
+    if (object instanceof field) {
+
+        if (/* an extension field (implies not part of a oneof) */ object.extend !== undefined && /* not already handled */ !object.extensionField)
+            if (!tryHandleExtension(this, object))
+                this.deferred.push(object);
+
+    } else if (object instanceof Enum$2) {
+
+        if (exposeRe.test(object.name))
+            object.parent[object.name] = object.values; // expose enum values as property of its parent
+
+    } else if (!(object instanceof oneof)) /* everything else is a namespace */ {
+
+        if (object instanceof Type) // Try to handle any deferred extensions
+            for (var i = 0; i < this.deferred.length;)
+                if (tryHandleExtension(this, this.deferred[i]))
+                    this.deferred.splice(i, 1);
+                else
+                    ++i;
+        for (var j = 0; j < /* initializes */ object.nestedArray.length; ++j) // recurse into the namespace
+            this._handleAdd(object._nestedArray[j]);
+        if (exposeRe.test(object.name))
+            object.parent[object.name] = object; // expose namespace as property of its parent
+    }
+
+    // The above also adds uppercased (and thus conflict-free) nested types, services and enums as
+    // properties of namespaces just like static code does. This allows using a .d.ts generated for
+    // a static module with reflection-based solutions where the condition is met.
+};
+
+/**
+ * Called when any object is removed from this root or its sub-namespaces.
+ * @param {ReflectionObject} object Object removed
+ * @returns {undefined}
+ * @private
+ */
+Root$2.prototype._handleRemove = function _handleRemove(object) {
+    if (object instanceof field) {
+
+        if (/* an extension field */ object.extend !== undefined) {
+            if (/* already handled */ object.extensionField) { // remove its sister field
+                object.extensionField.parent.remove(object.extensionField);
+                object.extensionField = null;
+            } else { // cancel the extension
+                var index = this.deferred.indexOf(object);
+                /* istanbul ignore else */
+                if (index > -1)
+                    this.deferred.splice(index, 1);
+            }
+        }
+
+    } else if (object instanceof Enum$2) {
+
+        if (exposeRe.test(object.name))
+            delete object.parent[object.name]; // unexpose enum values
+
+    } else if (object instanceof namespace) {
+
+        for (var i = 0; i < /* initializes */ object.nestedArray.length; ++i) // recurse into the namespace
+            this._handleRemove(object._nestedArray[i]);
+
+        if (exposeRe.test(object.name))
+            delete object.parent[object.name]; // unexpose namespaces
+
+    }
+};
+
+// Sets up cyclic dependencies (called in index-light)
+Root$2._configure = function(Type_, parse_, common_) {
+    Type   = Type_;
+    parse$1  = parse_;
+    common$1 = common_;
+};
+
+var util_1 = createCommonjsModule(function (module) {
+
+/**
+ * Various utility functions.
+ * @namespace
+ */
+var util = module.exports = require$$0$2;
+
+
+
+var Type, // cyclic
+    Enum;
+
+util.codegen = codegen_1;
+util.fetch   = fetch_1;
+util.path    = path_1;
+
+/**
+ * Node's fs module if available.
+ * @type {Object.<string,*>}
+ */
+util.fs = util.inquire("fs");
+
+/**
+ * Converts an object's values to an array.
+ * @param {Object.<string,*>} object Object to convert
+ * @returns {Array.<*>} Converted array
+ */
+util.toArray = function toArray(object) {
+    if (object) {
+        var keys  = Object.keys(object),
+            array = new Array(keys.length),
+            index = 0;
+        while (index < keys.length)
+            array[index] = object[keys[index++]];
+        return array;
+    }
+    return [];
+};
+
+/**
+ * Converts an array of keys immediately followed by their respective value to an object, omitting undefined values.
+ * @param {Array.<*>} array Array to convert
+ * @returns {Object.<string,*>} Converted object
+ */
+util.toObject = function toObject(array) {
+    var object = {},
+        index  = 0;
+    while (index < array.length) {
+        var key = array[index++],
+            val = array[index++];
+        if (val !== undefined)
+            object[key] = val;
+    }
+    return object;
+};
+
+var safePropBackslashRe = /\\/g,
+    safePropQuoteRe     = /"/g;
+
+/**
+ * Tests whether the specified name is a reserved word in JS.
+ * @param {string} name Name to test
+ * @returns {boolean} `true` if reserved, otherwise `false`
+ */
+util.isReserved = function isReserved(name) {
+    return /^(?:do|if|in|for|let|new|try|var|case|else|enum|eval|false|null|this|true|void|with|break|catch|class|const|super|throw|while|yield|delete|export|import|public|return|static|switch|typeof|default|extends|finally|package|private|continue|debugger|function|arguments|interface|protected|implements|instanceof)$/.test(name);
+};
+
+/**
+ * Returns a safe property accessor for the specified property name.
+ * @param {string} prop Property name
+ * @returns {string} Safe accessor
+ */
+util.safeProp = function safeProp(prop) {
+    if (!/^[$\w_]+$/.test(prop) || util.isReserved(prop))
+        return "[\"" + prop.replace(safePropBackslashRe, "\\\\").replace(safePropQuoteRe, "\\\"") + "\"]";
+    return "." + prop;
+};
+
+/**
+ * Converts the first character of a string to upper case.
+ * @param {string} str String to convert
+ * @returns {string} Converted string
+ */
+util.ucFirst = function ucFirst(str) {
+    return str.charAt(0).toUpperCase() + str.substring(1);
+};
+
+var camelCaseRe = /_([a-z])/g;
+
+/**
+ * Converts a string to camel case.
+ * @param {string} str String to convert
+ * @returns {string} Converted string
+ */
+util.camelCase = function camelCase(str) {
+    return str.substring(0, 1)
+         + str.substring(1)
+               .replace(camelCaseRe, function($0, $1) { return $1.toUpperCase(); });
+};
+
+/**
+ * Compares reflected fields by id.
+ * @param {Field} a First field
+ * @param {Field} b Second field
+ * @returns {number} Comparison value
+ */
+util.compareFieldsById = function compareFieldsById(a, b) {
+    return a.id - b.id;
+};
+
+/**
+ * Decorator helper for types (TypeScript).
+ * @param {Constructor<T>} ctor Constructor function
+ * @param {string} [typeName] Type name, defaults to the constructor's name
+ * @returns {Type} Reflected type
+ * @template T extends Message<T>
+ * @property {Root} root Decorators root
+ */
+util.decorateType = function decorateType(ctor, typeName) {
+
+    /* istanbul ignore if */
+    if (ctor.$type) {
+        if (typeName && ctor.$type.name !== typeName) {
+            util.decorateRoot.remove(ctor.$type);
+            ctor.$type.name = typeName;
+            util.decorateRoot.add(ctor.$type);
+        }
+        return ctor.$type;
+    }
+
+    /* istanbul ignore next */
+    if (!Type)
+        Type = type;
+
+    var type$1 = new Type(typeName || ctor.name);
+    util.decorateRoot.add(type$1);
+    type$1.ctor = ctor; // sets up .encode, .decode etc.
+    Object.defineProperty(ctor, "$type", { value: type$1, enumerable: false });
+    Object.defineProperty(ctor.prototype, "$type", { value: type$1, enumerable: false });
+    return type$1;
+};
+
+var decorateEnumIndex = 0;
+
+/**
+ * Decorator helper for enums (TypeScript).
+ * @param {Object} object Enum object
+ * @returns {Enum} Reflected enum
+ */
+util.decorateEnum = function decorateEnum(object) {
+
+    /* istanbul ignore if */
+    if (object.$type)
+        return object.$type;
+
+    /* istanbul ignore next */
+    if (!Enum)
+        Enum = Enum$2;
+
+    var enm = new Enum("Enum" + decorateEnumIndex++, object);
+    util.decorateRoot.add(enm);
+    Object.defineProperty(object, "$type", { value: enm, enumerable: false });
+    return enm;
+};
+
+
+/**
+ * Sets the value of a property by property path. If a value already exists, it is turned to an array
+ * @param {Object.<string,*>} dst Destination object
+ * @param {string} path dot '.' delimited path of the property to set
+ * @param {Object} value the value to set
+ * @returns {Object.<string,*>} Destination object
+ */
+util.setProperty = function setProperty(dst, path, value) {
+    function setProp(dst, path, value) {
+        var part = path.shift();
+        if (path.length > 0) {
+            dst[part] = setProp(dst[part] || {}, path, value);
+        } else {
+            var prevValue = dst[part];
+            if (prevValue)
+                value = [].concat(prevValue).concat(value);
+            dst[part] = value;
+        }
+        return dst;
+    }
+
+    if (typeof dst !== "object")
+        throw TypeError("dst must be an object");
+    if (!path)
+        throw TypeError("path must be specified");
+
+    path = path.split(".");
+    return setProp(dst, path, value);
+};
+
+/**
+ * Decorator root (TypeScript).
+ * @name util.decorateRoot
+ * @type {Root}
+ * @readonly
+ */
+Object.defineProperty(util, "decorateRoot", {
+    get: function() {
+        return roots["decorated"] || (roots["decorated"] = new (root)());
+    }
+});
+});
+
+var object = ReflectionObject;
+
+ReflectionObject.className = "ReflectionObject";
+
+
+
+var Root$1; // cyclic
+
+/**
+ * Constructs a new reflection object instance.
+ * @classdesc Base class of all reflection objects.
+ * @constructor
+ * @param {string} name Object name
+ * @param {Object.<string,*>} [options] Declared options
+ * @abstract
+ */
+function ReflectionObject(name, options) {
+
+    if (!util$1.isString(name))
+        throw TypeError("name must be a string");
+
+    if (options && !util$1.isObject(options))
+        throw TypeError("options must be an object");
+
+    /**
+     * Options.
+     * @type {Object.<string,*>|undefined}
+     */
+    this.options = options; // toJSON
+
+    /**
+     * Parsed Options.
+     * @type {Array.<Object.<string,*>>|undefined}
+     */
+    this.parsedOptions = null;
+
+    /**
+     * Unique name within its namespace.
+     * @type {string}
+     */
+    this.name = name;
+
+    /**
+     * Parent namespace.
+     * @type {Namespace|null}
+     */
+    this.parent = null;
+
+    /**
+     * Whether already resolved or not.
+     * @type {boolean}
+     */
+    this.resolved = false;
+
+    /**
+     * Comment text, if any.
+     * @type {string|null}
+     */
+    this.comment = null;
+
+    /**
+     * Defining file name.
+     * @type {string|null}
+     */
+    this.filename = null;
+}
+
+Object.defineProperties(ReflectionObject.prototype, {
+
+    /**
+     * Reference to the root namespace.
+     * @name ReflectionObject#root
+     * @type {Root}
+     * @readonly
+     */
+    root: {
+        get: function() {
+            var ptr = this;
+            while (ptr.parent !== null)
+                ptr = ptr.parent;
+            return ptr;
+        }
+    },
+
+    /**
+     * Full name including leading dot.
+     * @name ReflectionObject#fullName
+     * @type {string}
+     * @readonly
+     */
+    fullName: {
+        get: function() {
+            var path = [ this.name ],
+                ptr = this.parent;
+            while (ptr) {
+                path.unshift(ptr.name);
+                ptr = ptr.parent;
+            }
+            return path.join(".");
+        }
+    }
+});
+
+/**
+ * Converts this reflection object to its descriptor representation.
+ * @returns {Object.<string,*>} Descriptor
+ * @abstract
+ */
+ReflectionObject.prototype.toJSON = /* istanbul ignore next */ function toJSON() {
+    throw Error(); // not implemented, shouldn't happen
+};
+
+/**
+ * Called when this object is added to a parent.
+ * @param {ReflectionObject} parent Parent added to
+ * @returns {undefined}
+ */
+ReflectionObject.prototype.onAdd = function onAdd(parent) {
+    if (this.parent && this.parent !== parent)
+        this.parent.remove(this);
+    this.parent = parent;
+    this.resolved = false;
+    var root = parent.root;
+    if (root instanceof Root$1)
+        root._handleAdd(this);
+};
+
+/**
+ * Called when this object is removed from a parent.
+ * @param {ReflectionObject} parent Parent removed from
+ * @returns {undefined}
+ */
+ReflectionObject.prototype.onRemove = function onRemove(parent) {
+    var root = parent.root;
+    if (root instanceof Root$1)
+        root._handleRemove(this);
+    this.parent = null;
+    this.resolved = false;
+};
+
+/**
+ * Resolves this objects type references.
+ * @returns {ReflectionObject} `this`
+ */
+ReflectionObject.prototype.resolve = function resolve() {
+    if (this.resolved)
+        return this;
+    if (this.root instanceof Root$1)
+        this.resolved = true; // only if part of a root
+    return this;
+};
+
+/**
+ * Gets an option value.
+ * @param {string} name Option name
+ * @returns {*} Option value or `undefined` if not set
+ */
+ReflectionObject.prototype.getOption = function getOption(name) {
+    if (this.options)
+        return this.options[name];
+    return undefined;
+};
+
+/**
+ * Sets an option.
+ * @param {string} name Option name
+ * @param {*} value Option value
+ * @param {boolean} [ifNotSet] Sets the option only if it isn't currently set
+ * @returns {ReflectionObject} `this`
+ */
+ReflectionObject.prototype.setOption = function setOption(name, value, ifNotSet) {
+    if (!ifNotSet || !this.options || this.options[name] === undefined)
+        (this.options || (this.options = {}))[name] = value;
+    return this;
+};
+
+/**
+ * Sets a parsed option.
+ * @param {string} name parsed Option name
+ * @param {*} value Option value
+ * @param {string} propName dot '.' delimited full path of property within the option to set. if undefined\empty, will add a new option with that value
+ * @returns {ReflectionObject} `this`
+ */
+ReflectionObject.prototype.setParsedOption = function setParsedOption(name, value, propName) {
+    if (!this.parsedOptions) {
+        this.parsedOptions = [];
+    }
+    var parsedOptions = this.parsedOptions;
+    if (propName) {
+        // If setting a sub property of an option then try to merge it
+        // with an existing option
+        var opt = parsedOptions.find(function (opt) {
+            return Object.prototype.hasOwnProperty.call(opt, name);
+        });
+        if (opt) {
+            // If we found an existing option - just merge the property value
+            var newValue = opt[name];
+            util$1.setProperty(newValue, propName, value);
+        } else {
+            // otherwise, create a new option, set it's property and add it to the list
+            opt = {};
+            opt[name] = util$1.setProperty({}, propName, value);
+            parsedOptions.push(opt);
+        }
+    } else {
+        // Always create a new option when setting the value of the option itself
+        var newOpt = {};
+        newOpt[name] = value;
+        parsedOptions.push(newOpt);
+    }
+    return this;
+};
+
+/**
+ * Sets multiple options.
+ * @param {Object.<string,*>} options Options to set
+ * @param {boolean} [ifNotSet] Sets an option only if it isn't currently set
+ * @returns {ReflectionObject} `this`
+ */
+ReflectionObject.prototype.setOptions = function setOptions(options, ifNotSet) {
+    if (options)
+        for (var keys = Object.keys(options), i = 0; i < keys.length; ++i)
+            this.setOption(keys[i], options[keys[i]], ifNotSet);
+    return this;
+};
+
+/**
+ * Converts this instance to its string representation.
+ * @returns {string} Class name[, space, full name]
+ */
+ReflectionObject.prototype.toString = function toString() {
+    var className = this.constructor.className,
+        fullName  = this.fullName;
+    if (fullName.length)
+        return className + " " + fullName;
+    return className;
+};
+
+// Sets up cyclic dependencies (called in index-light)
+ReflectionObject._configure = function(Root_) {
+    Root$1 = Root_;
+};
+
+var _enum = Enum;
+
+// extends ReflectionObject
+
+((Enum.prototype = Object.create(require$$5.prototype)).constructor = Enum).className = "Enum";
+
+
+
+/**
+ * Constructs a new enum instance.
+ * @classdesc Reflected enum.
+ * @extends ReflectionObject
+ * @constructor
+ * @param {string} name Unique name within its namespace
+ * @param {Object.<string,number>} [values] Enum values as an object, by name
+ * @param {Object.<string,*>} [options] Declared options
+ * @param {string} [comment] The comment for this enum
+ * @param {Object.<string,string>} [comments] The value comments for this enum
+ */
+function Enum(name, values, options, comment, comments) {
+    require$$5.call(this, name, options);
+
+    if (values && typeof values !== "object")
+        throw TypeError("values must be an object");
+
+    /**
+     * Enum values by id.
+     * @type {Object.<number,string>}
+     */
+    this.valuesById = {};
+
+    /**
+     * Enum values by name.
+     * @type {Object.<string,number>}
+     */
+    this.values = Object.create(this.valuesById); // toJSON, marker
+
+    /**
+     * Enum comment text.
+     * @type {string|null}
+     */
+    this.comment = comment;
+
+    /**
+     * Value comment texts, if any.
+     * @type {Object.<string,string>}
+     */
+    this.comments = comments || {};
+
+    /**
+     * Reserved ranges, if any.
+     * @type {Array.<number[]|string>}
+     */
+    this.reserved = undefined; // toJSON
+
+    // Note that values inherit valuesById on their prototype which makes them a TypeScript-
+    // compatible enum. This is used by pbts to write actual enum definitions that work for
+    // static and reflection code alike instead of emitting generic object definitions.
+
+    if (values)
+        for (var keys = Object.keys(values), i = 0; i < keys.length; ++i)
+            if (typeof values[keys[i]] === "number") // use forward entries only
+                this.valuesById[ this.values[keys[i]] = values[keys[i]] ] = keys[i];
+}
+
+/**
+ * Enum descriptor.
+ * @interface IEnum
+ * @property {Object.<string,number>} values Enum values
+ * @property {Object.<string,*>} [options] Enum options
+ */
+
+/**
+ * Constructs an enum from an enum descriptor.
+ * @param {string} name Enum name
+ * @param {IEnum} json Enum descriptor
+ * @returns {Enum} Created enum
+ * @throws {TypeError} If arguments are invalid
+ */
+Enum.fromJSON = function fromJSON(name, json) {
+    var enm = new Enum(name, json.values, json.options, json.comment, json.comments);
+    enm.reserved = json.reserved;
+    return enm;
+};
+
+/**
+ * Converts this enum to an enum descriptor.
+ * @param {IToJSONOptions} [toJSONOptions] JSON conversion options
+ * @returns {IEnum} Enum descriptor
+ */
+Enum.prototype.toJSON = function toJSON(toJSONOptions) {
+    var keepComments = toJSONOptions ? Boolean(toJSONOptions.keepComments) : false;
+    return util$1.toObject([
+        "options"  , this.options,
+        "values"   , this.values,
+        "reserved" , this.reserved && this.reserved.length ? this.reserved : undefined,
+        "comment"  , keepComments ? this.comment : undefined,
+        "comments" , keepComments ? this.comments : undefined
+    ]);
+};
+
+/**
+ * Adds a value to this enum.
+ * @param {string} name Value name
+ * @param {number} id Value id
+ * @param {string} [comment] Comment, if any
+ * @returns {Enum} `this`
+ * @throws {TypeError} If arguments are invalid
+ * @throws {Error} If there is already a value with this name or id
+ */
+Enum.prototype.add = function add(name, id, comment) {
+    // utilized by the parser but not by .fromJSON
+
+    if (!util$1.isString(name))
+        throw TypeError("name must be a string");
+
+    if (!util$1.isInteger(id))
+        throw TypeError("id must be an integer");
+
+    if (this.values[name] !== undefined)
+        throw Error("duplicate name '" + name + "' in " + this);
+
+    if (this.isReservedId(id))
+        throw Error("id " + id + " is reserved in " + this);
+
+    if (this.isReservedName(name))
+        throw Error("name '" + name + "' is reserved in " + this);
+
+    if (this.valuesById[id] !== undefined) {
+        if (!(this.options && this.options.allow_alias))
+            throw Error("duplicate id " + id + " in " + this);
+        this.values[name] = id;
+    } else
+        this.valuesById[this.values[name] = id] = name;
+
+    this.comments[name] = comment || null;
+    return this;
+};
+
+/**
+ * Removes a value from this enum
+ * @param {string} name Value name
+ * @returns {Enum} `this`
+ * @throws {TypeError} If arguments are invalid
+ * @throws {Error} If `name` is not a name of this enum
+ */
+Enum.prototype.remove = function remove(name) {
+
+    if (!util$1.isString(name))
+        throw TypeError("name must be a string");
+
+    var val = this.values[name];
+    if (val == null)
+        throw Error("name '" + name + "' does not exist in " + this);
+
+    delete this.valuesById[val];
+    delete this.values[name];
+    delete this.comments[name];
+
+    return this;
+};
+
+/**
+ * Tests if the specified id is reserved.
+ * @param {number} id Id to test
+ * @returns {boolean} `true` if reserved, otherwise `false`
+ */
+Enum.prototype.isReservedId = function isReservedId(id) {
+    return namespace.isReservedId(this.reserved, id);
+};
+
+/**
+ * Tests if the specified name is reserved.
+ * @param {string} name Name to test
+ * @returns {boolean} `true` if reserved, otherwise `false`
+ */
+Enum.prototype.isReservedName = function isReservedName(name) {
+    return namespace.isReservedName(this.reserved, name);
+};
+
+var encoder_1 = encoder;
+
+
+
+/**
+ * Generates a partial message type encoder.
+ * @param {Codegen} gen Codegen instance
+ * @param {Field} field Reflected field
+ * @param {number} fieldIndex Field index
+ * @param {string} ref Variable reference
+ * @returns {Codegen} Codegen instance
+ * @ignore
+ */
+function genTypePartial(gen, field, fieldIndex, ref) {
+    return field.resolvedType.group
+        ? gen("types[%i].encode(%s,w.uint32(%i)).uint32(%i)", fieldIndex, ref, (field.id << 3 | 3) >>> 0, (field.id << 3 | 4) >>> 0)
+        : gen("types[%i].encode(%s,w.uint32(%i).fork()).ldelim()", fieldIndex, ref, (field.id << 3 | 2) >>> 0);
+}
+
+/**
+ * Generates an encoder specific to the specified message type.
+ * @param {Type} mtype Message type
+ * @returns {Codegen} Codegen instance
+ */
+function encoder(mtype) {
+    /* eslint-disable no-unexpected-multiline, block-scoped-var, no-redeclare */
+    var gen = util$1.codegen(["m", "w"], mtype.name + "$encode")
+    ("if(!w)")
+        ("w=Writer.create()");
+
+    var i, ref;
+
+    // "when a message is serialized its known fields should be written sequentially by field number"
+    var fields = /* initializes */ mtype.fieldsArray.slice().sort(util$1.compareFieldsById);
+
+    for (var i = 0; i < fields.length; ++i) {
+        var field    = fields[i].resolve(),
+            index    = mtype._fieldsArray.indexOf(field),
+            type     = field.resolvedType instanceof Enum$2 ? "int32" : field.type,
+            wireType = types_1.basic[type];
+            ref      = "m" + util$1.safeProp(field.name);
+
+        // Map fields
+        if (field.map) {
+            gen
+    ("if(%s!=null&&Object.hasOwnProperty.call(m,%j)){", ref, field.name) // !== undefined && !== null
+        ("for(var ks=Object.keys(%s),i=0;i<ks.length;++i){", ref)
+            ("w.uint32(%i).fork().uint32(%i).%s(ks[i])", (field.id << 3 | 2) >>> 0, 8 | types_1.mapKey[field.keyType], field.keyType);
+            if (wireType === undefined) gen
+            ("types[%i].encode(%s[ks[i]],w.uint32(18).fork()).ldelim().ldelim()", index, ref); // can't be groups
+            else gen
+            (".uint32(%i).%s(%s[ks[i]]).ldelim()", 16 | wireType, type, ref);
+            gen
+        ("}")
+    ("}");
+
+            // Repeated fields
+        } else if (field.repeated) { gen
+    ("if(%s!=null&&%s.length){", ref, ref); // !== undefined && !== null
+
+            // Packed repeated
+            if (field.packed && types_1.packed[type] !== undefined) { gen
+
+        ("w.uint32(%i).fork()", (field.id << 3 | 2) >>> 0)
+        ("for(var i=0;i<%s.length;++i)", ref)
+            ("w.%s(%s[i])", type, ref)
+        ("w.ldelim()");
+
+            // Non-packed
+            } else { gen
+
+        ("for(var i=0;i<%s.length;++i)", ref);
+                if (wireType === undefined)
+            genTypePartial(gen, field, index, ref + "[i]");
+                else gen
+            ("w.uint32(%i).%s(%s[i])", (field.id << 3 | wireType) >>> 0, type, ref);
+
+            } gen
+    ("}");
+
+        // Non-repeated
+        } else {
+            if (field.optional) gen
+    ("if(%s!=null&&Object.hasOwnProperty.call(m,%j))", ref, field.name); // !== undefined && !== null
+
+            if (wireType === undefined)
+        genTypePartial(gen, field, index, ref);
+            else gen
+        ("w.uint32(%i).%s(%s)", (field.id << 3 | wireType) >>> 0, type, ref);
+
+        }
+    }
+
+    return gen
+    ("return w");
+    /* eslint-enable no-unexpected-multiline, block-scoped-var, no-redeclare */
+}
+
+var indexLight = createCommonjsModule(function (module) {
+var protobuf = module.exports = indexMinimal;
+
+protobuf.build = "light";
+
+/**
+ * A node-style callback as used by {@link load} and {@link Root#load}.
+ * @typedef LoadCallback
+ * @type {function}
+ * @param {Error|null} error Error, if any, otherwise `null`
+ * @param {Root} [root] Root, if there hasn't been an error
+ * @returns {undefined}
+ */
+
+/**
+ * Loads one or multiple .proto or preprocessed .json files into a common root namespace and calls the callback.
+ * @param {string|string[]} filename One or multiple files to load
+ * @param {Root} root Root namespace, defaults to create a new one if omitted.
+ * @param {LoadCallback} callback Callback function
+ * @returns {undefined}
+ * @see {@link Root#load}
+ */
+function load(filename, root, callback) {
+    if (typeof root === "function") {
+        callback = root;
+        root = new protobuf.Root();
+    } else if (!root)
+        root = new protobuf.Root();
+    return root.load(filename, callback);
+}
+
+/**
+ * Loads one or multiple .proto or preprocessed .json files into a common root namespace and calls the callback.
+ * @name load
+ * @function
+ * @param {string|string[]} filename One or multiple files to load
+ * @param {LoadCallback} callback Callback function
+ * @returns {undefined}
+ * @see {@link Root#load}
+ * @variation 2
+ */
+// function load(filename:string, callback:LoadCallback):undefined
+
+/**
+ * Loads one or multiple .proto or preprocessed .json files into a common root namespace and returns a promise.
+ * @name load
+ * @function
+ * @param {string|string[]} filename One or multiple files to load
+ * @param {Root} [root] Root namespace, defaults to create a new one if omitted.
+ * @returns {Promise<Root>} Promise
+ * @see {@link Root#load}
+ * @variation 3
+ */
+// function load(filename:string, [root:Root]):Promise<Root>
+
+protobuf.load = load;
+
+/**
+ * Synchronously loads one or multiple .proto or preprocessed .json files into a common root namespace (node only).
+ * @param {string|string[]} filename One or multiple files to load
+ * @param {Root} [root] Root namespace, defaults to create a new one if omitted.
+ * @returns {Root} Root namespace
+ * @throws {Error} If synchronous fetching is not supported (i.e. in browsers) or if a file's syntax is invalid
+ * @see {@link Root#loadSync}
+ */
+function loadSync(filename, root) {
+    if (!root)
+        root = new protobuf.Root();
+    return root.loadSync(filename);
+}
+
+protobuf.loadSync = loadSync;
+
+// Serialization
+protobuf.encoder          = require$$1$1;
+protobuf.decoder          = decoder_1;
+protobuf.verifier         = verifier_1;
+protobuf.converter        = converter_1;
+
+// Reflection
+protobuf.ReflectionObject = require$$5;
+protobuf.Namespace        = namespace;
+protobuf.Root             = root;
+protobuf.Enum             = Enum$2;
+protobuf.Type             = type;
+protobuf.Field            = field;
+protobuf.OneOf            = oneof;
+protobuf.MapField         = mapfield;
+protobuf.Service          = service;
+protobuf.Method           = method;
+
+// Runtime
+protobuf.Message          = message;
+protobuf.wrappers         = wrappers_1;
+
+// Utility
+protobuf.types            = types_1;
+protobuf.util             = util$1;
+
+// Set up possibly cyclic reflection dependencies
+protobuf.ReflectionObject._configure(protobuf.Root);
+protobuf.Namespace._configure(protobuf.Type, protobuf.Service, protobuf.Enum);
+protobuf.Root._configure(protobuf.Type);
+protobuf.Field._configure(protobuf.Type);
+});
+
+var tokenize_1 = tokenize;
+
+var delimRe        = /[\s{}=;:[\],'"()<>]/g,
+    stringDoubleRe = /(?:"([^"\\]*(?:\\.[^"\\]*)*)")/g,
+    stringSingleRe = /(?:'([^'\\]*(?:\\.[^'\\]*)*)')/g;
+
+var setCommentRe = /^ *[*/]+ */,
+    setCommentAltRe = /^\s*\*?\/*/,
+    setCommentSplitRe = /\n/g,
+    whitespaceRe = /\s/,
+    unescapeRe = /\\(.?)/g;
+
+var unescapeMap = {
+    "0": "\0",
+    "r": "\r",
+    "n": "\n",
+    "t": "\t"
+};
+
+/**
+ * Unescapes a string.
+ * @param {string} str String to unescape
+ * @returns {string} Unescaped string
+ * @property {Object.<string,string>} map Special characters map
+ * @memberof tokenize
+ */
+function unescape(str) {
+    return str.replace(unescapeRe, function($0, $1) {
+        switch ($1) {
+            case "\\":
+            case "":
+                return $1;
+            default:
+                return unescapeMap[$1] || "";
+        }
+    });
+}
+
+tokenize.unescape = unescape;
+
+/**
+ * Gets the next token and advances.
+ * @typedef TokenizerHandleNext
+ * @type {function}
+ * @returns {string|null} Next token or `null` on eof
+ */
+
+/**
+ * Peeks for the next token.
+ * @typedef TokenizerHandlePeek
+ * @type {function}
+ * @returns {string|null} Next token or `null` on eof
+ */
+
+/**
+ * Pushes a token back to the stack.
+ * @typedef TokenizerHandlePush
+ * @type {function}
+ * @param {string} token Token
+ * @returns {undefined}
+ */
+
+/**
+ * Skips the next token.
+ * @typedef TokenizerHandleSkip
+ * @type {function}
+ * @param {string} expected Expected token
+ * @param {boolean} [optional=false] If optional
+ * @returns {boolean} Whether the token matched
+ * @throws {Error} If the token didn't match and is not optional
+ */
+
+/**
+ * Gets the comment on the previous line or, alternatively, the line comment on the specified line.
+ * @typedef TokenizerHandleCmnt
+ * @type {function}
+ * @param {number} [line] Line number
+ * @returns {string|null} Comment text or `null` if none
+ */
+
+/**
+ * Handle object returned from {@link tokenize}.
+ * @interface ITokenizerHandle
+ * @property {TokenizerHandleNext} next Gets the next token and advances (`null` on eof)
+ * @property {TokenizerHandlePeek} peek Peeks for the next token (`null` on eof)
+ * @property {TokenizerHandlePush} push Pushes a token back to the stack
+ * @property {TokenizerHandleSkip} skip Skips a token, returns its presence and advances or, if non-optional and not present, throws
+ * @property {TokenizerHandleCmnt} cmnt Gets the comment on the previous line or the line comment on the specified line, if any
+ * @property {number} line Current line number
+ */
+
+/**
+ * Tokenizes the given .proto source and returns an object with useful utility functions.
+ * @param {string} source Source contents
+ * @param {boolean} alternateCommentMode Whether we should activate alternate comment parsing mode.
+ * @returns {ITokenizerHandle} Tokenizer handle
+ */
+function tokenize(source, alternateCommentMode) {
+    /* eslint-disable callback-return */
+    source = source.toString();
+
+    var offset = 0,
+        length = source.length,
+        line = 1,
+        commentType = null,
+        commentText = null,
+        commentLine = 0,
+        commentLineEmpty = false,
+        commentIsLeading = false;
+
+    var stack = [];
+
+    var stringDelim = null;
+
+    /* istanbul ignore next */
+    /**
+     * Creates an error for illegal syntax.
+     * @param {string} subject Subject
+     * @returns {Error} Error created
+     * @inner
+     */
+    function illegal(subject) {
+        return Error("illegal " + subject + " (line " + line + ")");
+    }
+
+    /**
+     * Reads a string till its end.
+     * @returns {string} String read
+     * @inner
+     */
+    function readString() {
+        var re = stringDelim === "'" ? stringSingleRe : stringDoubleRe;
+        re.lastIndex = offset - 1;
+        var match = re.exec(source);
+        if (!match)
+            throw illegal("string");
+        offset = re.lastIndex;
+        push(stringDelim);
+        stringDelim = null;
+        return unescape(match[1]);
+    }
+
+    /**
+     * Gets the character at `pos` within the source.
+     * @param {number} pos Position
+     * @returns {string} Character
+     * @inner
+     */
+    function charAt(pos) {
+        return source.charAt(pos);
+    }
+
+    /**
+     * Sets the current comment text.
+     * @param {number} start Start offset
+     * @param {number} end End offset
+     * @param {boolean} isLeading set if a leading comment
+     * @returns {undefined}
+     * @inner
+     */
+    function setComment(start, end, isLeading) {
+        commentType = source.charAt(start++);
+        commentLine = line;
+        commentLineEmpty = false;
+        commentIsLeading = isLeading;
+        var lookback;
+        if (alternateCommentMode) {
+            lookback = 2;  // alternate comment parsing: "//" or "/*"
+        } else {
+            lookback = 3;  // "///" or "/**"
+        }
+        var commentOffset = start - lookback,
+            c;
+        do {
+            if (--commentOffset < 0 ||
+                    (c = source.charAt(commentOffset)) === "\n") {
+                commentLineEmpty = true;
+                break;
+            }
+        } while (c === " " || c === "\t");
+        var lines = source
+            .substring(start, end)
+            .split(setCommentSplitRe);
+        for (var i = 0; i < lines.length; ++i)
+            lines[i] = lines[i]
+                .replace(alternateCommentMode ? setCommentAltRe : setCommentRe, "")
+                .trim();
+        commentText = lines
+            .join("\n")
+            .trim();
+    }
+
+    function isDoubleSlashCommentLine(startOffset) {
+        var endOffset = findEndOfLine(startOffset);
+
+        // see if remaining line matches comment pattern
+        var lineText = source.substring(startOffset, endOffset);
+        // look for 1 or 2 slashes since startOffset would already point past
+        // the first slash that started the comment.
+        var isComment = /^\s*\/{1,2}/.test(lineText);
+        return isComment;
+    }
+
+    function findEndOfLine(cursor) {
+        // find end of cursor's line
+        var endOffset = cursor;
+        while (endOffset < length && charAt(endOffset) !== "\n") {
+            endOffset++;
+        }
+        return endOffset;
+    }
+
+    /**
+     * Obtains the next token.
+     * @returns {string|null} Next token or `null` on eof
+     * @inner
+     */
+    function next() {
+        if (stack.length > 0)
+            return stack.shift();
+        if (stringDelim)
+            return readString();
+        var repeat,
+            prev,
+            curr,
+            start,
+            isDoc,
+            isLeadingComment = offset === 0;
+        do {
+            if (offset === length)
+                return null;
+            repeat = false;
+            while (whitespaceRe.test(curr = charAt(offset))) {
+                if (curr === "\n") {
+                    isLeadingComment = true;
+                    ++line;
+                }
+                if (++offset === length)
+                    return null;
+            }
+
+            if (charAt(offset) === "/") {
+                if (++offset === length) {
+                    throw illegal("comment");
+                }
+                if (charAt(offset) === "/") { // Line
+                    if (!alternateCommentMode) {
+                        // check for triple-slash comment
+                        isDoc = charAt(start = offset + 1) === "/";
+
+                        while (charAt(++offset) !== "\n") {
+                            if (offset === length) {
+                                return null;
+                            }
+                        }
+                        ++offset;
+                        if (isDoc) {
+                            setComment(start, offset - 1, isLeadingComment);
+                        }
+                        ++line;
+                        repeat = true;
+                    } else {
+                        // check for double-slash comments, consolidating consecutive lines
+                        start = offset;
+                        isDoc = false;
+                        if (isDoubleSlashCommentLine(offset)) {
+                            isDoc = true;
+                            do {
+                                offset = findEndOfLine(offset);
+                                if (offset === length) {
+                                    break;
+                                }
+                                offset++;
+                            } while (isDoubleSlashCommentLine(offset));
+                        } else {
+                            offset = Math.min(length, findEndOfLine(offset) + 1);
+                        }
+                        if (isDoc) {
+                            setComment(start, offset, isLeadingComment);
+                        }
+                        line++;
+                        repeat = true;
+                    }
+                } else if ((curr = charAt(offset)) === "*") { /* Block */
+                    // check for /** (regular comment mode) or /* (alternate comment mode)
+                    start = offset + 1;
+                    isDoc = alternateCommentMode || charAt(start) === "*";
+                    do {
+                        if (curr === "\n") {
+                            ++line;
+                        }
+                        if (++offset === length) {
+                            throw illegal("comment");
+                        }
+                        prev = curr;
+                        curr = charAt(offset);
+                    } while (prev !== "*" || curr !== "/");
+                    ++offset;
+                    if (isDoc) {
+                        setComment(start, offset - 2, isLeadingComment);
+                    }
+                    repeat = true;
+                } else {
+                    return "/";
+                }
+            }
+        } while (repeat);
+
+        // offset !== length if we got here
+
+        var end = offset;
+        delimRe.lastIndex = 0;
+        var delim = delimRe.test(charAt(end++));
+        if (!delim)
+            while (end < length && !delimRe.test(charAt(end)))
+                ++end;
+        var token = source.substring(offset, offset = end);
+        if (token === "\"" || token === "'")
+            stringDelim = token;
+        return token;
+    }
+
+    /**
+     * Pushes a token back to the stack.
+     * @param {string} token Token
+     * @returns {undefined}
+     * @inner
+     */
+    function push(token) {
+        stack.push(token);
+    }
+
+    /**
+     * Peeks for the next token.
+     * @returns {string|null} Token or `null` on eof
+     * @inner
+     */
+    function peek() {
+        if (!stack.length) {
+            var token = next();
+            if (token === null)
+                return null;
+            push(token);
+        }
+        return stack[0];
+    }
+
+    /**
+     * Skips a token.
+     * @param {string} expected Expected token
+     * @param {boolean} [optional=false] Whether the token is optional
+     * @returns {boolean} `true` when skipped, `false` if not
+     * @throws {Error} When a required token is not present
+     * @inner
+     */
+    function skip(expected, optional) {
+        var actual = peek(),
+            equals = actual === expected;
+        if (equals) {
+            next();
+            return true;
+        }
+        if (!optional)
+            throw illegal("token '" + actual + "', '" + expected + "' expected");
+        return false;
+    }
+
+    /**
+     * Gets a comment.
+     * @param {number} [trailingLine] Line number if looking for a trailing comment
+     * @returns {string|null} Comment text
+     * @inner
+     */
+    function cmnt(trailingLine) {
+        var ret = null;
+        if (trailingLine === undefined) {
+            if (commentLine === line - 1 && (alternateCommentMode || commentType === "*" || commentLineEmpty)) {
+                ret = commentIsLeading ? commentText : null;
+            }
+        } else {
+            /* istanbul ignore else */
+            if (commentLine < trailingLine) {
+                peek();
+            }
+            if (commentLine === trailingLine && !commentLineEmpty && (alternateCommentMode || commentType === "/")) {
+                ret = commentIsLeading ? null : commentText;
+            }
+        }
+        return ret;
+    }
+
+    return Object.defineProperty({
+        next: next,
+        peek: peek,
+        push: push,
+        skip: skip,
+        cmnt: cmnt
+    }, "line", {
+        get: function() { return line; }
+    });
+    /* eslint-enable callback-return */
+}
+
+var parse_1 = parse;
+
+parse.filename = null;
+parse.defaults = { keepCase: false };
+
+
+
+var base10Re    = /^[1-9][0-9]*$/,
+    base10NegRe = /^-?[1-9][0-9]*$/,
+    base16Re    = /^0[x][0-9a-fA-F]+$/,
+    base16NegRe = /^-?0[x][0-9a-fA-F]+$/,
+    base8Re     = /^0[0-7]+$/,
+    base8NegRe  = /^-?0[0-7]+$/,
+    numberRe    = /^(?![eE])[0-9]*(?:\.[0-9]*)?(?:[eE][+-]?[0-9]+)?$/,
+    nameRe      = /^[a-zA-Z_][a-zA-Z_0-9]*$/,
+    typeRefRe   = /^(?:\.?[a-zA-Z_][a-zA-Z_0-9]*)(?:\.[a-zA-Z_][a-zA-Z_0-9]*)*$/,
+    fqTypeRefRe = /^(?:\.[a-zA-Z_][a-zA-Z_0-9]*)+$/;
+
+/**
+ * Result object returned from {@link parse}.
+ * @interface IParserResult
+ * @property {string|undefined} package Package name, if declared
+ * @property {string[]|undefined} imports Imports, if any
+ * @property {string[]|undefined} weakImports Weak imports, if any
+ * @property {string|undefined} syntax Syntax, if specified (either `"proto2"` or `"proto3"`)
+ * @property {Root} root Populated root instance
+ */
+
+/**
+ * Options modifying the behavior of {@link parse}.
+ * @interface IParseOptions
+ * @property {boolean} [keepCase=false] Keeps field casing instead of converting to camel case
+ * @property {boolean} [alternateCommentMode=false] Recognize double-slash comments in addition to doc-block comments.
+ * @property {boolean} [preferTrailingComment=false] Use trailing comment when both leading comment and trailing comment exist.
+ */
+
+/**
+ * Options modifying the behavior of JSON serialization.
+ * @interface IToJSONOptions
+ * @property {boolean} [keepComments=false] Serializes comments.
+ */
+
+/**
+ * Parses the given .proto source and returns an object with the parsed contents.
+ * @param {string} source Source contents
+ * @param {Root} root Root to populate
+ * @param {IParseOptions} [options] Parse options. Defaults to {@link parse.defaults} when omitted.
+ * @returns {IParserResult} Parser result
+ * @property {string} filename=null Currently processing file name for error reporting, if known
+ * @property {IParseOptions} defaults Default {@link IParseOptions}
+ */
+function parse(source, root$1, options) {
+    /* eslint-disable callback-return */
+    if (!(root$1 instanceof root)) {
+        options = root$1;
+        root$1 = new root();
+    }
+    if (!options)
+        options = parse.defaults;
+
+    var preferTrailingComment = options.preferTrailingComment || false;
+    var tn = tokenize_1(source, options.alternateCommentMode || false),
+        next = tn.next,
+        push = tn.push,
+        peek = tn.peek,
+        skip = tn.skip,
+        cmnt = tn.cmnt;
+
+    var head = true,
+        pkg,
+        imports,
+        weakImports,
+        syntax,
+        isProto3 = false;
+
+    var ptr = root$1;
+
+    var applyCase = options.keepCase ? function(name) { return name; } : util$1.camelCase;
+
+    /* istanbul ignore next */
+    function illegal(token, name, insideTryCatch) {
+        var filename = parse.filename;
+        if (!insideTryCatch)
+            parse.filename = null;
+        return Error("illegal " + (name || "token") + " '" + token + "' (" + (filename ? filename + ", " : "") + "line " + tn.line + ")");
+    }
+
+    function readString() {
+        var values = [],
+            token;
+        do {
+            /* istanbul ignore if */
+            if ((token = next()) !== "\"" && token !== "'")
+                throw illegal(token);
+
+            values.push(next());
+            skip(token);
+            token = peek();
+        } while (token === "\"" || token === "'");
+        return values.join("");
+    }
+
+    function readValue(acceptTypeRef) {
+        var token = next();
+        switch (token) {
+            case "'":
+            case "\"":
+                push(token);
+                return readString();
+            case "true": case "TRUE":
+                return true;
+            case "false": case "FALSE":
+                return false;
+        }
+        try {
+            return parseNumber(token, /* insideTryCatch */ true);
+        } catch (e) {
+
+            /* istanbul ignore else */
+            if (acceptTypeRef && typeRefRe.test(token))
+                return token;
+
+            /* istanbul ignore next */
+            throw illegal(token, "value");
+        }
+    }
+
+    function readRanges(target, acceptStrings) {
+        var token, start;
+        do {
+            if (acceptStrings && ((token = peek()) === "\"" || token === "'"))
+                target.push(readString());
+            else
+                target.push([ start = parseId(next()), skip("to", true) ? parseId(next()) : start ]);
+        } while (skip(",", true));
+        skip(";");
+    }
+
+    function parseNumber(token, insideTryCatch) {
+        var sign = 1;
+        if (token.charAt(0) === "-") {
+            sign = -1;
+            token = token.substring(1);
+        }
+        switch (token) {
+            case "inf": case "INF": case "Inf":
+                return sign * Infinity;
+            case "nan": case "NAN": case "Nan": case "NaN":
+                return NaN;
+            case "0":
+                return 0;
+        }
+        if (base10Re.test(token))
+            return sign * parseInt(token, 10);
+        if (base16Re.test(token))
+            return sign * parseInt(token, 16);
+        if (base8Re.test(token))
+            return sign * parseInt(token, 8);
+
+        /* istanbul ignore else */
+        if (numberRe.test(token))
+            return sign * parseFloat(token);
+
+        /* istanbul ignore next */
+        throw illegal(token, "number", insideTryCatch);
+    }
+
+    function parseId(token, acceptNegative) {
+        switch (token) {
+            case "max": case "MAX": case "Max":
+                return 536870911;
+            case "0":
+                return 0;
+        }
+
+        /* istanbul ignore if */
+        if (!acceptNegative && token.charAt(0) === "-")
+            throw illegal(token, "id");
+
+        if (base10NegRe.test(token))
+            return parseInt(token, 10);
+        if (base16NegRe.test(token))
+            return parseInt(token, 16);
+
+        /* istanbul ignore else */
+        if (base8NegRe.test(token))
+            return parseInt(token, 8);
+
+        /* istanbul ignore next */
+        throw illegal(token, "id");
+    }
+
+    function parsePackage() {
+
+        /* istanbul ignore if */
+        if (pkg !== undefined)
+            throw illegal("package");
+
+        pkg = next();
+
+        /* istanbul ignore if */
+        if (!typeRefRe.test(pkg))
+            throw illegal(pkg, "name");
+
+        ptr = ptr.define(pkg);
+        skip(";");
+    }
+
+    function parseImport() {
+        var token = peek();
+        var whichImports;
+        switch (token) {
+            case "weak":
+                whichImports = weakImports || (weakImports = []);
+                next();
+                break;
+            case "public":
+                next();
+                // eslint-disable-line no-fallthrough
+            default:
+                whichImports = imports || (imports = []);
+                break;
+        }
+        token = readString();
+        skip(";");
+        whichImports.push(token);
+    }
+
+    function parseSyntax() {
+        skip("=");
+        syntax = readString();
+        isProto3 = syntax === "proto3";
+
+        /* istanbul ignore if */
+        if (!isProto3 && syntax !== "proto2")
+            throw illegal(syntax, "syntax");
+
+        skip(";");
+    }
+
+    function parseCommon(parent, token) {
+        switch (token) {
+
+            case "option":
+                parseOption(parent, token);
+                skip(";");
+                return true;
+
+            case "message":
+                parseType(parent, token);
+                return true;
+
+            case "enum":
+                parseEnum(parent, token);
+                return true;
+
+            case "service":
+                parseService(parent, token);
+                return true;
+
+            case "extend":
+                parseExtension(parent, token);
+                return true;
+        }
+        return false;
+    }
+
+    function ifBlock(obj, fnIf, fnElse) {
+        var trailingLine = tn.line;
+        if (obj) {
+            if(typeof obj.comment !== "string") {
+              obj.comment = cmnt(); // try block-type comment
+            }
+            obj.filename = parse.filename;
+        }
+        if (skip("{", true)) {
+            var token;
+            while ((token = next()) !== "}")
+                fnIf(token);
+            skip(";", true);
+        } else {
+            if (fnElse)
+                fnElse();
+            skip(";");
+            if (obj && (typeof obj.comment !== "string" || preferTrailingComment))
+                obj.comment = cmnt(trailingLine) || obj.comment; // try line-type comment
+        }
+    }
+
+    function parseType(parent, token) {
+
+        /* istanbul ignore if */
+        if (!nameRe.test(token = next()))
+            throw illegal(token, "type name");
+
+        var type$1 = new type(token);
+        ifBlock(type$1, function parseType_block(token) {
+            if (parseCommon(type$1, token))
+                return;
+
+            switch (token) {
+
+                case "map":
+                    parseMapField(type$1);
+                    break;
+
+                case "required":
+                case "repeated":
+                    parseField(type$1, token);
+                    break;
+
+                case "optional":
+                    /* istanbul ignore if */
+                    if (isProto3) {
+                        parseField(type$1, "proto3_optional");
+                    } else {
+                        parseField(type$1, "optional");
+                    }
+                    break;
+
+                case "oneof":
+                    parseOneOf(type$1, token);
+                    break;
+
+                case "extensions":
+                    readRanges(type$1.extensions || (type$1.extensions = []));
+                    break;
+
+                case "reserved":
+                    readRanges(type$1.reserved || (type$1.reserved = []), true);
+                    break;
+
+                default:
+                    /* istanbul ignore if */
+                    if (!isProto3 || !typeRefRe.test(token))
+                        throw illegal(token);
+
+                    push(token);
+                    parseField(type$1, "optional");
+                    break;
+            }
+        });
+        parent.add(type$1);
+    }
+
+    function parseField(parent, rule, extend) {
+        var type = next();
+        if (type === "group") {
+            parseGroup(parent, rule);
+            return;
+        }
+
+        /* istanbul ignore if */
+        if (!typeRefRe.test(type))
+            throw illegal(type, "type");
+
+        var name = next();
+
+        /* istanbul ignore if */
+        if (!nameRe.test(name))
+            throw illegal(name, "name");
+
+        name = applyCase(name);
+        skip("=");
+
+        var field$1 = new field(name, parseId(next()), type, rule, extend);
+        ifBlock(field$1, function parseField_block(token) {
+
+            /* istanbul ignore else */
+            if (token === "option") {
+                parseOption(field$1, token);
+                skip(";");
+            } else
+                throw illegal(token);
+
+        }, function parseField_line() {
+            parseInlineOptions(field$1);
+        });
+
+        if (rule === "proto3_optional") {
+            // for proto3 optional fields, we create a single-member Oneof to mimic "optional" behavior
+            var oneof$1 = new oneof("_" + name);
+            field$1.setOption("proto3_optional", true);
+            oneof$1.add(field$1);
+            parent.add(oneof$1);
+        } else {
+            parent.add(field$1);
+        }
+
+        // JSON defaults to packed=true if not set so we have to set packed=false explicity when
+        // parsing proto2 descriptors without the option, where applicable. This must be done for
+        // all known packable types and anything that could be an enum (= is not a basic type).
+        if (!isProto3 && field$1.repeated && (types_1.packed[type] !== undefined || types_1.basic[type] === undefined))
+            field$1.setOption("packed", false, /* ifNotSet */ true);
+    }
+
+    function parseGroup(parent, rule) {
+        var name = next();
+
+        /* istanbul ignore if */
+        if (!nameRe.test(name))
+            throw illegal(name, "name");
+
+        var fieldName = util$1.lcFirst(name);
+        if (name === fieldName)
+            name = util$1.ucFirst(name);
+        skip("=");
+        var id = parseId(next());
+        var type$1 = new type(name);
+        type$1.group = true;
+        var field$1 = new field(fieldName, id, name, rule);
+        field$1.filename = parse.filename;
+        ifBlock(type$1, function parseGroup_block(token) {
+            switch (token) {
+
+                case "option":
+                    parseOption(type$1, token);
+                    skip(";");
+                    break;
+
+                case "required":
+                case "repeated":
+                    parseField(type$1, token);
+                    break;
+
+                case "optional":
+                    /* istanbul ignore if */
+                    if (isProto3) {
+                        parseField(type$1, "proto3_optional");
+                    } else {
+                        parseField(type$1, "optional");
+                    }
+                    break;
+
+                /* istanbul ignore next */
+                default:
+                    throw illegal(token); // there are no groups with proto3 semantics
+            }
+        });
+        parent.add(type$1)
+              .add(field$1);
+    }
+
+    function parseMapField(parent) {
+        skip("<");
+        var keyType = next();
+
+        /* istanbul ignore if */
+        if (types_1.mapKey[keyType] === undefined)
+            throw illegal(keyType, "type");
+
+        skip(",");
+        var valueType = next();
+
+        /* istanbul ignore if */
+        if (!typeRefRe.test(valueType))
+            throw illegal(valueType, "type");
+
+        skip(">");
+        var name = next();
+
+        /* istanbul ignore if */
+        if (!nameRe.test(name))
+            throw illegal(name, "name");
+
+        skip("=");
+        var field = new mapfield(applyCase(name), parseId(next()), keyType, valueType);
+        ifBlock(field, function parseMapField_block(token) {
+
+            /* istanbul ignore else */
+            if (token === "option") {
+                parseOption(field, token);
+                skip(";");
+            } else
+                throw illegal(token);
+
+        }, function parseMapField_line() {
+            parseInlineOptions(field);
+        });
+        parent.add(field);
+    }
+
+    function parseOneOf(parent, token) {
+
+        /* istanbul ignore if */
+        if (!nameRe.test(token = next()))
+            throw illegal(token, "name");
+
+        var oneof$1 = new oneof(applyCase(token));
+        ifBlock(oneof$1, function parseOneOf_block(token) {
+            if (token === "option") {
+                parseOption(oneof$1, token);
+                skip(";");
+            } else {
+                push(token);
+                parseField(oneof$1, "optional");
+            }
+        });
+        parent.add(oneof$1);
+    }
+
+    function parseEnum(parent, token) {
+
+        /* istanbul ignore if */
+        if (!nameRe.test(token = next()))
+            throw illegal(token, "name");
+
+        var enm = new Enum$2(token);
+        ifBlock(enm, function parseEnum_block(token) {
+          switch(token) {
+            case "option":
+              parseOption(enm, token);
+              skip(";");
+              break;
+
+            case "reserved":
+              readRanges(enm.reserved || (enm.reserved = []), true);
+              break;
+
+            default:
+              parseEnumValue(enm, token);
+          }
+        });
+        parent.add(enm);
+    }
+
+    function parseEnumValue(parent, token) {
+
+        /* istanbul ignore if */
+        if (!nameRe.test(token))
+            throw illegal(token, "name");
+
+        skip("=");
+        var value = parseId(next(), true),
+            dummy = {};
+        ifBlock(dummy, function parseEnumValue_block(token) {
+
+            /* istanbul ignore else */
+            if (token === "option") {
+                parseOption(dummy, token); // skip
+                skip(";");
+            } else
+                throw illegal(token);
+
+        }, function parseEnumValue_line() {
+            parseInlineOptions(dummy); // skip
+        });
+        parent.add(token, value, dummy.comment);
+    }
+
+    function parseOption(parent, token) {
+        var isCustom = skip("(", true);
+
+        /* istanbul ignore if */
+        if (!typeRefRe.test(token = next()))
+            throw illegal(token, "name");
+
+        var name = token;
+        var option = name;
+        var propName;
+
+        if (isCustom) {
+            skip(")");
+            name = "(" + name + ")";
+            option = name;
+            token = peek();
+            if (fqTypeRefRe.test(token)) {
+                propName = token.substr(1); //remove '.' before property name
+                name += token;
+                next();
+            }
+        }
+        skip("=");
+        var optionValue = parseOptionValue(parent, name);
+        setParsedOption(parent, option, optionValue, propName);
+    }
+
+    function parseOptionValue(parent, name) {
+        if (skip("{", true)) { // { a: "foo" b { c: "bar" } }
+            var result = {};
+            while (!skip("}", true)) {
+                /* istanbul ignore if */
+                if (!nameRe.test(token = next()))
+                    throw illegal(token, "name");
+
+                var value;
+                var propName = token;
+                if (peek() === "{")
+                    value = parseOptionValue(parent, name + "." + token);
+                else {
+                    skip(":");
+                    if (peek() === "{")
+                        value = parseOptionValue(parent, name + "." + token);
+                    else {
+                        value = readValue(true);
+                        setOption(parent, name + "." + token, value);
+                    }
+                }
+                var prevValue = result[propName];
+                if (prevValue)
+                    value = [].concat(prevValue).concat(value);
+                result[propName] = value;
+                skip(",", true);
+            }
+            return result;
+        }
+
+        var simpleValue = readValue(true);
+        setOption(parent, name, simpleValue);
+        return simpleValue;
+        // Does not enforce a delimiter to be universal
+    }
+
+    function setOption(parent, name, value) {
+        if (parent.setOption)
+            parent.setOption(name, value);
+    }
+
+    function setParsedOption(parent, name, value, propName) {
+        if (parent.setParsedOption)
+            parent.setParsedOption(name, value, propName);
+    }
+
+    function parseInlineOptions(parent) {
+        if (skip("[", true)) {
+            do {
+                parseOption(parent, "option");
+            } while (skip(",", true));
+            skip("]");
+        }
+        return parent;
+    }
+
+    function parseService(parent, token) {
+
+        /* istanbul ignore if */
+        if (!nameRe.test(token = next()))
+            throw illegal(token, "service name");
+
+        var service$1 = new service(token);
+        ifBlock(service$1, function parseService_block(token) {
+            if (parseCommon(service$1, token))
+                return;
+
+            /* istanbul ignore else */
+            if (token === "rpc")
+                parseMethod(service$1, token);
+            else
+                throw illegal(token);
+        });
+        parent.add(service$1);
+    }
+
+    function parseMethod(parent, token) {
+        // Get the comment of the preceding line now (if one exists) in case the
+        // method is defined across multiple lines.
+        var commentText = cmnt();
+
+        var type = token;
+
+        /* istanbul ignore if */
+        if (!nameRe.test(token = next()))
+            throw illegal(token, "name");
+
+        var name = token,
+            requestType, requestStream,
+            responseType, responseStream;
+
+        skip("(");
+        if (skip("stream", true))
+            requestStream = true;
+
+        /* istanbul ignore if */
+        if (!typeRefRe.test(token = next()))
+            throw illegal(token);
+
+        requestType = token;
+        skip(")"); skip("returns"); skip("(");
+        if (skip("stream", true))
+            responseStream = true;
+
+        /* istanbul ignore if */
+        if (!typeRefRe.test(token = next()))
+            throw illegal(token);
+
+        responseType = token;
+        skip(")");
+
+        var method$1 = new method(name, type, requestType, responseType, requestStream, responseStream);
+        method$1.comment = commentText;
+        ifBlock(method$1, function parseMethod_block(token) {
+
+            /* istanbul ignore else */
+            if (token === "option") {
+                parseOption(method$1, token);
+                skip(";");
+            } else
+                throw illegal(token);
+
+        });
+        parent.add(method$1);
+    }
+
+    function parseExtension(parent, token) {
+
+        /* istanbul ignore if */
+        if (!typeRefRe.test(token = next()))
+            throw illegal(token, "reference");
+
+        var reference = token;
+        ifBlock(null, function parseExtension_block(token) {
+            switch (token) {
+
+                case "required":
+                case "repeated":
+                    parseField(parent, token, reference);
+                    break;
+
+                case "optional":
+                    /* istanbul ignore if */
+                    if (isProto3) {
+                        parseField(parent, "proto3_optional", reference);
+                    } else {
+                        parseField(parent, "optional", reference);
+                    }
+                    break;
+
+                default:
+                    /* istanbul ignore if */
+                    if (!isProto3 || !typeRefRe.test(token))
+                        throw illegal(token);
+                    push(token);
+                    parseField(parent, "optional", reference);
+                    break;
+            }
+        });
+    }
+
+    var token;
+    while ((token = next()) !== null) {
+        switch (token) {
+
+            case "package":
+
+                /* istanbul ignore if */
+                if (!head)
+                    throw illegal(token);
+
+                parsePackage();
+                break;
+
+            case "import":
+
+                /* istanbul ignore if */
+                if (!head)
+                    throw illegal(token);
+
+                parseImport();
+                break;
+
+            case "syntax":
+
+                /* istanbul ignore if */
+                if (!head)
+                    throw illegal(token);
+
+                parseSyntax();
+                break;
+
+            case "option":
+
+                parseOption(ptr, token);
+                skip(";");
+                break;
+
+            default:
+
+                /* istanbul ignore else */
+                if (parseCommon(ptr, token)) {
+                    head = false;
+                    continue;
+                }
+
+                /* istanbul ignore next */
+                throw illegal(token);
+        }
+    }
+
+    parse.filename = null;
+    return {
+        "package"     : pkg,
+        "imports"     : imports,
+         weakImports  : weakImports,
+         syntax       : syntax,
+         root         : root$1
+    };
+}
+
+var common_1 = common;
+
+var commonRe = /\/|\./;
+
+/**
+ * Provides common type definitions.
+ * Can also be used to provide additional google types or your own custom types.
+ * @param {string} name Short name as in `google/protobuf/[name].proto` or full file name
+ * @param {Object.<string,*>} json JSON definition within `google.protobuf` if a short name, otherwise the file's root definition
+ * @returns {undefined}
+ * @property {INamespace} google/protobuf/any.proto Any
+ * @property {INamespace} google/protobuf/duration.proto Duration
+ * @property {INamespace} google/protobuf/empty.proto Empty
+ * @property {INamespace} google/protobuf/field_mask.proto FieldMask
+ * @property {INamespace} google/protobuf/struct.proto Struct, Value, NullValue and ListValue
+ * @property {INamespace} google/protobuf/timestamp.proto Timestamp
+ * @property {INamespace} google/protobuf/wrappers.proto Wrappers
+ * @example
+ * // manually provides descriptor.proto (assumes google/protobuf/ namespace and .proto extension)
+ * protobuf.common("descriptor", descriptorJson);
+ *
+ * // manually provides a custom definition (uses my.foo namespace)
+ * protobuf.common("my/foo/bar.proto", myFooBarJson);
+ */
+function common(name, json) {
+    if (!commonRe.test(name)) {
+        name = "google/protobuf/" + name + ".proto";
+        json = { nested: { google: { nested: { protobuf: { nested: json } } } } };
+    }
+    common[name] = json;
+}
+
+// Not provided because of limited use (feel free to discuss or to provide yourself):
+//
+// google/protobuf/descriptor.proto
+// google/protobuf/source_context.proto
+// google/protobuf/type.proto
+//
+// Stripped and pre-parsed versions of these non-bundled files are instead available as part of
+// the repository or package within the google/protobuf directory.
+
+common("any", {
+
+    /**
+     * Properties of a google.protobuf.Any message.
+     * @interface IAny
+     * @type {Object}
+     * @property {string} [typeUrl]
+     * @property {Uint8Array} [bytes]
+     * @memberof common
+     */
+    Any: {
+        fields: {
+            type_url: {
+                type: "string",
+                id: 1
+            },
+            value: {
+                type: "bytes",
+                id: 2
+            }
+        }
+    }
+});
+
+var timeType;
+
+common("duration", {
+
+    /**
+     * Properties of a google.protobuf.Duration message.
+     * @interface IDuration
+     * @type {Object}
+     * @property {number|Long} [seconds]
+     * @property {number} [nanos]
+     * @memberof common
+     */
+    Duration: timeType = {
+        fields: {
+            seconds: {
+                type: "int64",
+                id: 1
+            },
+            nanos: {
+                type: "int32",
+                id: 2
+            }
+        }
+    }
+});
+
+common("timestamp", {
+
+    /**
+     * Properties of a google.protobuf.Timestamp message.
+     * @interface ITimestamp
+     * @type {Object}
+     * @property {number|Long} [seconds]
+     * @property {number} [nanos]
+     * @memberof common
+     */
+    Timestamp: timeType
+});
+
+common("empty", {
+
+    /**
+     * Properties of a google.protobuf.Empty message.
+     * @interface IEmpty
+     * @memberof common
+     */
+    Empty: {
+        fields: {}
+    }
+});
+
+common("struct", {
+
+    /**
+     * Properties of a google.protobuf.Struct message.
+     * @interface IStruct
+     * @type {Object}
+     * @property {Object.<string,IValue>} [fields]
+     * @memberof common
+     */
+    Struct: {
+        fields: {
+            fields: {
+                keyType: "string",
+                type: "Value",
+                id: 1
+            }
+        }
+    },
+
+    /**
+     * Properties of a google.protobuf.Value message.
+     * @interface IValue
+     * @type {Object}
+     * @property {string} [kind]
+     * @property {0} [nullValue]
+     * @property {number} [numberValue]
+     * @property {string} [stringValue]
+     * @property {boolean} [boolValue]
+     * @property {IStruct} [structValue]
+     * @property {IListValue} [listValue]
+     * @memberof common
+     */
+    Value: {
+        oneofs: {
+            kind: {
+                oneof: [
+                    "nullValue",
+                    "numberValue",
+                    "stringValue",
+                    "boolValue",
+                    "structValue",
+                    "listValue"
+                ]
+            }
+        },
+        fields: {
+            nullValue: {
+                type: "NullValue",
+                id: 1
+            },
+            numberValue: {
+                type: "double",
+                id: 2
+            },
+            stringValue: {
+                type: "string",
+                id: 3
+            },
+            boolValue: {
+                type: "bool",
+                id: 4
+            },
+            structValue: {
+                type: "Struct",
+                id: 5
+            },
+            listValue: {
+                type: "ListValue",
+                id: 6
+            }
+        }
+    },
+
+    NullValue: {
+        values: {
+            NULL_VALUE: 0
+        }
+    },
+
+    /**
+     * Properties of a google.protobuf.ListValue message.
+     * @interface IListValue
+     * @type {Object}
+     * @property {Array.<IValue>} [values]
+     * @memberof common
+     */
+    ListValue: {
+        fields: {
+            values: {
+                rule: "repeated",
+                type: "Value",
+                id: 1
+            }
+        }
+    }
+});
+
+common("wrappers", {
+
+    /**
+     * Properties of a google.protobuf.DoubleValue message.
+     * @interface IDoubleValue
+     * @type {Object}
+     * @property {number} [value]
+     * @memberof common
+     */
+    DoubleValue: {
+        fields: {
+            value: {
+                type: "double",
+                id: 1
+            }
+        }
+    },
+
+    /**
+     * Properties of a google.protobuf.FloatValue message.
+     * @interface IFloatValue
+     * @type {Object}
+     * @property {number} [value]
+     * @memberof common
+     */
+    FloatValue: {
+        fields: {
+            value: {
+                type: "float",
+                id: 1
+            }
+        }
+    },
+
+    /**
+     * Properties of a google.protobuf.Int64Value message.
+     * @interface IInt64Value
+     * @type {Object}
+     * @property {number|Long} [value]
+     * @memberof common
+     */
+    Int64Value: {
+        fields: {
+            value: {
+                type: "int64",
+                id: 1
+            }
+        }
+    },
+
+    /**
+     * Properties of a google.protobuf.UInt64Value message.
+     * @interface IUInt64Value
+     * @type {Object}
+     * @property {number|Long} [value]
+     * @memberof common
+     */
+    UInt64Value: {
+        fields: {
+            value: {
+                type: "uint64",
+                id: 1
+            }
+        }
+    },
+
+    /**
+     * Properties of a google.protobuf.Int32Value message.
+     * @interface IInt32Value
+     * @type {Object}
+     * @property {number} [value]
+     * @memberof common
+     */
+    Int32Value: {
+        fields: {
+            value: {
+                type: "int32",
+                id: 1
+            }
+        }
+    },
+
+    /**
+     * Properties of a google.protobuf.UInt32Value message.
+     * @interface IUInt32Value
+     * @type {Object}
+     * @property {number} [value]
+     * @memberof common
+     */
+    UInt32Value: {
+        fields: {
+            value: {
+                type: "uint32",
+                id: 1
+            }
+        }
+    },
+
+    /**
+     * Properties of a google.protobuf.BoolValue message.
+     * @interface IBoolValue
+     * @type {Object}
+     * @property {boolean} [value]
+     * @memberof common
+     */
+    BoolValue: {
+        fields: {
+            value: {
+                type: "bool",
+                id: 1
+            }
+        }
+    },
+
+    /**
+     * Properties of a google.protobuf.StringValue message.
+     * @interface IStringValue
+     * @type {Object}
+     * @property {string} [value]
+     * @memberof common
+     */
+    StringValue: {
+        fields: {
+            value: {
+                type: "string",
+                id: 1
+            }
+        }
+    },
+
+    /**
+     * Properties of a google.protobuf.BytesValue message.
+     * @interface IBytesValue
+     * @type {Object}
+     * @property {Uint8Array} [value]
+     * @memberof common
+     */
+    BytesValue: {
+        fields: {
+            value: {
+                type: "bytes",
+                id: 1
+            }
+        }
+    }
+});
+
+common("field_mask", {
+
+    /**
+     * Properties of a google.protobuf.FieldMask message.
+     * @interface IDoubleValue
+     * @type {Object}
+     * @property {number} [value]
+     * @memberof common
+     */
+    FieldMask: {
+        fields: {
+            paths: {
+                rule: "repeated",
+                type: "string",
+                id: 1
+            }
+        }
+    }
+});
+
+/**
+ * Gets the root definition of the specified common proto file.
+ *
+ * Bundled definitions are:
+ * - google/protobuf/any.proto
+ * - google/protobuf/duration.proto
+ * - google/protobuf/empty.proto
+ * - google/protobuf/field_mask.proto
+ * - google/protobuf/struct.proto
+ * - google/protobuf/timestamp.proto
+ * - google/protobuf/wrappers.proto
+ *
+ * @param {string} file Proto file name
+ * @returns {INamespace|null} Root definition or `null` if not defined
+ */
+common.get = function get(file) {
+    return common[file] || null;
+};
+
+var src$1 = createCommonjsModule(function (module) {
+var protobuf = module.exports = indexLight;
+
+protobuf.build = "full";
+
+// Parser
+protobuf.tokenize         = tokenize_1;
+protobuf.parse            = parse_1;
+protobuf.common           = common_1;
+
+// Configure parser
+protobuf.Root._configure(protobuf.Type, protobuf.parse, protobuf.common);
+});
+
+var protobufjs = src$1;
+
+var nested$3 = {
+	google: {
+		nested: {
+			protobuf: {
+				nested: {
+					FileDescriptorSet: {
+						fields: {
+							file: {
+								rule: "repeated",
+								type: "FileDescriptorProto",
+								id: 1
+							}
+						}
+					},
+					FileDescriptorProto: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							"package": {
+								type: "string",
+								id: 2
+							},
+							dependency: {
+								rule: "repeated",
+								type: "string",
+								id: 3
+							},
+							publicDependency: {
+								rule: "repeated",
+								type: "int32",
+								id: 10,
+								options: {
+									packed: false
+								}
+							},
+							weakDependency: {
+								rule: "repeated",
+								type: "int32",
+								id: 11,
+								options: {
+									packed: false
+								}
+							},
+							messageType: {
+								rule: "repeated",
+								type: "DescriptorProto",
+								id: 4
+							},
+							enumType: {
+								rule: "repeated",
+								type: "EnumDescriptorProto",
+								id: 5
+							},
+							service: {
+								rule: "repeated",
+								type: "ServiceDescriptorProto",
+								id: 6
+							},
+							extension: {
+								rule: "repeated",
+								type: "FieldDescriptorProto",
+								id: 7
+							},
+							options: {
+								type: "FileOptions",
+								id: 8
+							},
+							sourceCodeInfo: {
+								type: "SourceCodeInfo",
+								id: 9
+							},
+							syntax: {
+								type: "string",
+								id: 12
+							}
+						}
+					},
+					DescriptorProto: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							field: {
+								rule: "repeated",
+								type: "FieldDescriptorProto",
+								id: 2
+							},
+							extension: {
+								rule: "repeated",
+								type: "FieldDescriptorProto",
+								id: 6
+							},
+							nestedType: {
+								rule: "repeated",
+								type: "DescriptorProto",
+								id: 3
+							},
+							enumType: {
+								rule: "repeated",
+								type: "EnumDescriptorProto",
+								id: 4
+							},
+							extensionRange: {
+								rule: "repeated",
+								type: "ExtensionRange",
+								id: 5
+							},
+							oneofDecl: {
+								rule: "repeated",
+								type: "OneofDescriptorProto",
+								id: 8
+							},
+							options: {
+								type: "MessageOptions",
+								id: 7
+							},
+							reservedRange: {
+								rule: "repeated",
+								type: "ReservedRange",
+								id: 9
+							},
+							reservedName: {
+								rule: "repeated",
+								type: "string",
+								id: 10
+							}
+						},
+						nested: {
+							ExtensionRange: {
+								fields: {
+									start: {
+										type: "int32",
+										id: 1
+									},
+									end: {
+										type: "int32",
+										id: 2
+									}
+								}
+							},
+							ReservedRange: {
+								fields: {
+									start: {
+										type: "int32",
+										id: 1
+									},
+									end: {
+										type: "int32",
+										id: 2
+									}
+								}
+							}
+						}
+					},
+					FieldDescriptorProto: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							number: {
+								type: "int32",
+								id: 3
+							},
+							label: {
+								type: "Label",
+								id: 4
+							},
+							type: {
+								type: "Type",
+								id: 5
+							},
+							typeName: {
+								type: "string",
+								id: 6
+							},
+							extendee: {
+								type: "string",
+								id: 2
+							},
+							defaultValue: {
+								type: "string",
+								id: 7
+							},
+							oneofIndex: {
+								type: "int32",
+								id: 9
+							},
+							jsonName: {
+								type: "string",
+								id: 10
+							},
+							options: {
+								type: "FieldOptions",
+								id: 8
+							}
+						},
+						nested: {
+							Type: {
+								values: {
+									TYPE_DOUBLE: 1,
+									TYPE_FLOAT: 2,
+									TYPE_INT64: 3,
+									TYPE_UINT64: 4,
+									TYPE_INT32: 5,
+									TYPE_FIXED64: 6,
+									TYPE_FIXED32: 7,
+									TYPE_BOOL: 8,
+									TYPE_STRING: 9,
+									TYPE_GROUP: 10,
+									TYPE_MESSAGE: 11,
+									TYPE_BYTES: 12,
+									TYPE_UINT32: 13,
+									TYPE_ENUM: 14,
+									TYPE_SFIXED32: 15,
+									TYPE_SFIXED64: 16,
+									TYPE_SINT32: 17,
+									TYPE_SINT64: 18
+								}
+							},
+							Label: {
+								values: {
+									LABEL_OPTIONAL: 1,
+									LABEL_REQUIRED: 2,
+									LABEL_REPEATED: 3
+								}
+							}
+						}
+					},
+					OneofDescriptorProto: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							options: {
+								type: "OneofOptions",
+								id: 2
+							}
+						}
+					},
+					EnumDescriptorProto: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							value: {
+								rule: "repeated",
+								type: "EnumValueDescriptorProto",
+								id: 2
+							},
+							options: {
+								type: "EnumOptions",
+								id: 3
+							}
+						}
+					},
+					EnumValueDescriptorProto: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							number: {
+								type: "int32",
+								id: 2
+							},
+							options: {
+								type: "EnumValueOptions",
+								id: 3
+							}
+						}
+					},
+					ServiceDescriptorProto: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							method: {
+								rule: "repeated",
+								type: "MethodDescriptorProto",
+								id: 2
+							},
+							options: {
+								type: "ServiceOptions",
+								id: 3
+							}
+						}
+					},
+					MethodDescriptorProto: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							inputType: {
+								type: "string",
+								id: 2
+							},
+							outputType: {
+								type: "string",
+								id: 3
+							},
+							options: {
+								type: "MethodOptions",
+								id: 4
+							},
+							clientStreaming: {
+								type: "bool",
+								id: 5
+							},
+							serverStreaming: {
+								type: "bool",
+								id: 6
+							}
+						}
+					},
+					FileOptions: {
+						fields: {
+							javaPackage: {
+								type: "string",
+								id: 1
+							},
+							javaOuterClassname: {
+								type: "string",
+								id: 8
+							},
+							javaMultipleFiles: {
+								type: "bool",
+								id: 10
+							},
+							javaGenerateEqualsAndHash: {
+								type: "bool",
+								id: 20,
+								options: {
+									deprecated: true
+								}
+							},
+							javaStringCheckUtf8: {
+								type: "bool",
+								id: 27
+							},
+							optimizeFor: {
+								type: "OptimizeMode",
+								id: 9,
+								options: {
+									"default": "SPEED"
+								}
+							},
+							goPackage: {
+								type: "string",
+								id: 11
+							},
+							ccGenericServices: {
+								type: "bool",
+								id: 16
+							},
+							javaGenericServices: {
+								type: "bool",
+								id: 17
+							},
+							pyGenericServices: {
+								type: "bool",
+								id: 18
+							},
+							deprecated: {
+								type: "bool",
+								id: 23
+							},
+							ccEnableArenas: {
+								type: "bool",
+								id: 31
+							},
+							objcClassPrefix: {
+								type: "string",
+								id: 36
+							},
+							csharpNamespace: {
+								type: "string",
+								id: 37
+							},
+							uninterpretedOption: {
+								rule: "repeated",
+								type: "UninterpretedOption",
+								id: 999
+							}
+						},
+						extensions: [
+							[
+								1000,
+								536870911
+							]
+						],
+						reserved: [
+							[
+								38,
+								38
+							]
+						],
+						nested: {
+							OptimizeMode: {
+								values: {
+									SPEED: 1,
+									CODE_SIZE: 2,
+									LITE_RUNTIME: 3
+								}
+							}
+						}
+					},
+					MessageOptions: {
+						fields: {
+							messageSetWireFormat: {
+								type: "bool",
+								id: 1
+							},
+							noStandardDescriptorAccessor: {
+								type: "bool",
+								id: 2
+							},
+							deprecated: {
+								type: "bool",
+								id: 3
+							},
+							mapEntry: {
+								type: "bool",
+								id: 7
+							},
+							uninterpretedOption: {
+								rule: "repeated",
+								type: "UninterpretedOption",
+								id: 999
+							}
+						},
+						extensions: [
+							[
+								1000,
+								536870911
+							]
+						],
+						reserved: [
+							[
+								8,
+								8
+							]
+						]
+					},
+					FieldOptions: {
+						fields: {
+							ctype: {
+								type: "CType",
+								id: 1,
+								options: {
+									"default": "STRING"
+								}
+							},
+							packed: {
+								type: "bool",
+								id: 2
+							},
+							jstype: {
+								type: "JSType",
+								id: 6,
+								options: {
+									"default": "JS_NORMAL"
+								}
+							},
+							lazy: {
+								type: "bool",
+								id: 5
+							},
+							deprecated: {
+								type: "bool",
+								id: 3
+							},
+							weak: {
+								type: "bool",
+								id: 10
+							},
+							uninterpretedOption: {
+								rule: "repeated",
+								type: "UninterpretedOption",
+								id: 999
+							}
+						},
+						extensions: [
+							[
+								1000,
+								536870911
+							]
+						],
+						reserved: [
+							[
+								4,
+								4
+							]
+						],
+						nested: {
+							CType: {
+								values: {
+									STRING: 0,
+									CORD: 1,
+									STRING_PIECE: 2
+								}
+							},
+							JSType: {
+								values: {
+									JS_NORMAL: 0,
+									JS_STRING: 1,
+									JS_NUMBER: 2
+								}
+							}
+						}
+					},
+					OneofOptions: {
+						fields: {
+							uninterpretedOption: {
+								rule: "repeated",
+								type: "UninterpretedOption",
+								id: 999
+							}
+						},
+						extensions: [
+							[
+								1000,
+								536870911
+							]
+						]
+					},
+					EnumOptions: {
+						fields: {
+							allowAlias: {
+								type: "bool",
+								id: 2
+							},
+							deprecated: {
+								type: "bool",
+								id: 3
+							},
+							uninterpretedOption: {
+								rule: "repeated",
+								type: "UninterpretedOption",
+								id: 999
+							}
+						},
+						extensions: [
+							[
+								1000,
+								536870911
+							]
+						]
+					},
+					EnumValueOptions: {
+						fields: {
+							deprecated: {
+								type: "bool",
+								id: 1
+							},
+							uninterpretedOption: {
+								rule: "repeated",
+								type: "UninterpretedOption",
+								id: 999
+							}
+						},
+						extensions: [
+							[
+								1000,
+								536870911
+							]
+						]
+					},
+					ServiceOptions: {
+						fields: {
+							deprecated: {
+								type: "bool",
+								id: 33
+							},
+							uninterpretedOption: {
+								rule: "repeated",
+								type: "UninterpretedOption",
+								id: 999
+							}
+						},
+						extensions: [
+							[
+								1000,
+								536870911
+							]
+						]
+					},
+					MethodOptions: {
+						fields: {
+							deprecated: {
+								type: "bool",
+								id: 33
+							},
+							uninterpretedOption: {
+								rule: "repeated",
+								type: "UninterpretedOption",
+								id: 999
+							}
+						},
+						extensions: [
+							[
+								1000,
+								536870911
+							]
+						]
+					},
+					UninterpretedOption: {
+						fields: {
+							name: {
+								rule: "repeated",
+								type: "NamePart",
+								id: 2
+							},
+							identifierValue: {
+								type: "string",
+								id: 3
+							},
+							positiveIntValue: {
+								type: "uint64",
+								id: 4
+							},
+							negativeIntValue: {
+								type: "int64",
+								id: 5
+							},
+							doubleValue: {
+								type: "double",
+								id: 6
+							},
+							stringValue: {
+								type: "bytes",
+								id: 7
+							},
+							aggregateValue: {
+								type: "string",
+								id: 8
+							}
+						},
+						nested: {
+							NamePart: {
+								fields: {
+									namePart: {
+										rule: "required",
+										type: "string",
+										id: 1
+									},
+									isExtension: {
+										rule: "required",
+										type: "bool",
+										id: 2
+									}
+								}
+							}
+						}
+					},
+					SourceCodeInfo: {
+						fields: {
+							location: {
+								rule: "repeated",
+								type: "Location",
+								id: 1
+							}
+						},
+						nested: {
+							Location: {
+								fields: {
+									path: {
+										rule: "repeated",
+										type: "int32",
+										id: 1
+									},
+									span: {
+										rule: "repeated",
+										type: "int32",
+										id: 2
+									},
+									leadingComments: {
+										type: "string",
+										id: 3
+									},
+									trailingComments: {
+										type: "string",
+										id: 4
+									},
+									leadingDetachedComments: {
+										rule: "repeated",
+										type: "string",
+										id: 6
+									}
+								}
+							}
+						}
+					},
+					GeneratedCodeInfo: {
+						fields: {
+							annotation: {
+								rule: "repeated",
+								type: "Annotation",
+								id: 1
+							}
+						},
+						nested: {
+							Annotation: {
+								fields: {
+									path: {
+										rule: "repeated",
+										type: "int32",
+										id: 1
+									},
+									sourceFile: {
+										type: "string",
+										id: 2
+									},
+									begin: {
+										type: "int32",
+										id: 3
+									},
+									end: {
+										type: "int32",
+										id: 4
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+};
+var require$$1 = {
+	nested: nested$3
+};
+
+var descriptor = createCommonjsModule(function (module, exports) {
+
+module.exports = exports = protobufjs.descriptor = protobufjs.Root.fromJSON(require$$1).lookup(".google.protobuf");
+
+var Namespace = protobufjs.Namespace,
+    Root      = protobufjs.Root,
+    Enum      = protobufjs.Enum,
+    Type      = protobufjs.Type,
+    Field     = protobufjs.Field,
+    MapField  = protobufjs.MapField,
+    OneOf     = protobufjs.OneOf,
+    Service   = protobufjs.Service,
+    Method    = protobufjs.Method;
+
+// --- Root ---
+
+/**
+ * Properties of a FileDescriptorSet message.
+ * @interface IFileDescriptorSet
+ * @property {IFileDescriptorProto[]} file Files
+ */
+
+/**
+ * Properties of a FileDescriptorProto message.
+ * @interface IFileDescriptorProto
+ * @property {string} [name] File name
+ * @property {string} [package] Package
+ * @property {*} [dependency] Not supported
+ * @property {*} [publicDependency] Not supported
+ * @property {*} [weakDependency] Not supported
+ * @property {IDescriptorProto[]} [messageType] Nested message types
+ * @property {IEnumDescriptorProto[]} [enumType] Nested enums
+ * @property {IServiceDescriptorProto[]} [service] Nested services
+ * @property {IFieldDescriptorProto[]} [extension] Nested extension fields
+ * @property {IFileOptions} [options] Options
+ * @property {*} [sourceCodeInfo] Not supported
+ * @property {string} [syntax="proto2"] Syntax
+ */
+
+/**
+ * Properties of a FileOptions message.
+ * @interface IFileOptions
+ * @property {string} [javaPackage]
+ * @property {string} [javaOuterClassname]
+ * @property {boolean} [javaMultipleFiles]
+ * @property {boolean} [javaGenerateEqualsAndHash]
+ * @property {boolean} [javaStringCheckUtf8]
+ * @property {IFileOptionsOptimizeMode} [optimizeFor=1]
+ * @property {string} [goPackage]
+ * @property {boolean} [ccGenericServices]
+ * @property {boolean} [javaGenericServices]
+ * @property {boolean} [pyGenericServices]
+ * @property {boolean} [deprecated]
+ * @property {boolean} [ccEnableArenas]
+ * @property {string} [objcClassPrefix]
+ * @property {string} [csharpNamespace]
+ */
+
+/**
+ * Values of he FileOptions.OptimizeMode enum.
+ * @typedef IFileOptionsOptimizeMode
+ * @type {number}
+ * @property {number} SPEED=1
+ * @property {number} CODE_SIZE=2
+ * @property {number} LITE_RUNTIME=3
+ */
+
+/**
+ * Creates a root from a descriptor set.
+ * @param {IFileDescriptorSet|Reader|Uint8Array} descriptor Descriptor
+ * @returns {Root} Root instance
+ */
+Root.fromDescriptor = function fromDescriptor(descriptor) {
+
+    // Decode the descriptor message if specified as a buffer:
+    if (typeof descriptor.length === "number")
+        descriptor = exports.FileDescriptorSet.decode(descriptor);
+
+    var root = new Root();
+
+    if (descriptor.file) {
+        var fileDescriptor,
+            filePackage;
+        for (var j = 0, i; j < descriptor.file.length; ++j) {
+            filePackage = root;
+            if ((fileDescriptor = descriptor.file[j])["package"] && fileDescriptor["package"].length)
+                filePackage = root.define(fileDescriptor["package"]);
+            if (fileDescriptor.name && fileDescriptor.name.length)
+                root.files.push(filePackage.filename = fileDescriptor.name);
+            if (fileDescriptor.messageType)
+                for (i = 0; i < fileDescriptor.messageType.length; ++i)
+                    filePackage.add(Type.fromDescriptor(fileDescriptor.messageType[i], fileDescriptor.syntax));
+            if (fileDescriptor.enumType)
+                for (i = 0; i < fileDescriptor.enumType.length; ++i)
+                    filePackage.add(Enum.fromDescriptor(fileDescriptor.enumType[i]));
+            if (fileDescriptor.extension)
+                for (i = 0; i < fileDescriptor.extension.length; ++i)
+                    filePackage.add(Field.fromDescriptor(fileDescriptor.extension[i]));
+            if (fileDescriptor.service)
+                for (i = 0; i < fileDescriptor.service.length; ++i)
+                    filePackage.add(Service.fromDescriptor(fileDescriptor.service[i]));
+            var opts = fromDescriptorOptions(fileDescriptor.options, exports.FileOptions);
+            if (opts) {
+                var ks = Object.keys(opts);
+                for (i = 0; i < ks.length; ++i)
+                    filePackage.setOption(ks[i], opts[ks[i]]);
+            }
+        }
+    }
+
+    return root;
+};
+
+/**
+ * Converts a root to a descriptor set.
+ * @returns {Message<IFileDescriptorSet>} Descriptor
+ * @param {string} [syntax="proto2"] Syntax
+ */
+Root.prototype.toDescriptor = function toDescriptor(syntax) {
+    var set = exports.FileDescriptorSet.create();
+    Root_toDescriptorRecursive(this, set.file, syntax);
+    return set;
+};
+
+// Traverses a namespace and assembles the descriptor set
+function Root_toDescriptorRecursive(ns, files, syntax) {
+
+    // Create a new file
+    var file = exports.FileDescriptorProto.create({ name: ns.filename || (ns.fullName.substring(1).replace(/\./g, "_") || "root") + ".proto" });
+    if (syntax)
+        file.syntax = syntax;
+    if (!(ns instanceof Root))
+        file["package"] = ns.fullName.substring(1);
+
+    // Add nested types
+    for (var i = 0, nested; i < ns.nestedArray.length; ++i)
+        if ((nested = ns._nestedArray[i]) instanceof Type)
+            file.messageType.push(nested.toDescriptor(syntax));
+        else if (nested instanceof Enum)
+            file.enumType.push(nested.toDescriptor());
+        else if (nested instanceof Field)
+            file.extension.push(nested.toDescriptor(syntax));
+        else if (nested instanceof Service)
+            file.service.push(nested.toDescriptor());
+        else if (nested instanceof /* plain */ Namespace)
+            Root_toDescriptorRecursive(nested, files, syntax); // requires new file
+
+    // Keep package-level options
+    file.options = toDescriptorOptions(ns.options, exports.FileOptions);
+
+    // And keep the file only if there is at least one nested object
+    if (file.messageType.length + file.enumType.length + file.extension.length + file.service.length)
+        files.push(file);
+}
+
+// --- Type ---
+
+/**
+ * Properties of a DescriptorProto message.
+ * @interface IDescriptorProto
+ * @property {string} [name] Message type name
+ * @property {IFieldDescriptorProto[]} [field] Fields
+ * @property {IFieldDescriptorProto[]} [extension] Extension fields
+ * @property {IDescriptorProto[]} [nestedType] Nested message types
+ * @property {IEnumDescriptorProto[]} [enumType] Nested enums
+ * @property {IDescriptorProtoExtensionRange[]} [extensionRange] Extension ranges
+ * @property {IOneofDescriptorProto[]} [oneofDecl] Oneofs
+ * @property {IMessageOptions} [options] Not supported
+ * @property {IDescriptorProtoReservedRange[]} [reservedRange] Reserved ranges
+ * @property {string[]} [reservedName] Reserved names
+ */
+
+/**
+ * Properties of a MessageOptions message.
+ * @interface IMessageOptions
+ * @property {boolean} [mapEntry=false] Whether this message is a map entry
+ */
+
+/**
+ * Properties of an ExtensionRange message.
+ * @interface IDescriptorProtoExtensionRange
+ * @property {number} [start] Start field id
+ * @property {number} [end] End field id
+ */
+
+/**
+ * Properties of a ReservedRange message.
+ * @interface IDescriptorProtoReservedRange
+ * @property {number} [start] Start field id
+ * @property {number} [end] End field id
+ */
+
+var unnamedMessageIndex = 0;
+
+/**
+ * Creates a type from a descriptor.
+ * @param {IDescriptorProto|Reader|Uint8Array} descriptor Descriptor
+ * @param {string} [syntax="proto2"] Syntax
+ * @returns {Type} Type instance
+ */
+Type.fromDescriptor = function fromDescriptor(descriptor, syntax) {
+
+    // Decode the descriptor message if specified as a buffer:
+    if (typeof descriptor.length === "number")
+        descriptor = exports.DescriptorProto.decode(descriptor);
+
+    // Create the message type
+    var type = new Type(descriptor.name.length ? descriptor.name : "Type" + unnamedMessageIndex++, fromDescriptorOptions(descriptor.options, exports.MessageOptions)),
+        i;
+
+    /* Oneofs */ if (descriptor.oneofDecl)
+        for (i = 0; i < descriptor.oneofDecl.length; ++i)
+            type.add(OneOf.fromDescriptor(descriptor.oneofDecl[i]));
+    /* Fields */ if (descriptor.field)
+        for (i = 0; i < descriptor.field.length; ++i) {
+            var field = Field.fromDescriptor(descriptor.field[i], syntax);
+            type.add(field);
+            if (descriptor.field[i].hasOwnProperty("oneofIndex")) // eslint-disable-line no-prototype-builtins
+                type.oneofsArray[descriptor.field[i].oneofIndex].add(field);
+        }
+    /* Extension fields */ if (descriptor.extension)
+        for (i = 0; i < descriptor.extension.length; ++i)
+            type.add(Field.fromDescriptor(descriptor.extension[i], syntax));
+    /* Nested types */ if (descriptor.nestedType)
+        for (i = 0; i < descriptor.nestedType.length; ++i) {
+            type.add(Type.fromDescriptor(descriptor.nestedType[i], syntax));
+            if (descriptor.nestedType[i].options && descriptor.nestedType[i].options.mapEntry)
+                type.setOption("map_entry", true);
+        }
+    /* Nested enums */ if (descriptor.enumType)
+        for (i = 0; i < descriptor.enumType.length; ++i)
+            type.add(Enum.fromDescriptor(descriptor.enumType[i]));
+    /* Extension ranges */ if (descriptor.extensionRange && descriptor.extensionRange.length) {
+        type.extensions = [];
+        for (i = 0; i < descriptor.extensionRange.length; ++i)
+            type.extensions.push([ descriptor.extensionRange[i].start, descriptor.extensionRange[i].end ]);
+    }
+    /* Reserved... */ if (descriptor.reservedRange && descriptor.reservedRange.length || descriptor.reservedName && descriptor.reservedName.length) {
+        type.reserved = [];
+        /* Ranges */ if (descriptor.reservedRange)
+            for (i = 0; i < descriptor.reservedRange.length; ++i)
+                type.reserved.push([ descriptor.reservedRange[i].start, descriptor.reservedRange[i].end ]);
+        /* Names */ if (descriptor.reservedName)
+            for (i = 0; i < descriptor.reservedName.length; ++i)
+                type.reserved.push(descriptor.reservedName[i]);
+    }
+
+    return type;
+};
+
+/**
+ * Converts a type to a descriptor.
+ * @returns {Message<IDescriptorProto>} Descriptor
+ * @param {string} [syntax="proto2"] Syntax
+ */
+Type.prototype.toDescriptor = function toDescriptor(syntax) {
+    var descriptor = exports.DescriptorProto.create({ name: this.name }),
+        i;
+
+    /* Fields */ for (i = 0; i < this.fieldsArray.length; ++i) {
+        var fieldDescriptor;
+        descriptor.field.push(fieldDescriptor = this._fieldsArray[i].toDescriptor(syntax));
+        if (this._fieldsArray[i] instanceof MapField) { // map fields are repeated FieldNameEntry
+            var keyType = toDescriptorType(this._fieldsArray[i].keyType, this._fieldsArray[i].resolvedKeyType),
+                valueType = toDescriptorType(this._fieldsArray[i].type, this._fieldsArray[i].resolvedType),
+                valueTypeName = valueType === /* type */ 11 || valueType === /* enum */ 14
+                    ? this._fieldsArray[i].resolvedType && shortname(this.parent, this._fieldsArray[i].resolvedType) || this._fieldsArray[i].type
+                    : undefined;
+            descriptor.nestedType.push(exports.DescriptorProto.create({
+                name: fieldDescriptor.typeName,
+                field: [
+                    exports.FieldDescriptorProto.create({ name: "key", number: 1, label: 1, type: keyType }), // can't reference a type or enum
+                    exports.FieldDescriptorProto.create({ name: "value", number: 2, label: 1, type: valueType, typeName: valueTypeName })
+                ],
+                options: exports.MessageOptions.create({ mapEntry: true })
+            }));
+        }
+    }
+    /* Oneofs */ for (i = 0; i < this.oneofsArray.length; ++i)
+        descriptor.oneofDecl.push(this._oneofsArray[i].toDescriptor());
+    /* Nested... */ for (i = 0; i < this.nestedArray.length; ++i) {
+        /* Extension fields */ if (this._nestedArray[i] instanceof Field)
+            descriptor.field.push(this._nestedArray[i].toDescriptor(syntax));
+        /* Types */ else if (this._nestedArray[i] instanceof Type)
+            descriptor.nestedType.push(this._nestedArray[i].toDescriptor(syntax));
+        /* Enums */ else if (this._nestedArray[i] instanceof Enum)
+            descriptor.enumType.push(this._nestedArray[i].toDescriptor());
+        // plain nested namespaces become packages instead in Root#toDescriptor
+    }
+    /* Extension ranges */ if (this.extensions)
+        for (i = 0; i < this.extensions.length; ++i)
+            descriptor.extensionRange.push(exports.DescriptorProto.ExtensionRange.create({ start: this.extensions[i][0], end: this.extensions[i][1] }));
+    /* Reserved... */ if (this.reserved)
+        for (i = 0; i < this.reserved.length; ++i)
+            /* Names */ if (typeof this.reserved[i] === "string")
+                descriptor.reservedName.push(this.reserved[i]);
+            /* Ranges */ else
+                descriptor.reservedRange.push(exports.DescriptorProto.ReservedRange.create({ start: this.reserved[i][0], end: this.reserved[i][1] }));
+
+    descriptor.options = toDescriptorOptions(this.options, exports.MessageOptions);
+
+    return descriptor;
+};
+
+// --- Field ---
+
+/**
+ * Properties of a FieldDescriptorProto message.
+ * @interface IFieldDescriptorProto
+ * @property {string} [name] Field name
+ * @property {number} [number] Field id
+ * @property {IFieldDescriptorProtoLabel} [label] Field rule
+ * @property {IFieldDescriptorProtoType} [type] Field basic type
+ * @property {string} [typeName] Field type name
+ * @property {string} [extendee] Extended type name
+ * @property {string} [defaultValue] Literal default value
+ * @property {number} [oneofIndex] Oneof index if part of a oneof
+ * @property {*} [jsonName] Not supported
+ * @property {IFieldOptions} [options] Field options
+ */
+
+/**
+ * Values of the FieldDescriptorProto.Label enum.
+ * @typedef IFieldDescriptorProtoLabel
+ * @type {number}
+ * @property {number} LABEL_OPTIONAL=1
+ * @property {number} LABEL_REQUIRED=2
+ * @property {number} LABEL_REPEATED=3
+ */
+
+/**
+ * Values of the FieldDescriptorProto.Type enum.
+ * @typedef IFieldDescriptorProtoType
+ * @type {number}
+ * @property {number} TYPE_DOUBLE=1
+ * @property {number} TYPE_FLOAT=2
+ * @property {number} TYPE_INT64=3
+ * @property {number} TYPE_UINT64=4
+ * @property {number} TYPE_INT32=5
+ * @property {number} TYPE_FIXED64=6
+ * @property {number} TYPE_FIXED32=7
+ * @property {number} TYPE_BOOL=8
+ * @property {number} TYPE_STRING=9
+ * @property {number} TYPE_GROUP=10
+ * @property {number} TYPE_MESSAGE=11
+ * @property {number} TYPE_BYTES=12
+ * @property {number} TYPE_UINT32=13
+ * @property {number} TYPE_ENUM=14
+ * @property {number} TYPE_SFIXED32=15
+ * @property {number} TYPE_SFIXED64=16
+ * @property {number} TYPE_SINT32=17
+ * @property {number} TYPE_SINT64=18
+ */
+
+/**
+ * Properties of a FieldOptions message.
+ * @interface IFieldOptions
+ * @property {boolean} [packed] Whether packed or not (defaults to `false` for proto2 and `true` for proto3)
+ * @property {IFieldOptionsJSType} [jstype] JavaScript value type (not used by protobuf.js)
+ */
+
+/**
+ * Values of the FieldOptions.JSType enum.
+ * @typedef IFieldOptionsJSType
+ * @type {number}
+ * @property {number} JS_NORMAL=0
+ * @property {number} JS_STRING=1
+ * @property {number} JS_NUMBER=2
+ */
+
+// copied here from parse.js
+var numberRe = /^(?![eE])[0-9]*(?:\.[0-9]*)?(?:[eE][+-]?[0-9]+)?$/;
+
+/**
+ * Creates a field from a descriptor.
+ * @param {IFieldDescriptorProto|Reader|Uint8Array} descriptor Descriptor
+ * @param {string} [syntax="proto2"] Syntax
+ * @returns {Field} Field instance
+ */
+Field.fromDescriptor = function fromDescriptor(descriptor, syntax) {
+
+    // Decode the descriptor message if specified as a buffer:
+    if (typeof descriptor.length === "number")
+        descriptor = exports.DescriptorProto.decode(descriptor);
+
+    if (typeof descriptor.number !== "number")
+        throw Error("missing field id");
+
+    // Rewire field type
+    var fieldType;
+    if (descriptor.typeName && descriptor.typeName.length)
+        fieldType = descriptor.typeName;
+    else
+        fieldType = fromDescriptorType(descriptor.type);
+
+    // Rewire field rule
+    var fieldRule;
+    switch (descriptor.label) {
+        // 0 is reserved for errors
+        case 1: fieldRule = undefined; break;
+        case 2: fieldRule = "required"; break;
+        case 3: fieldRule = "repeated"; break;
+        default: throw Error("illegal label: " + descriptor.label);
+    }
+
+	var extendee = descriptor.extendee;
+	if (descriptor.extendee !== undefined) {
+		extendee = extendee.length ? extendee : undefined;
+	}
+    var field = new Field(
+        descriptor.name.length ? descriptor.name : "field" + descriptor.number,
+        descriptor.number,
+        fieldType,
+        fieldRule,
+        extendee
+    );
+
+    field.options = fromDescriptorOptions(descriptor.options, exports.FieldOptions);
+
+    if (descriptor.defaultValue && descriptor.defaultValue.length) {
+        var defaultValue = descriptor.defaultValue;
+        switch (defaultValue) {
+            case "true": case "TRUE":
+                defaultValue = true;
+                break;
+            case "false": case "FALSE":
+                defaultValue = false;
+                break;
+            default:
+                var match = numberRe.exec(defaultValue);
+                if (match)
+                    defaultValue = parseInt(defaultValue); // eslint-disable-line radix
+                break;
+        }
+        field.setOption("default", defaultValue);
+    }
+
+    if (packableDescriptorType(descriptor.type)) {
+        if (syntax === "proto3") { // defaults to packed=true (internal preset is packed=true)
+            if (descriptor.options && !descriptor.options.packed)
+                field.setOption("packed", false);
+        } else if (!(descriptor.options && descriptor.options.packed)) // defaults to packed=false
+            field.setOption("packed", false);
+    }
+
+    return field;
+};
+
+/**
+ * Converts a field to a descriptor.
+ * @returns {Message<IFieldDescriptorProto>} Descriptor
+ * @param {string} [syntax="proto2"] Syntax
+ */
+Field.prototype.toDescriptor = function toDescriptor(syntax) {
+    var descriptor = exports.FieldDescriptorProto.create({ name: this.name, number: this.id });
+
+    if (this.map) {
+
+        descriptor.type = 11; // message
+        descriptor.typeName = protobufjs.util.ucFirst(this.name); // fieldName -> FieldNameEntry (built in Type#toDescriptor)
+        descriptor.label = 3; // repeated
+
+    } else {
+
+        // Rewire field type
+        switch (descriptor.type = toDescriptorType(this.type, this.resolve().resolvedType)) {
+            case 10: // group
+            case 11: // type
+            case 14: // enum
+                descriptor.typeName = this.resolvedType ? shortname(this.parent, this.resolvedType) : this.type;
+                break;
+        }
+
+        // Rewire field rule
+        switch (this.rule) {
+            case "repeated": descriptor.label = 3; break;
+            case "required": descriptor.label = 2; break;
+            default: descriptor.label = 1; break;
+        }
+
+    }
+
+    // Handle extension field
+    descriptor.extendee = this.extensionField ? this.extensionField.parent.fullName : this.extend;
+
+    // Handle part of oneof
+    if (this.partOf)
+        if ((descriptor.oneofIndex = this.parent.oneofsArray.indexOf(this.partOf)) < 0)
+            throw Error("missing oneof");
+
+    if (this.options) {
+        descriptor.options = toDescriptorOptions(this.options, exports.FieldOptions);
+        if (this.options["default"] != null)
+            descriptor.defaultValue = String(this.options["default"]);
+    }
+
+    if (syntax === "proto3") { // defaults to packed=true
+        if (!this.packed)
+            (descriptor.options || (descriptor.options = exports.FieldOptions.create())).packed = false;
+    } else if (this.packed) // defaults to packed=false
+        (descriptor.options || (descriptor.options = exports.FieldOptions.create())).packed = true;
+
+    return descriptor;
+};
+
+// --- Enum ---
+
+/**
+ * Properties of an EnumDescriptorProto message.
+ * @interface IEnumDescriptorProto
+ * @property {string} [name] Enum name
+ * @property {IEnumValueDescriptorProto[]} [value] Enum values
+ * @property {IEnumOptions} [options] Enum options
+ */
+
+/**
+ * Properties of an EnumValueDescriptorProto message.
+ * @interface IEnumValueDescriptorProto
+ * @property {string} [name] Name
+ * @property {number} [number] Value
+ * @property {*} [options] Not supported
+ */
+
+/**
+ * Properties of an EnumOptions message.
+ * @interface IEnumOptions
+ * @property {boolean} [allowAlias] Whether aliases are allowed
+ * @property {boolean} [deprecated]
+ */
+
+var unnamedEnumIndex = 0;
+
+/**
+ * Creates an enum from a descriptor.
+ * @param {IEnumDescriptorProto|Reader|Uint8Array} descriptor Descriptor
+ * @returns {Enum} Enum instance
+ */
+Enum.fromDescriptor = function fromDescriptor(descriptor) {
+
+    // Decode the descriptor message if specified as a buffer:
+    if (typeof descriptor.length === "number")
+        descriptor = exports.EnumDescriptorProto.decode(descriptor);
+
+    // Construct values object
+    var values = {};
+    if (descriptor.value)
+        for (var i = 0; i < descriptor.value.length; ++i) {
+            var name  = descriptor.value[i].name,
+                value = descriptor.value[i].number || 0;
+            values[name && name.length ? name : "NAME" + value] = value;
+        }
+
+    return new Enum(
+        descriptor.name && descriptor.name.length ? descriptor.name : "Enum" + unnamedEnumIndex++,
+        values,
+        fromDescriptorOptions(descriptor.options, exports.EnumOptions)
+    );
+};
+
+/**
+ * Converts an enum to a descriptor.
+ * @returns {Message<IEnumDescriptorProto>} Descriptor
+ */
+Enum.prototype.toDescriptor = function toDescriptor() {
+
+    // Values
+    var values = [];
+    for (var i = 0, ks = Object.keys(this.values); i < ks.length; ++i)
+        values.push(exports.EnumValueDescriptorProto.create({ name: ks[i], number: this.values[ks[i]] }));
+
+    return exports.EnumDescriptorProto.create({
+        name: this.name,
+        value: values,
+        options: toDescriptorOptions(this.options, exports.EnumOptions)
+    });
+};
+
+// --- OneOf ---
+
+/**
+ * Properties of a OneofDescriptorProto message.
+ * @interface IOneofDescriptorProto
+ * @property {string} [name] Oneof name
+ * @property {*} [options] Not supported
+ */
+
+var unnamedOneofIndex = 0;
+
+/**
+ * Creates a oneof from a descriptor.
+ * @param {IOneofDescriptorProto|Reader|Uint8Array} descriptor Descriptor
+ * @returns {OneOf} OneOf instance
+ */
+OneOf.fromDescriptor = function fromDescriptor(descriptor) {
+
+    // Decode the descriptor message if specified as a buffer:
+    if (typeof descriptor.length === "number")
+        descriptor = exports.OneofDescriptorProto.decode(descriptor);
+
+    return new OneOf(
+        // unnamedOneOfIndex is global, not per type, because we have no ref to a type here
+        descriptor.name && descriptor.name.length ? descriptor.name : "oneof" + unnamedOneofIndex++
+        // fromDescriptorOptions(descriptor.options, exports.OneofOptions) - only uninterpreted_option
+    );
+};
+
+/**
+ * Converts a oneof to a descriptor.
+ * @returns {Message<IOneofDescriptorProto>} Descriptor
+ */
+OneOf.prototype.toDescriptor = function toDescriptor() {
+    return exports.OneofDescriptorProto.create({
+        name: this.name
+        // options: toDescriptorOptions(this.options, exports.OneofOptions) - only uninterpreted_option
+    });
+};
+
+// --- Service ---
+
+/**
+ * Properties of a ServiceDescriptorProto message.
+ * @interface IServiceDescriptorProto
+ * @property {string} [name] Service name
+ * @property {IMethodDescriptorProto[]} [method] Methods
+ * @property {IServiceOptions} [options] Options
+ */
+
+/**
+ * Properties of a ServiceOptions message.
+ * @interface IServiceOptions
+ * @property {boolean} [deprecated]
+ */
+
+var unnamedServiceIndex = 0;
+
+/**
+ * Creates a service from a descriptor.
+ * @param {IServiceDescriptorProto|Reader|Uint8Array} descriptor Descriptor
+ * @returns {Service} Service instance
+ */
+Service.fromDescriptor = function fromDescriptor(descriptor) {
+
+    // Decode the descriptor message if specified as a buffer:
+    if (typeof descriptor.length === "number")
+        descriptor = exports.ServiceDescriptorProto.decode(descriptor);
+
+    var service = new Service(descriptor.name && descriptor.name.length ? descriptor.name : "Service" + unnamedServiceIndex++, fromDescriptorOptions(descriptor.options, exports.ServiceOptions));
+    if (descriptor.method)
+        for (var i = 0; i < descriptor.method.length; ++i)
+            service.add(Method.fromDescriptor(descriptor.method[i]));
+
+    return service;
+};
+
+/**
+ * Converts a service to a descriptor.
+ * @returns {Message<IServiceDescriptorProto>} Descriptor
+ */
+Service.prototype.toDescriptor = function toDescriptor() {
+
+    // Methods
+    var methods = [];
+    for (var i = 0; i < this.methodsArray.length; ++i)
+        methods.push(this._methodsArray[i].toDescriptor());
+
+    return exports.ServiceDescriptorProto.create({
+        name: this.name,
+        method: methods,
+        options: toDescriptorOptions(this.options, exports.ServiceOptions)
+    });
+};
+
+// --- Method ---
+
+/**
+ * Properties of a MethodDescriptorProto message.
+ * @interface IMethodDescriptorProto
+ * @property {string} [name] Method name
+ * @property {string} [inputType] Request type name
+ * @property {string} [outputType] Response type name
+ * @property {IMethodOptions} [options] Not supported
+ * @property {boolean} [clientStreaming=false] Whether requests are streamed
+ * @property {boolean} [serverStreaming=false] Whether responses are streamed
+ */
+
+/**
+ * Properties of a MethodOptions message.
+ * @interface IMethodOptions
+ * @property {boolean} [deprecated]
+ */
+
+var unnamedMethodIndex = 0;
+
+/**
+ * Creates a method from a descriptor.
+ * @param {IMethodDescriptorProto|Reader|Uint8Array} descriptor Descriptor
+ * @returns {Method} Reflected method instance
+ */
+Method.fromDescriptor = function fromDescriptor(descriptor) {
+
+    // Decode the descriptor message if specified as a buffer:
+    if (typeof descriptor.length === "number")
+        descriptor = exports.MethodDescriptorProto.decode(descriptor);
+
+    return new Method(
+        // unnamedMethodIndex is global, not per service, because we have no ref to a service here
+        descriptor.name && descriptor.name.length ? descriptor.name : "Method" + unnamedMethodIndex++,
+        "rpc",
+        descriptor.inputType,
+        descriptor.outputType,
+        Boolean(descriptor.clientStreaming),
+        Boolean(descriptor.serverStreaming),
+        fromDescriptorOptions(descriptor.options, exports.MethodOptions)
+    );
+};
+
+/**
+ * Converts a method to a descriptor.
+ * @returns {Message<IMethodDescriptorProto>} Descriptor
+ */
+Method.prototype.toDescriptor = function toDescriptor() {
+    return exports.MethodDescriptorProto.create({
+        name: this.name,
+        inputType: this.resolvedRequestType ? this.resolvedRequestType.fullName : this.requestType,
+        outputType: this.resolvedResponseType ? this.resolvedResponseType.fullName : this.responseType,
+        clientStreaming: this.requestStream,
+        serverStreaming: this.responseStream,
+        options: toDescriptorOptions(this.options, exports.MethodOptions)
+    });
+};
+
+// --- utility ---
+
+// Converts a descriptor type to a protobuf.js basic type
+function fromDescriptorType(type) {
+    switch (type) {
+        // 0 is reserved for errors
+        case 1: return "double";
+        case 2: return "float";
+        case 3: return "int64";
+        case 4: return "uint64";
+        case 5: return "int32";
+        case 6: return "fixed64";
+        case 7: return "fixed32";
+        case 8: return "bool";
+        case 9: return "string";
+        case 12: return "bytes";
+        case 13: return "uint32";
+        case 15: return "sfixed32";
+        case 16: return "sfixed64";
+        case 17: return "sint32";
+        case 18: return "sint64";
+    }
+    throw Error("illegal type: " + type);
+}
+
+// Tests if a descriptor type is packable
+function packableDescriptorType(type) {
+    switch (type) {
+        case 1: // double
+        case 2: // float
+        case 3: // int64
+        case 4: // uint64
+        case 5: // int32
+        case 6: // fixed64
+        case 7: // fixed32
+        case 8: // bool
+        case 13: // uint32
+        case 14: // enum (!)
+        case 15: // sfixed32
+        case 16: // sfixed64
+        case 17: // sint32
+        case 18: // sint64
+            return true;
+    }
+    return false;
+}
+
+// Converts a protobuf.js basic type to a descriptor type
+function toDescriptorType(type, resolvedType) {
+    switch (type) {
+        // 0 is reserved for errors
+        case "double": return 1;
+        case "float": return 2;
+        case "int64": return 3;
+        case "uint64": return 4;
+        case "int32": return 5;
+        case "fixed64": return 6;
+        case "fixed32": return 7;
+        case "bool": return 8;
+        case "string": return 9;
+        case "bytes": return 12;
+        case "uint32": return 13;
+        case "sfixed32": return 15;
+        case "sfixed64": return 16;
+        case "sint32": return 17;
+        case "sint64": return 18;
+    }
+    if (resolvedType instanceof Enum)
+        return 14;
+    if (resolvedType instanceof Type)
+        return resolvedType.group ? 10 : 11;
+    throw Error("illegal type: " + type);
+}
+
+// Converts descriptor options to an options object
+function fromDescriptorOptions(options, type) {
+    if (!options)
+        return undefined;
+    var out = [];
+    for (var i = 0, field, key, val; i < type.fieldsArray.length; ++i)
+        if ((key = (field = type._fieldsArray[i]).name) !== "uninterpretedOption")
+            if (options.hasOwnProperty(key)) { // eslint-disable-line no-prototype-builtins
+                val = options[key];
+                if (field.resolvedType instanceof Enum && typeof val === "number" && field.resolvedType.valuesById[val] !== undefined)
+                    val = field.resolvedType.valuesById[val];
+                out.push(underScore(key), val);
+            }
+    return out.length ? protobufjs.util.toObject(out) : undefined;
+}
+
+// Converts an options object to descriptor options
+function toDescriptorOptions(options, type) {
+    if (!options)
+        return undefined;
+    var out = [];
+    for (var i = 0, ks = Object.keys(options), key, val; i < ks.length; ++i) {
+        val = options[key = ks[i]];
+        if (key === "default")
+            continue;
+        var field = type.fields[key];
+        if (!field && !(field = type.fields[key = protobufjs.util.camelCase(key)]))
+            continue;
+        out.push(key, val);
+    }
+    return out.length ? type.fromObject(protobufjs.util.toObject(out)) : undefined;
+}
+
+// Calculates the shortest relative path from `from` to `to`.
+function shortname(from, to) {
+    var fromPath = from.fullName.split("."),
+        toPath = to.fullName.split("."),
+        i = 0,
+        j = 0,
+        k = toPath.length - 1;
+    if (!(from instanceof Root) && to instanceof Namespace)
+        while (i < fromPath.length && j < k && fromPath[i] === toPath[j]) {
+            var other = to.lookup(fromPath[i++], true);
+            if (other !== null && other !== to)
+                break;
+            ++j;
+        }
+    else
+        for (; i < fromPath.length && j < k && fromPath[i] === toPath[j]; ++i, ++j);
+    return toPath.slice(j).join(".");
+}
+
+// copied here from cli/targets/proto.js
+function underScore(str) {
+    return str.substring(0,1)
+         + str.substring(1)
+               .replace(/([A-Z])(?=[a-z]|$)/g, function($0, $1) { return "_" + $1.toLowerCase(); });
+}
+
+// --- exports ---
+
+/**
+ * Reflected file descriptor set.
+ * @name FileDescriptorSet
+ * @type {Type}
+ * @const
+ * @tstype $protobuf.Type
+ */
+
+/**
+ * Reflected file descriptor proto.
+ * @name FileDescriptorProto
+ * @type {Type}
+ * @const
+ * @tstype $protobuf.Type
+ */
+
+/**
+ * Reflected descriptor proto.
+ * @name DescriptorProto
+ * @type {Type}
+ * @property {Type} ExtensionRange
+ * @property {Type} ReservedRange
+ * @const
+ * @tstype $protobuf.Type & {
+ *     ExtensionRange: $protobuf.Type,
+ *     ReservedRange: $protobuf.Type
+ * }
+ */
+
+/**
+ * Reflected field descriptor proto.
+ * @name FieldDescriptorProto
+ * @type {Type}
+ * @property {Enum} Label
+ * @property {Enum} Type
+ * @const
+ * @tstype $protobuf.Type & {
+ *     Label: $protobuf.Enum,
+ *     Type: $protobuf.Enum
+ * }
+ */
+
+/**
+ * Reflected oneof descriptor proto.
+ * @name OneofDescriptorProto
+ * @type {Type}
+ * @const
+ * @tstype $protobuf.Type
+ */
+
+/**
+ * Reflected enum descriptor proto.
+ * @name EnumDescriptorProto
+ * @type {Type}
+ * @const
+ * @tstype $protobuf.Type
+ */
+
+/**
+ * Reflected service descriptor proto.
+ * @name ServiceDescriptorProto
+ * @type {Type}
+ * @const
+ * @tstype $protobuf.Type
+ */
+
+/**
+ * Reflected enum value descriptor proto.
+ * @name EnumValueDescriptorProto
+ * @type {Type}
+ * @const
+ * @tstype $protobuf.Type
+ */
+
+/**
+ * Reflected method descriptor proto.
+ * @name MethodDescriptorProto
+ * @type {Type}
+ * @const
+ * @tstype $protobuf.Type
+ */
+
+/**
+ * Reflected file options.
+ * @name FileOptions
+ * @type {Type}
+ * @property {Enum} OptimizeMode
+ * @const
+ * @tstype $protobuf.Type & {
+ *     OptimizeMode: $protobuf.Enum
+ * }
+ */
+
+/**
+ * Reflected message options.
+ * @name MessageOptions
+ * @type {Type}
+ * @const
+ * @tstype $protobuf.Type
+ */
+
+/**
+ * Reflected field options.
+ * @name FieldOptions
+ * @type {Type}
+ * @property {Enum} CType
+ * @property {Enum} JSType
+ * @const
+ * @tstype $protobuf.Type & {
+ *     CType: $protobuf.Enum,
+ *     JSType: $protobuf.Enum
+ * }
+ */
+
+/**
+ * Reflected oneof options.
+ * @name OneofOptions
+ * @type {Type}
+ * @const
+ * @tstype $protobuf.Type
+ */
+
+/**
+ * Reflected enum options.
+ * @name EnumOptions
+ * @type {Type}
+ * @const
+ * @tstype $protobuf.Type
+ */
+
+/**
+ * Reflected enum value options.
+ * @name EnumValueOptions
+ * @type {Type}
+ * @const
+ * @tstype $protobuf.Type
+ */
+
+/**
+ * Reflected service options.
+ * @name ServiceOptions
+ * @type {Type}
+ * @const
+ * @tstype $protobuf.Type
+ */
+
+/**
+ * Reflected method options.
+ * @name MethodOptions
+ * @type {Type}
+ * @const
+ * @tstype $protobuf.Type
+ */
+
+/**
+ * Reflected uninterpretet option.
+ * @name UninterpretedOption
+ * @type {Type}
+ * @property {Type} NamePart
+ * @const
+ * @tstype $protobuf.Type & {
+ *     NamePart: $protobuf.Type
+ * }
+ */
+
+/**
+ * Reflected source code info.
+ * @name SourceCodeInfo
+ * @type {Type}
+ * @property {Type} Location
+ * @const
+ * @tstype $protobuf.Type & {
+ *     Location: $protobuf.Type
+ * }
+ */
+
+/**
+ * Reflected generated code info.
+ * @name GeneratedCodeInfo
+ * @type {Type}
+ * @property {Type} Annotation
+ * @const
+ * @tstype $protobuf.Type & {
+ *     Annotation: $protobuf.Type
+ * }
+ */
+});
+
+var nested$2 = {
+	google: {
+		nested: {
+			protobuf: {
+				nested: {
+					Api: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							methods: {
+								rule: "repeated",
+								type: "Method",
+								id: 2
+							},
+							options: {
+								rule: "repeated",
+								type: "Option",
+								id: 3
+							},
+							version: {
+								type: "string",
+								id: 4
+							},
+							sourceContext: {
+								type: "SourceContext",
+								id: 5
+							},
+							mixins: {
+								rule: "repeated",
+								type: "Mixin",
+								id: 6
+							},
+							syntax: {
+								type: "Syntax",
+								id: 7
+							}
+						}
+					},
+					Method: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							requestTypeUrl: {
+								type: "string",
+								id: 2
+							},
+							requestStreaming: {
+								type: "bool",
+								id: 3
+							},
+							responseTypeUrl: {
+								type: "string",
+								id: 4
+							},
+							responseStreaming: {
+								type: "bool",
+								id: 5
+							},
+							options: {
+								rule: "repeated",
+								type: "Option",
+								id: 6
+							},
+							syntax: {
+								type: "Syntax",
+								id: 7
+							}
+						}
+					},
+					Mixin: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							root: {
+								type: "string",
+								id: 2
+							}
+						}
+					},
+					SourceContext: {
+						fields: {
+							fileName: {
+								type: "string",
+								id: 1
+							}
+						}
+					},
+					Option: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							value: {
+								type: "Any",
+								id: 2
+							}
+						}
+					},
+					Syntax: {
+						values: {
+							SYNTAX_PROTO2: 0,
+							SYNTAX_PROTO3: 1
+						}
+					}
+				}
+			}
+		}
+	}
+};
+var require$$0$1 = {
+	nested: nested$2
+};
+
+var nested$1 = {
+	google: {
+		nested: {
+			protobuf: {
+				nested: {
+					SourceContext: {
+						fields: {
+							fileName: {
+								type: "string",
+								id: 1
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+};
+var require$$2 = {
+	nested: nested$1
+};
+
+var nested = {
+	google: {
+		nested: {
+			protobuf: {
+				nested: {
+					Type: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							fields: {
+								rule: "repeated",
+								type: "Field",
+								id: 2
+							},
+							oneofs: {
+								rule: "repeated",
+								type: "string",
+								id: 3
+							},
+							options: {
+								rule: "repeated",
+								type: "Option",
+								id: 4
+							},
+							sourceContext: {
+								type: "SourceContext",
+								id: 5
+							},
+							syntax: {
+								type: "Syntax",
+								id: 6
+							}
+						}
+					},
+					Field: {
+						fields: {
+							kind: {
+								type: "Kind",
+								id: 1
+							},
+							cardinality: {
+								type: "Cardinality",
+								id: 2
+							},
+							number: {
+								type: "int32",
+								id: 3
+							},
+							name: {
+								type: "string",
+								id: 4
+							},
+							typeUrl: {
+								type: "string",
+								id: 6
+							},
+							oneofIndex: {
+								type: "int32",
+								id: 7
+							},
+							packed: {
+								type: "bool",
+								id: 8
+							},
+							options: {
+								rule: "repeated",
+								type: "Option",
+								id: 9
+							},
+							jsonName: {
+								type: "string",
+								id: 10
+							},
+							defaultValue: {
+								type: "string",
+								id: 11
+							}
+						},
+						nested: {
+							Kind: {
+								values: {
+									TYPE_UNKNOWN: 0,
+									TYPE_DOUBLE: 1,
+									TYPE_FLOAT: 2,
+									TYPE_INT64: 3,
+									TYPE_UINT64: 4,
+									TYPE_INT32: 5,
+									TYPE_FIXED64: 6,
+									TYPE_FIXED32: 7,
+									TYPE_BOOL: 8,
+									TYPE_STRING: 9,
+									TYPE_GROUP: 10,
+									TYPE_MESSAGE: 11,
+									TYPE_BYTES: 12,
+									TYPE_UINT32: 13,
+									TYPE_ENUM: 14,
+									TYPE_SFIXED32: 15,
+									TYPE_SFIXED64: 16,
+									TYPE_SINT32: 17,
+									TYPE_SINT64: 18
+								}
+							},
+							Cardinality: {
+								values: {
+									CARDINALITY_UNKNOWN: 0,
+									CARDINALITY_OPTIONAL: 1,
+									CARDINALITY_REQUIRED: 2,
+									CARDINALITY_REPEATED: 3
+								}
+							}
+						}
+					},
+					Enum: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							enumvalue: {
+								rule: "repeated",
+								type: "EnumValue",
+								id: 2
+							},
+							options: {
+								rule: "repeated",
+								type: "Option",
+								id: 3
+							},
+							sourceContext: {
+								type: "SourceContext",
+								id: 4
+							},
+							syntax: {
+								type: "Syntax",
+								id: 5
+							}
+						}
+					},
+					EnumValue: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							number: {
+								type: "int32",
+								id: 2
+							},
+							options: {
+								rule: "repeated",
+								type: "Option",
+								id: 3
+							}
+						}
+					},
+					Option: {
+						fields: {
+							name: {
+								type: "string",
+								id: 1
+							},
+							value: {
+								type: "Any",
+								id: 2
+							}
+						}
+					},
+					Syntax: {
+						values: {
+							SYNTAX_PROTO2: 0,
+							SYNTAX_PROTO3: 1
+						}
+					},
+					Any: {
+						fields: {
+							type_url: {
+								type: "string",
+								id: 1
+							},
+							value: {
+								type: "bytes",
+								id: 2
+							}
+						}
+					},
+					SourceContext: {
+						fields: {
+							fileName: {
+								type: "string",
+								id: 1
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+};
+var require$$3 = {
+	nested: nested
+};
+
+/**
+ * @license
+ * Copyright 2018 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+
+
+
+function addIncludePathResolver(root, includePaths) {
+    const originalResolvePath = root.resolvePath;
+    root.resolvePath = (origin, target) => {
+        if (path.isAbsolute(target)) {
+            return target;
+        }
+        for (const directory of includePaths) {
+            const fullPath = path.join(directory, target);
+            try {
+                fs$2.accessSync(fullPath, fs$2.constants.R_OK);
+                return fullPath;
+            }
+            catch (err) {
+                continue;
+            }
+        }
+        browser$1.emitWarning(`${target} not found in any of the include paths ${includePaths}`);
+        return originalResolvePath(origin, target);
+    };
+}
+async function loadProtosWithOptions(filename, options) {
+    const root = new protobufjs.Root();
+    options = options || {};
+    if (!!options.includeDirs) {
+        if (!Array.isArray(options.includeDirs)) {
+            return Promise.reject(new Error('The includeDirs option must be an array'));
+        }
+        addIncludePathResolver(root, options.includeDirs);
+    }
+    const loadedRoot = await root.load(filename, options);
+    loadedRoot.resolveAll();
+    return loadedRoot;
+}
+var loadProtosWithOptions_1 = loadProtosWithOptions;
+function loadProtosWithOptionsSync(filename, options) {
+    const root = new protobufjs.Root();
+    options = options || {};
+    if (!!options.includeDirs) {
+        if (!Array.isArray(options.includeDirs)) {
+            throw new Error('The includeDirs option must be an array');
+        }
+        addIncludePathResolver(root, options.includeDirs);
+    }
+    const loadedRoot = root.loadSync(filename, options);
+    loadedRoot.resolveAll();
+    return loadedRoot;
+}
+var loadProtosWithOptionsSync_1 = loadProtosWithOptionsSync;
+/**
+ * Load Google's well-known proto files that aren't exposed by Protobuf.js.
+ */
+function addCommonProtos() {
+    // Protobuf.js exposes: any, duration, empty, field_mask, struct, timestamp,
+    // and wrappers. compiler/plugin is excluded in Protobuf.js and here.
+    // Using constant strings for compatibility with tools like Webpack
+    const apiDescriptor = require$$0$1;
+    const descriptorDescriptor = require$$1;
+    const sourceContextDescriptor = require$$2;
+    const typeDescriptor = require$$3;
+    protobufjs.common('api', apiDescriptor.nested.google.nested.protobuf.nested);
+    protobufjs.common('descriptor', descriptorDescriptor.nested.google.nested.protobuf.nested);
+    protobufjs.common('source_context', sourceContextDescriptor.nested.google.nested.protobuf.nested);
+    protobufjs.common('type', typeDescriptor.nested.google.nested.protobuf.nested);
+}
+var addCommonProtos_1 = addCommonProtos;
+
+
+var util = /*#__PURE__*/Object.defineProperty({
+	loadProtosWithOptions: loadProtosWithOptions_1,
+	loadProtosWithOptionsSync: loadProtosWithOptionsSync_1,
+	addCommonProtos: addCommonProtos_1
+}, '__esModule', {value: true});
+
+var long = Long;
+
+/**
+ * wasm optimizations, to do native i64 multiplication and divide
+ */
+var wasm = null;
+
+try {
+  wasm = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array([
+    0, 97, 115, 109, 1, 0, 0, 0, 1, 13, 2, 96, 0, 1, 127, 96, 4, 127, 127, 127, 127, 1, 127, 3, 7, 6, 0, 1, 1, 1, 1, 1, 6, 6, 1, 127, 1, 65, 0, 11, 7, 50, 6, 3, 109, 117, 108, 0, 1, 5, 100, 105, 118, 95, 115, 0, 2, 5, 100, 105, 118, 95, 117, 0, 3, 5, 114, 101, 109, 95, 115, 0, 4, 5, 114, 101, 109, 95, 117, 0, 5, 8, 103, 101, 116, 95, 104, 105, 103, 104, 0, 0, 10, 191, 1, 6, 4, 0, 35, 0, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 126, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 127, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 128, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 129, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 130, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11
+  ])), {}).exports;
+} catch (e) {
+  // no wasm support :(
+}
+
+/**
+ * Constructs a 64 bit two's-complement integer, given its low and high 32 bit values as *signed* integers.
+ *  See the from* functions below for more convenient ways of constructing Longs.
+ * @exports Long
+ * @class A Long class for representing a 64 bit two's-complement integer value.
+ * @param {number} low The low (signed) 32 bits of the long
+ * @param {number} high The high (signed) 32 bits of the long
+ * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+ * @constructor
+ */
+function Long(low, high, unsigned) {
+
+    /**
+     * The low 32 bits as a signed value.
+     * @type {number}
+     */
+    this.low = low | 0;
+
+    /**
+     * The high 32 bits as a signed value.
+     * @type {number}
+     */
+    this.high = high | 0;
+
+    /**
+     * Whether unsigned or not.
+     * @type {boolean}
+     */
+    this.unsigned = !!unsigned;
+}
+
+// The internal representation of a long is the two given signed, 32-bit values.
+// We use 32-bit pieces because these are the size of integers on which
+// Javascript performs bit-operations.  For operations like addition and
+// multiplication, we split each number into 16 bit pieces, which can easily be
+// multiplied within Javascript's floating-point representation without overflow
+// or change in sign.
+//
+// In the algorithms below, we frequently reduce the negative case to the
+// positive case by negating the input(s) and then post-processing the result.
+// Note that we must ALWAYS check specially whether those values are MIN_VALUE
+// (-2^63) because -MIN_VALUE == MIN_VALUE (since 2^63 cannot be represented as
+// a positive number, it overflows back into a negative).  Not handling this
+// case would often result in infinite recursion.
+//
+// Common constant values ZERO, ONE, NEG_ONE, etc. are defined below the from*
+// methods on which they depend.
+
+/**
+ * An indicator used to reliably determine if an object is a Long or not.
+ * @type {boolean}
+ * @const
+ * @private
+ */
+Long.prototype.__isLong__;
+
+Object.defineProperty(Long.prototype, "__isLong__", { value: true });
+
+/**
+ * @function
+ * @param {*} obj Object
+ * @returns {boolean}
+ * @inner
+ */
+function isLong(obj) {
+    return (obj && obj["__isLong__"]) === true;
+}
+
+/**
+ * Tests if the specified object is a Long.
+ * @function
+ * @param {*} obj Object
+ * @returns {boolean}
+ */
+Long.isLong = isLong;
+
+/**
+ * A cache of the Long representations of small integer values.
+ * @type {!Object}
+ * @inner
+ */
+var INT_CACHE = {};
+
+/**
+ * A cache of the Long representations of small unsigned integer values.
+ * @type {!Object}
+ * @inner
+ */
+var UINT_CACHE = {};
+
+/**
+ * @param {number} value
+ * @param {boolean=} unsigned
+ * @returns {!Long}
+ * @inner
+ */
+function fromInt(value, unsigned) {
+    var obj, cachedObj, cache;
+    if (unsigned) {
+        value >>>= 0;
+        if (cache = (0 <= value && value < 256)) {
+            cachedObj = UINT_CACHE[value];
+            if (cachedObj)
+                return cachedObj;
+        }
+        obj = fromBits(value, (value | 0) < 0 ? -1 : 0, true);
+        if (cache)
+            UINT_CACHE[value] = obj;
+        return obj;
+    } else {
+        value |= 0;
+        if (cache = (-128 <= value && value < 128)) {
+            cachedObj = INT_CACHE[value];
+            if (cachedObj)
+                return cachedObj;
+        }
+        obj = fromBits(value, value < 0 ? -1 : 0, false);
+        if (cache)
+            INT_CACHE[value] = obj;
+        return obj;
+    }
+}
+
+/**
+ * Returns a Long representing the given 32 bit integer value.
+ * @function
+ * @param {number} value The 32 bit integer in question
+ * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+ * @returns {!Long} The corresponding Long value
+ */
+Long.fromInt = fromInt;
+
+/**
+ * @param {number} value
+ * @param {boolean=} unsigned
+ * @returns {!Long}
+ * @inner
+ */
+function fromNumber(value, unsigned) {
+    if (isNaN(value))
+        return unsigned ? UZERO : ZERO;
+    if (unsigned) {
+        if (value < 0)
+            return UZERO;
+        if (value >= TWO_PWR_64_DBL)
+            return MAX_UNSIGNED_VALUE;
+    } else {
+        if (value <= -TWO_PWR_63_DBL)
+            return MIN_VALUE;
+        if (value + 1 >= TWO_PWR_63_DBL)
+            return MAX_VALUE;
+    }
+    if (value < 0)
+        return fromNumber(-value, unsigned).neg();
+    return fromBits((value % TWO_PWR_32_DBL) | 0, (value / TWO_PWR_32_DBL) | 0, unsigned);
+}
+
+/**
+ * Returns a Long representing the given value, provided that it is a finite number. Otherwise, zero is returned.
+ * @function
+ * @param {number} value The number in question
+ * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+ * @returns {!Long} The corresponding Long value
+ */
+Long.fromNumber = fromNumber;
+
+/**
+ * @param {number} lowBits
+ * @param {number} highBits
+ * @param {boolean=} unsigned
+ * @returns {!Long}
+ * @inner
+ */
+function fromBits(lowBits, highBits, unsigned) {
+    return new Long(lowBits, highBits, unsigned);
+}
+
+/**
+ * Returns a Long representing the 64 bit integer that comes by concatenating the given low and high bits. Each is
+ *  assumed to use 32 bits.
+ * @function
+ * @param {number} lowBits The low 32 bits
+ * @param {number} highBits The high 32 bits
+ * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+ * @returns {!Long} The corresponding Long value
+ */
+Long.fromBits = fromBits;
+
+/**
+ * @function
+ * @param {number} base
+ * @param {number} exponent
+ * @returns {number}
+ * @inner
+ */
+var pow_dbl = Math.pow; // Used 4 times (4*8 to 15+4)
+
+/**
+ * @param {string} str
+ * @param {(boolean|number)=} unsigned
+ * @param {number=} radix
+ * @returns {!Long}
+ * @inner
+ */
+function fromString(str, unsigned, radix) {
+    if (str.length === 0)
+        throw Error('empty string');
+    if (str === "NaN" || str === "Infinity" || str === "+Infinity" || str === "-Infinity")
+        return ZERO;
+    if (typeof unsigned === 'number') {
+        // For goog.math.long compatibility
+        radix = unsigned,
+        unsigned = false;
+    } else {
+        unsigned = !! unsigned;
+    }
+    radix = radix || 10;
+    if (radix < 2 || 36 < radix)
+        throw RangeError('radix');
+
+    var p;
+    if ((p = str.indexOf('-')) > 0)
+        throw Error('interior hyphen');
+    else if (p === 0) {
+        return fromString(str.substring(1), unsigned, radix).neg();
+    }
+
+    // Do several (8) digits each time through the loop, so as to
+    // minimize the calls to the very expensive emulated div.
+    var radixToPower = fromNumber(pow_dbl(radix, 8));
+
+    var result = ZERO;
+    for (var i = 0; i < str.length; i += 8) {
+        var size = Math.min(8, str.length - i),
+            value = parseInt(str.substring(i, i + size), radix);
+        if (size < 8) {
+            var power = fromNumber(pow_dbl(radix, size));
+            result = result.mul(power).add(fromNumber(value));
+        } else {
+            result = result.mul(radixToPower);
+            result = result.add(fromNumber(value));
+        }
+    }
+    result.unsigned = unsigned;
+    return result;
+}
+
+/**
+ * Returns a Long representation of the given string, written using the specified radix.
+ * @function
+ * @param {string} str The textual representation of the Long
+ * @param {(boolean|number)=} unsigned Whether unsigned or not, defaults to signed
+ * @param {number=} radix The radix in which the text is written (2-36), defaults to 10
+ * @returns {!Long} The corresponding Long value
+ */
+Long.fromString = fromString;
+
+/**
+ * @function
+ * @param {!Long|number|string|!{low: number, high: number, unsigned: boolean}} val
+ * @param {boolean=} unsigned
+ * @returns {!Long}
+ * @inner
+ */
+function fromValue(val, unsigned) {
+    if (typeof val === 'number')
+        return fromNumber(val, unsigned);
+    if (typeof val === 'string')
+        return fromString(val, unsigned);
+    // Throws for non-objects, converts non-instanceof Long:
+    return fromBits(val.low, val.high, typeof unsigned === 'boolean' ? unsigned : val.unsigned);
+}
+
+/**
+ * Converts the specified value to a Long using the appropriate from* function for its type.
+ * @function
+ * @param {!Long|number|string|!{low: number, high: number, unsigned: boolean}} val Value
+ * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+ * @returns {!Long}
+ */
+Long.fromValue = fromValue;
+
+// NOTE: the compiler should inline these constant values below and then remove these variables, so there should be
+// no runtime penalty for these.
+
+/**
+ * @type {number}
+ * @const
+ * @inner
+ */
+var TWO_PWR_16_DBL = 1 << 16;
+
+/**
+ * @type {number}
+ * @const
+ * @inner
+ */
+var TWO_PWR_24_DBL = 1 << 24;
+
+/**
+ * @type {number}
+ * @const
+ * @inner
+ */
+var TWO_PWR_32_DBL = TWO_PWR_16_DBL * TWO_PWR_16_DBL;
+
+/**
+ * @type {number}
+ * @const
+ * @inner
+ */
+var TWO_PWR_64_DBL = TWO_PWR_32_DBL * TWO_PWR_32_DBL;
+
+/**
+ * @type {number}
+ * @const
+ * @inner
+ */
+var TWO_PWR_63_DBL = TWO_PWR_64_DBL / 2;
+
+/**
+ * @type {!Long}
+ * @const
+ * @inner
+ */
+var TWO_PWR_24 = fromInt(TWO_PWR_24_DBL);
+
+/**
+ * @type {!Long}
+ * @inner
+ */
+var ZERO = fromInt(0);
+
+/**
+ * Signed zero.
+ * @type {!Long}
+ */
+Long.ZERO = ZERO;
+
+/**
+ * @type {!Long}
+ * @inner
+ */
+var UZERO = fromInt(0, true);
+
+/**
+ * Unsigned zero.
+ * @type {!Long}
+ */
+Long.UZERO = UZERO;
+
+/**
+ * @type {!Long}
+ * @inner
+ */
+var ONE = fromInt(1);
+
+/**
+ * Signed one.
+ * @type {!Long}
+ */
+Long.ONE = ONE;
+
+/**
+ * @type {!Long}
+ * @inner
+ */
+var UONE = fromInt(1, true);
+
+/**
+ * Unsigned one.
+ * @type {!Long}
+ */
+Long.UONE = UONE;
+
+/**
+ * @type {!Long}
+ * @inner
+ */
+var NEG_ONE = fromInt(-1);
+
+/**
+ * Signed negative one.
+ * @type {!Long}
+ */
+Long.NEG_ONE = NEG_ONE;
+
+/**
+ * @type {!Long}
+ * @inner
+ */
+var MAX_VALUE = fromBits(0xFFFFFFFF|0, 0x7FFFFFFF|0, false);
+
+/**
+ * Maximum signed value.
+ * @type {!Long}
+ */
+Long.MAX_VALUE = MAX_VALUE;
+
+/**
+ * @type {!Long}
+ * @inner
+ */
+var MAX_UNSIGNED_VALUE = fromBits(0xFFFFFFFF|0, 0xFFFFFFFF|0, true);
+
+/**
+ * Maximum unsigned value.
+ * @type {!Long}
+ */
+Long.MAX_UNSIGNED_VALUE = MAX_UNSIGNED_VALUE;
+
+/**
+ * @type {!Long}
+ * @inner
+ */
+var MIN_VALUE = fromBits(0, 0x80000000|0, false);
+
+/**
+ * Minimum signed value.
+ * @type {!Long}
+ */
+Long.MIN_VALUE = MIN_VALUE;
+
+/**
+ * @alias Long.prototype
+ * @inner
+ */
+var LongPrototype = Long.prototype;
+
+/**
+ * Converts the Long to a 32 bit integer, assuming it is a 32 bit integer.
+ * @returns {number}
+ */
+LongPrototype.toInt = function toInt() {
+    return this.unsigned ? this.low >>> 0 : this.low;
+};
+
+/**
+ * Converts the Long to a the nearest floating-point representation of this value (double, 53 bit mantissa).
+ * @returns {number}
+ */
+LongPrototype.toNumber = function toNumber() {
+    if (this.unsigned)
+        return ((this.high >>> 0) * TWO_PWR_32_DBL) + (this.low >>> 0);
+    return this.high * TWO_PWR_32_DBL + (this.low >>> 0);
+};
+
+/**
+ * Converts the Long to a string written in the specified radix.
+ * @param {number=} radix Radix (2-36), defaults to 10
+ * @returns {string}
+ * @override
+ * @throws {RangeError} If `radix` is out of range
+ */
+LongPrototype.toString = function toString(radix) {
+    radix = radix || 10;
+    if (radix < 2 || 36 < radix)
+        throw RangeError('radix');
+    if (this.isZero())
+        return '0';
+    if (this.isNegative()) { // Unsigned Longs are never negative
+        if (this.eq(MIN_VALUE)) {
+            // We need to change the Long value before it can be negated, so we remove
+            // the bottom-most digit in this base and then recurse to do the rest.
+            var radixLong = fromNumber(radix),
+                div = this.div(radixLong),
+                rem1 = div.mul(radixLong).sub(this);
+            return div.toString(radix) + rem1.toInt().toString(radix);
+        } else
+            return '-' + this.neg().toString(radix);
+    }
+
+    // Do several (6) digits each time through the loop, so as to
+    // minimize the calls to the very expensive emulated div.
+    var radixToPower = fromNumber(pow_dbl(radix, 6), this.unsigned),
+        rem = this;
+    var result = '';
+    while (true) {
+        var remDiv = rem.div(radixToPower),
+            intval = rem.sub(remDiv.mul(radixToPower)).toInt() >>> 0,
+            digits = intval.toString(radix);
+        rem = remDiv;
+        if (rem.isZero())
+            return digits + result;
+        else {
+            while (digits.length < 6)
+                digits = '0' + digits;
+            result = '' + digits + result;
+        }
+    }
+};
+
+/**
+ * Gets the high 32 bits as a signed integer.
+ * @returns {number} Signed high bits
+ */
+LongPrototype.getHighBits = function getHighBits() {
+    return this.high;
+};
+
+/**
+ * Gets the high 32 bits as an unsigned integer.
+ * @returns {number} Unsigned high bits
+ */
+LongPrototype.getHighBitsUnsigned = function getHighBitsUnsigned() {
+    return this.high >>> 0;
+};
+
+/**
+ * Gets the low 32 bits as a signed integer.
+ * @returns {number} Signed low bits
+ */
+LongPrototype.getLowBits = function getLowBits() {
+    return this.low;
+};
+
+/**
+ * Gets the low 32 bits as an unsigned integer.
+ * @returns {number} Unsigned low bits
+ */
+LongPrototype.getLowBitsUnsigned = function getLowBitsUnsigned() {
+    return this.low >>> 0;
+};
+
+/**
+ * Gets the number of bits needed to represent the absolute value of this Long.
+ * @returns {number}
+ */
+LongPrototype.getNumBitsAbs = function getNumBitsAbs() {
+    if (this.isNegative()) // Unsigned Longs are never negative
+        return this.eq(MIN_VALUE) ? 64 : this.neg().getNumBitsAbs();
+    var val = this.high != 0 ? this.high : this.low;
+    for (var bit = 31; bit > 0; bit--)
+        if ((val & (1 << bit)) != 0)
+            break;
+    return this.high != 0 ? bit + 33 : bit + 1;
+};
+
+/**
+ * Tests if this Long's value equals zero.
+ * @returns {boolean}
+ */
+LongPrototype.isZero = function isZero() {
+    return this.high === 0 && this.low === 0;
+};
+
+/**
+ * Tests if this Long's value equals zero. This is an alias of {@link Long#isZero}.
+ * @returns {boolean}
+ */
+LongPrototype.eqz = LongPrototype.isZero;
+
+/**
+ * Tests if this Long's value is negative.
+ * @returns {boolean}
+ */
+LongPrototype.isNegative = function isNegative() {
+    return !this.unsigned && this.high < 0;
+};
+
+/**
+ * Tests if this Long's value is positive.
+ * @returns {boolean}
+ */
+LongPrototype.isPositive = function isPositive() {
+    return this.unsigned || this.high >= 0;
+};
+
+/**
+ * Tests if this Long's value is odd.
+ * @returns {boolean}
+ */
+LongPrototype.isOdd = function isOdd() {
+    return (this.low & 1) === 1;
+};
+
+/**
+ * Tests if this Long's value is even.
+ * @returns {boolean}
+ */
+LongPrototype.isEven = function isEven() {
+    return (this.low & 1) === 0;
+};
+
+/**
+ * Tests if this Long's value equals the specified's.
+ * @param {!Long|number|string} other Other value
+ * @returns {boolean}
+ */
+LongPrototype.equals = function equals(other) {
+    if (!isLong(other))
+        other = fromValue(other);
+    if (this.unsigned !== other.unsigned && (this.high >>> 31) === 1 && (other.high >>> 31) === 1)
+        return false;
+    return this.high === other.high && this.low === other.low;
+};
+
+/**
+ * Tests if this Long's value equals the specified's. This is an alias of {@link Long#equals}.
+ * @function
+ * @param {!Long|number|string} other Other value
+ * @returns {boolean}
+ */
+LongPrototype.eq = LongPrototype.equals;
+
+/**
+ * Tests if this Long's value differs from the specified's.
+ * @param {!Long|number|string} other Other value
+ * @returns {boolean}
+ */
+LongPrototype.notEquals = function notEquals(other) {
+    return !this.eq(/* validates */ other);
+};
+
+/**
+ * Tests if this Long's value differs from the specified's. This is an alias of {@link Long#notEquals}.
+ * @function
+ * @param {!Long|number|string} other Other value
+ * @returns {boolean}
+ */
+LongPrototype.neq = LongPrototype.notEquals;
+
+/**
+ * Tests if this Long's value differs from the specified's. This is an alias of {@link Long#notEquals}.
+ * @function
+ * @param {!Long|number|string} other Other value
+ * @returns {boolean}
+ */
+LongPrototype.ne = LongPrototype.notEquals;
+
+/**
+ * Tests if this Long's value is less than the specified's.
+ * @param {!Long|number|string} other Other value
+ * @returns {boolean}
+ */
+LongPrototype.lessThan = function lessThan(other) {
+    return this.comp(/* validates */ other) < 0;
+};
+
+/**
+ * Tests if this Long's value is less than the specified's. This is an alias of {@link Long#lessThan}.
+ * @function
+ * @param {!Long|number|string} other Other value
+ * @returns {boolean}
+ */
+LongPrototype.lt = LongPrototype.lessThan;
+
+/**
+ * Tests if this Long's value is less than or equal the specified's.
+ * @param {!Long|number|string} other Other value
+ * @returns {boolean}
+ */
+LongPrototype.lessThanOrEqual = function lessThanOrEqual(other) {
+    return this.comp(/* validates */ other) <= 0;
+};
+
+/**
+ * Tests if this Long's value is less than or equal the specified's. This is an alias of {@link Long#lessThanOrEqual}.
+ * @function
+ * @param {!Long|number|string} other Other value
+ * @returns {boolean}
+ */
+LongPrototype.lte = LongPrototype.lessThanOrEqual;
+
+/**
+ * Tests if this Long's value is less than or equal the specified's. This is an alias of {@link Long#lessThanOrEqual}.
+ * @function
+ * @param {!Long|number|string} other Other value
+ * @returns {boolean}
+ */
+LongPrototype.le = LongPrototype.lessThanOrEqual;
+
+/**
+ * Tests if this Long's value is greater than the specified's.
+ * @param {!Long|number|string} other Other value
+ * @returns {boolean}
+ */
+LongPrototype.greaterThan = function greaterThan(other) {
+    return this.comp(/* validates */ other) > 0;
+};
+
+/**
+ * Tests if this Long's value is greater than the specified's. This is an alias of {@link Long#greaterThan}.
+ * @function
+ * @param {!Long|number|string} other Other value
+ * @returns {boolean}
+ */
+LongPrototype.gt = LongPrototype.greaterThan;
+
+/**
+ * Tests if this Long's value is greater than or equal the specified's.
+ * @param {!Long|number|string} other Other value
+ * @returns {boolean}
+ */
+LongPrototype.greaterThanOrEqual = function greaterThanOrEqual(other) {
+    return this.comp(/* validates */ other) >= 0;
+};
+
+/**
+ * Tests if this Long's value is greater than or equal the specified's. This is an alias of {@link Long#greaterThanOrEqual}.
+ * @function
+ * @param {!Long|number|string} other Other value
+ * @returns {boolean}
+ */
+LongPrototype.gte = LongPrototype.greaterThanOrEqual;
+
+/**
+ * Tests if this Long's value is greater than or equal the specified's. This is an alias of {@link Long#greaterThanOrEqual}.
+ * @function
+ * @param {!Long|number|string} other Other value
+ * @returns {boolean}
+ */
+LongPrototype.ge = LongPrototype.greaterThanOrEqual;
+
+/**
+ * Compares this Long's value with the specified's.
+ * @param {!Long|number|string} other Other value
+ * @returns {number} 0 if they are the same, 1 if the this is greater and -1
+ *  if the given one is greater
+ */
+LongPrototype.compare = function compare(other) {
+    if (!isLong(other))
+        other = fromValue(other);
+    if (this.eq(other))
+        return 0;
+    var thisNeg = this.isNegative(),
+        otherNeg = other.isNegative();
+    if (thisNeg && !otherNeg)
+        return -1;
+    if (!thisNeg && otherNeg)
+        return 1;
+    // At this point the sign bits are the same
+    if (!this.unsigned)
+        return this.sub(other).isNegative() ? -1 : 1;
+    // Both are positive if at least one is unsigned
+    return (other.high >>> 0) > (this.high >>> 0) || (other.high === this.high && (other.low >>> 0) > (this.low >>> 0)) ? -1 : 1;
+};
+
+/**
+ * Compares this Long's value with the specified's. This is an alias of {@link Long#compare}.
+ * @function
+ * @param {!Long|number|string} other Other value
+ * @returns {number} 0 if they are the same, 1 if the this is greater and -1
+ *  if the given one is greater
+ */
+LongPrototype.comp = LongPrototype.compare;
+
+/**
+ * Negates this Long's value.
+ * @returns {!Long} Negated Long
+ */
+LongPrototype.negate = function negate() {
+    if (!this.unsigned && this.eq(MIN_VALUE))
+        return MIN_VALUE;
+    return this.not().add(ONE);
+};
+
+/**
+ * Negates this Long's value. This is an alias of {@link Long#negate}.
+ * @function
+ * @returns {!Long} Negated Long
+ */
+LongPrototype.neg = LongPrototype.negate;
+
+/**
+ * Returns the sum of this and the specified Long.
+ * @param {!Long|number|string} addend Addend
+ * @returns {!Long} Sum
+ */
+LongPrototype.add = function add(addend) {
+    if (!isLong(addend))
+        addend = fromValue(addend);
+
+    // Divide each number into 4 chunks of 16 bits, and then sum the chunks.
+
+    var a48 = this.high >>> 16;
+    var a32 = this.high & 0xFFFF;
+    var a16 = this.low >>> 16;
+    var a00 = this.low & 0xFFFF;
+
+    var b48 = addend.high >>> 16;
+    var b32 = addend.high & 0xFFFF;
+    var b16 = addend.low >>> 16;
+    var b00 = addend.low & 0xFFFF;
+
+    var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
+    c00 += a00 + b00;
+    c16 += c00 >>> 16;
+    c00 &= 0xFFFF;
+    c16 += a16 + b16;
+    c32 += c16 >>> 16;
+    c16 &= 0xFFFF;
+    c32 += a32 + b32;
+    c48 += c32 >>> 16;
+    c32 &= 0xFFFF;
+    c48 += a48 + b48;
+    c48 &= 0xFFFF;
+    return fromBits((c16 << 16) | c00, (c48 << 16) | c32, this.unsigned);
+};
+
+/**
+ * Returns the difference of this and the specified Long.
+ * @param {!Long|number|string} subtrahend Subtrahend
+ * @returns {!Long} Difference
+ */
+LongPrototype.subtract = function subtract(subtrahend) {
+    if (!isLong(subtrahend))
+        subtrahend = fromValue(subtrahend);
+    return this.add(subtrahend.neg());
+};
+
+/**
+ * Returns the difference of this and the specified Long. This is an alias of {@link Long#subtract}.
+ * @function
+ * @param {!Long|number|string} subtrahend Subtrahend
+ * @returns {!Long} Difference
+ */
+LongPrototype.sub = LongPrototype.subtract;
+
+/**
+ * Returns the product of this and the specified Long.
+ * @param {!Long|number|string} multiplier Multiplier
+ * @returns {!Long} Product
+ */
+LongPrototype.multiply = function multiply(multiplier) {
+    if (this.isZero())
+        return ZERO;
+    if (!isLong(multiplier))
+        multiplier = fromValue(multiplier);
+
+    // use wasm support if present
+    if (wasm) {
+        var low = wasm.mul(this.low,
+                           this.high,
+                           multiplier.low,
+                           multiplier.high);
+        return fromBits(low, wasm.get_high(), this.unsigned);
+    }
+
+    if (multiplier.isZero())
+        return ZERO;
+    if (this.eq(MIN_VALUE))
+        return multiplier.isOdd() ? MIN_VALUE : ZERO;
+    if (multiplier.eq(MIN_VALUE))
+        return this.isOdd() ? MIN_VALUE : ZERO;
+
+    if (this.isNegative()) {
+        if (multiplier.isNegative())
+            return this.neg().mul(multiplier.neg());
+        else
+            return this.neg().mul(multiplier).neg();
+    } else if (multiplier.isNegative())
+        return this.mul(multiplier.neg()).neg();
+
+    // If both longs are small, use float multiplication
+    if (this.lt(TWO_PWR_24) && multiplier.lt(TWO_PWR_24))
+        return fromNumber(this.toNumber() * multiplier.toNumber(), this.unsigned);
+
+    // Divide each long into 4 chunks of 16 bits, and then add up 4x4 products.
+    // We can skip products that would overflow.
+
+    var a48 = this.high >>> 16;
+    var a32 = this.high & 0xFFFF;
+    var a16 = this.low >>> 16;
+    var a00 = this.low & 0xFFFF;
+
+    var b48 = multiplier.high >>> 16;
+    var b32 = multiplier.high & 0xFFFF;
+    var b16 = multiplier.low >>> 16;
+    var b00 = multiplier.low & 0xFFFF;
+
+    var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
+    c00 += a00 * b00;
+    c16 += c00 >>> 16;
+    c00 &= 0xFFFF;
+    c16 += a16 * b00;
+    c32 += c16 >>> 16;
+    c16 &= 0xFFFF;
+    c16 += a00 * b16;
+    c32 += c16 >>> 16;
+    c16 &= 0xFFFF;
+    c32 += a32 * b00;
+    c48 += c32 >>> 16;
+    c32 &= 0xFFFF;
+    c32 += a16 * b16;
+    c48 += c32 >>> 16;
+    c32 &= 0xFFFF;
+    c32 += a00 * b32;
+    c48 += c32 >>> 16;
+    c32 &= 0xFFFF;
+    c48 += a48 * b00 + a32 * b16 + a16 * b32 + a00 * b48;
+    c48 &= 0xFFFF;
+    return fromBits((c16 << 16) | c00, (c48 << 16) | c32, this.unsigned);
+};
+
+/**
+ * Returns the product of this and the specified Long. This is an alias of {@link Long#multiply}.
+ * @function
+ * @param {!Long|number|string} multiplier Multiplier
+ * @returns {!Long} Product
+ */
+LongPrototype.mul = LongPrototype.multiply;
+
+/**
+ * Returns this Long divided by the specified. The result is signed if this Long is signed or
+ *  unsigned if this Long is unsigned.
+ * @param {!Long|number|string} divisor Divisor
+ * @returns {!Long} Quotient
+ */
+LongPrototype.divide = function divide(divisor) {
+    if (!isLong(divisor))
+        divisor = fromValue(divisor);
+    if (divisor.isZero())
+        throw Error('division by zero');
+
+    // use wasm support if present
+    if (wasm) {
+        // guard against signed division overflow: the largest
+        // negative number / -1 would be 1 larger than the largest
+        // positive number, due to two's complement.
+        if (!this.unsigned &&
+            this.high === -0x80000000 &&
+            divisor.low === -1 && divisor.high === -1) {
+            // be consistent with non-wasm code path
+            return this;
+        }
+        var low = (this.unsigned ? wasm.div_u : wasm.div_s)(
+            this.low,
+            this.high,
+            divisor.low,
+            divisor.high
+        );
+        return fromBits(low, wasm.get_high(), this.unsigned);
+    }
+
+    if (this.isZero())
+        return this.unsigned ? UZERO : ZERO;
+    var approx, rem, res;
+    if (!this.unsigned) {
+        // This section is only relevant for signed longs and is derived from the
+        // closure library as a whole.
+        if (this.eq(MIN_VALUE)) {
+            if (divisor.eq(ONE) || divisor.eq(NEG_ONE))
+                return MIN_VALUE;  // recall that -MIN_VALUE == MIN_VALUE
+            else if (divisor.eq(MIN_VALUE))
+                return ONE;
+            else {
+                // At this point, we have |other| >= 2, so |this/other| < |MIN_VALUE|.
+                var halfThis = this.shr(1);
+                approx = halfThis.div(divisor).shl(1);
+                if (approx.eq(ZERO)) {
+                    return divisor.isNegative() ? ONE : NEG_ONE;
+                } else {
+                    rem = this.sub(divisor.mul(approx));
+                    res = approx.add(rem.div(divisor));
+                    return res;
+                }
+            }
+        } else if (divisor.eq(MIN_VALUE))
+            return this.unsigned ? UZERO : ZERO;
+        if (this.isNegative()) {
+            if (divisor.isNegative())
+                return this.neg().div(divisor.neg());
+            return this.neg().div(divisor).neg();
+        } else if (divisor.isNegative())
+            return this.div(divisor.neg()).neg();
+        res = ZERO;
+    } else {
+        // The algorithm below has not been made for unsigned longs. It's therefore
+        // required to take special care of the MSB prior to running it.
+        if (!divisor.unsigned)
+            divisor = divisor.toUnsigned();
+        if (divisor.gt(this))
+            return UZERO;
+        if (divisor.gt(this.shru(1))) // 15 >>> 1 = 7 ; with divisor = 8 ; true
+            return UONE;
+        res = UZERO;
+    }
+
+    // Repeat the following until the remainder is less than other:  find a
+    // floating-point that approximates remainder / other *from below*, add this
+    // into the result, and subtract it from the remainder.  It is critical that
+    // the approximate value is less than or equal to the real value so that the
+    // remainder never becomes negative.
+    rem = this;
+    while (rem.gte(divisor)) {
+        // Approximate the result of division. This may be a little greater or
+        // smaller than the actual value.
+        approx = Math.max(1, Math.floor(rem.toNumber() / divisor.toNumber()));
+
+        // We will tweak the approximate result by changing it in the 48-th digit or
+        // the smallest non-fractional digit, whichever is larger.
+        var log2 = Math.ceil(Math.log(approx) / Math.LN2),
+            delta = (log2 <= 48) ? 1 : pow_dbl(2, log2 - 48),
+
+        // Decrease the approximation until it is smaller than the remainder.  Note
+        // that if it is too large, the product overflows and is negative.
+            approxRes = fromNumber(approx),
+            approxRem = approxRes.mul(divisor);
+        while (approxRem.isNegative() || approxRem.gt(rem)) {
+            approx -= delta;
+            approxRes = fromNumber(approx, this.unsigned);
+            approxRem = approxRes.mul(divisor);
+        }
+
+        // We know the answer can't be zero... and actually, zero would cause
+        // infinite recursion since we would make no progress.
+        if (approxRes.isZero())
+            approxRes = ONE;
+
+        res = res.add(approxRes);
+        rem = rem.sub(approxRem);
+    }
+    return res;
+};
+
+/**
+ * Returns this Long divided by the specified. This is an alias of {@link Long#divide}.
+ * @function
+ * @param {!Long|number|string} divisor Divisor
+ * @returns {!Long} Quotient
+ */
+LongPrototype.div = LongPrototype.divide;
+
+/**
+ * Returns this Long modulo the specified.
+ * @param {!Long|number|string} divisor Divisor
+ * @returns {!Long} Remainder
+ */
+LongPrototype.modulo = function modulo(divisor) {
+    if (!isLong(divisor))
+        divisor = fromValue(divisor);
+
+    // use wasm support if present
+    if (wasm) {
+        var low = (this.unsigned ? wasm.rem_u : wasm.rem_s)(
+            this.low,
+            this.high,
+            divisor.low,
+            divisor.high
+        );
+        return fromBits(low, wasm.get_high(), this.unsigned);
+    }
+
+    return this.sub(this.div(divisor).mul(divisor));
+};
+
+/**
+ * Returns this Long modulo the specified. This is an alias of {@link Long#modulo}.
+ * @function
+ * @param {!Long|number|string} divisor Divisor
+ * @returns {!Long} Remainder
+ */
+LongPrototype.mod = LongPrototype.modulo;
+
+/**
+ * Returns this Long modulo the specified. This is an alias of {@link Long#modulo}.
+ * @function
+ * @param {!Long|number|string} divisor Divisor
+ * @returns {!Long} Remainder
+ */
+LongPrototype.rem = LongPrototype.modulo;
+
+/**
+ * Returns the bitwise NOT of this Long.
+ * @returns {!Long}
+ */
+LongPrototype.not = function not() {
+    return fromBits(~this.low, ~this.high, this.unsigned);
+};
+
+/**
+ * Returns the bitwise AND of this Long and the specified.
+ * @param {!Long|number|string} other Other Long
+ * @returns {!Long}
+ */
+LongPrototype.and = function and(other) {
+    if (!isLong(other))
+        other = fromValue(other);
+    return fromBits(this.low & other.low, this.high & other.high, this.unsigned);
+};
+
+/**
+ * Returns the bitwise OR of this Long and the specified.
+ * @param {!Long|number|string} other Other Long
+ * @returns {!Long}
+ */
+LongPrototype.or = function or(other) {
+    if (!isLong(other))
+        other = fromValue(other);
+    return fromBits(this.low | other.low, this.high | other.high, this.unsigned);
+};
+
+/**
+ * Returns the bitwise XOR of this Long and the given one.
+ * @param {!Long|number|string} other Other Long
+ * @returns {!Long}
+ */
+LongPrototype.xor = function xor(other) {
+    if (!isLong(other))
+        other = fromValue(other);
+    return fromBits(this.low ^ other.low, this.high ^ other.high, this.unsigned);
+};
+
+/**
+ * Returns this Long with bits shifted to the left by the given amount.
+ * @param {number|!Long} numBits Number of bits
+ * @returns {!Long} Shifted Long
+ */
+LongPrototype.shiftLeft = function shiftLeft(numBits) {
+    if (isLong(numBits))
+        numBits = numBits.toInt();
+    if ((numBits &= 63) === 0)
+        return this;
+    else if (numBits < 32)
+        return fromBits(this.low << numBits, (this.high << numBits) | (this.low >>> (32 - numBits)), this.unsigned);
+    else
+        return fromBits(0, this.low << (numBits - 32), this.unsigned);
+};
+
+/**
+ * Returns this Long with bits shifted to the left by the given amount. This is an alias of {@link Long#shiftLeft}.
+ * @function
+ * @param {number|!Long} numBits Number of bits
+ * @returns {!Long} Shifted Long
+ */
+LongPrototype.shl = LongPrototype.shiftLeft;
+
+/**
+ * Returns this Long with bits arithmetically shifted to the right by the given amount.
+ * @param {number|!Long} numBits Number of bits
+ * @returns {!Long} Shifted Long
+ */
+LongPrototype.shiftRight = function shiftRight(numBits) {
+    if (isLong(numBits))
+        numBits = numBits.toInt();
+    if ((numBits &= 63) === 0)
+        return this;
+    else if (numBits < 32)
+        return fromBits((this.low >>> numBits) | (this.high << (32 - numBits)), this.high >> numBits, this.unsigned);
+    else
+        return fromBits(this.high >> (numBits - 32), this.high >= 0 ? 0 : -1, this.unsigned);
+};
+
+/**
+ * Returns this Long with bits arithmetically shifted to the right by the given amount. This is an alias of {@link Long#shiftRight}.
+ * @function
+ * @param {number|!Long} numBits Number of bits
+ * @returns {!Long} Shifted Long
+ */
+LongPrototype.shr = LongPrototype.shiftRight;
+
+/**
+ * Returns this Long with bits logically shifted to the right by the given amount.
+ * @param {number|!Long} numBits Number of bits
+ * @returns {!Long} Shifted Long
+ */
+LongPrototype.shiftRightUnsigned = function shiftRightUnsigned(numBits) {
+    if (isLong(numBits))
+        numBits = numBits.toInt();
+    numBits &= 63;
+    if (numBits === 0)
+        return this;
+    else {
+        var high = this.high;
+        if (numBits < 32) {
+            var low = this.low;
+            return fromBits((low >>> numBits) | (high << (32 - numBits)), high >>> numBits, this.unsigned);
+        } else if (numBits === 32)
+            return fromBits(high, 0, this.unsigned);
+        else
+            return fromBits(high >>> (numBits - 32), 0, this.unsigned);
+    }
+};
+
+/**
+ * Returns this Long with bits logically shifted to the right by the given amount. This is an alias of {@link Long#shiftRightUnsigned}.
+ * @function
+ * @param {number|!Long} numBits Number of bits
+ * @returns {!Long} Shifted Long
+ */
+LongPrototype.shru = LongPrototype.shiftRightUnsigned;
+
+/**
+ * Returns this Long with bits logically shifted to the right by the given amount. This is an alias of {@link Long#shiftRightUnsigned}.
+ * @function
+ * @param {number|!Long} numBits Number of bits
+ * @returns {!Long} Shifted Long
+ */
+LongPrototype.shr_u = LongPrototype.shiftRightUnsigned;
+
+/**
+ * Converts this Long to signed.
+ * @returns {!Long} Signed long
+ */
+LongPrototype.toSigned = function toSigned() {
+    if (!this.unsigned)
+        return this;
+    return fromBits(this.low, this.high, false);
+};
+
+/**
+ * Converts this Long to unsigned.
+ * @returns {!Long} Unsigned long
+ */
+LongPrototype.toUnsigned = function toUnsigned() {
+    if (this.unsigned)
+        return this;
+    return fromBits(this.low, this.high, true);
+};
+
+/**
+ * Converts this Long to its byte representation.
+ * @param {boolean=} le Whether little or big endian, defaults to big endian
+ * @returns {!Array.<number>} Byte representation
+ */
+LongPrototype.toBytes = function toBytes(le) {
+    return le ? this.toBytesLE() : this.toBytesBE();
+};
+
+/**
+ * Converts this Long to its little endian byte representation.
+ * @returns {!Array.<number>} Little endian byte representation
+ */
+LongPrototype.toBytesLE = function toBytesLE() {
+    var hi = this.high,
+        lo = this.low;
+    return [
+        lo        & 0xff,
+        lo >>>  8 & 0xff,
+        lo >>> 16 & 0xff,
+        lo >>> 24       ,
+        hi        & 0xff,
+        hi >>>  8 & 0xff,
+        hi >>> 16 & 0xff,
+        hi >>> 24
+    ];
+};
+
+/**
+ * Converts this Long to its big endian byte representation.
+ * @returns {!Array.<number>} Big endian byte representation
+ */
+LongPrototype.toBytesBE = function toBytesBE() {
+    var hi = this.high,
+        lo = this.low;
+    return [
+        hi >>> 24       ,
+        hi >>> 16 & 0xff,
+        hi >>>  8 & 0xff,
+        hi        & 0xff,
+        lo >>> 24       ,
+        lo >>> 16 & 0xff,
+        lo >>>  8 & 0xff,
+        lo        & 0xff
+    ];
+};
+
+/**
+ * Creates a Long from its byte representation.
+ * @param {!Array.<number>} bytes Byte representation
+ * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+ * @param {boolean=} le Whether little or big endian, defaults to big endian
+ * @returns {Long} The corresponding Long value
+ */
+Long.fromBytes = function fromBytes(bytes, unsigned, le) {
+    return le ? Long.fromBytesLE(bytes, unsigned) : Long.fromBytesBE(bytes, unsigned);
+};
+
+/**
+ * Creates a Long from its little endian byte representation.
+ * @param {!Array.<number>} bytes Little endian byte representation
+ * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+ * @returns {Long} The corresponding Long value
+ */
+Long.fromBytesLE = function fromBytesLE(bytes, unsigned) {
+    return new Long(
+        bytes[0]       |
+        bytes[1] <<  8 |
+        bytes[2] << 16 |
+        bytes[3] << 24,
+        bytes[4]       |
+        bytes[5] <<  8 |
+        bytes[6] << 16 |
+        bytes[7] << 24,
+        unsigned
+    );
+};
+
+/**
+ * Creates a Long from its big endian byte representation.
+ * @param {!Array.<number>} bytes Big endian byte representation
+ * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+ * @returns {Long} The corresponding Long value
+ */
+Long.fromBytesBE = function fromBytesBE(bytes, unsigned) {
+    return new Long(
+        bytes[4] << 24 |
+        bytes[5] << 16 |
+        bytes[6] <<  8 |
+        bytes[7],
+        bytes[0] << 24 |
+        bytes[1] << 16 |
+        bytes[2] <<  8 |
+        bytes[3],
+        unsigned
+    );
+};
+
+/**
+ * @license
+ * Copyright 2018 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+
+
+
+
+
+var Long_1 = long;
+function isAnyExtension(obj) {
+    return ('@type' in obj) && (typeof obj['@type'] === 'string');
+}
+var isAnyExtension_1 = isAnyExtension;
+const descriptorOptions = {
+    longs: String,
+    enums: String,
+    bytes: String,
+    defaults: true,
+    oneofs: true,
+    json: true,
+};
+function joinName(baseName, name) {
+    if (baseName === '') {
+        return name;
+    }
+    else {
+        return baseName + '.' + name;
+    }
+}
+function isHandledReflectionObject(obj) {
+    return (obj instanceof protobufjs.Service ||
+        obj instanceof protobufjs.Type ||
+        obj instanceof protobufjs.Enum);
+}
+function isNamespaceBase(obj) {
+    return obj instanceof protobufjs.Namespace || obj instanceof protobufjs.Root;
+}
+function getAllHandledReflectionObjects(obj, parentName) {
+    const objName = joinName(parentName, obj.name);
+    if (isHandledReflectionObject(obj)) {
+        return [[objName, obj]];
+    }
+    else {
+        if (isNamespaceBase(obj) && typeof obj.nested !== 'undefined') {
+            return Object.keys(obj.nested)
+                .map(name => {
+                return getAllHandledReflectionObjects(obj.nested[name], objName);
+            })
+                .reduce((accumulator, currentValue) => accumulator.concat(currentValue), []);
+        }
+    }
+    return [];
+}
+function createDeserializer(cls, options) {
+    return function deserialize(argBuf) {
+        return cls.toObject(cls.decode(argBuf), options);
+    };
+}
+function createSerializer(cls) {
+    return function serialize(arg) {
+        if (Array.isArray(arg)) {
+            throw new Error(`Failed to serialize message: expected object with ${cls.name} structure, got array instead`);
+        }
+        const message = cls.fromObject(arg);
+        return cls.encode(message).finish();
+    };
+}
+function createMethodDefinition(method, serviceName, options, fileDescriptors) {
+    /* This is only ever called after the corresponding root.resolveAll(), so we
+     * can assume that the resolved request and response types are non-null */
+    const requestType = method.resolvedRequestType;
+    const responseType = method.resolvedResponseType;
+    return {
+        path: '/' + serviceName + '/' + method.name,
+        requestStream: !!method.requestStream,
+        responseStream: !!method.responseStream,
+        requestSerialize: createSerializer(requestType),
+        requestDeserialize: createDeserializer(requestType, options),
+        responseSerialize: createSerializer(responseType),
+        responseDeserialize: createDeserializer(responseType, options),
+        // TODO(murgatroid99): Find a better way to handle this
+        originalName: lodash_camelcase(method.name),
+        requestType: createMessageDefinition(requestType, fileDescriptors),
+        responseType: createMessageDefinition(responseType, fileDescriptors),
+    };
+}
+function createServiceDefinition(service, name, options, fileDescriptors) {
+    const def = {};
+    for (const method of service.methodsArray) {
+        def[method.name] = createMethodDefinition(method, name, options, fileDescriptors);
+    }
+    return def;
+}
+function createMessageDefinition(message, fileDescriptors) {
+    const messageDescriptor = message.toDescriptor('proto3');
+    return {
+        format: 'Protocol Buffer 3 DescriptorProto',
+        type: messageDescriptor.$type.toObject(messageDescriptor, descriptorOptions),
+        fileDescriptorProtos: fileDescriptors,
+    };
+}
+function createEnumDefinition(enumType, fileDescriptors) {
+    const enumDescriptor = enumType.toDescriptor('proto3');
+    return {
+        format: 'Protocol Buffer 3 EnumDescriptorProto',
+        type: enumDescriptor.$type.toObject(enumDescriptor, descriptorOptions),
+        fileDescriptorProtos: fileDescriptors,
+    };
+}
+/**
+ * function createDefinition(obj: Protobuf.Service, name: string, options:
+ * Options): ServiceDefinition; function createDefinition(obj: Protobuf.Type,
+ * name: string, options: Options): MessageTypeDefinition; function
+ * createDefinition(obj: Protobuf.Enum, name: string, options: Options):
+ * EnumTypeDefinition;
+ */
+function createDefinition(obj, name, options, fileDescriptors) {
+    if (obj instanceof protobufjs.Service) {
+        return createServiceDefinition(obj, name, options, fileDescriptors);
+    }
+    else if (obj instanceof protobufjs.Type) {
+        return createMessageDefinition(obj, fileDescriptors);
+    }
+    else if (obj instanceof protobufjs.Enum) {
+        return createEnumDefinition(obj, fileDescriptors);
+    }
+    else {
+        throw new Error('Type mismatch in reflection object handling');
+    }
+}
+function createPackageDefinition(root, options) {
+    const def = {};
+    root.resolveAll();
+    const descriptorList = root.toDescriptor('proto3').file;
+    const bufferList = descriptorList.map(value => Buffer$1.from(descriptor.FileDescriptorProto.encode(value).finish()));
+    for (const [name, obj] of getAllHandledReflectionObjects(root, '')) {
+        def[name] = createDefinition(obj, name, options, bufferList);
+    }
+    return def;
+}
+function createPackageDefinitionFromDescriptorSet(decodedDescriptorSet, options) {
+    options = options || {};
+    const root = protobufjs.Root.fromDescriptor(decodedDescriptorSet);
+    root.resolveAll();
+    return createPackageDefinition(root, options);
+}
+/**
+ * Load a .proto file with the specified options.
+ * @param filename One or multiple file paths to load. Can be an absolute path
+ *     or relative to an include path.
+ * @param options.keepCase Preserve field names. The default is to change them
+ *     to camel case.
+ * @param options.longs The type that should be used to represent `long` values.
+ *     Valid options are `Number` and `String`. Defaults to a `Long` object type
+ *     from a library.
+ * @param options.enums The type that should be used to represent `enum` values.
+ *     The only valid option is `String`. Defaults to the numeric value.
+ * @param options.bytes The type that should be used to represent `bytes`
+ *     values. Valid options are `Array` and `String`. The default is to use
+ *     `Buffer`.
+ * @param options.defaults Set default values on output objects. Defaults to
+ *     `false`.
+ * @param options.arrays Set empty arrays for missing array values even if
+ *     `defaults` is `false`. Defaults to `false`.
+ * @param options.objects Set empty objects for missing object values even if
+ *     `defaults` is `false`. Defaults to `false`.
+ * @param options.oneofs Set virtual oneof properties to the present field's
+ *     name
+ * @param options.json Represent Infinity and NaN as strings in float fields,
+ *     and automatically decode google.protobuf.Any values.
+ * @param options.includeDirs Paths to search for imported `.proto` files.
+ */
+function load(filename, options) {
+    return util.loadProtosWithOptions(filename, options).then(loadedRoot => {
+        return createPackageDefinition(loadedRoot, options);
+    });
+}
+var load_1 = load;
+function loadSync(filename, options) {
+    const loadedRoot = util.loadProtosWithOptionsSync(filename, options);
+    return createPackageDefinition(loadedRoot, options);
+}
+var loadSync_1 = loadSync;
+function fromJSON(json, options) {
+    options = options || {};
+    const loadedRoot = protobufjs.Root.fromJSON(json);
+    loadedRoot.resolveAll();
+    return createPackageDefinition(loadedRoot, options);
+}
+var fromJSON_1 = fromJSON;
+function loadFileDescriptorSetFromBuffer(descriptorSet, options) {
+    const decodedDescriptorSet = descriptor.FileDescriptorSet.decode(descriptorSet);
+    return createPackageDefinitionFromDescriptorSet(decodedDescriptorSet, options);
+}
+var loadFileDescriptorSetFromBuffer_1 = loadFileDescriptorSetFromBuffer;
+function loadFileDescriptorSetFromObject(descriptorSet, options) {
+    const decodedDescriptorSet = descriptor.FileDescriptorSet.fromObject(descriptorSet);
+    return createPackageDefinitionFromDescriptorSet(decodedDescriptorSet, options);
+}
+var loadFileDescriptorSetFromObject_1 = loadFileDescriptorSetFromObject;
+util.addCommonProtos();
+
+
+var src = /*#__PURE__*/Object.defineProperty({
+	Long: Long_1,
+	isAnyExtension: isAnyExtension_1,
+	load: load_1,
+	loadSync: loadSync_1,
+	fromJSON: fromJSON_1,
+	loadFileDescriptorSetFromBuffer: loadFileDescriptorSetFromBuffer_1,
+	loadFileDescriptorSetFromObject: loadFileDescriptorSetFromObject_1
+}, '__esModule', {value: true});
+
+var channelz = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2021 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.setup = exports.getChannelzServiceDefinition = exports.getChannelzHandlers = exports.unregisterChannelzRef = exports.registerChannelzSocket = exports.registerChannelzServer = exports.registerChannelzSubchannel = exports.registerChannelzChannel = exports.ChannelzCallTracker = exports.ChannelzChildrenTracker = exports.ChannelzTrace = void 0;
+
+
+
+
+
+
+function channelRefToMessage(ref) {
+    return {
+        channel_id: ref.id,
+        name: ref.name
+    };
+}
+function subchannelRefToMessage(ref) {
+    return {
+        subchannel_id: ref.id,
+        name: ref.name
+    };
+}
+function serverRefToMessage(ref) {
+    return {
+        server_id: ref.id
+    };
+}
+function socketRefToMessage(ref) {
+    return {
+        socket_id: ref.id,
+        name: ref.name
+    };
+}
+/**
+ * The loose upper bound on the number of events that should be retained in a
+ * trace. This may be exceeded by up to a factor of 2. Arbitrarily chosen as a
+ * number that should be large enough to contain the recent relevant
+ * information, but small enough to not use excessive memory.
+ */
+const TARGET_RETAINED_TRACES = 32;
+class ChannelzTrace {
+    constructor() {
+        this.events = [];
+        this.eventsLogged = 0;
+        this.creationTimestamp = new Date();
+    }
+    addTrace(severity, description, child) {
+        const timestamp = new Date();
+        this.events.push({
+            description: description,
+            severity: severity,
+            timestamp: timestamp,
+            childChannel: (child === null || child === void 0 ? void 0 : child.kind) === 'channel' ? child : undefined,
+            childSubchannel: (child === null || child === void 0 ? void 0 : child.kind) === 'subchannel' ? child : undefined
+        });
+        // Whenever the trace array gets too large, discard the first half
+        if (this.events.length >= TARGET_RETAINED_TRACES * 2) {
+            this.events = this.events.slice(TARGET_RETAINED_TRACES);
+        }
+        this.eventsLogged += 1;
+    }
+    getTraceMessage() {
+        return {
+            creation_timestamp: dateToProtoTimestamp(this.creationTimestamp),
+            num_events_logged: this.eventsLogged,
+            events: this.events.map(event => {
+                return {
+                    description: event.description,
+                    severity: event.severity,
+                    timestamp: dateToProtoTimestamp(event.timestamp),
+                    channel_ref: event.childChannel ? channelRefToMessage(event.childChannel) : null,
+                    subchannel_ref: event.childSubchannel ? subchannelRefToMessage(event.childSubchannel) : null
+                };
+            })
+        };
+    }
+}
+exports.ChannelzTrace = ChannelzTrace;
+class ChannelzChildrenTracker {
+    constructor() {
+        this.channelChildren = new Map();
+        this.subchannelChildren = new Map();
+        this.socketChildren = new Map();
+    }
+    refChild(child) {
+        var _a, _b, _c;
+        switch (child.kind) {
+            case 'channel': {
+                let trackedChild = (_a = this.channelChildren.get(child.id)) !== null && _a !== void 0 ? _a : { ref: child, count: 0 };
+                trackedChild.count += 1;
+                this.channelChildren.set(child.id, trackedChild);
+                break;
+            }
+            case 'subchannel': {
+                let trackedChild = (_b = this.subchannelChildren.get(child.id)) !== null && _b !== void 0 ? _b : { ref: child, count: 0 };
+                trackedChild.count += 1;
+                this.subchannelChildren.set(child.id, trackedChild);
+                break;
+            }
+            case 'socket': {
+                let trackedChild = (_c = this.socketChildren.get(child.id)) !== null && _c !== void 0 ? _c : { ref: child, count: 0 };
+                trackedChild.count += 1;
+                this.socketChildren.set(child.id, trackedChild);
+                break;
+            }
+        }
+    }
+    unrefChild(child) {
+        switch (child.kind) {
+            case 'channel': {
+                let trackedChild = this.channelChildren.get(child.id);
+                if (trackedChild !== undefined) {
+                    trackedChild.count -= 1;
+                    if (trackedChild.count === 0) {
+                        this.channelChildren.delete(child.id);
+                    }
+                    else {
+                        this.channelChildren.set(child.id, trackedChild);
+                    }
+                }
+                break;
+            }
+            case 'subchannel': {
+                let trackedChild = this.subchannelChildren.get(child.id);
+                if (trackedChild !== undefined) {
+                    trackedChild.count -= 1;
+                    if (trackedChild.count === 0) {
+                        this.subchannelChildren.delete(child.id);
+                    }
+                    else {
+                        this.subchannelChildren.set(child.id, trackedChild);
+                    }
+                }
+                break;
+            }
+            case 'socket': {
+                let trackedChild = this.socketChildren.get(child.id);
+                if (trackedChild !== undefined) {
+                    trackedChild.count -= 1;
+                    if (trackedChild.count === 0) {
+                        this.socketChildren.delete(child.id);
+                    }
+                    else {
+                        this.socketChildren.set(child.id, trackedChild);
+                    }
+                }
+                break;
+            }
+        }
+    }
+    getChildLists() {
+        const channels = [];
+        for (const { ref } of this.channelChildren.values()) {
+            channels.push(ref);
+        }
+        const subchannels = [];
+        for (const { ref } of this.subchannelChildren.values()) {
+            subchannels.push(ref);
+        }
+        const sockets = [];
+        for (const { ref } of this.socketChildren.values()) {
+            sockets.push(ref);
+        }
+        return { channels, subchannels, sockets };
+    }
+}
+exports.ChannelzChildrenTracker = ChannelzChildrenTracker;
+class ChannelzCallTracker {
+    constructor() {
+        this.callsStarted = 0;
+        this.callsSucceeded = 0;
+        this.callsFailed = 0;
+        this.lastCallStartedTimestamp = null;
+    }
+    addCallStarted() {
+        this.callsStarted += 1;
+        this.lastCallStartedTimestamp = new Date();
+    }
+    addCallSucceeded() {
+        this.callsSucceeded += 1;
+    }
+    addCallFailed() {
+        this.callsFailed += 1;
+    }
+}
+exports.ChannelzCallTracker = ChannelzCallTracker;
+let nextId = 1;
+function getNextId() {
+    return nextId++;
+}
+const channels = [];
+const subchannels = [];
+const servers = [];
+const sockets = [];
+function registerChannelzChannel(name, getInfo, channelzEnabled) {
+    const id = getNextId();
+    const ref = { id, name, kind: 'channel' };
+    if (channelzEnabled) {
+        channels[id] = { ref, getInfo };
+    }
+    return ref;
+}
+exports.registerChannelzChannel = registerChannelzChannel;
+function registerChannelzSubchannel(name, getInfo, channelzEnabled) {
+    const id = getNextId();
+    const ref = { id, name, kind: 'subchannel' };
+    if (channelzEnabled) {
+        subchannels[id] = { ref, getInfo };
+    }
+    return ref;
+}
+exports.registerChannelzSubchannel = registerChannelzSubchannel;
+function registerChannelzServer(getInfo, channelzEnabled) {
+    const id = getNextId();
+    const ref = { id, kind: 'server' };
+    if (channelzEnabled) {
+        servers[id] = { ref, getInfo };
+    }
+    return ref;
+}
+exports.registerChannelzServer = registerChannelzServer;
+function registerChannelzSocket(name, getInfo, channelzEnabled) {
+    const id = getNextId();
+    const ref = { id, name, kind: 'socket' };
+    if (channelzEnabled) {
+        sockets[id] = { ref, getInfo };
+    }
+    return ref;
+}
+exports.registerChannelzSocket = registerChannelzSocket;
+function unregisterChannelzRef(ref) {
+    switch (ref.kind) {
+        case 'channel':
+            delete channels[ref.id];
+            return;
+        case 'subchannel':
+            delete subchannels[ref.id];
+            return;
+        case 'server':
+            delete servers[ref.id];
+            return;
+        case 'socket':
+            delete sockets[ref.id];
+            return;
+    }
+}
+exports.unregisterChannelzRef = unregisterChannelzRef;
+/**
+ * Parse a single section of an IPv6 address as two bytes
+ * @param addressSection A hexadecimal string of length up to 4
+ * @returns The pair of bytes representing this address section
+ */
+function parseIPv6Section(addressSection) {
+    const numberValue = Number.parseInt(addressSection, 16);
+    return [numberValue / 256 | 0, numberValue % 256];
+}
+/**
+ * Parse a chunk of an IPv6 address string to some number of bytes
+ * @param addressChunk Some number of segments of up to 4 hexadecimal
+ *   characters each, joined by colons.
+ * @returns The list of bytes representing this address chunk
+ */
+function parseIPv6Chunk(addressChunk) {
+    if (addressChunk === '') {
+        return [];
+    }
+    const bytePairs = addressChunk.split(':').map(section => parseIPv6Section(section));
+    const result = [];
+    return result.concat(...bytePairs);
+}
+/**
+ * Converts an IPv4 or IPv6 address from string representation to binary
+ * representation
+ * @param ipAddress an IP address in standard IPv4 or IPv6 text format
+ * @returns
+ */
+function ipAddressStringToBuffer(ipAddress) {
+    if (net_1.isIPv4(ipAddress)) {
+        return Buffer$1.from(Uint8Array.from(ipAddress.split('.').map(segment => Number.parseInt(segment))));
+    }
+    else if (net_1.isIPv6(ipAddress)) {
+        let leftSection;
+        let rightSection;
+        const doubleColonIndex = ipAddress.indexOf('::');
+        if (doubleColonIndex === -1) {
+            leftSection = ipAddress;
+            rightSection = '';
+        }
+        else {
+            leftSection = ipAddress.substring(0, doubleColonIndex);
+            rightSection = ipAddress.substring(doubleColonIndex + 2);
+        }
+        const leftBuffer = Buffer$1.from(parseIPv6Chunk(leftSection));
+        const rightBuffer = Buffer$1.from(parseIPv6Chunk(rightSection));
+        const middleBuffer = Buffer$1.alloc(16 - leftBuffer.length - rightBuffer.length, 0);
+        return Buffer$1.concat([leftBuffer, middleBuffer, rightBuffer]);
+    }
+    else {
+        return null;
+    }
+}
+function connectivityStateToMessage(state) {
+    switch (state) {
+        case connectivityState.ConnectivityState.CONNECTING:
+            return {
+                state: 'CONNECTING'
+            };
+        case connectivityState.ConnectivityState.IDLE:
+            return {
+                state: 'IDLE'
+            };
+        case connectivityState.ConnectivityState.READY:
+            return {
+                state: 'READY'
+            };
+        case connectivityState.ConnectivityState.SHUTDOWN:
+            return {
+                state: 'SHUTDOWN'
+            };
+        case connectivityState.ConnectivityState.TRANSIENT_FAILURE:
+            return {
+                state: 'TRANSIENT_FAILURE'
+            };
+        default:
+            return {
+                state: 'UNKNOWN'
+            };
+    }
+}
+function dateToProtoTimestamp(date) {
+    if (!date) {
+        return null;
+    }
+    const millisSinceEpoch = date.getTime();
+    return {
+        seconds: (millisSinceEpoch / 1000) | 0,
+        nanos: (millisSinceEpoch % 1000) * 1000000
+    };
+}
+function getChannelMessage(channelEntry) {
+    const resolvedInfo = channelEntry.getInfo();
+    return {
+        ref: channelRefToMessage(channelEntry.ref),
+        data: {
+            target: resolvedInfo.target,
+            state: connectivityStateToMessage(resolvedInfo.state),
+            calls_started: resolvedInfo.callTracker.callsStarted,
+            calls_succeeded: resolvedInfo.callTracker.callsSucceeded,
+            calls_failed: resolvedInfo.callTracker.callsFailed,
+            last_call_started_timestamp: dateToProtoTimestamp(resolvedInfo.callTracker.lastCallStartedTimestamp),
+            trace: resolvedInfo.trace.getTraceMessage()
+        },
+        channel_ref: resolvedInfo.children.channels.map(ref => channelRefToMessage(ref)),
+        subchannel_ref: resolvedInfo.children.subchannels.map(ref => subchannelRefToMessage(ref))
+    };
+}
+function GetChannel(call, callback) {
+    const channelId = Number.parseInt(call.request.channel_id);
+    const channelEntry = channels[channelId];
+    if (channelEntry === undefined) {
+        callback({
+            'code': constants.Status.NOT_FOUND,
+            'details': 'No channel data found for id ' + channelId
+        });
+        return;
+    }
+    callback(null, { channel: getChannelMessage(channelEntry) });
+}
+function GetTopChannels(call, callback) {
+    const maxResults = Number.parseInt(call.request.max_results);
+    const resultList = [];
+    let i = Number.parseInt(call.request.start_channel_id);
+    for (; i < channels.length; i++) {
+        const channelEntry = channels[i];
+        if (channelEntry === undefined) {
+            continue;
+        }
+        resultList.push(getChannelMessage(channelEntry));
+        if (resultList.length >= maxResults) {
+            break;
+        }
+    }
+    callback(null, {
+        channel: resultList,
+        end: i >= servers.length
+    });
+}
+function getServerMessage(serverEntry) {
+    const resolvedInfo = serverEntry.getInfo();
+    return {
+        ref: serverRefToMessage(serverEntry.ref),
+        data: {
+            calls_started: resolvedInfo.callTracker.callsStarted,
+            calls_succeeded: resolvedInfo.callTracker.callsSucceeded,
+            calls_failed: resolvedInfo.callTracker.callsFailed,
+            last_call_started_timestamp: dateToProtoTimestamp(resolvedInfo.callTracker.lastCallStartedTimestamp),
+            trace: resolvedInfo.trace.getTraceMessage()
+        },
+        listen_socket: resolvedInfo.listenerChildren.sockets.map(ref => socketRefToMessage(ref))
+    };
+}
+function GetServer(call, callback) {
+    const serverId = Number.parseInt(call.request.server_id);
+    const serverEntry = servers[serverId];
+    if (serverEntry === undefined) {
+        callback({
+            'code': constants.Status.NOT_FOUND,
+            'details': 'No server data found for id ' + serverId
+        });
+        return;
+    }
+    callback(null, { server: getServerMessage(serverEntry) });
+}
+function GetServers(call, callback) {
+    const maxResults = Number.parseInt(call.request.max_results);
+    const resultList = [];
+    let i = Number.parseInt(call.request.start_server_id);
+    for (; i < servers.length; i++) {
+        const serverEntry = servers[i];
+        if (serverEntry === undefined) {
+            continue;
+        }
+        resultList.push(getServerMessage(serverEntry));
+        if (resultList.length >= maxResults) {
+            break;
+        }
+    }
+    callback(null, {
+        server: resultList,
+        end: i >= servers.length
+    });
+}
+function GetSubchannel(call, callback) {
+    const subchannelId = Number.parseInt(call.request.subchannel_id);
+    const subchannelEntry = subchannels[subchannelId];
+    if (subchannelEntry === undefined) {
+        callback({
+            'code': constants.Status.NOT_FOUND,
+            'details': 'No subchannel data found for id ' + subchannelId
+        });
+        return;
+    }
+    const resolvedInfo = subchannelEntry.getInfo();
+    const subchannelMessage = {
+        ref: subchannelRefToMessage(subchannelEntry.ref),
+        data: {
+            target: resolvedInfo.target,
+            state: connectivityStateToMessage(resolvedInfo.state),
+            calls_started: resolvedInfo.callTracker.callsStarted,
+            calls_succeeded: resolvedInfo.callTracker.callsSucceeded,
+            calls_failed: resolvedInfo.callTracker.callsFailed,
+            last_call_started_timestamp: dateToProtoTimestamp(resolvedInfo.callTracker.lastCallStartedTimestamp),
+            trace: resolvedInfo.trace.getTraceMessage()
+        },
+        socket_ref: resolvedInfo.children.sockets.map(ref => socketRefToMessage(ref))
+    };
+    callback(null, { subchannel: subchannelMessage });
+}
+function subchannelAddressToAddressMessage(subchannelAddress$1) {
+    var _a;
+    if (subchannelAddress.isTcpSubchannelAddress(subchannelAddress$1)) {
+        return {
+            address: 'tcpip_address',
+            tcpip_address: {
+                ip_address: (_a = ipAddressStringToBuffer(subchannelAddress$1.host)) !== null && _a !== void 0 ? _a : undefined,
+                port: subchannelAddress$1.port
+            }
+        };
+    }
+    else {
+        return {
+            address: 'uds_address',
+            uds_address: {
+                filename: subchannelAddress$1.path
+            }
+        };
+    }
+}
+function GetSocket(call, callback) {
+    var _a, _b, _c, _d, _e;
+    const socketId = Number.parseInt(call.request.socket_id);
+    const socketEntry = sockets[socketId];
+    if (socketEntry === undefined) {
+        callback({
+            'code': constants.Status.NOT_FOUND,
+            'details': 'No socket data found for id ' + socketId
+        });
+        return;
+    }
+    const resolvedInfo = socketEntry.getInfo();
+    const securityMessage = resolvedInfo.security ? {
+        model: 'tls',
+        tls: {
+            cipher_suite: resolvedInfo.security.cipherSuiteStandardName ? 'standard_name' : 'other_name',
+            standard_name: (_a = resolvedInfo.security.cipherSuiteStandardName) !== null && _a !== void 0 ? _a : undefined,
+            other_name: (_b = resolvedInfo.security.cipherSuiteOtherName) !== null && _b !== void 0 ? _b : undefined,
+            local_certificate: (_c = resolvedInfo.security.localCertificate) !== null && _c !== void 0 ? _c : undefined,
+            remote_certificate: (_d = resolvedInfo.security.remoteCertificate) !== null && _d !== void 0 ? _d : undefined
+        }
+    } : null;
+    const socketMessage = {
+        ref: socketRefToMessage(socketEntry.ref),
+        local: resolvedInfo.localAddress ? subchannelAddressToAddressMessage(resolvedInfo.localAddress) : null,
+        remote: resolvedInfo.remoteAddress ? subchannelAddressToAddressMessage(resolvedInfo.remoteAddress) : null,
+        remote_name: (_e = resolvedInfo.remoteName) !== null && _e !== void 0 ? _e : undefined,
+        security: securityMessage,
+        data: {
+            keep_alives_sent: resolvedInfo.keepAlivesSent,
+            streams_started: resolvedInfo.streamsStarted,
+            streams_succeeded: resolvedInfo.streamsSucceeded,
+            streams_failed: resolvedInfo.streamsFailed,
+            last_local_stream_created_timestamp: dateToProtoTimestamp(resolvedInfo.lastLocalStreamCreatedTimestamp),
+            last_remote_stream_created_timestamp: dateToProtoTimestamp(resolvedInfo.lastRemoteStreamCreatedTimestamp),
+            messages_received: resolvedInfo.messagesReceived,
+            messages_sent: resolvedInfo.messagesSent,
+            last_message_received_timestamp: dateToProtoTimestamp(resolvedInfo.lastMessageReceivedTimestamp),
+            last_message_sent_timestamp: dateToProtoTimestamp(resolvedInfo.lastMessageSentTimestamp),
+            local_flow_control_window: resolvedInfo.localFlowControlWindow ? { value: resolvedInfo.localFlowControlWindow } : null,
+            remote_flow_control_window: resolvedInfo.remoteFlowControlWindow ? { value: resolvedInfo.remoteFlowControlWindow } : null,
+        }
+    };
+    callback(null, { socket: socketMessage });
+}
+function GetServerSockets(call, callback) {
+    const serverId = Number.parseInt(call.request.server_id);
+    const serverEntry = servers[serverId];
+    if (serverEntry === undefined) {
+        callback({
+            'code': constants.Status.NOT_FOUND,
+            'details': 'No server data found for id ' + serverId
+        });
+        return;
+    }
+    const startId = Number.parseInt(call.request.start_socket_id);
+    const maxResults = Number.parseInt(call.request.max_results);
+    const resolvedInfo = serverEntry.getInfo();
+    // If we wanted to include listener sockets in the result, this line would
+    // instead say
+    // const allSockets = resolvedInfo.listenerChildren.sockets.concat(resolvedInfo.sessionChildren.sockets).sort((ref1, ref2) => ref1.id - ref2.id);
+    const allSockets = resolvedInfo.sessionChildren.sockets.sort((ref1, ref2) => ref1.id - ref2.id);
+    const resultList = [];
+    let i = 0;
+    for (; i < allSockets.length; i++) {
+        if (allSockets[i].id >= startId) {
+            resultList.push(socketRefToMessage(allSockets[i]));
+            if (resultList.length >= maxResults) {
+                break;
+            }
+        }
+    }
+    callback(null, {
+        socket_ref: resultList,
+        end: i >= allSockets.length
+    });
+}
+function getChannelzHandlers() {
+    return {
+        GetChannel,
+        GetTopChannels,
+        GetServer,
+        GetServers,
+        GetSubchannel,
+        GetSocket,
+        GetServerSockets
+    };
+}
+exports.getChannelzHandlers = getChannelzHandlers;
+let loadedChannelzDefinition = null;
+function getChannelzServiceDefinition() {
+    if (loadedChannelzDefinition) {
+        return loadedChannelzDefinition;
+    }
+    /* The purpose of this complexity is to avoid loading @grpc/proto-loader at
+     * runtime for users who will not use/enable channelz. */
+    const loaderLoadSync = src.loadSync;
+    const loadedProto = loaderLoadSync('channelz.proto', {
+        keepCase: true,
+        longs: String,
+        enums: String,
+        defaults: true,
+        oneofs: true,
+        includeDirs: [
+            `${__dirname}/../../proto`
+        ]
+    });
+    const channelzGrpcObject = makeClient.loadPackageDefinition(loadedProto);
+    loadedChannelzDefinition = channelzGrpcObject.grpc.channelz.v1.Channelz.service;
+    return loadedChannelzDefinition;
+}
+exports.getChannelzServiceDefinition = getChannelzServiceDefinition;
+function setup() {
+    admin.registerAdminService(getChannelzServiceDefinition, getChannelzHandlers);
+}
+exports.setup = setup;
+
+});
+
+var name = "@grpc/grpc-js";
+var version = "1.6.7";
+var description = "gRPC Library for Node - pure JS implementation";
+var homepage = "https://grpc.io/";
+var repository = "https://github.com/grpc/grpc-node/tree/master/packages/grpc-js";
+var main = "build/src/index.js";
+var engines = {
+	node: "^8.13.0 || >=10.10.0"
+};
+var keywords = [
+];
+var author = {
+	name: "Google Inc."
+};
+var types = "build/src/index.d.ts";
+var license = "Apache-2.0";
+var devDependencies = {
+	"@types/gulp": "^4.0.6",
+	"@types/gulp-mocha": "0.0.32",
+	"@types/lodash": "^4.14.108",
+	"@types/mocha": "^5.2.6",
+	"@types/ncp": "^2.0.1",
+	"@types/pify": "^3.0.2",
+	"@types/semver": "^7.3.9",
+	"clang-format": "^1.0.55",
+	execa: "^2.0.3",
+	gts: "^2.0.0",
+	gulp: "^4.0.2",
+	"gulp-mocha": "^6.0.0",
+	lodash: "^4.17.4",
+	madge: "^5.0.1",
+	"mocha-jenkins-reporter": "^0.4.1",
+	ncp: "^2.0.0",
+	pify: "^4.0.1",
+	rimraf: "^3.0.2",
+	semver: "^7.3.5",
+	"ts-node": "^8.3.0",
+	typescript: "^3.7.2"
+};
+var contributors = [
+	{
+		name: "Google Inc."
+	}
+];
+var scripts = {
+	build: "npm run compile",
+	clean: "rimraf ./build",
+	compile: "tsc -p .",
+	format: "clang-format -i -style=\"{Language: JavaScript, BasedOnStyle: Google, ColumnLimit: 80}\" src/*.ts test/*.ts",
+	lint: "npm run check",
+	prepare: "npm run generate-types && npm run compile",
+	test: "gulp test",
+	check: "gts check src/**/*.ts",
+	fix: "gts fix src/*.ts",
+	pretest: "npm run generate-types && npm run generate-test-types && npm run compile",
+	posttest: "npm run check && madge -c ./build/src",
+	"generate-types": "proto-loader-gen-types --keepCase --longs String --enums String --defaults --oneofs --includeComments --includeDirs proto/ --include-dirs test/fixtures/ -O src/generated/ --grpcLib ../index channelz.proto",
+	"generate-test-types": "proto-loader-gen-types --keepCase --longs String --enums String --defaults --oneofs --includeComments --include-dirs test/fixtures/ -O test/generated/ --grpcLib ../../src/index test_service.proto"
+};
+var dependencies = {
+	"@grpc/proto-loader": "^0.6.4",
+	"@types/node": ">=12.12.47"
+};
+var files = [
+	"src/**/*.ts",
+	"build/src/**/*.{js,d.ts,js.map}",
+	"proto/*.proto",
+	"LICENSE",
+	"deps/envoy-api/envoy/api/v2/**/*.proto",
+	"deps/envoy-api/envoy/config/**/*.proto",
+	"deps/envoy-api/envoy/service/**/*.proto",
+	"deps/envoy-api/envoy/type/**/*.proto",
+	"deps/udpa/udpa/**/*.proto",
+	"deps/googleapis/google/api/*.proto",
+	"deps/googleapis/google/rpc/*.proto",
+	"deps/protoc-gen-validate/validate/**/*.proto"
+];
+var require$$0 = {
+	name: name,
+	version: version,
+	description: description,
+	homepage: homepage,
+	repository: repository,
+	main: main,
+	engines: engines,
+	keywords: keywords,
+	author: author,
+	types: types,
+	license: license,
+	devDependencies: devDependencies,
+	contributors: contributors,
+	scripts: scripts,
+	dependencies: dependencies,
+	files: files
+};
+
+var subchannel = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Subchannel = void 0;
+
+
+
+
+
+
+
+
+
+
+
+
+const clientVersion = require$$0.version;
+const TRACER_NAME = 'subchannel';
+const FLOW_CONTROL_TRACER_NAME = 'subchannel_flowctrl';
+/* setInterval and setTimeout only accept signed 32 bit integers. JS doesn't
+ * have a constant for the max signed 32 bit integer, so this is a simple way
+ * to calculate it */
+const KEEPALIVE_MAX_TIME_MS = ~(1 << 31);
+const KEEPALIVE_TIMEOUT_MS = 20000;
+const { HTTP2_HEADER_AUTHORITY, HTTP2_HEADER_CONTENT_TYPE, HTTP2_HEADER_METHOD, HTTP2_HEADER_PATH, HTTP2_HEADER_TE, HTTP2_HEADER_USER_AGENT, } = http2.constants;
+const tooManyPingsData = Buffer$1.from('too_many_pings', 'ascii');
+class Subchannel {
+    /**
+     * A class representing a connection to a single backend.
+     * @param channelTarget The target string for the channel as a whole
+     * @param subchannelAddress The address for the backend that this subchannel
+     *     will connect to
+     * @param options The channel options, plus any specific subchannel options
+     *     for this subchannel
+     * @param credentials The channel credentials used to establish this
+     *     connection
+     */
+    constructor(channelTarget, subchannelAddress$1, options, credentials) {
+        this.channelTarget = channelTarget;
+        this.subchannelAddress = subchannelAddress$1;
+        this.options = options;
+        this.credentials = credentials;
+        /**
+         * The subchannel's current connectivity state. Invariant: `session` === `null`
+         * if and only if `connectivityState` is IDLE or TRANSIENT_FAILURE.
+         */
+        this.connectivityState = connectivityState.ConnectivityState.IDLE;
+        /**
+         * The underlying http2 session used to make requests.
+         */
+        this.session = null;
+        /**
+         * Indicates that the subchannel should transition from TRANSIENT_FAILURE to
+         * CONNECTING instead of IDLE when the backoff timeout ends.
+         */
+        this.continueConnecting = false;
+        /**
+         * A list of listener functions that will be called whenever the connectivity
+         * state changes. Will be modified by `addConnectivityStateListener` and
+         * `removeConnectivityStateListener`
+         */
+        this.stateListeners = [];
+        /**
+         * A list of listener functions that will be called when the underlying
+         * socket disconnects. Used for ending active calls with an UNAVAILABLE
+         * status.
+         */
+        this.disconnectListeners = [];
+        /**
+         * The amount of time in between sending pings
+         */
+        this.keepaliveTimeMs = KEEPALIVE_MAX_TIME_MS;
+        /**
+         * The amount of time to wait for an acknowledgement after sending a ping
+         */
+        this.keepaliveTimeoutMs = KEEPALIVE_TIMEOUT_MS;
+        /**
+         * Indicates whether keepalive pings should be sent without any active calls
+         */
+        this.keepaliveWithoutCalls = false;
+        /**
+         * Tracks calls with references to this subchannel
+         */
+        this.callRefcount = 0;
+        /**
+         * Tracks channels and subchannel pools with references to this subchannel
+         */
+        this.refcount = 0;
+        // Channelz info
+        this.channelzEnabled = true;
+        this.callTracker = new channelz.ChannelzCallTracker();
+        this.childrenTracker = new channelz.ChannelzChildrenTracker();
+        // Channelz socket info
+        this.channelzSocketRef = null;
+        /**
+         * Name of the remote server, if it is not the same as the subchannel
+         * address, i.e. if connecting through an HTTP CONNECT proxy.
+         */
+        this.remoteName = null;
+        this.streamTracker = new channelz.ChannelzCallTracker();
+        this.keepalivesSent = 0;
+        this.messagesSent = 0;
+        this.messagesReceived = 0;
+        this.lastMessageSentTimestamp = null;
+        this.lastMessageReceivedTimestamp = null;
+        // Build user-agent string.
+        this.userAgent = [
+            options['grpc.primary_user_agent'],
+            `grpc-node-js/${clientVersion}`,
+            options['grpc.secondary_user_agent'],
+        ]
+            .filter((e) => e)
+            .join(' '); // remove falsey values first
+        if ('grpc.keepalive_time_ms' in options) {
+            this.keepaliveTimeMs = options['grpc.keepalive_time_ms'];
+        }
+        if ('grpc.keepalive_timeout_ms' in options) {
+            this.keepaliveTimeoutMs = options['grpc.keepalive_timeout_ms'];
+        }
+        if ('grpc.keepalive_permit_without_calls' in options) {
+            this.keepaliveWithoutCalls =
+                options['grpc.keepalive_permit_without_calls'] === 1;
+        }
+        else {
+            this.keepaliveWithoutCalls = false;
+        }
+        this.keepaliveIntervalId = setTimeout(() => { }, 0);
+        clearTimeout(this.keepaliveIntervalId);
+        this.keepaliveTimeoutId = setTimeout(() => { }, 0);
+        clearTimeout(this.keepaliveTimeoutId);
+        const backoffOptions = {
+            initialDelay: options['grpc.initial_reconnect_backoff_ms'],
+            maxDelay: options['grpc.max_reconnect_backoff_ms'],
+        };
+        this.backoffTimeout = new backoffTimeout.BackoffTimeout(() => {
+            this.handleBackoffTimer();
+        }, backoffOptions);
+        this.subchannelAddressString = subchannelAddress.subchannelAddressToString(subchannelAddress$1);
+        if (options['grpc.enable_channelz'] === 0) {
+            this.channelzEnabled = false;
+        }
+        this.channelzTrace = new channelz.ChannelzTrace();
+        this.channelzRef = channelz.registerChannelzSubchannel(this.subchannelAddressString, () => this.getChannelzInfo(), this.channelzEnabled);
+        if (this.channelzEnabled) {
+            this.channelzTrace.addTrace('CT_INFO', 'Subchannel created');
+        }
+        this.trace('Subchannel constructed with options ' + JSON.stringify(options, undefined, 2));
+    }
+    getChannelzInfo() {
+        return {
+            state: this.connectivityState,
+            trace: this.channelzTrace,
+            callTracker: this.callTracker,
+            children: this.childrenTracker.getChildLists(),
+            target: this.subchannelAddressString
+        };
+    }
+    getChannelzSocketInfo() {
+        var _a, _b, _c;
+        if (this.session === null) {
+            return null;
+        }
+        const sessionSocket = this.session.socket;
+        const remoteAddress = sessionSocket.remoteAddress ? subchannelAddress.stringToSubchannelAddress(sessionSocket.remoteAddress, sessionSocket.remotePort) : null;
+        const localAddress = sessionSocket.localAddress ? subchannelAddress.stringToSubchannelAddress(sessionSocket.localAddress, sessionSocket.localPort) : null;
+        let tlsInfo;
+        if (this.session.encrypted) {
+            const tlsSocket = sessionSocket;
+            const cipherInfo = tlsSocket.getCipher();
+            const certificate = tlsSocket.getCertificate();
+            const peerCertificate = tlsSocket.getPeerCertificate();
+            tlsInfo = {
+                cipherSuiteStandardName: (_a = cipherInfo.standardName) !== null && _a !== void 0 ? _a : null,
+                cipherSuiteOtherName: cipherInfo.standardName ? null : cipherInfo.name,
+                localCertificate: (certificate && 'raw' in certificate) ? certificate.raw : null,
+                remoteCertificate: (peerCertificate && 'raw' in peerCertificate) ? peerCertificate.raw : null
+            };
+        }
+        else {
+            tlsInfo = null;
+        }
+        const socketInfo = {
+            remoteAddress: remoteAddress,
+            localAddress: localAddress,
+            security: tlsInfo,
+            remoteName: this.remoteName,
+            streamsStarted: this.streamTracker.callsStarted,
+            streamsSucceeded: this.streamTracker.callsSucceeded,
+            streamsFailed: this.streamTracker.callsFailed,
+            messagesSent: this.messagesSent,
+            messagesReceived: this.messagesReceived,
+            keepAlivesSent: this.keepalivesSent,
+            lastLocalStreamCreatedTimestamp: this.streamTracker.lastCallStartedTimestamp,
+            lastRemoteStreamCreatedTimestamp: null,
+            lastMessageSentTimestamp: this.lastMessageSentTimestamp,
+            lastMessageReceivedTimestamp: this.lastMessageReceivedTimestamp,
+            localFlowControlWindow: (_b = this.session.state.localWindowSize) !== null && _b !== void 0 ? _b : null,
+            remoteFlowControlWindow: (_c = this.session.state.remoteWindowSize) !== null && _c !== void 0 ? _c : null
+        };
+        return socketInfo;
+    }
+    resetChannelzSocketInfo() {
+        if (!this.channelzEnabled) {
+            return;
+        }
+        if (this.channelzSocketRef) {
+            channelz.unregisterChannelzRef(this.channelzSocketRef);
+            this.childrenTracker.unrefChild(this.channelzSocketRef);
+            this.channelzSocketRef = null;
+        }
+        this.remoteName = null;
+        this.streamTracker = new channelz.ChannelzCallTracker();
+        this.keepalivesSent = 0;
+        this.messagesSent = 0;
+        this.messagesReceived = 0;
+        this.lastMessageSentTimestamp = null;
+        this.lastMessageReceivedTimestamp = null;
+    }
+    trace(text) {
+        logging.trace(constants.LogVerbosity.DEBUG, TRACER_NAME, '(' + this.channelzRef.id + ') ' + this.subchannelAddressString + ' ' + text);
+    }
+    refTrace(text) {
+        logging.trace(constants.LogVerbosity.DEBUG, 'subchannel_refcount', '(' + this.channelzRef.id + ') ' + this.subchannelAddressString + ' ' + text);
+    }
+    flowControlTrace(text) {
+        logging.trace(constants.LogVerbosity.DEBUG, FLOW_CONTROL_TRACER_NAME, '(' + this.channelzRef.id + ') ' + this.subchannelAddressString + ' ' + text);
+    }
+    internalsTrace(text) {
+        logging.trace(constants.LogVerbosity.DEBUG, 'subchannel_internals', '(' + this.channelzRef.id + ') ' + this.subchannelAddressString + ' ' + text);
+    }
+    keepaliveTrace(text) {
+        logging.trace(constants.LogVerbosity.DEBUG, 'keepalive', '(' + this.channelzRef.id + ') ' + this.subchannelAddressString + ' ' + text);
+    }
+    handleBackoffTimer() {
+        if (this.continueConnecting) {
+            this.transitionToState([connectivityState.ConnectivityState.TRANSIENT_FAILURE], connectivityState.ConnectivityState.CONNECTING);
+        }
+        else {
+            this.transitionToState([connectivityState.ConnectivityState.TRANSIENT_FAILURE], connectivityState.ConnectivityState.IDLE);
+        }
+    }
+    /**
+     * Start a backoff timer with the current nextBackoff timeout
+     */
+    startBackoff() {
+        this.backoffTimeout.runOnce();
+    }
+    stopBackoff() {
+        this.backoffTimeout.stop();
+        this.backoffTimeout.reset();
+    }
+    sendPing() {
+        var _a, _b;
+        if (this.channelzEnabled) {
+            this.keepalivesSent += 1;
+        }
+        this.keepaliveTrace('Sending ping with timeout ' + this.keepaliveTimeoutMs + 'ms');
+        this.keepaliveTimeoutId = setTimeout(() => {
+            this.keepaliveTrace('Ping timeout passed without response');
+            this.handleDisconnect();
+        }, this.keepaliveTimeoutMs);
+        (_b = (_a = this.keepaliveTimeoutId).unref) === null || _b === void 0 ? void 0 : _b.call(_a);
+        this.session.ping((err, duration, payload) => {
+            this.keepaliveTrace('Received ping response');
+            clearTimeout(this.keepaliveTimeoutId);
+        });
+    }
+    startKeepalivePings() {
+        var _a, _b;
+        this.keepaliveIntervalId = setInterval(() => {
+            this.sendPing();
+        }, this.keepaliveTimeMs);
+        (_b = (_a = this.keepaliveIntervalId).unref) === null || _b === void 0 ? void 0 : _b.call(_a);
+        /* Don't send a ping immediately because whatever caused us to start
+         * sending pings should also involve some network activity. */
+    }
+    /**
+     * Stop keepalive pings when terminating a connection. This discards the
+     * outstanding ping timeout, so it should not be called if the same
+     * connection will still be used.
+     */
+    stopKeepalivePings() {
+        clearInterval(this.keepaliveIntervalId);
+        clearTimeout(this.keepaliveTimeoutId);
+    }
+    createSession(proxyConnectionResult) {
+        var _a, _b, _c;
+        if (proxyConnectionResult.realTarget) {
+            this.remoteName = uriParser.uriToString(proxyConnectionResult.realTarget);
+            this.trace('creating HTTP/2 session through proxy to ' + proxyConnectionResult.realTarget);
+        }
+        else {
+            this.remoteName = null;
+            this.trace('creating HTTP/2 session');
+        }
+        const targetAuthority = resolver.getDefaultAuthority((_a = proxyConnectionResult.realTarget) !== null && _a !== void 0 ? _a : this.channelTarget);
+        let connectionOptions = this.credentials._getConnectionOptions() || {};
+        connectionOptions.maxSendHeaderBlockLength = Number.MAX_SAFE_INTEGER;
+        if ('grpc-node.max_session_memory' in this.options) {
+            connectionOptions.maxSessionMemory = this.options['grpc-node.max_session_memory'];
+        }
+        else {
+            /* By default, set a very large max session memory limit, to effectively
+             * disable enforcement of the limit. Some testing indicates that Node's
+             * behavior degrades badly when this limit is reached, so we solve that
+             * by disabling the check entirely. */
+            connectionOptions.maxSessionMemory = Number.MAX_SAFE_INTEGER;
+        }
+        let addressScheme = 'http://';
+        if ('secureContext' in connectionOptions) {
+            addressScheme = 'https://';
+            // If provided, the value of grpc.ssl_target_name_override should be used
+            // to override the target hostname when checking server identity.
+            // This option is used for testing only.
+            if (this.options['grpc.ssl_target_name_override']) {
+                const sslTargetNameOverride = this.options['grpc.ssl_target_name_override'];
+                connectionOptions.checkServerIdentity = (host, cert) => {
+                    return tls_1.checkServerIdentity(sslTargetNameOverride, cert);
+                };
+                connectionOptions.servername = sslTargetNameOverride;
+            }
+            else {
+                const authorityHostname = (_c = (_b = uriParser.splitHostPort(targetAuthority)) === null || _b === void 0 ? void 0 : _b.host) !== null && _c !== void 0 ? _c : 'localhost';
+                // We want to always set servername to support SNI
+                connectionOptions.servername = authorityHostname;
+            }
+            if (proxyConnectionResult.socket) {
+                /* This is part of the workaround for
+                 * https://github.com/nodejs/node/issues/32922. Without that bug,
+                 * proxyConnectionResult.socket would always be a plaintext socket and
+                 * this would say
+                 * connectionOptions.socket = proxyConnectionResult.socket; */
+                connectionOptions.createConnection = (authority, option) => {
+                    return proxyConnectionResult.socket;
+                };
+            }
+        }
+        else {
+            /* In all but the most recent versions of Node, http2.connect does not use
+             * the options when establishing plaintext connections, so we need to
+             * establish that connection explicitly. */
+            connectionOptions.createConnection = (authority, option) => {
+                if (proxyConnectionResult.socket) {
+                    return proxyConnectionResult.socket;
+                }
+                else {
+                    /* net.NetConnectOpts is declared in a way that is more restrictive
+                     * than what net.connect will actually accept, so we use the type
+                     * assertion to work around that. */
+                    return net_1.connect(this.subchannelAddress);
+                }
+            };
+        }
+        connectionOptions = Object.assign(Object.assign({}, connectionOptions), this.subchannelAddress);
+        /* http2.connect uses the options here:
+         * https://github.com/nodejs/node/blob/70c32a6d190e2b5d7b9ff9d5b6a459d14e8b7d59/lib/internal/http2/core.js#L3028-L3036
+         * The spread operator overides earlier values with later ones, so any port
+         * or host values in the options will be used rather than any values extracted
+         * from the first argument. In addition, the path overrides the host and port,
+         * as documented for plaintext connections here:
+         * https://nodejs.org/api/net.html#net_socket_connect_options_connectlistener
+         * and for TLS connections here:
+         * https://nodejs.org/api/tls.html#tls_tls_connect_options_callback. In
+         * earlier versions of Node, http2.connect passes these options to
+         * tls.connect but not net.connect, so in the insecure case we still need
+         * to set the createConnection option above to create the connection
+         * explicitly. We cannot do that in the TLS case because http2.connect
+         * passes necessary additional options to tls.connect.
+         * The first argument just needs to be parseable as a URL and the scheme
+         * determines whether the connection will be established over TLS or not.
+         */
+        const session = http2.connect(addressScheme + targetAuthority, connectionOptions);
+        this.session = session;
+        this.channelzSocketRef = channelz.registerChannelzSocket(this.subchannelAddressString, () => this.getChannelzSocketInfo(), this.channelzEnabled);
+        if (this.channelzEnabled) {
+            this.childrenTracker.refChild(this.channelzSocketRef);
+        }
+        session.unref();
+        /* For all of these events, check if the session at the time of the event
+         * is the same one currently attached to this subchannel, to ensure that
+         * old events from previous connection attempts cannot cause invalid state
+         * transitions. */
+        session.once('connect', () => {
+            if (this.session === session) {
+                this.transitionToState([connectivityState.ConnectivityState.CONNECTING], connectivityState.ConnectivityState.READY);
+            }
+        });
+        session.once('close', () => {
+            if (this.session === session) {
+                this.trace('connection closed');
+                this.transitionToState([connectivityState.ConnectivityState.CONNECTING], connectivityState.ConnectivityState.TRANSIENT_FAILURE);
+                /* Transitioning directly to IDLE here should be OK because we are not
+                 * doing any backoff, because a connection was established at some
+                 * point */
+                this.transitionToState([connectivityState.ConnectivityState.READY], connectivityState.ConnectivityState.IDLE);
+            }
+        });
+        session.once('goaway', (errorCode, lastStreamID, opaqueData) => {
+            if (this.session === session) {
+                /* See the last paragraph of
+                 * https://github.com/grpc/proposal/blob/master/A8-client-side-keepalive.md#basic-keepalive */
+                if (errorCode === http2.constants.NGHTTP2_ENHANCE_YOUR_CALM &&
+                    opaqueData.equals(tooManyPingsData)) {
+                    this.keepaliveTimeMs = Math.min(2 * this.keepaliveTimeMs, KEEPALIVE_MAX_TIME_MS);
+                    logging.log(constants.LogVerbosity.ERROR, `Connection to ${uriParser.uriToString(this.channelTarget)} at ${this.subchannelAddressString} rejected by server because of excess pings. Increasing ping interval to ${this.keepaliveTimeMs} ms`);
+                }
+                this.trace('connection closed by GOAWAY with code ' +
+                    errorCode);
+                this.transitionToState([connectivityState.ConnectivityState.CONNECTING, connectivityState.ConnectivityState.READY], connectivityState.ConnectivityState.IDLE);
+            }
+        });
+        session.once('error', (error) => {
+            /* Do nothing here. Any error should also trigger a close event, which is
+             * where we want to handle that.  */
+            this.trace('connection closed with error ' +
+                error.message);
+        });
+        if (logging.isTracerEnabled(TRACER_NAME)) {
+            session.on('remoteSettings', (settings) => {
+                this.trace('new settings received' +
+                    (this.session !== session ? ' on the old connection' : '') +
+                    ': ' +
+                    JSON.stringify(settings));
+            });
+            session.on('localSettings', (settings) => {
+                this.trace('local settings acknowledged by remote' +
+                    (this.session !== session ? ' on the old connection' : '') +
+                    ': ' +
+                    JSON.stringify(settings));
+            });
+        }
+    }
+    startConnectingInternal() {
+        var _a, _b;
+        /* Pass connection options through to the proxy so that it's able to
+         * upgrade it's connection to support tls if needed.
+         * This is a workaround for https://github.com/nodejs/node/issues/32922
+         * See https://github.com/grpc/grpc-node/pull/1369 for more info. */
+        const connectionOptions = this.credentials._getConnectionOptions() || {};
+        if ('secureContext' in connectionOptions) {
+            connectionOptions.ALPNProtocols = ['h2'];
+            // If provided, the value of grpc.ssl_target_name_override should be used
+            // to override the target hostname when checking server identity.
+            // This option is used for testing only.
+            if (this.options['grpc.ssl_target_name_override']) {
+                const sslTargetNameOverride = this.options['grpc.ssl_target_name_override'];
+                connectionOptions.checkServerIdentity = (host, cert) => {
+                    return tls_1.checkServerIdentity(sslTargetNameOverride, cert);
+                };
+                connectionOptions.servername = sslTargetNameOverride;
+            }
+            else {
+                if ('grpc.http_connect_target' in this.options) {
+                    /* This is more or less how servername will be set in createSession
+                     * if a connection is successfully established through the proxy.
+                     * If the proxy is not used, these connectionOptions are discarded
+                     * anyway */
+                    const targetPath = resolver.getDefaultAuthority((_a = uriParser.parseUri(this.options['grpc.http_connect_target'])) !== null && _a !== void 0 ? _a : {
+                        path: 'localhost',
+                    });
+                    const hostPort = uriParser.splitHostPort(targetPath);
+                    connectionOptions.servername = (_b = hostPort === null || hostPort === void 0 ? void 0 : hostPort.host) !== null && _b !== void 0 ? _b : targetPath;
+                }
+            }
+        }
+        http_proxy.getProxiedConnection(this.subchannelAddress, this.options, connectionOptions).then((result) => {
+            this.createSession(result);
+        }, (reason) => {
+            this.transitionToState([connectivityState.ConnectivityState.CONNECTING], connectivityState.ConnectivityState.TRANSIENT_FAILURE);
+        });
+    }
+    handleDisconnect() {
+        this.transitionToState([connectivityState.ConnectivityState.READY], connectivityState.ConnectivityState.TRANSIENT_FAILURE);
+        for (const listener of this.disconnectListeners) {
+            listener();
+        }
+    }
+    /**
+     * Initiate a state transition from any element of oldStates to the new
+     * state. If the current connectivityState is not in oldStates, do nothing.
+     * @param oldStates The set of states to transition from
+     * @param newState The state to transition to
+     * @returns True if the state changed, false otherwise
+     */
+    transitionToState(oldStates, newState) {
+        if (oldStates.indexOf(this.connectivityState) === -1) {
+            return false;
+        }
+        this.trace(connectivityState.ConnectivityState[this.connectivityState] +
+            ' -> ' +
+            connectivityState.ConnectivityState[newState]);
+        if (this.channelzEnabled) {
+            this.channelzTrace.addTrace('CT_INFO', connectivityState.ConnectivityState[this.connectivityState] + ' -> ' + connectivityState.ConnectivityState[newState]);
+        }
+        const previousState = this.connectivityState;
+        this.connectivityState = newState;
+        switch (newState) {
+            case connectivityState.ConnectivityState.READY:
+                this.stopBackoff();
+                const session = this.session;
+                session.socket.once('close', () => {
+                    if (this.session === session) {
+                        this.handleDisconnect();
+                    }
+                });
+                if (this.keepaliveWithoutCalls) {
+                    this.startKeepalivePings();
+                }
+                break;
+            case connectivityState.ConnectivityState.CONNECTING:
+                this.startBackoff();
+                this.startConnectingInternal();
+                this.continueConnecting = false;
+                break;
+            case connectivityState.ConnectivityState.TRANSIENT_FAILURE:
+                if (this.session) {
+                    this.session.close();
+                }
+                this.session = null;
+                this.resetChannelzSocketInfo();
+                this.stopKeepalivePings();
+                /* If the backoff timer has already ended by the time we get to the
+                 * TRANSIENT_FAILURE state, we want to immediately transition out of
+                 * TRANSIENT_FAILURE as though the backoff timer is ending right now */
+                if (!this.backoffTimeout.isRunning()) {
+                    browser$1.nextTick(() => {
+                        this.handleBackoffTimer();
+                    });
+                }
+                break;
+            case connectivityState.ConnectivityState.IDLE:
+                if (this.session) {
+                    this.session.close();
+                }
+                this.session = null;
+                this.resetChannelzSocketInfo();
+                this.stopKeepalivePings();
+                break;
+            default:
+                throw new Error(`Invalid state: unknown ConnectivityState ${newState}`);
+        }
+        /* We use a shallow copy of the stateListeners array in case a listener
+         * is removed during this iteration */
+        for (const listener of [...this.stateListeners]) {
+            listener(this, previousState, newState);
+        }
+        return true;
+    }
+    /**
+     * Check if the subchannel associated with zero calls and with zero channels.
+     * If so, shut it down.
+     */
+    checkBothRefcounts() {
+        /* If no calls, channels, or subchannel pools have any more references to
+         * this subchannel, we can be sure it will never be used again. */
+        if (this.callRefcount === 0 && this.refcount === 0) {
+            if (this.channelzEnabled) {
+                this.channelzTrace.addTrace('CT_INFO', 'Shutting down');
+            }
+            this.transitionToState([connectivityState.ConnectivityState.CONNECTING, connectivityState.ConnectivityState.READY], connectivityState.ConnectivityState.IDLE);
+            if (this.channelzEnabled) {
+                channelz.unregisterChannelzRef(this.channelzRef);
+            }
+        }
+    }
+    callRef() {
+        this.refTrace('callRefcount ' +
+            this.callRefcount +
+            ' -> ' +
+            (this.callRefcount + 1));
+        if (this.callRefcount === 0) {
+            if (this.session) {
+                this.session.ref();
+            }
+            this.backoffTimeout.ref();
+            if (!this.keepaliveWithoutCalls) {
+                this.startKeepalivePings();
+            }
+        }
+        this.callRefcount += 1;
+    }
+    callUnref() {
+        this.refTrace('callRefcount ' +
+            this.callRefcount +
+            ' -> ' +
+            (this.callRefcount - 1));
+        this.callRefcount -= 1;
+        if (this.callRefcount === 0) {
+            if (this.session) {
+                this.session.unref();
+            }
+            this.backoffTimeout.unref();
+            if (!this.keepaliveWithoutCalls) {
+                clearInterval(this.keepaliveIntervalId);
+            }
+            this.checkBothRefcounts();
+        }
+    }
+    ref() {
+        this.refTrace('refcount ' +
+            this.refcount +
+            ' -> ' +
+            (this.refcount + 1));
+        this.refcount += 1;
+    }
+    unref() {
+        this.refTrace('refcount ' +
+            this.refcount +
+            ' -> ' +
+            (this.refcount - 1));
+        this.refcount -= 1;
+        this.checkBothRefcounts();
+    }
+    unrefIfOneRef() {
+        if (this.refcount === 1) {
+            this.unref();
+            return true;
+        }
+        return false;
+    }
+    /**
+     * Start a stream on the current session with the given `metadata` as headers
+     * and then attach it to the `callStream`. Must only be called if the
+     * subchannel's current connectivity state is READY.
+     * @param metadata
+     * @param callStream
+     */
+    startCallStream(metadata, callStream, extraFilters) {
+        const headers = metadata.toHttp2Headers();
+        headers[HTTP2_HEADER_AUTHORITY] = callStream.getHost();
+        headers[HTTP2_HEADER_USER_AGENT] = this.userAgent;
+        headers[HTTP2_HEADER_CONTENT_TYPE] = 'application/grpc';
+        headers[HTTP2_HEADER_METHOD] = 'POST';
+        headers[HTTP2_HEADER_PATH] = callStream.getMethod();
+        headers[HTTP2_HEADER_TE] = 'trailers';
+        let http2Stream;
+        /* In theory, if an error is thrown by session.request because session has
+         * become unusable (e.g. because it has received a goaway), this subchannel
+         * should soon see the corresponding close or goaway event anyway and leave
+         * READY. But we have seen reports that this does not happen
+         * (https://github.com/googleapis/nodejs-firestore/issues/1023#issuecomment-653204096)
+         * so for defense in depth, we just discard the session when we see an
+         * error here.
+         */
+        try {
+            http2Stream = this.session.request(headers);
+        }
+        catch (e) {
+            this.transitionToState([connectivityState.ConnectivityState.READY], connectivityState.ConnectivityState.TRANSIENT_FAILURE);
+            throw e;
+        }
+        let headersString = '';
+        for (const header of Object.keys(headers)) {
+            headersString += '\t\t' + header + ': ' + headers[header] + '\n';
+        }
+        logging.trace(constants.LogVerbosity.DEBUG, 'call_stream', 'Starting stream [' + callStream.getCallNumber() + '] on subchannel ' +
+            '(' + this.channelzRef.id + ') ' +
+            this.subchannelAddressString +
+            ' with headers\n' +
+            headersString);
+        this.flowControlTrace('local window size: ' +
+            this.session.state.localWindowSize +
+            ' remote window size: ' +
+            this.session.state.remoteWindowSize);
+        const streamSession = this.session;
+        this.internalsTrace('session.closed=' +
+            streamSession.closed +
+            ' session.destroyed=' +
+            streamSession.destroyed +
+            ' session.socket.destroyed=' +
+            streamSession.socket.destroyed);
+        let statsTracker;
+        if (this.channelzEnabled) {
+            this.callTracker.addCallStarted();
+            callStream.addStatusWatcher(status => {
+                if (status.code === constants.Status.OK) {
+                    this.callTracker.addCallSucceeded();
+                }
+                else {
+                    this.callTracker.addCallFailed();
+                }
+            });
+            this.streamTracker.addCallStarted();
+            callStream.addStreamEndWatcher(success => {
+                if (streamSession === this.session) {
+                    if (success) {
+                        this.streamTracker.addCallSucceeded();
+                    }
+                    else {
+                        this.streamTracker.addCallFailed();
+                    }
+                }
+            });
+            statsTracker = {
+                addMessageSent: () => {
+                    this.messagesSent += 1;
+                    this.lastMessageSentTimestamp = new Date();
+                },
+                addMessageReceived: () => {
+                    this.messagesReceived += 1;
+                }
+            };
+        }
+        else {
+            statsTracker = {
+                addMessageSent: () => { },
+                addMessageReceived: () => { }
+            };
+        }
+        callStream.attachHttp2Stream(http2Stream, this, extraFilters, statsTracker);
+    }
+    /**
+     * If the subchannel is currently IDLE, start connecting and switch to the
+     * CONNECTING state. If the subchannel is current in TRANSIENT_FAILURE,
+     * the next time it would transition to IDLE, start connecting again instead.
+     * Otherwise, do nothing.
+     */
+    startConnecting() {
+        /* First, try to transition from IDLE to connecting. If that doesn't happen
+         * because the state is not currently IDLE, check if it is
+         * TRANSIENT_FAILURE, and if so indicate that it should go back to
+         * connecting after the backoff timer ends. Otherwise do nothing */
+        if (!this.transitionToState([connectivityState.ConnectivityState.IDLE], connectivityState.ConnectivityState.CONNECTING)) {
+            if (this.connectivityState === connectivityState.ConnectivityState.TRANSIENT_FAILURE) {
+                this.continueConnecting = true;
+            }
+        }
+    }
+    /**
+     * Get the subchannel's current connectivity state.
+     */
+    getConnectivityState() {
+        return this.connectivityState;
+    }
+    /**
+     * Add a listener function to be called whenever the subchannel's
+     * connectivity state changes.
+     * @param listener
+     */
+    addConnectivityStateListener(listener) {
+        this.stateListeners.push(listener);
+    }
+    /**
+     * Remove a listener previously added with `addConnectivityStateListener`
+     * @param listener A reference to a function previously passed to
+     *     `addConnectivityStateListener`
+     */
+    removeConnectivityStateListener(listener) {
+        const listenerIndex = this.stateListeners.indexOf(listener);
+        if (listenerIndex > -1) {
+            this.stateListeners.splice(listenerIndex, 1);
+        }
+    }
+    addDisconnectListener(listener) {
+        this.disconnectListeners.push(listener);
+    }
+    removeDisconnectListener(listener) {
+        const listenerIndex = this.disconnectListeners.indexOf(listener);
+        if (listenerIndex > -1) {
+            this.disconnectListeners.splice(listenerIndex, 1);
+        }
+    }
+    /**
+     * Reset the backoff timeout, and immediately start connecting if in backoff.
+     */
+    resetBackoff() {
+        this.backoffTimeout.reset();
+        this.transitionToState([connectivityState.ConnectivityState.TRANSIENT_FAILURE], connectivityState.ConnectivityState.CONNECTING);
+    }
+    getAddress() {
+        return this.subchannelAddressString;
+    }
+    getChannelzRef() {
+        return this.channelzRef;
+    }
+    getRealSubchannel() {
+        return this;
+    }
+}
+exports.Subchannel = Subchannel;
+
+});
+
+var subchannelPool = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getSubchannelPool = exports.SubchannelPool = void 0;
+
+
+
+
+// 10 seconds in milliseconds. This value is arbitrary.
+/**
+ * The amount of time in between checks for dropping subchannels that have no
+ * other references
+ */
+const REF_CHECK_INTERVAL = 10000;
+class SubchannelPool {
+    /**
+     * A pool of subchannels use for making connections. Subchannels with the
+     * exact same parameters will be reused.
+     */
+    constructor() {
+        this.pool = Object.create(null);
+        /**
+         * A timer of a task performing a periodic subchannel cleanup.
+         */
+        this.cleanupTimer = null;
+    }
+    /**
+     * Unrefs all unused subchannels and cancels the cleanup task if all
+     * subchannels have been unrefed.
+     */
+    unrefUnusedSubchannels() {
+        let allSubchannelsUnrefed = true;
+        /* These objects are created with Object.create(null), so they do not
+         * have a prototype, which means that for (... in ...) loops over them
+         * do not need to be filtered */
+        // eslint-disable-disable-next-line:forin
+        for (const channelTarget in this.pool) {
+            const subchannelObjArray = this.pool[channelTarget];
+            const refedSubchannels = subchannelObjArray.filter((value) => !value.subchannel.unrefIfOneRef());
+            if (refedSubchannels.length > 0) {
+                allSubchannelsUnrefed = false;
+            }
+            /* For each subchannel in the pool, try to unref it if it has
+             * exactly one ref (which is the ref from the pool itself). If that
+             * does happen, remove the subchannel from the pool */
+            this.pool[channelTarget] = refedSubchannels;
+        }
+        /* Currently we do not delete keys with empty values. If that results
+         * in significant memory usage we should change it. */
+        // Cancel the cleanup task if all subchannels have been unrefed.
+        if (allSubchannelsUnrefed && this.cleanupTimer !== null) {
+            clearInterval(this.cleanupTimer);
+            this.cleanupTimer = null;
+        }
+    }
+    /**
+     * Ensures that the cleanup task is spawned.
+     */
+    ensureCleanupTask() {
+        var _a, _b;
+        if (this.cleanupTimer === null) {
+            this.cleanupTimer = setInterval(() => {
+                this.unrefUnusedSubchannels();
+            }, REF_CHECK_INTERVAL);
+            // Unref because this timer should not keep the event loop running.
+            // Call unref only if it exists to address electron/electron#21162
+            (_b = (_a = this.cleanupTimer).unref) === null || _b === void 0 ? void 0 : _b.call(_a);
+        }
+    }
+    /**
+     * Get a subchannel if one already exists with exactly matching parameters.
+     * Otherwise, create and save a subchannel with those parameters.
+     * @param channelTarget
+     * @param subchannelTarget
+     * @param channelArguments
+     * @param channelCredentials
+     */
+    getOrCreateSubchannel(channelTargetUri, subchannelTarget, channelArguments, channelCredentials) {
+        this.ensureCleanupTask();
+        const channelTarget = uriParser.uriToString(channelTargetUri);
+        if (channelTarget in this.pool) {
+            const subchannelObjArray = this.pool[channelTarget];
+            for (const subchannelObj of subchannelObjArray) {
+                if (subchannelAddress.subchannelAddressEqual(subchannelTarget, subchannelObj.subchannelAddress) &&
+                    channelOptions.channelOptionsEqual(channelArguments, subchannelObj.channelArguments) &&
+                    channelCredentials._equals(subchannelObj.channelCredentials)) {
+                    return subchannelObj.subchannel;
+                }
+            }
+        }
+        // If we get here, no matching subchannel was found
+        const subchannel$1 = new subchannel.Subchannel(channelTargetUri, subchannelTarget, channelArguments, channelCredentials);
+        if (!(channelTarget in this.pool)) {
+            this.pool[channelTarget] = [];
+        }
+        this.pool[channelTarget].push({
+            subchannelAddress: subchannelTarget,
+            channelArguments,
+            channelCredentials,
+            subchannel: subchannel$1,
+        });
+        subchannel$1.ref();
+        return subchannel$1;
+    }
+}
+exports.SubchannelPool = SubchannelPool;
+const globalSubchannelPool = new SubchannelPool();
+/**
+ * Get either the global subchannel pool, or a new subchannel pool.
+ * @param global
+ */
+function getSubchannelPool(global) {
+    if (global) {
+        return globalSubchannelPool;
+    }
+    else {
+        return new SubchannelPool();
+    }
+}
+exports.getSubchannelPool = getSubchannelPool;
+
+});
+
+var filterStack = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.FilterStackFactory = exports.FilterStack = void 0;
+class FilterStack {
+    constructor(filters) {
+        this.filters = filters;
+    }
+    sendMetadata(metadata) {
+        let result = metadata;
+        for (let i = 0; i < this.filters.length; i++) {
+            result = this.filters[i].sendMetadata(result);
+        }
+        return result;
+    }
+    receiveMetadata(metadata) {
+        let result = metadata;
+        for (let i = this.filters.length - 1; i >= 0; i--) {
+            result = this.filters[i].receiveMetadata(result);
+        }
+        return result;
+    }
+    sendMessage(message) {
+        let result = message;
+        for (let i = 0; i < this.filters.length; i++) {
+            result = this.filters[i].sendMessage(result);
+        }
+        return result;
+    }
+    receiveMessage(message) {
+        let result = message;
+        for (let i = this.filters.length - 1; i >= 0; i--) {
+            result = this.filters[i].receiveMessage(result);
+        }
+        return result;
+    }
+    receiveTrailers(status) {
+        let result = status;
+        for (let i = this.filters.length - 1; i >= 0; i--) {
+            result = this.filters[i].receiveTrailers(result);
+        }
+        return result;
+    }
+    refresh() {
+        for (const filter of this.filters) {
+            filter.refresh();
+        }
+    }
+    push(filters) {
+        this.filters.unshift(...filters);
+    }
+    getFilters() {
+        return this.filters;
+    }
+}
+exports.FilterStack = FilterStack;
+class FilterStackFactory {
+    constructor(factories) {
+        this.factories = factories;
+    }
+    push(filterFactories) {
+        this.factories.unshift(...filterFactories);
+    }
+    createFilter(callStream) {
+        return new FilterStack(this.factories.map((factory) => factory.createFilter(callStream)));
+    }
+}
+exports.FilterStackFactory = FilterStackFactory;
+
+});
+
+var filter = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BaseFilter = void 0;
+class BaseFilter {
+    async sendMetadata(metadata) {
+        return metadata;
+    }
+    receiveMetadata(metadata) {
+        return metadata;
+    }
+    async sendMessage(message) {
+        return message;
+    }
+    async receiveMessage(message) {
+        return message;
+    }
+    receiveTrailers(status) {
+        return status;
+    }
+    refresh() { }
+}
+exports.BaseFilter = BaseFilter;
+
+});
+
+var callCredentialsFilter = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CallCredentialsFilterFactory = exports.CallCredentialsFilter = void 0;
+
+
+
+class CallCredentialsFilter extends filter.BaseFilter {
+    constructor(channel, stream) {
+        var _a, _b;
+        super();
+        this.channel = channel;
+        this.stream = stream;
+        this.channel = channel;
+        this.stream = stream;
+        const splitPath = stream.getMethod().split('/');
+        let serviceName = '';
+        /* The standard path format is "/{serviceName}/{methodName}", so if we split
+         * by '/', the first item should be empty and the second should be the
+         * service name */
+        if (splitPath.length >= 2) {
+            serviceName = splitPath[1];
+        }
+        const hostname = (_b = (_a = uriParser.splitHostPort(stream.getHost())) === null || _a === void 0 ? void 0 : _a.host) !== null && _b !== void 0 ? _b : 'localhost';
+        /* Currently, call credentials are only allowed on HTTPS connections, so we
+         * can assume that the scheme is "https" */
+        this.serviceUrl = `https://${hostname}/${serviceName}`;
+    }
+    async sendMetadata(metadata) {
+        const credentials = this.stream.getCredentials();
+        const credsMetadata = credentials.generateMetadata({
+            service_url: this.serviceUrl,
+        });
+        const resultMetadata = await metadata;
+        try {
+            resultMetadata.merge(await credsMetadata);
+        }
+        catch (error) {
+            this.stream.cancelWithStatus(constants.Status.UNAUTHENTICATED, `Failed to retrieve auth metadata with error: ${error.message}`);
+            return Promise.reject('Failed to retrieve auth metadata');
+        }
+        if (resultMetadata.get('authorization').length > 1) {
+            this.stream.cancelWithStatus(constants.Status.INTERNAL, '"authorization" metadata cannot have multiple values');
+            return Promise.reject('"authorization" metadata cannot have multiple values');
+        }
+        return resultMetadata;
+    }
+}
+exports.CallCredentialsFilter = CallCredentialsFilter;
+class CallCredentialsFilterFactory {
+    constructor(channel) {
+        this.channel = channel;
+        this.channel = channel;
+    }
+    createFilter(callStream) {
+        return new CallCredentialsFilter(this.channel, callStream);
+    }
+}
+exports.CallCredentialsFilterFactory = CallCredentialsFilterFactory;
+
+});
+
+var deadlineFilter = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DeadlineFilterFactory = exports.DeadlineFilter = void 0;
+
+
+const units = [
+    ['m', 1],
+    ['S', 1000],
+    ['M', 60 * 1000],
+    ['H', 60 * 60 * 1000],
+];
+function getDeadline(deadline) {
+    const now = new Date().getTime();
+    const timeoutMs = Math.max(deadline - now, 0);
+    for (const [unit, factor] of units) {
+        const amount = timeoutMs / factor;
+        if (amount < 1e8) {
+            return String(Math.ceil(amount)) + unit;
+        }
+    }
+    throw new Error('Deadline is too far in the future');
+}
+class DeadlineFilter extends filter.BaseFilter {
+    constructor(channel, callStream) {
+        super();
+        this.channel = channel;
+        this.callStream = callStream;
+        this.timer = null;
+        this.deadline = Infinity;
+        this.retreiveDeadline();
+        this.runTimer();
+    }
+    retreiveDeadline() {
+        const callDeadline = this.callStream.getDeadline();
+        if (callDeadline instanceof Date) {
+            this.deadline = callDeadline.getTime();
+        }
+        else {
+            this.deadline = callDeadline;
+        }
+    }
+    runTimer() {
+        var _a, _b;
+        if (this.timer) {
+            clearTimeout(this.timer);
+        }
+        const now = new Date().getTime();
+        const timeout = this.deadline - now;
+        if (timeout <= 0) {
+            browser$1.nextTick(() => {
+                this.callStream.cancelWithStatus(constants.Status.DEADLINE_EXCEEDED, 'Deadline exceeded');
+            });
+        }
+        else if (this.deadline !== Infinity) {
+            this.timer = setTimeout(() => {
+                this.callStream.cancelWithStatus(constants.Status.DEADLINE_EXCEEDED, 'Deadline exceeded');
+            }, timeout);
+            (_b = (_a = this.timer).unref) === null || _b === void 0 ? void 0 : _b.call(_a);
+        }
+    }
+    refresh() {
+        this.retreiveDeadline();
+        this.runTimer();
+    }
+    async sendMetadata(metadata) {
+        if (this.deadline === Infinity) {
+            return metadata;
+        }
+        /* The input metadata promise depends on the original channel.connect()
+         * promise, so when it is complete that implies that the channel is
+         * connected */
+        const finalMetadata = await metadata;
+        const timeoutString = getDeadline(this.deadline);
+        finalMetadata.set('grpc-timeout', timeoutString);
+        return finalMetadata;
+    }
+    receiveTrailers(status) {
+        if (this.timer) {
+            clearTimeout(this.timer);
+        }
+        return status;
+    }
+}
+exports.DeadlineFilter = DeadlineFilter;
+class DeadlineFilterFactory {
+    constructor(channel) {
+        this.channel = channel;
+    }
+    createFilter(callStream) {
+        return new DeadlineFilter(this.channel, callStream);
+    }
+}
+exports.DeadlineFilterFactory = DeadlineFilterFactory;
+
+});
+
+var compressionAlgorithms = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2021 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CompressionAlgorithms = void 0;
+(function (CompressionAlgorithms) {
+    CompressionAlgorithms[CompressionAlgorithms["identity"] = 0] = "identity";
+    CompressionAlgorithms[CompressionAlgorithms["deflate"] = 1] = "deflate";
+    CompressionAlgorithms[CompressionAlgorithms["gzip"] = 2] = "gzip";
+})(exports.CompressionAlgorithms || (exports.CompressionAlgorithms = {}));
+
+});
+
+var compressionFilter = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CompressionFilterFactory = exports.CompressionFilter = void 0;
+
+
+
+
+
+const isCompressionAlgorithmKey = (key) => {
+    return typeof key === 'number' && typeof compressionAlgorithms.CompressionAlgorithms[key] === 'string';
+};
+class CompressionHandler {
+    /**
+     * @param message Raw uncompressed message bytes
+     * @param compress Indicates whether the message should be compressed
+     * @return Framed message, compressed if applicable
+     */
+    async writeMessage(message, compress) {
+        let messageBuffer = message;
+        if (compress) {
+            messageBuffer = await this.compressMessage(messageBuffer);
+        }
+        const output = Buffer$1.allocUnsafe(messageBuffer.length + 5);
+        output.writeUInt8(compress ? 1 : 0, 0);
+        output.writeUInt32BE(messageBuffer.length, 1);
+        messageBuffer.copy(output, 5);
+        return output;
+    }
+    /**
+     * @param data Framed message, possibly compressed
+     * @return Uncompressed message
+     */
+    async readMessage(data) {
+        const compressed = data.readUInt8(0) === 1;
+        let messageBuffer = data.slice(5);
+        if (compressed) {
+            messageBuffer = await this.decompressMessage(messageBuffer);
+        }
+        return messageBuffer;
+    }
+}
+class IdentityHandler extends CompressionHandler {
+    async compressMessage(message) {
+        return message;
+    }
+    async writeMessage(message, compress) {
+        const output = Buffer$1.allocUnsafe(message.length + 5);
+        /* With "identity" compression, messages should always be marked as
+         * uncompressed */
+        output.writeUInt8(0, 0);
+        output.writeUInt32BE(message.length, 1);
+        message.copy(output, 5);
+        return output;
+    }
+    decompressMessage(message) {
+        return Promise.reject(new Error('Received compressed message but "grpc-encoding" header was identity'));
+    }
+}
+class DeflateHandler extends CompressionHandler {
+    compressMessage(message) {
+        return new Promise((resolve, reject) => {
+            zlib.deflate(message, (err, output) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    resolve(output);
+                }
+            });
+        });
+    }
+    decompressMessage(message) {
+        return new Promise((resolve, reject) => {
+            zlib.inflate(message, (err, output) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    resolve(output);
+                }
+            });
+        });
+    }
+}
+class GzipHandler extends CompressionHandler {
+    compressMessage(message) {
+        return new Promise((resolve, reject) => {
+            zlib.gzip(message, (err, output) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    resolve(output);
+                }
+            });
+        });
+    }
+    decompressMessage(message) {
+        return new Promise((resolve, reject) => {
+            zlib.unzip(message, (err, output) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    resolve(output);
+                }
+            });
+        });
+    }
+}
+class UnknownHandler extends CompressionHandler {
+    constructor(compressionName) {
+        super();
+        this.compressionName = compressionName;
+    }
+    compressMessage(message) {
+        return Promise.reject(new Error(`Received message compressed with unsupported compression method ${this.compressionName}`));
+    }
+    decompressMessage(message) {
+        // This should be unreachable
+        return Promise.reject(new Error(`Compression method not supported: ${this.compressionName}`));
+    }
+}
+function getCompressionHandler(compressionName) {
+    switch (compressionName) {
+        case 'identity':
+            return new IdentityHandler();
+        case 'deflate':
+            return new DeflateHandler();
+        case 'gzip':
+            return new GzipHandler();
+        default:
+            return new UnknownHandler(compressionName);
+    }
+}
+class CompressionFilter extends filter.BaseFilter {
+    constructor(channelOptions, sharedFilterConfig) {
+        var _a;
+        super();
+        this.sharedFilterConfig = sharedFilterConfig;
+        this.sendCompression = new IdentityHandler();
+        this.receiveCompression = new IdentityHandler();
+        this.currentCompressionAlgorithm = 'identity';
+        const compressionAlgorithmKey = channelOptions['grpc.default_compression_algorithm'];
+        if (compressionAlgorithmKey !== undefined) {
+            if (isCompressionAlgorithmKey(compressionAlgorithmKey)) {
+                const clientSelectedEncoding = compressionAlgorithms.CompressionAlgorithms[compressionAlgorithmKey];
+                const serverSupportedEncodings = (_a = sharedFilterConfig.serverSupportedEncodingHeader) === null || _a === void 0 ? void 0 : _a.split(',');
+                /**
+                 * There are two possible situations here:
+                 * 1) We don't have any info yet from the server about what compression it supports
+                 *    In that case we should just use what the client tells us to use
+                 * 2) We've previously received a response from the server including a grpc-accept-encoding header
+                 *    In that case we only want to use the encoding chosen by the client if the server supports it
+                 */
+                if (!serverSupportedEncodings || serverSupportedEncodings.includes(clientSelectedEncoding)) {
+                    this.currentCompressionAlgorithm = clientSelectedEncoding;
+                    this.sendCompression = getCompressionHandler(this.currentCompressionAlgorithm);
+                }
+            }
+            else {
+                logging.log(constants.LogVerbosity.ERROR, `Invalid value provided for grpc.default_compression_algorithm option: ${compressionAlgorithmKey}`);
+            }
+        }
+    }
+    async sendMetadata(metadata) {
+        const headers = await metadata;
+        headers.set('grpc-accept-encoding', 'identity,deflate,gzip');
+        headers.set('accept-encoding', 'identity');
+        // No need to send the header if it's "identity" -  behavior is identical; save the bandwidth
+        if (this.currentCompressionAlgorithm === 'identity') {
+            headers.remove('grpc-encoding');
+        }
+        else {
+            headers.set('grpc-encoding', this.currentCompressionAlgorithm);
+        }
+        return headers;
+    }
+    receiveMetadata(metadata) {
+        const receiveEncoding = metadata.get('grpc-encoding');
+        if (receiveEncoding.length > 0) {
+            const encoding = receiveEncoding[0];
+            if (typeof encoding === 'string') {
+                this.receiveCompression = getCompressionHandler(encoding);
+            }
+        }
+        metadata.remove('grpc-encoding');
+        /* Check to see if the compression we're using to send messages is supported by the server
+         * If not, reset the sendCompression filter and have it use the default IdentityHandler */
+        const serverSupportedEncodingsHeader = metadata.get('grpc-accept-encoding')[0];
+        if (serverSupportedEncodingsHeader) {
+            this.sharedFilterConfig.serverSupportedEncodingHeader = serverSupportedEncodingsHeader;
+            const serverSupportedEncodings = serverSupportedEncodingsHeader.split(',');
+            if (!serverSupportedEncodings.includes(this.currentCompressionAlgorithm)) {
+                this.sendCompression = new IdentityHandler();
+                this.currentCompressionAlgorithm = 'identity';
+            }
+        }
+        metadata.remove('grpc-accept-encoding');
+        return metadata;
+    }
+    async sendMessage(message) {
+        var _a;
+        /* This filter is special. The input message is the bare message bytes,
+         * and the output is a framed and possibly compressed message. For this
+         * reason, this filter should be at the bottom of the filter stack */
+        const resolvedMessage = await message;
+        let compress;
+        if (this.sendCompression instanceof IdentityHandler) {
+            compress = false;
+        }
+        else {
+            compress = (((_a = resolvedMessage.flags) !== null && _a !== void 0 ? _a : 0) & 2 /* NoCompress */) === 0;
+        }
+        return {
+            message: await this.sendCompression.writeMessage(resolvedMessage.message, compress),
+            flags: resolvedMessage.flags,
+        };
+    }
+    async receiveMessage(message) {
+        /* This filter is also special. The input message is framed and possibly
+         * compressed, and the output message is deframed and uncompressed. So
+         * this is another reason that this filter should be at the bottom of the
+         * filter stack. */
+        return this.receiveCompression.readMessage(await message);
+    }
+}
+exports.CompressionFilter = CompressionFilter;
+class CompressionFilterFactory {
+    constructor(channel, options) {
+        this.channel = channel;
+        this.options = options;
+        this.sharedFilterConfig = {};
+    }
+    createFilter(callStream) {
+        return new CompressionFilter(this.options, this.sharedFilterConfig);
+    }
+}
+exports.CompressionFilterFactory = CompressionFilterFactory;
+
+});
+
+var maxMessageSizeFilter = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2020 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MaxMessageSizeFilterFactory = exports.MaxMessageSizeFilter = void 0;
+
+
+class MaxMessageSizeFilter extends filter.BaseFilter {
+    constructor(options, callStream) {
+        super();
+        this.options = options;
+        this.callStream = callStream;
+        this.maxSendMessageSize = constants.DEFAULT_MAX_SEND_MESSAGE_LENGTH;
+        this.maxReceiveMessageSize = constants.DEFAULT_MAX_RECEIVE_MESSAGE_LENGTH;
+        if ('grpc.max_send_message_length' in options) {
+            this.maxSendMessageSize = options['grpc.max_send_message_length'];
+        }
+        if ('grpc.max_receive_message_length' in options) {
+            this.maxReceiveMessageSize = options['grpc.max_receive_message_length'];
+        }
+    }
+    async sendMessage(message) {
+        /* A configured size of -1 means that there is no limit, so skip the check
+         * entirely */
+        if (this.maxSendMessageSize === -1) {
+            return message;
+        }
+        else {
+            const concreteMessage = await message;
+            if (concreteMessage.message.length > this.maxSendMessageSize) {
+                this.callStream.cancelWithStatus(constants.Status.RESOURCE_EXHAUSTED, `Sent message larger than max (${concreteMessage.message.length} vs. ${this.maxSendMessageSize})`);
+                return Promise.reject('Message too large');
+            }
+            else {
+                return concreteMessage;
+            }
+        }
+    }
+    async receiveMessage(message) {
+        /* A configured size of -1 means that there is no limit, so skip the check
+         * entirely */
+        if (this.maxReceiveMessageSize === -1) {
+            return message;
+        }
+        else {
+            const concreteMessage = await message;
+            if (concreteMessage.length > this.maxReceiveMessageSize) {
+                this.callStream.cancelWithStatus(constants.Status.RESOURCE_EXHAUSTED, `Received message larger than max (${concreteMessage.length} vs. ${this.maxReceiveMessageSize})`);
+                return Promise.reject('Message too large');
+            }
+            else {
+                return concreteMessage;
+            }
+        }
+    }
+}
+exports.MaxMessageSizeFilter = MaxMessageSizeFilter;
+class MaxMessageSizeFilterFactory {
+    constructor(options) {
+        this.options = options;
+    }
+    createFilter(callStream) {
+        return new MaxMessageSizeFilter(this.options, callStream);
+    }
+}
+exports.MaxMessageSizeFilterFactory = MaxMessageSizeFilterFactory;
+
+});
+
+var channel = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ChannelImplementation = void 0;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * See https://nodejs.org/api/timers.html#timers_setinterval_callback_delay_args
+ */
+const MAX_TIMEOUT_TIME = 2147483647;
+let nextCallNumber = 0;
+function getNewCallNumber() {
+    const callNumber = nextCallNumber;
+    nextCallNumber += 1;
+    if (nextCallNumber >= Number.MAX_SAFE_INTEGER) {
+        nextCallNumber = 0;
+    }
+    return callNumber;
+}
+class ChannelImplementation {
+    constructor(target, credentials, options) {
+        var _a, _b, _c, _d;
+        this.credentials = credentials;
+        this.options = options;
+        this.connectivityState = connectivityState.ConnectivityState.IDLE;
+        this.currentPicker = new picker.UnavailablePicker();
+        /**
+         * Calls queued up to get a call config. Should only be populated before the
+         * first time the resolver returns a result, which includes the ConfigSelector.
+         */
+        this.configSelectionQueue = [];
+        this.pickQueue = [];
+        this.connectivityStateWatchers = [];
+        this.configSelector = null;
+        /**
+         * This is the error from the name resolver if it failed most recently. It
+         * is only used to end calls that start while there is no config selector
+         * and the name resolver is in backoff, so it should be nulled if
+         * configSelector becomes set or the channel state becomes anything other
+         * than TRANSIENT_FAILURE.
+         */
+        this.currentResolutionError = null;
+        // Channelz info
+        this.channelzEnabled = true;
+        this.callTracker = new channelz.ChannelzCallTracker();
+        this.childrenTracker = new channelz.ChannelzChildrenTracker();
+        if (typeof target !== 'string') {
+            throw new TypeError('Channel target must be a string');
+        }
+        if (!(credentials instanceof channelCredentials.ChannelCredentials)) {
+            throw new TypeError('Channel credentials must be a ChannelCredentials object');
+        }
+        if (options) {
+            if (typeof options !== 'object') {
+                throw new TypeError('Channel options must be an object');
+            }
+        }
+        this.originalTarget = target;
+        const originalTargetUri = uriParser.parseUri(target);
+        if (originalTargetUri === null) {
+            throw new Error(`Could not parse target name "${target}"`);
+        }
+        /* This ensures that the target has a scheme that is registered with the
+         * resolver */
+        const defaultSchemeMapResult = resolver.mapUriDefaultScheme(originalTargetUri);
+        if (defaultSchemeMapResult === null) {
+            throw new Error(`Could not find a default scheme for target name "${target}"`);
+        }
+        this.callRefTimer = setInterval(() => { }, MAX_TIMEOUT_TIME);
+        (_b = (_a = this.callRefTimer).unref) === null || _b === void 0 ? void 0 : _b.call(_a);
+        if (this.options['grpc.enable_channelz'] === 0) {
+            this.channelzEnabled = false;
+        }
+        this.channelzTrace = new channelz.ChannelzTrace();
+        this.channelzRef = channelz.registerChannelzChannel(target, () => this.getChannelzInfo(), this.channelzEnabled);
+        if (this.channelzEnabled) {
+            this.channelzTrace.addTrace('CT_INFO', 'Channel created');
+        }
+        if (this.options['grpc.default_authority']) {
+            this.defaultAuthority = this.options['grpc.default_authority'];
+        }
+        else {
+            this.defaultAuthority = resolver.getDefaultAuthority(defaultSchemeMapResult);
+        }
+        const proxyMapResult = http_proxy.mapProxyName(defaultSchemeMapResult, options);
+        this.target = proxyMapResult.target;
+        this.options = Object.assign({}, this.options, proxyMapResult.extraOptions);
+        /* The global boolean parameter to getSubchannelPool has the inverse meaning to what
+         * the grpc.use_local_subchannel_pool channel option means. */
+        this.subchannelPool = subchannelPool.getSubchannelPool(((_c = options['grpc.use_local_subchannel_pool']) !== null && _c !== void 0 ? _c : 0) === 0);
+        const channelControlHelper = {
+            createSubchannel: (subchannelAddress, subchannelArgs) => {
+                const subchannel = this.subchannelPool.getOrCreateSubchannel(this.target, subchannelAddress, Object.assign({}, this.options, subchannelArgs), this.credentials);
+                if (this.channelzEnabled) {
+                    this.channelzTrace.addTrace('CT_INFO', 'Created subchannel or used existing subchannel', subchannel.getChannelzRef());
+                }
+                return subchannel;
+            },
+            updateState: (connectivityState, picker) => {
+                this.currentPicker = picker;
+                const queueCopy = this.pickQueue.slice();
+                this.pickQueue = [];
+                this.callRefTimerUnref();
+                for (const { callStream, callMetadata, callConfig, dynamicFilters } of queueCopy) {
+                    this.tryPick(callStream, callMetadata, callConfig, dynamicFilters);
+                }
+                this.updateState(connectivityState);
+            },
+            requestReresolution: () => {
+                // This should never be called.
+                throw new Error('Resolving load balancer should never call requestReresolution');
+            },
+            addChannelzChild: (child) => {
+                if (this.channelzEnabled) {
+                    this.childrenTracker.refChild(child);
+                }
+            },
+            removeChannelzChild: (child) => {
+                if (this.channelzEnabled) {
+                    this.childrenTracker.unrefChild(child);
+                }
+            }
+        };
+        this.resolvingLoadBalancer = new resolvingLoadBalancer.ResolvingLoadBalancer(this.target, channelControlHelper, options, (configSelector) => {
+            if (this.channelzEnabled) {
+                this.channelzTrace.addTrace('CT_INFO', 'Address resolution succeeded');
+            }
+            this.configSelector = configSelector;
+            this.currentResolutionError = null;
+            /* We process the queue asynchronously to ensure that the corresponding
+             * load balancer update has completed. */
+            browser$1.nextTick(() => {
+                const localQueue = this.configSelectionQueue;
+                this.configSelectionQueue = [];
+                this.callRefTimerUnref();
+                for (const { callStream, callMetadata } of localQueue) {
+                    this.tryGetConfig(callStream, callMetadata);
+                }
+                this.configSelectionQueue = [];
+            });
+        }, (status) => {
+            if (this.channelzEnabled) {
+                this.channelzTrace.addTrace('CT_WARNING', 'Address resolution failed with code ' + status.code + ' and details "' + status.details + '"');
+            }
+            if (this.configSelectionQueue.length > 0) {
+                this.trace('Name resolution failed with calls queued for config selection');
+            }
+            if (this.configSelector === null) {
+                this.currentResolutionError = status;
+            }
+            const localQueue = this.configSelectionQueue;
+            this.configSelectionQueue = [];
+            this.callRefTimerUnref();
+            for (const { callStream, callMetadata } of localQueue) {
+                if (callMetadata.getOptions().waitForReady) {
+                    this.callRefTimerRef();
+                    this.configSelectionQueue.push({ callStream, callMetadata });
+                }
+                else {
+                    callStream.cancelWithStatus(status.code, status.details);
+                }
+            }
+        });
+        this.filterStackFactory = new filterStack.FilterStackFactory([
+            new callCredentialsFilter.CallCredentialsFilterFactory(this),
+            new deadlineFilter.DeadlineFilterFactory(this),
+            new maxMessageSizeFilter.MaxMessageSizeFilterFactory(this.options),
+            new compressionFilter.CompressionFilterFactory(this, this.options),
+        ]);
+        this.trace('Channel constructed with options ' + JSON.stringify(options, undefined, 2));
+        const error = new Error();
+        logging.trace(constants.LogVerbosity.DEBUG, 'channel_stacktrace', '(' + this.channelzRef.id + ') ' + 'Channel constructed \n' + ((_d = error.stack) === null || _d === void 0 ? void 0 : _d.substring(error.stack.indexOf('\n') + 1)));
+    }
+    getChannelzInfo() {
+        return {
+            target: this.originalTarget,
+            state: this.connectivityState,
+            trace: this.channelzTrace,
+            callTracker: this.callTracker,
+            children: this.childrenTracker.getChildLists()
+        };
+    }
+    trace(text, verbosityOverride) {
+        logging.trace(verbosityOverride !== null && verbosityOverride !== void 0 ? verbosityOverride : constants.LogVerbosity.DEBUG, 'channel', '(' + this.channelzRef.id + ') ' + uriParser.uriToString(this.target) + ' ' + text);
+    }
+    callRefTimerRef() {
+        var _a, _b, _c, _d;
+        // If the hasRef function does not exist, always run the code
+        if (!((_b = (_a = this.callRefTimer).hasRef) === null || _b === void 0 ? void 0 : _b.call(_a))) {
+            this.trace('callRefTimer.ref | configSelectionQueue.length=' +
+                this.configSelectionQueue.length +
+                ' pickQueue.length=' +
+                this.pickQueue.length);
+            (_d = (_c = this.callRefTimer).ref) === null || _d === void 0 ? void 0 : _d.call(_c);
+        }
+    }
+    callRefTimerUnref() {
+        var _a, _b;
+        // If the hasRef function does not exist, always run the code
+        if (!this.callRefTimer.hasRef || this.callRefTimer.hasRef()) {
+            this.trace('callRefTimer.unref | configSelectionQueue.length=' +
+                this.configSelectionQueue.length +
+                ' pickQueue.length=' +
+                this.pickQueue.length);
+            (_b = (_a = this.callRefTimer).unref) === null || _b === void 0 ? void 0 : _b.call(_a);
+        }
+    }
+    pushPick(callStream, callMetadata, callConfig, dynamicFilters) {
+        this.pickQueue.push({ callStream, callMetadata, callConfig, dynamicFilters });
+        this.callRefTimerRef();
+    }
+    /**
+     * Check the picker output for the given call and corresponding metadata,
+     * and take any relevant actions. Should not be called while iterating
+     * over pickQueue.
+     * @param callStream
+     * @param callMetadata
+     */
+    tryPick(callStream, callMetadata, callConfig, dynamicFilters) {
+        var _a, _b;
+        const pickResult = this.currentPicker.pick({
+            metadata: callMetadata,
+            extraPickInfo: callConfig.pickInformation,
+        });
+        const subchannelString = pickResult.subchannel ?
+            '(' + pickResult.subchannel.getChannelzRef().id + ') ' + pickResult.subchannel.getAddress() :
+            '' + pickResult.subchannel;
+        this.trace('Pick result for call [' +
+            callStream.getCallNumber() +
+            ']: ' +
+            picker.PickResultType[pickResult.pickResultType] +
+            ' subchannel: ' +
+            subchannelString +
+            ' status: ' + ((_a = pickResult.status) === null || _a === void 0 ? void 0 : _a.code) +
+            ' ' + ((_b = pickResult.status) === null || _b === void 0 ? void 0 : _b.details));
+        switch (pickResult.pickResultType) {
+            case picker.PickResultType.COMPLETE:
+                if (pickResult.subchannel === null) {
+                    callStream.cancelWithStatus(constants.Status.UNAVAILABLE, 'Request dropped by load balancing policy');
+                    // End the call with an error
+                }
+                else {
+                    /* If the subchannel is not in the READY state, that indicates a bug
+                     * somewhere in the load balancer or picker. So, we log an error and
+                     * queue the pick to be tried again later. */
+                    if (pickResult.subchannel.getConnectivityState() !==
+                        connectivityState.ConnectivityState.READY) {
+                        logging.log(constants.LogVerbosity.ERROR, 'Error: COMPLETE pick result subchannel ' +
+                            subchannelString +
+                            ' has state ' +
+                            connectivityState.ConnectivityState[pickResult.subchannel.getConnectivityState()]);
+                        this.pushPick(callStream, callMetadata, callConfig, dynamicFilters);
+                        break;
+                    }
+                    /* We need to clone the callMetadata here because the transparent
+                     * retry code in the promise resolution handler use the same
+                     * callMetadata object, so it needs to stay unmodified */
+                    callStream.filterStack
+                        .sendMetadata(Promise.resolve(callMetadata.clone()))
+                        .then((finalMetadata) => {
+                        var _a, _b, _c;
+                        const subchannelState = pickResult.subchannel.getConnectivityState();
+                        if (subchannelState === connectivityState.ConnectivityState.READY) {
+                            try {
+                                const pickExtraFilters = pickResult.extraFilterFactories.map(factory => factory.createFilter(callStream));
+                                (_a = pickResult.subchannel) === null || _a === void 0 ? void 0 : _a.getRealSubchannel().startCallStream(finalMetadata, callStream, [...dynamicFilters, ...pickExtraFilters]);
+                                /* If we reach this point, the call stream has started
+                                 * successfully */
+                                (_b = callConfig.onCommitted) === null || _b === void 0 ? void 0 : _b.call(callConfig);
+                                (_c = pickResult.onCallStarted) === null || _c === void 0 ? void 0 : _c.call(pickResult);
+                            }
+                            catch (error) {
+                                const errorCode = error.code;
+                                if (errorCode === 'ERR_HTTP2_GOAWAY_SESSION' ||
+                                    errorCode === 'ERR_HTTP2_INVALID_SESSION') {
+                                    /* An error here indicates that something went wrong with
+                                     * the picked subchannel's http2 stream right before we
+                                     * tried to start the stream. We are handling a promise
+                                     * result here, so this is asynchronous with respect to the
+                                     * original tryPick call, so calling it again is not
+                                     * recursive. We call tryPick immediately instead of
+                                     * queueing this pick again because handling the queue is
+                                     * triggered by state changes, and we want to immediately
+                                     * check if the state has already changed since the
+                                     * previous tryPick call. We do this instead of cancelling
+                                     * the stream because the correct behavior may be
+                                     * re-queueing instead, based on the logic in the rest of
+                                     * tryPick */
+                                    this.trace('Failed to start call on picked subchannel ' +
+                                        subchannelString +
+                                        ' with error ' +
+                                        error.message +
+                                        '. Retrying pick', constants.LogVerbosity.INFO);
+                                    this.tryPick(callStream, callMetadata, callConfig, dynamicFilters);
+                                }
+                                else {
+                                    this.trace('Failed to start call on picked subchanel ' +
+                                        subchannelString +
+                                        ' with error ' +
+                                        error.message +
+                                        '. Ending call', constants.LogVerbosity.INFO);
+                                    callStream.cancelWithStatus(constants.Status.INTERNAL, `Failed to start HTTP/2 stream with error: ${error.message}`);
+                                }
+                            }
+                        }
+                        else {
+                            /* The logic for doing this here is the same as in the catch
+                             * block above */
+                            this.trace('Picked subchannel ' +
+                                subchannelString +
+                                ' has state ' +
+                                connectivityState.ConnectivityState[subchannelState] +
+                                ' after metadata filters. Retrying pick', constants.LogVerbosity.INFO);
+                            this.tryPick(callStream, callMetadata, callConfig, dynamicFilters);
+                        }
+                    }, (error) => {
+                        // We assume the error code isn't 0 (Status.OK)
+                        callStream.cancelWithStatus(typeof error.code === 'number' ? error.code : constants.Status.UNKNOWN, `Getting metadata from plugin failed with error: ${error.message}`);
+                    });
+                }
+                break;
+            case picker.PickResultType.QUEUE:
+                this.pushPick(callStream, callMetadata, callConfig, dynamicFilters);
+                break;
+            case picker.PickResultType.TRANSIENT_FAILURE:
+                if (callMetadata.getOptions().waitForReady) {
+                    this.pushPick(callStream, callMetadata, callConfig, dynamicFilters);
+                }
+                else {
+                    callStream.cancelWithStatus(pickResult.status.code, pickResult.status.details);
+                }
+                break;
+            case picker.PickResultType.DROP:
+                callStream.cancelWithStatus(pickResult.status.code, pickResult.status.details);
+                break;
+            default:
+                throw new Error(`Invalid state: unknown pickResultType ${pickResult.pickResultType}`);
+        }
+    }
+    removeConnectivityStateWatcher(watcherObject) {
+        const watcherIndex = this.connectivityStateWatchers.findIndex((value) => value === watcherObject);
+        if (watcherIndex >= 0) {
+            this.connectivityStateWatchers.splice(watcherIndex, 1);
+        }
+    }
+    updateState(newState) {
+        logging.trace(constants.LogVerbosity.DEBUG, 'connectivity_state', '(' + this.channelzRef.id + ') ' +
+            uriParser.uriToString(this.target) +
+            ' ' +
+            connectivityState.ConnectivityState[this.connectivityState] +
+            ' -> ' +
+            connectivityState.ConnectivityState[newState]);
+        if (this.channelzEnabled) {
+            this.channelzTrace.addTrace('CT_INFO', connectivityState.ConnectivityState[this.connectivityState] + ' -> ' + connectivityState.ConnectivityState[newState]);
+        }
+        this.connectivityState = newState;
+        const watchersCopy = this.connectivityStateWatchers.slice();
+        for (const watcherObject of watchersCopy) {
+            if (newState !== watcherObject.currentState) {
+                if (watcherObject.timer) {
+                    clearTimeout(watcherObject.timer);
+                }
+                this.removeConnectivityStateWatcher(watcherObject);
+                watcherObject.callback();
+            }
+        }
+        if (newState !== connectivityState.ConnectivityState.TRANSIENT_FAILURE) {
+            this.currentResolutionError = null;
+        }
+    }
+    tryGetConfig(stream, metadata) {
+        if (stream.getStatus() !== null) {
+            /* If the stream has a status, it has already finished and we don't need
+             * to take any more actions on it. */
+            return;
+        }
+        if (this.configSelector === null) {
+            /* This branch will only be taken at the beginning of the channel's life,
+             * before the resolver ever returns a result. So, the
+             * ResolvingLoadBalancer may be idle and if so it needs to be kicked
+             * because it now has a pending request. */
+            this.resolvingLoadBalancer.exitIdle();
+            if (this.currentResolutionError && !metadata.getOptions().waitForReady) {
+                stream.cancelWithStatus(this.currentResolutionError.code, this.currentResolutionError.details);
+            }
+            else {
+                this.configSelectionQueue.push({
+                    callStream: stream,
+                    callMetadata: metadata,
+                });
+                this.callRefTimerRef();
+            }
+        }
+        else {
+            const callConfig = this.configSelector(stream.getMethod(), metadata);
+            if (callConfig.status === constants.Status.OK) {
+                if (callConfig.methodConfig.timeout) {
+                    const deadline = new Date();
+                    deadline.setSeconds(deadline.getSeconds() + callConfig.methodConfig.timeout.seconds);
+                    deadline.setMilliseconds(deadline.getMilliseconds() +
+                        callConfig.methodConfig.timeout.nanos / 1000000);
+                    stream.setConfigDeadline(deadline);
+                    // Refreshing the filters makes the deadline filter pick up the new deadline
+                    stream.filterStack.refresh();
+                }
+                if (callConfig.dynamicFilterFactories.length > 0) {
+                    /* These dynamicFilters are the mechanism for implementing gRFC A39:
+                     * https://github.com/grpc/proposal/blob/master/A39-xds-http-filters.md
+                     * We run them here instead of with the rest of the filters because
+                     * that spec says "the xDS HTTP filters will run in between name
+                     * resolution and load balancing".
+                     *
+                     * We use the filter stack here to simplify the multi-filter async
+                     * waterfall logic, but we pass along the underlying list of filters
+                     * to avoid having nested filter stacks when combining it with the
+                     * original filter stack. We do not pass along the original filter
+                     * factory list because these filters may need to persist data
+                     * between sending headers and other operations. */
+                    const dynamicFilterStackFactory = new filterStack.FilterStackFactory(callConfig.dynamicFilterFactories);
+                    const dynamicFilterStack = dynamicFilterStackFactory.createFilter(stream);
+                    dynamicFilterStack.sendMetadata(Promise.resolve(metadata)).then(filteredMetadata => {
+                        this.tryPick(stream, filteredMetadata, callConfig, dynamicFilterStack.getFilters());
+                    });
+                }
+                else {
+                    this.tryPick(stream, metadata, callConfig, []);
+                }
+            }
+            else {
+                stream.cancelWithStatus(callConfig.status, 'Failed to route call to method ' + stream.getMethod());
+            }
+        }
+    }
+    _startCallStream(stream, metadata) {
+        this.tryGetConfig(stream, metadata.clone());
+    }
+    close() {
+        this.resolvingLoadBalancer.destroy();
+        this.updateState(connectivityState.ConnectivityState.SHUTDOWN);
+        clearInterval(this.callRefTimer);
+        if (this.channelzEnabled) {
+            channelz.unregisterChannelzRef(this.channelzRef);
+        }
+        this.subchannelPool.unrefUnusedSubchannels();
+    }
+    getTarget() {
+        return uriParser.uriToString(this.target);
+    }
+    getConnectivityState(tryToConnect) {
+        const connectivityState = this.connectivityState;
+        if (tryToConnect) {
+            this.resolvingLoadBalancer.exitIdle();
+        }
+        return connectivityState;
+    }
+    watchConnectivityState(currentState, deadline, callback) {
+        if (this.connectivityState === connectivityState.ConnectivityState.SHUTDOWN) {
+            throw new Error('Channel has been shut down');
+        }
+        let timer = null;
+        if (deadline !== Infinity) {
+            const deadlineDate = deadline instanceof Date ? deadline : new Date(deadline);
+            const now = new Date();
+            if (deadline === -Infinity || deadlineDate <= now) {
+                browser$1.nextTick(callback, new Error('Deadline passed without connectivity state change'));
+                return;
+            }
+            timer = setTimeout(() => {
+                this.removeConnectivityStateWatcher(watcherObject);
+                callback(new Error('Deadline passed without connectivity state change'));
+            }, deadlineDate.getTime() - now.getTime());
+        }
+        const watcherObject = {
+            currentState,
+            callback,
+            timer,
+        };
+        this.connectivityStateWatchers.push(watcherObject);
+    }
+    /**
+     * Get the channelz reference object for this channel. The returned value is
+     * garbage if channelz is disabled for this channel.
+     * @returns
+     */
+    getChannelzRef() {
+        return this.channelzRef;
+    }
+    createCall(method, deadline, host, parentCall, propagateFlags) {
+        if (typeof method !== 'string') {
+            throw new TypeError('Channel#createCall: method must be a string');
+        }
+        if (!(typeof deadline === 'number' || deadline instanceof Date)) {
+            throw new TypeError('Channel#createCall: deadline must be a number or Date');
+        }
+        if (this.connectivityState === connectivityState.ConnectivityState.SHUTDOWN) {
+            throw new Error('Channel has been shut down');
+        }
+        const callNumber = getNewCallNumber();
+        this.trace('createCall [' +
+            callNumber +
+            '] method="' +
+            method +
+            '", deadline=' +
+            deadline);
+        const finalOptions = {
+            deadline: deadline,
+            flags: propagateFlags !== null && propagateFlags !== void 0 ? propagateFlags : constants.Propagate.DEFAULTS,
+            host: host !== null && host !== void 0 ? host : this.defaultAuthority,
+            parentCall: parentCall,
+        };
+        const stream = new callStream.Http2CallStream(method, this, finalOptions, this.filterStackFactory, this.credentials._getCallCredentials(), callNumber);
+        if (this.channelzEnabled) {
+            this.callTracker.addCallStarted();
+            stream.addStatusWatcher(status => {
+                if (status.code === constants.Status.OK) {
+                    this.callTracker.addCallSucceeded();
+                }
+                else {
+                    this.callTracker.addCallFailed();
+                }
+            });
+        }
+        return stream;
+    }
+}
+exports.ChannelImplementation = ChannelImplementation;
+
+});
+
+var serverCall = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Http2ServerCallStream = exports.ServerDuplexStreamImpl = exports.ServerWritableStreamImpl = exports.ServerReadableStreamImpl = exports.ServerUnaryCallImpl = void 0;
+
+
+
+
+
+
+
+
+const TRACER_NAME = 'server_call';
+function trace(text) {
+    logging.trace(constants.LogVerbosity.DEBUG, TRACER_NAME, text);
+}
+const GRPC_ACCEPT_ENCODING_HEADER = 'grpc-accept-encoding';
+const GRPC_ENCODING_HEADER = 'grpc-encoding';
+const GRPC_MESSAGE_HEADER = 'grpc-message';
+const GRPC_STATUS_HEADER = 'grpc-status';
+const GRPC_TIMEOUT_HEADER = 'grpc-timeout';
+const DEADLINE_REGEX = /(\d{1,8})\s*([HMSmun])/;
+const deadlineUnitsToMs = {
+    H: 3600000,
+    M: 60000,
+    S: 1000,
+    m: 1,
+    u: 0.001,
+    n: 0.000001,
+};
+const defaultResponseHeaders = {
+    // TODO(cjihrig): Remove these encoding headers from the default response
+    // once compression is integrated.
+    [GRPC_ACCEPT_ENCODING_HEADER]: 'identity,deflate,gzip',
+    [GRPC_ENCODING_HEADER]: 'identity',
+    [http2.constants.HTTP2_HEADER_STATUS]: http2.constants.HTTP_STATUS_OK,
+    [http2.constants.HTTP2_HEADER_CONTENT_TYPE]: 'application/grpc+proto',
+};
+const defaultResponseOptions = {
+    waitForTrailers: true,
+};
+class ServerUnaryCallImpl extends events_1.EventEmitter {
+    constructor(call, metadata, request) {
+        super();
+        this.call = call;
+        this.metadata = metadata;
+        this.request = request;
+        this.cancelled = false;
+        this.call.setupSurfaceCall(this);
+    }
+    getPeer() {
+        return this.call.getPeer();
+    }
+    sendMetadata(responseMetadata) {
+        this.call.sendMetadata(responseMetadata);
+    }
+    getDeadline() {
+        return this.call.getDeadline();
+    }
+}
+exports.ServerUnaryCallImpl = ServerUnaryCallImpl;
+class ServerReadableStreamImpl extends stream_1.Readable {
+    constructor(call, metadata, deserialize, encoding) {
+        super({ objectMode: true });
+        this.call = call;
+        this.metadata = metadata;
+        this.deserialize = deserialize;
+        this.cancelled = false;
+        this.call.setupSurfaceCall(this);
+        this.call.setupReadable(this, encoding);
+    }
+    _read(size) {
+        if (!this.call.consumeUnpushedMessages(this)) {
+            return;
+        }
+        this.call.resume();
+    }
+    getPeer() {
+        return this.call.getPeer();
+    }
+    sendMetadata(responseMetadata) {
+        this.call.sendMetadata(responseMetadata);
+    }
+    getDeadline() {
+        return this.call.getDeadline();
+    }
+}
+exports.ServerReadableStreamImpl = ServerReadableStreamImpl;
+class ServerWritableStreamImpl extends stream_1.Writable {
+    constructor(call, metadata$1, serialize, request) {
+        super({ objectMode: true });
+        this.call = call;
+        this.metadata = metadata$1;
+        this.serialize = serialize;
+        this.request = request;
+        this.cancelled = false;
+        this.trailingMetadata = new metadata.Metadata();
+        this.call.setupSurfaceCall(this);
+        this.on('error', (err) => {
+            this.call.sendError(err);
+            this.end();
+        });
+    }
+    getPeer() {
+        return this.call.getPeer();
+    }
+    sendMetadata(responseMetadata) {
+        this.call.sendMetadata(responseMetadata);
+    }
+    getDeadline() {
+        return this.call.getDeadline();
+    }
+    _write(chunk, encoding, 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    callback) {
+        try {
+            const response = this.call.serializeMessage(chunk);
+            if (!this.call.write(response)) {
+                this.call.once('drain', callback);
+                return;
+            }
+        }
+        catch (err) {
+            err.code = constants.Status.INTERNAL;
+            this.emit('error', err);
+        }
+        callback();
+    }
+    _final(callback) {
+        this.call.sendStatus({
+            code: constants.Status.OK,
+            details: 'OK',
+            metadata: this.trailingMetadata,
+        });
+        callback(null);
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    end(metadata) {
+        if (metadata) {
+            this.trailingMetadata = metadata;
+        }
+        return super.end();
+    }
+}
+exports.ServerWritableStreamImpl = ServerWritableStreamImpl;
+class ServerDuplexStreamImpl extends stream_1.Duplex {
+    constructor(call, metadata$1, serialize, deserialize, encoding) {
+        super({ objectMode: true });
+        this.call = call;
+        this.metadata = metadata$1;
+        this.serialize = serialize;
+        this.deserialize = deserialize;
+        this.cancelled = false;
+        this.trailingMetadata = new metadata.Metadata();
+        this.call.setupSurfaceCall(this);
+        this.call.setupReadable(this, encoding);
+        this.on('error', (err) => {
+            this.call.sendError(err);
+            this.end();
+        });
+    }
+    getPeer() {
+        return this.call.getPeer();
+    }
+    sendMetadata(responseMetadata) {
+        this.call.sendMetadata(responseMetadata);
+    }
+    getDeadline() {
+        return this.call.getDeadline();
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    end(metadata) {
+        if (metadata) {
+            this.trailingMetadata = metadata;
+        }
+        return super.end();
+    }
+}
+exports.ServerDuplexStreamImpl = ServerDuplexStreamImpl;
+ServerDuplexStreamImpl.prototype._read =
+    ServerReadableStreamImpl.prototype._read;
+ServerDuplexStreamImpl.prototype._write =
+    ServerWritableStreamImpl.prototype._write;
+ServerDuplexStreamImpl.prototype._final =
+    ServerWritableStreamImpl.prototype._final;
+// Internal class that wraps the HTTP2 request.
+class Http2ServerCallStream extends events_1.EventEmitter {
+    constructor(stream, handler, options) {
+        super();
+        this.stream = stream;
+        this.handler = handler;
+        this.options = options;
+        this.cancelled = false;
+        this.deadlineTimer = setTimeout(() => { }, 0);
+        this.deadline = Infinity;
+        this.wantTrailers = false;
+        this.metadataSent = false;
+        this.canPush = false;
+        this.isPushPending = false;
+        this.bufferedMessages = [];
+        this.messagesToPush = [];
+        this.maxSendMessageSize = constants.DEFAULT_MAX_SEND_MESSAGE_LENGTH;
+        this.maxReceiveMessageSize = constants.DEFAULT_MAX_RECEIVE_MESSAGE_LENGTH;
+        this.stream.once('error', (err) => {
+            /* We need an error handler to avoid uncaught error event exceptions, but
+             * there is nothing we can reasonably do here. Any error event should
+             * have a corresponding close event, which handles emitting the cancelled
+             * event. And the stream is now in a bad state, so we can't reasonably
+             * expect to be able to send an error over it. */
+        });
+        this.stream.once('close', () => {
+            var _a;
+            trace('Request to method ' + ((_a = this.handler) === null || _a === void 0 ? void 0 : _a.path) +
+                ' stream closed with rstCode ' +
+                this.stream.rstCode);
+            this.cancelled = true;
+            this.emit('cancelled', 'cancelled');
+            this.emit('streamEnd', false);
+            this.sendStatus({ code: constants.Status.CANCELLED, details: 'Cancelled by client', metadata: new metadata.Metadata() });
+        });
+        this.stream.on('drain', () => {
+            this.emit('drain');
+        });
+        if ('grpc.max_send_message_length' in options) {
+            this.maxSendMessageSize = options['grpc.max_send_message_length'];
+        }
+        if ('grpc.max_receive_message_length' in options) {
+            this.maxReceiveMessageSize = options['grpc.max_receive_message_length'];
+        }
+        // Clear noop timer
+        clearTimeout(this.deadlineTimer);
+    }
+    checkCancelled() {
+        /* In some cases the stream can become destroyed before the close event
+         * fires. That creates a race condition that this check works around */
+        if (this.stream.destroyed || this.stream.closed) {
+            this.cancelled = true;
+        }
+        return this.cancelled;
+    }
+    getDecompressedMessage(message, encoding) {
+        switch (encoding) {
+            case 'deflate': {
+                return new Promise((resolve, reject) => {
+                    zlib.inflate(message.slice(5), (err, output) => {
+                        if (err) {
+                            this.sendError({
+                                code: constants.Status.INTERNAL,
+                                details: `Received "grpc-encoding" header "${encoding}" but ${encoding} decompression failed`,
+                            });
+                            resolve();
+                        }
+                        else {
+                            resolve(output);
+                        }
+                    });
+                });
+            }
+            case 'gzip': {
+                return new Promise((resolve, reject) => {
+                    zlib.unzip(message.slice(5), (err, output) => {
+                        if (err) {
+                            this.sendError({
+                                code: constants.Status.INTERNAL,
+                                details: `Received "grpc-encoding" header "${encoding}" but ${encoding} decompression failed`,
+                            });
+                            resolve();
+                        }
+                        else {
+                            resolve(output);
+                        }
+                    });
+                });
+            }
+            case 'identity': {
+                return Promise.resolve(message.slice(5));
+            }
+            default: {
+                this.sendError({
+                    code: constants.Status.UNIMPLEMENTED,
+                    details: `Received message compressed with unsupported encoding "${encoding}"`,
+                });
+                return Promise.resolve();
+            }
+        }
+    }
+    sendMetadata(customMetadata) {
+        if (this.checkCancelled()) {
+            return;
+        }
+        if (this.metadataSent) {
+            return;
+        }
+        this.metadataSent = true;
+        const custom = customMetadata ? customMetadata.toHttp2Headers() : null;
+        // TODO(cjihrig): Include compression headers.
+        const headers = Object.assign({}, defaultResponseHeaders, custom);
+        this.stream.respond(headers, defaultResponseOptions);
+    }
+    receiveMetadata(headers) {
+        const metadata$1 = metadata.Metadata.fromHttp2Headers(headers);
+        // TODO(cjihrig): Receive compression metadata.
+        const timeoutHeader = metadata$1.get(GRPC_TIMEOUT_HEADER);
+        if (timeoutHeader.length > 0) {
+            const match = timeoutHeader[0].toString().match(DEADLINE_REGEX);
+            if (match === null) {
+                const err = new Error('Invalid deadline');
+                err.code = constants.Status.OUT_OF_RANGE;
+                this.sendError(err);
+                return metadata$1;
+            }
+            const timeout = (+match[1] * deadlineUnitsToMs[match[2]]) | 0;
+            const now = new Date();
+            this.deadline = now.setMilliseconds(now.getMilliseconds() + timeout);
+            this.deadlineTimer = setTimeout(handleExpiredDeadline, timeout, this);
+            metadata$1.remove(GRPC_TIMEOUT_HEADER);
+        }
+        // Remove several headers that should not be propagated to the application
+        metadata$1.remove(http2.constants.HTTP2_HEADER_ACCEPT_ENCODING);
+        metadata$1.remove(http2.constants.HTTP2_HEADER_TE);
+        metadata$1.remove(http2.constants.HTTP2_HEADER_CONTENT_TYPE);
+        metadata$1.remove('grpc-accept-encoding');
+        return metadata$1;
+    }
+    receiveUnaryMessage(encoding) {
+        return new Promise((resolve, reject) => {
+            const stream = this.stream;
+            const chunks = [];
+            let totalLength = 0;
+            stream.on('data', (data) => {
+                chunks.push(data);
+                totalLength += data.byteLength;
+            });
+            stream.once('end', async () => {
+                try {
+                    const requestBytes = Buffer$1.concat(chunks, totalLength);
+                    if (this.maxReceiveMessageSize !== -1 &&
+                        requestBytes.length > this.maxReceiveMessageSize) {
+                        this.sendError({
+                            code: constants.Status.RESOURCE_EXHAUSTED,
+                            details: `Received message larger than max (${requestBytes.length} vs. ${this.maxReceiveMessageSize})`,
+                        });
+                        resolve();
+                    }
+                    this.emit('receiveMessage');
+                    const compressed = requestBytes.readUInt8(0) === 1;
+                    const compressedMessageEncoding = compressed ? encoding : 'identity';
+                    const decompressedMessage = await this.getDecompressedMessage(requestBytes, compressedMessageEncoding);
+                    // Encountered an error with decompression; it'll already have been propogated back
+                    // Just return early
+                    if (!decompressedMessage) {
+                        resolve();
+                    }
+                    else {
+                        resolve(this.deserializeMessage(decompressedMessage));
+                    }
+                }
+                catch (err) {
+                    err.code = constants.Status.INTERNAL;
+                    this.sendError(err);
+                    resolve();
+                }
+            });
+        });
+    }
+    serializeMessage(value) {
+        const messageBuffer = this.handler.serialize(value);
+        // TODO(cjihrig): Call compression aware serializeMessage().
+        const byteLength = messageBuffer.byteLength;
+        const output = Buffer$1.allocUnsafe(byteLength + 5);
+        output.writeUInt8(0, 0);
+        output.writeUInt32BE(byteLength, 1);
+        messageBuffer.copy(output, 5);
+        return output;
+    }
+    deserializeMessage(bytes) {
+        return this.handler.deserialize(bytes);
+    }
+    async sendUnaryMessage(err, value, metadata$1, flags) {
+        if (this.checkCancelled()) {
+            return;
+        }
+        if (!metadata$1) {
+            metadata$1 = new metadata.Metadata();
+        }
+        if (err) {
+            if (!Object.prototype.hasOwnProperty.call(err, 'metadata')) {
+                err.metadata = metadata$1;
+            }
+            this.sendError(err);
+            return;
+        }
+        try {
+            const response = this.serializeMessage(value);
+            this.write(response);
+            this.sendStatus({ code: constants.Status.OK, details: 'OK', metadata: metadata$1 });
+        }
+        catch (err) {
+            err.code = constants.Status.INTERNAL;
+            this.sendError(err);
+        }
+    }
+    sendStatus(statusObj) {
+        var _a;
+        this.emit('callEnd', statusObj.code);
+        this.emit('streamEnd', statusObj.code === constants.Status.OK);
+        if (this.checkCancelled()) {
+            return;
+        }
+        trace('Request to method ' + ((_a = this.handler) === null || _a === void 0 ? void 0 : _a.path) +
+            ' ended with status code: ' +
+            constants.Status[statusObj.code] +
+            ' details: ' +
+            statusObj.details);
+        clearTimeout(this.deadlineTimer);
+        if (!this.wantTrailers) {
+            this.wantTrailers = true;
+            this.stream.once('wantTrailers', () => {
+                const trailersToSend = Object.assign({
+                    [GRPC_STATUS_HEADER]: statusObj.code,
+                    [GRPC_MESSAGE_HEADER]: encodeURI(statusObj.details),
+                }, statusObj.metadata.toHttp2Headers());
+                this.stream.sendTrailers(trailersToSend);
+            });
+            this.sendMetadata();
+            this.stream.end();
+        }
+    }
+    sendError(error) {
+        const status = {
+            code: constants.Status.UNKNOWN,
+            details: 'message' in error ? error.message : 'Unknown Error',
+            metadata: 'metadata' in error && error.metadata !== undefined
+                ? error.metadata
+                : new metadata.Metadata(),
+        };
+        if ('code' in error &&
+            typeof error.code === 'number' &&
+            Number.isInteger(error.code)) {
+            status.code = error.code;
+            if ('details' in error && typeof error.details === 'string') {
+                status.details = error.details;
+            }
+        }
+        this.sendStatus(status);
+    }
+    write(chunk) {
+        if (this.checkCancelled()) {
+            return;
+        }
+        if (this.maxSendMessageSize !== -1 &&
+            chunk.length > this.maxSendMessageSize) {
+            this.sendError({
+                code: constants.Status.RESOURCE_EXHAUSTED,
+                details: `Sent message larger than max (${chunk.length} vs. ${this.maxSendMessageSize})`,
+            });
+            return;
+        }
+        this.sendMetadata();
+        this.emit('sendMessage');
+        return this.stream.write(chunk);
+    }
+    resume() {
+        this.stream.resume();
+    }
+    setupSurfaceCall(call) {
+        this.once('cancelled', (reason) => {
+            call.cancelled = true;
+            call.emit('cancelled', reason);
+        });
+    }
+    setupReadable(readable, encoding) {
+        const decoder = new streamDecoder.StreamDecoder();
+        let readsDone = false;
+        let pendingMessageProcessing = false;
+        let pushedEnd = false;
+        const maybePushEnd = () => {
+            if (!pushedEnd && readsDone && !pendingMessageProcessing) {
+                pushedEnd = true;
+                this.pushOrBufferMessage(readable, null);
+            }
+        };
+        this.stream.on('data', async (data) => {
+            const messages = decoder.write(data);
+            pendingMessageProcessing = true;
+            this.stream.pause();
+            for (const message of messages) {
+                if (this.maxReceiveMessageSize !== -1 &&
+                    message.length > this.maxReceiveMessageSize) {
+                    this.sendError({
+                        code: constants.Status.RESOURCE_EXHAUSTED,
+                        details: `Received message larger than max (${message.length} vs. ${this.maxReceiveMessageSize})`,
+                    });
+                    return;
+                }
+                this.emit('receiveMessage');
+                const compressed = message.readUInt8(0) === 1;
+                const compressedMessageEncoding = compressed ? encoding : 'identity';
+                const decompressedMessage = await this.getDecompressedMessage(message, compressedMessageEncoding);
+                // Encountered an error with decompression; it'll already have been propogated back
+                // Just return early
+                if (!decompressedMessage)
+                    return;
+                this.pushOrBufferMessage(readable, decompressedMessage);
+            }
+            pendingMessageProcessing = false;
+            this.stream.resume();
+            maybePushEnd();
+        });
+        this.stream.once('end', () => {
+            readsDone = true;
+            maybePushEnd();
+        });
+    }
+    consumeUnpushedMessages(readable) {
+        this.canPush = true;
+        while (this.messagesToPush.length > 0) {
+            const nextMessage = this.messagesToPush.shift();
+            const canPush = readable.push(nextMessage);
+            if (nextMessage === null || canPush === false) {
+                this.canPush = false;
+                break;
+            }
+        }
+        return this.canPush;
+    }
+    pushOrBufferMessage(readable, messageBytes) {
+        if (this.isPushPending) {
+            this.bufferedMessages.push(messageBytes);
+        }
+        else {
+            this.pushMessage(readable, messageBytes);
+        }
+    }
+    async pushMessage(readable, messageBytes) {
+        if (messageBytes === null) {
+            trace('Received end of stream');
+            if (this.canPush) {
+                readable.push(null);
+            }
+            else {
+                this.messagesToPush.push(null);
+            }
+            return;
+        }
+        trace('Received message of length ' + messageBytes.length);
+        this.isPushPending = true;
+        try {
+            const deserialized = await this.deserializeMessage(messageBytes);
+            if (this.canPush) {
+                if (!readable.push(deserialized)) {
+                    this.canPush = false;
+                    this.stream.pause();
+                }
+            }
+            else {
+                this.messagesToPush.push(deserialized);
+            }
+        }
+        catch (error) {
+            // Ignore any remaining messages when errors occur.
+            this.bufferedMessages.length = 0;
+            if (!('code' in error &&
+                typeof error.code === 'number' &&
+                Number.isInteger(error.code) &&
+                error.code >= constants.Status.OK &&
+                error.code <= constants.Status.UNAUTHENTICATED)) {
+                // The error code is not a valid gRPC code so its being overwritten.
+                error.code = constants.Status.INTERNAL;
+            }
+            readable.emit('error', error);
+        }
+        this.isPushPending = false;
+        if (this.bufferedMessages.length > 0) {
+            this.pushMessage(readable, this.bufferedMessages.shift());
+        }
+    }
+    getPeer() {
+        const socket = this.stream.session.socket;
+        if (socket.remoteAddress) {
+            if (socket.remotePort) {
+                return `${socket.remoteAddress}:${socket.remotePort}`;
+            }
+            else {
+                return socket.remoteAddress;
+            }
+        }
+        else {
+            return 'unknown';
+        }
+    }
+    getDeadline() {
+        return this.deadline;
+    }
+}
+exports.Http2ServerCallStream = Http2ServerCallStream;
+function handleExpiredDeadline(call) {
+    const err = new Error('Deadline exceeded');
+    err.code = constants.Status.DEADLINE_EXCEEDED;
+    call.sendError(err);
+    call.cancelled = true;
+    call.emit('cancelled', 'deadline');
+}
+
+});
+
+var serverCredentials = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ServerCredentials = void 0;
+
+class ServerCredentials {
+    static createInsecure() {
+        return new InsecureServerCredentials();
+    }
+    static createSsl(rootCerts, keyCertPairs, checkClientCertificate = false) {
+        if (rootCerts !== null && !Buffer$1.isBuffer(rootCerts)) {
+            throw new TypeError('rootCerts must be null or a Buffer');
+        }
+        if (!Array.isArray(keyCertPairs)) {
+            throw new TypeError('keyCertPairs must be an array');
+        }
+        if (typeof checkClientCertificate !== 'boolean') {
+            throw new TypeError('checkClientCertificate must be a boolean');
+        }
+        const cert = [];
+        const key = [];
+        for (let i = 0; i < keyCertPairs.length; i++) {
+            const pair = keyCertPairs[i];
+            if (pair === null || typeof pair !== 'object') {
+                throw new TypeError(`keyCertPair[${i}] must be an object`);
+            }
+            if (!Buffer$1.isBuffer(pair.private_key)) {
+                throw new TypeError(`keyCertPair[${i}].private_key must be a Buffer`);
+            }
+            if (!Buffer$1.isBuffer(pair.cert_chain)) {
+                throw new TypeError(`keyCertPair[${i}].cert_chain must be a Buffer`);
+            }
+            cert.push(pair.cert_chain);
+            key.push(pair.private_key);
+        }
+        return new SecureServerCredentials({
+            ca: rootCerts || tlsHelpers.getDefaultRootsData() || undefined,
+            cert,
+            key,
+            requestCert: checkClientCertificate,
+            ciphers: tlsHelpers.CIPHER_SUITES,
+        });
+    }
+}
+exports.ServerCredentials = ServerCredentials;
+class InsecureServerCredentials extends ServerCredentials {
+    _isSecure() {
+        return false;
+    }
+    _getSettings() {
+        return null;
+    }
+}
+class SecureServerCredentials extends ServerCredentials {
+    constructor(options) {
+        super();
+        this.options = options;
+    }
+    _isSecure() {
+        return true;
+    }
+    _getSettings() {
+        return this.options;
+    }
+}
+
+});
+
+var server = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Server = void 0;
+
+
+
+
+
+
+
+
+
+
+const TRACER_NAME = 'server';
+function noop() { }
+function getUnimplementedStatusResponse(methodName) {
+    return {
+        code: constants.Status.UNIMPLEMENTED,
+        details: `The server does not implement the method ${methodName}`,
+        metadata: new metadata.Metadata(),
+    };
+}
+function getDefaultHandler(handlerType, methodName) {
+    const unimplementedStatusResponse = getUnimplementedStatusResponse(methodName);
+    switch (handlerType) {
+        case 'unary':
+            return (call, callback) => {
+                callback(unimplementedStatusResponse, null);
+            };
+        case 'clientStream':
+            return (call, callback) => {
+                callback(unimplementedStatusResponse, null);
+            };
+        case 'serverStream':
+            return (call) => {
+                call.emit('error', unimplementedStatusResponse);
+            };
+        case 'bidi':
+            return (call) => {
+                call.emit('error', unimplementedStatusResponse);
+            };
+        default:
+            throw new Error(`Invalid handlerType ${handlerType}`);
+    }
+}
+class Server {
+    constructor(options) {
+        this.http2ServerList = [];
+        this.handlers = new Map();
+        this.sessions = new Map();
+        this.started = false;
+        // Channelz Info
+        this.channelzEnabled = true;
+        this.channelzTrace = new channelz.ChannelzTrace();
+        this.callTracker = new channelz.ChannelzCallTracker();
+        this.listenerChildrenTracker = new channelz.ChannelzChildrenTracker();
+        this.sessionChildrenTracker = new channelz.ChannelzChildrenTracker();
+        this.options = options !== null && options !== void 0 ? options : {};
+        if (this.options['grpc.enable_channelz'] === 0) {
+            this.channelzEnabled = false;
+        }
+        this.channelzRef = channelz.registerChannelzServer(() => this.getChannelzInfo(), this.channelzEnabled);
+        if (this.channelzEnabled) {
+            this.channelzTrace.addTrace('CT_INFO', 'Server created');
+        }
+        this.trace('Server constructed');
+    }
+    getChannelzInfo() {
+        return {
+            trace: this.channelzTrace,
+            callTracker: this.callTracker,
+            listenerChildren: this.listenerChildrenTracker.getChildLists(),
+            sessionChildren: this.sessionChildrenTracker.getChildLists()
+        };
+    }
+    getChannelzSessionInfoGetter(session) {
+        return () => {
+            var _a, _b, _c;
+            const sessionInfo = this.sessions.get(session);
+            const sessionSocket = session.socket;
+            const remoteAddress = sessionSocket.remoteAddress ? subchannelAddress.stringToSubchannelAddress(sessionSocket.remoteAddress, sessionSocket.remotePort) : null;
+            const localAddress = sessionSocket.localAddress ? subchannelAddress.stringToSubchannelAddress(sessionSocket.localAddress, sessionSocket.localPort) : null;
+            let tlsInfo;
+            if (session.encrypted) {
+                const tlsSocket = sessionSocket;
+                const cipherInfo = tlsSocket.getCipher();
+                const certificate = tlsSocket.getCertificate();
+                const peerCertificate = tlsSocket.getPeerCertificate();
+                tlsInfo = {
+                    cipherSuiteStandardName: (_a = cipherInfo.standardName) !== null && _a !== void 0 ? _a : null,
+                    cipherSuiteOtherName: cipherInfo.standardName ? null : cipherInfo.name,
+                    localCertificate: (certificate && 'raw' in certificate) ? certificate.raw : null,
+                    remoteCertificate: (peerCertificate && 'raw' in peerCertificate) ? peerCertificate.raw : null
+                };
+            }
+            else {
+                tlsInfo = null;
+            }
+            const socketInfo = {
+                remoteAddress: remoteAddress,
+                localAddress: localAddress,
+                security: tlsInfo,
+                remoteName: null,
+                streamsStarted: sessionInfo.streamTracker.callsStarted,
+                streamsSucceeded: sessionInfo.streamTracker.callsSucceeded,
+                streamsFailed: sessionInfo.streamTracker.callsFailed,
+                messagesSent: sessionInfo.messagesSent,
+                messagesReceived: sessionInfo.messagesReceived,
+                keepAlivesSent: 0,
+                lastLocalStreamCreatedTimestamp: null,
+                lastRemoteStreamCreatedTimestamp: sessionInfo.streamTracker.lastCallStartedTimestamp,
+                lastMessageSentTimestamp: sessionInfo.lastMessageSentTimestamp,
+                lastMessageReceivedTimestamp: sessionInfo.lastMessageReceivedTimestamp,
+                localFlowControlWindow: (_b = session.state.localWindowSize) !== null && _b !== void 0 ? _b : null,
+                remoteFlowControlWindow: (_c = session.state.remoteWindowSize) !== null && _c !== void 0 ? _c : null
+            };
+            return socketInfo;
+        };
+    }
+    trace(text) {
+        logging.trace(constants.LogVerbosity.DEBUG, TRACER_NAME, '(' + this.channelzRef.id + ') ' + text);
+    }
+    addProtoService() {
+        throw new Error('Not implemented. Use addService() instead');
+    }
+    addService(service, implementation) {
+        if (service === null ||
+            typeof service !== 'object' ||
+            implementation === null ||
+            typeof implementation !== 'object') {
+            throw new Error('addService() requires two objects as arguments');
+        }
+        const serviceKeys = Object.keys(service);
+        if (serviceKeys.length === 0) {
+            throw new Error('Cannot add an empty service to a server');
+        }
+        serviceKeys.forEach((name) => {
+            const attrs = service[name];
+            let methodType;
+            if (attrs.requestStream) {
+                if (attrs.responseStream) {
+                    methodType = 'bidi';
+                }
+                else {
+                    methodType = 'clientStream';
+                }
+            }
+            else {
+                if (attrs.responseStream) {
+                    methodType = 'serverStream';
+                }
+                else {
+                    methodType = 'unary';
+                }
+            }
+            let implFn = implementation[name];
+            let impl;
+            if (implFn === undefined && typeof attrs.originalName === 'string') {
+                implFn = implementation[attrs.originalName];
+            }
+            if (implFn !== undefined) {
+                impl = implFn.bind(implementation);
+            }
+            else {
+                impl = getDefaultHandler(methodType, name);
+            }
+            const success = this.register(attrs.path, impl, attrs.responseSerialize, attrs.requestDeserialize, methodType);
+            if (success === false) {
+                throw new Error(`Method handler for ${attrs.path} already provided.`);
+            }
+        });
+    }
+    removeService(service) {
+        if (service === null || typeof service !== 'object') {
+            throw new Error('removeService() requires object as argument');
+        }
+        const serviceKeys = Object.keys(service);
+        serviceKeys.forEach((name) => {
+            const attrs = service[name];
+            this.unregister(attrs.path);
+        });
+    }
+    bind(port, creds) {
+        throw new Error('Not implemented. Use bindAsync() instead');
+    }
+    bindAsync(port, creds, callback) {
+        if (this.started === true) {
+            throw new Error('server is already started');
+        }
+        if (typeof port !== 'string') {
+            throw new TypeError('port must be a string');
+        }
+        if (creds === null || !(creds instanceof serverCredentials.ServerCredentials)) {
+            throw new TypeError('creds must be a ServerCredentials object');
+        }
+        if (typeof callback !== 'function') {
+            throw new TypeError('callback must be a function');
+        }
+        const initialPortUri = uriParser.parseUri(port);
+        if (initialPortUri === null) {
+            throw new Error(`Could not parse port "${port}"`);
+        }
+        const portUri = resolver.mapUriDefaultScheme(initialPortUri);
+        if (portUri === null) {
+            throw new Error(`Could not get a default scheme for port "${port}"`);
+        }
+        const serverOptions = {
+            maxSendHeaderBlockLength: Number.MAX_SAFE_INTEGER,
+        };
+        if ('grpc-node.max_session_memory' in this.options) {
+            serverOptions.maxSessionMemory = this.options['grpc-node.max_session_memory'];
+        }
+        if ('grpc.max_concurrent_streams' in this.options) {
+            serverOptions.settings = {
+                maxConcurrentStreams: this.options['grpc.max_concurrent_streams'],
+            };
+        }
+        const deferredCallback = (error, port) => {
+            browser$1.nextTick(() => callback(error, port));
+        };
+        const setupServer = () => {
+            let http2Server;
+            if (creds._isSecure()) {
+                const secureServerOptions = Object.assign(serverOptions, creds._getSettings());
+                http2Server = http2.createSecureServer(secureServerOptions);
+                http2Server.on('secureConnection', (socket) => {
+                    /* These errors need to be handled by the user of Http2SecureServer,
+                     * according to https://github.com/nodejs/node/issues/35824 */
+                    socket.on('error', (e) => {
+                        this.trace('An incoming TLS connection closed with error: ' + e.message);
+                    });
+                });
+            }
+            else {
+                http2Server = http2.createServer(serverOptions);
+            }
+            http2Server.setTimeout(0, noop);
+            this._setupHandlers(http2Server);
+            return http2Server;
+        };
+        const bindSpecificPort = (addressList, portNum, previousCount) => {
+            if (addressList.length === 0) {
+                return Promise.resolve({ port: portNum, count: previousCount });
+            }
+            return Promise.all(addressList.map((address) => {
+                this.trace('Attempting to bind ' + subchannelAddress.subchannelAddressToString(address));
+                let addr;
+                if (subchannelAddress.isTcpSubchannelAddress(address)) {
+                    addr = {
+                        host: address.host,
+                        port: portNum,
+                    };
+                }
+                else {
+                    addr = address;
+                }
+                const http2Server = setupServer();
+                return new Promise((resolve, reject) => {
+                    const onError = (err) => {
+                        this.trace('Failed to bind ' + subchannelAddress.subchannelAddressToString(address) + ' with error ' + err.message);
+                        resolve(err);
+                    };
+                    http2Server.once('error', onError);
+                    http2Server.listen(addr, () => {
+                        const boundAddress = http2Server.address();
+                        let boundSubchannelAddress;
+                        if (typeof boundAddress === 'string') {
+                            boundSubchannelAddress = {
+                                path: boundAddress
+                            };
+                        }
+                        else {
+                            boundSubchannelAddress = {
+                                host: boundAddress.address,
+                                port: boundAddress.port
+                            };
+                        }
+                        let channelzRef;
+                        channelzRef = channelz.registerChannelzSocket(subchannelAddress.subchannelAddressToString(boundSubchannelAddress), () => {
+                            return {
+                                localAddress: boundSubchannelAddress,
+                                remoteAddress: null,
+                                security: null,
+                                remoteName: null,
+                                streamsStarted: 0,
+                                streamsSucceeded: 0,
+                                streamsFailed: 0,
+                                messagesSent: 0,
+                                messagesReceived: 0,
+                                keepAlivesSent: 0,
+                                lastLocalStreamCreatedTimestamp: null,
+                                lastRemoteStreamCreatedTimestamp: null,
+                                lastMessageSentTimestamp: null,
+                                lastMessageReceivedTimestamp: null,
+                                localFlowControlWindow: null,
+                                remoteFlowControlWindow: null
+                            };
+                        }, this.channelzEnabled);
+                        if (this.channelzEnabled) {
+                            this.listenerChildrenTracker.refChild(channelzRef);
+                        }
+                        this.http2ServerList.push({ server: http2Server, channelzRef: channelzRef });
+                        this.trace('Successfully bound ' + subchannelAddress.subchannelAddressToString(boundSubchannelAddress));
+                        resolve('port' in boundSubchannelAddress ? boundSubchannelAddress.port : portNum);
+                        http2Server.removeListener('error', onError);
+                    });
+                });
+            })).then((results) => {
+                let count = 0;
+                for (const result of results) {
+                    if (typeof result === 'number') {
+                        count += 1;
+                        if (result !== portNum) {
+                            throw new Error('Invalid state: multiple port numbers added from single address');
+                        }
+                    }
+                }
+                return {
+                    port: portNum,
+                    count: count + previousCount,
+                };
+            });
+        };
+        const bindWildcardPort = (addressList) => {
+            if (addressList.length === 0) {
+                return Promise.resolve({ port: 0, count: 0 });
+            }
+            const address = addressList[0];
+            const http2Server = setupServer();
+            return new Promise((resolve, reject) => {
+                const onError = (err) => {
+                    this.trace('Failed to bind ' + subchannelAddress.subchannelAddressToString(address) + ' with error ' + err.message);
+                    resolve(bindWildcardPort(addressList.slice(1)));
+                };
+                http2Server.once('error', onError);
+                http2Server.listen(address, () => {
+                    const boundAddress = http2Server.address();
+                    const boundSubchannelAddress = {
+                        host: boundAddress.address,
+                        port: boundAddress.port
+                    };
+                    let channelzRef;
+                    channelzRef = channelz.registerChannelzSocket(subchannelAddress.subchannelAddressToString(boundSubchannelAddress), () => {
+                        return {
+                            localAddress: boundSubchannelAddress,
+                            remoteAddress: null,
+                            security: null,
+                            remoteName: null,
+                            streamsStarted: 0,
+                            streamsSucceeded: 0,
+                            streamsFailed: 0,
+                            messagesSent: 0,
+                            messagesReceived: 0,
+                            keepAlivesSent: 0,
+                            lastLocalStreamCreatedTimestamp: null,
+                            lastRemoteStreamCreatedTimestamp: null,
+                            lastMessageSentTimestamp: null,
+                            lastMessageReceivedTimestamp: null,
+                            localFlowControlWindow: null,
+                            remoteFlowControlWindow: null
+                        };
+                    }, this.channelzEnabled);
+                    if (this.channelzEnabled) {
+                        this.listenerChildrenTracker.refChild(channelzRef);
+                    }
+                    this.http2ServerList.push({ server: http2Server, channelzRef: channelzRef });
+                    this.trace('Successfully bound ' + subchannelAddress.subchannelAddressToString(boundSubchannelAddress));
+                    resolve(bindSpecificPort(addressList.slice(1), boundAddress.port, 1));
+                    http2Server.removeListener('error', onError);
+                });
+            });
+        };
+        const resolverListener = {
+            onSuccessfulResolution: (addressList, serviceConfig, serviceConfigError) => {
+                // We only want one resolution result. Discard all future results
+                resolverListener.onSuccessfulResolution = () => { };
+                if (addressList.length === 0) {
+                    deferredCallback(new Error(`No addresses resolved for port ${port}`), 0);
+                    return;
+                }
+                let bindResultPromise;
+                if (subchannelAddress.isTcpSubchannelAddress(addressList[0])) {
+                    if (addressList[0].port === 0) {
+                        bindResultPromise = bindWildcardPort(addressList);
+                    }
+                    else {
+                        bindResultPromise = bindSpecificPort(addressList, addressList[0].port, 0);
+                    }
+                }
+                else {
+                    // Use an arbitrary non-zero port for non-TCP addresses
+                    bindResultPromise = bindSpecificPort(addressList, 1, 0);
+                }
+                bindResultPromise.then((bindResult) => {
+                    if (bindResult.count === 0) {
+                        const errorString = `No address added out of total ${addressList.length} resolved`;
+                        logging.log(constants.LogVerbosity.ERROR, errorString);
+                        deferredCallback(new Error(errorString), 0);
+                    }
+                    else {
+                        if (bindResult.count < addressList.length) {
+                            logging.log(constants.LogVerbosity.INFO, `WARNING Only ${bindResult.count} addresses added out of total ${addressList.length} resolved`);
+                        }
+                        deferredCallback(null, bindResult.port);
+                    }
+                }, (error) => {
+                    const errorString = `No address added out of total ${addressList.length} resolved`;
+                    logging.log(constants.LogVerbosity.ERROR, errorString);
+                    deferredCallback(new Error(errorString), 0);
+                });
+            },
+            onError: (error) => {
+                deferredCallback(new Error(error.details), 0);
+            },
+        };
+        const resolver$1 = resolver.createResolver(portUri, resolverListener, this.options);
+        resolver$1.updateResolution();
+    }
+    forceShutdown() {
+        // Close the server if it is still running.
+        for (const { server: http2Server, channelzRef: ref } of this.http2ServerList) {
+            if (http2Server.listening) {
+                http2Server.close(() => {
+                    if (this.channelzEnabled) {
+                        this.listenerChildrenTracker.unrefChild(ref);
+                        channelz.unregisterChannelzRef(ref);
+                    }
+                });
+            }
+        }
+        this.started = false;
+        // Always destroy any available sessions. It's possible that one or more
+        // tryShutdown() calls are in progress. Don't wait on them to finish.
+        this.sessions.forEach((channelzInfo, session) => {
+            // Cast NGHTTP2_CANCEL to any because TypeScript doesn't seem to
+            // recognize destroy(code) as a valid signature.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            session.destroy(http2.constants.NGHTTP2_CANCEL);
+        });
+        this.sessions.clear();
+        if (this.channelzEnabled) {
+            channelz.unregisterChannelzRef(this.channelzRef);
+        }
+    }
+    register(name, handler, serialize, deserialize, type) {
+        if (this.handlers.has(name)) {
+            return false;
+        }
+        this.handlers.set(name, {
+            func: handler,
+            serialize,
+            deserialize,
+            type,
+            path: name,
+        });
+        return true;
+    }
+    unregister(name) {
+        return this.handlers.delete(name);
+    }
+    start() {
+        if (this.http2ServerList.length === 0 ||
+            this.http2ServerList.every(({ server: http2Server }) => http2Server.listening !== true)) {
+            throw new Error('server must be bound in order to start');
+        }
+        if (this.started === true) {
+            throw new Error('server is already started');
+        }
+        if (this.channelzEnabled) {
+            this.channelzTrace.addTrace('CT_INFO', 'Starting');
+        }
+        this.started = true;
+    }
+    tryShutdown(callback) {
+        const wrappedCallback = (error) => {
+            if (this.channelzEnabled) {
+                channelz.unregisterChannelzRef(this.channelzRef);
+            }
+            callback(error);
+        };
+        let pendingChecks = 0;
+        function maybeCallback() {
+            pendingChecks--;
+            if (pendingChecks === 0) {
+                wrappedCallback();
+            }
+        }
+        // Close the server if necessary.
+        this.started = false;
+        for (const { server: http2Server, channelzRef: ref } of this.http2ServerList) {
+            if (http2Server.listening) {
+                pendingChecks++;
+                http2Server.close(() => {
+                    if (this.channelzEnabled) {
+                        this.listenerChildrenTracker.unrefChild(ref);
+                        channelz.unregisterChannelzRef(ref);
+                    }
+                    maybeCallback();
+                });
+            }
+        }
+        this.sessions.forEach((channelzInfo, session) => {
+            if (!session.closed) {
+                pendingChecks += 1;
+                session.close(maybeCallback);
+            }
+        });
+        if (pendingChecks === 0) {
+            wrappedCallback();
+        }
+    }
+    addHttp2Port() {
+        throw new Error('Not yet implemented');
+    }
+    /**
+     * Get the channelz reference object for this server. The returned value is
+     * garbage if channelz is disabled for this server.
+     * @returns
+     */
+    getChannelzRef() {
+        return this.channelzRef;
+    }
+    _setupHandlers(http2Server) {
+        if (http2Server === null) {
+            return;
+        }
+        http2Server.on('stream', (stream, headers) => {
+            var _a;
+            const channelzSessionInfo = this.sessions.get(stream.session);
+            if (this.channelzEnabled) {
+                this.callTracker.addCallStarted();
+                channelzSessionInfo === null || channelzSessionInfo === void 0 ? void 0 : channelzSessionInfo.streamTracker.addCallStarted();
+            }
+            const contentType = headers[http2.constants.HTTP2_HEADER_CONTENT_TYPE];
+            if (typeof contentType !== 'string' ||
+                !contentType.startsWith('application/grpc')) {
+                stream.respond({
+                    [http2.constants.HTTP2_HEADER_STATUS]: http2.constants.HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE,
+                }, { endStream: true });
+                this.callTracker.addCallFailed();
+                if (this.channelzEnabled) {
+                    channelzSessionInfo === null || channelzSessionInfo === void 0 ? void 0 : channelzSessionInfo.streamTracker.addCallFailed();
+                }
+                return;
+            }
+            let call = null;
+            try {
+                const path = headers[http2.constants.HTTP2_HEADER_PATH];
+                const serverAddress = http2Server.address();
+                let serverAddressString = 'null';
+                if (serverAddress) {
+                    if (typeof serverAddress === 'string') {
+                        serverAddressString = serverAddress;
+                    }
+                    else {
+                        serverAddressString =
+                            serverAddress.address + ':' + serverAddress.port;
+                    }
+                }
+                this.trace('Received call to method ' +
+                    path +
+                    ' at address ' +
+                    serverAddressString);
+                const handler = this.handlers.get(path);
+                if (handler === undefined) {
+                    this.trace('No handler registered for method ' +
+                        path +
+                        '. Sending UNIMPLEMENTED status.');
+                    throw getUnimplementedStatusResponse(path);
+                }
+                call = new serverCall.Http2ServerCallStream(stream, handler, this.options);
+                call.once('callEnd', (code) => {
+                    if (code === constants.Status.OK) {
+                        this.callTracker.addCallSucceeded();
+                    }
+                    else {
+                        this.callTracker.addCallFailed();
+                    }
+                });
+                if (this.channelzEnabled && channelzSessionInfo) {
+                    call.once('streamEnd', (success) => {
+                        if (success) {
+                            channelzSessionInfo.streamTracker.addCallSucceeded();
+                        }
+                        else {
+                            channelzSessionInfo.streamTracker.addCallFailed();
+                        }
+                    });
+                    call.on('sendMessage', () => {
+                        channelzSessionInfo.messagesSent += 1;
+                        channelzSessionInfo.lastMessageSentTimestamp = new Date();
+                    });
+                    call.on('receiveMessage', () => {
+                        channelzSessionInfo.messagesReceived += 1;
+                        channelzSessionInfo.lastMessageReceivedTimestamp = new Date();
+                    });
+                }
+                const metadata = call.receiveMetadata(headers);
+                const encoding = (_a = metadata.get('grpc-encoding')[0]) !== null && _a !== void 0 ? _a : 'identity';
+                metadata.remove('grpc-encoding');
+                switch (handler.type) {
+                    case 'unary':
+                        handleUnary(call, handler, metadata, encoding);
+                        break;
+                    case 'clientStream':
+                        handleClientStreaming(call, handler, metadata, encoding);
+                        break;
+                    case 'serverStream':
+                        handleServerStreaming(call, handler, metadata, encoding);
+                        break;
+                    case 'bidi':
+                        handleBidiStreaming(call, handler, metadata, encoding);
+                        break;
+                    default:
+                        throw new Error(`Unknown handler type: ${handler.type}`);
+                }
+            }
+            catch (err) {
+                if (!call) {
+                    call = new serverCall.Http2ServerCallStream(stream, null, this.options);
+                    if (this.channelzEnabled) {
+                        this.callTracker.addCallFailed();
+                        channelzSessionInfo === null || channelzSessionInfo === void 0 ? void 0 : channelzSessionInfo.streamTracker.addCallFailed();
+                    }
+                }
+                if (err.code === undefined) {
+                    err.code = constants.Status.INTERNAL;
+                }
+                call.sendError(err);
+            }
+        });
+        http2Server.on('session', (session) => {
+            var _a;
+            if (!this.started) {
+                session.destroy();
+                return;
+            }
+            let channelzRef;
+            channelzRef = channelz.registerChannelzSocket((_a = session.socket.remoteAddress) !== null && _a !== void 0 ? _a : 'unknown', this.getChannelzSessionInfoGetter(session), this.channelzEnabled);
+            const channelzSessionInfo = {
+                ref: channelzRef,
+                streamTracker: new channelz.ChannelzCallTracker(),
+                messagesSent: 0,
+                messagesReceived: 0,
+                lastMessageSentTimestamp: null,
+                lastMessageReceivedTimestamp: null
+            };
+            this.sessions.set(session, channelzSessionInfo);
+            const clientAddress = session.socket.remoteAddress;
+            if (this.channelzEnabled) {
+                this.channelzTrace.addTrace('CT_INFO', 'Connection established by client ' + clientAddress);
+                this.sessionChildrenTracker.refChild(channelzRef);
+            }
+            session.on('close', () => {
+                if (this.channelzEnabled) {
+                    this.channelzTrace.addTrace('CT_INFO', 'Connection dropped by client ' + clientAddress);
+                    this.sessionChildrenTracker.unrefChild(channelzRef);
+                    channelz.unregisterChannelzRef(channelzRef);
+                }
+                this.sessions.delete(session);
+            });
+        });
+    }
+}
+exports.Server = Server;
+async function handleUnary(call, handler, metadata, encoding) {
+    const request = await call.receiveUnaryMessage(encoding);
+    if (request === undefined || call.cancelled) {
+        return;
+    }
+    const emitter = new serverCall.ServerUnaryCallImpl(call, metadata, request);
+    handler.func(emitter, (err, value, trailer, flags) => {
+        call.sendUnaryMessage(err, value, trailer, flags);
+    });
+}
+function handleClientStreaming(call, handler, metadata, encoding) {
+    const stream = new serverCall.ServerReadableStreamImpl(call, metadata, handler.deserialize, encoding);
+    function respond(err, value, trailer, flags) {
+        stream.destroy();
+        call.sendUnaryMessage(err, value, trailer, flags);
+    }
+    if (call.cancelled) {
+        return;
+    }
+    stream.on('error', respond);
+    handler.func(stream, respond);
+}
+async function handleServerStreaming(call, handler, metadata, encoding) {
+    const request = await call.receiveUnaryMessage(encoding);
+    if (request === undefined || call.cancelled) {
+        return;
+    }
+    const stream = new serverCall.ServerWritableStreamImpl(call, metadata, handler.serialize, request);
+    handler.func(stream);
+}
+function handleBidiStreaming(call, handler, metadata, encoding) {
+    const stream = new serverCall.ServerDuplexStreamImpl(call, metadata, handler.serialize, handler.deserialize, encoding);
+    if (call.cancelled) {
+        return;
+    }
+    handler.func(stream);
+}
+
+});
+
+var statusBuilder = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.StatusBuilder = void 0;
+/**
+ * A builder for gRPC status objects.
+ */
+class StatusBuilder {
+    constructor() {
+        this.code = null;
+        this.details = null;
+        this.metadata = null;
+    }
+    /**
+     * Adds a status code to the builder.
+     */
+    withCode(code) {
+        this.code = code;
+        return this;
+    }
+    /**
+     * Adds details to the builder.
+     */
+    withDetails(details) {
+        this.details = details;
+        return this;
+    }
+    /**
+     * Adds metadata to the builder.
+     */
+    withMetadata(metadata) {
+        this.metadata = metadata;
+        return this;
+    }
+    /**
+     * Builds the status object.
+     */
+    build() {
+        const status = {};
+        if (this.code !== null) {
+            status.code = this.code;
+        }
+        if (this.details !== null) {
+            status.details = this.details;
+        }
+        if (this.metadata !== null) {
+            status.metadata = this.metadata;
+        }
+        return status;
+    }
+}
+exports.StatusBuilder = StatusBuilder;
+
+});
+
+var duration = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2022 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.isDuration = exports.durationToMs = exports.msToDuration = void 0;
+function msToDuration(millis) {
+    return {
+        seconds: (millis / 1000) | 0,
+        nanos: (millis % 1000) * 1000000 | 0
+    };
+}
+exports.msToDuration = msToDuration;
+function durationToMs(duration) {
+    return (duration.seconds * 1000 + duration.nanos / 1000000) | 0;
+}
+exports.durationToMs = durationToMs;
+function isDuration(value) {
+    return (typeof value.seconds === 'number') && (typeof value.nanos === 'number');
+}
+exports.isDuration = isDuration;
+
+});
+
+var subchannelInterface = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2022 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BaseSubchannelWrapper = void 0;
+class BaseSubchannelWrapper {
+    constructor(child) {
+        this.child = child;
+    }
+    getConnectivityState() {
+        return this.child.getConnectivityState();
+    }
+    addConnectivityStateListener(listener) {
+        this.child.addConnectivityStateListener(listener);
+    }
+    removeConnectivityStateListener(listener) {
+        this.child.removeConnectivityStateListener(listener);
+    }
+    startConnecting() {
+        this.child.startConnecting();
+    }
+    getAddress() {
+        return this.child.getAddress();
+    }
+    ref() {
+        this.child.ref();
+    }
+    unref() {
+        this.child.unref();
+    }
+    getChannelzRef() {
+        return this.child.getChannelzRef();
+    }
+    getRealSubchannel() {
+        return this.child.getRealSubchannel();
+    }
+}
+exports.BaseSubchannelWrapper = BaseSubchannelWrapper;
+
+});
+
+var experimental$1 = experimental;
+
+var loadBalancerOutlierDetection = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2022 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.setup = exports.OutlierDetectionLoadBalancer = exports.OutlierDetectionLoadBalancingConfig = void 0;
+
+
+
+
+
+
+
+
+
+
+const TYPE_NAME = 'outlier_detection';
+const OUTLIER_DETECTION_ENABLED = browser$1.env.GRPC_EXPERIMENTAL_ENABLE_OUTLIER_DETECTION === 'true';
+const defaultSuccessRateEjectionConfig = {
+    stdev_factor: 1900,
+    enforcement_percentage: 100,
+    minimum_hosts: 5,
+    request_volume: 100
+};
+const defaultFailurePercentageEjectionConfig = {
+    threshold: 85,
+    enforcement_percentage: 100,
+    minimum_hosts: 5,
+    request_volume: 50
+};
+function validateFieldType(obj, fieldName, expectedType, objectName) {
+    if (fieldName in obj && typeof obj[fieldName] !== expectedType) {
+        const fullFieldName = objectName ? `${objectName}.${fieldName}` : fieldName;
+        throw new Error(`outlier detection config ${fullFieldName} parse error: expected ${expectedType}, got ${typeof obj[fieldName]}`);
+    }
+}
+function validatePositiveDuration(obj, fieldName, objectName) {
+    const fullFieldName = objectName ? `${objectName}.${fieldName}` : fieldName;
+    if (fieldName in obj) {
+        if (!duration.isDuration(obj[fieldName])) {
+            throw new Error(`outlier detection config ${fullFieldName} parse error: expected Duration, got ${typeof obj[fieldName]}`);
+        }
+        if (!(obj[fieldName].seconds >= 0 && obj[fieldName].seconds <= 315576000000 && obj[fieldName].nanos >= 0 && obj[fieldName].nanos <= 999999999)) {
+            throw new Error(`outlier detection config ${fullFieldName} parse error: values out of range for non-negative Duaration`);
+        }
+    }
+}
+function validatePercentage(obj, fieldName, objectName) {
+    const fullFieldName = objectName ? `${objectName}.${fieldName}` : fieldName;
+    validateFieldType(obj, fieldName, 'number', objectName);
+    if (fieldName in obj && !(obj[fieldName] >= 0 && obj[fieldName] <= 100)) {
+        throw new Error(`outlier detection config ${fullFieldName} parse error: value out of range for percentage (0-100)`);
+    }
+}
+class OutlierDetectionLoadBalancingConfig {
+    constructor(intervalMs, baseEjectionTimeMs, maxEjectionTimeMs, maxEjectionPercent, successRateEjection, failurePercentageEjection, childPolicy) {
+        this.childPolicy = childPolicy;
+        this.intervalMs = intervalMs !== null && intervalMs !== void 0 ? intervalMs : 10000;
+        this.baseEjectionTimeMs = baseEjectionTimeMs !== null && baseEjectionTimeMs !== void 0 ? baseEjectionTimeMs : 30000;
+        this.maxEjectionTimeMs = maxEjectionTimeMs !== null && maxEjectionTimeMs !== void 0 ? maxEjectionTimeMs : 300000;
+        this.maxEjectionPercent = maxEjectionPercent !== null && maxEjectionPercent !== void 0 ? maxEjectionPercent : 10;
+        this.successRateEjection = successRateEjection ? Object.assign(Object.assign({}, defaultSuccessRateEjectionConfig), successRateEjection) : null;
+        this.failurePercentageEjection = failurePercentageEjection ? Object.assign(Object.assign({}, defaultFailurePercentageEjectionConfig), failurePercentageEjection) : null;
+    }
+    getLoadBalancerName() {
+        return TYPE_NAME;
+    }
+    toJsonObject() {
+        return {
+            interval: duration.msToDuration(this.intervalMs),
+            base_ejection_time: duration.msToDuration(this.baseEjectionTimeMs),
+            max_ejection_time: duration.msToDuration(this.maxEjectionTimeMs),
+            max_ejection_percent: this.maxEjectionPercent,
+            success_rate_ejection: this.successRateEjection,
+            failure_percentage_ejection: this.failurePercentageEjection,
+            child_policy: this.childPolicy.map(policy => policy.toJsonObject())
+        };
+    }
+    getIntervalMs() {
+        return this.intervalMs;
+    }
+    getBaseEjectionTimeMs() {
+        return this.baseEjectionTimeMs;
+    }
+    getMaxEjectionTimeMs() {
+        return this.maxEjectionTimeMs;
+    }
+    getMaxEjectionPercent() {
+        return this.maxEjectionPercent;
+    }
+    getSuccessRateEjectionConfig() {
+        return this.successRateEjection;
+    }
+    getFailurePercentageEjectionConfig() {
+        return this.failurePercentageEjection;
+    }
+    getChildPolicy() {
+        return this.childPolicy;
+    }
+    copyWithChildPolicy(childPolicy) {
+        return new OutlierDetectionLoadBalancingConfig(this.intervalMs, this.baseEjectionTimeMs, this.maxEjectionTimeMs, this.maxEjectionPercent, this.successRateEjection, this.failurePercentageEjection, childPolicy);
+    }
+    static createFromJson(obj) {
+        var _a;
+        validatePositiveDuration(obj, 'interval');
+        validatePositiveDuration(obj, 'base_ejection_time');
+        validatePositiveDuration(obj, 'max_ejection_time');
+        validatePercentage(obj, 'max_ejection_percent');
+        if ('success_rate_ejection' in obj) {
+            if (typeof obj.success_rate_ejection !== 'object') {
+                throw new Error('outlier detection config success_rate_ejection must be an object');
+            }
+            validateFieldType(obj.success_rate_ejection, 'stdev_factor', 'number', 'success_rate_ejection');
+            validatePercentage(obj.success_rate_ejection, 'enforcement_percentage', 'success_rate_ejection');
+            validateFieldType(obj.success_rate_ejection, 'minimum_hosts', 'number', 'success_rate_ejection');
+            validateFieldType(obj.success_rate_ejection, 'request_volume', 'number', 'success_rate_ejection');
+        }
+        if ('failure_percentage_ejection' in obj) {
+            if (typeof obj.failure_percentage_ejection !== 'object') {
+                throw new Error('outlier detection config failure_percentage_ejection must be an object');
+            }
+            validatePercentage(obj.failure_percentage_ejection, 'threshold', 'failure_percentage_ejection');
+            validatePercentage(obj.failure_percentage_ejection, 'enforcement_percentage', 'failure_percentage_ejection');
+            validateFieldType(obj.failure_percentage_ejection, 'minimum_hosts', 'number', 'failure_percentage_ejection');
+            validateFieldType(obj.failure_percentage_ejection, 'request_volume', 'number', 'failure_percentage_ejection');
+        }
+        return new OutlierDetectionLoadBalancingConfig(obj.interval ? duration.durationToMs(obj.interval) : null, obj.base_ejection_time ? duration.durationToMs(obj.base_ejection_time) : null, obj.max_ejection_time ? duration.durationToMs(obj.max_ejection_time) : null, (_a = obj.max_ejection_percent) !== null && _a !== void 0 ? _a : null, obj.success_rate_ejection, obj.failure_percentage_ejection, obj.child_policy.map(loadBalancer.validateLoadBalancingConfig));
+    }
+}
+exports.OutlierDetectionLoadBalancingConfig = OutlierDetectionLoadBalancingConfig;
+class OutlierDetectionSubchannelWrapper extends subchannelInterface.BaseSubchannelWrapper {
+    constructor(childSubchannel, mapEntry) {
+        super(childSubchannel);
+        this.mapEntry = mapEntry;
+        this.childSubchannelState = connectivityState.ConnectivityState.IDLE;
+        this.stateListeners = [];
+        this.ejected = false;
+        this.refCount = 0;
+        childSubchannel.addConnectivityStateListener((subchannel, previousState, newState) => {
+            this.childSubchannelState = newState;
+            if (!this.ejected) {
+                for (const listener of this.stateListeners) {
+                    listener(this, previousState, newState);
+                }
+            }
+        });
+    }
+    /**
+     * Add a listener function to be called whenever the wrapper's
+     * connectivity state changes.
+     * @param listener
+     */
+    addConnectivityStateListener(listener) {
+        this.stateListeners.push(listener);
+    }
+    /**
+     * Remove a listener previously added with `addConnectivityStateListener`
+     * @param listener A reference to a function previously passed to
+     *     `addConnectivityStateListener`
+     */
+    removeConnectivityStateListener(listener) {
+        const listenerIndex = this.stateListeners.indexOf(listener);
+        if (listenerIndex > -1) {
+            this.stateListeners.splice(listenerIndex, 1);
+        }
+    }
+    ref() {
+        this.child.ref();
+        this.refCount += 1;
+    }
+    unref() {
+        this.child.unref();
+        this.refCount -= 1;
+        if (this.refCount <= 0) {
+            if (this.mapEntry) {
+                const index = this.mapEntry.subchannelWrappers.indexOf(this);
+                if (index >= 0) {
+                    this.mapEntry.subchannelWrappers.splice(index, 1);
+                }
+            }
+        }
+    }
+    eject() {
+        this.ejected = true;
+        for (const listener of this.stateListeners) {
+            listener(this, this.childSubchannelState, connectivityState.ConnectivityState.TRANSIENT_FAILURE);
+        }
+    }
+    uneject() {
+        this.ejected = false;
+        for (const listener of this.stateListeners) {
+            listener(this, connectivityState.ConnectivityState.TRANSIENT_FAILURE, this.childSubchannelState);
+        }
+    }
+    getMapEntry() {
+        return this.mapEntry;
+    }
+    getWrappedSubchannel() {
+        return this.child;
+    }
+}
+function createEmptyBucket() {
+    return {
+        success: 0,
+        failure: 0
+    };
+}
+class CallCounter {
+    constructor() {
+        this.activeBucket = createEmptyBucket();
+        this.inactiveBucket = createEmptyBucket();
+    }
+    addSuccess() {
+        this.activeBucket.success += 1;
+    }
+    addFailure() {
+        this.activeBucket.failure += 1;
+    }
+    switchBuckets() {
+        this.inactiveBucket = this.activeBucket;
+        this.activeBucket = createEmptyBucket();
+    }
+    getLastSuccesses() {
+        return this.inactiveBucket.success;
+    }
+    getLastFailures() {
+        return this.inactiveBucket.failure;
+    }
+}
+class OutlierDetectionCounterFilter extends filter.BaseFilter {
+    constructor(callCounter) {
+        super();
+        this.callCounter = callCounter;
+    }
+    receiveTrailers(status) {
+        if (status.code === constants.Status.OK) {
+            this.callCounter.addSuccess();
+        }
+        else {
+            this.callCounter.addFailure();
+        }
+        return status;
+    }
+}
+class OutlierDetectionCounterFilterFactory {
+    constructor(callCounter) {
+        this.callCounter = callCounter;
+    }
+    createFilter(callStream) {
+        return new OutlierDetectionCounterFilter(this.callCounter);
+    }
+}
+class OutlierDetectionPicker {
+    constructor(wrappedPicker) {
+        this.wrappedPicker = wrappedPicker;
+    }
+    pick(pickArgs) {
+        const wrappedPick = this.wrappedPicker.pick(pickArgs);
+        if (wrappedPick.pickResultType === picker.PickResultType.COMPLETE) {
+            const subchannelWrapper = wrappedPick.subchannel;
+            const mapEntry = subchannelWrapper.getMapEntry();
+            if (mapEntry) {
+                return Object.assign(Object.assign({}, wrappedPick), { subchannel: subchannelWrapper.getWrappedSubchannel(), extraFilterFactories: [...wrappedPick.extraFilterFactories, new OutlierDetectionCounterFilterFactory(mapEntry.counter)] });
+            }
+            else {
+                return wrappedPick;
+            }
+        }
+        else {
+            return wrappedPick;
+        }
+    }
+}
+class OutlierDetectionLoadBalancer {
+    constructor(channelControlHelper) {
+        this.addressMap = new Map();
+        this.latestConfig = null;
+        this.childBalancer = new loadBalancerChildHandler.ChildLoadBalancerHandler(experimental$1.createChildChannelControlHelper(channelControlHelper, {
+            createSubchannel: (subchannelAddress$1, subchannelArgs) => {
+                const originalSubchannel = channelControlHelper.createSubchannel(subchannelAddress$1, subchannelArgs);
+                const mapEntry = this.addressMap.get(subchannelAddress.subchannelAddressToString(subchannelAddress$1));
+                const subchannelWrapper = new OutlierDetectionSubchannelWrapper(originalSubchannel, mapEntry);
+                mapEntry === null || mapEntry === void 0 ? void 0 : mapEntry.subchannelWrappers.push(subchannelWrapper);
+                return subchannelWrapper;
+            },
+            updateState: (connectivityState$1, picker) => {
+                if (connectivityState$1 === connectivityState.ConnectivityState.READY) {
+                    channelControlHelper.updateState(connectivityState$1, new OutlierDetectionPicker(picker));
+                }
+                else {
+                    channelControlHelper.updateState(connectivityState$1, picker);
+                }
+            }
+        }));
+        this.ejectionTimer = setInterval(() => { }, 0);
+        clearInterval(this.ejectionTimer);
+    }
+    getCurrentEjectionPercent() {
+        let ejectionCount = 0;
+        for (const mapEntry of this.addressMap.values()) {
+            if (mapEntry.currentEjectionTimestamp !== null) {
+                ejectionCount += 1;
+            }
+        }
+        return (ejectionCount * 100) / this.addressMap.size;
+    }
+    runSuccessRateCheck(ejectionTimestamp) {
+        if (!this.latestConfig) {
+            return;
+        }
+        const successRateConfig = this.latestConfig.getSuccessRateEjectionConfig();
+        if (!successRateConfig) {
+            return;
+        }
+        // Step 1
+        const targetRequestVolume = successRateConfig.request_volume;
+        let addresesWithTargetVolume = 0;
+        const successRates = [];
+        for (const mapEntry of this.addressMap.values()) {
+            const successes = mapEntry.counter.getLastSuccesses();
+            const failures = mapEntry.counter.getLastFailures();
+            if (successes + failures >= targetRequestVolume) {
+                addresesWithTargetVolume += 1;
+                successRates.push(successes / (successes + failures));
+            }
+        }
+        if (addresesWithTargetVolume < successRateConfig.minimum_hosts) {
+            return;
+        }
+        // Step 2
+        const successRateMean = successRates.reduce((a, b) => a + b);
+        let successRateVariance = 0;
+        for (const rate of successRates) {
+            const deviation = rate - successRateMean;
+            successRateVariance += deviation * deviation;
+        }
+        const successRateStdev = Math.sqrt(successRateVariance);
+        const ejectionThreshold = successRateMean - successRateStdev * (successRateConfig.stdev_factor / 1000);
+        // Step 3
+        for (const mapEntry of this.addressMap.values()) {
+            // Step 3.i
+            if (this.getCurrentEjectionPercent() > this.latestConfig.getMaxEjectionPercent()) {
+                break;
+            }
+            // Step 3.ii
+            const successes = mapEntry.counter.getLastSuccesses();
+            const failures = mapEntry.counter.getLastFailures();
+            if (successes + failures < targetRequestVolume) {
+                continue;
+            }
+            // Step 3.iii
+            const successRate = successes / (successes + failures);
+            if (successRate < ejectionThreshold) {
+                const randomNumber = Math.random() * 100;
+                if (randomNumber < successRateConfig.enforcement_percentage) {
+                    this.eject(mapEntry, ejectionTimestamp);
+                }
+            }
+        }
+    }
+    runFailurePercentageCheck(ejectionTimestamp) {
+        if (!this.latestConfig) {
+            return;
+        }
+        const failurePercentageConfig = this.latestConfig.getFailurePercentageEjectionConfig();
+        if (!failurePercentageConfig) {
+            return;
+        }
+        // Step 1
+        if (this.addressMap.size < failurePercentageConfig.minimum_hosts) {
+            return;
+        }
+        // Step 2
+        for (const mapEntry of this.addressMap.values()) {
+            // Step 2.i
+            if (this.getCurrentEjectionPercent() > this.latestConfig.getMaxEjectionPercent()) {
+                break;
+            }
+            // Step 2.ii
+            const successes = mapEntry.counter.getLastSuccesses();
+            const failures = mapEntry.counter.getLastFailures();
+            if (successes + failures < failurePercentageConfig.request_volume) {
+                continue;
+            }
+            // Step 2.iii
+            const failurePercentage = (failures * 100) / (failures + successes);
+            if (failurePercentage > failurePercentageConfig.threshold) {
+                const randomNumber = Math.random() * 100;
+                if (randomNumber < failurePercentageConfig.enforcement_percentage) {
+                    this.eject(mapEntry, ejectionTimestamp);
+                }
+            }
+        }
+    }
+    eject(mapEntry, ejectionTimestamp) {
+        mapEntry.currentEjectionTimestamp = new Date();
+        mapEntry.ejectionTimeMultiplier += 1;
+        for (const subchannelWrapper of mapEntry.subchannelWrappers) {
+            subchannelWrapper.eject();
+        }
+    }
+    uneject(mapEntry) {
+        mapEntry.currentEjectionTimestamp = null;
+        for (const subchannelWrapper of mapEntry.subchannelWrappers) {
+            subchannelWrapper.uneject();
+        }
+    }
+    runChecks() {
+        const ejectionTimestamp = new Date();
+        for (const mapEntry of this.addressMap.values()) {
+            mapEntry.counter.switchBuckets();
+        }
+        if (!this.latestConfig) {
+            return;
+        }
+        this.runSuccessRateCheck(ejectionTimestamp);
+        this.runFailurePercentageCheck(ejectionTimestamp);
+        for (const mapEntry of this.addressMap.values()) {
+            if (mapEntry.currentEjectionTimestamp === null) {
+                if (mapEntry.ejectionTimeMultiplier > 0) {
+                    mapEntry.ejectionTimeMultiplier -= 1;
+                }
+            }
+            else {
+                const baseEjectionTimeMs = this.latestConfig.getBaseEjectionTimeMs();
+                const maxEjectionTimeMs = this.latestConfig.getMaxEjectionTimeMs();
+                const returnTime = new Date(mapEntry.currentEjectionTimestamp.getTime());
+                returnTime.setMilliseconds(returnTime.getMilliseconds() + Math.min(baseEjectionTimeMs * mapEntry.ejectionTimeMultiplier, Math.max(baseEjectionTimeMs, maxEjectionTimeMs)));
+                if (returnTime < new Date()) {
+                    this.uneject(mapEntry);
+                }
+            }
+        }
+    }
+    updateAddressList(addressList, lbConfig, attributes) {
+        if (!(lbConfig instanceof OutlierDetectionLoadBalancingConfig)) {
+            return;
+        }
+        const subchannelAddresses = new Set();
+        for (const address of addressList) {
+            subchannelAddresses.add(subchannelAddress.subchannelAddressToString(address));
+        }
+        for (const address of subchannelAddresses) {
+            if (!this.addressMap.has(address)) {
+                this.addressMap.set(address, {
+                    counter: new CallCounter(),
+                    currentEjectionTimestamp: null,
+                    ejectionTimeMultiplier: 0,
+                    subchannelWrappers: []
+                });
+            }
+        }
+        for (const key of this.addressMap.keys()) {
+            if (!subchannelAddresses.has(key)) {
+                this.addressMap.delete(key);
+            }
+        }
+        const childPolicy = loadBalancer.getFirstUsableConfig(lbConfig.getChildPolicy(), true);
+        this.childBalancer.updateAddressList(addressList, childPolicy, attributes);
+        if (this.latestConfig === null || this.latestConfig.getIntervalMs() !== lbConfig.getIntervalMs()) {
+            clearInterval(this.ejectionTimer);
+            this.ejectionTimer = setInterval(() => this.runChecks(), lbConfig.getIntervalMs());
+        }
+        this.latestConfig = lbConfig;
+    }
+    exitIdle() {
+        this.childBalancer.exitIdle();
+    }
+    resetBackoff() {
+        this.childBalancer.resetBackoff();
+    }
+    destroy() {
+        this.childBalancer.destroy();
+    }
+    getTypeName() {
+        return TYPE_NAME;
+    }
+}
+exports.OutlierDetectionLoadBalancer = OutlierDetectionLoadBalancer;
+function setup() {
+    if (OUTLIER_DETECTION_ENABLED) {
+        experimental$1.registerLoadBalancerType(TYPE_NAME, OutlierDetectionLoadBalancer, OutlierDetectionLoadBalancingConfig);
+    }
+}
+exports.setup = setup;
+
+});
+
+var experimental = createCommonjsModule(function (module, exports) {
+Object.defineProperty(exports, "__esModule", { value: true });
+
+Object.defineProperty(exports, "trace", { enumerable: true, get: function () { return logging.trace; } });
+
+Object.defineProperty(exports, "registerResolver", { enumerable: true, get: function () { return resolver.registerResolver; } });
+
+Object.defineProperty(exports, "uriToString", { enumerable: true, get: function () { return uriParser.uriToString; } });
+
+Object.defineProperty(exports, "durationToMs", { enumerable: true, get: function () { return duration.durationToMs; } });
+
+Object.defineProperty(exports, "BackoffTimeout", { enumerable: true, get: function () { return backoffTimeout.BackoffTimeout; } });
+
+Object.defineProperty(exports, "createChildChannelControlHelper", { enumerable: true, get: function () { return loadBalancer.createChildChannelControlHelper; } });
+Object.defineProperty(exports, "registerLoadBalancerType", { enumerable: true, get: function () { return loadBalancer.registerLoadBalancerType; } });
+Object.defineProperty(exports, "getFirstUsableConfig", { enumerable: true, get: function () { return loadBalancer.getFirstUsableConfig; } });
+Object.defineProperty(exports, "validateLoadBalancingConfig", { enumerable: true, get: function () { return loadBalancer.validateLoadBalancingConfig; } });
+
+Object.defineProperty(exports, "subchannelAddressToString", { enumerable: true, get: function () { return subchannelAddress.subchannelAddressToString; } });
+
+Object.defineProperty(exports, "ChildLoadBalancerHandler", { enumerable: true, get: function () { return loadBalancerChildHandler.ChildLoadBalancerHandler; } });
+
+Object.defineProperty(exports, "UnavailablePicker", { enumerable: true, get: function () { return picker.UnavailablePicker; } });
+Object.defineProperty(exports, "QueuePicker", { enumerable: true, get: function () { return picker.QueuePicker; } });
+Object.defineProperty(exports, "PickResultType", { enumerable: true, get: function () { return picker.PickResultType; } });
+
+Object.defineProperty(exports, "BaseFilter", { enumerable: true, get: function () { return filter.BaseFilter; } });
+
+Object.defineProperty(exports, "FilterStackFactory", { enumerable: true, get: function () { return filterStack.FilterStackFactory; } });
+
+Object.defineProperty(exports, "registerAdminService", { enumerable: true, get: function () { return admin.registerAdminService; } });
+
+Object.defineProperty(exports, "BaseSubchannelWrapper", { enumerable: true, get: function () { return subchannelInterface.BaseSubchannelWrapper; } });
+
+Object.defineProperty(exports, "OutlierDetectionLoadBalancingConfig", { enumerable: true, get: function () { return loadBalancerOutlierDetection.OutlierDetectionLoadBalancingConfig; } });
+
+});
+
+var resolverDns = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.setup = void 0;
+
+
+
+
+
+
+
+const constants_2 = constants;
+
+
+
+const TRACER_NAME = 'dns_resolver';
+function trace(text) {
+    logging.trace(constants_2.LogVerbosity.DEBUG, TRACER_NAME, text);
+}
+/**
+ * The default TCP port to connect to if not explicitly specified in the target.
+ */
+const DEFAULT_PORT = 443;
+const DEFAULT_MIN_TIME_BETWEEN_RESOLUTIONS_MS = 30000;
+const resolveTxtPromise = util$2.promisify(dns.resolveTxt);
+const dnsLookupPromise = util$2.promisify(dns.lookup);
+/**
+ * Merge any number of arrays into a single alternating array
+ * @param arrays
+ */
+function mergeArrays(...arrays) {
+    const result = [];
+    for (let i = 0; i <
+        Math.max.apply(null, arrays.map((array) => array.length)); i++) {
+        for (const array of arrays) {
+            if (i < array.length) {
+                result.push(array[i]);
+            }
+        }
+    }
+    return result;
+}
+/**
+ * Resolver implementation that handles DNS names and IP addresses.
+ */
+class DnsResolver {
+    constructor(target, listener, channelOptions) {
+        var _a, _b, _c;
+        this.target = target;
+        this.listener = listener;
+        this.pendingLookupPromise = null;
+        this.pendingTxtPromise = null;
+        this.latestLookupResult = null;
+        this.latestServiceConfig = null;
+        this.latestServiceConfigError = null;
+        this.continueResolving = false;
+        this.isNextResolutionTimerRunning = false;
+        trace('Resolver constructed for target ' + uriParser.uriToString(target));
+        const hostPort = uriParser.splitHostPort(target.path);
+        if (hostPort === null) {
+            this.ipResult = null;
+            this.dnsHostname = null;
+            this.port = null;
+        }
+        else {
+            if (net_1.isIPv4(hostPort.host) || net_1.isIPv6(hostPort.host)) {
+                this.ipResult = [
+                    {
+                        host: hostPort.host,
+                        port: (_a = hostPort.port) !== null && _a !== void 0 ? _a : DEFAULT_PORT,
+                    },
+                ];
+                this.dnsHostname = null;
+                this.port = null;
+            }
+            else {
+                this.ipResult = null;
+                this.dnsHostname = hostPort.host;
+                this.port = (_b = hostPort.port) !== null && _b !== void 0 ? _b : DEFAULT_PORT;
+            }
+        }
+        this.percentage = Math.random() * 100;
+        this.defaultResolutionError = {
+            code: constants.Status.UNAVAILABLE,
+            details: `Name resolution failed for target ${uriParser.uriToString(this.target)}`,
+            metadata: new metadata.Metadata(),
+        };
+        const backoffOptions = {
+            initialDelay: channelOptions['grpc.initial_reconnect_backoff_ms'],
+            maxDelay: channelOptions['grpc.max_reconnect_backoff_ms'],
+        };
+        this.backoff = new backoffTimeout.BackoffTimeout(() => {
+            if (this.continueResolving) {
+                this.startResolutionWithBackoff();
+            }
+        }, backoffOptions);
+        this.backoff.unref();
+        this.minTimeBetweenResolutionsMs = (_c = channelOptions['grpc.dns_min_time_between_resolutions_ms']) !== null && _c !== void 0 ? _c : DEFAULT_MIN_TIME_BETWEEN_RESOLUTIONS_MS;
+        this.nextResolutionTimer = setTimeout(() => { }, 0);
+        clearTimeout(this.nextResolutionTimer);
+    }
+    /**
+     * If the target is an IP address, just provide that address as a result.
+     * Otherwise, initiate A, AAAA, and TXT lookups
+     */
+    startResolution() {
+        if (this.ipResult !== null) {
+            trace('Returning IP address for target ' + uriParser.uriToString(this.target));
+            setImmediate(() => {
+                this.listener.onSuccessfulResolution(this.ipResult, null, null, null, {});
+            });
+            this.backoff.stop();
+            this.backoff.reset();
+            return;
+        }
+        if (this.dnsHostname === null) {
+            trace('Failed to parse DNS address ' + uriParser.uriToString(this.target));
+            setImmediate(() => {
+                this.listener.onError({
+                    code: constants.Status.UNAVAILABLE,
+                    details: `Failed to parse DNS address ${uriParser.uriToString(this.target)}`,
+                    metadata: new metadata.Metadata(),
+                });
+            });
+            this.stopNextResolutionTimer();
+        }
+        else {
+            if (this.pendingLookupPromise !== null) {
+                return;
+            }
+            trace('Looking up DNS hostname ' + this.dnsHostname);
+            /* We clear out latestLookupResult here to ensure that it contains the
+             * latest result since the last time we started resolving. That way, the
+             * TXT resolution handler can use it, but only if it finishes second. We
+             * don't clear out any previous service config results because it's
+             * better to use a service config that's slightly out of date than to
+             * revert to an effectively blank one. */
+            this.latestLookupResult = null;
+            const hostname = this.dnsHostname;
+            /* We lookup both address families here and then split them up later
+             * because when looking up a single family, dns.lookup outputs an error
+             * if the name exists but there are no records for that family, and that
+             * error is indistinguishable from other kinds of errors */
+            this.pendingLookupPromise = dnsLookupPromise(hostname, { all: true });
+            this.pendingLookupPromise.then((addressList) => {
+                this.pendingLookupPromise = null;
+                this.backoff.reset();
+                this.backoff.stop();
+                const ip4Addresses = addressList.filter((addr) => addr.family === 4);
+                const ip6Addresses = addressList.filter((addr) => addr.family === 6);
+                this.latestLookupResult = mergeArrays(ip6Addresses, ip4Addresses).map((addr) => ({ host: addr.address, port: +this.port }));
+                const allAddressesString = '[' +
+                    this.latestLookupResult
+                        .map((addr) => addr.host + ':' + addr.port)
+                        .join(',') +
+                    ']';
+                trace('Resolved addresses for target ' +
+                    uriParser.uriToString(this.target) +
+                    ': ' +
+                    allAddressesString);
+                if (this.latestLookupResult.length === 0) {
+                    this.listener.onError(this.defaultResolutionError);
+                    return;
+                }
+                /* If the TXT lookup has not yet finished, both of the last two
+                 * arguments will be null, which is the equivalent of getting an
+                 * empty TXT response. When the TXT lookup does finish, its handler
+                 * can update the service config by using the same address list */
+                this.listener.onSuccessfulResolution(this.latestLookupResult, this.latestServiceConfig, this.latestServiceConfigError, null, {});
+            }, (err) => {
+                trace('Resolution error for target ' +
+                    uriParser.uriToString(this.target) +
+                    ': ' +
+                    err.message);
+                this.pendingLookupPromise = null;
+                this.stopNextResolutionTimer();
+                this.listener.onError(this.defaultResolutionError);
+            });
+            /* If there already is a still-pending TXT resolution, we can just use
+             * that result when it comes in */
+            if (this.pendingTxtPromise === null) {
+                /* We handle the TXT query promise differently than the others because
+                 * the name resolution attempt as a whole is a success even if the TXT
+                 * lookup fails */
+                this.pendingTxtPromise = resolveTxtPromise(hostname);
+                this.pendingTxtPromise.then((txtRecord) => {
+                    this.pendingTxtPromise = null;
+                    try {
+                        this.latestServiceConfig = serviceConfig.extractAndSelectServiceConfig(txtRecord, this.percentage);
+                    }
+                    catch (err) {
+                        this.latestServiceConfigError = {
+                            code: constants.Status.UNAVAILABLE,
+                            details: 'Parsing service config failed',
+                            metadata: new metadata.Metadata(),
+                        };
+                    }
+                    if (this.latestLookupResult !== null) {
+                        /* We rely here on the assumption that calling this function with
+                         * identical parameters will be essentialy idempotent, and calling
+                         * it with the same address list and a different service config
+                         * should result in a fast and seamless switchover. */
+                        this.listener.onSuccessfulResolution(this.latestLookupResult, this.latestServiceConfig, this.latestServiceConfigError, null, {});
+                    }
+                }, (err) => {
+                    /* If TXT lookup fails we should do nothing, which means that we
+                     * continue to use the result of the most recent successful lookup,
+                     * or the default null config object if there has never been a
+                     * successful lookup. We do not set the latestServiceConfigError
+                     * here because that is specifically used for response validation
+                     * errors. We still need to handle this error so that it does not
+                     * bubble up as an unhandled promise rejection. */
+                });
+            }
+        }
+    }
+    startNextResolutionTimer() {
+        var _a, _b;
+        clearTimeout(this.nextResolutionTimer);
+        this.nextResolutionTimer = (_b = (_a = setTimeout(() => {
+            this.stopNextResolutionTimer();
+            if (this.continueResolving) {
+                this.startResolutionWithBackoff();
+            }
+        }, this.minTimeBetweenResolutionsMs)).unref) === null || _b === void 0 ? void 0 : _b.call(_a);
+        this.isNextResolutionTimerRunning = true;
+    }
+    stopNextResolutionTimer() {
+        clearTimeout(this.nextResolutionTimer);
+        this.isNextResolutionTimerRunning = false;
+    }
+    startResolutionWithBackoff() {
+        if (this.pendingLookupPromise === null) {
+            this.continueResolving = false;
+            this.startResolution();
+            this.backoff.runOnce();
+            this.startNextResolutionTimer();
+        }
+    }
+    updateResolution() {
+        /* If there is a pending lookup, just let it finish. Otherwise, if the
+         * nextResolutionTimer or backoff timer is running, set the
+         * continueResolving flag to resolve when whichever of those timers
+         * fires. Otherwise, start resolving immediately. */
+        if (this.pendingLookupPromise === null) {
+            if (this.isNextResolutionTimerRunning || this.backoff.isRunning()) {
+                this.continueResolving = true;
+            }
+            else {
+                this.startResolutionWithBackoff();
+            }
+        }
+    }
+    destroy() {
+        this.continueResolving = false;
+        this.backoff.stop();
+        this.stopNextResolutionTimer();
+    }
+    /**
+     * Get the default authority for the given target. For IP targets, that is
+     * the IP address. For DNS targets, it is the hostname.
+     * @param target
+     */
+    static getDefaultAuthority(target) {
+        return target.path;
+    }
+}
+/**
+ * Set up the DNS resolver class by registering it as the handler for the
+ * "dns:" prefix and as the default resolver.
+ */
+function setup() {
+    resolver.registerResolver('dns', DnsResolver);
+    resolver.registerDefaultScheme('dns');
+}
+exports.setup = setup;
+
+});
+
+var resolverUds = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.setup = void 0;
+
+class UdsResolver {
+    constructor(target, listener, channelOptions) {
+        this.listener = listener;
+        this.addresses = [];
+        let path;
+        if (target.authority === '') {
+            path = '/' + target.path;
+        }
+        else {
+            path = target.path;
+        }
+        this.addresses = [{ path }];
+    }
+    updateResolution() {
+        browser$1.nextTick(this.listener.onSuccessfulResolution, this.addresses, null, null, null, {});
+    }
+    destroy() {
+        // This resolver owns no resources, so we do nothing here.
+    }
+    static getDefaultAuthority(target) {
+        return 'localhost';
+    }
+}
+function setup() {
+    resolver.registerResolver('unix', UdsResolver);
+}
+exports.setup = setup;
+
+});
+
+var resolverIp = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2021 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.setup = void 0;
+
+
+
+
+
+
+const TRACER_NAME = 'ip_resolver';
+function trace(text) {
+    logging.trace(constants.LogVerbosity.DEBUG, TRACER_NAME, text);
+}
+const IPV4_SCHEME = 'ipv4';
+const IPV6_SCHEME = 'ipv6';
+/**
+ * The default TCP port to connect to if not explicitly specified in the target.
+ */
+const DEFAULT_PORT = 443;
+class IpResolver {
+    constructor(target, listener, channelOptions) {
+        var _a;
+        this.target = target;
+        this.listener = listener;
+        this.addresses = [];
+        this.error = null;
+        trace('Resolver constructed for target ' + uriParser.uriToString(target));
+        const addresses = [];
+        if (!(target.scheme === IPV4_SCHEME || target.scheme === IPV6_SCHEME)) {
+            this.error = {
+                code: constants.Status.UNAVAILABLE,
+                details: `Unrecognized scheme ${target.scheme} in IP resolver`,
+                metadata: new metadata.Metadata(),
+            };
+            return;
+        }
+        const pathList = target.path.split(',');
+        for (const path of pathList) {
+            const hostPort = uriParser.splitHostPort(path);
+            if (hostPort === null) {
+                this.error = {
+                    code: constants.Status.UNAVAILABLE,
+                    details: `Failed to parse ${target.scheme} address ${path}`,
+                    metadata: new metadata.Metadata(),
+                };
+                return;
+            }
+            if ((target.scheme === IPV4_SCHEME && !net_1.isIPv4(hostPort.host)) ||
+                (target.scheme === IPV6_SCHEME && !net_1.isIPv6(hostPort.host))) {
+                this.error = {
+                    code: constants.Status.UNAVAILABLE,
+                    details: `Failed to parse ${target.scheme} address ${path}`,
+                    metadata: new metadata.Metadata(),
+                };
+                return;
+            }
+            addresses.push({
+                host: hostPort.host,
+                port: (_a = hostPort.port) !== null && _a !== void 0 ? _a : DEFAULT_PORT,
+            });
+        }
+        this.addresses = addresses;
+        trace('Parsed ' + target.scheme + ' address list ' + this.addresses);
+    }
+    updateResolution() {
+        browser$1.nextTick(() => {
+            if (this.error) {
+                this.listener.onError(this.error);
+            }
+            else {
+                this.listener.onSuccessfulResolution(this.addresses, null, null, null, {});
+            }
+        });
+    }
+    destroy() {
+        // This resolver owns no resources, so we do nothing here.
+    }
+    static getDefaultAuthority(target) {
+        return target.path.split(',')[0];
+    }
+}
+function setup() {
+    resolver.registerResolver(IPV4_SCHEME, IpResolver);
+    resolver.registerResolver(IPV6_SCHEME, IpResolver);
+}
+exports.setup = setup;
+
+});
+
+var loadBalancerPickFirst = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.setup = exports.PickFirstLoadBalancer = exports.PickFirstLoadBalancingConfig = void 0;
+
+
+
+
+
+
+const TRACER_NAME = 'pick_first';
+function trace(text) {
+    logging.trace(constants.LogVerbosity.DEBUG, TRACER_NAME, text);
+}
+const TYPE_NAME = 'pick_first';
+/**
+ * Delay after starting a connection on a subchannel before starting a
+ * connection on the next subchannel in the list, for Happy Eyeballs algorithm.
+ */
+const CONNECTION_DELAY_INTERVAL_MS = 250;
+class PickFirstLoadBalancingConfig {
+    getLoadBalancerName() {
+        return TYPE_NAME;
+    }
+    constructor() { }
+    toJsonObject() {
+        return {
+            [TYPE_NAME]: {},
+        };
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    static createFromJson(obj) {
+        return new PickFirstLoadBalancingConfig();
+    }
+}
+exports.PickFirstLoadBalancingConfig = PickFirstLoadBalancingConfig;
+/**
+ * Picker for a `PickFirstLoadBalancer` in the READY state. Always returns the
+ * picked subchannel.
+ */
+class PickFirstPicker {
+    constructor(subchannel) {
+        this.subchannel = subchannel;
+    }
+    pick(pickArgs) {
+        return {
+            pickResultType: picker.PickResultType.COMPLETE,
+            subchannel: this.subchannel,
+            status: null,
+            extraFilterFactories: [],
+            onCallStarted: null,
+        };
+    }
+}
+class PickFirstLoadBalancer {
+    /**
+     * Load balancer that attempts to connect to each backend in the address list
+     * in order, and picks the first one that connects, using it for every
+     * request.
+     * @param channelControlHelper `ChannelControlHelper` instance provided by
+     *     this load balancer's owner.
+     */
+    constructor(channelControlHelper) {
+        this.channelControlHelper = channelControlHelper;
+        /**
+         * The list of backend addresses most recently passed to `updateAddressList`.
+         */
+        this.latestAddressList = [];
+        /**
+         * The list of subchannels this load balancer is currently attempting to
+         * connect to.
+         */
+        this.subchannels = [];
+        /**
+         * The current connectivity state of the load balancer.
+         */
+        this.currentState = connectivityState.ConnectivityState.IDLE;
+        /**
+         * The index within the `subchannels` array of the subchannel with the most
+         * recently started connection attempt.
+         */
+        this.currentSubchannelIndex = 0;
+        /**
+         * The currently picked subchannel used for making calls. Populated if
+         * and only if the load balancer's current state is READY. In that case,
+         * the subchannel's current state is also READY.
+         */
+        this.currentPick = null;
+        this.triedAllSubchannels = false;
+        this.subchannelStateCounts = {
+            [connectivityState.ConnectivityState.CONNECTING]: 0,
+            [connectivityState.ConnectivityState.IDLE]: 0,
+            [connectivityState.ConnectivityState.READY]: 0,
+            [connectivityState.ConnectivityState.SHUTDOWN]: 0,
+            [connectivityState.ConnectivityState.TRANSIENT_FAILURE]: 0,
+        };
+        this.subchannelStateListener = (subchannel, previousState, newState) => {
+            this.subchannelStateCounts[previousState] -= 1;
+            this.subchannelStateCounts[newState] += 1;
+            /* If the subchannel we most recently attempted to start connecting
+             * to goes into TRANSIENT_FAILURE, immediately try to start
+             * connecting to the next one instead of waiting for the connection
+             * delay timer. */
+            if (subchannel === this.subchannels[this.currentSubchannelIndex] &&
+                newState === connectivityState.ConnectivityState.TRANSIENT_FAILURE) {
+                this.startNextSubchannelConnecting();
+            }
+            if (newState === connectivityState.ConnectivityState.READY) {
+                this.pickSubchannel(subchannel);
+                return;
+            }
+            else {
+                if (this.triedAllSubchannels &&
+                    this.subchannelStateCounts[connectivityState.ConnectivityState.IDLE] ===
+                        this.subchannels.length) {
+                    /* If all of the subchannels are IDLE we should go back to a
+                     * basic IDLE state where there is no subchannel list to avoid
+                     * holding unused resources. We do not reset triedAllSubchannels
+                     * because that is a reminder to request reresolution the next time
+                     * this LB policy needs to connect. */
+                    this.resetSubchannelList(false);
+                    this.updateState(connectivityState.ConnectivityState.IDLE, new picker.QueuePicker(this));
+                    return;
+                }
+                if (this.currentPick === null) {
+                    if (this.triedAllSubchannels) {
+                        let newLBState;
+                        if (this.subchannelStateCounts[connectivityState.ConnectivityState.CONNECTING] > 0) {
+                            newLBState = connectivityState.ConnectivityState.CONNECTING;
+                        }
+                        else if (this.subchannelStateCounts[connectivityState.ConnectivityState.TRANSIENT_FAILURE] >
+                            0) {
+                            newLBState = connectivityState.ConnectivityState.TRANSIENT_FAILURE;
+                        }
+                        else {
+                            newLBState = connectivityState.ConnectivityState.IDLE;
+                        }
+                        if (newLBState !== this.currentState) {
+                            if (newLBState === connectivityState.ConnectivityState.TRANSIENT_FAILURE) {
+                                this.updateState(newLBState, new picker.UnavailablePicker());
+                            }
+                            else {
+                                this.updateState(newLBState, new picker.QueuePicker(this));
+                            }
+                        }
+                    }
+                    else {
+                        this.updateState(connectivityState.ConnectivityState.CONNECTING, new picker.QueuePicker(this));
+                    }
+                }
+            }
+        };
+        this.pickedSubchannelStateListener = (subchannel, previousState, newState) => {
+            if (newState !== connectivityState.ConnectivityState.READY) {
+                this.currentPick = null;
+                subchannel.unref();
+                subchannel.removeConnectivityStateListener(this.pickedSubchannelStateListener);
+                this.channelControlHelper.removeChannelzChild(subchannel.getChannelzRef());
+                if (this.subchannels.length > 0) {
+                    if (this.triedAllSubchannels) {
+                        let newLBState;
+                        if (this.subchannelStateCounts[connectivityState.ConnectivityState.CONNECTING] > 0) {
+                            newLBState = connectivityState.ConnectivityState.CONNECTING;
+                        }
+                        else if (this.subchannelStateCounts[connectivityState.ConnectivityState.TRANSIENT_FAILURE] >
+                            0) {
+                            newLBState = connectivityState.ConnectivityState.TRANSIENT_FAILURE;
+                        }
+                        else {
+                            newLBState = connectivityState.ConnectivityState.IDLE;
+                        }
+                        if (newLBState === connectivityState.ConnectivityState.TRANSIENT_FAILURE) {
+                            this.updateState(newLBState, new picker.UnavailablePicker());
+                        }
+                        else {
+                            this.updateState(newLBState, new picker.QueuePicker(this));
+                        }
+                    }
+                    else {
+                        this.updateState(connectivityState.ConnectivityState.CONNECTING, new picker.QueuePicker(this));
+                    }
+                }
+                else {
+                    /* We don't need to backoff here because this only happens if a
+                     * subchannel successfully connects then disconnects, so it will not
+                     * create a loop of attempting to connect to an unreachable backend
+                     */
+                    this.updateState(connectivityState.ConnectivityState.IDLE, new picker.QueuePicker(this));
+                }
+            }
+        };
+        this.connectionDelayTimeout = setTimeout(() => { }, 0);
+        clearTimeout(this.connectionDelayTimeout);
+    }
+    startNextSubchannelConnecting() {
+        if (this.triedAllSubchannels) {
+            return;
+        }
+        for (const [index, subchannel] of this.subchannels.entries()) {
+            if (index > this.currentSubchannelIndex) {
+                const subchannelState = subchannel.getConnectivityState();
+                if (subchannelState === connectivityState.ConnectivityState.IDLE ||
+                    subchannelState === connectivityState.ConnectivityState.CONNECTING) {
+                    this.startConnecting(index);
+                    return;
+                }
+            }
+        }
+        this.triedAllSubchannels = true;
+    }
+    /**
+     * Have a single subchannel in the `subchannels` list start connecting.
+     * @param subchannelIndex The index into the `subchannels` list.
+     */
+    startConnecting(subchannelIndex) {
+        clearTimeout(this.connectionDelayTimeout);
+        this.currentSubchannelIndex = subchannelIndex;
+        if (this.subchannels[subchannelIndex].getConnectivityState() ===
+            connectivityState.ConnectivityState.IDLE) {
+            trace('Start connecting to subchannel with address ' +
+                this.subchannels[subchannelIndex].getAddress());
+            browser$1.nextTick(() => {
+                this.subchannels[subchannelIndex].startConnecting();
+            });
+        }
+        this.connectionDelayTimeout = setTimeout(() => {
+            this.startNextSubchannelConnecting();
+        }, CONNECTION_DELAY_INTERVAL_MS);
+    }
+    pickSubchannel(subchannel) {
+        trace('Pick subchannel with address ' + subchannel.getAddress());
+        if (this.currentPick !== null) {
+            this.currentPick.unref();
+            this.currentPick.removeConnectivityStateListener(this.pickedSubchannelStateListener);
+        }
+        this.currentPick = subchannel;
+        this.updateState(connectivityState.ConnectivityState.READY, new PickFirstPicker(subchannel));
+        subchannel.addConnectivityStateListener(this.pickedSubchannelStateListener);
+        subchannel.ref();
+        this.channelControlHelper.addChannelzChild(subchannel.getChannelzRef());
+        this.resetSubchannelList();
+        clearTimeout(this.connectionDelayTimeout);
+    }
+    updateState(newState, picker) {
+        trace(connectivityState.ConnectivityState[this.currentState] +
+            ' -> ' +
+            connectivityState.ConnectivityState[newState]);
+        this.currentState = newState;
+        this.channelControlHelper.updateState(newState, picker);
+    }
+    resetSubchannelList(resetTriedAllSubchannels = true) {
+        for (const subchannel of this.subchannels) {
+            subchannel.removeConnectivityStateListener(this.subchannelStateListener);
+            subchannel.unref();
+            this.channelControlHelper.removeChannelzChild(subchannel.getChannelzRef());
+        }
+        this.currentSubchannelIndex = 0;
+        this.subchannelStateCounts = {
+            [connectivityState.ConnectivityState.CONNECTING]: 0,
+            [connectivityState.ConnectivityState.IDLE]: 0,
+            [connectivityState.ConnectivityState.READY]: 0,
+            [connectivityState.ConnectivityState.SHUTDOWN]: 0,
+            [connectivityState.ConnectivityState.TRANSIENT_FAILURE]: 0,
+        };
+        this.subchannels = [];
+        if (resetTriedAllSubchannels) {
+            this.triedAllSubchannels = false;
+        }
+    }
+    /**
+     * Start connecting to the address list most recently passed to
+     * `updateAddressList`.
+     */
+    connectToAddressList() {
+        this.resetSubchannelList();
+        trace('Connect to address list ' +
+            this.latestAddressList.map((address) => subchannelAddress.subchannelAddressToString(address)));
+        this.subchannels = this.latestAddressList.map((address) => this.channelControlHelper.createSubchannel(address, {}));
+        for (const subchannel of this.subchannels) {
+            subchannel.ref();
+            this.channelControlHelper.addChannelzChild(subchannel.getChannelzRef());
+        }
+        for (const subchannel of this.subchannels) {
+            subchannel.addConnectivityStateListener(this.subchannelStateListener);
+            this.subchannelStateCounts[subchannel.getConnectivityState()] += 1;
+            if (subchannel.getConnectivityState() === connectivityState.ConnectivityState.READY) {
+                this.pickSubchannel(subchannel);
+                this.resetSubchannelList();
+                return;
+            }
+        }
+        for (const [index, subchannel] of this.subchannels.entries()) {
+            const subchannelState = subchannel.getConnectivityState();
+            if (subchannelState === connectivityState.ConnectivityState.IDLE ||
+                subchannelState === connectivityState.ConnectivityState.CONNECTING) {
+                this.startConnecting(index);
+                if (this.currentPick === null) {
+                    this.updateState(connectivityState.ConnectivityState.CONNECTING, new picker.QueuePicker(this));
+                }
+                return;
+            }
+        }
+        // If the code reaches this point, every subchannel must be in TRANSIENT_FAILURE
+        if (this.currentPick === null) {
+            this.updateState(connectivityState.ConnectivityState.TRANSIENT_FAILURE, new picker.UnavailablePicker());
+        }
+    }
+    updateAddressList(addressList, lbConfig) {
+        // lbConfig has no useful information for pick first load balancing
+        /* To avoid unnecessary churn, we only do something with this address list
+         * if we're not currently trying to establish a connection, or if the new
+         * address list is different from the existing one */
+        if (this.subchannels.length === 0 ||
+            !this.latestAddressList.every((value, index) => addressList[index] === value)) {
+            this.latestAddressList = addressList;
+            this.connectToAddressList();
+        }
+    }
+    exitIdle() {
+        if (this.currentState === connectivityState.ConnectivityState.IDLE ||
+            this.triedAllSubchannels) {
+            this.channelControlHelper.requestReresolution();
+        }
+        for (const subchannel of this.subchannels) {
+            subchannel.startConnecting();
+        }
+        if (this.currentState === connectivityState.ConnectivityState.IDLE) {
+            if (this.latestAddressList.length > 0) {
+                this.connectToAddressList();
+            }
+        }
+    }
+    resetBackoff() {
+        /* The pick first load balancer does not have a connection backoff, so this
+         * does nothing */
+    }
+    destroy() {
+        this.resetSubchannelList();
+        if (this.currentPick !== null) {
+            /* Unref can cause a state change, which can cause a change in the value
+             * of this.currentPick, so we hold a local reference to make sure that
+             * does not impact this function. */
+            const currentPick = this.currentPick;
+            currentPick.unref();
+            currentPick.removeConnectivityStateListener(this.pickedSubchannelStateListener);
+            this.channelControlHelper.removeChannelzChild(currentPick.getChannelzRef());
+        }
+    }
+    getTypeName() {
+        return TYPE_NAME;
+    }
+}
+exports.PickFirstLoadBalancer = PickFirstLoadBalancer;
+function setup() {
+    loadBalancer.registerLoadBalancerType(TYPE_NAME, PickFirstLoadBalancer, PickFirstLoadBalancingConfig);
+    loadBalancer.registerDefaultLoadBalancerType(TYPE_NAME);
+}
+exports.setup = setup;
+
+});
+
+var loadBalancerRoundRobin = createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.setup = exports.RoundRobinLoadBalancer = void 0;
+
+
+
+
+
+
+const TRACER_NAME = 'round_robin';
+function trace(text) {
+    logging.trace(constants.LogVerbosity.DEBUG, TRACER_NAME, text);
+}
+const TYPE_NAME = 'round_robin';
+class RoundRobinLoadBalancingConfig {
+    getLoadBalancerName() {
+        return TYPE_NAME;
+    }
+    constructor() { }
+    toJsonObject() {
+        return {
+            [TYPE_NAME]: {},
+        };
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    static createFromJson(obj) {
+        return new RoundRobinLoadBalancingConfig();
+    }
+}
+class RoundRobinPicker {
+    constructor(subchannelList, nextIndex = 0) {
+        this.subchannelList = subchannelList;
+        this.nextIndex = nextIndex;
+    }
+    pick(pickArgs) {
+        const pickedSubchannel = this.subchannelList[this.nextIndex];
+        this.nextIndex = (this.nextIndex + 1) % this.subchannelList.length;
+        return {
+            pickResultType: picker.PickResultType.COMPLETE,
+            subchannel: pickedSubchannel,
+            status: null,
+            extraFilterFactories: [],
+            onCallStarted: null,
+        };
+    }
+    /**
+     * Check what the next subchannel returned would be. Used by the load
+     * balancer implementation to preserve this part of the picker state if
+     * possible when a subchannel connects or disconnects.
+     */
+    peekNextSubchannel() {
+        return this.subchannelList[this.nextIndex];
+    }
+}
+class RoundRobinLoadBalancer {
+    constructor(channelControlHelper) {
+        this.channelControlHelper = channelControlHelper;
+        this.subchannels = [];
+        this.currentState = connectivityState.ConnectivityState.IDLE;
+        this.currentReadyPicker = null;
+        this.subchannelStateCounts = {
+            [connectivityState.ConnectivityState.CONNECTING]: 0,
+            [connectivityState.ConnectivityState.IDLE]: 0,
+            [connectivityState.ConnectivityState.READY]: 0,
+            [connectivityState.ConnectivityState.SHUTDOWN]: 0,
+            [connectivityState.ConnectivityState.TRANSIENT_FAILURE]: 0,
+        };
+        this.subchannelStateListener = (subchannel, previousState, newState) => {
+            this.subchannelStateCounts[previousState] -= 1;
+            this.subchannelStateCounts[newState] += 1;
+            this.calculateAndUpdateState();
+            if (newState === connectivityState.ConnectivityState.TRANSIENT_FAILURE ||
+                newState === connectivityState.ConnectivityState.IDLE) {
+                this.channelControlHelper.requestReresolution();
+                subchannel.startConnecting();
+            }
+        };
+    }
+    calculateAndUpdateState() {
+        if (this.subchannelStateCounts[connectivityState.ConnectivityState.READY] > 0) {
+            const readySubchannels = this.subchannels.filter((subchannel) => subchannel.getConnectivityState() === connectivityState.ConnectivityState.READY);
+            let index = 0;
+            if (this.currentReadyPicker !== null) {
+                index = readySubchannels.indexOf(this.currentReadyPicker.peekNextSubchannel());
+                if (index < 0) {
+                    index = 0;
+                }
+            }
+            this.updateState(connectivityState.ConnectivityState.READY, new RoundRobinPicker(readySubchannels, index));
+        }
+        else if (this.subchannelStateCounts[connectivityState.ConnectivityState.CONNECTING] > 0) {
+            this.updateState(connectivityState.ConnectivityState.CONNECTING, new picker.QueuePicker(this));
+        }
+        else if (this.subchannelStateCounts[connectivityState.ConnectivityState.TRANSIENT_FAILURE] > 0) {
+            this.updateState(connectivityState.ConnectivityState.TRANSIENT_FAILURE, new picker.UnavailablePicker());
+        }
+        else {
+            this.updateState(connectivityState.ConnectivityState.IDLE, new picker.QueuePicker(this));
+        }
+    }
+    updateState(newState, picker) {
+        trace(connectivityState.ConnectivityState[this.currentState] +
+            ' -> ' +
+            connectivityState.ConnectivityState[newState]);
+        if (newState === connectivityState.ConnectivityState.READY) {
+            this.currentReadyPicker = picker;
+        }
+        else {
+            this.currentReadyPicker = null;
+        }
+        this.currentState = newState;
+        this.channelControlHelper.updateState(newState, picker);
+    }
+    resetSubchannelList() {
+        for (const subchannel of this.subchannels) {
+            subchannel.removeConnectivityStateListener(this.subchannelStateListener);
+            subchannel.unref();
+            this.channelControlHelper.removeChannelzChild(subchannel.getChannelzRef());
+        }
+        this.subchannelStateCounts = {
+            [connectivityState.ConnectivityState.CONNECTING]: 0,
+            [connectivityState.ConnectivityState.IDLE]: 0,
+            [connectivityState.ConnectivityState.READY]: 0,
+            [connectivityState.ConnectivityState.SHUTDOWN]: 0,
+            [connectivityState.ConnectivityState.TRANSIENT_FAILURE]: 0,
+        };
+        this.subchannels = [];
+    }
+    updateAddressList(addressList, lbConfig) {
+        this.resetSubchannelList();
+        trace('Connect to address list ' +
+            addressList.map((address) => subchannelAddress.subchannelAddressToString(address)));
+        this.subchannels = addressList.map((address) => this.channelControlHelper.createSubchannel(address, {}));
+        for (const subchannel of this.subchannels) {
+            subchannel.ref();
+            subchannel.addConnectivityStateListener(this.subchannelStateListener);
+            this.channelControlHelper.addChannelzChild(subchannel.getChannelzRef());
+            const subchannelState = subchannel.getConnectivityState();
+            this.subchannelStateCounts[subchannelState] += 1;
+            if (subchannelState === connectivityState.ConnectivityState.IDLE ||
+                subchannelState === connectivityState.ConnectivityState.TRANSIENT_FAILURE) {
+                subchannel.startConnecting();
+            }
+        }
+        this.calculateAndUpdateState();
+    }
+    exitIdle() {
+        for (const subchannel of this.subchannels) {
+            subchannel.startConnecting();
+        }
+    }
+    resetBackoff() {
+        /* The pick first load balancer does not have a connection backoff, so this
+         * does nothing */
+    }
+    destroy() {
+        this.resetSubchannelList();
+    }
+    getTypeName() {
+        return TYPE_NAME;
+    }
+}
+exports.RoundRobinLoadBalancer = RoundRobinLoadBalancer;
+function setup() {
+    loadBalancer.registerLoadBalancerType(TYPE_NAME, RoundRobinLoadBalancer, RoundRobinLoadBalancingConfig);
+}
+exports.setup = setup;
+
+});
+
+createCommonjsModule(function (module, exports) {
+/*
+ * Copyright 2019 gRPC authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.experimental = exports.StatusBuilder = exports.getClientChannel = exports.ServerCredentials = exports.Server = exports.setLogVerbosity = exports.setLogger = exports.load = exports.loadObject = exports.CallCredentials = exports.ChannelCredentials = exports.waitForClientReady = exports.closeClient = exports.Channel = exports.makeGenericClientConstructor = exports.makeClientConstructor = exports.loadPackageDefinition = exports.Client = exports.compressionAlgorithms = exports.propagate = exports.connectivityState = exports.status = exports.logVerbosity = exports.Metadata = exports.credentials = void 0;
+
+Object.defineProperty(exports, "CallCredentials", { enumerable: true, get: function () { return callCredentials.CallCredentials; } });
+
+Object.defineProperty(exports, "Channel", { enumerable: true, get: function () { return channel_1.ChannelImplementation; } });
+
+Object.defineProperty(exports, "compressionAlgorithms", { enumerable: true, get: function () { return compressionAlgorithms.CompressionAlgorithms; } });
+
+Object.defineProperty(exports, "connectivityState", { enumerable: true, get: function () { return connectivityState.ConnectivityState; } });
+
+Object.defineProperty(exports, "ChannelCredentials", { enumerable: true, get: function () { return channelCredentials.ChannelCredentials; } });
+
+Object.defineProperty(exports, "Client", { enumerable: true, get: function () { return client.Client; } });
+
+Object.defineProperty(exports, "logVerbosity", { enumerable: true, get: function () { return constants.LogVerbosity; } });
+Object.defineProperty(exports, "status", { enumerable: true, get: function () { return constants.Status; } });
+Object.defineProperty(exports, "propagate", { enumerable: true, get: function () { return constants.Propagate; } });
+
+
+Object.defineProperty(exports, "loadPackageDefinition", { enumerable: true, get: function () { return makeClient.loadPackageDefinition; } });
+Object.defineProperty(exports, "makeClientConstructor", { enumerable: true, get: function () { return makeClient.makeClientConstructor; } });
+Object.defineProperty(exports, "makeGenericClientConstructor", { enumerable: true, get: function () { return makeClient.makeClientConstructor; } });
+
+Object.defineProperty(exports, "Metadata", { enumerable: true, get: function () { return metadata.Metadata; } });
+
+Object.defineProperty(exports, "Server", { enumerable: true, get: function () { return server.Server; } });
+
+Object.defineProperty(exports, "ServerCredentials", { enumerable: true, get: function () { return serverCredentials.ServerCredentials; } });
+
+Object.defineProperty(exports, "StatusBuilder", { enumerable: true, get: function () { return statusBuilder.StatusBuilder; } });
+/**** Client Credentials ****/
+// Using assign only copies enumerable properties, which is what we want
+exports.credentials = {
+    /**
+     * Combine a ChannelCredentials with any number of CallCredentials into a
+     * single ChannelCredentials object.
+     * @param channelCredentials The ChannelCredentials object.
+     * @param callCredentials Any number of CallCredentials objects.
+     * @return The resulting ChannelCredentials object.
+     */
+    combineChannelCredentials: (channelCredentials, ...callCredentials) => {
+        return callCredentials.reduce((acc, other) => acc.compose(other), channelCredentials);
+    },
+    /**
+     * Combine any number of CallCredentials into a single CallCredentials
+     * object.
+     * @param first The first CallCredentials object.
+     * @param additional Any number of additional CallCredentials objects.
+     * @return The resulting CallCredentials object.
+     */
+    combineCallCredentials: (first, ...additional) => {
+        return additional.reduce((acc, other) => acc.compose(other), first);
+    },
+    // from channel-credentials.ts
+    createInsecure: channelCredentials.ChannelCredentials.createInsecure,
+    createSsl: channelCredentials.ChannelCredentials.createSsl,
+    createFromSecureContext: channelCredentials.ChannelCredentials.createFromSecureContext,
+    // from call-credentials.ts
+    createFromMetadataGenerator: callCredentials.CallCredentials.createFromMetadataGenerator,
+    createFromGoogleCredential: callCredentials.CallCredentials.createFromGoogleCredential,
+    createEmpty: callCredentials.CallCredentials.createEmpty,
+};
+/**
+ * Close a Client object.
+ * @param client The client to close.
+ */
+exports.closeClient = (client) => client.close();
+exports.waitForClientReady = (client, deadline, callback) => client.waitForReady(deadline, callback);
+/* eslint-enable @typescript-eslint/no-explicit-any */
+/**** Unimplemented function stubs ****/
+/* eslint-disable @typescript-eslint/no-explicit-any */
+exports.loadObject = (value, options) => {
+    throw new Error('Not available in this library. Use @grpc/proto-loader and loadPackageDefinition instead');
+};
+exports.load = (filename, format, options) => {
+    throw new Error('Not available in this library. Use @grpc/proto-loader and loadPackageDefinition instead');
+};
+exports.setLogger = (logger) => {
+    logging.setLogger(logger);
+};
+exports.setLogVerbosity = (verbosity) => {
+    logging.setLoggerVerbosity(verbosity);
+};
+exports.getClientChannel = (client$1) => {
+    return client.Client.prototype.getChannel.call(client$1);
+};
+
+Object.defineProperty(exports, "ListenerBuilder", { enumerable: true, get: function () { return clientInterceptors.ListenerBuilder; } });
+Object.defineProperty(exports, "RequesterBuilder", { enumerable: true, get: function () { return clientInterceptors.RequesterBuilder; } });
+Object.defineProperty(exports, "InterceptingCall", { enumerable: true, get: function () { return clientInterceptors.InterceptingCall; } });
+Object.defineProperty(exports, "InterceptorConfigurationError", { enumerable: true, get: function () { return clientInterceptors.InterceptorConfigurationError; } });
+
+Object.defineProperty(exports, "getChannelzServiceDefinition", { enumerable: true, get: function () { return channelz.getChannelzServiceDefinition; } });
+Object.defineProperty(exports, "getChannelzHandlers", { enumerable: true, get: function () { return channelz.getChannelzHandlers; } });
+
+Object.defineProperty(exports, "addAdminServicesToServer", { enumerable: true, get: function () { return admin.addAdminServicesToServer; } });
+
+exports.experimental = experimental$1;
+
+
+
+
+
+
+const channelz$1 = channelz;
+const clientVersion = require$$0.version;
+(() => {
+    logging.trace(constants.LogVerbosity.DEBUG, 'index', 'Loading @grpc/grpc-js version ' + clientVersion);
+    resolverDns.setup();
+    resolverUds.setup();
+    resolverIp.setup();
+    loadBalancerPickFirst.setup();
+    loadBalancerRoundRobin.setup();
+    loadBalancerOutlierDetection.setup();
+    channelz$1.setup();
+})();
+
 });
 
 function compareVersions(v1, v2) {
@@ -35299,7 +59067,7 @@ function requestFlush() {
         if (!domain) {
             // Lazy execute the domain module.
             // Only employed if the user elects to use domains.
-            domain = require$$0$2;
+            domain = require$$0$4;
         }
         domain.active = browser$1.domain = null;
     }
@@ -36347,6 +60115,42 @@ class Job$1{
            //define a new job of the same name that already has a button,
            //we want to change the buttons' color.
            //add_job_button_maybe is ONLY called by Job constructor.
+    }
+
+    //returns the first job name found in the first job definition, or null
+    //if it can't find one.
+    static source_to_job_name(source){
+        let new_job_index = source.indexOf("new Job(");
+        if (new_job_index === -1) {
+            warning("Could not find <code>new Job(</code> in the Editor.");
+            return null
+        }
+        let name_index = source.indexOf("name:", new_job_index);
+        if (name_index === -1) {
+            warning("Could not find Job name in the Editor.");
+            return null
+        }
+        let start_of_job_name_index = source.indexOf('"', name_index);
+        let name_str_delim = '"';
+        if (start_of_job_name_index === -1) {
+            start_of_job_name_index = source.indexOf("'", name_index);
+            name_str_delim = "'";
+        }
+        if (start_of_job_name_index === -1) {
+            warning("Could not find Job name in the Editor.");
+            return null
+        }
+        let end_of_job_name_index = source.indexOf(name_str_delim, start_of_job_name_index + 1);
+        if (end_of_job_name_index === -1) {
+            warning("Could not find end of Job name in the Editor.");
+            return null
+        }
+        let job_name = source.substring(start_of_job_name_index + 1, end_of_job_name_index);
+        if(job_name.includes("\n")) {
+            warning("Found an invalid Job name containing a new line in the Editor: " + job_name);
+            return null
+        }
+        return job_name
     }
     static extract_job_name_from_file_path(file_path){
         let job_name_start_pos = file_path.lastIndexOf("/");
@@ -44880,11 +68684,11 @@ class Dexter$1 extends Robot$1 {
         else {
             this.rs = new RobotStatus({robot_status: robot_status});
         }
-        out("In set_robot_status for Job." + Job.job_id_to_job_instance(robot_status[Dexter$1.JOB_ID]).name +
-            " Dexter." + this.name +
-            " oplet: " + robot_status[Dexter$1.INSTRUCTION_TYPE] +
-            " J1 angle: " + robot_status[Dexter$1.J1_MEASURED_ANGLE] +
-            " measured_angles in rs: " + this.rs.measured_angles());
+        //out("In set_robot_status for Job." + Job.job_id_to_job_instance(robot_status[Dexter.JOB_ID]).name +
+        //    " Dexter." + this.name +
+        //    " oplet: " + robot_status[Dexter.INSTRUCTION_TYPE] +
+        //    " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE] +
+        //    " measured_angles in rs: " + this.rs.measured_angles())
         let new_robot_status_button_down = this.is_phui_button_down(); //tricky. Not the same as 2 lines up!
         if((!old_robot_status_button_down) &&
             new_robot_status_button_down) {
@@ -44929,7 +68733,7 @@ class Dexter$1 extends Robot$1 {
           setTimeout(function(){
             if (this_dex.finish_job()) ;
             else if (this_dex.waiting_for_heartbeat){ //stop recursive timeout
-                out("Dexter " + this_dex.name + " did not receive a response to the heartbeat. Stopping Job.");
+                //out("Dexter " + this_dex.name + " did not receive a response to the heartbeat. Stopping Job.")
                 //this_dex.is_connected      = false //should be done by stop_for_reaason and next item
                 //this_dex.socket_id         = null  //should be done by stop_for_reaason and next item
                 for (let job_instance of this.active_jobs_using_this_robot()){
@@ -45027,10 +68831,10 @@ class Dexter$1 extends Robot$1 {
         let oplet        = robot_status[Dexter$1.INSTRUCTION_TYPE];
         let error_code   = robot_status[Dexter$1.ERROR_CODE];
         let rob          = this; //job_instance.robot
-        out("In robot_done_with_instruction for Job." + job_instance.name +
-            " Dexter." + this.name +
-            " oplet: " + oplet +
-            " J1 angle: " + robot_status[Dexter$1.J1_MEASURED_ANGLE]);
+        //out("In robot_done_with_instruction for Job." + job_instance.name +
+        //    " Dexter." + this.name +
+        //    " oplet: " + oplet +
+        //    " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE])
         if(oplet === "F") {
             rob.waiting_for_flush_ack = false;
         }
@@ -47297,7 +71101,7 @@ class Socket$1{
                     Socket$1.on_receive(msg, undefined, rob);
                 };
                 net_soc_inst.onopen = function(event){
-                    out(job_instance.name + " Succeeded connection to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port, "green");
+                    //out(job_instance.name + " Succeeded connection to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port, "green")
                     //clearTimeout(st_inst)
                     Socket$1.robot_name_to_soc_instance_map[robot_name] = net_soc_inst;
                     //the 3 below closed over vars are just used in the one call to when this on connect happens.
@@ -47709,22 +71513,12 @@ class Socket$1{
         }
         //out(job_instance.name + " " + robot_name + " Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
 
-        let oplet = oplet_array_or_string[Instruction.INSTRUCTION_TYPE];
-        out("In Socket.send for Job." + job_instance.name +
-            " Dexter." + rob.name +
-            " oplet: " + oplet +
-            " instr: " + oplet_array_or_string);
-        let instr_id = oplet_array_or_string[Instruction.INSTRUCTION_ID];
-        let got_first_non_monitor_instr = false;
-
-        if((oplet === "g") && (instr_id > 0)) {
-            got_first_non_monitor_instr = true;
-            //out("in Socket.send for job: " + job_instance.name)
-            //debugger;
-        }
-        else if ((job_instance !== "monitor_job") && (oplet !== "g") && got_first_non_monitor_instr){
-            out("in Socket.send for job: " + job_instance.name);
-        }
+        oplet_array_or_string[Instruction.INSTRUCTION_TYPE];
+        //out("In Socket.send for Job." + job_instance.name +
+        //    " Dexter." + rob.name +
+        //    " oplet: " + oplet +
+        //    " instr: " + oplet_array_or_string)
+        oplet_array_or_string[Instruction.INSTRUCTION_ID];
 
         const str =  Socket$1.oplet_array_or_string_to_string(oplet_array_or_string_du);
         if(Instruction.is_F_instruction_string(str)) {
@@ -47812,7 +71606,7 @@ class Socket$1{
     static on_receive(data, payload_string_maybe, dexter_instance){
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
         //console.log("top of Socket.on_receive.")
-        out("Socket.on_receive passed data: " + data, undefined, true);
+        //out("Socket.on_receive passed data: " + data, undefined, true)
         let robot_status;
         let oplet;
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
@@ -47859,10 +71653,10 @@ class Socket$1{
         robot_status[Dexter.INSTRUCTION_TYPE] = oplet;
         let job_id = robot_status[Dexter.JOB_ID];
         let job_instance = Job.job_id_to_job_instance(job_id);
-        out("In on_receive_aux for Job." + job_instance.name +
-            " Dexter." + dexter_instance.name +
-            " oplet: " + oplet +
-            " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE]);
+        //out("In on_receive_aux for Job." + job_instance.name +
+        //    " Dexter." + dexter_instance.name +
+        //    " oplet: " + oplet +
+        //    " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE])
         if(job_instance.name === "monitor_dexter"){ debugger;}
         if(oplet == "r"){ //Dexter.read_file
             if(typeof(payload_string_maybe) == "number") { //only can hit im sim.// should be 2 if it hits
@@ -49424,8 +73218,8 @@ class SimUtils$1{
     //robot_name example: "Dexter.dexter0"
     static render_multi(ds_instance, new_angles_dexter_units, robot_name, dur_in_ms=0){ //inputs in arc_seconds
         //console.log("render_multi passed: " +  new_angles_dexter_units)
-        console.log("Dexter.default: " + Dexter.default);
-        console.log("Dexter.dexter0: " + Dexter.dexter0);
+        //onsole.log("Dexter.default: " + Dexter.default)
+        //onsole.log("Dexter.dexter0: " + Dexter.dexter0)
         if (Dexter.default.name === robot_name){
             let dur_to_show = Math.round(dur_in_ms / 100); //in 10ths of seconds, rounded
             dur_to_show = "" + dur_to_show;
@@ -52619,55 +76413,77 @@ globalThis.Duration = Duration$1;
 class Monitor {
      static port = 3002 //the monitor port for a Dexter. also used by MonitorServer
 
-     static domain_to_websocket_map = {}
+    //static default_domain = "192.168.1.142"  //not now used but *could( be used in
+    //resolve_domain a la else if (domain_maybe === undefined) { return default_domain }
 
-     //static default_domain = "192.168.1.142"
+     static resolve_domain(domain_maybe){
+        if     (typeof(domain_maybe) === "string") { return domain_maybe }
+        else if(domain_maybe instanceof Dexter)    { return domain_maybe.ip_address }
+        else if(domain_maybe instanceof WebSocket) {
+            let the_url = domain_maybe.url; //something like "ws://localhost:3002/"
+            let colon_pos = the_url.indexOf(":", 5);
+            let domain = the_url.substring(5, colon_pos);
+            return domain
+        }
+        else { dde_error("resolve_domain passsed: " + domain_maybe +
+            " which is not a domain, Dexter instance or Websocket instance.");
+        }
+     }
+
+     static domain_to_websocket_map = {} //contains only OPEN websockets
 
      //domain is the domain of the Job Engine you want to  monitor.
-     //It can be "localhost", "102.168.1.142" (and friends), Dexter.dexter0 (or any Dexter instance)
+     //It can be "localhost", "102.168.1.142" (and friends), Dexter.dexter0 (or any Dexter instance) or a websocket thats in domain_to_websocket_map
      static domain_to_websocket(domain=Dexter.default){
-         if(domain instanceof Dexter) {
-             domain = domain.ip_address;
-         }
+         domain = this.resolve_domain(domain);
          return this.domain_to_websocket_map[domain]
      }
 
+
      static set_domain_to_websocket(domain=Dexter.default, websocket){
-         if(domain instanceof Dexter) {
-             domain = domain.ip_address;
-         }
+         domain = this.resolve_domain(domain);
          this.domain_to_websocket_map[domain] = websocket;
      }
 
     static delete_domain(domain=Dexter.default){
-        if(domain instanceof Dexter) {
-            domain = domain.ip_address;
-        }
+        domain = this.resolve_domain(domain);
         delete this.domain_to_websocket_map[domain];
     }
 
      //domain can be a string:  use "localhost" for the simulator running on your pc,
      //or something like "192.168.1.142"
-     static ws_uri(domain=Dexter.default){
-         if(domain instanceof Dexter) {
-             domain = domain.ip_address;
-         }
+     static ws_url(domain=Dexter.default){
+         domain = this.resolve_domain(domain);
          return  "ws://" + domain + ":" + this.port
      }
      
 	//browser side code (uses server, doesn't create it)
-     static init(domain="localhost"){
-         let the_uri = this.ws_uri(domain);
-         let websocket = new WebSocket(the_uri); //WebSocket defined in chrome browser
-         this.set_domain_to_websocket(domain, websocket);
-         out("Created Monitor for: " + the_uri);
+    //if source is passed, we're going to do a SEND after the init opens the websocket
+     static init(domain="localhost", source, callback, period){
+         domain = this.resolve_domain(domain); //
+         let the_url        = this.ws_url(domain);
+         this.send_source   = source;    //ok if undefined
+         this.send_callback = callback;  //ok if undefined
+         this.send_period   = period;    //ok if undefined
+         let websocket = new WebSocket(the_url); //WebSocket defined in chrome browser
     
          websocket.onopen = function(evt) {
-            out("Monitor for: " + websocket.url + " websocket opened."); //onOpen(evt)
+             out("Monitor for: " + websocket.url + " websocket opened."); //onOpen(evt)
+             Monitor.set_domain_to_websocket(domain, websocket);
+             if(Monitor.send_source) {
+                 let source   = Monitor.send_source;
+                 let callback = Monitor.send_callback;
+                 let period   = Monitor.send_period;
+                 Monitor.send_source   = undefined;
+                 Monitor.send_callback = undefined;
+                 Monitor.send_period   = undefined;
+                 Monitor.send_aux(websocket, source, callback, period);
+             }
          };
 		
          websocket.onclose = function(evt) {
-            out("Monitor for: " + websocket.url + " websocket closed."); //onClose(evt)
+             Monitor.delete_domain(websocket);
+             out("Monitor for: " + websocket.url + " websocket closed."); //onClose(evt)
          };
 		
          websocket.onmessage = function(evt) {
@@ -52677,9 +76493,12 @@ class Monitor {
                  let json_data = JSON.parse(data_str);
                  let callback_src = json_data.callback;
                  if(callback_src) {
+                     if(callback_src.startsWith("function(")){
+                         callback_src = "(" + callback_src + ")";
+                     }
                      let callback_fn = globalThis.eval(callback_src);
                      let value       = globalThis.eval(json_data.value);
-                     out("Monitor for: " + websocket.url + " got value of: " + value);
+                     //out("Monitor for: " + websocket.url + " got value of: " + value)
                      let result = callback_fn.call(null, value, websocket, json_data); //usually done for side effect.
                  }
                  //delete the below?
@@ -52705,13 +76524,12 @@ class Monitor {
              }
              catch(err){
                  dde_error("Monitor for: " + websocket.url +
-                           " got error message back from MonitorServer of: " + data_str +
-                 " with err: " + err.message);
+                           " got error message back from MonitorServer of: " + err.message);
              }
          };
 		
          websocket.onerror = function(evt) {
-            warning("Monitor for: " + websocket.url + " got an error of: " + evt);
+            dde_error("Monitor for: " + websocket.url + " errored probably because no Job Engine running at that url.");
          };
       } //end of init
 
@@ -52723,12 +76541,12 @@ class Monitor {
       }
 
       static state(domain){
-         let websocket = this.domain_to_websocket(domain);
-         if(!websocket) { return "Monitor.websocket not created"}
-         else {
+          let websocket = this.domain_to_websocket(domain);
+          if(!websocket) { return "websocket for " + domain + " has not been created."}
+          else {
              let state_str = this.readyStateInt_to_string(websocket.readyState);
              return state_str
-         }
+          }
       }
 
       // source is JS source code to eval in the job engine at domain.
@@ -52749,7 +76567,7 @@ class Monitor {
       // examples: Monitor.send("localhost", "Job.active_job_names()",  "out", "once")
       //           Monitor.send("localhost", "Job.defined_job_names()", "out", "once")
 	
-      static send(domain, source, callback="Monitor.out", period="once" //can also be a positive number of seconds to repeatedly eval message
+     static send(domain, source, callback="Monitor.out", period="run_once" //can also be a positive number of seconds to repeatedly eval message
           ){
          if(typeof(callback) === "function") {
              let fn_name = Utils.function_name(callback);
@@ -52758,31 +76576,44 @@ class Monitor {
          let websocket = this.domain_to_websocket(domain);
          if(websocket) { this.send_aux(websocket, source, callback, period); }
          else {
-             this.init(domain);
-             websocket = this.domain_to_websocket(domain);
-             if(websocket) {
-                 setTimeout(function () {
-                     Monitor.send_aux(websocket, source, callback, period);
-                 }, 500);
-             }
-             else {
-                 dde_error("Couldn't make websocket for domain: " + domain);
-             }
+             this.init(domain, source, callback, period);
          }
+     }
 
-      }
+     static send_aux(websocket, source, callback, period) {
+          let state = Monitor.state(websocket);
+          if (!(state === "OPEN")) {
+              //dde_error("The websocket for: " + websocket.url + " is not open, its: " + state )
+              websocket = new WebSocket(websocket.url); //try one more time.
+              setTimeout(function () {
+                  let state = Monitor.state(websocket);
+                  if(state !== "OPEN"){
+                      Monitor.delete_domain(websocket); //start afresh next time we try to send
+                      dde_error("websocket for: " + websocket.url + " is not OPEN, its: " + state);
+                  }
+                  else {
+                      Monitor.send_aux_aux(websocket, source, callback, period);
+                  }
+              }, 1000);
+          }
+          else {
+              this.send_aux_aux(websocket, source, callback, period);
+          }
+     }
 
-      static send_aux(websocket, source, callback, period){
-          let message_object = {source:   source,
-                                callback: callback,
-                                period:   period};
-          let message_str = JSON.stringify(message_object);
-          out("Monitor for: " + websocket.url + " sending: " + message_str);
-          websocket.send(message_str);
-      }
+     static send_aux_aux(websocket, source, callback, period) {
+              let message_object = {
+                  source: source,
+                  callback: callback,
+                  period: period
+              };
+              let message_str = JSON.stringify(message_object);
+              out("Monitor for: " + websocket.url + " sending: " + message_str);
+              websocket.send(message_str);
+     }
 
       //used as the default callback in a send.
-      static out(value, websocket=null, json_data){
+     static out(value, websocket=null, json_data){
          let url_message = "";
          if(websocket) {
              url_message = "for websocket: " + websocket.url + " ";
@@ -52802,22 +76633,147 @@ class Monitor {
 
       //higher levels sends:
       //example: Monitor.render_measured_angles()
-      static render_measured_angles(domain, period=0.05){
+     static render_measured_angles(domain, period=0.05){
           this.send(domain,
                     "Dexter.dexter0.rs.measured_angles()",
                     "(function(angles) { SimUtils.render_joints(angles) })",
                     period
                    );
-      }
+     }
+
+     static stop_active_monitors(domain){
+            this.send(domain,
+                "MonitorServer.stop_active_monitors()",
+                "(function() { out('Monitor: active monitors stopped.') })",
+                "run_once"
+            );
+     }
 	
-      static close(domain){
-          let websocket = this.domain_to_websocket(domain);
-          websocket.close();
-          this.delete_domain(domain);
-      }	
+     static close(domain){
+              let websocket = this.domain_to_websocket(domain);
+              websocket.close();
+              this.delete_domain(domain);
+     }
+
+     static show_dialog(){
+         show_window({
+             title: "Monitor Dexter <i>in the Job Engine</i>",
+             x: 300, y: 50, width: 420, height: 550,
+             content: `
+<fieldset><legend>Domain: <i>what Dexter to monitor</i></legend> 
+<input name="domain_kind" type="radio" value="localhost"      style="margin-left:10px;"/> Use DDE4 installed on Local PC (localhost)<br/>
+<input name="domain_kind" type="radio" value="Dexter.default" style="margin-left:10px;" checked/> Use Dexter.default (see Misc Pane header menu)<br/>
+<input name="domain_kind" type="radio" value="type_in"        style="margin-left:10px;"/> Type in ip_address: 
+     <input name="domain_type_in" value="192.168.1.142"/>
+</fieldset>
+<div style="margin:10px;">
+    <a href="#" id="job_engine_user_interface_id" onclick="Monitor.browse_job_engine()">
+        Browse Job Engine User Interface
+    </a>
+</div>
+<input type="button" name="copy_job_to_job_engine" value="Copy Job to Job Engine" style="margin: 5px 0px 10px 10px;"
+       title="Copy the selection, or if no selection,&#013;the whole file in the Editor&#013;to a Job Engine file&#013;named by the contained Job definition."/>
+
+
+<!--<input name="job_engine_user_interface" type="button" style="margin: 4px;" value="Job Engine User Interface"/><br/>
+<input name="show_defined_jobs"       type="button" style="margin: 4px;" value="Show Defined Jobs"/><br/>
+-->
+
+
+<fieldset style="margin-top:10px;"><legend>Operations: <i>to be performed in the Job Engine</i></legend> 
+<input name="show_active_jobs"        type="button" style="margin: 4px;" value="Show Active Jobs"/><br/>
+<input name="show_active_monitors"    type="button" style="margin: 4px;" value="Show Active Monitors"/>
+<input name="stop_active_monitors"    type="button" style="margin: 4px 28px; 4px 4px;" value="Stop Active Monitors"
+       title='Stops all periodic operations.&#013;Always runs just once,&#013;ignoring the "once" ckeckbox.'/><br/>
+
+<input name="render_measured_angles"  type="button" style="margin: 4px;" value="Render Measured Angles"/> 
+<input name="show_robot_status"       type="button" style="margin: 4px;" value="Show Robot Status"/><br/>
+<input name="send"                    type="button" style="margin: 4px;" value="Send"/> code to run in Job Engine:<br/>
+<textarea name="source" rows="2" cols="80">Job.active_job_names() //returns array of strings</textarea>
+<div style="margin-left:63px;"> callback to run in DDE:</div>
+<textarea name="callback" rows="3" cols="80">function(val){\n    out("Job count: " + val.length, "green")\n}</textarea>
+</fieldset>
+<fieldset><legend>Period: <i>how often to run the operation</i></legend> 
+<input name="run_once" type="checkbox" style="margin-left:10px;" checked/>
+     once
+     &nbsp; <i>OR</i> &nbsp; every
+     <input name="period_duration" type="number" value="0.1" step="0.05" min="0" style="width:60px;"/> seconds
+</fieldset>
+`,
+             callback: "Monitor.handle_show_dialog"
+         });
+      }
+      /*static browse_job_engine(){
+          let domain_kind = vals.domain_kind
+          let domain
+          if      (domain_kind === "localhost")      { domain = "localhost"}
+          else if (domain_kind === "Dexter.default") { domain = Dexter.default.ip_address}
+          else if (domain_kind === "type_in")        { domain = val.domain_type_in}
+          let url = "http://" + domain + ":/dde/jobs.html"
+          browse_page(url)
+      }*/
+      static copy_job_to_job_engine(domain) {
+          let src = Editor.get_javascript();
+          let job_name = Job.source_to_job_name(src);
+          if(job_name === null){
+              dde_error("Job.copy_job_to_job_engine could not find a valid Job Definition in the editor.");
+          }
+          else {
+              let path = "http://" + domain + "/srv/samba/share/dde_apps/" + job_name + ".dde";
+              out("Copying Job definition to: " + path);
+              DDEFile.write_file_async(path, src);
+          }
+      }
+
+      static handle_show_dialog(vals){
+          //ebugger;
+          let domain_kind = vals.domain_kind;
+          let domain;
+          if      (domain_kind === "localhost")      { domain = "localhost";}
+          else if (domain_kind === "Dexter.default") { domain = Dexter.default.ip_address;}
+          else if (domain_kind === "type_in")        { domain = val.domain_type_in;}
+          let the_period;
+          if(vals.run_once){
+              the_period = "run_once";
+          }
+          else { the_period = vals.period_duration; }
+
+          if(vals.clicked_button_value === "close_button") ;
+
+          else if (vals.clicked_button_value === "job_engine_user_interface_id") {
+              let url = "http://" + domain + "/dde/jobs.html";
+              try { browse_page(url); }
+              catch(err) {
+                  dde_error("Could not browse: " + url  + "<br/>Verify that the domain of: " + domain +
+                            " is correct<br/>and that a server is running on Dexter or the server is simulated.");
+              }
+          }
+          else if (vals.clicked_button_value === "copy_job_to_job_engine") {
+              Monitor.copy_job_to_job_engine(domain);
+          }
+          else if(vals.clicked_button_value === "show_defined_jobs"){
+              Monitor.send(domain, "Job.defined_job_names()",  "Monitor.out", the_period);
+          }
+          else if(vals.clicked_button_value === "show_active_jobs"){
+             Monitor.send(domain, "Job.active_job_names()",  "Monitor.out", the_period);
+          }
+          else if(vals.clicked_button_value === "show_active_monitors"){
+              Monitor.send(domain, "MonitorServer.active_monitor_sources()", "Monitor.out", the_period);
+          }
+          else if(vals.clicked_button_value === "stop_active_monitors"){
+              Monitor.stop_active_monitors(domain); //don't run periodically.
+          }
+          else if(vals.clicked_button_value === "render_measured_angles"){
+              Monitor.render_measured_angles(domain, the_period);
+          }
+          else if(vals.clicked_button_value === "send"){
+              Monitor.send(domain, vals.source, vals.callback, the_period );
+          }
+          else {shouldnt("got unhandled click button value of: " + vals.clicked_button_value);}
+      }
 }
 /*
-Monitor.ws_uri()
+Monitor.ws_url()
 Monitor.init()
 Monitor.send("hey")
 Monitor.close()
@@ -52830,12 +76786,14 @@ class MonitorServer$1 {
    static source_to_interval_id_map = {}
 
    static active_monitor_sources(){
-       return Object.keys(source_to_interval_id_map)
+       return Object.keys(this.source_to_interval_id_map)
    }
 
    static stop_active_monitor(source){
        let interval_id = this.source_to_interval_id_map[source];
        clearInterval(interval_id);
+       delete this.source_to_interval_id_map[source];
+
    }
 
    static stop_active_monitors(){
@@ -52848,11 +76806,12 @@ class MonitorServer$1 {
    static server = null
 
    static init(){ //called by load_job_engine.js
-       out("Top of MonitorServer.init");
-       this.server = new WebSocketServer({port: Monitor.port, clientTracking: true});    //Monitor.ws_uri()
+       console.log("Top of MonitorServer.init");
+       this.server = new WebSocketServer({port: Monitor.port, clientTracking: true});    //Monitor.ws_url()
        this.server.on('connection', function connection(ws_connection) { //ws_connection is the WebSocket connection for one client
+           console.log("Top of MonitorServer onconnection");
            MonitorServer$1.send(ws_connection,
-               {value: "'" + "MonitorServer top of connection passed ws_connection: " + ws_connection + "'",
+               {value: "'" + "MonitorServer top of connection, passed ws_connection: " + ws_connection + "'",
                               callback: "out"
                               });
            ws_connection.on('message', function(data) {
@@ -52879,7 +76838,7 @@ class MonitorServer$1 {
         catch (err) {
             this.handle_message_error(ws_connection, data, data_obj, err); //data_obj is undefined, and that's ok for JSON.parse errors
         }
-        if (data_obj.period === "once") {
+        if (data_obj.period === "run_once") {
             this.handle_message_one_eval(ws_connection, data, data_obj);
         }
         else { //got a period so repeating eval
@@ -52976,12 +76935,14 @@ globalThis.Py = class Py {
     }
     static eval_py_part2(command){
         let result;
+        let start_time = Date.now();
         try {
             let value = Py.eval(command);
             result = {
                 command: command,
                 value: value,
-                value_string: Utils.stringify_value(value)
+                value_string: Utils.stringify_value(value),
+                duration: Date.now() - start_time
             };
         }
         catch(err) {
@@ -53292,7 +77253,7 @@ async function init_job_engine(){
         obj_args.robot = this;
         return Dexter.draw_dxf(obj_args)
     };
-    if(platform === "node") {
+    if(platform === "node") { //running in the Job Engine so init the MonitorServer.
         MonitorServer.init();
     }
 }

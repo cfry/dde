@@ -27,6 +27,7 @@
     "rollup-plugin-styles": "^3.14.1"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.6.7",
     "@rollup/plugin-json": "^4.1.0",
     "acorn": "^8.4.1",
     "adm-zip": "^0.5.5",

@@ -77,7 +77,7 @@ class Socket{
                     Socket.on_receive(msg, undefined, rob)
                 }
                 net_soc_inst.onopen = function(event){
-                    out(job_instance.name + " Succeeded connection to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port, "green")
+                    //out(job_instance.name + " Succeeded connection to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port, "green")
                     //clearTimeout(st_inst)
                     Socket.robot_name_to_soc_instance_map[robot_name] = net_soc_inst
                     //the 3 below closed over vars are just used in the one call to when this on connect happens.
@@ -507,10 +507,10 @@ class Socket{
         //out(job_instance.name + " " + robot_name + " Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
 
         let oplet = oplet_array_or_string[Instruction.INSTRUCTION_TYPE]
-        out("In Socket.send for Job." + job_instance.name +
-            " Dexter." + rob.name +
-            " oplet: " + oplet +
-            " instr: " + oplet_array_or_string)
+        //out("In Socket.send for Job." + job_instance.name +
+        //    " Dexter." + rob.name +
+        //    " oplet: " + oplet +
+        //    " instr: " + oplet_array_or_string)
         let instr_id = oplet_array_or_string[Instruction.INSTRUCTION_ID]
         let got_first_non_monitor_instr = false
 
@@ -520,7 +520,7 @@ class Socket{
             //debugger;
         }
         else if ((job_instance !== "monitor_job") && (oplet !== "g") && got_first_non_monitor_instr){
-            out("in Socket.send for job: " + job_instance.name)
+            //out("in Socket.send for job: " + job_instance.name)
         }
 
         const str =  Socket.oplet_array_or_string_to_string(oplet_array_or_string_du)
@@ -609,7 +609,7 @@ class Socket{
     static on_receive(data, payload_string_maybe, dexter_instance){
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
         //console.log("top of Socket.on_receive.")
-        out("Socket.on_receive passed data: " + data, undefined, true)
+        //out("Socket.on_receive passed data: " + data, undefined, true)
         let robot_status
         let oplet
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
@@ -656,10 +656,10 @@ class Socket{
         robot_status[Dexter.INSTRUCTION_TYPE] = oplet
         let job_id = robot_status[Dexter.JOB_ID]
         let job_instance = Job.job_id_to_job_instance(job_id)
-        out("In on_receive_aux for Job." + job_instance.name +
-            " Dexter." + dexter_instance.name +
-            " oplet: " + oplet +
-            " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE])
+        //out("In on_receive_aux for Job." + job_instance.name +
+        //    " Dexter." + dexter_instance.name +
+        //    " oplet: " + oplet +
+        //    " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE])
         if(job_instance.name === "monitor_dexter"){ debugger;}
         if(oplet == "r"){ //Dexter.read_file
             if(typeof(payload_string_maybe) == "number") { //only can hit im sim.// should be 2 if it hits

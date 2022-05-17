@@ -17,6 +17,10 @@ globalThis.Espree = Espree;
 //import { WebSocketServer } from 'ws'; //websocket server
 //globalThis.WebSocketServer = WebSocketServer
 
+import {grpc} from '@grpc/grpc-js' //fails on build as does import grpc from '@grpc/grpc-js'
+//import {CallOptions, ChannelCredentials, ServiceError} from '@grpc/grpc-js' //from fails on build  from: https://snyk.io/advisor/npm-package/@grpc/grpc-js/example
+//globalThis.grpc = grpc
+
 import "../job_engine/core/utils.js" //defines as global class Utils, and a few of its methods such as  dde_error, rgb
 import "../job_engine/core/je_and_browser_code.js" //defines SW and out globally
 
@@ -97,7 +101,7 @@ export async function init_job_engine(){
         obj_args.robot = this
         return Dexter.draw_dxf(obj_args)
     }
-    if(platform === "node") {
+    if(platform === "node") { //running in the Job Engine so init the MonitorServer.
         MonitorServer.init()
     }
 }

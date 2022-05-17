@@ -63,8 +63,8 @@ class SimUtils{
     //robot_name example: "Dexter.dexter0"
     static render_multi(ds_instance, new_angles_dexter_units, robot_name, dur_in_ms=0){ //inputs in arc_seconds
         //console.log("render_multi passed: " +  new_angles_dexter_units)
-        console.log("Dexter.default: " + Dexter.default)
-        console.log("Dexter.dexter0: " + Dexter.dexter0)
+        //onsole.log("Dexter.default: " + Dexter.default)
+        //onsole.log("Dexter.dexter0: " + Dexter.dexter0)
         if (Dexter.default.name === robot_name){
             let dur_to_show = Math.round(dur_in_ms / 100) //in 10ths of seconds, rounded
             dur_to_show = "" + dur_to_show

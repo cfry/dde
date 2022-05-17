@@ -1025,6 +1025,12 @@ Clear its content?
         Editor.current_file_path = path
         file_name_id.title = path
         Editor.myCodeMirror.focus()
+        if(path.endsWith(".py")) {
+            set_css_properties('.CodeMirror { background:#FAFFFA;}')
+        }
+        else {
+            set_css_properties('.CodeMirror { background:#FFFFFF;}')
+        }
         Editor.add_path_to_files_menu(path) //doesn't add it if already in, Doesn't add "new buffer", does update persistent
         if(path !== "new buffer"){
             Editor.restore_selection_from_map()

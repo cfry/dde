@@ -518,6 +518,7 @@
                                            <ul>
                                                 <li id="browse_dexter_id"    title="Browse the web page of&#13;the default Dexter&#13;(selected in the Misc Pane header).">Browse Dexter</li>
                                                 <li id="calibrate_id"        title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
+                                                <li id="monitor_id"          title="Monitor a Dexter's state.">Monitor Dexter...</li>
                                                 <li id="ping_dexter_id"      title="Find out if a Dexter&#13;or other ip_address&#13;is connected to this computer.">Ping Dexter...</li>
                                                 <li id="reboot_joints_id"    title="Re-enable Joints 6 & 7&#13;when they have been disabled and red lights flash,&#13;Documentation will be shown when you choose this.">Reboot Joints</li>
                                                 <li id="reboot_dexter_id"    title="The default Dexter (see Misc pane header) is rebooted.&#13;This is equivalent to turning Dexter off and on.&#13;This takes 3 minutes.&#13;You can't use Dexter during this time.">Reboot Dexter</li>
@@ -677,8 +678,8 @@
                         <button id="find_doc_button_id" title="Find documentation on text to the left&#013;or, if none, selected text anywhere." style="vertical-align:55%;">Find</button>&nbsp;
                     </div>
                     <div id="doc_pane_content_id" contentEditable="false" style="width:97%; height:90%;padding:5px;overflow:scroll;">
-                        <details id="getting_started_id" w3-include-html="doc/getting_started.html"></details>
-                        <details id="user_guide_id" w3-include-html="doc/user_guide.html"></details>
+                        <details id="getting_started_id"  w3-include-html="doc/getting_started.html"></details>
+                        <details id="user_guide_id"       w3-include-html="doc/user_guide.html"></details>
                         <details id="reference_manual_id" w3-include-html="doc/ref_man.html"></details>
                         <details id="articles_id">
                             <summary class="doc_top_level_summary" style="font-size:18px;">Articles</summary>
@@ -758,11 +759,11 @@
 <!-- from: https://pyodide.org/en/stable/usage/index.html -->
 <script src="https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js"></script>
 <script type="text/javascript">
-    async function main(){
-        globalThis.pyodide = await loadPyodide();
-        console.log(pyodide.runPython("1 + 2"));
-    }
-    main();
+    //async function main(){
+    //    globalThis.pyodide = await loadPyodide();
+    //    //console.log(pyodide.runPython("1 + 2"));
+    //}
+    //main();
 </script>
 
 
