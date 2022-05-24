@@ -5,6 +5,7 @@ import * as Espree$1 from 'espree';
 import compareVersions from 'compare-versions';
 import require$$0 from 'domain';
 import * as readline from 'readline';
+import path from 'path';
 
 var name = "dde4";
 var version = "4.0.0";
@@ -35,6 +36,7 @@ var devDependencies = {
 };
 var dependencies = {
 	"@grpc/grpc-js": "^1.6.7",
+	"@grpc/proto-loader": "^0.6.12",
 	"@rollup/plugin-json": "^4.1.0",
 	acorn: "^8.4.1",
 	"adm-zip": "^0.5.5",
@@ -51,6 +53,7 @@ var dependencies = {
 	"jqwidgets-scripts": "^12.2.1",
 	"js-beautify": "^1.14.0",
 	"mark.js": "^8.11.1",
+	minimist: "^1.2.6",
 	"modbus-serial": "^8.0.5",
 	nouislider: "^15.5.0",
 	npm: "^8.1.0",
@@ -34020,11 +34023,9 @@ function close_readline(){
 globalThis.close_readline = close_readline;
 
 //see ready_je.js which sets these 2 as global vars.
-//var grpc = require('@grpc/grpc-js');
-//var protoLoader = require('@grpc/proto-loader');
 
 class GrpcServer$1 {
-    static build_path = process.cwd() //to path ending in "stuff/dde4/dde/build"
+    static BUILD_PATH = process.cwd() //to path ending in "stuff/dde4/dde/build"
     static PROTO_PATH  //"/Users/Fry/WebstormProjects/dde4/dde/third_party/helloworld.proto"
                         //__dirname + '/../../protos/helloworld.proto';
 
@@ -34043,11 +34044,11 @@ class GrpcServer$1 {
                 oneofs:   true
             });
         this.hello_proto = grpc.loadPackageDefinition(this.packageDefinition).helloworld;
-        console.log("packageDefinition: " + JSON.stringify(this.packageDefinition)); //  big JSON obj, but still, a JSON obj that we COULD stick in-line without a file
+        //console.log("packageDefinition: " + JSON.stringify(this.packageDefinition)) //  big JSON obj, but still, a JSON obj that we COULD stick in-line without a file
         // console.log("_dirname: " + _dirname) //both _dirname and __dirname are unbound,
         // contrary to https://flaviocopes.com/node-get-current-folder/
-        console.log("process.cwd(): " + process.cwd());
-        console.log("build_path: " + this.build_path);
+        //console.log("process.cwd(): " + process.cwd())
+        //console.log("build_path: " + this.build_path)
     }
 
 
@@ -34075,10 +34076,9 @@ class GrpcServer$1 {
     static init() {
         console.log("top of GrpcServer.init");
         out("OUT: top of GrpcServer.init");
-        let last_slash_pos = this.build_path.lastIndexOf("/");
-        this.DDE_PATH   = this.build_path.substring(0, last_slash_pos); //ie stuff/dde" no slash on end
-        this.PROTO_PATH = this.DDE_PATH + "/third_party/helloworld.proto";
-        console.log("build_path: " + this.build_path);
+        this.DDE_PATH      = path.dirname(this.BUILD_PATH); //ie stuff/dde" no slash on end
+        this.PROTO_PATH    = path.join(this.DDE_PATH, "third_party", "helloworld.proto");
+        console.log("BUILD_PATH: " + this.BUILD_PATH);
         console.log("DDE_PATH: "   + this.DDE_PATH);
         console.log("PROTO_PATH: " + this.PROTO_PATH);
         this.init_packageDefinition();

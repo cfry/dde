@@ -1,6 +1,7 @@
 //see ready_je.js which sets these 2 as global vars.
 //var grpc = require('@grpc/grpc-js');
 //var protoLoader = require('@grpc/proto-loader');
+import path from 'path'
 
 class GrpcServer {
     static BUILD_PATH = process.cwd() //to path ending in "stuff/dde4/dde/build"
@@ -55,7 +56,7 @@ class GrpcServer {
         console.log("top of GrpcServer.init")
         out("OUT: top of GrpcServer.init")
         this.DDE_PATH      = path.dirname(this.BUILD_PATH) //ie stuff/dde" no slash on end
-        this.PROTO_PATH    = this.DDE_PATH + "/third_party/helloworld.proto"
+        this.PROTO_PATH    = path.join(this.DDE_PATH, "third_party", "helloworld.proto")
         console.log("BUILD_PATH: " + this.BUILD_PATH)
         console.log("DDE_PATH: "   + this.DDE_PATH)
         console.log("PROTO_PATH: " + this.PROTO_PATH)
