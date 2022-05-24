@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.6.7",
+    "@grpc/proto-loader": "^0.6.12",
     "@rollup/plugin-json": "^4.1.0",
     "acorn": "^8.4.1",
     "adm-zip": "^0.5.5",
@@ -44,6 +45,7 @@
     "jqwidgets-scripts": "^12.2.1",
     "js-beautify": "^1.14.0",
     "mark.js": "^8.11.1",
+    "minimist": "^1.2.6",
     "modbus-serial": "^8.0.5",
     "nouislider": "^15.5.0",
     "npm": "^8.1.0",
