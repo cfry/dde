@@ -268,7 +268,7 @@ class Robot {
     //default to undefined.
     static get_page(url_or_options, response_variable_name="http_response"){
         if(url_or_options === undefined){
-            dde_error("Control.get_page called with no <b>url_or_options</b> argument<br/>" +
+            dde_error("IO.get_page called with no <b>url_or_options</b> argument<br/>" +
                       "which is typically the string of a url.")
         }
         return new Instruction.Get_page(url_or_options, response_variable_name)
@@ -365,21 +365,24 @@ class Brain extends Robot { /*no associated hardware */
         throw new Error("send called on Robot.Brain, which has no physical robot.")
     }
 
-    static eval_python(python_source, user_data_variable="python_value"){
-        return [
-            function() {
-              let the_job = this
-              the_job.user_data[user_data_variable + "_python_source"] = python_source
-              Py.eval(python_source,
-                function(json_obj){
-                    the_job.user_data[user_data_variable] = json_obj.result
-                })
-            },
-            Control.wait_until(function() {
-                      //out("this.user_data." + user_data_variable = ": " + this.user_data.[user_data_variable])
-                      return this.user_data[user_data_variable] !== undefined})
-            ]
+    static eval_python(python_source, user_data_variable="python_value") {
+        return new Instruction.eval_python(python_source, user_data_variable)
     }
+        /* //faster than using Instruction.eval_python but can't support to_source_code method.
+           return (async function() {
+                  await Py.init()
+                  this.user_data[user_data_variable + "_python_source"] = python_source
+                  let result = Py.eval(python_source)
+                  this.user_data[user_data_variable] = result
+                })
+
+         */
+            //very old
+            //Control.wait_until(function() {
+                      //out("this.user_data." + user_data_variable = ": " + this.user_data.[user_data_variable])
+            //          return this.user_data[user_data_variable] !== undefined})
+            //]
+       //}
 }
 
 globalThis.Brain = Brain

@@ -17,7 +17,7 @@ globalThis.Espree = Espree;
 //import { WebSocketServer } from 'ws'; //websocket server
 //globalThis.WebSocketServer = WebSocketServer
 
-import {grpc} from '@grpc/grpc-js' //fails on build as does import grpc from '@grpc/grpc-js'
+//import {grpc} from '@grpc/grpc-js' //fails on build as does import grpc from '@grpc/grpc-js'
 //import {CallOptions, ChannelCredentials, ServiceError} from '@grpc/grpc-js' //from fails on build  from: https://snyk.io/advisor/npm-package/@grpc/grpc-js/example
 //globalThis.grpc = grpc
 

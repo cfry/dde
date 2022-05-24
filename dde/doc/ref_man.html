@@ -371,7 +371,7 @@ DDEFile.load_file("two_plus_three.js",
             <p></p>
             See <a href="#" onclick="DocCode.open_doc('Py.load_file_doc_id')">Py.load_file</a>
             for importing a Python file into DDE's Python process.
-        </details> <!-- end load_files  -->
+        </details> <!-- end load_file  -->
 
         <details id="DDEFile.loading_file_doc_id" class="doc_details"><summary>DDEFile.loading_file</summary>
         <code>DDEFile.loading_file</code> is bound to the path
@@ -436,40 +436,7 @@ DDEFile.load_file("two_plus_three.js",
             and does not overwrite, any existing version.
         </details>
         -->
-        <!--<details id="read_file_doc_id" class="doc_details"><summary>read_file</summary>
-            <code>read_file</code> is a function that takes an argument of a file path,
-            and returns a string of the content of the file.<br/>
-            <i>Parameters:</i><br/>
-            <b>path</b> A string of a path to the file. Usually this will not start with a slash,
-            but rather the first character of a file name inside of your <code>dde_apps_folder</code>.
-            If the path starts with a slash, it should be a complete path from the root
-            of your file system, on through to the file you want to read.
-            <br/>
-            <b>encoding</b> Default: <code>"utf8"</code> A string indicating the
-            type of file to be read.
-            The default works fine for most plain text files, including .js files.
-            Some possible values:
-            <ul>
-                <li><code>"utf8"</code></li>
-                <li><code>"ascii"</code></li>
-                <li><code>"base64"</code></li>
-                <li><code>"hex"</code></li>
-            </ul>
-            <a href="#" onclick="browse_page('https://nodejs.org/api/buffer.html#buffer_buffers_and_character_encodings')"
-            >Encoding details</a>
-            <p></p>
-            <b>Example:</b>
-              <code>read_file("dde_init.js")
-                    function(err, content) {out("read_file_async got err: " + err + " content: " + content)})</code>
-            <p></p>
-            See <a href="#" onclick="DocCode.open_doc(load_files_doc_id, event)">load_files</a>
-            for grabbing the file contents, then evaling it.
-            <p/></p>
-            See also Dexter instruction: <a href="#" onclick="DocCode.open_doc('Dexter.read_file_doc_id', event)">Dexter.read_file</a>
-            <p></p>
-            <span style="color:red;">file_content</span> has been deprecated.
-            Please use <code>read_file</code> instead.
-        </details> --> <!-- end read_file -->
+
         <details id="read_file_async_doc_id" class="doc_details"><summary>read_file_async</summary>
            Similar to <a href="#" onclick="DocCode.open_doc(read_file_doc_id)">read_file</a>
            but does not return the
@@ -487,42 +454,6 @@ DDEFile.load_file("two_plus_three.js",
         </details>
 
 
-     <!--<details id="write_file_doc_id" class="doc_details"><summary>write_file</summary>
-        <code>write_file</code> is a function that takes an argument of a file path
-        and a new content string. It sets the content of that file.<br/>
-        Arguments:<br/>
-        <b>filepath</b> A string. The location to save to. It will overwrite the current content.
-        Defaults to the file currently in the
-        editor. If this is a string, usually this will not start with a slash,
-         but rather the first character of a file name inside of your dde_apps folder.
-         (  <code>dde_apps_folder</code> ).
-         If the path starts with a slash, it should be a complete path from the root
-         of your file system, on through to the file you want to write.<br/>
-        <b>content</b> A string of the content you wish to be in the written file.
-        Defaults to the text currently in the editor.<br/>
-        <b>encoding</b> Default: <code>"utf8"</code> A string indicating the
-        type of file to be written.
-         The default works fine for most plain text files, including .js files.
-         Some possible values:
-        <ul>
-            <li><code>"utf8"</code></li>
-            <li><code>"ascii"</code></li>
-            <li><code>"base64"</code></li>
-            <li><code>"hex"</code></li>
-        </ul>
-        <a href="#" onclick="browse_page('https://nodejs.org/api/buffer.html#buffer_buffers_and_character_encodings')"
-           >Encoding details</a>
-        <p></p>
-        Examples: <br/>
-        <code>write_file("no_exist.js", "stuff")</code> Creates the named file and gives it a content of "stuff".<br/>
-        <code>write_file("junk.js")</code> Gives foo.js the content now in the editor.
-        This is the <i>save_as</i> functionality.<br/>
-        <code>write_file("junk.js", "new content")</code> Replaces the existing content
-        of the given file with "new content".
-        <p></p>
-        See also Dexter instruction: <a href="#" onclick="DocCode.open_doc('Dexter.write_file_doc_id', event)">Dexter.write_file</a>
-    </details>
-    -->
      <details id="write_file_async_doc_id" class="doc_details"><summary>write_file_async</summary>
          <code>DDEFile.write_file_async</code> is a function that normally takes an argument of a file path
          and a new content string. It sets the content of that file.<br/>
@@ -560,25 +491,6 @@ DDEFile.load_file("two_plus_three.js",
             <code>"/srv/samba/share/dde_apps/junk.js"</code> file.
      </details>
 
-
-        <!-- removed for security reasons
-        <details id="folder_listing_doc_id" style="margin-left:40px;"><summary>folder_listing</summary>
-          <code>folder_listing</code> retrieves an array of filenames and/or folder names that are somewhere
-              beneath the <b>dde_apps</b> folder. This function only works if you have
-              <i>Web Server for Chrome</i> installed. (See the doc for <b>load_files</b>.)<br/>
-          Arguments:<br/>
-          <b>folder</b> Default: <code>"/"</code>. The name of the folder to retrieve the listing of.
-                    A folder of "/" finds the files and/or folders immediately below the <b>dde_apps</b> folder.
-                    Folder should begin and end with a slash, but if it doesn't, it will be added.<br/>
-          <b>include_folders</b> Default: <code>true</code>. Retrieved folder names end in slash.<br/>
-          <b>include_files</b> Default: <code>true</code>.<br/>
-          <b>callback</b> Default: <code>out</code> A function of one argument. It is passed the
-              array of file and/or folder names determined by the other arguments.<br/>
-          Examples:<br/>
-          <code>folder_listing()</code> Retrieves the files and folders immediately under <code>dde_apps</code>.<br/>
-          <code>folder_listing("/test_folder/", true, false)</code> Retrieves only the folder names immediately under <code>test_folder</code>.<br/>
-          <code>folder_listing("/whatever/", false, false)</code> Retrieves nothing. An empty array will be passed to the callback.
-        </details> -->
 </details> <!-- end File Access -->
 
 <details class="doc_details"><summary>Gamepad & Keyboard</summary>
@@ -3605,6 +3517,7 @@ This will not work for Jobs run on the Job Engine on Dexter.
 
 </details> <!-- end of Sound -->
 
+<!-- can't work in dde4 must use async
 <details class="doc_details"><summary>Web</summary>
     <details id="get_page_doc_id" class="doc_details"><summary>get_page</summary>
         <code>get_page</code> retrieves the contents of a web page.<br/>
@@ -3637,7 +3550,7 @@ This will not work for Jobs run on the Job Engine on Dexter.
         <p></p>
         See also: <a href="#" onclick="DocCode.open_doc(show_page_doc_id, event)">show_page</a>
     </details>
-
+-->
     <details id="get_page_async_doc_id" class="doc_details"><summary>get_page_async</summary>
         A call to get_page_async is asynchronous. It returns immediately,
         but when the actual page content is finally retrieved from the web,
@@ -3660,9 +3573,9 @@ This will not work for Jobs run on the Job Engine on Dexter.
         JavaScript on the page will not be evaled, but if the page is not found,
         there will be an error.
         <p></p>
-        Example: <pre><code title="not in TestSuite"> get_page_async("https://www.ibm.com/en-us/",
-  function(err, response, body){
-     if(err) { out("get_page_async got error.") }
+        Example: <pre><code title="not in TestSuite"> DDEFile.get_page_async("https://www.ibm.com/en-us/",
+  function(err, body){
+     if(err) { out("DDEFile.get_page_async got error.") }
      else if (response.statusCode !== 200){
         out("Got an error with statusCode: " + response.statusCode)
      }
@@ -3702,12 +3615,12 @@ This will not work for Jobs run on the Job Engine on Dexter.
         <b>arguments</b>: A string of arguments, formally called a <i>query string</i>.<br/>
         Example: <code>"x=123&y=45&color=blue"</code> <i>OR</i>
         A literal object with name-value pairs representing the arguments.<br/>
-        Example:<br/><code>{x: 123, y: 45, color: "blue"}</code><br/>
+        Example:<br/><code>{x: 123, y: 45}</code><br/>
         This later form makes it easy to compute and set individual args.<br/>
-        Example:<pre><code>
-      var args = {x: 12.3 * 10}
-      args.y = 40 + 5
-      make_url("www.ibm.com", args)</code> => <samp>"http://www.ibm.com?x=123&y=45"</samp></pre>
+        Example:<br/> <!--warning: if we use {x: 123, y: 45} as the 2nd arg to make_url
+        the comparison of the urls in the test fails probably because some different
+        between & and &amp; -->
+        <code>make_url("www.ibm.com", {x: 123})</code> => <samp>"http://www.ibm.com?x=123"</samp>
     </details>
 </details> <!-- end Web -->
 
@@ -4852,7 +4765,42 @@ for code examples. Related Job facilities are:
 </ul>
 </details>
 
-<details id="start_object_doc_id" class="doc_details"><summary>Any Start Object</summary>
+<details id="any_promise_doc_id" class="doc_details"><summary>Any Promise</summary>
+    A promise is a JavaScript object which contains code "to be run later".
+    If a promise is on the do_list, it pauses the Job until the
+    promise's code has completed running, i.e. the promise is resolved.
+    Once it is resolved, the next item on the
+    do_list is allowed to run.<br/>
+    <i>Example:</i>
+    <pre><code>new Job({name: "a_py_job",
+        do_list: [
+            Py.init(),
+            function() {
+               Py.eval('print("Py five: 5")')
+            }
+        ]
+        })</code></pre>
+    The call to <code>Py.init</code> is
+    evaluated at Job definition time. It immediately
+    returns a promise, which goes on the Job's do_list.
+    When the Job is run, the promise item pauses until
+    Python is initialized. Then the 2nd item on the do list,
+    an anonymous function, is called. That call causes
+    <code>Py.eval</code> to be called which executes<br/>
+    the Python source code: <code title="unEVALable">print("Py five: 5")</code><br/>
+    which prints <code>"Py five: 5"</code> to the browser dev tools console.
+    <br/></br/>
+    If we didn't pause after the first instruction, its likely that
+    Python would not have finished initializing, in which case
+    the call to <code>Py.eval</code> would fail.
+    <br/></br/>
+    When putting Python code on the do_list, the instruction
+    <a href="#" onclick="DocCode.open_doc('Brain.eval_python_doc_id')"><code>Brain.eval_python</code></a>
+    is more convenient.
+</details>
+
+
+        <details id="start_object_doc_id" class="doc_details"><summary>Any Start Object</summary>
 <i>Caution: this is advanced functionality not needed by
 simple uses of DDE.</i>
 <p></p>
@@ -5967,7 +5915,7 @@ Example:<code>Control.wait_until(2)</code><br/>
         content of the url.
         <p></p>
         Using <code>make_url</code> can help make constructing calls to <code>get_page</code> a bit easier.
-        Example:<pre><code title="not in TestSuite"> Control.get_page(make_url("www.nactem.ac.uk/software/acromine/dictionary.py",
+        Example:<pre><code title="not in TestSuite"> IO.get_page(make_url("www.nactem.ac.uk/software/acromine/dictionary.py",
                          {sf: "BMI"}))</code></pre>
         <code>make_url</code> is documented in the reference manual under "I/O".
     </details> <!-- end get_page -->
@@ -6220,14 +6168,12 @@ just like all the other robots.
     ]
 })    </code></pre>
     <ol>
-    <li>The first instruction initializes the Python process,
-    imports the math library into the process
-    and stores the result into  <code>Job.my_py_job.user_data.python_value</code> => <samp>null</samp>.
-    </li>
-    <li>The second instruction evaluates <code>'2 + math.pi'</code> and stores the
+    <li>The first instruction initializes the Python process.</li>
+    <li>The second instruction imports the math library into Python.</li>
+    <li>The third instruction evaluates <code>'2 + math.pi'</code> and stores the
     result into <code>Job.my_py_job.user_data.my_sum</code> => <samp>5.141592653589793</samp>.
     </li>
-    <li>The third instruction must be a function because we must get the
+    <li>The fourth instruction must be a function because we must get the
     value from <code>Job.my_py_job.user_data.my_sum</code> after it has been computed,
     not at Job definition time. We make the value of src, <code>"5.141592653589793 * 4"</code>,
     then use it in our next instruction,
@@ -10265,7 +10211,6 @@ show_window({
         <p></p>
         For other options and what else you can do with the returned value, see:<br>
         <a href="https://github.com/electron/electron/blob/master/docs/api/browser-window.md" target="_blank">Options Doc</a><br/>
-        See also: <a href="#" onclick="DocCode.open_doc(get_page_doc_id, event)">get_page</a>
     </details>
 
     <details id="browse_page_doc_id" class="doc_details"><summary>browse_pages</summary>
@@ -10683,7 +10628,7 @@ arrays, matrices, eigenvalues and symbolic math.<br/>
 <p></p>
 <i>Examples:</i><br/>
 Initialize "math" to the class containing the mathjs functions<br/>
-<code>var math = require("mathjs")</code>
+<code>DDEFile.dynamic_import("mathjs", "math")</code>
 <p></p>
 Eval <code>math</code>  to inspect the list of constants and functions available<br/>
 <code>math.hypot(3, 4)</code> => <samp>5</samp>
@@ -11824,14 +11769,15 @@ Here we point out just a few that are especially easy and useful for teaching.
        Only Python 3 is supported.
        <p/>
        Behind the scenes, DDE can create a process to run Python.
-       Python code will be evaluated in that process until you kill, it, init a fresh one,
-       or relaunch DDE. Thus, you can set global variables or def's in it, import files into
+       Python code will be evaluated in that process persisting any state you set
+       until you relaunch DDE. Thus, you can set global variables or def's in it, import files into
        it and expect those modifications to be there when you attempt to get values or call
        functions.
        <p></p> At this time we're not expecting DDE to become an IDE for Python.
        However, we are expecting that you can load known-good Python libraries
-       into DDE, call them with simple arguments from DDE, and get back results
-       (in the simple data structures that can be encoded in JSON format).
+       into DDE, call them with arguments from DDE, and get back results.
+       JSON format data and some others can be used for arguments and return values.
+       (see pyodide documentation, mentioned below).
        This doesn't provide all kinds of Python structures, but does provide a lot of them.
        If your Python code returns simple data, or you can write some Python
        wrappers than coerce more complicated data into simpler data structures,
@@ -11839,55 +11785,6 @@ Here we point out just a few that are especially easy and useful for teaching.
        <p></p>
        <a href="#" onclick='DocCode.open_doc(js_for_python_programmers_doc_id)'>Similarities</a>
        between JavaScript and Python.
-
-       <details class="doc_details"><summary>Installing Python</summary>
-          To use Python from DDE, the Python 3 interpreter must be installed on your computer.<br/>
-          <details class="doc_details"><summary>MacOS</summary>
-          MacOS has, for years, included Python 2.7.<br/>
-          In the terminal, type: <code title="unEvalable">python</code><br/>
-          More modern versions of MacOS include Python 3.<br/>
-          In the terminal, type:  <code title="unEvalable">python3</code>
-          to get a read_eval_print loop for Python.
-          <p></p>
-          For a more recent version, browse
-              <a href="#" onclick="browse_page('https://www.python.org/downloads/')">Python.org</a>
-              for download instructions.
-          </details>
-          <details class="doc_details"><summary>WinOS</summary>
-            <b>Windows7</b><br/> We've had a hard time installing Python3 on Windows 7
-              from the download direction in
-              <a href="#" onclick="browse_page('https://www.python.org/downloads/')">Python.org</a> .
-              There is a "missing file". The web documents some workarounds,
-              but they aren't easy. We recommend using Windows 10.
-            <p/>
-            <b>Windows 10</b>
-            <ol>
-            <li>In the lower right search type in, type in "cmd' and hit the ENTER key.</li>
-            <li>In the terminal window that comes up, type in "python" and hit the ENTER key.</li>
-            <li>If Python is installed on your computer, you should see a >>> prompt
-                 after it prints out the Python version number.
-                 If it is a recent version 3 python, you're all set.
-                 <p></p>
-                  If there's NO Python installed, you get a new browser window in the Microsoft store.
-                  On Feb 6, 2021, that window says Python 3.91.</li>
-            <li>Its free. Click the GET button.</li>
-            <li>You'll be asked to log in, but you can click "no thanks" and still get it.</li>
-            <li> The size of the download is hard to determine from the confusing "progress bar"
-               but looks like about 30Mbytes.</li>
-            <li> After its installed, again type in "python" into your terminal window,
-                and you should see the python prompt >>> proceeded by a version number of Python.</li>
-            <li>This install puts two items on your start menu: Python and IDLE(python).<br/>
-                 Choosing <b>Python</b> launches the terminal window in Python.<br/>
-                 Choosing <b>IDLE(python)</b> launches a small development environment for Python.
-            </li>
-            </ol>
-          </details>
-          <details class="doc_details"><summary>Linux, etc</summary>
-            To install Python on other Operating Systems browse
-            <a href="#" onclick="browse_page('https://www.python.org/downloads/')">Python.org</a>
-            for download instructions.
-          </details>
-       </details>
 
        <details id="python_user_interface_doc_id" class="doc_details"><summary>DDE's Python User Interface</summary>
            <ul>
@@ -11914,126 +11811,91 @@ Here we point out just a few that are especially easy and useful for teaching.
            </li>
            </ul>
        </details>
-       <details id="Py.python_executable_path_doc_id" class="doc_details"><summary>Py.python_executable_path</summary>
-        This variable contains a string that is the path to the Python3 interpreter on your computer.
-        For MacOS, it defaults to <code>"python3"</code>. For
-        other OSes,  it defaults to <code>"python"</code>.
-        If this is incorrect, you can set this variable before <code>Py.init</code> is called,
-        (or <code>Py.eval</code> is called the first time).
-        <p/>
-        If you can type in to a terminal some string like <code title="unEVALable">python3</code>,
-        or perhaps <code title="unEVALable">python</code> and it puts you in a Python3 read_eval_print loop,
-        then that string will very likely work for the value of this variable.
-        <p/>
-        <i>Examples:</i><br/>
-        <code>Py.python_executable_path</code><br/>
-        <code title="not in TestSuite.">Py.python_executable_path = "python3"</code><br/>
+
+       <details id="Py.init_doc_id" class="doc_details"><summary>Py.init</summary>
+           When DDE launches, Python is not available until you explicitly initialize it via:
+           <code>Py.init()</code>
+           <br/><br/>
+           In DDE, Python is implemented using
+           <a target="_blank" href="https://pyodide.org/en/stable/index.html">pyodide</a>.
+           DDE makes this a bit easier to use with its <code>Py</code> class,
+           but its really just a thin wrapper around pyodide.<br/>
+           The JavaScript global variable <code>pyodide</code> is initialized by
+           <code title="not in TestSuite">Py.init()</code> so you can easily
+           use additional functionality and the examples in pyodide.
        </details>
+
        <details id="Py.eval_doc_id" class="doc_details"><summary>Py.eval</summary>
        The <code>Py</code> class holds utilities for evaluating Python code embedded in JavaScript code.
        The most important function is <code>Py.eval</code>.<br/>
-       <i>Parameters:</i><br/>
+       Unlike Python's broken-by-design "eval" function,
+       <code>Py.eval</code> evaluates all of Python, not just a subset.<br/>
+       <i>Parameter:</i><br/>
        <b>python_source_code</b> Required. A string of Python source code to be
-         evaluated in the Python process.<br/>
-       <b>callback</b> A function. Default: <code>Py.default_callback</code>
-       The callback is called when Python is done evaluating the source code.
-       It is called with one argument, a JSON object with fields:
-           json_obj = {"from": "Py.eval", "is_error": is_error, "source": src, "callback_id": callback_id, "result": result}
-
-           <ul>
-           <li><b>from</b> Always "Py.eval". Allows you to distinguish this JSON object from others.</li>
-           <li><b>is_error</b> Boolean. If evaling the python_source_code errors, or if
-             converting its result to JSON errors, this will be <code>true</code>.
-             Results of numpy arrays will be automatically converted to Python lists before
-             JSONizing, so they won't error.
-           </li>
-           <li><b>source</b> The string of python_source_code that Py.eval was called with.</li>
-           <li><b>callback_id</b> (internal) The id of the callback that Py.eval was called with.</li>
-           <li><b>result</b> The result of the evaluation of the python_source_code.
-               This will be JSON, ie <code>null</code>, a boolean, a number, a string, an array or
-               nested object of those types.
-               If evaluating python_source_code returns a value, it will be of that type.
-               Otherwise, if the python_source_code returns Python's None, it will be
-               <code>null</code>.
-               Python's None is more similar to JS <code>undefined</code> than it is to
-               <code>null</code>, but JSON can't represent <code>undefined</code>.
-           </li>
-       </ul>
-       If you launch DDE and call <code>Py.eval</code>, a new Python process will be created
-       for evaluating the Python code. That process will remain to run more Python code until
-       you kill it, init a new Python process, or quit DDE.
-       <p/>
+         evaluated in the Python process.
+       <br/><br/>
        <i>Examples:</i><p/>
        Get the length of a list:<br/>
-       <code>Py.eval("len([4, 5])") </code>
-       <p></p>
+       <code>Py.eval("len([4, 5])") </code> => <samp>2</samp>
+       <br/><br/>
        Set the variable "foo".<br/>
-       <code>Py.eval('foo = "hi from Py"') </code><br/>
+       <code>Py.eval('foo = "hi from Py"') </code> => <samp>undefined</samp><br/>
        Get the value of the variable foo:<br/>
-       <code>Py.eval('foo') </code>
-       <p></p>
-       See the installed modules<br/>
-       Note: The "sys" module is automatically installed in
-             DDE's Python interface process.<br/>
-       <code>Py.eval("list(sys.modules.keys())")</code>
-       <p></p>
+       <code>Py.eval('foo') </code> => <samp>"hi from Py"</samp>
+       <br/><br/>
+       Add two numbers:<br/>
+       <code>Py.eval("2 + 3")</code> => <samp>5</samp>
+       <br/><br/>
+       Import the "math" module.<br/>
+       <code>Py.eval('import math') </code><br/>
+       Get the value of a constant in the Math package.<br/>
+       <code>Py.eval('math.pi') </code> => <samp>3.141592653589793</samp>
+       <br/><br/>
+       See the installed Python modules<br/>
+       <code>Py.eval('import sys') </code><br/>
+       <code>Py.eval("list(sys.modules.keys())")</code><br/>
+           The list is shown in DDE's inspector.
+       <br/><br/>
        See the folders where Python looks for modules to import.<br/>
        <code>Py.eval("sys.path")</code><br/>
        Add to that array:<br/>
        <code title="not  in TestSuite">Py.eval("sys.path.append('/Users/foo/Documents')")</code>
-       <p></p>
-       Import the "math" module.<br/>
-       <code>Py.eval('import math') </code>
-       <p></p>
-       Get the value of a constant in the Math package.<br/>
-       <code>Py.eval('math.pi') </code>
-       <p></p>
-       Add two numbers and use the result in the callback to Py.eval.
-       <pre><code>Py.eval("2 + 3",
-        function(json_obj){
-          out(json_obj.source + " => " + json_obj.result)
-       })    </code></pre>
+       <br/><br/>
        Redefine foo to 12<br/>
-       <code>Py.eval('foo = 12')</code><br/>
+       <code>Py.eval('foo = 12')</code> => <samp>undefined</samp><br/>
        Get the new value.<br/>
-       <code>Py.eval('foo')</code>
-       <p></p>
+       <code>Py.eval('foo')</code> => <samp>12</samp>
+       <br/><br/>
        Define a function that accesses the global variable "foo" and sets it.
        <pre><code>Py.eval(&#96;def a_fn():
   global foo
   foo = foo + 1
   return foo&#96;)    </code></pre>
       Call our newly defined function. Each time we call it, foo is incremented<br/>
-      <code>Py.eval('a_fn()')</code>
-      <p></p>
+      <code>Py.eval('a_fn()')</code> => <samp>13</samp><br/>
+      <code>Py.eval('a_fn()')</code> => <samp>14</samp>
+      <br/><br/>
       Define a Job that imports "math" and sets the user_data variable of "j2" to
-      the result of math.pi * 10 then uses it to move Joint 2.
-      <pre><code>
+      the result of math.pi * 10 then uses it to move Joint 2.<pre><code>
 new Job({
-  name: "my_job",
+  name: "py_job",
   user_data: {j2: null},
   do_list: [
     function(){ Py.eval("import math") },
     Control.wait_until(1),
     function(){
-      let the_job = this
-      Py.eval("math.pi * 10",
-               function(json_obj){
-                 the_job.user_data.j2 = json_obj.result
-               })
+        this.user_data.j2 = Py.eval("math.pi * 10")
     },
-    Control.wait_until(function() {
-                         out("this.user_data.j2: " + this.user_data.j2)
-                         return this.user_data.j2 }),
     function() {
-      return Dexter.move_all_joints(0, this.user_data.j2)
+        return Dexter.move_all_joints(0, this.user_data.j2)
     }
   ]
 })    </code></pre>
       Like the other examples, the last example isn't so practical, but understanding it will help you
       integrate Python dynamically into a running job. The details:
       <ol>
-          <li> First we initialize <code title="unEVALable">user_data.j2</code> to <code>null</code>. It's going to hold the joint angle that Python computes.
+          <li> First we initialize <code title="unEVALable">Job.py_job.user_data.j2</code> to <code>null</code>.
+              It's going to hold the joint angle that Python computes.
           </li>
           <li> We <code title="unEVALable">import math</code> to set up our Python environment.
                Replace math with packages of your choice.
@@ -12046,35 +11908,7 @@ new Job({
           </li>
           <li> The next function does the real work, evaluating <code title="unEVALable">math.pi * 10</code> in Python.
                We COULD have done this particular computation before, and outside of, the Job,
-               but we want to show that this can be done while running the Job. You might want
-               to pass in arguments that are computed while the Job is running, for instance.
-               <p></p>
-               The callback function is a closure around <code title="unEVALable">the_job</code>.
-               Since JS won't close over
-               <code>this</code> properly, we must create a local variable via
-               <code>let the_job = this</code>
-               before defining the inner function.
-               <p></p>
-               That inner function is the 2nd argument to
-               <code>Py.eval</code> i.e. our callback. Once Python has completed the multiplication,
-               this callback will be called with a json_object containing the result.
-               The callback sets <code title="unEVALable">Job.my_job.user_data.j2</code>
-               to the result from Python.
-          </li>
-          <li> <code>Control.wait_until</code> calls the function in its first argument
-               until it returns a truthy value.
-               When our callback changes the value of <code title="unEVALable">user_data.j2</code>
-               from <code>null</code> to <code>31.4</code>, <code>Control.wait_until</code> is
-               done waiting, and we move on to the next instruction.
-               <p></p>
-               In this wait_until function, we print out the value of <code title="unEVALable">user_data.j2</code>
-               just so you can see that the code is still working, and exactly when
-               it has a good value. During this time, the Job button will be yellow.
-               <p></p>
-               For such a trivial computation, there might be no <code>null</code> print outs,
-               and you might not even need a <code>Control.wait_until</code>.
-               But if you tell Python to perform a long computation, <code>Control.wait_until</code>
-               pauses the Job until we have the results back from Python.
+               but we want to show that this can be done while running the Job.
           </li>
           <li> Our final Job instruction retrieves the value from user_data and uses it
                as the angle to move joint 2 to.
@@ -12087,7 +11921,7 @@ new Job({
       <a href="#" onclick="DocCode.open_doc('Brain.eval_python_doc_id')">Brain.eval_python</a>
        </details>
 
-       <details  class="doc_details"><summary>dde_apps_folder for Python</summary>
+      <!--  <details  class="doc_details"><summary>dde_apps_folder for Python</summary>
          In DDE JavaScript, <code>dde_apps_folder</code> is a global variable bound
          to the full path of the dde_apps folder. It's exact value will be different
          for each computer, but will be something like
@@ -12110,75 +11944,41 @@ def main():
          This call should return the content of the file, i.e. <code>"Test47"</code><br/>
          Note that our designation for the file is <i>the same</i> for both Python and JavaScript.
        </details>
-
-       <details id="Py.load_file_doc_id" class="doc_details"><summary>Py.load_file</summary>
-       Imports a file into DDE's Python process.<br/>
+      -->
+       <details class="doc_details"><summary>DDEFile.load_file</summary>
+       You can use DDEFile.load_file to load a Python file.
+           If the path ends with ".py", then rather than the file content
+           being passed to JavaScript's <code>eval</code> function,
+           its passed to <code>Py.eval</code> instead.<br/>
        <i>Parameters:</i><br/>
        <b>path</b> Required. A string of the file to load. If it doesn't start with slash,
-                  it will have <code>dde_apps_folder</code> prepended to it.
+                  it will use the <code>dde_apps_folder</code> on the server.
                   If it starts with <code>"../"</code>, it will have the parent folder of <code>dde_apps_folder</code>
                   prepended to it.<br/>
-        <b>as_name</b> Default: <code>null</code>. indicating that the
-                 file name (sans folder, sans extension) will be used as the as_name,
-                 just like <code title="unEVALable">import foo</code> means the same thing as
-                 <code title="unEVALable">import foo as foo</code><br/>
-        <b>callback</b> Same as "callback" for <a href="#" onclick="DocCode.open_doc('Py.eval_doc_id')">Py.eval_doc_id</a>
+        <b>callback</b> Same as "callback" for <a href="#" onclick="DocCode.open_doc('DDEFile.load_file')">DDEFile.load_file</a>
+           Takes two arguments, an err, and the value of evaling the content of the file.
         <p/>
         <i>Example:</i><br/>
-         <code title="unEVALable">Py.load_file("hello.py")</code> which means the same as <br/>
-         <code  title="unEVALable">Py.load_file("/Users/Fry/Documents/dde_apps/hello.py")</code> (or whatever
-              folder <code>dde_apps_folder</code> evals to.)<br/>
-         <code title="unEVALable">Py.load_file("hello.py", "howdy")</code> (uses "howdy" as the "as name".)<br/>
-         <code title="unEVALable">load_files("hello.py")</code> (loads the Python file "hello.py" in
-         the dde_apps_folder using the default "hello" as the "as_name")<br/>
-         <code title="unEVALable">load_files("hello.pyc")</code>(loads the Python file "hello.pyc")<br/>
-         For all of the loads above, if the folder of the file being loaded is not on
-         Python's sys.path, then it is added before the file is imported.
+           <code>function my_load_file_cb(err, result) { out("got err: " + err.message + " and result: " + result) } </code>
+         <code title="unEVALable">DDEFile.load_file("hello.py", my_load_file_cb)</code>
          <p></p>
-         See <a href="#" onclick='DocCode.open_doc(load_files_doc_id)'>load_files</a> for loading
+         See <a href="#" onclick='DocCode.open_doc("DDEFile.load_file_doc_id")'>DDEFile.load_file</a> for loading
          JavaScript files.
        </details>
-       <details id="Py.kill_doc_id" class="doc_details"><summary>Py.kill</summary>
-           Ends the Python process. The Python process shouldn't take up many resources
-           when idle. One reason to kill it is to get rid of the state currently
-           in the Python process so the next time <code>Py.eval</code> is called,
-           it will start afresh.<br/>
-           <i>Example:</i><br/>
-           <code>Py.kill()</code>
-       </details>
-       <details id="Py.init_doc_id" class="doc_details"><summary>Py.init</summary>
-           This function
-           <ul>
-               <li>Kills the running Python process if any</li>
-               <li>Creates a new Python process</li>
-               <li>Puts <code>dde_apps_folder</code> on Python's
-                    sys.path list
-               <li>Makes the new Python process ready to accept eval commands from DDE.</li>
-           </ul>
-           It is called automatically the first time you call <code>Py.eval</code>
-           after launching DDE or killing the Python process,
-           so there isn't much need to call this function explicitly.
-           After calling this function, your first call to <code>Py.eval</code> will
-           be a fraction of a second faster.<br/>
-           <i>Example:</i><br/>
-           <code>Py.init()</code>
-       </details>
-       <details  class="doc_details"><summary>Troubleshooting</summary>
+
+       <details  class="doc_details"><summary>Troubleshooting Python</summary>
            Python, like all modern popular programming languages, has
            confusing aspects. This section helps you get through *some* of them
            that we've found useful.
-           <p></p>
+           <br/><br/>
            The Python interface automatically imports
-           <ul><li>json</li><li>sys</li> <li>traceback</li></ul>
-           so you won't have to import those when using DDE's python interface.
-           <p></p>
-           To see what folders you can import files from:
-           <code>Py.eval("sys.path")</code><br/>
-           To extend sys.path to include another folder<br/>
-           <code title="not in TestSuite">Py.eval('sys.path.append("/my/other/folder")'</code><br/>
-           Note that <code title="not in TestSuite">load_files("/my/other/folder/hi.py")</code>
-           automatically adds "/my/other/folder" to sys.path, then
-           runs import("hi.py")
+           a number of standard Python packages including a few specific to pyodide.
+           The documentation for <code>Py.eval</code> tells you how to get this list
+           via standard Python.
+           <br/><br/>
+           To see what folders you can import files from, see the documentation for
+           <code>Py.eval</code> for evaluating Python's "sys.path".
+           That documentation also tells you how to extend the path.
            <p></p>
            Python has numerous packages on the web that you can download and install on
            your computer for use in your Python packages.
@@ -12205,6 +12005,7 @@ def main():
        </details>
 
        </details> <!-- end Py -->
+
        <details id="adding_javascript_doc_id" class="doc_details"><summary>Adding JavaScript</summary>
        Most applications don't allow you to change them at all.
        Some applications allow you to change "preferences" or "configurations",
@@ -12259,11 +12060,11 @@ def main():
             using the File menu's "Load..." item.
        </li>
        <li> We can <i>programmatically</i> load our file by evaling
-           <code title="not in Testsuite">load_files("math.js")</code>. (load_files, like most other
-             file manipulating functions in DDE, uses dde_apps as its default folder.)
-             As the name implies,
-             <a href="#" onclick="DocCode.open_doc(load_files_doc_id)">load_files</a>
-             can load multiple files in one call.
+           <code title="not in Testsuite">DDEFile.load_file("math.js")</code>. (load_file, like most other
+             file manipulating functions in DDE, uses dde_apps on the server as its default folder.)
+             See:
+             <a href="#" onclick="DocCode.open_doc('DDEFile.load_file_doc_id')">DDEFile.load_file</a>
+
        </li>
        <li>You can get JavaScript files from other people (say via email) or
            downloaded from websites, stick them in a convenient location,

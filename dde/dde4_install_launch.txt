@@ -1,7 +1,7 @@
 DDE4 Install and Launch Instructions
-Fry Feb 16, 2022,  updated May 12, 2022
+Fry started: Feb 16, 2022,  updated: May 20, 2022
 
-You can see instructions by browsing:
+You can see these instructions by browsing:
  https://github.com/cfry/dde/blob/dde4/dde/dde4_install_launch.txt
 
 DDE4 can be installed on your Mac or Windows computer,
@@ -22,9 +22,9 @@ To check if your computer already has this:
                   via the below instructions)
 
 - Browse: nodejs.org/
-- Click the big green button for Downloading the LTS version (node version 16)
+- Click the big green button for Downloading the latest version (node version 18)
 - This will put a file in your Downloads folder, named something like:
-  node-v16.14.0.pkg
+  node-v18.0.0.pkg
 - Double click the file
 - This brings up a dialog box. Click continue, agree, install buttons
   as they come up. (do not install Chocholaty)
@@ -59,7 +59,7 @@ We want to end up with the dde4 folder containing just:
 - Type in: npm install modbus-serial@^8.0.5
 
 __________DDE4 Install Node on Dexter____________
-DDE4 requires an updated version of Node (v 16) to be on your Dexter.
+DDE4 requires an updated version of Node (v 18) to be on your Dexter.
 First check to see if you need the new version of node:
 - In a Terminal
   - Type in: ssh root@192.168.1.142  (or your Dexter's IP address)

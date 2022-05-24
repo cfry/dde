@@ -1381,8 +1381,9 @@ class Job{
            else if (elt instanceof Instruction)              { result.push(elt) }
            else if (typeof(elt) === "string")                { result.push(elt) }
            else if (typeof(elt) === "function")              { result.push(elt) }
-           else if (Utils.is_iterator(elt))                        { result.push(elt) }
+           else if (Utils.is_iterator(elt))                  { result.push(elt) }
            else if (Instruction.is_start_object(elt))        { result.push(elt) }
+           else if (elt instanceof Promise)                  { result.push(elt) }
            else { throw(TypeError("Invalid do_list item at index: " + i + "<br/>of: " + elt)) }
        }
        return result
@@ -2301,13 +2302,20 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         else if (Instruction.is_start_object(cur_do_item)){
             this.handle_start_object(cur_do_item)
         }
+        else if (cur_do_item instanceof Promise){
+            let the_job = this //for the closure
+            cur_do_item.then(function() { //called when the prmise resolves
+                //is_resolved = true
+                the_job.set_up_next_do(1) //we're done waiting for the promise ot resolve so move on to the next do_list_item
+            })
+        }
         else {
-            this.stop_for_reason("errored", "Job: " + this.name + " got illegal do_item on do_list of: " +
+            this.stop_for_reason("errored", "Job: " + this.name + " got invalid do_item on do_list of: " +
                                  Utils.stringify_value(cur_do_item))
             //It's over, Jim, So don't take a breath, by calling set_up_next_do(0),
             //just kill it quickly before anything else can happen.
             //we don't want to increment the pc,
-            this.set_up_next_do(0)
+            this.set_up_next_do(0) //this will cause job to properly finish
         }
     }
     catch(err){ //this can happen when, for instance a fn def on the do_list is called and it contains an unbound var ref
@@ -3238,6 +3246,9 @@ Job.prototype.three_d_points_for_plotting = function(which="auto"){ //can also b
     return [xarr, yarr, zarr]
 }
 
+//Note, with no args, it prints the source code of the currently defined Job instance.
+//this is used by Inspect as you want to inspect the cur job. BUT
+//to get the Orig source, use Job.my_job({job_orig_args: true})
 Job.prototype.to_source_code = function(args={}){
     if(!args.indent) { args.indent = "" }
     let props_indent = args.indent + "         "

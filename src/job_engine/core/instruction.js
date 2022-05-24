@@ -13,9 +13,9 @@ class Instruction {
     static to_string(instr){
        if(instr instanceof Instruction) { return instr.toString() }
        else if (Instruction.is_oplet_array(instr)) {
-           var oplet = instr[Dexter.INSTRUCTION_TYPE]
+           var oplet   = instr[Dexter.INSTRUCTION_TYPE]
            var fn_name = Dexter.instruction_type_to_function_name(oplet)
-           var args = instr.slice(Instruction.INSTRUCTION_ARG0)
+           var args    = instr.slice(Instruction.INSTRUCTION_ARG0)
            return fn_name + " " + args
        }
        else if (Array.isArray(instr)) { return "Array of " + instr.length + " instructions" }
@@ -122,8 +122,8 @@ class Instruction {
     //   Instruction.Dexter.move_to_straight
     //   Instruction.wait_for
     static is_inserting_instruction(item, job_instance){
-       if(item == undefined)  {return false}
-       else if (item == null) {return false}
+       if      (item == undefined)         {return false}
+       else if (item == null)              {return false}
        else if (typeof(item) === "string") {return false}
        else if (Array.isArray(item) && (item.length == 0)) { return false }
        else if (Instruction.is_data_array(item)){
@@ -135,16 +135,16 @@ class Instruction {
                else { return false } //don't know what it is so be conservative and return false
            }
        }
-       else if (typeof(item) === "function")     {return true }
-       else if (Array.isArray(item))             { return true }
-       else if(Instruction.is_oplet_array(item)) { return false }
-       else if (Utils.is_iterator(item))               { return true }
+       else if (typeof(item) === "function")        { return true }
+       else if (Array.isArray(item))                { return true }
+       else if(Instruction.is_oplet_array(item))    { return false }
+       else if (Utils.is_iterator(item))            { return true }
        else if (item instanceof Instruction){
-           if(item.inserting_instruction)        { return true }
-           else { return false }
+           if(item.inserting_instruction)           { return true }
+           else                                     { return false }
            if (item instanceof Instruction.move_to_straight) {
-               if (item.single_instruction)      { return false}
-               else { return true }
+               if (item.single_instruction)         { return false}
+               else                                 { return true }
            }
            else {
                 for(let instr_class of [Instruction.Dexter.read_file]){
@@ -153,6 +153,7 @@ class Instruction {
                return false
            }
        }
+       else if (item instanceof Promise)             { return false }
        else { shouldnt("Instruction.is_inserting_instruction passed unhandled instruction: " + item) }
     }
 
@@ -198,7 +199,8 @@ class Instruction {
                 Utils.is_iterator(item) ||
                 (typeof(item) === "string") ||
                 (typeof(item) === "function") ||
-                Instruction.is_start_object(item)
+                Instruction.is_start_object(item) ||
+                (item instanceof Promise)
                 )
     }
 
@@ -277,6 +279,7 @@ class Instruction {
     }
 
     static instruction_color(ins){
+        if(Instruction.is_no_op_instruction(ins))        { return "#aaaaaa" } //gray
         if(Instruction.is_oplet_array(ins))              { return "#FFFFFF" } //white
         else if(Instruction.is_data_array(ins))          { return "#FFFFFF" } //white
         else if(typeof(ins) == "string")                 { return "#DDEEFF" } //light blue
@@ -286,15 +289,14 @@ class Instruction {
             else if (ins instanceof Instruction.debugger) { return "red" }    //red
             else                                          { return "#e6b3ff" }//lavender
         }
-        else if (Utils.is_generator_function(ins))              { return "#ccffcc" } //green
-        else if (Utils.is_iterator(ins))                        { return "#aaffaa" } //lighter green
+        else if (Utils.is_generator_function(ins))        { return "#ccffcc" } //green
+        else if (Utils.is_iterator(ins))                  { return "#aaffaa" } //lighter green
         else if (typeof(ins) == "function")               { return "#b3e6ff" } //blue
         else if (Instruction.is_start_object(ins))        { return "#ffd492"}  //tan
-        else if (ins === null)                            { return "#aaaaaa" } //gray
-        else if (ins ===undefined)                        { return "#aaaaaa" } //gray
 
         else if (Array.isArray(ins))                      { return "#aaaaaa" } //gray
-        else { shouldnt("Instruction.instruction_color got unknown instruction type: " + ins) }
+        else if (ins instanceof Promise)                  { return "yellow"}
+        else { shouldnt("Instruction.instruction_color got invalid instruction type: " + ins) }
     }
     static text_for_do_list_item(ins){
         if (ins === undefined)            { return 'undefined' }
@@ -334,6 +336,7 @@ class Instruction {
         }
 
         else if (Array.isArray(ins))        { return Utils.stringify_value(ins) }
+        else if (ins instanceof Promise)    { return "A Promise"}
         else { shouldnt("Instruction.text_for_do_list_item got unknown instruction type: " + ins) }
     }
     static text_for_do_list_item_for_stepper(ins){
@@ -356,8 +359,10 @@ class Instruction {
             return "iterator " + ins.toString().substring(0, 70)
         }
         else if (typeof(ins) == "function") { return ins.toString().substring(0, 80) }
-        else if (ins == null) { return 'null' }
-        else if (Array.isArray(ins)) { return Utils.stringify_value(ins) }
+        else if (ins == null)               { return 'null' }
+        else if (ins == undefined)          { return 'undefined' }
+        else if (Array.isArray(ins))        { return Utils.stringify_value(ins) }
+        else if (ins instanceof Promise)    { return "A Promise"}
         else { shouldnt("Instruction.text_for_do_list_item_for_stepper got unknown instruction type: " + ins) }
     }
 
@@ -604,6 +609,39 @@ globalThis.make_ins = make_ins
 //make_ins("a", 1, 2, 3, 4, 5) works
 //make_ins("a", ...[1, 2, 3, 4, 5]) works
 
+//use to be just the inner async fn put directly on the do_list.
+//But that made it hard or impossible to support to_source_code
+//This version is slower because it makes an extra do_list item,
+//and that item is made at job run time, not job definition time.
+//we could also speed this up if we guarenteed that Pthon was inited
+//before this do_list_item was run, but its nice for the user
+//to not have to even know that Py.init needs to be called.
+Instruction.eval_python = class eval_python extends Instruction{
+    constructor(python_source, user_data_variable){
+        super()
+        this.python_source = python_source
+        this.user_data_variable = user_data_variable
+        this.inserting_instruction = true
+    }
+    do_item(job_instance){
+        let the_python_source      = this.python_source       //for closure
+        let the_user_data_variable = this.user_data_variable  //for closure
+        let async_fn = (async function() {
+                            await Py.init()
+                            job_instance.user_data[the_user_data_variable + "_python_source"] = the_python_source
+                            let result = Py.eval(the_python_source)
+                            job_instance.user_data[the_user_data_variable] = result
+        })
+        job_instance.insert_single_instruction(async_fn)
+        job_instance.set_up_next_do(1)
+    }
+    toString(){ return "eval_python" }
+    to_source_code(args){ return args.indent + 'Brain.eval_python("' + this.python_source +
+                                 '", "' + this.user_data_variable + '")'
+                        }
+
+}
+
 Instruction.break = class Break extends Instruction{ //class name must be upper case because lower case conflicts with js break
     constructor () { super() }
     do_item (job_instance){
@@ -717,7 +755,7 @@ Instruction.error = class error extends Instruction{
     }
 }
 
-//upper case G to avoid a conflict, but the user instruction is spelled Control.get_page
+//upper case G to avoid a conflict, but the user instruction is spelled IO.get_page
 Instruction.Get_page = class Get_page extends Instruction{
     constructor (url_or_options, response_variable_name="http_response") {
         super()
@@ -730,8 +768,8 @@ Instruction.Get_page = class Get_page extends Instruction{
         if (this.sent == false){ //hits first time only
             job_instance.user_data[the_var_name] = undefined //must do in case there was some other
             //http_request for this var name, esp likely if its default is used.
-            get_page_async(this.url_or_options, //note I *could* simplify here and use get_page (syncrhonos), but this doesn't freeze up UI while getting the page so a little safer.
-                function(err, response, body) {
+            DDEFile.get_page_async(this.url_or_options, //note I *could* simplify here and use get_page (syncrhonos), but this doesn't freeze up UI while getting the page so a little safer.
+                function(err, body) {
                     //console.log("gp top of cb with the_var_name: " + the_var_name)
                     //console.log("gp got err: " + err)
                     //console.log("ojb inst: "   + job_instance)
@@ -740,9 +778,6 @@ Instruction.Get_page = class Get_page extends Instruction{
                         console.log("gp in err: ")
                         job_instance.user_data[the_var_name] = "Error: " + err
                         console.log("gp after err: ")
-                    }
-                    else if(response.statusCode !== 200){
-                        job_instance.user_data[the_var_name] = "Error: in getting url: " + this.url_or_options + ", received error status code: " + response.statusCode
                     }
                     else {
                         //console.log("gp in good: ")
@@ -759,7 +794,7 @@ Instruction.Get_page = class Get_page extends Instruction{
         else { job_instance.set_up_next_do(1)} //got the response, move to next instruction
     }
     to_source_code(args){
-        return args.indent + "Control.get_page(" +
+        return args.indent + "IO.get_page(" +
             to_source_code({value: this.url_or_options}) +
             ((this.response_variable_name == "http_response") ? "" : (", " + to_source_code({value: this.response_variable_name})))  +
             ")"

@@ -2,6 +2,7 @@
 //import {Job} from "./job.js" //now Job is global
 
 import * as readline from "readline" // "../../../node_modules/readline/readline.js" //todo but readline.js does require("fs") and require is undefined.
+globalThis.readline = readline //but since this file can ONLY be loaded in Job Engine, globLThis not accessible from DDE IDE
 
 const rl = readline.createInterface({
     input:  process.stdin,

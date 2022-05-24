@@ -13,13 +13,13 @@ export function to_source_code({value, indent="", function_names=false, newObjec
         }
         if (depth > depth_limit) { return "***" } //stops infinite recursion in circular structures.
         //console.log("to_source_code before big if")
-        if      (value === undefined)       { return "undefined" }
-        else if (value === null)            { return "null" } //since typeof(null) == "object", this must be before the typeof(value) == "object" clause
-        else if (value === true)            { return "true"}
-        else if (value === false)           { return "false"}
-        else if (typeof(value) == "number") { return value.toString() } //works for NaN too, no need to use (isNaN(value)) { result = "NaN" } //note the check for number before checking isNanN is necessary because JS wasn't designed.
+        if      (value === undefined)        { return "undefined" }
+        else if (value === null)             { return "null" } //since typeof(null) == "object", this must be before the typeof(value) == "object" clause
+        else if (value === true)             { return "true"}
+        else if (value === false)            { return "false"}
+        else if (typeof(value) === "number") { return value.toString() } //works for NaN too, no need to use (isNaN(value)) { result = "NaN" } //note the check for number before checking isNanN is necessary because JS wasn't designed.
         else if (typeof(value) === "symbol") { return value.toString() }
-        else if (typeof(value) == "string") {
+        else if (typeof(value) === "string") {
             if (value.includes("\n") ||
                 (value.includes("'") && value.includes('"')))
                                              { return indent + "`" + value + "`" }
@@ -40,9 +40,13 @@ export function to_source_code({value, indent="", function_names=false, newObjec
             //console.log("calling to_source_code_array")
             return to_source_code_array(arguments[0])
         }
-        //Job. Robot, Instruction, Duration
+        //Job, Robot, Instruction, Duration
         else if (value.to_source_code){
             let new_args = {value: value, indent: indent, depth: depth + 1} //use depth because we can potentially have infinite recursion here.
+            if (arguments[0].hasOwnProperty("job_orig_args")) {
+                new_args.job_orig_args = arguments[0].job_orig_args //If true, src generated is from the orig props, not
+                //the current instance props.  current instance props is the default.
+            }
             return value.to_source_code(new_args)
         }
         else if (value === globalThis)     { return "globalThis"  } //too many weird values in there and too slow so punt.

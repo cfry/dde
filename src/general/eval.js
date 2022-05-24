@@ -185,6 +185,7 @@ function eval_js_part2(command, call_eval_part3_if_no_error=true){ //2nd arg pas
         }
     }
     catch(err) { //probably  a syntax error. Can't get starting_index so won't be able to highlight offending code
+        result.err                = err //needed in DDEFile.load_file
         result.error_type         = err.name
         result.error_message      = err.message
         result.full_error_message = err.stack

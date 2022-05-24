@@ -287,7 +287,7 @@ function serve_job_button_click(browser_socket, mess_obj){
           );
     }
 
-    else {
+    else { //using an existing process
         console.log("in serve_job_button_click already got a process")
     	let code;
         if(job_name === "keep_alive") { //happens when transition from keep_alive box checked to unchecked
@@ -598,7 +598,7 @@ var http_server = http.createServer(async function (req, res) {
     }*/
       //see https://nodejs.org/api/http.html#httpgeturl-options-callback
       //be very careful "res" is the respoonse that goes back to the browser.
-      // "get_res" is the response that comeba back from the http.get
+      // "get_res" is the response that comes back from the http.get
     else if(q.pathname === "/get_page") {
       let url = q.query.path
       if (url.startsWith("https:")) {
@@ -959,7 +959,7 @@ wss.on('connection', function(the_ws, req) {
     console.log('\n\nAbout to parse 1\n');
     let mess_obj = {kind: "error"}
     try { mess_obj = JSON.parse(message)} catch(e) {console.log("bad message: "+e); return;}
-    console.log("\nwss server on message receieved kind: " + mess_obj.kind)
+    console.log("\nwss server on message received kind: " + mess_obj.kind)
     if(mess_obj.kind === "keep_alive_click") {
         serve_job_button_click(browser_socket, mess_obj)
     }

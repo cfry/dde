@@ -825,7 +825,7 @@ Series.instances = [
                                                           "Human.enter_text",   "Human.notify", "Human.show_window", "Human.task",
                                                           "Serial.string_instruction",
                                                           "Control.break", "Control.continue", "Control.debugger","Control.error",
-                                                          "Control.get_page", "Control.go_to", "IO.grab_robot_status",
+                                                          "IO.get_page", "Control.go_to", "IO.grab_robot_status",
                                                           "Control.if_any_errors", "Control.include_job", "Control.label", "Control.loop",
                                                           "Control.step_instructions", "Control.send_to_job", "Control.sent_from_job",
                                                           "Control.start_job", "Control.stop_job", "Control.suspend", "Control.sync_point",

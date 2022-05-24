@@ -1695,10 +1695,7 @@ window_modify_id.onclick=function(){Editor.insert(
 
 
          //dde_init_dot_js_initialize()//todo dde4 needs file system  //must occcur after persistent_initialize
-         // copy_file_async(__dirname + "/core/main_eval.py", "main_eval.py")//todo dde4 needs file system and python eval //because using __dirname + "/core/main_eval.py"
-             // in 2nd arg to spawn fails because spawn can't get a file out of the asar "folder".
-             //So I need to call spawn with a normal path when the Python process is launched.
-             //do this here so it will be ready by the time Py.init needs it.
+
          Dexter.default = (Dexter.dexter0 ?  Dexter.dexter0 : null )
          //initialize the checkbox state
          $("#animate_ui_checkbox_id").jqxCheckBox({ checked: DDE_DB.persistent_get("animate_ui")})

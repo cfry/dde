@@ -1,7 +1,14 @@
 import grpc from '@grpc/grpc-js'
 globalThis.grpc = grpc
+import protoLoader from '@grpc/proto-loader'
+globalThis.protoLoader = protoLoader
 
 console.log("top of ready_je.js")
+
+//import fetch from 'node-fetch' //not part of node 16, but in 18 so need this
+//to let job_engine call fetch used in DDEFile
+//globalThis.fetch = fetch
+//see https://stackabuse.com/making-http-requests-in-node-js-with-node-fetch/
 
 import { WebSocketServer } from 'ws'; //websocket server
 globalThis.WebSocketServer = WebSocketServer
@@ -9,12 +16,12 @@ globalThis.WebSocketServer = WebSocketServer
 import {init_job_engine, init_units, package_json} from "../job_engine/load_job_engine.js" //imports je files
 import "../job_engine/core/stdio.js"   //ONLY in Job Engine so can't go in load_job_engine.js
          //makes global: close_readline, set_keep_alive_value, write_to_stdout
-//import fetch from 'node-fetch' //not part of node 16, but coming in 17 or 18 so need this
-      //to let job_engine call fetch used in DDEFile
-//globalThis.fetch = fetch
-//see https://stackabuse.com/making-http-requests-in-node-js-with-node-fetch/
+import "../job_engine/core/grpc_server.js" //only in Job Engine
 
-//import fetch from 'fetch'
+
+
+
+
 
 
 function run_node_command(args){
@@ -98,6 +105,7 @@ async function on_ready_je(){
     init_units() //In dde, has to be after init_series call.
     FPGA.init()  //does not depend on Series.
     Gcode.init() //must be after init_series which calls init_units()
+    GrpcServer.init()
 }
 on_ready_je()
 

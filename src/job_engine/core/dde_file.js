@@ -498,7 +498,16 @@ class DDEFile {
 
     static loading_file
 
-    static async load_file(path, callback){
+    static load_file_callback_default(err, result){
+        if(err) {
+            dde_error("DDEFile.load_file errored with: " + err.message)
+        }
+        else {
+            out("DDEFile.load_file result: " + result)
+        }
+    }
+
+    static async load_file(path, callback=DDEFile.load_file_callback_default){
         //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
         //path = this.add_default_file_prefix_maybe(path)
         //let full_url = this.protocol_and_host() + "/edit?edit=" + path
@@ -518,17 +527,31 @@ class DDEFile {
             console.log("load_file got content: " + content)
             let result
             try {
-                console.log("load_file top of try with: eval_js_part2: " + globalThis.eval_js_part2)
                 this.loading_file = defaulted_path
 
                 //let result = eval_js_part2(content)
                 //this.loading_file = undefined
                 //this.callback_or_return(callback, result.value)
 
-                let result
-                if(globalThis.eval_js_part2) { //we're in IDE
+                if(path.endsWith(".py")){
+                    await Py.init()
+                    result = Py.eval(content)
+                    console.log("load_file got result: " + result)
+                    this.loading_file = undefined
+                    this.callback_or_return(callback, result)
+                    return
+                }
+                else if(globalThis.eval_js_part2) { //we're in IDE
                     console.log("load_file in clause globalThis.eval_js_part2")
-                    result = globalThis.eval_js_part2(content).value
+                    let result_obj = globalThis.eval_js_part2(content).value
+                    if(result_obj.err){
+                        this.loading_file = undefined
+                        this.callback_or_error(callback, err)
+                        return
+                    }
+                    else {
+                        result = result_obj.result
+                    }
                 }
                 else { //we're in node
                     console.log("load_file in clause node")
@@ -537,7 +560,7 @@ class DDEFile {
                 }
                 console.log("load_file got result: " + result)
                 this.loading_file = undefined
-                this.callback_or_return(callback, result.value)
+                this.callback_or_return(callback, result)
             }
             catch(err){
                 this.loading_file = undefined

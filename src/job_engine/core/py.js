@@ -1,14 +1,41 @@
 //see https://pyodide.org/en/stable/usage/api-reference.html
 globalThis.Py = class Py {
-    static eval(src){
-        let proxy_maybe = pyodide.runPython(src)
-        if(pyodide.isPyProxy(proxy_maybe)) {
-            let value = proxy_maybe.toJs()
-            proxy_maybe.destroy() //get rid of the memory
-            return value
+    static status = "not_loaded"
+
+    static async init(){
+        if(Py.status == "loading"){
+            warning("Python is in the process of loading.")
         }
-        else { return proxy_maybe }
+        else if(Py.status == "loaded"){ //if we attemt to loadPyodide twice, we get an error,
+            //so this is more graceful.
+            warning("Python is already initialized.<br/>To re-initialize the Python environment, you must relaunch DDE.")
+        }
+        else if (Py.status == "not_loaded"){
+            Py.status = "loading"
+            globalThis.pyodide = await loadPyodide()
+            Py.status = "loaded"
+            out("Python initialized.")
+            globalThis.pyodide
+        }
+        else { shouldnt("Py.init() has invalid status: " + Py.status)}
     }
+
+    static eval(python_source_code) {
+        if (this.status === "loaded") {
+            let proxy_maybe = pyodide.runPython(python_source_code)
+            if (pyodide.isPyProxy(proxy_maybe)) {
+                let value = proxy_maybe.toJs()
+                proxy_maybe.destroy() //get rid of the memory
+                return value
+            } else {
+                return proxy_maybe
+            }
+        }
+        else {
+            dde_error("Py.eval can't work unless Python is loaded. It is: " + Py.status)
+        }
+    }
+
     static eval_py_part2(command){
         let result
         let start_time = Date.now()
