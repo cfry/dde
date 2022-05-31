@@ -11,6 +11,7 @@ globalThis.Py = class Py {
             warning("Python is already initialized.<br/>To re-initialize the Python environment, you must relaunch DDE.")
         }
         else if (Py.status == "not_loaded"){
+            await import("https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js")
             Py.status = "loading"
             globalThis.pyodide = await loadPyodide()
             Py.status = "loaded"
