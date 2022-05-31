@@ -272,6 +272,137 @@
                                 </li>
                                 <li style="display:inline-block;padding-left:3px;padding-right:0px;" title="Insert useful DDE code into the editor.">Insert&#9660;
                                     <ul>
+                                        <li title="DDE stores lists of useful functions and data in Series.&#013;This menu helps insert them into the editor.">Series
+                                            <ul>
+                                                <li id="series_help_id">Help</li>
+                                                <li>Navigation
+                                                    <ul>
+                                                        <li id="series_next_item_id" title="Replace the selection with the next item&#013;in the series of the selection.&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use &#013;WinOS: Alt-right arrow key&#013;MacOS: option-right arrow key.">Next item&nbsp; &rarr;</li>
+                                                        <li id="series_prev_item_id" title="Replace the selection with the previous item&#013;in the series of the selection.&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use &#013;WinOS: Alt-left arrow key&#013;MacOS: option-left arrow key.">Prev item &nbsp; &larr;</li>
+                                                        <li id="series_next_id"      title="Replace the selection with &#013;an item from the next series&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use &#013;WinOS: Alt-down arrow key&#013;MacOS: option-down arrow key.">Next series&nbsp; &darr;</li>
+                                                        <li id="series_prev_id"      title="Replace the selection with &#013;an item from the previous series&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use &#013;WinOS: Alt-up arrow key&#013;MacOS: option-up arrow key.">Prev series&nbsp; &uarr;</li>
+                                                    </ul>
+                                                </li>
+                                                <li>JavaScript
+                                                    <uL>
+                                                        <li id="series_punctuation_id" title="Insert a punctuation character">Punctuation</li>
+                                                        <li id="series_boolean_id"     title="Insert true, false, null or undefined.">Boolean</li>
+                                                        <li id="series_bitwise_id"     title="Insert &, |, ^, ~, <<, >>, >>>.">Bitwise</li>
+                                                        <li id="series_global_js_id"   title="Insert a JS global function.">Global fns</li>
+                                                        <li>Number
+                                                            <ul>
+                                                                <li id="series_integer_id"    title="Insert an integer to increment or decriment.">integer</li>
+                                                                <li id="series_float_id"      title="Insert a floating point number to increment or decriment.">float</li>
+                                                                <li id="series_arithmetic_id" title="Insert an arithmetic operator.">arithmetic</li>
+                                                                <li id="series_comparison_id" title="Insert a comparison operator.">comparison</li>
+                                                                <li id="series_math_id"       title="Insert a Math function.">math</li>
+                                                                <li id="series_trigonometry_id" title="Insert a trigonometry function.">trigonometry</li>
+                                                                <li id="series_number_misc_id" title="Insert a low level number function.">number misc</li>
+                                                                <li id="series_number_constant_id" title="Insert a symbolic math constant like 'Math.PI'.">number constant</li>
+                                                            </ul>
+                                                        </li>
+                                                        <li id="series_js_object_name_id"    title="Insert the name of a built-in global JS object.">Object Name</li>
+
+                                                        <li id="series_assignment_id" title="Assign a value to a variable">Assignment</li>
+                                                        <li>Strings & Arrays
+                                                            <ul>
+                                                                <li id="series_literal_string_id" title="Insert a literal string.">literal string</li>
+                                                                <li id="series_string_id"  title="Insert a string method.">string</li>
+                                                                <li id="series_array_id"   title="Insert an array method.">array</li>
+                                                                <li id="series_forEach_id" title="Loop over the elements of an array.">forEach</li>
+                                                            </ul>
+                                                        </li>
+                                                        <li>Date
+                                                            <ul>
+                                                                <li id="series_hours_minutes_seconds_id" title="Insert a time of hours:minutes:seconds.">hours:mins:secs</li>
+                                                                <li id="series_time_id"           title="Insert a time of hours:minutes or minutes:seconds.">time</li>
+                                                                <li id="series_3_letter_month_id" title="Insert a 3 letter month name.">3 letter month</li>
+                                                                <li id="series_full_month_id"     title="Insert a full month name.">full month</li>
+                                                                <li id="series_date_id"           title="Insert a date.">date</li>
+                                                            </ul>
+                                                        </li>
+                                                        <li title="Control the flow of execution">Control Flow
+                                                            <ul>
+                                                                <li id="series_if_id"      title='Insert "if", "else if", or "else".'>if</li>
+                                                                <li id="series_for_id"     title='Insert "for" or "while".'>for</li>
+                                                                <li id="series_try_id"     title="Insert a try, catch, or finally">try</li>
+                                                            </ul>
+                                                        </li>
+                                                        <li id="series_function_id"   title="Insert a function definition&#013;or one of its friends.">Function</li>
+                                                    </ul>
+                                                </li> <!-- end JavaScript -->
+                                                <li>HTML
+                                                    <ul>
+                                                        <li id="series_html_tag_id">HTML Tags</li>
+                                                        <li id="series_html_property_id">HTML Properties</li>
+                                                        <li id="series_css_property_id" style="width:235px;">CSS(Style) Properties</li>
+                                                    </ul>
+                                                </li>
+                                                <li>DDE
+                                                    <ul>
+                                                        <li>Units System
+                                                            <ul>
+                                                                <li id="units_system_help_id">Help</li>
+                                                                <li id="series_length_units_id"    title="Insert a length units converter.">length</li>
+                                                                <li id="series_angle_units_id"     title="Insert an angle units converter.">angle</li>
+                                                                <li id="series_duration_units_id"  title="Insert a duration_units converter.">duration_units</li>
+                                                                <li id="series_frequency_units_id" title="Insert a frequency units converter.">frequency</li>
+                                                                <li id="series_mass_units_id"      title="Insert a mass units converter.">mass</li>
+                                                                <li id="series_force_units_id"     title="Insert a force units converter.">force</li>
+                                                                <li id="series_pressure_units_id"  title="Insert a pressure units converter.">pressure</li>
+                                                                <li id="series_torque_units_id"    title="Insert a torque units converter.">torque</li>
+                                                                <li id="series_power_units_id"     title="Insert a power units converter.">power</li>
+                                                                <li id="series_energy_units_id"    title="Insert an energy units converter.">energy</li>
+                                                                <li id="series_temperature_id"     title="Insert a temperature converter.">temperature</li>
+                                                            </ul>
+                                                        </li>
+                                                        <li id="series_object_system_id"          title="Functions for creating and accessing the prototype object system.">Object System</li>
+                                                        <li>Output
+                                                            <ul>
+                                                                <li id="series_output_id"     title="Insert a call to an output function.">output functions</li>
+                                                                <li id="series_color_name_id" title="Insert a color name&#013;such as 'blue'.">color name</li>
+                                                                <li id="series_color_rgb_id"  title="Insert a color rgb designation&#013;such as rgb(0, 100, 255)">color rgb</li>
+                                                            </ul>
+                                                        </li>
+                                                        <li id="series_window_id"     title="Insert a call to a window function.">Window</li>
+                                                        <li File id="series_file_id" title="Functions for files and persistent data.">File</li>
+                                                        <li>Job
+                                                            <ul>
+                                                                <li id="series_job_name_id"    title="Insert a job name.">job name</li>
+                                                                <li id="series_job_method_id"  title="Insert a job method.">job method</li>
+                                                            </ul>
+                                                        </li>
+                                                        <li>Robot
+                                                            <ul>
+                                                                <li id="robots_help_id">Help</li>
+                                                                <li id="series_robot_instruction_id"   title="Insert a job instruction for Dexter.">instruction</li>
+                                                                <li id="series_robot_config_id"        title="Insert a config arg for the Dexter.move_to instruction.">robot config</li>
+                                                                <li id="series_robot_status_label_id"  title="Insert a robot status label.">robot status label</li>
+                                                                <li id="series_robot_subclass_id"      title="Insert a call to create an instance of a Robot subclass.">robot subclass</li>
+                                                                <li id="series_robot_name_id"          title="Insert code to get a robot instance.">robot name</li>
+                                                                <li id="series_serial_id"              title="Insert function names of DDE's serial port interface.&#013;These low level functions are used by Robot.Series">serial port</li>
+                                                            </ul>
+                                                        </li>
+                                                        <li>Dexter Robot
+                                                            <ul>
+                                                                <li id="series_dexter_utility_id"      title="Insert a call to a Dexter method.">Dexter utility</li>
+                                                                <li id="series_dexter_constant_id"     title="Insert a Dexter joint angle min, max or link length.">Dexter constant</li>
+                                                                <li id="series_oplet_id"               title="make_ins is a low_level way to make an instruction.&#013;Its first arg is an 'oplet' for 'type of instruction'.">oplet</li>
+                                                                <li id="series_w_oplet_address_id"     title='A "w" oplet address is a register in the FPGA.&#013;Its the 2nd arg in make_ins("w" ...) calls.'>w oplet address</li>
+                                                                <li id="series_set_parameter_name_id"  title="Insert a set_parameter name (1st arg).">set_param name</li>
+                                                            </ul>
+                                                        </li>
+                                                        <li>Music
+                                                            <ul>
+                                                                <li id="series_note_id"   title="Insert a call to create or process notes.">Note</li>
+                                                                <li id="series_phrase_id" title="Insert a call to create or process phrases.">Phrase</li>
+                                                            </ul>
+                                                        </li>
+                                                        <li id="series_test_suite_id">Test Suite</li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
                                         <li id="show_output_id"  title="Prints its 1st argument to the output pane and returns it.">Print to output
                                             <ul>
                                                 <li id="out_black_id"  title="Prints its 1st argument to the output pane in black  and returns it."><span style="color:#000000;font-weight: bold;">out(...)</span>
@@ -341,142 +472,10 @@
                                         <li id="ez_teach_id" title="Insert a new ezTeach project in a new editor buffer.">ezTeach</li>
                                     </ul>
                                 </li>
-                                <li style="display:inline-block;padding-left:3px;padding-right:0px;" title="DDE stores lists of useful functions and data in Series.&#013;This menu helps insert them into the editor.">Series&#9660;
-                                    <ul>
-                                        <li id="series_help_id">Help</li>
-                                        <li>Navigation
-                                            <ul>
-                                                <li id="series_next_item_id" title="Replace the selection with the next item&#013;in the series of the selection.&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use &#013;WinOS: Alt-right arrow key&#013;MacOS: option-right arrow key.">Next item&nbsp; &rarr;</li>
-                                                <li id="series_prev_item_id" title="Replace the selection with the previous item&#013;in the series of the selection.&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use &#013;WinOS: Alt-left arrow key&#013;MacOS: option-left arrow key.">Prev item &nbsp; &larr;</li>
-                                                <li id="series_next_id"      title="Replace the selection with &#013;an item from the next series&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use &#013;WinOS: Alt-down arrow key&#013;MacOS: option-down arrow key.">Next series&nbsp; &darr;</li>
-                                                <li id="series_prev_id"      title="Replace the selection with &#013;an item from the previous series&#013;Numbers, colors, and various JS function names&#013;are in their own series.&#013;For speed, use &#013;WinOS: Alt-up arrow key&#013;MacOS: option-up arrow key.">Prev series&nbsp; &uarr;</li>
-                                            </ul>
-                                        </li>
-                                        <li>JavaScript
-                                            <uL>
-                                                <li id="series_punctuation_id" title="Insert a punctuation character">Punctuation</li>
-                                                <li id="series_boolean_id"     title="Insert true, false, null or undefined.">Boolean</li>
-                                                <li id="series_bitwise_id"     title="Insert &, |, ^, ~, <<, >>, >>>.">Bitwise</li>
-                                                <li id="series_global_js_id"   title="Insert a JS global function.">Global fns</li>
-                                                <li>Number
-                                                    <ul>
-                                                        <li id="series_integer_id"    title="Insert an integer to increment or decriment.">integer</li>
-                                                        <li id="series_float_id"      title="Insert a floating point number to increment or decriment.">float</li>
-                                                        <li id="series_arithmetic_id" title="Insert an arithmetic operator.">arithmetic</li>
-                                                        <li id="series_comparison_id" title="Insert a comparison operator.">comparison</li>
-                                                        <li id="series_math_id"       title="Insert a Math function.">math</li>
-                                                        <li id="series_trigonometry_id" title="Insert a trigonometry function.">trigonometry</li>
-                                                        <li id="series_number_misc_id" title="Insert a low level number function.">number misc</li>
-                                                        <li id="series_number_constant_id" title="Insert a symbolic math constant like 'Math.PI'.">number constant</li>
-                                                    </ul>
-                                                </li>
-                                                <li id="series_js_object_name_id"    title="Insert the name of a built-in global JS object.">Object Name</li>
 
-                                                <li id="series_assignment_id" title="Assign a value to a variable">Assignment</li>
-                                                <li>Strings & Arrays
-                                                    <ul>
-                                                        <li id="series_literal_string_id" title="Insert a literal string.">literal string</li>
-                                                        <li id="series_string_id"  title="Insert a string method.">string</li>
-                                                        <li id="series_array_id"   title="Insert an array method.">array</li>
-                                                        <li id="series_forEach_id" title="Loop over the elements of an array.">forEach</li>
-                                                    </ul>
-                                                </li>
-                                                <li>Date
-                                                    <ul>
-                                                        <li id="series_hours_minutes_seconds_id" title="Insert a time of hours:minutes:seconds.">hours:mins:secs</li>
-                                                        <li id="series_time_id"           title="Insert a time of hours:minutes or minutes:seconds.">time</li>
-                                                        <li id="series_3_letter_month_id" title="Insert a 3 letter month name.">3 letter month</li>
-                                                        <li id="series_full_month_id"     title="Insert a full month name.">full month</li>
-                                                        <li id="series_date_id"           title="Insert a date.">date</li>
-                                                    </ul>
-                                                </li>
-                                                <li title="Control the flow of execution">Control Flow
-                                                    <ul>
-                                                        <li id="series_if_id"      title='Insert "if", "else if", or "else".'>if</li>
-                                                        <li id="series_for_id"     title='Insert "for" or "while".'>for</li>
-                                                        <li id="series_try_id"     title="Insert a try, catch, or finally">try</li>
-                                                    </ul>
-                                                </li>
-                                                <li id="series_function_id"   title="Insert a function definition&#013;or one of its friends.">Function</li>
-                                             </ul>
-                                         </li> <!-- end JavaScript -->
-                                         <li>HTML
-                                           <ul>
-                                               <li id="series_html_tag_id">HTML Tags</li>
-                                               <li id="series_html_property_id">HTML Properties</li>
-                                               <li id="series_css_property_id" style="width:235px;">CSS(Style) Properties</li>
-                                           </ul>
-                                         </li>
-                                         <li>DDE
-                                            <ul>
-                                                <li>Units System
-                                                    <ul>
-                                                        <li id="units_system_help_id">Help</li>
-                                                        <li id="series_length_units_id"    title="Insert a length units converter.">length</li>
-                                                        <li id="series_angle_units_id"     title="Insert an angle units converter.">angle</li>
-                                                        <li id="series_duration_units_id"  title="Insert a duration_units converter.">duration_units</li>
-                                                        <li id="series_frequency_units_id" title="Insert a frequency units converter.">frequency</li>
-                                                        <li id="series_mass_units_id"      title="Insert a mass units converter.">mass</li>
-                                                        <li id="series_force_units_id"     title="Insert a force units converter.">force</li>
-                                                        <li id="series_pressure_units_id"  title="Insert a pressure units converter.">pressure</li>
-                                                        <li id="series_torque_units_id"    title="Insert a torque units converter.">torque</li>
-                                                        <li id="series_power_units_id"     title="Insert a power units converter.">power</li>
-                                                        <li id="series_energy_units_id"    title="Insert an energy units converter.">energy</li>
-                                                        <li id="series_temperature_id"     title="Insert a temperature converter.">temperature</li>
-                                                    </ul>
-                                                </li>
-                                                <li id="series_object_system_id"          title="Functions for creating and accessing the prototype object system.">Object System</li>
-                                                <li>Output
-                                                    <ul>
-                                                        <li id="series_output_id"     title="Insert a call to an output function.">output functions</li>
-                                                        <li id="series_color_name_id" title="Insert a color name&#013;such as 'blue'.">color name</li>
-                                                        <li id="series_color_rgb_id"  title="Insert a color rgb designation&#013;such as rgb(0, 100, 255)">color rgb</li>
-                                                    </ul>
-                                                </li>
-                                                <li id="series_window_id"     title="Insert a call to a window function.">Window</li>
-                                                <li File id="series_file_id" title="Functions for files and persistent data.">File</li>
-                                                <li>Job
-                                                    <ul>
-                                                        <li id="series_job_name_id"    title="Insert a job name.">job name</li>
-                                                        <li id="series_job_method_id"  title="Insert a job method.">job method</li>
-                                                    </ul>
-                                                </li>
-                                                <li>Robot
-                                                    <ul>
-                                                        <li id="robots_help_id">Help</li>
-                                                        <li id="series_robot_instruction_id"   title="Insert a job instruction for Dexter.">instruction</li>
-                                                        <li id="series_robot_config_id"        title="Insert a config arg for the Dexter.move_to instruction.">robot config</li>
-                                                        <li id="series_robot_status_label_id"  title="Insert a robot status label.">robot status label</li>
-                                                        <li id="series_robot_subclass_id"      title="Insert a call to create an instance of a Robot subclass.">robot subclass</li>
-                                                        <li id="series_robot_name_id"          title="Insert code to get a robot instance.">robot name</li>
-                                                        <li id="series_serial_id"              title="Insert function names of DDE's serial port interface.&#013;These low level functions are used by Robot.Series">serial port</li>
-                                                    </ul>
-                                                </li>
-                                                <li>Dexter Robot
-                                                    <ul>
-                                                        <li id="series_dexter_utility_id"      title="Insert a call to a Dexter method.">Dexter utility</li>
-                                                        <li id="series_dexter_constant_id"     title="Insert a Dexter joint angle min, max or link length.">Dexter constant</li>
-                                                        <li id="series_oplet_id"               title="make_ins is a low_level way to make an instruction.&#013;Its first arg is an 'oplet' for 'type of instruction'.">oplet</li>
-                                                        <li id="series_w_oplet_address_id"     title='A "w" oplet address is a register in the FPGA.&#013;Its the 2nd arg in make_ins("w" ...) calls.'>w oplet address</li>
-                                                        <li id="series_set_parameter_name_id"  title="Insert a set_parameter name (1st arg).">set_param name</li>
-                                                    </ul>
-                                                </li>
-                                                <li>Music
-                                                    <ul>
-                                                        <li id="series_note_id"   title="Insert a call to create or process notes.">Note</li>
-                                                        <li id="series_phrase_id" title="Insert a call to create or process phrases.">Phrase</li>
-                                                    </ul>
-                                                </li>
-                                                <li id="series_test_suite_id">Test Suite</li>
-                                            </ul>
-                                        </li>
-                                    </ul>
-                                </li>
                                 <li style="display:inline-block;padding-left:3px;padding-right:0px;" title="Tools for managing Jobs and inserting examples.">Jobs&#9660;
                                     <ul>
                                         <li id="jobs_help_id">Help</li>
-                                        <li id="dui2_id"               title="Show a dialog box to directly operate Dexter.">Dexter UI...</li>
-                                        <li id="show_robot_status_id"  title="Pop up a dialog showing the robot status&#013;for a Dexter of your choosing.&#013;It displays updates as soon as they are available.">Show robot status</li>
                                         <li id="jobs_report_id"        title="Display a report of all Jobs in this session.">Show report</li>
                                         <li id="insert_new_job_id"     title="Insert into the editor, an empty new Job.">New Job Ctrl/&#8984;j</li>
                                         <li id="eval_and_start_job_id" title="Run instructions based on selection and cursor position.&#013;Choosing this item scrolls to documentation on it.">Eval & Start Job</li>
@@ -514,23 +513,28 @@
                                         <li id="wrap_instruction_id" title="Wraps the selected Dex instructions&#013;in an 'async' function definition.">Wrap Instructions</li>
 
                                         <li id="init_dxf_drawing_id" title="Insert a call to DXF.init_drawing&#13;into the editor.&#13;Also scrolls Doc pane to doc.">DXF.init_drawing()</li>
-                                        <li>Dexter Tools
-                                           <ul>
-                                                <li id="browse_dexter_id"    title="Browse the web page of&#13;the default Dexter&#13;(selected in the Misc Pane header).">Browse Dexter</li>
-                                                <li id="calibrate_id"        title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
-                                                <li id="monitor_id"          title="Monitor a Dexter's state.">Monitor Dexter...</li>
-                                                <li id="ping_dexter_id"      title="Find out if a Dexter&#13;or other ip_address&#13;is connected to this computer.">Ping Dexter...</li>
-                                                <li id="reboot_joints_id"    title="Re-enable Joints 6 & 7&#13;when they have been disabled and red lights flash,&#13;Documentation will be shown when you choose this.">Reboot Joints</li>
-                                                <li id="reboot_dexter_id"    title="The default Dexter (see Misc pane header) is rebooted.&#13;This is equivalent to turning Dexter off and on.&#13;This takes 3 minutes.&#13;You can't use Dexter during this time.">Reboot Dexter</li>
-                                                <li id="show_errors_log_id"  title="Show the content of the file errors.log&#13;on the default Dexter.">Show errors.log</li>
-                                                <li id="dexter_start_options_id" title="View and set the operations run&#13;when the Dexter selected in the Misc Pane header&#13;is turned on.">Start Options</li>
-                                                <li id="update_firmware_id"  title="Update the software on the default Dexter&#13;(selected in the Misc Pane header).">Update Firmware</li>
-                                           </ul>
-                                        </li>
                                         <li id="run_job_on_dexter_id" title="Grab the Job defined in the selection,&#13;send it to the Job's Dexter robot,&#13;define and start it in the Job Engine.&#13;Warning: takes 40 seconds to start.">Run Job on Dexter</li>
                                         <li id="show_messaging_dialog_id" title="Pop up a window of possibilities&#13;for communicating with other DDEs&#13;on the internet.">Messaging...</li>
                                     </ul>
                                 </li>
+                                <li style="display:inline-block;padding-left:3px;padding-right:0px;" title="Tools for using Dexter robots.">Dexter&#9660;
+                                    <ul>
+                                        <li id="browse_dexter_id"    title="Browse the web page of&#13;the default Dexter&#13;(selected in the Misc Pane header).">Browse Dexter</li>
+                                        <li id="calibrate_id"        title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
+                                        <li id="dui2_id"             title="Show a dialog box to directly operate Dexter."><b>Dexter UI...</b></li>
+
+                                        <li id="monitor_id"          title="Monitor a Dexter's state.">Monitor Dexter...</li>
+                                        <li id="ping_dexter_id"      title="Find out if a Dexter&#13;or other ip_address&#13;is connected to this computer.">Ping Dexter...</li>
+                                        <li id="reboot_joints_id"    title="Re-enable Joints 6 & 7&#13;when they have been disabled and red lights flash,&#13;Documentation will be shown when you choose this.">Reboot Joints</li>
+                                        <li id="reboot_dexter_id"    title="The default Dexter (see Misc pane header) is rebooted.&#13;This is equivalent to turning Dexter off and on.&#13;This takes 3 minutes.&#13;You can't use Dexter during this time.">Reboot Dexter</li>
+                                        <li id="show_robot_status_id" title="Pop up a dialog showing the robot status&#013;for a Dexter of your choosing.&#013;It displays updates as soon as they are available."><b>Robot Status</b></li>
+
+                                        <li id="show_errors_log_id"  title="Show the content of the file errors.log&#13;on the default Dexter.">Show errors.log</li>
+
+                                        <li id="dexter_start_options_id" title="View and set the operations run&#13;when the Dexter selected in the Misc Pane header&#13;is turned on.">Start Options</li>
+                                        <li id="update_firmware_id"  title="Update the software on the default Dexter&#13;(selected in the Misc Pane header).">Update Firmware</li>
+                                    </ul>
+                                </li> <!--end Dexter menu item-->
                                 <li style="display:inline-block;padding-left:3px;padding-right:0px;" title="Tools for creating and running diagnostics.">Test&#9660;
                                     <ul>
                                         <li id="test_suites_help_id">Help</li>

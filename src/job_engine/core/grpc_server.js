@@ -39,8 +39,50 @@ class GrpcServer {
           //then passed_in_string will be "FRY YO"  (without the double quotes).
           //default is "world"
         console.log(JSON.stringify(call))
-        callback(null, {message: 'the new Hello ' + passed_in_string});
+        let instr
+        let mess
+        try {
+            instr = eval(passed_in_string)
+            console.log("evaled: " + passed_in_string + " to: " + instr)
+            GrpcServer.define_wait_for_instruction_maybe() //can't use "this" in sayHello.
+            if(!Job.wait_for_instruction.is_active()){
+                Job.wait_for_instruction.start({initial_instruction: instr})
+                console.log("Started: Job.wait_for_instruction")
+            }
+            else {
+                Job.insert_instruction(instr,
+                                       {job:    "wait_for_instruction",
+                                        offset: "end"
+                                       })
+                console.log("Inserted Instruction: passed_in_string")
+            }
+            mess = "Running Instruction: " + passed_in_string + "\nstatus: [" +
+                    Dexter.dexter0.robot_status + "]"
+        }
+        catch(err) {
+            console.log("Caught error: " + err.message)
+            mess = "Hello " + passed_in_string
+        }
+        callback(null, {message: mess}) //you can have at most 1 call
+            //to the callback. If there's a 2nd one, even the first one won't show in client,
+            //and client will hang.
     }
+
+    static define_wait_for_instruction_maybe(callback) {
+        if(!Job.wait_for_instruction) {
+            Dexter.dexter0.simulate = true
+            new Job({
+                name: "wait_for_instruction",
+                when_do_list_done: "wait",
+                inter_do_item_dur: 0.1,
+                do_list: [
+                    IO.out("Job.wait_for_instruction is waiting for an instruction.", "green")
+                ]
+            })
+            console.log("Defined: Job.wait_for_instruction")
+        }
+    }
+
     static handleDexterInstruction(call, callback) {
         console.log("top of handleDexterInstruction") //prints out in je browser out pane whenever a message comes to the server
         let passed_in_string = call.request.name //on command line.

@@ -1377,7 +1377,7 @@ window_modify_id.onclick=function(){Editor.insert(
        units_system_help_id.onclick = function(){ DocCode.open_doc(units_system_help_doc_id) }
 
        //jobs menu
-      show_robot_status_id.onclick   = RobotStatusDialog.show
+      show_robot_status_id.onclick   = function(){RobotStatusDialog.show()} //uses Dexter.default
       jobs_report_id.onclick         = function(){Job.report() }
       stop_all_jobs_id.onclick       = function(){
                                            Job.stop_all_jobs()
@@ -1756,6 +1756,8 @@ window_modify_id.onclick=function(){Editor.insert(
           }
           simulate_radio_false_id.onclick = function(){ DDE_DB.persistent_set("default_dexter_simulate", false);  event.stopPropagation()}
           simulate_radio_both_id.onclick  = function(){ DDE_DB.persistent_set("default_dexter_simulate", "both"); event.stopPropagation()}
+
+          default_dexter_name_id.oninput=RobotStatusDialog.robot_name_changed //todo needs testing
 
           const sim_val = DDE_DB.persistent_get("default_dexter_simulate")
           if      (sim_val === true)   { simulate_radio_true_id.checked  = true }

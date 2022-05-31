@@ -23,6 +23,7 @@ class RobotStatus{
         return RobotStatus.array_status_mode(this.robot_status)
     }
 
+    //called from Monitor
     static array_status_mode(robot_status_array){
         let raw = robot_status_array[Dexter.STATUS_MODE]
         if      (typeof(raw) === "string") { return parseInt(raw) }

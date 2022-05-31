@@ -8,31 +8,56 @@
 class RobotStatusDialog{
 //only called from the menu bar Jobs/show robot status item
 //makes a new window, but not if one is already up.
-    static show(robot, default_status_mode=0, x=200, y=200){
-        if(RobotStatusDialog.window_up()) { out("Robot Status is already shown.") }
+    static dexter_instance   = null  //might never be set, but can be an input
+    static dexter_ip_address = null  //should always be determined after initialization
+    static dexter_name       = null  //should always be determined after initialization
+    static robot_status      = null  //should always be determined after initialization
+
+    //robot can be a dexter instance OR a string of an IP address to a dexter.
+    static show(robot=Dexter.default,
+                default_status_mode=0,
+                robot_status = null, //array of 60
+                x=200,
+                y=200){
+        if (robot instanceof Dexter){ //hits when user chooses menu item "Show Robot Status" in which case Dexter.default is passed the first arg.
+            this.dexter_instance   = robot
+            this.dexter_ip_address = this.dexter_instance.ip_address
+            this.dexter_name       = this.dexter_instance.name
+            this.robot_status      = (robot_status ? robot_status : this.dexter_instance.robot_status)
+        }
+        else { //robot arg should be a string of an ip address
+            this.dexter_instance   = null
+            this.dexter_ip_address = robot
+            this.dexter_name       = robot
+            this.robot_status      = (robot_status ? robot_status :
+                                      null) //happens when no job has been run on a Dexter
+        }
+        if(RobotStatusDialog.window_up()) { this.update_robot_status_table() }
         else {
-            if(!(robot instanceof Dexter)) {
-                robot = (Job.last_job? Job.last_job.robot : Dexter.dexter0)
-            }
-            let content = RobotStatusDialog.make_html_table(robot)
-            let cal = robot.is_calibrated()
+            let content = RobotStatusDialog.make_html_table()
+            let cal = (this.dexter_instance ? this.dexter_instance.is_calibrated() : null )
             cal = ((cal === null) ? "unknown" : cal)
             let sm_to_show
-            if(robot.rs) { sm_to_show = robot.rs.status_mode() }
+            if(this.dexter_instance && this.dexter_instance.rs) { sm_to_show = this.dexter_instance.rs.status_mode() }
             else { sm_to_show = default_status_mode } //happens when there is no status mode, ie no job has run on this robot.
                //BUT the user might have still changed the "g" input number spinner, and then clicked the update button,
                //so we want to pass in that number from the prev dialog, which we do in the default_status_mode
             RobotStatusDialog.show_window_id =  //careful. "this" is the dom elt when this is first called, not the class.
               show_window({content: content,
                 title:  "<span style='font-size:16px;'>Robot Status of</span> " +
-                RobotStatusDialog.make_names_menu_html(robot) +
-                "<span title='Inspect this robot.' onclick='RobotStatusDialog.inspect_robot()' " +
-                "style='color:blue;cursor:pointer;font-weight:bold;font-size:14px;'> &#9432;</span>" +
-                "<span style='font-size:12px;margin-left:10px;'> Updated: <span id='robot_status_window_time_id'>" + RobotStatusDialog.update_time_string() + "</span></span>" +
+                //RobotStatusDialog.make_names_menu_html(robot) +
+                this.dexter_name +
+
+                  //"<span title='Inspect this robot.' onclick='RobotStatusDialog.inspect_robot()' " + //use circle_i in Misc Pane header
+                  //"style='color:blue;cursor:pointer;font-weight:bold;font-size:14px;'> &#9432;</span>" +
+                "<div style='font-size:12px;margin-left:8px;display:inline-block;'> Updated:<br/> " +
+                  "<span id='robot_status_window_time_id'>" + RobotStatusDialog.update_time_string() + "</span></div>" +
                 " <button id='robot_status_run_update_job_button_id' title='Defines and starts a Job&#13; that continually gets the robot status&#13;of the selected robot.&#13;Click again to stop that Job.'" +
                 " onclick='RobotStatusDialog.run_update_job()'>run rs_update job</button> " +
-                `<span style='font-size:12px;' title='The status_mode to use&#013;when the "run rs_update job" button is clicked.'> sm: <input id='robot_status_status_mode_id' type='number' step='1' value='` + sm_to_show + "' style='width:27px;'/></span> " +
-                "<span style='font-size:14px;'> &nbsp;&nbsp;is_calibrated: <span id='robot_status_is_calibrated_id'>" + cal + "</span></span> " +
+                `<span style='font-size:12px;' title='The status_mode to use&#013;when the "run rs_update job" button is clicked.'> sm: ` +
+                "<input id='robot_status_status_mode_id' type='number' step='1' value='" + sm_to_show + "' style='width:27px;'/></span> " +
+                "<div style='font-size:12px;display:inline-block;'> &nbsp;&nbsp;is_calibrated:<br/>" +
+                 "<span id='robot_status_is_calibrated_id' style='margin-left:7px;'>" + cal + "</span></div> " +
                 `<button title='Inspect the robot_status array.' onclick="RobotStatusDialog.inspect_array()"'>Inspect Array</button> ` +
                 `<button title="Browse the Dexter node server main page.&#013;For this to work, you must be connected&#013;to a Dexter that's running its server." onclick="RobotStatusDialog.browse()"'>Browse</button> `
                 ,
@@ -41,19 +66,20 @@ class RobotStatusDialog{
                 width:  890,
                 height: 380
             })
-            setTimeout(function(){
-                update_robot_status_names_select_id.oninput=RobotStatusDialog.robot_name_changed
-            }, 300)
+            //setTimeout(function(){
+            //    update_robot_status_names_select_id.oninput=RobotStatusDialog.robot_name_changed
+            //}, 300)
         }
     }
 
+     /* no longer used
     static inspect_robot(){
         let rob = this.selected_robot()
         inspect(rob)
-    }
+    }*/
 
     static window_up(){
-        return (globalThis.update_robot_status_names_select_id ? true : false)
+        return (globalThis.robot_status_status_mode_id ? true : false)
     }
 
     static close_window(){
@@ -62,7 +88,8 @@ class RobotStatusDialog{
        }
     }
 
-    //returns null if no update_robot_status window up, or if it doesn't have a robot selectec
+    //returns null if no update_robot_status window up, or if it doesn't have a robot selected
+    /*no longer used
     static selected_robot(){
         if (this.window_up()) {
             let rob_name = update_robot_status_names_select_id.value //might be "Choose" so no real window.
@@ -72,7 +99,9 @@ class RobotStatusDialog{
         }
         else {return null}
     }
+    */
 
+    /*no longer used
     static make_names_menu_html(robot){
         //broken chrome ignore's style on select and option, so sez stack overflow
         //but stack overflow sez use a style on optgroup. That doesn't work either.
@@ -83,7 +112,7 @@ class RobotStatusDialog{
             result += "<option" + sel + ">" + name + "</option>"
         }
         return result + "</optgroup></select>"
-    }
+    }*/
 
     static update_time_string(){
         let d = new Date()
@@ -95,20 +124,21 @@ class RobotStatusDialog{
     //If its not, then do nothing. But if it is, then update the displayed values in the table.
     static update_robot_status_table_maybe(robot){
         if(this.window_up()){
-            let existing_shown_robot = this.selected_robot()
-            if(existing_shown_robot && (existing_shown_robot == robot)){
-                this.update_robot_status_table(robot)
+            if(this.dexter_instance && (this.dexter_instance === robot)){
+                this.robot_status = this.dexter_instance.robot_status
+                this.update_robot_status_table()
             }
             else { } //do nothing.
         }
     }
 
     //called after the table is created, to update it dynamically.
-    static update_robot_status_table(robot){
-        let robot_status = robot.robot_status
+    static update_robot_status_table(){
+        let robot_status = this.robot_status
         if (this.window_up()) { //don't attempt to show if the window isn't up. this does repopulate window if its merely shrunken
             robot_status_window_time_id.innerHTML = this.update_time_string()
-            let sm = robot.rs.status_mode()
+
+            let sm = (robot_status ? robot_status[Dexter.STATUS_MODE] : 0)
             let sm_inner_text = STATUS_MODE_id.innerText
             let actual_sm_now_shown
             if(Utils.is_string_a_integer(sm_inner_text)) {
@@ -124,7 +154,7 @@ class RobotStatusDialog{
                 let win_y = win.offsetTop
                 this.close_window()
                 //setTimeout(function() {
-                    RobotStatusDialog.show(robot, actual_sm_now_shown, win_x, win_y)
+                    RobotStatusDialog.show(this.dexter_instance, actual_sm_now_shown, robot_status, win_x, win_y)
                 //    }, 100)
             }
             else {
@@ -150,9 +180,8 @@ class RobotStatusDialog{
                     STOP_TIME_id.title  = Utils.date_integer_to_long_string(robot_status[Dexter.STOP_TIME])
                     INSTRUCTION_TYPE_id.title = Robot.instruction_type_to_function_name(robot_status[Dexter.INSTRUCTION_TYPE])
                     if(globalThis["MEASURED_X_id"]) {
-                        let xyz
-                        if(robot.rs) { xyz = robot.rs.xyz()[0] }  //gets xyz array for joint 5}
-                        else { xyz = ["N/A", "N/A", "N/A"] }
+                        let robot_status_instance = new RobotStatus({robot_status: robot_status})
+                        let xyz = robot_status_instance.xyz()[0]
                         MEASURED_X_id.innerHTML = this.format_measured_meters(xyz[0])
                         MEASURED_Y_id.innerHTML = this.format_measured_meters(xyz[1])
                         MEASURED_Z_id.innerHTML = this.format_measured_meters(xyz[2])
@@ -175,20 +204,24 @@ class RobotStatusDialog{
     //called only when user chooses a new robot to display the status of.
     static robot_name_changed(name){
         //when called from the UI, the "name" arg is bound to the event.
-        if(typeof(name) != "string") {name = name.target.value}
-        let robot = Robot[name]
-        RobotStatusDialog.update_robot_status_table(robot) //can't use "this" for subject because "this" is the select widget
+        if(RobotStatusDialog.window_up()){
+            if (typeof (name) != "string") {
+                name = name.target.value
+            }
+            this.dexter_instance = Robot[name]
+            RobotStatusDialog.update_robot_status_table() //can't use "this" for subject because "this" is the select widget
+        }
     }
 
-    static make_html_table(robot){
+    static make_html_table(){
         //setting table class and using css to set fonts in th and td cells fails
         //let cs = " style='font-size:10pt;' " //cell style
         //let oplet = ds[Dexter.INSTRUCTION_TYPE]
-        let robot_status = robot.robot_status
+        let robot_status = this.robot_status
         let core_rows_html
-        let sm = (robot.rs ? robot.rs.status_mode() : 0)
+        let sm = (robot_status ? robot_status[Dexter.STATUS_MODE] : 0)
         let meth_name = "make_html_table_g" + sm
-        if(this[meth_name]) { core_rows_html = this[meth_name].call(this, robot_status, robot) }
+        if(this[meth_name]) { core_rows_html = this[meth_name].call(this, robot_status) }
         else { core_rows_html = this.make_html_table_g_other(robot_status) }
         //if(sm === 0)      { core_rows_html = this.make_html_table_g0(robot_status)  }
         //else if(sm === 1) { core_rows_html = this.make_html_table_g1(robot_status)  }
@@ -205,10 +238,13 @@ class RobotStatusDialog{
         return result
     }
 
-    static make_html_table_g0(robot_status, robot){
+    static make_html_table_g0(robot_status){
         let xyz
-        if(robot.rs) { xyz = robot.rs.xyz()[0] } //gets xyz array for joint 5
-        else { xyz = ["N/A", "N/A", "N/A"] }
+        if(robot_status) {
+            let rs_instance = new RobotStatus({robot_status: robot_status})
+            xyz = rs_instance.xyz()[0]  //gets xyz array for joint 5
+        }
+        else            { xyz = ["N/A", "N/A", "N/A"] }
       return (
         "<tr><th></th>         <th>Joint 1</th><th>Joint 2</th><th>Joint 3</th><th>Joint 4</th><th>Joint 5</th><th>Joint 6</th><th>Joint 7</th></tr>" +
         this.make_rs_row(robot_status, "MEASURED_ANGLE",    "J1_MEASURED_ANGLE",   "J2_MEASURED_ANGLE",   "J3_MEASURED_ANGLE",   "J4_MEASURED_ANGLE", "J5_MEASURED_ANGLE", "J6_MEASURED_ANGLE",  "J7_MEASURED_ANGLE") +
@@ -228,9 +264,12 @@ class RobotStatusDialog{
         "</span></td></tr>"      )
     }
 
-    static make_html_table_g1(robot_status, robot){
+    static make_html_table_g1(robot_status){
         let xyz
-        if(robot.rs) { xyz = robot.rs.xyz()[0]}  //gets xyz array for joint 5
+        if(robot_status) {
+            let rs_instance = new RobotStatus({robot_status: robot_status})
+            xyz = rs_instance.xyz()[0]  //gets xyz array for joint 5
+        }
         else { xyz = ["N/A", "N/A", "N/A"] }
         return (
             "<tr><th></th>         <th>Joint 1</th><th>Joint 2</th><th>Joint 3</th><th>Joint 4</th><th>Joint 5</th><th>Joint 6</th><th>Joint 7</th></tr>" +
@@ -244,9 +283,12 @@ class RobotStatusDialog{
             )
     }
 
-    static make_html_table_g2(robot_status, robot){
+    static make_html_table_g2(robot_status){
         let xyz
-        if(robot.rs) { xyz = robot.rs.xyz()[0]}  //gets xyz array for joint 5
+        if(robot_status) {
+            let rs_instance = new RobotStatus({robot_status: robot_status})
+            xyz = rs_instance.xyz()[0]  //gets xyz array for joint 5
+        }
         else { xyz = ["N/A", "N/A", "N/A"] }
         return (
             "<tr><th></th>         <th>Joint 1</th><th>Joint 2</th><th>Joint 3</th><th>Joint 4</th><th>Joint 5</th><th>Joint 6</th><th>Joint 7</th></tr>" +
@@ -387,40 +429,46 @@ class RobotStatusDialog{
             existing_job.stop_for_reason("interrupted", "user stopped job")
         }
         else {
-            let rob = this.selected_robot()
+            let rob = this.dexter_instance
             //let sm = (rob.rs ? rob.rs.status_mode() : 0)
             //robot_status_run_update_job_button_id.style.backgroundColor = "#AAFFAA"
-            let the_job = new Job({name: "rs_update",
-                                     robot: new Brain({name: "rs_update_brain"}),
-                                     inter_do_item_dur: 0.5, //UI update doesn't need to be faster than this.
-                                                             //its even hard to read the numbers if they are faster.
-                                                             //and we don't want to slow down a monitored job unessessarily
-                                     do_list: [ Control.loop(true,
-                                                   function() {
-                                                      if(RobotStatusDialog.window_up()){
-                                                          let cal = rob.is_calibrated()
-                                                          if (cal == null) { cal = "unknown" }
-                                                          robot_status_is_calibrated_id.innerHTML = cal
-                                                          let sm = robot_status_status_mode_id.value
-                                                          sm = parseInt(sm)
-                                                          //out("in Job.rs_update,  sending get_robot_status of: " + sm)
-                                                          return rob.get_robot_status(sm)
-                                                      }
-                                                      else {
-                                                          //out("in rs_update_brain window down, ending loop.")
-                                                          return Control.break()
-                                                      }
-                                                   })]})
-            the_job.start()
+            if(rob) {
+                let the_job = new Job({
+                    name: "rs_update",
+                    robot: new Brain({name: "rs_update_brain"}),
+                    inter_do_item_dur: 0.5, //UI update doesn't need to be faster than this.
+                                            //its even hard to read the numbers if they are faster.
+                                            //and we don't want to slow down a monitored job unessessarily
+                    do_list: [Control.loop(true,
+                        function () {
+                            if (RobotStatusDialog.window_up()) {
+                                let cal = rob.is_calibrated()
+                                if (cal == null) {
+                                    cal = "unknown"
+                                }
+                                robot_status_is_calibrated_id.innerHTML = cal
+                                let sm = robot_status_status_mode_id.value
+                                sm = parseInt(sm)
+                                //out("in Job.rs_update,  sending get_robot_status of: " + sm)
+                                return rob.get_robot_status(sm)
+                            } else {
+                                //out("in rs_update_brain window down, ending loop.")
+                                return Control.break()
+                            }
+                        })]
+                })
+                the_job.start()
+            }
+            else {
+                warning("Can't run_update_job because the robot shown is in the Job Engine, not in DDE.")
+            }
         }
     }
 
     static inspect_array(){
-        let robot_name = update_robot_status_names_select_id.value
-        let robot = Dexter[robot_name]
-        let robot_status_array = robot.robot_status
+        let robot_status_array = (this.dexter_instance ? this.dexter_instance.robot_status : this.robot_status)
         let rs_inst = new RobotStatus({robot_status: robot_status_array})
-        let sm = rs_inst.status_mode()
+        let sm = (robot_status_array ? rs_inst.status_mode() : this.default_status_mode)
         let labels = Dexter.robot_status_labels_sm(sm)
         let len = labels.length
         let array_for_display = []
@@ -428,20 +476,17 @@ class RobotStatusDialog{
             array_for_display.push([
                //i, //i is already printed by the inspector
                labels[i],
-                (robot_status_array ? robot_status_array[i] : "no status")])
+                (this.robot_status ? this.robot_status[i] : "no status")])
         }
         inspect(array_for_display)
     }
 
     static browse(){
         try{
-        let robot_name = update_robot_status_names_select_id.value
-        let robot = Dexter[robot_name]
-        let ip_addr = robot.ip_address
-        show_page(ip_addr)
+        show_page(this.ip_addrress)
         }
         catch(err) {
-            warning("Sorry, unable to browse the web page for: " + update_robot_status_names_select_id.value)
+            warning("Sorry, unable to browse the web page for: " + this.dexter_name)
         }
     }
 }

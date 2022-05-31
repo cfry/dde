@@ -262,6 +262,22 @@ class Job{
         return result
     }
 
+    static instances_in_src(src){
+        let base_id_before_new_defs = Job.job_id_base
+        try{ globalThis.eval(src) }
+        catch(err) {
+            dde_error("In Job.instances_in_src, evaling the src" +
+                " errored with: " + err.message + "<br/> " + err.toString())
+        }
+        let result = []
+        for(let i = base_id_before_new_defs + 1; true; i++){
+            let inst_maybe = Job.job_id_to_job_instance(i)  //returns null if no exist
+            if(inst_maybe) { result.push(inst_maybe) }
+            else { break; }
+        }
+        return result
+    }
+
     toString() { return "Job." + this.name }
 
     show_progress_maybe(){
@@ -349,11 +365,17 @@ class Job{
     //in the first place. So Job.instances_in_file and define_and_start_job really should take
     //a callback, but that causes some problems with where these fns are used. ARGGG
     //relavent in Messaging, dexter_user_interface2, instruction start_job, and maybe a few more places.
+    //If job_file_path has a newline in it, its considered to BE the src of
+    //a file or at least one or more job defs.
     static async define_and_start_job(job_file_path){
-        out("out: top of define_and_start_job passed path: " + job_file_path)
-        let job_instances = await Job.instances_in_file(job_file_path)
-        console.log("in Job.define_and_start_job got job_instances:" + job_instances)
-        if(job_instances.length == 0) {
+        let job_file_path_is_src = job_file_path.includes("\n")
+        out("out: define_and_start_job set job_file_path_is_src: " + job_file_path_is_src)
+        let job_instances
+        if(job_file_path_is_src) {
+            job_instances = Job.instances_in_src(job_file_path)
+            }
+        else { job_instances = await Job.instances_in_file(job_file_path) }
+        if(job_instances.length === 0) {
             warning("Could not find a Job definition in the file: " + job_file_path)
             if((platform === "node") && !globalThis.keep_alive_value){
                 warning("Closing the process of loading: " + job_file_path +
@@ -362,8 +384,7 @@ class Job{
             }
         }
         else {
-            console.log("now starting job: " + job_instances[0].name)
-            debugger;
+            let job_inst = job_instances[0]
             job_instances[0].start()
         }
     }

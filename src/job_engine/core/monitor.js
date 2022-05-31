@@ -149,6 +149,8 @@ class Monitor {
       //   of evaling source (value). It is called on the Monitor computer with the
       //   value. If callback is null, the job engine will not
       //   send a message back to the Monitor computer.
+      //   The callback should be a string that evals to a fn, or
+      //   a function whose toString() method gives us the src.
       // period indicates when source is evaled.
       //   "once" means just once the job engine recieves this message.
       //   A number means the number of seconds between evals of the source.
@@ -161,6 +163,7 @@ class Monitor {
          if(typeof(callback) === "function") {
              let fn_name = Utils.function_name(callback)
              if(fn_name !== "") { callback = fn_name}
+             else               { callback = callback.toString()}
          }
          let websocket = this.domain_to_websocket(domain)
          if(websocket) { this.send_aux(websocket, source, callback, period) }
@@ -230,12 +233,30 @@ class Monitor {
                    )
      }
 
+     static run_job(domain) {//always run_once.
+         let js_src = Editor.get_javascript("auto")
+         let full_src = "Job.define_and_start_job(`" + js_src + "`)"
+         this.send(domain, full_src, undefined, "run_once")
+     }
+
      static stop_active_monitors(domain){
             this.send(domain,
                 "MonitorServer.stop_active_monitors()",
                 "(function() { out('Monitor: active monitors stopped.') })",
                 "run_once"
             )
+     }
+
+     static show_robot_status(domain, period){
+         Monitor.send(domain,
+             "Dexter.default.robot_status",
+              "Monitor.show_robot_status_cb",
+             period)
+     }
+
+     static show_robot_status_cb(robot_status){
+         let sm = RobotStatus.array_status_mode(robot_status)
+         RobotStatusDialog.show(Monitor.domain, sm, robot_status)
      }
 	
      static close(domain){
@@ -245,13 +266,17 @@ class Monitor {
      }
 
      static show_dialog(){
+         let localhost_checked = ""
+         let dexter_default_checked = ""
+         if(simulate_radio_true_id.checked) {localhost_checked      = "checked" }
+         else                               {dexter_default_checked = "checked" }
          show_window({
              title: "Monitor Dexter <i>in the Job Engine</i>",
              x: 300, y: 50, width: 420, height: 550,
              content: `
 <fieldset><legend>Domain: <i>what Dexter to monitor</i></legend> 
-<input name="domain_kind" type="radio" value="localhost"      style="margin-left:10px;"/> Use DDE4 installed on Local PC (localhost)<br/>
-<input name="domain_kind" type="radio" value="Dexter.default" style="margin-left:10px;" checked/> Use Dexter.default (see Misc Pane header menu)<br/>
+<input name="domain_kind" type="radio" value="localhost"      style="margin-left:10px;" ` + localhost_checked      + `/> Use DDE4 installed on Local PC (localhost)<br/>
+<input name="domain_kind" type="radio" value="Dexter.default" style="margin-left:10px;" ` + dexter_default_checked + `/> Use Dexter.default (see Misc Pane header menu)<br/>
 <input name="domain_kind" type="radio" value="type_in"        style="margin-left:10px;"/> Type in ip_address: 
      <input name="domain_type_in" value="192.168.1.142"/>
 </fieldset>
@@ -270,7 +295,10 @@ class Monitor {
 
 
 <fieldset style="margin-top:10px;"><legend>Operations: <i>to be performed in the Job Engine</i></legend> 
-<input name="show_active_jobs"        type="button" style="margin: 4px;" value="Show Active Jobs"/><br/>
+<input name="show_active_jobs"        type="button" style="margin: 4px;" value="Show Active Jobs"/>
+<input name="run_job"                 type="button" style="margin: 4px; margin-left:53px;" value="Run Job"
+   title="If there is a selection in the Editor,&#013;treat it as a Job definition.&#013;Otherwise grab the whole buffer.&#013;Send it to the Job Engine.&#013;Define and start it.&#013;Always runs just once."/> <br/>
+
 <input name="show_active_monitors"    type="button" style="margin: 4px;" value="Show Active Monitors"/>
 <input name="stop_active_monitors"    type="button" style="margin: 4px 28px; 4px 4px;" value="Stop Active Monitors"
        title='Stops all periodic operations.&#013;Always runs just once,&#013;ignoring the "once" ckeckbox.'/><br/>
@@ -321,6 +349,7 @@ class Monitor {
           if      (domain_kind === "localhost")      { domain = "localhost"}
           else if (domain_kind === "Dexter.default") { domain = Dexter.default.ip_address}
           else if (domain_kind === "type_in")        { domain = val.domain_type_in}
+          Monitor.domain = domain //used by  Monitor.show_robot_status_cb
           let the_period
           if(vals.run_once){
               the_period = "run_once"
@@ -346,6 +375,9 @@ class Monitor {
           else if(vals.clicked_button_value === "show_active_jobs"){
              Monitor.send(domain, "Job.active_job_names()",  "Monitor.out", the_period)
           }
+          else if(vals.clicked_button_value === "run_job"){
+              Monitor.run_job(domain) //always run_once
+          }
           else if(vals.clicked_button_value === "show_active_monitors"){
               Monitor.send(domain, "MonitorServer.active_monitor_sources()", "Monitor.out", the_period)
           }
@@ -354,6 +386,9 @@ class Monitor {
           }
           else if(vals.clicked_button_value === "render_measured_angles"){
               Monitor.render_measured_angles(domain, the_period)
+          }
+          else if(vals.clicked_button_value === "show_robot_status"){
+              Monitor.show_robot_status(domain, the_period)
           }
           else if(vals.clicked_button_value === "send"){
               Monitor.send(domain, vals.source, vals.callback, the_period )
@@ -482,7 +517,7 @@ class MonitorServer {
             message_str = JSON.stringify(message_object)
         }
         else { message_str = message_object}
-        out("MonitorServer.send passed message: " + message_str + " wsc: " + ws_connection.url)
+        out("MonitorServer.send passed message: " + message_str + " wsc: " + ws_connection)
         if (ws_connection){
             let state_str = this.readyStateInt_to_string(ws_connection.readyState)
             if(state_str === "OPEN") {
