@@ -253,6 +253,7 @@ new TestSuite("version_functions",
     ['Utils.dde_version_between("1.1.0", null, "boolean")', "true"],
     ['Utils.dde_version_between(null, "100.0.0", "boolean")', "true"])
 
+/*
 new TestSuite("arcsec",
     ["[3600, 7200].arcsec()", "[1, 2]"],
     ['make_ins("a", 3600, 7200).arcsec()', '[undefined, undefined, undefined, undefined, "a", 1, 2]'],
@@ -260,12 +261,13 @@ new TestSuite("arcsec",
         '[undefined, undefined, undefined, undefined, "a", 1, 2, 3, 4, 5]'],
     ['make_ins("P", 3600, 7200, 10800, 14400, 18000).arcsec()',
         '[undefined, undefined, undefined, undefined, "P", 1, 2, 3, 4, 5]']
-)
+)*/
 
+/*
 new TestSuite("micron",
     ['[1000000, 2000000, "junk"].micron()', "[1, 2, 'junk']"],
     ["[].micron()", "[]"]
-)
+)*/
 
 new TestSuite("csv",
     ['var spreadsheet_data = [["head one", "head two"], [10, 20], [100, 200]]'],

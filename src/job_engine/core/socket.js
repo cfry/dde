@@ -610,12 +610,10 @@ class Socket{
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
         //console.log("top of Socket.on_receive.")
         //out("Socket.on_receive passed data: " + data, undefined, true)
-        let robot_status
-        let oplet
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
-            robot_status = data
-            oplet = robot_status[Dexter.INSTRUCTION_TYPE]
-            this.on_receive_aux(robot_status, oplet, payload_string_maybe, dexter_instance)
+            let robot_status = data
+            let oplet = robot_status[Dexter.INSTRUCTION_TYPE]
+            this.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance)
         }
         else if (data instanceof Blob) {//dde4 what comes back from  websocket
             //from https://javascript.info/blob
@@ -634,22 +632,22 @@ class Socket{
                 let oplet = robot_status[Dexter.INSTRUCTION_TYPE]
                 oplet = String.fromCharCode(oplet)
                 console.log("on_receive onload cb made rs: " + robot_status + " and got oplet; " + oplet)
-                Socket.on_receive_aux(robot_status, oplet, payload_string_maybe, dexter_instance)
+                Socket.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance)
             };
         }
         else { //a Uint8Array when called from the robot. //todo dde4 needs work for getting data from server
             let view1 = new Int32Array(data.buffer) //array_buff1.bytelength / 4); //weird google syntax for getting length of a array_buff1
-            robot_status = []
+            let robot_status = []
             for(var i = 0; i < view1.length; i++){
                 var elt_int32 = view1[i]
                 robot_status.push(elt_int32)
             }
             let opcode = robot_status[Dexter.INSTRUCTION_TYPE]
-            oplet  = String.fromCharCode(opcode)
-            this.on_receive_aux(robot_status, oplet, payload_string_maybe, dexter_instance)
+            let oplet  = String.fromCharCode(opcode)
+            this.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance)
         }
     }
-    static on_receive_aux(robot_status, oplet, payload_string_maybe, dexter_instance){
+    static on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance){
         //console.log("Socket.on_receive passed DU robot status: " + robot_status)
         //the simulator automatically does this so we have to do it here in non-simulation
         //out("on_receive got back oplet of " + oplet)
@@ -660,7 +658,7 @@ class Socket{
         //    " Dexter." + dexter_instance.name +
         //    " oplet: " + oplet +
         //    " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE])
-        if(job_instance.name === "monitor_dexter"){ debugger;}
+        //if(job_instance.name === "monitor_dexter"){ debugger;}
         if(oplet == "r"){ //Dexter.read_file
             if(typeof(payload_string_maybe) == "number") { //only can hit im sim.// should be 2 if it hits
                 robot_status[Dexter.ERROR_CODE] = 0 //even though we got an error from file_not_found,
@@ -750,7 +748,8 @@ class Socket{
             let payload_length = robot_status[Socket.PAYLOAD_LENGTH]
             let data_start = Socket.PAYLOAD_START
             let data_end = data_start + payload_length
-            payload_string_maybe = data.slice(data_start, data_end).toString()
+            let part_of_blob = data.slice(data_start, data_end)
+            payload_string_maybe = part_of_blob.toString()
         }
         else if (payload_string_maybe instanceof Buffer) { //beware, sometimes payload_string_maybe is a buffer. This converts it to a string.
             payload_string_maybe = payload_string_maybe.toString()

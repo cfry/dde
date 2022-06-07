@@ -867,7 +867,7 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
                 SW.close_windows_of_title(window_title_index_or_elt) //don't use "this", use SW because we may call this without its subject class
             }
             else if (typeof(window_title_index_or_elt) == "number"){ //ie a window_index
-                let win = this.get_window_of_index(window_title_index_or_elt)
+                let win = SW.get_window_of_index(window_title_index_or_elt)
                 SW.sw_close(win) //don't use "this", use SW because we may call this without its subject class
             }
             else if (window_title_index_or_elt instanceof HTMLElement) {
@@ -1029,6 +1029,7 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
         return "dont_print"
     }
 } // end class SW
+globalThis.close_window = SW.close_window //for backwards compatibility, but don't document.
 globalThis.clear_output = SW.clear_output //this isn't REALLY part of show_window
    //but is a window system like fn. In DDE3 it was just clear_output at top level
    //so I decided to preserve that, but also stick it in the SW class

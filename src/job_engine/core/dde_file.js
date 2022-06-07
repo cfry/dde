@@ -277,7 +277,7 @@ class DDEFile {
         let full_url = this.make_url(path, "/edit?edit=")
         //path = this.add_default_file_prefix_maybe(path)
         //let full_url = this.protocol_and_host() +  "/edit?edit=" + path
-        let file_info_response = await fetch(full_url) // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
+        let file_info_response = await fetch(full_url,  {mode: 'no-cors'}) // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
         if(file_info_response.ok) {
             let content = await file_info_response.text()
             return this.callback_or_return(callback, content)

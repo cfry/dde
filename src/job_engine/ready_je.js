@@ -1,9 +1,13 @@
+console.log("top of ready_je.js")
+
 import grpc from '@grpc/grpc-js'
 globalThis.grpc = grpc
 import protoLoader from '@grpc/proto-loader'
 globalThis.protoLoader = protoLoader
 
-console.log("top of ready_je.js")
+import StripsManager from "strips" //can't load into browser since it needs "fs".
+globalThis.StripsManager = StripsManager
+
 
 //import fetch from 'node-fetch' //not part of node 16, but in 18 so need this
 //to let job_engine call fetch used in DDEFile

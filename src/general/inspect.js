@@ -103,15 +103,15 @@ class Inspect{
             const title = new_inspect_html.substring(title_start, title_end)
             new_inspect_html = "<details><summary>" + title + "</summary></details>"
         }
-        if (html_elt_to_replace){
+        if (html_elt_to_replace) {
             //const inspect_elt = $(event.target).closest(".inspector")
-            if(html_elt_to_replace === true){
+            if (html_elt_to_replace === true) {
                 html_elt_to_replace = Inspect.make_inspector_id_string(stack_number, in_stack_position)
             }
-            if (typeof(html_elt_to_replace) == "string"){
+            if (typeof (html_elt_to_replace) == "string") {
                 html_elt_to_replace = globalThis[html_elt_to_replace]
             }
-            $(html_elt_to_replace).replaceWith(new_inspect_html) } //must use query repalceWith here as regular DOM replaceWith doesn't work
+        }
         else {  out_eval_result(new_inspect_html, undefined, src, src_label) }
         return item
     } //global called outside of this file, sometimes as onclick methods in HTML buttons.
@@ -553,7 +553,7 @@ class Inspect{
             let title = 'Insert the content of this file&#013;at the editor cursor.' + title_suffix
             let insert_button_html = `<button title='` + title + `' onclick='Inspect.inspect_insert_first_part_of_file("` + item + `")'>Insert</button>`
             let first_part = "File: " + item + " length: " + file_length + " "  + insert_button_html
-            result = "<details style='display:inline-block;'><summary><code style='background-color:transparent;'>" +
+            let result = "<details style='display:inline-block;'><summary><code style='background-color:transparent;'>" +
                     //"<i>String of " + item.length + "</i>: " +
                     //can't get rid of the blank line beteeen the first part and the body so best to make the background color same as the inspector
                     first_part + "</code></summary><pre style='margin:0;'><code style='background-color:transparent;'>" + the_file_content + "</code></pre></details>"
@@ -874,7 +874,7 @@ class Inspect{
         if ((the_name == undefined) && (new_object == Root)) { the_name = '"Root"' }
         else if (the_name == undefined) { the_name = "undefined" }
         else { the_name = '"' + the_name + '"' }
-        result = "{prototype: " + val_str  + "<br/>" +
+        let result = "{prototype: " + val_str  + "<br/>" +
             "&nbsp;name: " + the_name + "<br/>"
         for(let prop in new_object){
             if (new_object.hasOwnProperty(prop) && (prop != "name") && (prop != "prototype")){

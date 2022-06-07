@@ -2937,8 +2937,9 @@ Editor.context_help_for_make_ins_oplet = function(full_src, cursor_pos, identifi
         }
         //selection could be [asdf] or 123 or 123,456 or foo or bar()
         //if it looks like numbers, wrap [] around them
-        if (sel[0] !== "[") {
-            if (Utils.is_digit(sel[0])) {
+        let first_char = sel[0]
+        if (first_char !== "[") {
+            if (Utils.is_digit(sel[0]) || (first_char === "-")) {
                 sel = "[" + sel
                 if (sel[sel.length - 1] !== "]") { sel = sel + "]" }
             }
@@ -2952,7 +2953,7 @@ Editor.context_help_for_make_ins_oplet = function(full_src, cursor_pos, identifi
             else if ((sel.length <= 3) && (typeof(sel[0]) == "number")){
                 Robot.dexter0.move_to_fn(sel)
             }
-            else if ((sel.length <= 5) && (typeof(sel[0]) == "number")){
+            else if ((sel.length <= 7) && (typeof(sel[0]) == "number")){
                 Robot.dexter0.move_all_joints_fn(sel)
             }
             else { Robot.dexter0.run_instruction_fn(sel) }

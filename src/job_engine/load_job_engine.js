@@ -14,12 +14,19 @@ export {package_json}
 import * as Espree from "espree";
 globalThis.Espree = Espree;
 
+import js_beautify from "js-beautify"
+globalThis.js_beautify = js_beautify
+// js_beautify(JSON.stringify({a: 1, b:2})  //example of use. returns string nicely formatted.
+
+//import strips from "strips" //fails because strips needs "fs", ony available in node. See
+//globalThis.strips = strips  //see ready_je.js for the importing of strips
+
 //import { WebSocketServer } from 'ws'; //websocket server
 //globalThis.WebSocketServer = WebSocketServer
 
 //import {grpc} from '@grpc/grpc-js' //fails on build as does import grpc from '@grpc/grpc-js'
 //import {CallOptions, ChannelCredentials, ServiceError} from '@grpc/grpc-js' //from fails on build  from: https://snyk.io/advisor/npm-package/@grpc/grpc-js/example
-//globalThis.grpc = grpc
+//globalThis.grpc = grpc //see ready_je.js for the importing of grpc
 
 import "../job_engine/core/utils.js" //defines as global class Utils, and a few of its methods such as  dde_error, rgb
 import "../job_engine/core/je_and_browser_code.js" //defines SW and out globally
@@ -92,6 +99,7 @@ export async function init_job_engine(){
     Dexter.default = new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 3000}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
     //the only thing dde_init.js really MUST do is define dexter0, so just stick
     //it here and now user can screw up dde_init.js and still win.
+    Brain.brain0 = new Brain({name: "brain0"})
 
     Dexter.draw_dxf = DXF.dxf_to_instructions //see Robot.js
     Dexter.prototype.draw_dxf = function({robot = null}={}) {

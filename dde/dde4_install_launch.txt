@@ -69,7 +69,10 @@ First check to see if you need the new version of node:
        (old versions of Node 11 should be updated to version 16
        via the below instructions)
 
-- Browse: nodejs.org/dist/v16.13.1/
+If the node version is not at least 18.0.0 then do the following steps:
+
+- Browse: nodejs.org/dist/v18.0.0/ (but v 18 won't run on Dexter Ubuntu 16
+   due to out of date GLIBC C compiler @#$% not easy to install GLIBC.
     click:  node-v16.13.1-linux-armv7l.tar.xz
     This is for Dexter's arm71 processor. Its 17Mbytes. Now in fry downloads folder.
   OR
@@ -93,7 +96,7 @@ First check to see if you need the new version of node:
          you will be prompted for the password. Use: klg
   cd /usr/bin
   pkill node  //to stop node from running.
-  mv node node_11  //for backup and we will use this file later.
+  mv node node_old  //for backup and we will use this file later.
 
     Copy (on your Win or Mac)  downloads/node-v16.13.1-linux-armv7l/bin/node
     To   (on Dexter)           /usr/bin/node (name of the destination file)
@@ -108,15 +111,16 @@ First check to see if you need the new version of node:
         (prompts you for a password. Use: klg )
 
    -  In ssh session to dexter, set node's permissions via enter:
-    chmod node --reference=node_11  to fix up executable permissions to
+    chmod node --reference=node_old  to fix up executable permissions to
             those permissions of the previous version of node
             which should be: -rwxr-xr-x
     or
     chmod +rwxrwxrwx node
+    ls -l node //to verify you've changed the mod correctly
     node &   //to run node
-    to verify that you have the new version running, enter:
-    node --version
-     and it should give you a version 16 of node.
+
+    node --version //to verify that you have the new version running, enter:
+     and it should give you a version 18 of node.
 
 
 

@@ -306,7 +306,8 @@ class DexterSim{
                 ds_instance.queue_instance.start_sleep(instruction_array)
                 break;
             default:
-                warning("In DexterSim.send, got instruction not normally processed: " + oplet)
+                let temp_str = "non_normal_oplet_" + oplet //prevent this from being printed more than once between out pane clearnings
+                warning("In DexterSim.send, got instruction not normally processed: " + oplet, temp_str)
                 ds_instance.ack_reply(instruction_array)
                 break;
         }

@@ -134,8 +134,8 @@ class RobotStatusDialog{
 
     //called after the table is created, to update it dynamically.
     static update_robot_status_table(){
-        let robot_status = this.robot_status
         if (this.window_up()) { //don't attempt to show if the window isn't up. this does repopulate window if its merely shrunken
+            let robot_status = this.robot_status
             robot_status_window_time_id.innerHTML = this.update_time_string()
 
             let sm = (robot_status ? robot_status[Dexter.STATUS_MODE] : 0)

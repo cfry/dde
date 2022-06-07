@@ -1,7 +1,9 @@
 import grpc$1 from '@grpc/grpc-js';
 import protoLoader$1 from '@grpc/proto-loader';
+import StripsManager$1 from 'strips';
 import { WebSocketServer as WebSocketServer$1 } from 'ws';
 import * as Espree$1 from 'espree';
+import js_beautify from 'js-beautify';
 import compareVersions from 'compare-versions';
 import require$$0 from 'domain';
 import * as readline from 'readline';
@@ -77,6 +79,7 @@ var dependencies = {
 	"shepherd.js": "^8.3.1",
 	"simple-get": "^3.1.0",
 	stream: "^0.0.2",
+	strips: "^0.0.10",
 	three: "^0.118.3",
 	"three-fbx-loader": "^1.0.3",
 	"three-gltf-loader": "^1.111.0",
@@ -2956,7 +2959,7 @@ class SW$1 { //stands for Show Window. These are the aux fns that the top level 
                 SW$1.close_windows_of_title(window_title_index_or_elt); //don't use "this", use SW because we may call this without its subject class
             }
             else if (typeof(window_title_index_or_elt) == "number"){ //ie a window_index
-                let win = this.get_window_of_index(window_title_index_or_elt);
+                let win = SW$1.get_window_of_index(window_title_index_or_elt);
                 SW$1.sw_close(win); //don't use "this", use SW because we may call this without its subject class
             }
             else if (window_title_index_or_elt instanceof HTMLElement) {
@@ -3117,6 +3120,7 @@ class SW$1 { //stands for Show Window. These are the aux fns that the top level 
         return "dont_print"
     }
 } // end class SW
+globalThis.close_window = SW$1.close_window; //for backwards compatibility, but don't document.
 globalThis.clear_output = SW$1.clear_output; //this isn't REALLY part of show_window
    //but is a window system like fn. In DDE3 it was just clear_output at top level
    //so I decided to preserve that, but also stick it in the SW class
@@ -16097,7 +16101,6 @@ class Job$1{
             if(inst_maybe) { result.push(inst_maybe); }
             else { break; }
         }
-        console.log("instances_in_src made result length: " + result.length + " of: " + result);
         return result
     }
 
@@ -16191,19 +16194,13 @@ class Job$1{
     //If job_file_path has a newline in it, its considered to BE the src of
     //a file or at least one or more job defs.
     static async define_and_start_job(job_file_path){
-        out("out: top of define_and_start_job passed path: " + job_file_path);
         let job_file_path_is_src = job_file_path.includes("\n");
         out("out: define_and_start_job set job_file_path_is_src: " + job_file_path_is_src);
         let job_instances;
         if(job_file_path_is_src) {
             job_instances = Job$1.instances_in_src(job_file_path);
-            console.log("back in define_and_start_job with job_instances: " + job_instances);
-            console.log("back in define_and_start_job with job_instances type: " + typeof(job_instances));
-
-            console.log("back in define_and_start_job after calling instances_in_src with job_instances.length: " + job_instances.length);
-        }
+            }
         else { job_instances = await Job$1.instances_in_file(job_file_path); }
-        console.log("in Job.define_and_start_job got job_instances:" + job_instances);
         if(job_instances.length === 0) {
             warning("Could not find a Job definition in the file: " + job_file_path);
             if((platform === "node") && !globalThis.keep_alive_value){
@@ -16213,9 +16210,7 @@ class Job$1{
             }
         }
         else {
-            let job_inst = job_instances[0];
-            console.log("now starting job with inst: " + job_inst + " having name: " + job_inst.name);
-            debugger;
+            job_instances[0];
             job_instances[0].start();
         }
     }
@@ -28290,12 +28285,10 @@ class Socket$1{
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
         //console.log("top of Socket.on_receive.")
         //out("Socket.on_receive passed data: " + data, undefined, true)
-        let robot_status;
-        let oplet;
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
-            robot_status = data;
-            oplet = robot_status[Dexter.INSTRUCTION_TYPE];
-            this.on_receive_aux(robot_status, oplet, payload_string_maybe, dexter_instance);
+            let robot_status = data;
+            let oplet = robot_status[Dexter.INSTRUCTION_TYPE];
+            this.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance);
         }
         else if (data instanceof Blob) {//dde4 what comes back from  websocket
             //from https://javascript.info/blob
@@ -28314,33 +28307,33 @@ class Socket$1{
                 let oplet = robot_status[Dexter.INSTRUCTION_TYPE];
                 oplet = String.fromCharCode(oplet);
                 console.log("on_receive onload cb made rs: " + robot_status + " and got oplet; " + oplet);
-                Socket$1.on_receive_aux(robot_status, oplet, payload_string_maybe, dexter_instance);
+                Socket$1.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance);
             };
         }
         else { //a Uint8Array when called from the robot. //todo dde4 needs work for getting data from server
             let view1 = new Int32Array(data.buffer); //array_buff1.bytelength / 4); //weird google syntax for getting length of a array_buff1
-            robot_status = [];
+            let robot_status = [];
             for(var i = 0; i < view1.length; i++){
                 var elt_int32 = view1[i];
                 robot_status.push(elt_int32);
             }
             let opcode = robot_status[Dexter.INSTRUCTION_TYPE];
-            oplet  = String.fromCharCode(opcode);
-            this.on_receive_aux(robot_status, oplet, payload_string_maybe, dexter_instance);
+            let oplet  = String.fromCharCode(opcode);
+            this.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance);
         }
     }
-    static on_receive_aux(robot_status, oplet, payload_string_maybe, dexter_instance){
+    static on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance){
         //console.log("Socket.on_receive passed DU robot status: " + robot_status)
         //the simulator automatically does this so we have to do it here in non-simulation
         //out("on_receive got back oplet of " + oplet)
         robot_status[Dexter.INSTRUCTION_TYPE] = oplet;
         let job_id = robot_status[Dexter.JOB_ID];
-        let job_instance = Job.job_id_to_job_instance(job_id);
+        Job.job_id_to_job_instance(job_id);
         //out("In on_receive_aux for Job." + job_instance.name +
         //    " Dexter." + dexter_instance.name +
         //    " oplet: " + oplet +
         //    " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE])
-        if(job_instance.name === "monitor_dexter"){ debugger;}
+        //if(job_instance.name === "monitor_dexter"){ debugger;}
         if(oplet == "r"){ //Dexter.read_file
             if(typeof(payload_string_maybe) == "number") { //only can hit im sim.// should be 2 if it hits
                 robot_status[Dexter.ERROR_CODE] = 0; //even though we got an error from file_not_found,
@@ -28430,7 +28423,8 @@ class Socket$1{
             let payload_length = robot_status[Socket$1.PAYLOAD_LENGTH];
             let data_start = Socket$1.PAYLOAD_START;
             let data_end = data_start + payload_length;
-            payload_string_maybe = data.slice(data_start, data_end).toString();
+            let part_of_blob = data.slice(data_start, data_end);
+            payload_string_maybe = part_of_blob.toString();
         }
         else if (payload_string_maybe instanceof Buffer) { //beware, sometimes payload_string_maybe is a buffer. This converts it to a string.
             payload_string_maybe = payload_string_maybe.toString();
@@ -28932,7 +28926,8 @@ class DexterSim$1{
                 ds_instance.queue_instance.start_sleep(instruction_array);
                 break;
             default:
-                warning("In DexterSim.send, got instruction not normally processed: " + oplet);
+                let temp_str = "non_normal_oplet_" + oplet; //prevent this from being printed more than once between out pane clearnings
+                warning("In DexterSim.send, got instruction not normally processed: " + oplet, temp_str);
                 ds_instance.ack_reply(instruction_array);
                 break;
         }
@@ -31296,7 +31291,7 @@ class DDEFile$1 {
         let full_url = this.make_url(path, "/edit?edit=");
         //path = this.add_default_file_prefix_maybe(path)
         //let full_url = this.protocol_and_host() +  "/edit?edit=" + path
-        let file_info_response = await fetch(full_url); // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
+        let file_info_response = await fetch(full_url,  {mode: 'no-cors'}); // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
         if(file_info_response.ok) {
             let content = await file_info_response.text();
             return this.callback_or_return(callback, content)
@@ -33245,6 +33240,11 @@ class Monitor {
          };
       } //end of init
 
+      static close(domain){
+            let websocket = this.domain_to_websocket(domain);
+            websocket.close();
+            this.delete_domain(domain);
+      }
 
       static readyStateInt_to_string(int){
             let states = ["CONNECTING", "OPEN", "CLOSING", "CLOSED"];
@@ -33333,8 +33333,11 @@ class Monitor {
          if(websocket) {
              url_message = "for websocket: " + websocket.url + " ";
          }
-         let result = {value: value, command: json_data.source, value_string: json_data.value,
-                       error_type: json_data.error_type, error_message: json_data.error_message,
+         let result = {value: value,
+                       command: json_data.source,
+                       value_string: json_data.value,
+                       error_type: json_data.error_type,
+                       error_message: json_data.error_message,
                        full_error_message: json_data.full_error_message};
          let src_label = "Monitor " + url_message + " <i>the result of evaling:</i> ";
          eval_js_part3(result, src_label);
@@ -33346,47 +33349,7 @@ class Monitor {
              value + "</fieldset>")*/
       }
 
-      //higher levels sends:
-      //example: Monitor.render_measured_angles()
-     static render_measured_angles(domain, period=0.05){
-          this.send(domain,
-                    "Dexter.dexter0.rs.measured_angles()",
-                    "(function(angles) { SimUtils.render_joints(angles) })",
-                    period
-                   );
-     }
 
-     static run_job(domain) {//always run_once.
-         let js_src = Editor.get_javascript("auto");
-         let full_src = "Job.define_and_start_job(`" + js_src + "`)";
-         this.send(domain, full_src, undefined, "run_once");
-     }
-
-     static stop_active_monitors(domain){
-            this.send(domain,
-                "MonitorServer.stop_active_monitors()",
-                "(function() { out('Monitor: active monitors stopped.') })",
-                "run_once"
-            );
-     }
-
-     static show_robot_status(domain, period){
-         Monitor.send(domain,
-             "Dexter.default.robot_status",
-              "Monitor.show_robot_status_cb",
-             period);
-     }
-
-     static show_robot_status_cb(robot_status){
-         let sm = RobotStatus.array_status_mode(robot_status);
-         RobotStatusDialog.show(Monitor.domain, sm, robot_status);
-     }
-	
-     static close(domain){
-              let websocket = this.domain_to_websocket(domain);
-              websocket.close();
-              this.delete_domain(domain);
-     }
 
      static show_dialog(){
          let localhost_checked = "";
@@ -33395,7 +33358,7 @@ class Monitor {
          else                               {dexter_default_checked = "checked"; }
          show_window({
              title: "Monitor Dexter <i>in the Job Engine</i>",
-             x: 300, y: 50, width: 420, height: 550,
+             x: 300, y: 50, width: 430, height: 550,
              content: `
 <fieldset><legend>Domain: <i>what Dexter to monitor</i></legend> 
 <input name="domain_kind" type="radio" value="localhost"      style="margin-left:10px;" ` + localhost_checked      + `/> Use DDE4 installed on Local PC (localhost)<br/>
@@ -33419,50 +33382,40 @@ class Monitor {
 
 <fieldset style="margin-top:10px;"><legend>Operations: <i>to be performed in the Job Engine</i></legend> 
 <input name="show_active_jobs"        type="button" style="margin: 4px;" value="Show Active Jobs"/>
-<input name="run_job"                 type="button" style="margin: 4px; margin-left:53px;" value="Run Job"
+<input name="run_job"                 type="button" style="margin: 4px 4px 4px 95px;" value="Run Job"
    title="If there is a selection in the Editor,&#013;treat it as a Job definition.&#013;Otherwise grab the whole buffer.&#013;Send it to the Job Engine.&#013;Define and start it.&#013;Always runs just once."/> <br/>
 
 <input name="show_active_monitors"    type="button" style="margin: 4px;" value="Show Active Monitors"/>
-<input name="stop_active_monitors"    type="button" style="margin: 4px 28px; 4px 4px;" value="Stop Active Monitors"
+<input name="stop_active_monitors"    type="button" style="margin: 4px 4px 4px 70px;" value="Stop Active Monitors"
        title='Stops all periodic operations.&#013;Always runs just once,&#013;ignoring the "once" ckeckbox.'/><br/>
 
 <input name="render_measured_angles"  type="button" style="margin: 4px;" value="Render Measured Angles"/> 
-<input name="show_robot_status"       type="button" style="margin: 4px;" value="Show Robot Status"/><br/>
-<input name="send"                    type="button" style="margin: 4px;" value="Send"/> code to run in Job Engine:<br/>
+    <input style="margin:0px;padding:0px;" name="render_measured_angles_many" type="checkbox" data-onchange="true"
+           title="Run render_measured_angles continuously,&#013;i.e. more than once, every 'period'."/>
+    <span style="font-size:14px;margin:0px;padding:0px;">&gt;1</span>
+<input name="show_robot_status"       type="button" style="margin: 4px 4px 4px 10px;" value="Show Robot Status"/>
+    <input style="margin:0px;padding:0px;" name="show_robot_status_many" type="checkbox" data-onchange="true"
+       title="Refresh robot status continuously,&#013;i.e. more than once, every 'period'."/>
+    <span style="font-size:14px;margin:0px;padding:0px;">&gt;1</span>
+ <br/>
+<input name="send"                    type="button" style="margin: 4px;" value="Send"/> 
+    <input style="margin:0px;padding:0px;" name="send_many" type="checkbox" data-onchange="true"
+    title="Send the below code continuously,&#013;i.e. more than once, every 'period'."/>
+    <span style="font-size:14px;margin:0px 20px 0px 0px;padding:0px;">&gt;1</span>
+code to run in Job Engine:<br/>
 <textarea name="source" rows="2" cols="80">Job.active_job_names() //returns array of strings</textarea>
-<div style="margin-left:63px;"> callback to run in DDE:</div>
+<div style="margin-left:120px;"> callback to run in DDE:</div>
 <textarea name="callback" rows="3" cols="80">function(val){\n    out("Job count: " + val.length, "green")\n}</textarea>
 </fieldset>
-<fieldset><legend>Period: <i>how often to run the operation</i></legend> 
-<input name="run_once" type="checkbox" style="margin-left:10px;" checked/>
+<fieldset><legend>Period: <i>how often to run the &gt;1 checkbox operations</i></legend> 
+<!--<input name="run_once" type="checkbox" style="margin-left:10px;" checked/>
      once
-     &nbsp; <i>OR</i> &nbsp; every
+     &nbsp; <i>OR</i> &nbsp; every -->
      <input name="period_duration" type="number" value="0.1" step="0.05" min="0" style="width:60px;"/> seconds
 </fieldset>
 `,
              callback: "Monitor.handle_show_dialog"
          });
-      }
-      /*static browse_job_engine(){
-          let domain_kind = vals.domain_kind
-          let domain
-          if      (domain_kind === "localhost")      { domain = "localhost"}
-          else if (domain_kind === "Dexter.default") { domain = Dexter.default.ip_address}
-          else if (domain_kind === "type_in")        { domain = val.domain_type_in}
-          let url = "http://" + domain + ":/dde/jobs.html"
-          browse_page(url)
-      }*/
-      static copy_job_to_job_engine(domain) {
-          let src = Editor.get_javascript();
-          let job_name = Job.source_to_job_name(src);
-          if(job_name === null){
-              dde_error("Job.copy_job_to_job_engine could not find a valid Job Definition in the editor.");
-          }
-          else {
-              let path = "http://" + domain + "/srv/samba/share/dde_apps/" + job_name + ".dde";
-              out("Copying Job definition to: " + path);
-              DDEFile.write_file_async(path, src);
-          }
       }
 
       static handle_show_dialog(vals){
@@ -33473,12 +33426,11 @@ class Monitor {
           else if (domain_kind === "Dexter.default") { domain = Dexter.default.ip_address;}
           else if (domain_kind === "type_in")        { domain = val.domain_type_in;}
           Monitor.domain = domain; //used by  Monitor.show_robot_status_cb
-          let the_period;
-          if(vals.run_once){
-              the_period = "run_once";
+          /*if(vals.run_once){
+              the_period = "run_once"
           }
-          else { the_period = vals.period_duration; }
-
+          else { the_period = vals.period_duration }
+          */
           if(vals.clicked_button_value === "close_button") ;
 
           else if (vals.clicked_button_value === "job_engine_user_interface_id") {
@@ -33493,31 +33445,153 @@ class Monitor {
               Monitor.copy_job_to_job_engine(domain);
           }
           else if(vals.clicked_button_value === "show_defined_jobs"){
-              Monitor.send(domain, "Job.defined_job_names()",  "Monitor.out", the_period);
+              Monitor.send(domain, "Job.defined_job_names()",  "Monitor.out",  "run_once");
           }
           else if(vals.clicked_button_value === "show_active_jobs"){
-             Monitor.send(domain, "Job.active_job_names()",  "Monitor.out", the_period);
+             Monitor.send(domain, "Job.active_job_names()",  "Monitor.out",  "run_once");
           }
           else if(vals.clicked_button_value === "run_job"){
               Monitor.run_job(domain); //always run_once
           }
           else if(vals.clicked_button_value === "show_active_monitors"){
-              Monitor.send(domain, "MonitorServer.active_monitor_sources()", "Monitor.out", the_period);
+              Monitor.send(domain, "MonitorServer.active_monitor_sources()", "Monitor.out",  "run_once");
           }
           else if(vals.clicked_button_value === "stop_active_monitors"){
               Monitor.stop_active_monitors(domain); //don't run periodically.
+              document.querySelector('[name="render_measured_angles_many"]').checked = false;
+              document.querySelector('[name="show_robot_status_many"]').checked = false;
+              document.querySelector('[name="send_many"]').checked = false;
+
           }
           else if(vals.clicked_button_value === "render_measured_angles"){
-              Monitor.render_measured_angles(domain, the_period);
+              Monitor.render_measured_angles(domain, "run_once");
+          }
+          else if(vals.clicked_button_value === "render_measured_angles_many"){
+              if(vals.render_measured_angles_many){ //this is true if user clicked on unchecked box to make it checked
+                  Monitor.render_measured_angles(domain, vals.period_duration);
+              }
+              else {
+                  Monitor.stop_active_monitor(domain,
+                               "Dexter.dexter0.rs.measured_angles()"); //must be the same code as in hte status method: render_measured_angles
+              }
           }
           else if(vals.clicked_button_value === "show_robot_status"){
-              Monitor.show_robot_status(domain, the_period);
+              Monitor.show_robot_status(domain, "run_once");
+          }
+          else if(vals.clicked_button_value === "show_robot_status_many"){
+              if(vals.show_robot_status_many){
+                  Monitor.show_robot_status(domain, vals.period_duration);
+              }
+              else {
+                  Monitor.stop_active_monitor(domain,
+                               "Dexter.default.robot_status");
+              }
           }
           else if(vals.clicked_button_value === "send"){
-              Monitor.send(domain, vals.source, vals.callback, the_period );
+              Monitor.send(domain, vals.source, vals.callback, "run_once" );
+          }
+          else if(vals.clicked_button_value === "send_many"){
+              if(vals.send_many) {
+                  Monitor.send(domain, vals.source, vals.callback, vals.period_duration);
+              }
+              else {
+                  Monitor.stop_active_monitor(domain, vals.source);
+              }
           }
           else {shouldnt("got unhandled click button value of: " + vals.clicked_button_value);}
       }
+    //higher levels sends:
+    static copy_job_to_job_engine(domain) {
+        let src = Editor.get_javascript();
+        let job_name = Job.source_to_job_name(src);
+        if(job_name === null){
+            dde_error("Job.copy_job_to_job_engine could not find a valid Job Definition in the editor.");
+        }
+        else {
+            let path = "http://" + domain + "/srv/samba/share/dde_apps/" + job_name + ".dde";
+            out("Copying Job definition to: " + path);
+            DDEFile.write_file_async(path, src);
+        }
+    }
+    //example: Monitor.render_measured_angles()
+    static render_measured_angles(domain, period=0.05){
+        this.send(domain,
+            "Dexter.dexter0.rs.measured_angles()", //if you change this, change the show_window handler for stopping it.
+            `(function(angles) {
+                                  SimUtils.render_joints(angles) 
+                              })`,
+            period
+        );
+    }
+
+    static run_job(domain) {//always run_once.
+        let js_src = Editor.get_javascript("auto");
+        let full_src = "Job.define_and_start_job(`" + js_src + "`)";
+        this.send(domain, full_src, undefined, "run_once");
+    }
+
+    static stop_active_monitors(domain){
+        this.send(domain,
+            "MonitorServer.stop_active_monitors()",
+            "(function() { out('Monitor: active monitors stopped.') })",
+            "run_once"
+        );
+    }
+
+    static stop_active_monitor(domain, operation_source){
+        this.send(domain,
+            "MonitorServer.stop_active_monitor('" + operation_source + "')",
+            "(function() { out('Monitor: active monitors stopped.') })",
+            "run_once"
+        );
+    }
+
+    static show_robot_status(domain, period){
+        Monitor.send(domain,
+            "Dexter.default.robot_status",
+            "Monitor.show_robot_status_cb",
+            period);
+    }
+
+    static show_robot_status_cb(robot_status){
+        if(RobotStatusDialog.window_up()){ //use existing window
+            RobotStatusDialog.robot_status = robot_status;
+            RobotStatusDialog.update_robot_status_table();
+        }
+        else { //create a new window
+            let sm = RobotStatus.array_status_mode(robot_status);
+            RobotStatusDialog.show(Monitor.domain, sm, robot_status);
+        }
+    }
+
+    static strips_solve({domain        = "required",
+                         callback      = "Monitor.out",
+                         period        = "run_once",
+
+                         strips_domain = "required",
+                         problem       = "required",
+                         fast        = true,
+                         verbose     = false,
+                         output        = "function(text) { console.log(text); }" //inside strips
+                      }) {
+         if(typeof(strips_domain) === "string") ; //ok as is
+         else { //assume its a JSON object
+             strips_domain = JSON.stringify(strips_domain);
+             if (!strips_domain.startsWith("{")) {
+                 dde_error("Monitor.strips_solve callee with object which isn't " +
+                     "a proper JSON object:\n" + strips_domain);
+             }
+         }
+         let src_obj = {strips_domain: strips_domain,
+                        problem: problem,
+                        fast: fast,
+                        verbose: verbose,
+                        output: output};
+         let src = JSON.stringify(src_obj);
+         this.send(domain, src, callback, period);
+    }
+
+
 }
 /*
 Monitor.ws_url()
@@ -33538,9 +33612,10 @@ class MonitorServer$1 {
 
    static stop_active_monitor(source){
        let interval_id = this.source_to_interval_id_map[source];
-       clearInterval(interval_id);
-       delete this.source_to_interval_id_map[source];
-
+       if((interval_id === 0) || interval_id) {
+           clearInterval(interval_id);
+           delete this.source_to_interval_id_map[source];
+       }
    }
 
    static stop_active_monitors(){
@@ -33548,7 +33623,6 @@ class MonitorServer$1 {
             this.stop_active_monitor(source);
         }
    }
-
 
    static server = null
 
@@ -33576,17 +33650,22 @@ class MonitorServer$1 {
       });    
 	}
 
+    //data is a string that looks like:
+    // {source: "some string of js", callback: "some str"} // that evals to a fn of one arg on the client which will be passed the result of source
     static handle_message(ws_connection, data) {
         out('MonitorServer got message: ' + data);
         let data_obj;
         try {
-            data_obj = JSON.parse(data);
+            data_obj = JSON.parse(data); //has fields src, callback, period
         }
         catch (err) {
             this.handle_message_error(ws_connection, data, data_obj, err); //data_obj is undefined, and that's ok for JSON.parse errors
         }
         if (data_obj.period === "run_once") {
-            this.handle_message_one_eval(ws_connection, data, data_obj);
+            if(data_obj.source.includes("strips_domain")) {
+                   this.handle_message_strips(ws_connection, data, data_obj);
+            }
+            else { this.handle_message_one_eval(ws_connection, data, data_obj); }
         }
         else { //got a period so repeating eval
             let interval_id = setInterval(function() {
@@ -33628,6 +33707,58 @@ class MonitorServer$1 {
         MonitorServer$1.send(ws_connection, message_str);
     }
 
+    static handle_message_strips(ws_connection, data, data_obj){
+        let strips_data_obj = JSON.parse(data_obj.source);
+        if(strips_data_obj.strips_domain  === undefined) { // required
+            let err = {error_type:         "required but not passed.",
+                       error_message:      "domain required but not passed.",
+                       full_error_message: ""
+                      };
+            this.handle_message_error(ws_connection, data, data_obj, err);
+            return
+        }
+        if(strips_data_obj.problem === undefined) { //required
+            let err = {error_type:         "required but not passed.",
+                       error_message:      "problem required but not passed.",
+                       full_error_message: ""
+            };
+            this.handle_message_error(ws_connection, data, data_obj, err);
+            return
+        }
+        if(strips_data_obj.fast    !== undefined) { StripsManager.fast    = data_obj.fast; } //default true
+        if(strips_data_obj.verbose !== undefined) { StripsManager.verbose = data_obj.verbose; } //default false
+        if(strips_data_obj.output  !== undefined) { //default "function(text) { console.log(text); }"
+                try {
+                    let fn = eval(strips_data_obj.output);
+                    StripsManager.output = fn;
+                }
+                catch(err) {
+                    this.handle_message_error(ws_connection, data, data_obj, err);
+                }
+        }
+        StripsManager.load(strips_data_obj.strips_domain,
+                           strips_data_obj.problem,
+                           function(domain, problem){
+                             MonitorServer$1.strips_solve(ws_connection, data, data_obj, domain, problem);},
+                           true);
+    }
+
+    //similar to MonitorServer.handle_message_one_eval
+    //here domain and problem are actual objects, not their src code.
+    static strips_solve(ws_connection, data, data_obj, domain, problem){
+        let solutions = StripsManager.solve(domain, problem);
+        let solutions_str = JSON.stringify(solutions);
+        if (data_obj.callback) { //the Monitor(client) callback
+            let message_object = {
+                source:   "MonitorServer.strips_solve(...)", //not really needed by Monitor but useful for debugging
+                callback: data_obj.callback,
+                value:    solutions_str
+            };
+            let message_str = JSON.stringify(message_object);
+            MonitorServer$1.send(ws_connection, message_str);
+        }
+    }
+
     static readyStateInt_to_string(int){
         let states = ["CONNECTING", "OPEN", "CLOSING", "CLOSED"];
         if(int >= states.length) { return "UNKNOWN STATE" }
@@ -33640,7 +33771,7 @@ class MonitorServer$1 {
             message_str = JSON.stringify(message_object);
         }
         else { message_str = message_object;}
-        out("MonitorServer.send passed message: " + message_str + " wsc: " + ws_connection.url);
+        out("MonitorServer.send passed message: " + message_str + " wsc: " + ws_connection);
         if (ws_connection){
             let state_str = this.readyStateInt_to_string(ws_connection.readyState);
             if(state_str === "OPEN") {
@@ -33682,6 +33813,7 @@ globalThis.Py = class Py {
             warning("Python is already initialized.<br/>To re-initialize the Python environment, you must relaunch DDE.");
         }
         else if (Py.status == "not_loaded"){
+            await import('https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js');
             Py.status = "loading";
             globalThis.pyodide = await loadPyodide();
             Py.status = "loaded";
@@ -33907,16 +34039,17 @@ function units_to_series(name, series_name_core){
 //[123, 456].micron() => [0.000123, 0.000456]
 //assumes input array has numbers in microns, and converts
 //those numbers to meters.
+/* commented out by fry Jun 5, 2022 as it screws up using for(let x in [5. 6. 7]) because it iterates over "micron" and "ardsec"
 Array.prototype.micron = function(){
-    let result = [];
+    let result = []
     for(let elt of this) {
        if (typeof(elt) === "number") {
-           elt = elt*_um;
+           elt = elt*_um
        }
-       result.push(elt);
+       result.push(elt)
     }
     return result
-};
+}
 
 //input array is in arcseconds, converts its angles to degrees.
 Array.prototype.arcsec = function(){
@@ -33924,28 +34057,28 @@ Array.prototype.arcsec = function(){
     // we know its an array or this method wouldn't be called.
     //and if array is too short, a lookup returns undefined
         ["a", "P"].includes(this[Instruction.INSTRUCTION_TYPE])){
-        let result = this.slice(); //make copy
+        let result = this.slice() //make copy
         for(let i = Instruction.INSTRUCTION_ARG0;
             i <= Instruction.INSTRUCTION_ARG4; i++){
-            let orig_val = this[i];
+            let orig_val = this[i]
             if (orig_val !== undefined){
-                result[i] = orig_val * _arcsec;
+                result[i] = orig_val * _arcsec
             }
         }
         return result
     }
     else {
-        let result = [];
+        let result = []
         for(let elt of this) {
             if (typeof(elt) === "number") {
-                elt = elt*_arcsec;
+                elt = elt*_arcsec
             }
-            result.push(elt);
+            result.push(elt)
         }
         return result
     }
-};
-
+}
+*/
 //TEMPERATURE
 function deg_c_to_c(deg_c){ return deg_c }
 globalThis.deg_c_to_c = deg_c_to_c;
@@ -33985,6 +34118,7 @@ globalThis.platform         = "not inited"; //"dde" or "node"
 
 globalThis.keep_alive_value = false; //true
 globalThis.Espree = Espree$1;
+globalThis.js_beautify = js_beautify;
 Promise.resolve().then(function () { return instruction_control; }); //makes  class Control global
 
 
@@ -34017,6 +34151,7 @@ async function init_job_engine(){
     Dexter.default = new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 3000}); //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
     //the only thing dde_init.js really MUST do is define dexter0, so just stick
     //it here and now user can screw up dde_init.js and still win.
+    Brain.brain0 = new Brain({name: "brain0"});
 
     Dexter.draw_dxf = DXF.dxf_to_instructions; //see Robot.js
     Dexter.prototype.draw_dxf = function({robot = null}={}) {
@@ -34204,10 +34339,10 @@ globalThis.GrpcServer = GrpcServer$1;
 
 //GrpcServer.init();
 
+console.log("top of ready_je.js");
 globalThis.grpc = grpc$1;
 globalThis.protoLoader = protoLoader$1;
-
-console.log("top of ready_je.js");
+globalThis.StripsManager = StripsManager$1;
 globalThis.WebSocketServer = WebSocketServer$1;
 
 
@@ -34275,9 +34410,15 @@ async function on_ready_je(){
     Gcode.init(); //must be after init_series which calls init_units()
     GrpcServer.init();
 }
+
 on_ready_je();
 
-run_node_command(process.argv);
+if(process.argv.length > 2) {
+    run_node_command(process.argv);
+}
+else {
+    console.log("no job to run");
+}
 
 /* example runnning of Job engine to run a job:
 node bundleje.mjs Job.define_and_start_job "/Users/Fry/Documents/dde_apps/just_prints.dde"
