@@ -979,7 +979,7 @@ static close_window(window_title_index_or_elt=SW.window_index){ //elt can be a w
             SW.close_windows_of_title(window_title_index_or_elt) //don't use "this", use SW because we may call this without its subject class
         }
         else if (typeof(window_title_index_or_elt) == "number"){ //ie a window_index
-            let win = this.get_window_of_index(window_title_index_or_elt)
+            let win = SW.get_window_of_index(window_title_index_or_elt)
             SW.sw_close(win) //don't use "this", use SW because we may call this without its subject class
         }
         else if (window_title_index_or_elt instanceof HTMLElement) {
@@ -994,6 +994,9 @@ static close_window(window_title_index_or_elt=SW.window_index){ //elt can be a w
     }
 }
 }//close of class SW
+
+globalThis.close_window = SW.close_window //for backwards compatibility, but don't document.
+
 
 SW.window_index = null // The window_index of the last show_window made, or null if none made
                        // This value is incremented in show_window fn, then that incremeted value is used in the window being made

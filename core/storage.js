@@ -346,7 +346,10 @@ function read_file_async_from_dexter_using_node_server(dex_instance, path, callb
     let content_array = get_page(req) //does not error if file doens't exist so ...
     let content = content_array.toString("binary"); //Strings can contain binary file content
     let the_err = null
-
+    if(content.startsWith("Error:")){
+       the_err = content
+       content = undefined
+    }
     //if(content.startsWith("Error:")){
     //    the_err = new Error()
     //    the_err.message = content

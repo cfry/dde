@@ -283,7 +283,8 @@ DexterSim = class DexterSim{
                 ds_instance.queue_instance.start_sleep(instruction_array)
                 break;
             default:
-                warning("In DexterSim.send, got instruction not normally processed: " + oplet)
+                let temp_str = "non_normal_oplet_" + oplet //prevent this from being printed more than once between out pane clearnings
+                warning("In DexterSim.send, got instruction not normally processed: " + oplet, temp_str)
                 ds_instance.ack_reply(instruction_array)
                 break;
         }
@@ -471,14 +472,43 @@ DexterSim = class DexterSim{
     process_next_instruction_r(instruction_array) {
         let hunk_index = instruction_array[Instruction.INSTRUCTION_ARG0]
         let source     = instruction_array[Instruction.INSTRUCTION_ARG1]
-        let whole_content
-        try { whole_content = read_file(source) }//errors if path in "source" doesn't exist
-        catch(err){
-            return 2 //return the error code
+        let source_path_array = source.split("/")
+        let last_path_part = last(source_path_array)
+        let payload_string
+        if(source.startsWith("`")){
+            dde_error("The Dexter Simulator can't handle Dexter.read_from_robot instructions<br/>" +
+                      "that start with a backtick for executing BASH commands.")
         }
-        let start_index = hunk_index * Instruction.Dexter.read_file.payload_max_chars
-        let end_index = start_index + Instruction.Dexter.read_file.payload_max_chars
-        let payload_string = whole_content.substring(start_index, end_index) //ok if end_index is > whole_cotnent.length, it just gets how much it can, no error
+        else if(last_path_part.startsWith("#")) { //got special "file"
+            if(last_path_part.startsWith("#MeasuredAngles")){
+                let result_array = this.compute_measured_angles_dexter_units()
+                result_array = result_array.slice(0, 5) //cut off angles 6 and 7
+                payload_string = JSON.stringify(result_array) //a crude aapproximation of the real values.
+                //should return a string of 5 integers of arcseconds.
+            }
+            else if(last_path_part.startsWith("#StepAngles")){
+                let result_array = this.compute_measured_angles_dexter_units()
+                result_array = result_array.slice(0, 5) //cut off angles 6 and 7
+                payload_string = JSON.stringify(result_array) //a crude aapproximation of the real values.
+                //should return a string of 5 integers of arcseconds.
+            }
+            else {
+                dde_error("The Dexter Simulator can't handle Dexter.read_from_robot instructions<br/>" +
+                    "with a path of: " + source)
+            }
+        }
+        else {
+            let whole_content
+            try {
+                whole_content = read_file(source)
+            }//errors if path in "source" doesn't exist
+            catch (err) {
+                return 2 //return the error code
+            }
+            let start_index = hunk_index * Instruction.Dexter.read_file.payload_max_chars
+            let end_index = start_index + Instruction.Dexter.read_file.payload_max_chars
+            payload_string = whole_content.substring(start_index, end_index) //ok if end_index is > whole_cotnent.length, it just gets how much it can, no error
+        }
         return payload_string
     }
     //Dexter.write_file

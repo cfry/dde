@@ -104,6 +104,7 @@ var SSH = class SSH {
        if(!this.conn) {
            this.close_connection()
            this.conn = new this.Client()
+           let the_callback = callback //fry may 3, 2022 because closures are screwed up and on ready top line seems not to be called
            this.conn.on('ready', function() {
                let the_callback = callback
                //out("top of conn.on ready")
