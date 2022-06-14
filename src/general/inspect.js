@@ -40,9 +40,9 @@ class Inspect{
         const the_type = typeof(item)
         return ((item === undefined)    ||
                 (item === null)         ||
-                (the_type == "boolean") ||
-                (the_type == "number")  ||
-                (the_type == "string")  ||
+                (the_type === "boolean") ||
+                (the_type === "number")  ||
+                (the_type === "string")  ||
                 (item instanceof Date))
     }
 
@@ -111,6 +111,7 @@ class Inspect{
             if (typeof (html_elt_to_replace) == "string") {
                 html_elt_to_replace = globalThis[html_elt_to_replace]
             }
+            html_elt_to_replace.outerHTML = new_inspect_html
         }
         else {  out_eval_result(new_inspect_html, undefined, src, src_label) }
         return item
@@ -772,7 +773,7 @@ class Inspect{
     static inspect_set_onclick(item, stack_number, in_stack_position, id_string){
         setTimeout(function(){ //we need to wait until the html is actually rendered.
             let fn = function(event){
-                        const html_elt_to_replace = $(event.target).closest(".inspector")
+                        const html_elt_to_replace = event.target.closest(".inspector") //$(event.target).closest(".inspector")
                         Inspect.inspect_out(item, stack_number, in_stack_position + 1, html_elt_to_replace)
                      }
             let elts = globalThis[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
@@ -793,7 +794,7 @@ class Inspect{
         setTimeout(function(){ //we need to wait until the html is actually rendered.
             if (in_stack_position > 0) {
                 let fn = function(event){
-                    const html_elt_to_replace = $(event.target).closest(".inspector")
+                    const html_elt_to_replace = event.target.closest(".inspector") //$(event.target).closest(".inspector")
                     var new_in_stack_position = in_stack_position - 1
                     Inspect.inspect_out(null, stack_number, new_in_stack_position, html_elt_to_replace)
                 }
@@ -816,7 +817,7 @@ class Inspect{
         setTimeout(function(){ //we need to wait until the html is actually rendered.
                 if((Inspect.inspect_stacks.length > 0) && ((in_stack_position + 1) < Inspect.inspect_stacks[stack_number].length)){
                     let fn = function(event){
-                        const html_elt_to_replace = $(event.target).closest(".inspector")
+                        const html_elt_to_replace = event.target.closest(".inspector") //$(event.target).closest(".inspector")
                         Inspect.inspect_out(null, stack_number, in_stack_position + 1, html_elt_to_replace)
                     }
                     let elts = globalThis[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.
@@ -837,7 +838,7 @@ class Inspect{
     static inspect_set_refresh_onclick(stack_number, in_stack_position, id_string){
         let set_onclick_fn_fn = function(){ //we need to wait until the html is actually rendered.
                 let onclick_fn = function(event){
-                    const html_elt_to_replace = $(event.target).closest(".inspector")
+                    const html_elt_to_replace = event.target.closest(".inspector") //$(event.target).closest(".inspector")
                     inspect_out(null, stack_number, in_stack_position , html_elt_to_replace)
                 }
                 let elts = globalThis[id_string] //beware, if there's more than one elt with this id, we get an HTMlCollection of the etls.

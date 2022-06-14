@@ -1210,7 +1210,7 @@ class Job{
     //returns an array of jobs that either have "robot" as their default robot,
     //OR the job's PC is pointing at an instruction that is using "robot".
     static active_jobs_using_robot(robot){
-        result = []
+        let result = []
         let active_jobs = this.active_jobs()
         for(let job_instance of adctive_jobs){
             if(job_instance.robot === robot) { result.push(job_instance) }

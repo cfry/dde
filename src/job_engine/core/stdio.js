@@ -31,7 +31,7 @@ globalThis.set_keep_alive_value = set_keep_alive_value
 rl.on('line', function(input) {
     console.log("<br/>stdin got line: " + input)
     out("(out call) stdin got line: " + input + "\n")
-    eval(input)
+    console.log("eval returns: ", eval(input))
 })
 
 //https://stackoverflow.com/questions/4976466/difference-between-process-stdout-write-and-console-log-in-node-js

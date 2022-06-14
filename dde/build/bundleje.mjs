@@ -1,6 +1,8 @@
 import grpc$1 from '@grpc/grpc-js';
 import protoLoader$1 from '@grpc/proto-loader';
 import StripsManager$1 from 'strips';
+import fs$1 from 'fs';
+import PEG from 'pegjs';
 import { WebSocketServer as WebSocketServer$1 } from 'ws';
 import * as Espree$1 from 'espree';
 import js_beautify from 'js-beautify';
@@ -17029,7 +17031,7 @@ class Job$1{
     //returns an array of jobs that either have "robot" as their default robot,
     //OR the job's PC is pointing at an instruction that is using "robot".
     static active_jobs_using_robot(robot){
-        result = [];
+        let result = [];
         this.active_jobs();
         for(let job_instance of adctive_jobs){
             if(job_instance.robot === robot) { result.push(job_instance); }
@@ -34196,7 +34198,7 @@ globalThis.set_keep_alive_value = set_keep_alive_value;
 rl.on('line', function(input) {
     console.log("<br/>stdin got line: " + input);
     out("(out call) stdin got line: " + input + "\n");
-    eval(input);
+    console.log("eval returns: ", eval(input));
 });
 
 //https://stackoverflow.com/questions/4976466/difference-between-process-stdout-write-and-console-log-in-node-js
@@ -34343,6 +34345,41 @@ console.log("top of ready_je.js");
 globalThis.grpc = grpc$1;
 globalThis.protoLoader = protoLoader$1;
 globalThis.StripsManager = StripsManager$1;
+//extends and replaces StripsManager.loadCode
+//do not use "this" in the body of this code
+//code is a string of PDDL or a JSON string
+function strips_loadCode(grammarFileName, code, callback) {
+    // Applies a PEG.js grammar against a code string and returns the parsed JSON result.
+    console.log("strips.js top of loadCode passed: " + grammarFileName + " code: " + code);
+    if(typeof(code) === "object") { //assume proper JSON object
+        if (callback) {
+            callback(code);
+        }
+    }
+    else if (code.startsWith("{")) {
+        let json_obj;
+        try {
+            json_obj = JSON.parse(code);
+        } catch (err) {
+            throw err
+        }
+        if (callback) {
+            callback(json_obj);
+        }
+    } else {
+        fs$1.readFile(grammarFileName, 'utf8', function (err, grammar) {
+            console.log("strips.js readFile cb passed err: " + err + " grammar: " + grammar);
+            if (err) throw err;
+
+            var parser = PEG.generate(grammar);
+            console.log("strips.js readFile cb parser: " + parser);
+            if (callback) {
+                callback(parser.parse(code));
+            }
+        });
+    }
+}
+StripsManager$1.loadCode = strips_loadCode;  //extend loadCode to be able to accept JSON string, not just PDDL
 globalThis.WebSocketServer = WebSocketServer$1;
 
 

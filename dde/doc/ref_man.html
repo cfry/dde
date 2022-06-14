@@ -12009,6 +12009,240 @@ def main():
 
        </details> <!-- end Py -->
 
+       <details class="doc_details"><summary>Planning with STRIPS</summary>
+           Planning software is a branch of symbolic AI that characterizes
+           an environment with possible actions to take, an initial state
+           and a goal state. The software tries combinations of the possible
+           actions to attempt to move the initial state to the goal state.
+           Often this means walking a graph of intermediate states from
+           the initial state towards the goal state. The graph can be
+           walked in various orders which may improve efficiency or
+           quality of the resulting steps to acheive the goal.
+           These resulting steps constitute a plan for solving the problem
+           of how to move from the initial state to the goal state.
+           <br/><br/>
+           <b>STRIPS</b> stands for STanford Research Instutute Problem Solver.
+           DDE incorporates the npm Library "strips".
+           <br/><br/>
+           For an overall description, see <a target="_blank" href="https://en.wikipedia.org/wiki/Stanford_Research_Institute_Problem_Solver">STRIPS description</a><br/>
+           For documentation on the npm library, see: <a target="_blank" href="https://www.npmjs.com/package/strips">npm STRIPS</a><br/>
+           <b>Using STRIPS in the Job Engine</b><br/>
+           The STRIPS documentation refers to the "class" of the STRIPS methods as <code title="unEVALable">strips</code> but
+           in the actual strips.js source code, the class in named <code>StripsManager</code>.
+           So in the Job Engine, we expose the name of the class in the actual code as the global variable
+           <code>StripsManager</code>
+           <br/><br/>
+           From the straight documentation of the npm package, you describe
+           the "domain" (the actions) and the problem in a language called
+           PDDL for <a target="_blank" href="https://en.wikipedia.org/wiki/Planning_Domain_Definition_Language">
+           Planning Domain Definition Language</a>.
+           PDDL uses a <b>Lisp</b> syntax.
+           DDE also allows you to pass in
+           a JSON object or JSON string for these inputs. See below.
+           <br/><br/>
+           <b>Using STRIPS from the DDE IDE</b><br/>
+           You can use DDE's <code>Monitor</code> interface to the Job Engine to
+            invoke STRIPS running on the Job Engine and get a return object
+               describing the resulting plan. DDE provides two different syntaxes for
+               describing STRIPS domains and STRIPS problems.
+               <details><summary>Using PDDL</summary>
+                   PDDL is the conventional syntax for describing STRIPS domains and problems.
+                   This example was lifted from a
+                   <a target="_blank" href="http://www.primaryobjects.com/2015/11/06/artificial-intelligence-planning-with-strips-a-gentle-introduction/">tutorial</a>
+                   <br/>written by the author of the STRIPS npm package.
+                   It describes a simple game world of a few locations,
+                   a NonPlayerCharacter, a dragon guarding some locations and a few actions.
+                   <br/><br/>
+                   An example of a STRIPS "domain" or possible actions:
+                   <pre><code>
+var strips_move_domain_pddl =
+`(define (domain magic-world)
+   (:requirements :strips :typing)
+   (:types player location monster element chest)
+
+   (:action move
+      :parameters (?p - player ?l1 - location ?l2 - location)
+      :precondition (and (at ?p ?l1) (border ?l1 ?l2) (not (guarded ?l2)))
+      :effect (and (at ?p ?l2) (not (at ?p ?l1)))
+   )
+)`
+</code></pre>
+                   An example of a STRIPS "problem":
+                   <pre><code>
+var strips_move_to_castle_problem_pddl =
+`(define (problem move-to-castle)
+   (:domain magic-world)
+
+   (:objects
+      npc - player
+      town field castle - location
+   )
+
+   (:init
+      (border town field)
+      (border field castle)
+
+      (at npc town)
+   )
+
+   (:goal (and (at npc castle)))
+)`
+</code></pre>
+  An example of the callback function that is called in DDE and passed the
+                   object that is the result of the SCRIPS planning.
+                   <pre><code>
+function my_strips_cb(val, websocket, json_data) {
+    out("my_strips_cb passed val: " + val)
+    inspect(val)
+    globalThis.strips_example_result = val
+}
+</code></pre>
+  An example of passing the domain, problem, callback and some configurations to the Job Engine to run.
+  Note that the Monitor also has a property named <code title="unEVALable">domain</code>
+  so we use <code title="unEVALable">strips_domain</code> to keep them separate.
+                   <pre><code>
+Monitor.strips_solve({
+    domain        : "localhost",
+    callback      : "my_strips_cb", //"Monitor.out" "my_strips_cb"   //"inspect" //can't use just inspect because the fn is also passed websocket and json_data which would cause inspect to error
+    period        : "run_once",
+    strips_domain : strips_move_domain_pddl,
+    problem       : strips_move_to_castle_problem_pddl,
+    fast          : true,
+    verbose       : false,
+    output        : "(function(text) { console.log(text); })" //run inside STRIPS
+})
+</code></pre>
+   The result that is passed to the callback is an object.
+    You can extract the names of the actions in the plan via:
+                   <code>globalThis.strips_example_result[0].path</code> =><br/>
+                   <samp>["move npc town field",
+                          "move npc field castle"]</samp>
+      </details> <!-- end Using PDDL -->
+
+      <details><summary>Using JSON</summary>
+          This is semantically the same as the above PDDL syntax example.
+          However, from JavaScript its much more convenient to use JSON syntax
+          because its familiar to JS programmers, and its easy to programmatically
+          create STRIPS domain and problem descriptions using JSON.
+          This JSON syntax allows the DDE programmer to pass both
+          the JSON string representation of the domain and problem as well
+          as the JSON object representation into STRIPS.
+                   <br/><br/>
+                   An example of a STRIPS "domain" or possible actions:
+                   <pre><code>
+var strips_move_domain_json =
+{
+    "domain": "magic-world",
+    "requirements": ["strips", "typing"],
+    "types": ["player", "location", "monster", "element", "chest"],
+    "actions": [{
+        "action": "move",
+        "parameters": [{
+            "parameter": "p",
+            "type": "player"
+        }, {
+            "parameter": "l1",
+            "type": "location"
+        }, {
+            "parameter": "l2",
+            "type": "location"
+        }],
+        "precondition": [{
+            "operation": "and",
+            "action": "at",
+            "parameters": ["p", "l1"]
+        }, {
+            "operation": "",
+            "action": "border",
+            "parameters": ["l1", "l2"]
+        }, {
+            "operation": "not",
+            "action": "guarded",
+            "parameters": ["l2"]
+        }],
+        "effect": [{
+            "operation": "and",
+            "action": "at",
+            "parameters": ["p", "l2"]
+        }, {
+            "operation": "not",
+            "action": "at",
+            "parameters": ["p", "l1"]
+        }]
+    }]
+}
+</code></pre>
+                   An example of a STRIPS "problem":
+                   <pre><code>
+var strips_move_to_castle_problem_json =
+{
+    "name": "move-to-castle",
+    "domain": "magic-world",
+    "objects": [{
+        "parameters": ["npc"],
+        "type": "player"
+    }, {
+        "parameters": ["town", "field", "castle"],
+        "type": "location"
+    }],
+    "states": [{
+        "name": "init",
+        "actions": [{
+            "operation": "",
+            "action": "border",
+            "parameters": ["town", "field"]
+        }, {
+            "operation": "",
+            "action": "border",
+            "parameters": ["field", "castle"]
+        }, {
+            "operation": "",
+            "action": "at",
+            "parameters": ["npc", "town"]
+        }]
+    }, {
+        "name": "goal",
+        "actions": [{
+            "operation": "and",
+            "action": "at",
+            "parameters": ["npc", "castle"]
+        }]
+    }]
+}
+</code></pre>
+                   An example of the callback function that is called in DDE and passed the
+                   object that is the result of the SCRIPS planning.
+                   <pre><code>
+function my_strips_cb(val, websocket, json_data) {
+    out("my_strips_cb passed val: " + val)
+    inspect(val)
+    globalThis.strips_example_result = val
+}
+</code></pre>
+                   An example of passing the domain, problem, callback and some configurations to the Job Engine to run.
+                   Note that the Monitor also has a property named <code title="unEVALable">domain</code>
+                   so we use <code title="unEVALable">strips_domain</code> to keep them separate.
+                   <pre><code>
+Monitor.strips_solve({
+    domain        : "localhost",
+    callback      : "my_strips_cb", //"Monitor.out" "my_strips_cb"   //"inspect" //can't use just inspect because the fn is also passed websocket and json_data which would cause inspect to error
+    period        : "run_once",
+    strips_domain : strips_move_domain_json,
+    problem       : strips_move_to_castle_problem_json,
+    fast          : true,
+    verbose       : false,
+    output        : "(function(text) { console.log(text); })" //run inside STRIPS
+})
+</code></pre>
+                   The result that is passed to the callback is an object.
+                   You can extract the names of the actions in the plan via:
+                   <code>globalThis.strips_example_result[0].path</code> =><br/>
+                   <samp>["move npc town field",
+                       "move npc field castle"]</samp>
+      </details> <!-- end Using JSON -->
+
+       </details> <!-- end of Planning with STRIPS-->
+
        <details id="adding_javascript_doc_id" class="doc_details"><summary>Adding JavaScript</summary>
        Most applications don't allow you to change them at all.
        Some applications allow you to change "preferences" or "configurations",

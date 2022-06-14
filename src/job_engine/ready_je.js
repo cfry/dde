@@ -7,6 +7,44 @@ globalThis.protoLoader = protoLoader
 
 import StripsManager from "strips" //can't load into browser since it needs "fs".
 globalThis.StripsManager = StripsManager
+import fs  from "fs"    //needed by strips_loadCode
+import PEG from "pegjs" //needed by strips_loadCode
+//extends and replaces StripsManager.loadCode
+//do not use "this" in the body of this code
+//code is a string of PDDL or a JSON string
+function strips_loadCode(grammarFileName, code, callback) {
+    // Applies a PEG.js grammar against a code string and returns the parsed JSON result.
+    console.log("strips.js top of loadCode passed: " + grammarFileName + " code: " + code)
+    if(typeof(code) === "object") { //assume proper JSON object
+        if (callback) {
+            callback(code);
+        }
+    }
+    else if (code.startsWith("{")) {
+        let json_obj
+        try {
+            json_obj = JSON.parse(code)
+        } catch (err) {
+            throw err
+        }
+        if (callback) {
+            callback(json_obj);
+        }
+    } else {
+        fs.readFile(grammarFileName, 'utf8', function (err, grammar) {
+            console.log("strips.js readFile cb passed err: " + err + " grammar: " + grammar)
+            if (err) throw err;
+
+            var parser = PEG.generate(grammar);
+            console.log("strips.js readFile cb parser: " + parser)
+            if (callback) {
+                callback(parser.parse(code));
+            }
+        });
+    }
+}
+StripsManager.loadCode = strips_loadCode  //extend loadCode to be able to accept JSON string, not just PDDL
+
 
 
 //import fetch from 'node-fetch' //not part of node 16, but in 18 so need this
@@ -111,9 +149,15 @@ async function on_ready_je(){
     Gcode.init() //must be after init_series which calls init_units()
     GrpcServer.init()
 }
+
 on_ready_je()
 
-run_node_command(process.argv)
+if(process.argv.length > 2) {
+    run_node_command(process.argv)
+}
+else {
+    console.log("no job to run")
+}
 
 /* example runnning of Job engine to run a job:
 node bundleje.mjs Job.define_and_start_job "/Users/Fry/Documents/dde_apps/just_prints.dde"

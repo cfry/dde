@@ -8,7 +8,9 @@ DDE4 can be installed on your Mac or Windows computer,
 OR installed on Dexter itself. This documentation tells you how.
 
 _________DDE4 Install on Mac or Windows__________
-DDE4 requires Node v 18 to be installed.
+DDE4 requires Node v 17.9.0 to be installed.
+Unfortunately Node v 18 and up won't work on Dexter's OS,
+so to keep compatibility on your Desktop, use Node v 17.9.0 there as well.
 To check if your computer already has this:
    - Launch a Terminal (or Command Prompt)
          - MacOS:  - double click on Applications/terminal
@@ -18,32 +20,39 @@ To check if your computer already has this:
                    If there is node.js click on it.
               then chose option: node.js
               - at top of screen see the version.
-                (old versions of Node 11 should be updated to version 16
+                (old versions of Node 11 should be updated to version 17.9.0
                   via the below instructions)
+If you have to download node,
+browse: https://nodejs.org/download/release/v17.9.0/
+and pick the appropriate version for your OS. (MacOS is called "darwin")
+  The latest Macs are M1 so download
+  https://nodejs.org/download/release/v17.9.0/node-v17.9.0-darwin-arm64.tar.gz
+For older "intel processors", use:
+https://nodejs.org/download/release/v17.9.0/node-v17.9.0-darwin-x64.tar.gz
 
-- Browse: nodejs.org/
-- Click the big green button for Downloading the latest version (node version 18)
 - This will put a file in your Downloads folder, named something like:
-  node-v18.0.0.pkg
-- Double click the file
+  node-v17.9.0
+- Double click the file to expand it if it has an extension like .tar, .gz or .zip.
+- Double click on the file within that expanded folder of node-v17.9.0
 - This brings up a dialog box. Click continue, agree, install buttons
   as they come up. (do not install Chocholaty)
 
-- Browse: https://github.com/cfry/dde/tree/dde4
-- Click the big green button "Code v", and choose "Download ZIP"
-- In your Downloads folder, unzip the file dde-dde4.zip
-  (on Mac ,just double click it.)
-
-- Make a folder on your computer.
-  (On WinOS: right click, New, Folder)
-  A good location is in your Documents folder or the parent of your Documents folder
-  Name it dde4
-
-- Unzip Downloads/dde-dde4.ZIP
-   (Double click on it, or drag the below file into the newly created dde4 folder.)
-
-- Move: Downloads/dde-dde4/httpd.mjs into your newly created dde4 folder.
-- Move: Downloads/dde-dde4/dde/  into your newly created dde4 folder.
+Now Download DDE4 via:
+- Browse: https://github.com/cfry/dde
+- On the left side of the page about 3 inches down you'll see a
+  dropdown button named "master".
+  Click it and choose: "dde4"
+- Type the period character on your keyboard.
+  (Don't hold down any control keys, don't be in a text edit box.
+    Weird, just like normal GitHub UI :-(  )
+- In the VSCode editor that comes up,
+  at the top of the left column
+  right click on "dde" and choose "download".
+  This will prompt for a place to save the file.
+  We recommend navigating to your documents folder,
+  then make a new folder named "dde4" and save the "dde" folder there.
+- inside the dde4/dde/ folder, drag the file httpd.mjs
+  to be directly under the dde4 folder.
 
 We want to end up with the dde4 folder containing just:
    httpd.mjs
