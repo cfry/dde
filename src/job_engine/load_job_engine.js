@@ -36,6 +36,7 @@ import "../job_engine/math/Vector.js"  //now global
 import "../job_engine/math/Convert.js" //now global
 import "../job_engine/math/Kin.js"     //now global
 import "../job_engine/math/DXF.js"     //now global
+import "../job_engine/math/dh.js"      //DH is now global
 
 import "../job_engine/low_level_dexter/calibrate_build_tables.js"
 
@@ -96,10 +97,11 @@ export async function init_job_engine(){
 
     Job.class_init()
     Dexter.class_init()
+    new Brain({name: "brain0"})
     Dexter.default = new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 3000}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
     //the only thing dde_init.js really MUST do is define dexter0, so just stick
     //it here and now user can screw up dde_init.js and still win.
-    Brain.brain0 = new Brain({name: "brain0"})
+
 
     Dexter.draw_dxf = DXF.dxf_to_instructions //see Robot.js
     Dexter.prototype.draw_dxf = function({robot = null}={}) {

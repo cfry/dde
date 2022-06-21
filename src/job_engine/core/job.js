@@ -45,6 +45,8 @@ class Job{
                  ending_program_counter="end",
                  initial_instruction=null,
                  data_array_transformer="P",
+                 get_dexter_defaults = true, //if true, always get defaults from Defaults.makeins file or error
+                                                      //if false, always get idealized values from Dexter.defaults class.
                  start_if_robot_busy=false,
                  if_robot_status_error   = Job.prototype.if_robot_status_error_default,
                  if_instruction_error    = Job.prototype.if_instruction_error_default,

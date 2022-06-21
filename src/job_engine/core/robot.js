@@ -2724,6 +2724,8 @@ Dexter.prototype.set_link_lengths_using_dde_db = function(){
         this.J5_angle_max = Dexter.J5_ANGLE_MAX
         this.J6_angle_max = Dexter.J6_ANGLE_MAX
         this.J7_angle_max = Dexter.J7_ANGLE_MAX
+
+       this.dh_mat        = Dexter.dh_mat
 }
 
 //content is the content of a Defaults.make_ins file
@@ -2802,6 +2804,24 @@ Dexter.J6_ANGLE_MIN = -150 //0
 Dexter.J6_ANGLE_MAX = 150 //296
 Dexter.J7_ANGLE_MIN = 0
 Dexter.J7_ANGLE_MAX = 296
+
+//             microns  arcsec microns  arcsec
+// ___ Joint,     Tz,     Rz,     Tx,     Rx
+//S JointDH 1, 235200, 324000,      0, 324000;
+//S JointDH 2, 100760, 324000, 339090, 643874;
+//S JointDH 3,  61460,      0, 307500,   4125;
+//S JointDH 4,  39300, 324000,      0, 313687;
+//S JointDH 5,  59500, 324000,      0, 324000;
+//S JointDH 6,  82440,      0,      0,-324000;
+
+// converted to  meters     deg meters    deg
+
+Dexter.dh_mat = [[0.235200, 90, 0,        90],
+                 [0.100760, 90, 0.339090, 178.8538888888889],
+                 [0.061460,  0, 0.307500, 1.1458333333333333],
+                 [0.039300, 90, 0,        87.13527777777777],
+                 [0.059500, 90, 0,        90],
+                 [0.082440,  0, 0,        -90]]
 
 Dexter.MAX_SPEED    = 30  //degrees per second. NOT the max speed of the robot,
                          //but rather for a given instruction's envelope of speed,

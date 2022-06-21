@@ -345,11 +345,11 @@ class Socket{
                 let instruction_array_copy = instruction_array.slice()
                 //arg0 is param name ie JointDB, arg1 is joint number.
                 instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
-                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000)
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000000)
                 instruction_array_copy[Instruction.INSTRUCTION_ARG3] =
                     Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 3600)
                 instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
-                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000)
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000000)
                 instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
                     Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 3600)
             }
@@ -463,9 +463,9 @@ class Socket{
             else if (name == "JointDH") {
                 let instruction_array_copy = instruction_array.slice()
                 //arg0 is param name ie JointDB, arg1 is joint number.
-                instruction_array_copy[Instruction.INSTRUCTION_ARG2] /= 1000
+                instruction_array_copy[Instruction.INSTRUCTION_ARG2] /= 1000000
                 instruction_array_copy[Instruction.INSTRUCTION_ARG3] /= 3600
-                instruction_array_copy[Instruction.INSTRUCTION_ARG4] /= 1000
+                instruction_array_copy[Instruction.INSTRUCTION_ARG4] /= 1000000
                 instruction_array_copy[Instruction.INSTRUCTION_ARG4] /= 3600
             }
             else { return instruction_array }

@@ -2418,7 +2418,7 @@ class Vector{
     	let A, B, B1=0, B2=0, A11=0, A12=0, A21=0, A22=0, xi, yi
     	switch(order){
     		case 0:
-        		result = [Vector.average(y_data)]
+        		sol = [Vector.average(y_data)]
         		break
         	case 1:
         		for(let i = 0; i < dim_x[1]; i++){
