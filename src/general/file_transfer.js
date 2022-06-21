@@ -3,7 +3,7 @@ import get    from "../../node_modules/simple-get"
 import pump   from "../../node_modules/pump"
 import AdmZip from "../../node_modules/adm-zip"
 import crypto from "../../node_modules/crypto"
-import client from "../../node_modules/scp2"
+import client from "../../node_modules/scp2" //NPM package 'scp2' was uninstalled because it was causing 'npm install' to fail, around 2022-06-21.
 
 var FileTransfer = class FileTransfer {
 
