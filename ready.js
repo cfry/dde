@@ -1447,7 +1447,7 @@ show_errors_log_id.onclick = function(){
 }
 dexter_start_options_id.onclick = show_dexter_start_options
 
-update_firmware_id.onclick = FileTransfer.show_dialog
+//update_firmware_id.onclick = FileTransfer.show_dialog
 
 run_job_on_dexter_id.onclick = function() {
     let job_src = Editor.get_any_selection() //we want to be able to select a Job def in
@@ -1867,7 +1867,6 @@ var opencv_js = require("opencv.js")
 var plotly_js_dist = require("plotly.js-dist")
 //var pump = require("pump")  //already declared
 //var request = require("request")  //already declared
-var scp2 = require("scp2")
 var semver = require("semver")
 var serialport = require("serialport")
 var simple_get = require("simple-get")
