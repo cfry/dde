@@ -30,20 +30,28 @@ sets this.defaults_lines with an array of strings (1 string per line)
 Dexter.dexter0.defaults_read()
 Dexter.dexter0.defaults_lines
 */
-Dexter.prototype.defaults_read = function(){
+
+//the callback is optional.
+//when set_link_lengths called defaults_read,
+//it has the callback call Dexter.prototype.start_aux
+Dexter.prototype.defaults_read = function(callback = null){
     let the_url = this.defaults_url()
     let the_dex_inst = this
-    read_file_async(the_url, undefined,
-        function(err, content){
-            if(err) { warning("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
-                the_url + "<br/>and error message: " +
-                err.message)
-            }
-            else {
-                the_dex_inst.defaults_set_lines_from_string(content)
-                the_dex_inst.defaults_lines_to_high_level()
-            }
+    let normal_defaults_read_cb = (function(err, content){
+                        if(err) { dde_error("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
+                                             the_url + "<br/>and error message: " +
+                                             err.message +
+                                             "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.")
+                        }
+                        else {
+                            the_dex_inst.defaults_set_lines_from_string(content)
+                            the_dex_inst.defaults_lines_to_high_level()
+                            if(callback) {
+                                callback.call(the_dex_inst, null)
+                            }
+                        }
         })
+    read_file_async(the_url, undefined, normal_defaults_read_cb)
 }
 
 //caution:  not ready for prime time.
@@ -1461,6 +1469,9 @@ Dexter.dexter0.defaults.Forces[2] = 90  //high level set
 Dexter.dexter0.defaults.ServoSetup.push({"a": [10, 20, 30]}) //high level insert
 Dexter.dexter0.defaults.ServoSetup.unshift({"a": [90, 80, 70]}) //high level insert
 Dexter.dexter0.defaults.LinkLengths
+to_source_code({value: Dexter.dexter0.defaults.dh_mat})
+beautify.js(JSON.stringify(Dexter.dexter0.defaults))
+
 Dexter.dexter0.defaults_get("LinkLengths")
 var a_dh_mat = Dexter.dexter0.defaults.dh_mat
 a_dh_mat[0][0] = 250000

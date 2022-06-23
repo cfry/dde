@@ -6,7 +6,55 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
-<details class="doc_details"><summary>v 3.8.4, May 9, 2022</summary>
+<details class="doc_details"><summary>v 3.8.6, Jun 22, 2022</summary>
+Highlights: Bug fixes for SSH.run_command, SW.close_window, read_file_async.<br/>
+     Simulator extended for Dexter.read_from_robot("#StepAngles") #MeasuredAngles & #POM.<br/>
+     The "net" npm package is now exported as a global variable.
+     Dexter.defaults and Dexter instances property "defaults" now mirrors Defaults.make_ins.
+     Fixes and extensions to the Command Input.
+<ul>
+    <li>Major fix to ref man formatting of about 100 tag issues.</li>
+    <li><code>SSH.run_command</code> fix to make a passed in callback actually get called.</li>
+    <li><code>SW.close_window</code> fixed to not refer to "this" so that we can do <code>globalThis.close_window=SW.close_window</code>
+        and have it work. (which it does)</li>
+    <li><code>Brain.brain0</code> defined.</li>
+    <li>Removed the undocumented <code>[3, 4, 5].micron</code> and <code>[3, 4, 5].arcsec</code> as it broke
+        <code>for(let x of [3. 4, 5])</code> and <code>for(let x in [3. 4, 5])</code></li>
+    <li>Removed from Calibrate_Encorders_Function.dde and calibrate_build_tables.js
+        the use of the <code>an_array.arcsec()</code> method.</li>
+    <li>Warning printouts for "non normal oplet" reduced to one message per oplet
+        between Output pane clears.</li>
+    <li>Simulator now handles <code>Dexter.read_from_robot("#StepAngles")</code>, with an approximate value.</li>
+    <li>Simulator now handles <code>Dexter.read_from_robot("#MeasuredAngles")</code>.</li>
+    <li>Simulator now errors explicitly with <code>Dexter.read_from_robot("`some BASH cmd")</code>.</li>
+    <li>Simulator now errors explicitly with an unhandled <code>Dexter.read_from_robot("#some_unhandled")</code>.</li>
+    <li><code>read_file_async</code> when attempting to read a non-existent file, the callback will now properly get called with an error message and undefined content.</li>
+    <li>The npm package "net" is now available via the global variable <code>net</code>.</li>
+    <li>Bug fix: Conversion of DH linear values
+        use to consider that the values
+        were in mm, but they're really in microns so the conversion between the two has been fixed
+        to use microns.</li>
+    <li>Bug fix: <code>Vector.poly_fit</code> in case: 0, changed
+        <code>result</code> to <code>sol</code> for a valid return value.
+    </li>
+    <li>Dexter instances are now given a <code>defaults</code> property the first time
+        a job is run with the given Dexter.
+        AND the Dexter class also has a <code>Dexter.defaults</code> property that contains
+        the idealized values for all
+        the Defaults.make_ins file's "high level" valies in a JSON object.</li>
+    <li><code>Dexter.read_file</code>'s got_content_hunk auxilliary method fixed when
+        simulating and there is a long content.</li>
+    <li>File menu <i>Save As...</i> item now accessible via keystroke
+        <i>Shift-Command S</i> or <i>Shift Control S</i></li>
+    <li>If you click the <button>Eval</button> button to eval 1 line of source code,
+        it will be placed on the command history.
+        In the Output pane header, click in the Command Input and use the
+        up and down arrow keys to access it.</li>
+    <li>Command Input: slight fix to behavior of the up and down arrow keys.</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.8.5, May 9, 2022</summary>
 <ul>
     <li>In DDE's editor, fixed Lint red dot to not show up for <code>confirm()</code>.</li>
     <li><code>copy_file_async</code> and
@@ -5439,7 +5487,7 @@ See Ref Man/Robot/Robot Instructions/suspend</li>
         Those numbers are converted to meters in the output array
         by dividing them by 1 million.</li>
 
-    <li> [ ].arcsec()
+    <li> [ ].arcsec() (removed in DDE 3.6.6)
         make_ins("a", 36000, 36000, 36000, 36000, 36000).arcsec()
         make_ins("P", 36000, 36000, 36000, 36000, 36000).arcsec()
         If the array is an instruction array with an oplet of "a" or "P" then
@@ -5509,7 +5557,7 @@ enter a "conversion suffix" after them using our new Ref Man documented
     DDE code  from v1 to v2:
     <ul><li>Search for all "move_all_joints(" and "move_all_joints_relative"<br/>
             Add suffix to first arg like so:<br/>
-             Dexter.move_all_joints([1, 2, 3, 4, 5].arcsec())<br/>
+             Dexter.move_all_joints([1, 2, 3, 4, 5].arcsec()) (removed in DDE 3.6.6)<br/>
              arcsec() makes a copy of the array with the arcseconds
              converted to degrees.
              Note for calls like<br/>
@@ -5534,14 +5582,14 @@ enter a "conversion suffix" after them using our new Ref Man documented
              robot_inst.robot_status[Dexter.J3_ANGLE],
              robot_inst.robot_status[Dexter.J4_ANGLE],
              robot_inst.robot_status[Dexter.J5_ANGLE]
-             ].arcsec()
+             ].arcsec() (removed in DDE 3.6.6)
             </li>
 
         <li>Add to make_ins("a" ...) a suffix like so:<br/>
             make_ins("a" ...).arcsec()</li>
 
         <li>Add to make_ins("P" ...) a suffix like so:<br/>
-            make_ins("P" ...).arcsec()</li>
+            make_ins("P" ...).arcsec() (removed in DDE 3.6.6)</li>
 
         <li>Search for all "move_to(" and "move_to_relative("<br/>
             Add suffix to first arg like so:<br/>

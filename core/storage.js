@@ -212,6 +212,9 @@ function dde_init_dot_js_initialize() {
         if (!persistent_get("default_dexter_port")){
             add_to_dde_init_js += 'persistent_set("default_dexter_port", "' + default_default_dexter_port + '") //required property, but you can edit the value.\n'
         }
+        if(!Brain.brain0) {
+            add_to_dde_init_js += '\nnew Brain({name: "brain0"})\n'
+        }
         if(!Robot.dexter0){
             add_to_dde_init_js += '\nnew Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
         } //note, in the weird case that the user has defined the ip_address and/or port
@@ -249,7 +252,8 @@ function dde_init_dot_js_initialize() {
                   default_default_dexter_ip_address + '") //required property but you can edit the value.\n' +
                   'persistent_set("default_dexter_port", "'          +
                   default_default_dexter_port + '") //required property, but you can edit the value.\n' +
-                 'new Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
+                  'new Brain({name: "brain0"})\n' +
+                  'new Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
 
         eval(initial_dde_init_content)
         write_file("dde_init.js", initial_dde_init_content)

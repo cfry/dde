@@ -6899,12 +6899,27 @@ proportional–integral–derivative controller</a>.<br/>
                    }
                ]})</code></pre>
     See also <a href="#" onclick="open_doc(read_file_doc_id, event)">read_file</a>
-    <p></p>
-    <code id="Dexter.read_from_robot_doc_id">Dexter.read_from_robot</code> is a similar instruction, except that the default folder
+</details>
+<details id="Dexter.read_from_robot_doc_id" class="doc_details"><summary>read_from_robot</summary>
+    <code>Dexter.read_from_robot</code> is similar to
+    <code>Dexter.read_file</code> except that the default folder
     for the <i>source</i> is "/srv/samba/share/" and not
     "/srv/samba/share/dde_apps" as it is for <code>Dexter.read_file</code>.
     <code>Dexter.read_from_robot</code> is maintained for backwards compatibility.
-    Most users are expected to use <code>Dexter.read_file</code>
+    Most users are expected to use <code>Dexter.read_file</code> .<br/>
+    However the path argument to read_from_robot has a few special # arguments
+    documented <a target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki/read-from-robot">here</a>.<br/>
+    DDE's simulator supports only the # arguments of:<br/>
+    <code>Dexter.read_from_robot("#MeasuredAngles")</code><br/>
+    <code>Dexter.read_from_robot("#StepAngles")</code><br/>
+    <code>Dexter.read_from_robot("#POM")</code><br/>
+    POM stands for Position and Orientation Matrix.
+    It is a 4x4  two dimensional array of numbers.<br/>
+    After <code>"#POM"</code> you may add a space and an integer indicating "link_from_end".
+    It defaults to <code>4</code>, but you can also use <code>5</code> or a lower positive integer.<br/>
+    Example: <code>Dexter.read_from_robot("#POM 5")</code>
+    <br/><br/>
+    The simulator does not support the BASH command argument that starts with a backtick.
 </details>
 
 <details id="Dexter.reboot_joints_doc_id" class="doc_details"><summary>reboot_joints</summary>
@@ -12468,7 +12483,7 @@ def main():
           <p></p>
           <i>Examples:</i><br/>
           <code>DDE_NPM.is_installed("mathjs")</code> => <samp>true</samp><br/>
-          <code>DDE_NPM.is_installed("mathjs", "add_on")</code> => <samp>false</samp><br/>
+          <code title="not in TestSuite">DDE_NPM.is_installed("mathjs", "add_on")</code> => <samp>false</samp><br/>
           <code>DDE_NPM.is_installed("mathjs", "built_in")</code> => <samp>true</samp><br/>
           <code>DDE_NPM.is_installed("some_non_package", "all")</code> => <samp>false</samp><br/>
       </details>

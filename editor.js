@@ -49,7 +49,8 @@ Editor.init_editor = function(){
                          "Cmd-N": Editor.edit_new_file,
                          "Cmd-O": Editor.open_on_dde_computer,
                          "Cmd-R": Editor.move_to_instruction,
-                         "Cmd-S": Editor.save //mac
+                         "Cmd-S": Editor.save, //mac
+                         "Shift-Cmd-S": Editor.save_as
                        }:  //"win" and "linux"
                         {"Alt-Left":  Series.ts_or_replace_sel_left,
                          "Alt-Right":  Series.ts_or_replace_sel_right,
@@ -61,7 +62,8 @@ Editor.init_editor = function(){
                          "Ctrl-N": Editor.edit_new_file,
                          "Ctrl-O": Editor.open_on_dde_computer,
                          "Ctrl-R": Editor.move_to_instruction,
-                         "Ctrl-S": Editor.save //windows
+                         "Ctrl-S": Editor.save, //windows
+                         "Shift-Ctrl-S": Editor.save_as
                      }
                     )
         });
@@ -74,6 +76,7 @@ Editor.init_editor = function(){
     set_menu_string(find_next_id, "Find Next", "g")
     find_prev_id.onclick   = function(){CodeMirror.commands.findPrev(myCodeMirror)}
     set_menu_string(find_prev_id, "Find Prev   shift", "g")
+    set_menu_string(save_as_id,   "Save As...  shift", "s")
     replace_id.onclick     = function(){CodeMirror.commands.replace(myCodeMirror)} //allows user to also replace all.
     fold_all_id.onclick    = function(){CodeMirror.commands.foldAll(myCodeMirror)}
     unfold_all_id.onclick  = function(){CodeMirror.commands.unfoldAll(myCodeMirror)}

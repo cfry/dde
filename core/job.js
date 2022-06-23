@@ -20,6 +20,8 @@ class Job{
                  ending_program_counter="end",
                  initial_instruction=null,
                  data_array_transformer="P",
+                 get_dexter_defaults = true, //if true, always get defaults from Defaults.makeins file or error
+                    //if false, always get idealized values from Dexter.defaults class.
                  start_if_robot_busy=false,
                  if_robot_status_error   = Job.prototype.if_robot_status_error_default,
                  if_instruction_error    = Job.prototype.if_instruction_error_default,
@@ -143,6 +145,7 @@ class Job{
                             ending_program_counter: ending_program_counter,
                             initial_instruction: initial_instruction,
                             data_array_transformer: data_array_transformer,
+                            get_dexter_defaults: get_dexter_defaults,
                             start_if_robot_busy: start_if_robot_busy,
                             if_robot_status_error: if_robot_status_error,
                             if_instruction_error:  if_instruction_error,
@@ -208,6 +211,7 @@ class Job{
                 ending_program_counter:"end",
                 initial_instruction: null,
                 data_array_transformer: "P",
+                get_dexter_defaults: true,
                 start_if_robot_busy: false,
                 if_robot_status_error: Job.prototype.if_robot_status_error_default,
                 if_instruction_error: Job.prototype.if_instruction_error_default,
@@ -464,6 +468,7 @@ class Job{
             this.ending_program_counter  = this.orig_args.ending_program_counter
             this.initial_instruction     = this.orig_args.initial_instruction
             this.data_array_transformer  = this.orig_args.data_array_transformer
+            this.get_dexter_defaults     = this.orig_args.get_dexter_defaults
             this.start_if_robot_busy     = this.orig_args.start_if_robot_busy
             this.if_robot_status_error   = this.orig_args.if_robot_status_error
             this.if_instruction_error    = this.orig_args.if_instruction_error

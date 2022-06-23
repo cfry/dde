@@ -5,6 +5,7 @@ var Convert = require("./math/Convert.js")
 var Coor    = require("./math/Coor.js")
 var Kin     = require("./math/Kin.js")
 var Vector  = require("./math/Vector.js")
+require("./math/dh.js")     //makes DH global
 var txt     = require("./math/txt.js")
 var calibrate_build_tables = require("./low_level_dexter/calibrate_build_tables.js")
 
@@ -59,7 +60,7 @@ var {Instruction, make_ins, human_task_handler, human_enter_choice_handler,
 var {FPGA} = require('./core/fpga.js')
 var {Robot, Brain, Dexter, Human, Serial} = require('./core/robot.js')
 
-Brain.brain0 = new Brain({name: "brain0"})
+//Brain.brain0 = new Brain({name: "brain0"})
 
 var {RobotStatus} = require('./core/robot_status.js')
 

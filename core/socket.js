@@ -1,6 +1,7 @@
 /* Created by Fry on 2/4/16. */
 //https://www.hacksparrow.com/tcp-socket-programming-in-node-js.html
 const net = require("net")
+globalThis.net = net
 
 //never create an instance
 var Socket = class Socket{
@@ -321,11 +322,11 @@ var Socket = class Socket{
             else if(name === "JointDH") {
                 let instruction_array_copy = instruction_array.slice()
                 instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
-                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000)
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000000)
                 instruction_array_copy[Instruction.INSTRUCTION_ARG3] =
                     Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG3] * 3600)
                 instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
-                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG4] * 1000)
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG4] * 1000000)
                 instruction_array_copy[Instruction.INSTRUCTION_ARG5] =
                     Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG5] * 3600)
                 return instruction_array_copy
@@ -433,13 +434,13 @@ var Socket = class Socket{
             else if(name === "JointDH") {
                 let instruction_array_copy = instruction_array.slice()
                 instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
-                    instruction_array_copy[Instruction.INSTRUCTION_ARG2] / 1000
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG2] / 1000000 //orig in microns
                 instruction_array_copy[Instruction.INSTRUCTION_ARG3] =
-                    instruction_array_copy[Instruction.INSTRUCTION_ARG3] / 3600
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG3] / 3600    //orig in arcsecs
                 instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
-                    instruction_array_copy[Instruction.INSTRUCTION_ARG4] / 1000
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG4] / 1000000 //orig in microns
                 instruction_array_copy[Instruction.INSTRUCTION_ARG5] =
-                    instruction_array_copy[Instruction.INSTRUCTION_ARG5] / 3600
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG5] / 3600    //orig in arcsecs
                 return instruction_array_copy
             }
             else { return instruction_array }

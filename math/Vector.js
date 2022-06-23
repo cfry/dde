@@ -938,6 +938,7 @@ class Vector{
         let new_point_list = []
 
         let sum = [0, 0, 0]
+		let drawing_centroid
         if (point_list[0].length === 2){
         	for(var i = 0; i < point_list.length; i++){
 				new_point_list[i] = Vector.rotate([point_list[i][0], point_list[i][1], 0], rot_plane, theta)
@@ -1382,38 +1383,38 @@ class Vector{
 
 
     static DCM_to_quaternion(DCM = Vector.make_DCM()){
-    	//Algorithm was found here:
-        //http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
-    	let trace = DCM[0][0] + DCM[1][1] + DCM[2][2]
-        let S, w, x, y, z, quaternion
-        if(trace > 0){
-        	S = Math.sqrt(1.0 + trace) * 2
+		//Algorithm was found here:
+		//http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
+		let trace = DCM[0][0] + DCM[1][1] + DCM[2][2]
+		let S, w, x, y, z, quaternion
+		if(trace > 0){
+			S = Math.sqrt(1.0 + trace) * 2
 			w = .25 * S
-            x = (DCM[2][1] - DCM[1][2]) / S
-            y = (DCM[2][1] - DCM[1][2]) / S
-            z = (DCM[2][1] - DCM[1][2]) / S
-        }else if(DCM[0][0] > DCM[1][1] && DCM[0][0] > DCM[2][2]){
-        	S = 2 * Math.sqrt(1 + DCM[0][0] - DCM[1][1] - DCM[2][2])
-            w = (DCM[2][1] - DCM[1][2]) / S
-            x = .25 * S
-            y = (DCM[0][1] + DCM[1][0]) / S
-            z = (DCM[0][2] + DCM[2][0]) / S
-        }else if(DCM[1][1] > DCM[2][2]){
-        	S = 2 * Math.sqrt(1 + DCM[1][1] - DCM[0][0] - DCM[2][2])
-            w = (DCM[0][2] - DCM[2][0]) / S
-            x = (DCM[0][1] + DCM[1][0]) / S
-            y = .25 * S
-            z = (DCM[1][2] + DCM[2][1]) / S
-        }else if(DCM[1][1] > DCM[2][2]){
-        	S = 2 * Math.sqrt(1 + DCM[2][2] - DCM[0][0] - DCM[1][1])
-            w = (DCM[1][0] - DCM[0][1]) / S
-            x = (DCM[0][2] + DCM[2][0]) / S
-            y = (DCM[1][2] + DCM[2][1]) / S
-            z = .25 * S
-        }
-    	quaternion = [w, x, y, z]
-        return quaternion
-    }
+			x = (DCM[2][1] - DCM[1][2]) / S
+			y = (DCM[0][2] - DCM[2][0]) / S
+			z = (DCM[1][0] - DCM[0][1]) / S
+		}else if(DCM[0][0] > DCM[1][1] && DCM[0][0] > DCM[2][2]){
+			S = 2 * Math.sqrt(1 + DCM[0][0] - DCM[1][1] - DCM[2][2])
+			w = (DCM[2][1] - DCM[1][2]) / S
+			x = .25 * S
+			y = (DCM[0][1] + DCM[1][0]) / S
+			z = (DCM[0][2] + DCM[2][0]) / S
+		}else if(DCM[1][1] > DCM[2][2]){
+			S = 2 * Math.sqrt(1 + DCM[1][1] - DCM[0][0] - DCM[2][2])
+			w = (DCM[0][2] - DCM[2][0]) / S
+			x = (DCM[0][1] + DCM[1][0]) / S
+			y = .25 * S
+			z = (DCM[1][2] + DCM[2][1]) / S
+		}else if(DCM[1][1] > DCM[2][2]){
+			S = 2 * Math.sqrt(1 + DCM[2][2] - DCM[0][0] - DCM[1][1])
+			w = (DCM[1][0] - DCM[0][1]) / S
+			x = (DCM[0][2] + DCM[2][0]) / S
+			y = (DCM[1][2] + DCM[2][1]) / S
+			z = .25 * S
+		}
+		quaternion = [w, x, y, z]
+		return quaternion
+	}
 
     static euler_angles_to_quaternion(euler_angles = [0, 0, 0], euler_sequence = "XYZ"){
         return Vector.DCM_to_quaternion(Vector.euler_angles_to_DCM(euler_angles, euler_sequence))
@@ -1954,29 +1955,31 @@ class Vector{
 	}*/
 
     static make_pose(position = [0, 0, 0], orientation = [0, 0, 0], scale_factor = 1, sequence = "ZYX"){
-        let dim = Vector.matrix_dimensions(orientation)
-        let DCM
-        let s = scale_factor
-        if(dim[0] == 1 && dim[1] == 3){
-            //Euler Angle
-            DCM = Vector.euler_angles_to_DCM(orientation, sequence)
-        }else if(dim[0] == 1 && dim[1] == 4){
-            //Quaternion
-            DCM = Vector.quaternion_to_DCM(orientation)
-        }else if(dim[0] == 3 && dim[1] == 3){
-            //DCM
-            DCM = orientation
-        }else{
-            dde_error("orientation is improperly formatted")
-        }
+		let dim = Vector.matrix_dimensions(orientation)
+		let DCM
+		let s = scale_factor
+		if(dim[0] === 1 && dim[1] === 3){
+			//Euler Angle
+			//DCM = Convert.angles_to_DCM(orientation, sequence)
+			DCM = Convert.angles_to_DCM(orientation, sequence)
+		}else if(dim[0] === 1 && dim[1] === 4){
+			//Quaternion
+			//DCM = Convert.quat_to_DCM(orientation)
+			DCM = Convert.quat_to_DCM(orientation)
+		}else if(dim[0] === 3 && dim[1] === 3){
+			//DCM
+			DCM = orientation
+		}else{
+			dde_error("orientation is improperly formatted")
+		}
 
-        //Please tell me there's a better way to do this:
-        let pose = [[s*DCM[0][0], s*DCM[0][1], s*DCM[0][2], position[0]],
-            [s*DCM[1][0], s*DCM[1][1], s*DCM[1][2], position[1]],
-            [s*DCM[2][0], s*DCM[2][1], s*DCM[2][2], position[2]],
-            [0, 0, 0, 1]]
-        return pose
-    }
+		//Please tell me there's a better way to do this:
+		let pose = [[s*DCM[0][0], s*DCM[0][1], s*DCM[0][2], position[0]],
+			[s*DCM[1][0], s*DCM[1][1], s*DCM[1][2], position[1]],
+			[s*DCM[2][0], s*DCM[2][1], s*DCM[2][2], position[2]],
+			[0, 0, 0, 1]]
+		return pose
+	}
 
     
     static identity_matrix(size){
@@ -2411,7 +2414,7 @@ class Vector{
     	let A, B, B1=0, B2=0, A11=0, A12=0, A21=0, A22=0, xi, yi
     	switch(order){
     		case 0:
-        		result = [Vector.average(y_data)]
+        		sol = [Vector.average(y_data)]
         		break
         	case 1:
         		for(let i = 0; i < dim_x[1]; i++){
