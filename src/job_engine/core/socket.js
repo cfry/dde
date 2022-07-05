@@ -751,7 +751,7 @@ class Socket{
             let part_of_blob = data.slice(data_start, data_end)
             payload_string_maybe = part_of_blob.toString()
         }
-        else if (payload_string_maybe instanceof Buffer) { //beware, sometimes payload_string_maybe is a buffer. This converts it to a string.
+        else if (typeof(payload_string_maybe)  !==  "string") { //beware, sometimes payload_string_maybe is a buffer. This converts it to a string.
             payload_string_maybe = payload_string_maybe.toString()
         }
         //else { payload_string_maybe is normally a string, but could be an integer of > 0 if there's an error }

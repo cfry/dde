@@ -7,7 +7,17 @@ const formidable = pkg;
 
 import fs        from 'fs'; //file system
 import net       from 'net'; //network
-import { WebSocket, WebSocketServer }    from 'ws' ; //websocket //dde4 added clurlies around ws to fix bug in import
+// debugger;
+//import ws from 'ws';
+// debugger;
+//const {WebSocket, WebSocketServer} = ws;
+//debugger;
+//import {WebSocket, WebSocketServer} from 'ws'; //websocket //dde4 added curlies around ws to fix bug_in_import
+//debugger;
+//import WebSocket from 'ws';
+//WebSocketServer = WebSocket.Server
+//const WebSocketServer = WebSocket.Server
+import WebSocket, { WebSocketServer } from 'ws'; //see https://www.npmjs.com/package/ws
 import path      from 'path';
 import { spawn } from 'child_process'
 import ModbusRTU from "modbus-serial"
@@ -213,7 +223,8 @@ function serve_job_button_click(browser_socket, mess_obj){
         let cmd_args = [mess_obj.args || "-i"]; //if they didn't give us a -c <command> then do an interactive session
         let cmd_options = {cwd: SHARE_FOLDER, shell: true};
         if (".dde"==app_type) { //if this is a job engine job
-            cmd_line = 'node' // --experimental-fetch --inspect'; // --inspect-brk then we run node
+            cmd_line = 'node --experimental-fetch'; // --inspect'; // --inspect-brk then we run node
+                  //the --experimental-fetch is needed when running node v 17
             cmd_args = // ["core define_and_start_job " + jobfile]; //orig dde3 //tell it to start the job
                       ["bundleje.mjs define_and_start_job " + jobfile] //dde4
             cmd_options = {cwd: DDE_INSTALL_FOLDER,

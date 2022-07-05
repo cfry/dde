@@ -72,7 +72,6 @@ class DDE_DB{
                //just in case new version of dde adds some persistent_values...
                let is_modified = false
                for(let key in DDE_DB.persistent_values_initial_object){
-                   console.log("processing key: " + key)
                    if(data[key] === undefined){
                        data[key] = DDE_DB.persistent_values_initial_object[key]
                        is_modified = true

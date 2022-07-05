@@ -3,7 +3,8 @@
 class DDEFile {
     //utilities
     static convert_backslashes_to_slashes(a_string){
-        return a_string.replace(/\\/g, "/")
+        let result = a_string.replace(/\\/g, "/")
+        return result
     }
 
     static is_root_path(path){
@@ -41,6 +42,18 @@ class DDEFile {
         else { return dde_apps_folder + "/" + path }
     }*/
 
+    //DDEFile.make_url only called from this file june 26, 2022
+    //beware. there's an output.js make_url too.
+    //query for this method ALWAYS starts with "/edit?"
+    //"/edit?edit=",   takes a path. get the path's content
+    //"/edit?info=",   takes a path  to get meta info on the file but not its content
+    //"/edit?path=..." takes a path to edit
+    //"/edit?list="    takes a path of a dir to get info on
+    //"/edit?start=...", "/edit?", The query args arg start (position in file) and length
+    //used only in read_path_part where the initial path of the url is the file being looked at,
+    //when you want to get just part of a file. So i guess the initial path must be absolute.
+
+
     static make_url(path, query=""){
         //if (adjust_to_os) { path = adjust_path_to_os(path) }
         let url
@@ -77,9 +90,9 @@ class DDEFile {
                 let [protocol, host, extracted_path] = path.split(":")
                 if((protocol === "http") || (protocol === "https")){
                     extracted_path = this.add_default_file_prefix_maybe(extracted_path)
-                    url = protocol + ":" + host + query + path
+                    url = protocol + ":" + host + query + path //todo cut out host, just go with extracted path here???
                 }
-                else { //only 1 colon, assume its NOT the suffix to host but the separataor between host and path
+                else { //only 1 colon, assume its NOT the suffix to host but the separator before port
                     extracted_path = host
                     host = protocol
                     extracted_path = this.add_default_file_prefix_maybe(extracted_path)
@@ -210,7 +223,6 @@ class DDEFile {
     static async get_page_async(url_or_options, callback){
         //https://www.npmjs.com/package/request documents request
         let full_url = "http://" + this.host() + "/get_page?path=" + url_or_options
-        //let full_url =  this.make_url(url_or_options, "/get_page?path=")
         let response = await fetch(full_url)
         if(response.ok){
             let content = await response.text()

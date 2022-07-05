@@ -143,8 +143,8 @@ import "./lesson.js" //defines global Lesson
 
 
 
-var js_cmds_array = []
-var js_cmds_index = -1
+globalThis.js_cmds_array = []
+globalThis.js_cmds_index = -1 //-1 means no items in js_cmds_array
 
 function open_dev_tools(){
     //let dde_ipc
@@ -292,6 +292,8 @@ export function on_ready() {
 
         //$("#jqxwindow").jqxWindow({ height:400, width:400, showCloseButton: true});
     //$('#jqxwindow').jqxWindow('hide');
+
+    //also look in eval.js eval_part1 for js_cmds_array extension.
     $("#cmd_input_id").keyup(function(event){ //output pane  type in
         if(event.keyCode == 13){ //ENTER key
             let src = Editor.get_cmd_selection() //will return "" if no selection
@@ -304,35 +306,57 @@ export function on_ready() {
                 eval_js_part2(src)
             }
             else if(cmd_lang_id.value == "Python"){
-                Py.eval_py_part2(src)
+                Py.eval(src)
             }
             else if (cmd_lang_id.value == "SSH"){
                 cmd_input_id.placeholder = "Type in a shell 'bash' command & hit the Enter key to run."
                 //but the above probably never get's seen because the src of the actual default cmd gets shown instead
                 SSH.run_command({command: src})  //use defaults which makes formatted dir listing
-               //call_cmd_service_custom(src) /ROS selected
+                //call_cmd_service_custom(src) /ROS selected
             }
             //else if (cmd_lang_id.value == "ROS"){
             //    /call_cmd_service_custom(src) /ROS selected
             //}
         }
         else if(event.keyCode == 38){ //up arrow
-           if      (js_cmds_index == -1 ) { out("No JavaScript commands in history") }
-           else if (js_cmds_index == 0 )  { out("No more JavaScript command history.") }
-           else {
-               js_cmds_index = js_cmds_index - 1
-               var new_src = js_cmds_array[js_cmds_index]
-               cmd_input_id.value = new_src
-           }
-
+            /*if      (js_cmds_index == -1 ) { out("No JavaScript commands in history") }
+            else if (js_cmds_index == 0 )  { out("No more JavaScript command history.") }
+            else {
+                js_cmds_index = js_cmds_index - 1
+                var new_src = js_cmds_array[js_cmds_index]
+                cmd_input_id.value = new_src
+            }*/
+            if(js_cmds_array.length === 0){ out("No JavaScript commands in history") }
+            else if (js_cmds_index === -1) { //probably first time using up arrow, but
+                //user might have added items to the js_cmds_array via the EVAL button
+                js_cmds_index = js_cmds_array.length - 1
+                var new_src = js_cmds_array[js_cmds_index]
+                cmd_input_id.value = new_src
+            }
+            else if (js_cmds_index == 0 )  { out("No more JavaScript command history.") }
+            else {
+                js_cmds_index = js_cmds_index - 1
+                var new_src = js_cmds_array[js_cmds_index]
+                cmd_input_id.value = new_src
+            }
         }
+
         else if(event.keyCode == 40){ //down arrow
-            if      (js_cmds_index == -1 ) { out("No JavaScript commands in history") }
-            else if (js_cmds_index == js_cmds_array.length - 1) {
+            if      (js_cmds_array.length === 0) { out("No JavaScript commands in history") }
+            else if (js_cmds_index === -1) { //probably first time using down arrow, but
+                //user might have added items to the js_cmds_array via the EVAL button)
+                js_cmds_index = 0
+                var new_src = js_cmds_array[js_cmds_index]
+                cmd_input_id.value = new_src
+            }
+            else if (js_cmds_index >= (js_cmds_array.length - 1)) {
                 if(cmd_input_id.value == "") {
                     out("No more JavaScript command history.")
                 }
-                else { cmd_input_id.value = "" }
+                else {
+                    cmd_input_id.value = ""
+                    js_cmds_index = js_cmds_array.length
+                }
             }
             else {
                 js_cmds_index = js_cmds_index + 1

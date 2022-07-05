@@ -18,6 +18,9 @@ import js_beautify from "js-beautify"
 globalThis.js_beautify = js_beautify
 // js_beautify(JSON.stringify({a: 1, b:2})  //example of use. returns string nicely formatted.
 
+//import cv from "opencv.js"
+//globalThis.cv = cv
+
 //import strips from "strips" //fails because strips needs "fs", ony available in node. See
 //globalThis.strips = strips  //see ready_je.js for the importing of strips
 
@@ -52,6 +55,7 @@ import "../job_engine/core/instruction_dexter.js"   //sets Instruction.Dexter to
 import "../job_engine/core/instruction_io.js"       //makes class IO global
 import("../job_engine/core/instruction_control.js") //makes  class Control global
 import "../job_engine/core/robot.js" //now global Robot, Brain, Serial, Human, Dexter
+import "../job_engine/core/dexter_defaults.js" //just extends the Dexter class
 
 import "../job_engine/core/socket.js"       //defines class Socket as global
 import "../job_engine/core/dextersim.js"    //defines class DexterSim as global

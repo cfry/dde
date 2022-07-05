@@ -1,7 +1,23 @@
 var DH = {}
 globalThis.DH = DH
 
+//J_angles, if it isn't already an array of 5 angles (in degrees)
+//will be converted to one, either truncating too long arrays,
+//or padding the end with zeros if its too short.
+//dh_mat is expected to be an array 6 long.
+//this fn does not modify either of its args.
 DH.forward_kinematics = function(J_angles, dh_mat){
+    if(!Array.isArray(J_angles)) { dde_error("DH.forward_kinematics called with first arg of:<br/>" +
+                                   J_angles + "<br/> which is not an array.")}
+    else if(J_angles.length === 6) {} //ok as is
+    else if (J_angles.length < 6) {
+        J_angles = J_angles.slice() //make a copy
+        do { J_angles.push(0) }
+        while (J_angles.length < 6)
+    }
+    else { //J_angles length is > 6
+        J_angles = J_angles.slice(0, 6)
+    }
 	let T = [0, 0, 0, 0, 0, 0]
 	T[0] = Vector.make_pose()
     let dh = JSON.parse(JSON.stringify(dh_mat)) //deep copy
@@ -759,39 +775,7 @@ DH.disps_to_torques = function(disps, lin_fits){
 
 //The following is here to patch a bug in some versions of DDE
 
-Vector.DCM_to_quaternion = function(DCM = Vector.make_DCM()){
-    	//Algorithm was found here:
-        //http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
-    	let trace = DCM[0][0] + DCM[1][1] + DCM[2][2]
-        let S, w, x, y, z, quaternion
-        if(trace > 0){
-        	S = Math.sqrt(1.0 + trace) * 2
-			w = .25 * S
-            x = (DCM[2][1] - DCM[1][2]) / S
-            y = (DCM[0][2] - DCM[2][0]) / S
-            z = (DCM[1][0] - DCM[0][1]) / S
-        }else if(DCM[0][0] > DCM[1][1] && DCM[0][0] > DCM[2][2]){
-        	S = 2 * Math.sqrt(1 + DCM[0][0] - DCM[1][1] - DCM[2][2])
-            w = (DCM[2][1] - DCM[1][2]) / S
-            x = .25 * S
-            y = (DCM[0][1] + DCM[1][0]) / S
-            z = (DCM[0][2] + DCM[2][0]) / S
-        }else if(DCM[1][1] > DCM[2][2]){
-        	S = 2 * Math.sqrt(1 + DCM[1][1] - DCM[0][0] - DCM[2][2])
-            w = (DCM[0][2] - DCM[2][0]) / S
-            x = (DCM[0][1] + DCM[1][0]) / S
-            y = .25 * S
-            z = (DCM[1][2] + DCM[2][1]) / S
-        }else if(DCM[1][1] > DCM[2][2]){
-        	S = 2 * Math.sqrt(1 + DCM[2][2] - DCM[0][0] - DCM[1][1])
-            w = (DCM[1][0] - DCM[0][1]) / S
-            x = (DCM[0][2] + DCM[2][0]) / S
-            y = (DCM[1][2] + DCM[2][1]) / S
-            z = .25 * S
-        }
-    	quaternion = [w, x, y, z]
-        return quaternion
-    }
+
 /*
 
 var r_des = [
@@ -813,88 +797,6 @@ should return:
 
 
 */
-    
-//Patch:
-function angles_to_DCM(angles = [0, 0, 0], sequence = "XYZ"){
-    //default could be ZX'Z'
-
-    var result = []
-    let elt = ""
-    for(let char of sequence){
-        if(elt.length == 1){
-            if(char == "'"){
-                elt += char
-                result.push(elt)
-                elt = ""
-            }else{
-                result.push(elt)
-                elt = char
-            }
-        }else{
-            elt = char
-        } 
-    }
-    if((elt != "'") && (elt.length == 1)){
-        result.push(elt)
-    }
-
-    let DCM = Vector.identity_matrix(3)
-    if(result.length == 3){
-        for(var i = 0; i < 3; i++){
-            DCM = Vector.rotate_DCM(DCM, result[i], angles[i]) 
-        }
-    }
-    return Vector.transpose(DCM)
-}
-
-function quat_to_DCM(quaternion = [1, 0, 0, 0]){
-    //Algorithm was found here:
-    //http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/
-    let w = quaternion[0]
-    let x = quaternion[1]
-    let y = quaternion[2]
-    let z = quaternion[3]
-
-    let DCM = Vector.make_matrix(3,3)
-    DCM[0][0] = 1-2*y*y-2*z*z
-    DCM[1][0] = 2*x*y+2*z*w
-    DCM[2][0] = 2*x*z-2*y*w
-    DCM[0][1] = 2*x*y-2*z*w
-    DCM[1][1] = 1-2*x*x-2*z*z
-    DCM[2][1] = 2*y*z+2*x*w
-    DCM[0][2] = 2*x*z+2*y*w
-    DCM[1][2] = 2*y*z-2*x*w
-    DCM[2][2] = 1-2*x*x-2*y*y
-    return DCM
-}
-
-Vector.make_pose = function(position = [0, 0, 0], orientation = [0, 0, 0], scale_factor = 1, sequence = "ZYX"){
-		let dim = Vector.matrix_dimensions(orientation)
-        let DCM
-        let s = scale_factor
-        if(dim[0] === 1 && dim[1] === 3){
-        	//Euler Angle
-            //DCM = Convert.angles_to_DCM(orientation, sequence)
-            DCM = angles_to_DCM(orientation, sequence)
-        }else if(dim[0] === 1 && dim[1] === 4){
-            //Quaternion
-            //DCM = Convert.quat_to_DCM(orientation)
-            DCM = quat_to_DCM(orientation)
-        }else if(dim[0] === 3 && dim[1] === 3){
-        	//DCM
-            DCM = orientation
-        }else{
-        	dde_error("orientation is improperly formatted")
-        }
-        
-        //Please tell me there's a better way to do this:
-        let pose = [[s*DCM[0][0], s*DCM[0][1], s*DCM[0][2], position[0]],
-        			[s*DCM[1][0], s*DCM[1][1], s*DCM[1][2], position[1]],
-                    [s*DCM[2][0], s*DCM[2][1], s*DCM[2][2], position[2]],
-                    [0, 0, 0, 1]]
-        return pose
-	}
-
 
 /*
 

@@ -750,7 +750,7 @@ Series.instances = [
                      }
         }),
                                                    //note that choose_file_and_get_content and get_page are really INPUT functions. change name of series to io or make a new input series?
-    new Series({id:"series_output_id",      array: ['beep', 'beeps', 'Editor.insert', 'get_page', 'get_page_async','make_url', 'out', 'show_page', 'speak'],
+    new Series({id:"series_output_id",      array: ['beep', 'beeps', 'Editor.insert', 'out', 'show_page', 'speak'],
         menu_insertion_string: "beep({dur: 1, frequency: 440, volume: 1})",
         menu_sel_start:0, menu_sel_end:4, sample: "beep"}),
     new Series({id:"series_window_id",      array: ['SW.clear_output', 'SW.close_window', 'make_dom_elt', 'make_html', 'show_window',

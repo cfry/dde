@@ -945,6 +945,7 @@ class Vector{
         let new_point_list = []
 
         let sum = [0, 0, 0]
+		let drawing_centroid
         if (point_list[0].length === 2){
         	for(var i = 0; i < point_list.length; i++){
 				new_point_list[i] = Vector.rotate([point_list[i][0], point_list[i][1], 0], rot_plane, theta)

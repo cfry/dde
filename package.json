@@ -76,6 +76,6 @@
     "three-stl-loader": "^1.0.6",
     "three-text2d": "^0.6.0",
     "webmidi": "^2.5.3",
-    "ws": "^8.5.0"
+    "ws": "^8.8.0"
   }
 }

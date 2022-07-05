@@ -211,6 +211,7 @@ class Monitor {
 
       //used as the default callback in a send.
      static out(value, websocket=null, json_data){
+         Monitor.last_out_value = value
          let url_message = ""
          if(websocket) {
              url_message = "for websocket: " + websocket.url + " "
@@ -455,13 +456,13 @@ code to run in Job Engine:<br/>
                          problem       = "required",
                          fast        = true,
                          verbose     = false,
-                         output        = "function(text) { console.log(text); }" //inside strips
+                         output        = "(function(text) { console.log(text); })" //inside strips
                       }) {
          if(typeof(strips_domain) === "string") {} //ok as is
          else { //assume its a JSON object
              strips_domain = JSON.stringify(strips_domain)
              if (!strips_domain.startsWith("{")) {
-                 dde_error("Monitor.strips_solve callee with object which isn't " +
+                 dde_error("Monitor.strips_solve called with object which isn't " +
                      "a proper JSON object:\n" + strips_domain)
              }
          }
@@ -474,7 +475,30 @@ code to run in Job Engine:<br/>
          this.send(domain, src, callback, period)
     }
 
+    static strips_pddl_to_json({
+            domain        = "required",
+            callback      = "Monitor.out",
+            period        = "run_once",
 
+            pddl_string   = "required",
+            problem_or_domain= "problem",
+
+            fast        = true,
+            verbose     = false,
+            output        = "(function(text) { console.log(text); })" //inside strips
+        }) {
+            if(typeof(pddl_string) === "string") {} //ok as is
+            else {dde_error("Monitor.strips_pddl_to_json called with object which isn't " +
+                        "a string:\n" + pddl_string)
+            }
+            let src_obj =  {pddl_string: pddl_string,
+                            problem_or_domain: problem_or_domain,
+                            fast: fast,
+                            verbose: verbose,
+                            output: output}
+            let src = JSON.stringify(src_obj)
+            this.send(domain, src, callback, period)
+     }
 }
 /*
 Monitor.ws_url()
@@ -519,6 +543,7 @@ class MonitorServer {
                               callback: "out"
                               })
            ws_connection.on('message', function(data) {
+               console.log("MonitorServer.on message passed: " + data)
                MonitorServer.handle_message( ws_connection, data)
            })
            ws_connection.on('close', function (data) {
@@ -536,7 +561,7 @@ class MonitorServer {
     //data is a string that looks like:
     // {source: "some string of js", callback: "some str"} // that evals to a fn of one arg on the client which will be passed the result of source
     static handle_message(ws_connection, data) {
-        out('MonitorServer got message: ' + data)
+        console.log('MonitorServer.handle_message got message: ' + data)
         let data_obj
         try {
             data_obj = JSON.parse(data) //has fields src, callback, period
@@ -546,7 +571,10 @@ class MonitorServer {
         }
         if (data_obj.period === "run_once") {
             if(data_obj.source.includes("strips_domain")) {
-                   this.handle_message_strips(ws_connection, data, data_obj)
+                   this.handle_message_strips_solve(ws_connection, data, data_obj)
+            }
+            else if (data_obj.source.includes("problem_or_domain")) {
+                this.handle_message_strips_pddl_to_json(ws_connection, data, data_obj)
             }
             else { this.handle_message_one_eval(ws_connection, data, data_obj) }
         }
@@ -590,7 +618,7 @@ class MonitorServer {
         MonitorServer.send(ws_connection, message_str)
     }
 
-    static handle_message_strips(ws_connection, data, data_obj){
+    static handle_message_strips_solve(ws_connection, data, data_obj){
         let the_strips_callback
         let strips_data_obj = JSON.parse(data_obj.source)
         if(strips_data_obj.strips_domain  === undefined) { // required
@@ -611,7 +639,7 @@ class MonitorServer {
         }
         if(strips_data_obj.fast    !== undefined) { StripsManager.fast    = data_obj.fast } //default true
         if(strips_data_obj.verbose !== undefined) { StripsManager.verbose = data_obj.verbose } //default false
-        if(strips_data_obj.output  !== undefined) { //default "function(text) { console.log(text); }"
+        if(strips_data_obj.output  !== undefined) { //default "(function(text) { console.log(text); })"
                 try {
                     let fn = eval(strips_data_obj.output)
                     StripsManager.output = fn
@@ -641,6 +669,53 @@ class MonitorServer {
             let message_str = JSON.stringify(message_object)
             MonitorServer.send(ws_connection, message_str)
         }
+    }
+
+    static handle_message_strips_pddl_to_json(ws_connection, data, data_obj){
+        console.log("top of MonitorServer.handle_message_strips_pddl_to_json passed dat_obj: " + data_obj)
+        let the_strips_callback
+        let strips_data_obj = JSON.parse(data_obj.source)
+        if(strips_data_obj.pddl_string === undefined) { // required
+            let err = {error_type:         "required but not passed.",
+                       error_message:      "pddl_string required but not passed.",
+                       full_error_message: ""
+            }
+            this.handle_message_error(ws_connection, data, data_obj, err)
+            return
+        }
+        if(strips_data_obj.problem_or_domain === undefined) { //required
+            let err = {error_type:         "required but not passed.",
+                error_message:      "problem_or_domain required but not passed.",
+                full_error_message: ""
+            }
+            this.handle_message_error(ws_connection, data, data_obj, err)
+            return
+        }
+        if(strips_data_obj.fast    !== undefined) { StripsManager.fast    = data_obj.fast } //default true
+        if(strips_data_obj.verbose !== undefined) { StripsManager.verbose = data_obj.verbose } //default false
+        if(strips_data_obj.output  !== undefined) { //default "(function(text) { console.log(text); })"
+            try {
+                console.log("MonitorServer.handle_message_strips_pddl_to_json about to eval: " + strips_data_obj.output)
+                let fn = eval(strips_data_obj.output)
+                StripsManager.output = fn
+            }
+            catch(err) {
+                this.handle_message_error(ws_connection, data, data_obj, err)
+            }
+        }
+        let cb = (function(json_string) {
+            if (data_obj.callback) { //the Monitor(client) callback
+                let message_object = {
+                    source: "MonitorServer.strips_pddl_to_json(...)", //not really needed by Monitor but useful for debugging
+                    callback: data_obj.callback,
+                    value: json_string
+                }
+                let message_str = JSON.stringify(message_object)
+                MonitorServer.send(ws_connection, message_str)
+            }
+        })
+        console.log("in  MonitorServer.handle_message_strips_pddl_to_json about to call StripsManager.loadCode")
+        StripsManager.loadCode(strips_data_obj.problem_or_domain, strips_data_obj.pddl_string, cb);
     }
 
     static readyStateInt_to_string(int){

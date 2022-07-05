@@ -119,6 +119,10 @@ export function eval_js_part1(step=false){
             Py.eval_py_part2(src)
         }
         else {
+            let src_for_cmd_menu_maybe = src.trim()
+            if(!src_for_cmd_menu_maybe.includes("\n")){ //its a one-liner
+                js_cmds_array.push(src_for_cmd_menu_maybe) //just leave the "index" into the array where-ever it is.
+            }
             eval_js_part2((step? "debugger; ": "") + src) //LEAVE THIS IN RELEASED CODE
         }
     }

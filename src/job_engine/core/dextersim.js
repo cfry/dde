@@ -512,6 +512,28 @@ class DexterSim{
                 payload_string = JSON.stringify(result_array) //a crude aapproximation of the real values.
                 //should return a string of 5 integers of arcseconds.
             }
+            else if(last_path_part.startsWith("#POM") ||
+                last_path_part.startsWith("#XYZ")){
+                /*let measured_angs = this.compute_measured_angles_dexter_units().slice(0, 5)
+                let link_lens = this.robot.link_lengths
+                if(link_lens.length !== 5) { link_lens = ink_lens.slice(0, 5) }
+                let result_array  = DexterSim.make_pom(measured_angs, link_lens) //2 arrays of 5 numbers in dexter units
+                payload_string = JSON.stringify(result_array)
+                 */
+                last_path_part = last_path_part.trim()
+                let last_path_parts = last_path_part.split(" ")
+                let num = 4
+                if(last_path_parts.length > 1) {
+                    let arg = last(last_path_parts)
+                    let num = parseInt(arg)
+                    if(Number.isNaN(num)) { num = 4 }
+                    else if((num > 0) && (num < 10)) {} //leave as is
+                    else { num = 4}
+                }
+                let rob = this.robot
+                let pom = rob.get_POM(num) //a matrix
+                payload_string = JSON.stringify(pom)
+            }
             else if(last_path_part.startsWith("#StepAngles")){
                 let result_array = this.compute_measured_angles_dexter_units()
                 result_array = result_array.slice(0, 5) //cut off angles 6 and 7

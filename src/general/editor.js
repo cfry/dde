@@ -55,7 +55,8 @@ class Editor {
                              "Cmd-N": Editor.edit_new_file,
                              "Cmd-O": Editor.open_on_dde_computer,
                              "Cmd-R": Editor.move_to_instruction,
-                             "Cmd-S": Editor.save //mac
+                             "Cmd-S": Editor.save, //mac
+                             "Shift-Cmd-S": Editor.save_as  //this keystroke is usurped by tab_suspender Chrome extension.
                            }:  //"win" and "linux"
                             {"Alt-Left":   Series.ts_or_replace_sel_left,
                              "Alt-Right":  Series.ts_or_replace_sel_right,
@@ -67,7 +68,8 @@ class Editor {
                              "Ctrl-N": Editor.edit_new_file,
                              "Ctrl-O": Editor.open_on_dde_computer,
                              "Ctrl-R": Editor.move_to_instruction,
-                             "Ctrl-S": Editor.save //windows
+                             "Ctrl-S": Editor.save, //windows
+                             "Shift-Ctrl-S": Editor.save_as
                          }
                         )
         })
@@ -80,6 +82,7 @@ class Editor {
         Editor.set_menu_string(find_next_id, "Find Next", "g")
         find_prev_id.onclick   = function(){CodeMirror.commands.findPrev(Editor.myCodeMirror)}
         Editor.set_menu_string(find_prev_id, "Find Prev   shift", "g")
+        Editor.set_menu_string(save_as_id,   "Save As...  shift", "s")
         replace_id.onclick     = function(){CodeMirror.commands.replace(Editor.myCodeMirror)} //allows user to also replace all.
         fold_all_id.onclick    = function(){CodeMirror.commands.foldAll(Editor.myCodeMirror)}
         unfold_all_id.onclick  = function(){CodeMirror.commands.unfoldAll(Editor.myCodeMirror)}

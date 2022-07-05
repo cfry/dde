@@ -11,9 +11,15 @@ import fs  from "fs"    //needed by strips_loadCode
 import PEG from "pegjs" //needed by strips_loadCode
 //extends and replaces StripsManager.loadCode
 //do not use "this" in the body of this code
-//code is a string of PDDL or a JSON string
+//code can be a string of PDDL or a string of JSON or an actual JSON object.
 function strips_loadCode(grammarFileName, code, callback) {
     // Applies a PEG.js grammar against a code string and returns the parsed JSON result.
+    if(grammarFileName === "problem") {
+        grammarFileName = StripsManager.grammarProblemPath
+    }
+    else if (grammarFileName === "domain") {
+        grammarFileName = StripsManager.grammarDomainPath
+    }
     console.log("strips.js top of loadCode passed: " + grammarFileName + " code: " + code)
     if(typeof(code) === "object") { //assume proper JSON object
         if (callback) {

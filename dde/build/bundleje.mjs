@@ -75,7 +75,6 @@ var dependencies = {
 	"read-chunk": "^4.0.2",
 	readline: "^1.3.0",
 	"rotating-calipers": "^0.0.0",
-	scp2: "^0.5.0",
 	semver: "^7.3.5",
 	serialport: "^9.2.0",
 	"shepherd.js": "^8.3.1",
@@ -89,7 +88,7 @@ var dependencies = {
 	"three-stl-loader": "^1.0.6",
 	"three-text2d": "^0.6.0",
 	webmidi: "^2.5.3",
-	ws: "^8.5.0"
+	ws: "^8.8.0"
 };
 var package_json = {
 	name: name,
@@ -4946,6 +4945,7 @@ class Vector$1{
         let new_point_list = [];
 
         let sum = [0, 0, 0];
+		let drawing_centroid;
         if (point_list[0].length === 2){
         	for(var i = 0; i < point_list.length; i++){
 				new_point_list[i] = Vector$1.rotate([point_list[i][0], point_list[i][1], 0], rot_plane, theta);
@@ -6419,7 +6419,7 @@ class Vector$1{
     	let A, B, B1=0, B2=0, A11=0, A12=0, A21=0, A22=0, xi, yi;
     	switch(order){
     		case 0:
-        		result = [Vector$1.average(y_data)];
+        		sol = [Vector$1.average(y_data)];
         		break
         	case 1:
         		for(let i = 0; i < dim_x[1]; i++){
@@ -15140,16 +15140,32 @@ this.dxf_to_instructions = function({
 
 globalThis.DXF = DXF$1;
 
-var DH = {};
-globalThis.DH = DH;
+var DH$1 = {};
+globalThis.DH = DH$1;
 
-DH.forward_kinematics = function(J_angles, dh_mat){
+//J_angles, if it isn't already an array of 5 angles (in degrees)
+//will be converted to one, either truncating too long arrays,
+//or padding the end with zeros if its too short.
+//dh_mat is expected to be an array 6 long.
+//this fn does not modify either of its args.
+DH$1.forward_kinematics = function(J_angles, dh_mat){
+    if(!Array.isArray(J_angles)) { dde_error("DH.forward_kinematics called with first arg of:<br/>" +
+                                   J_angles + "<br/> which is not an array.");}
+    else if(J_angles.length === 6) ; //ok as is
+    else if (J_angles.length < 6) {
+        J_angles = J_angles.slice(); //make a copy
+        do { J_angles.push(0); }
+        while (J_angles.length < 6)
+    }
+    else { //J_angles length is > 6
+        J_angles = J_angles.slice(0, 6);
+    }
 	let T = [0, 0, 0, 0, 0, 0];
 	T[0] = Vector.make_pose();
     let dh = JSON.parse(JSON.stringify(dh_mat)); //deep copy
     
     for(let i = 0; i < J_angles.length; i++){
-    	dh[i][1] += J_angles[i] * DH.sign_swap[i];
+    	dh[i][1] += J_angles[i] * DH$1.sign_swap[i];
     }
     
     T[0] = Vector.make_pose();
@@ -15184,14 +15200,14 @@ Vector.multiply([0.004376061498635432, 0.3747559999576882, 0.5220044115252782], 
 
 */
 
-DH.get_joint_points = function(J_angles, dh_mat){
+DH$1.get_joint_points = function(J_angles, dh_mat){
 	let T = [];
     new Array(12);
 	T[0] = Vector.make_pose();
     let dh = JSON.parse(JSON.stringify(dh_mat)); //deep copy
     
     for(let i = 0; i < J_angles.length; i++){
-    	dh[i][1] += J_angles[i] * DH.sign_swap[i];
+    	dh[i][1] += J_angles[i] * DH$1.sign_swap[i];
     }
     
     //T.push(Vector.make_pose())
@@ -15267,7 +15283,7 @@ Plot.show(
 
 */
 
-DH.inverse_kinematics = function(x_e, r_e, dh_mat, angles_guess = [0, 0, 90, 0, 0, 0]){
+DH$1.inverse_kinematics = function(x_e, r_e, dh_mat, angles_guess = [0, 0, 90, 0, 0, 0]){
     let x_precision = 0.01 * _mm;
     let r_precision = 0.001; //quaternion magnitude
     let max_iter = 1000;
@@ -15275,7 +15291,7 @@ DH.inverse_kinematics = function(x_e, r_e, dh_mat, angles_guess = [0, 0, 90, 0, 
     let dt = 0.01;
     
     let q_angles = angles_guess.slice(); //shallow copy because q_angles gets modified
-    let fk = DH.forward_kinematics(angles_guess, dh_mat);
+    let fk = DH$1.forward_kinematics(angles_guess, dh_mat);
     let x_nominal = fk[0];
     let T_global = fk[2];
     let r_nominal = Vector.pull(T_global[T_global.length -1], [0, 2], [0, 2]);
@@ -15285,23 +15301,23 @@ DH.inverse_kinematics = function(x_e, r_e, dh_mat, angles_guess = [0, 0, 90, 0, 
     let x_d_dot = Vector.make_matrix(1, 6, 0)[0];
     while(
     	(Vector.magnitude(Vector.subtract(x_e, x_nominal)) >= x_precision
-        || Vector.magnitude(Vector.max(Vector.magnitude(DH.orientation_error_quat(r_e, r_nominal)))) >= r_precision)
+        || Vector.magnitude(Vector.max(Vector.magnitude(DH$1.orientation_error_quat(r_e, r_nominal)))) >= r_precision)
         && count < max_iter
     ){
     	err = Vector.subtract(x_e, x_nominal);
-        err = [...err, ...DH.orientation_error_quat(r_e, r_nominal).slice(0, 3)];
+        err = [...err, ...DH$1.orientation_error_quat(r_e, r_nominal).slice(0, 3)];
         
         let v_e = Vector.add(x_d_dot, Vector.multiply(k, err));
-        let g_jacobian = DH.geometric_jacobian(q_angles, dh_mat);
+        let g_jacobian = DH$1.geometric_jacobian(q_angles, dh_mat);
         let q_dot = Vector.transpose(Vector.matrix_multiply(Vector.inverse(g_jacobian), Vector.transpose(v_e)));
-        q_dot = Vector.multiply(q_dot, _rad, DH.sign_swap); //q_dot is in radians and needs same sign swap
+        q_dot = Vector.multiply(q_dot, _rad, DH$1.sign_swap); //q_dot is in radians and needs same sign swap
         
         q_angles = Vector.add(
         	q_angles,
         	Vector.multiply(dt, q_dot)
         );
         
-    	fk = DH.forward_kinematics(q_angles, dh_mat);
+    	fk = DH$1.forward_kinematics(q_angles, dh_mat);
         x_nominal = fk[0];
     	T_global = fk[2];
         r_nominal = Vector.pull(T_global[T_global.length -1], [0, 2], [0, 2]);
@@ -15309,7 +15325,7 @@ DH.inverse_kinematics = function(x_e, r_e, dh_mat, angles_guess = [0, 0, 90, 0, 
     }
     if(count >= max_iter){
     	out("DH.inverse_kinematics: no solution found, improve initial guess", "red");
-        out("quat: " + DH.orientation_error_quat(r_e, r_nominal), "red");
+        out("quat: " + DH$1.orientation_error_quat(r_e, r_nominal), "red");
         out("q_angles: " + q_angles, "red");
     }
     //out("count: " + count)
@@ -15404,9 +15420,9 @@ DH.forward_kinematics(angles, dh_mat)[0]
 
 */
 
-DH.sign_swap = [-1, -1, 1, 1, -1, 1];
+DH$1.sign_swap = [-1, -1, 1, 1, -1, 1];
 
-DH.orientation_error_quat = function(r2, r1){
+DH$1.orientation_error_quat = function(r2, r1){
 	let e_o = Vector.DCM_to_quaternion(Vector.matrix_multiply(r2, Vector.transpose(r1)));
 	return e_o.slice(1, 4)
 };
@@ -15443,7 +15459,7 @@ DH.force_to_torque = function(force_vector, J_angles, dh_mat){
 }
 */
 
-DH.parse_dh_mat_file = function(fp, dist_units = _m, ang_units = _deg){
+DH$1.parse_dh_mat_file = function(fp, dist_units = _m, ang_units = _deg){
 	var dh_content = file_content(fp);
     var dh_mat = dh_content.split('\r\n');
     dh_mat.pop(); //last element is empty
@@ -15462,7 +15478,7 @@ DH.parse_dh_mat_file = function(fp, dist_units = _m, ang_units = _deg){
     return dh_mat
 };
 
-DH.add_sixth_axis = function(dh_mat){
+DH$1.add_sixth_axis = function(dh_mat){
 	if(dh_mat.length === 6){return dh_mat}
 	let dh_6 = Vector.make_matrix(6, 4);
     for(let i = 0; i < dh_mat.length; i++){
@@ -15490,7 +15506,7 @@ DH.mat_to_s_param(dh_mat_6, true)
 
 */
 
-DH.mat_to_s_param = function(dh_mat, print = false){
+DH$1.mat_to_s_param = function(dh_mat, print = false){
 	var str_array = [];
     for(let i = 0; i < dh_mat.length; i++){
     	str_array.push("S JointDH " + (i + 1) + ", "
@@ -15504,8 +15520,8 @@ DH.mat_to_s_param = function(dh_mat, print = false){
     return str_array
 };
 
-DH.force_to_torque = function(force_vector, J_angles, dh_mat){
-	let jac = DH.geometric_jacobian(J_angles, dh_mat);
+DH$1.force_to_torque = function(force_vector, J_angles, dh_mat){
+	let jac = DH$1.geometric_jacobian(J_angles, dh_mat);
     let torques; 
     if(force_vector.length === 3){
         torques = Vector.matrix_multiply(
@@ -15519,13 +15535,13 @@ DH.force_to_torque = function(force_vector, J_angles, dh_mat){
         );
     }
     torques = Vector.transpose(torques);
-    torques = Vector.multiply(torques, DH.sign_swap);
+    torques = Vector.multiply(torques, DH$1.sign_swap);
 	return torques
 };
 
-DH.torque_to_force = function(torques, angles, dh_mat){
-    let jac = DH.geometric_jacobian(angles, dh_mat);
-    let T = Vector.multiply(torques.slice(), DH.sign_swap); //t = 1x6 needs to be 6x1 for matrix multiply, sign swap may not be needed 
+DH$1.torque_to_force = function(torques, angles, dh_mat){
+    let jac = DH$1.geometric_jacobian(angles, dh_mat);
+    let T = Vector.multiply(torques.slice(), DH$1.sign_swap); //t = 1x6 needs to be 6x1 for matrix multiply, sign swap may not be needed 
     let forces = Vector.matrix_multiply(Vector.transpose(Vector.inverse(jac)), Vector.transpose(T));
     return Vector.transpose(forces)
 };
@@ -15577,8 +15593,8 @@ inspect(force_2)
 
 */
 
-DH.cart_vel_to_ang_vel = function(cart_vel, J_angles, dh_mat){
-	let jac = DH.geometric_jacobian(J_angles, dh_mat);
+DH$1.cart_vel_to_ang_vel = function(cart_vel, J_angles, dh_mat){
+	let jac = DH$1.geometric_jacobian(J_angles, dh_mat);
     
     let ang_vels; 
     if(cart_vel.length === 3){
@@ -15590,7 +15606,7 @@ DH.cart_vel_to_ang_vel = function(cart_vel, J_angles, dh_mat){
     	ang_vels = Vector.matrix_multiply(Vector.transpose(jac), Vector.transpose(cart_vel));
     }
     ang_vels = Vector.transpose(ang_vels);
-    ang_vels = Vector.multiply(ang_vels, DH.sign_swap, _rad);
+    ang_vels = Vector.multiply(ang_vels, DH$1.sign_swap, _rad);
 	return ang_vels
 };
 /*
@@ -15617,7 +15633,7 @@ inspect(ang_vel)
 
 //Adapted from this Python code written by Karime:
 //https://github.com/HaddingtonDynamics/OCADO/blob/deca6a246878f19100aa1afcfcdede735e76c6ae/DDE/ForceControl/PositionalAccuracy/Dexter_simulator/scripts/robotModel.py#L412
-DH.geometric_jacobian = function(angles, dh_mat){
+DH$1.geometric_jacobian = function(angles, dh_mat){
 	let link_n = dh_mat.length;
 	Vector.identity_matrix(4);
     let pt_im1 = Vector.make_matrix(4, link_n, 0);
@@ -15625,7 +15641,7 @@ DH.geometric_jacobian = function(angles, dh_mat){
     Vector.transpose([0, 0, 1]);
     let q_angles = angles.slice();
     
-    let [pt_e, dir_6, T_global] = DH.forward_kinematics(q_angles, dh_mat);
+    let [pt_e, dir_6, T_global] = DH$1.forward_kinematics(q_angles, dh_mat);
     
     let g_jacobian = Vector.make_matrix(6, link_n);
     for(let i = 0; i < link_n; i++){
@@ -15669,7 +15685,7 @@ a = Vector.matrix_multiply(A, pt_0)
 
 */
 
-DH.torques_gravity = function(J_angles, dh_mat, g = [0, 0, -9.81], masses = [1.838, 2.520, 0.288, 0.100, 0.044, 0]){    
+DH$1.torques_gravity = function(J_angles, dh_mat, g = [0, 0, -9.81], masses = [1.838, 2.520, 0.288, 0.100, 0.044, 0]){    
     let CoM_local = [
         [0, 182.4*_mm - 246.593*_mm, 37.5*_mm, 1],
         [-61.15*_mm - 339.092*_mm, 0, 100.76*_mm - 90.7698793*_mm, 1],
@@ -15691,7 +15707,7 @@ DH.torques_gravity = function(J_angles, dh_mat, g = [0, 0, -9.81], masses = [1.8
     
     
     
-	let fk = DH.forward_kinematics(J_angles, dh_mat);
+	let fk = DH$1.forward_kinematics(J_angles, dh_mat);
     let hts = fk[2];
     let CoM_global = [];
     for(let i = 0; i < CoM_local.length; i++){
@@ -15760,12 +15776,12 @@ out(Ts)
 
 */
 
-DH.move_to = function(xyz, dir, roll, dh_mat){
+DH$1.move_to = function(xyz, dir, roll, dh_mat){
 	return function(){
     	if(dh_mat === undefined){
         	//total hack to make my code work:
             var folder = "C:/Users/james/Documents/dde_apps/2021/Code/MoveWithForce/data_set_HDI_000047/";
-            var dh_mat = DH.parse_dh_mat_file(folder + "dh_mat.out");
+            var dh_mat = DH$1.parse_dh_mat_file(folder + "dh_mat.out");
         }
 
         //var r = Vector.make_dcm
@@ -15776,17 +15792,17 @@ DH.move_to = function(xyz, dir, roll, dh_mat){
             [0, 1, 0]
         ];
         
-        DH.last_angles = DH.inverse_kinematics(xyz, T, dh_mat, DH.last_angles); //Also kind of a hack to get the code to work
-        if(Vector.max(Vector.abs(DH.last_angles)) > 180){
+        DH$1.last_angles = DH$1.inverse_kinematics(xyz, T, dh_mat, DH$1.last_angles); //Also kind of a hack to get the code to work
+        if(Vector.max(Vector.abs(DH$1.last_angles)) > 180){
         	dde_error("Kinematics Failure");
         }
-        return Dexter.move_all_joints(DH.last_angles)
+        return Dexter.move_all_joints(DH$1.last_angles)
     }
 };
 
-DH.J_angles_to_xyz = function(J_angles, dh_mat){
+DH$1.J_angles_to_xyz = function(J_angles, dh_mat){
 	let dh_mat_temp = JSON.parse(JSON.stringify(dh_mat));
-	let fk = DH.forward_kinematics(J_angles, dh_mat_temp);
+	let fk = DH$1.forward_kinematics(J_angles, dh_mat_temp);
 	return {
     	xyz: [fk[2][6][0][3], fk[2][6][1][3], fk[2][6][2][3]],
 		dir: [-fk[2][6][0][1], -fk[2][6][1][1], -fk[2][6][2][1]],
@@ -15801,7 +15817,7 @@ var position = DH.J_angles_to_xyz(J_angles, dh_mat)
 inspect(position)
 */
 
-DH.xyz_to_J_angles = function(xyz, dir, roll, dh_mat){
+DH$1.xyz_to_J_angles = function(xyz, dir, roll, dh_mat){
 	if(dir !== undefined){
     	dde_error("DH.xyz_to_J_angles does not support 'dir' yet, it will default to [0, 0, -1]");
     }
@@ -15815,11 +15831,11 @@ DH.xyz_to_J_angles = function(xyz, dir, roll, dh_mat){
         [0, 1, 0]
     ];
 
-    DH.last_angles = DH.inverse_kinematics(xyz, T, dh_mat, DH.last_angles); //Kind of a hack, last_angles belongs on robot instance
-    if(Vector.max(Vector.abs(DH.last_angles)) > 180){
+    DH$1.last_angles = DH$1.inverse_kinematics(xyz, T, dh_mat, DH$1.last_angles); //Kind of a hack, last_angles belongs on robot instance
+    if(Vector.max(Vector.abs(DH$1.last_angles)) > 180){
         dde_error("Kinematics Failure");
     }
-    return DH.last_angles
+    return DH$1.last_angles
 };
 
 /*
@@ -15831,7 +15847,7 @@ inspect(J_angles)
 */
 
 
-DH.last_angles = undefined;
+DH$1.last_angles = undefined;
 
 /*
 new Job({
@@ -15844,7 +15860,7 @@ new Job({
 */
 
 
-DH.maintain_force = function(job, xyz, goal_force, dh_mat, lin_fits, mag_thresh = 0.05){
+DH$1.maintain_force = function(job, xyz, goal_force, dh_mat, lin_fits, mag_thresh = 0.05){
     job.user_data.maintain_force_complete = false;
     job.user_data.cur_force_xyz = xyz.slice();
 	return Robot.loop(function(){
@@ -15862,9 +15878,9 @@ DH.maintain_force = function(job, xyz, goal_force, dh_mat, lin_fits, mag_thresh 
         this.user_data.step_angles = Vector.multiply(JSON.parse(this.user_data.StepAngles), _arcsec);
         let disps = Vector.subtract(this.user_data.meas, this.user_data.step_angles);
         
-        this.user_data.torques = DH.disps_to_torques(disps, lin_fits);
+        this.user_data.torques = DH$1.disps_to_torques(disps, lin_fits);
         this.user_data.torques.push(0);
-        this.user_data.meas_force = DH.torque_to_force(this.user_data.torques, this.user_data.meas, dh_mat);
+        this.user_data.meas_force = DH$1.torque_to_force(this.user_data.torques, this.user_data.meas, dh_mat);
         
         let Ps = [-0.1, -0.1, -0.1];
         let force_error = Vector.subtract(goal_force, this.user_data.meas_force.slice(0, 3));
@@ -15882,7 +15898,7 @@ DH.maintain_force = function(job, xyz, goal_force, dh_mat, lin_fits, mag_thresh 
             return
         }
 
-        CMD.push(DH.move_to(this.user_data.cur_force_xyz));
+        CMD.push(DH$1.move_to(this.user_data.cur_force_xyz));
         CMD.push(Dexter.empty_instruction_queue());
         CMD.push(Dexter.read_from_robot("#StepAngles", "StepAngles"));
         CMD.push(Dexter.empty_instruction_queue());
@@ -15890,7 +15906,7 @@ DH.maintain_force = function(job, xyz, goal_force, dh_mat, lin_fits, mag_thresh 
     })
 };
 
-DH.disps_to_torques = function(disps, lin_fits){
+DH$1.disps_to_torques = function(disps, lin_fits){
 	let torques = [];
 	for(let i = 0; i < disps.length; i++){
     	torques.push(lin_fits[i][0][0] * disps[i] + lin_fits[i][1][0]);
@@ -15900,39 +15916,7 @@ DH.disps_to_torques = function(disps, lin_fits){
 
 //The following is here to patch a bug in some versions of DDE
 
-Vector.DCM_to_quaternion = function(DCM = Vector.make_DCM()){
-    	//Algorithm was found here:
-        //http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
-    	let trace = DCM[0][0] + DCM[1][1] + DCM[2][2];
-        let S, w, x, y, z, quaternion;
-        if(trace > 0){
-        	S = Math.sqrt(1.0 + trace) * 2;
-			w = .25 * S;
-            x = (DCM[2][1] - DCM[1][2]) / S;
-            y = (DCM[0][2] - DCM[2][0]) / S;
-            z = (DCM[1][0] - DCM[0][1]) / S;
-        }else if(DCM[0][0] > DCM[1][1] && DCM[0][0] > DCM[2][2]){
-        	S = 2 * Math.sqrt(1 + DCM[0][0] - DCM[1][1] - DCM[2][2]);
-            w = (DCM[2][1] - DCM[1][2]) / S;
-            x = .25 * S;
-            y = (DCM[0][1] + DCM[1][0]) / S;
-            z = (DCM[0][2] + DCM[2][0]) / S;
-        }else if(DCM[1][1] > DCM[2][2]){
-        	S = 2 * Math.sqrt(1 + DCM[1][1] - DCM[0][0] - DCM[2][2]);
-            w = (DCM[0][2] - DCM[2][0]) / S;
-            x = (DCM[0][1] + DCM[1][0]) / S;
-            y = .25 * S;
-            z = (DCM[1][2] + DCM[2][1]) / S;
-        }else if(DCM[1][1] > DCM[2][2]){
-        	S = 2 * Math.sqrt(1 + DCM[2][2] - DCM[0][0] - DCM[1][1]);
-            w = (DCM[1][0] - DCM[0][1]) / S;
-            x = (DCM[0][2] + DCM[2][0]) / S;
-            y = (DCM[1][2] + DCM[2][1]) / S;
-            z = .25 * S;
-        }
-    	quaternion = [w, x, y, z];
-        return quaternion
-    };
+
 /*
 
 var r_des = [
@@ -15954,88 +15938,6 @@ should return:
 
 
 */
-    
-//Patch:
-function angles_to_DCM(angles = [0, 0, 0], sequence = "XYZ"){
-    //default could be ZX'Z'
-
-    var result = [];
-    let elt = "";
-    for(let char of sequence){
-        if(elt.length == 1){
-            if(char == "'"){
-                elt += char;
-                result.push(elt);
-                elt = "";
-            }else {
-                result.push(elt);
-                elt = char;
-            }
-        }else {
-            elt = char;
-        } 
-    }
-    if((elt != "'") && (elt.length == 1)){
-        result.push(elt);
-    }
-
-    let DCM = Vector.identity_matrix(3);
-    if(result.length == 3){
-        for(var i = 0; i < 3; i++){
-            DCM = Vector.rotate_DCM(DCM, result[i], angles[i]); 
-        }
-    }
-    return Vector.transpose(DCM)
-}
-
-function quat_to_DCM(quaternion = [1, 0, 0, 0]){
-    //Algorithm was found here:
-    //http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/
-    let w = quaternion[0];
-    let x = quaternion[1];
-    let y = quaternion[2];
-    let z = quaternion[3];
-
-    let DCM = Vector.make_matrix(3,3);
-    DCM[0][0] = 1-2*y*y-2*z*z;
-    DCM[1][0] = 2*x*y+2*z*w;
-    DCM[2][0] = 2*x*z-2*y*w;
-    DCM[0][1] = 2*x*y-2*z*w;
-    DCM[1][1] = 1-2*x*x-2*z*z;
-    DCM[2][1] = 2*y*z+2*x*w;
-    DCM[0][2] = 2*x*z+2*y*w;
-    DCM[1][2] = 2*y*z-2*x*w;
-    DCM[2][2] = 1-2*x*x-2*y*y;
-    return DCM
-}
-
-Vector.make_pose = function(position = [0, 0, 0], orientation = [0, 0, 0], scale_factor = 1, sequence = "ZYX"){
-		let dim = Vector.matrix_dimensions(orientation);
-        let DCM;
-        let s = scale_factor;
-        if(dim[0] === 1 && dim[1] === 3){
-        	//Euler Angle
-            //DCM = Convert.angles_to_DCM(orientation, sequence)
-            DCM = angles_to_DCM(orientation, sequence);
-        }else if(dim[0] === 1 && dim[1] === 4){
-            //Quaternion
-            //DCM = Convert.quat_to_DCM(orientation)
-            DCM = quat_to_DCM(orientation);
-        }else if(dim[0] === 3 && dim[1] === 3){
-        	//DCM
-            DCM = orientation;
-        }else {
-        	dde_error("orientation is improperly formatted");
-        }
-        
-        //Please tell me there's a better way to do this:
-        let pose = [[s*DCM[0][0], s*DCM[0][1], s*DCM[0][2], position[0]],
-        			[s*DCM[1][0], s*DCM[1][1], s*DCM[1][2], position[1]],
-                    [s*DCM[2][0], s*DCM[2][1], s*DCM[2][2], position[2]],
-                    [0, 0, 0, 1]];
-        return pose
-	};
-
 
 /*
 
@@ -16175,12 +16077,12 @@ function calibrate_build_tables({
         make_ins("F"),
         make_ins("w", 42, 0),
         make_ins("S", "MaxSpeed", move_speed),
-        make_ins("a", ...[0, 0, 0, 0, 0].arcsec()),
+        make_ins("a", ...[0, 0, 0, 0, 0]),
 
 		//Take a bow, loads tables:
         //make_ins("a", ...[20000,20000,20000,20000,20000].arcsec()),
         make_ins("a", [2, 2, 2, 2, 2]),
-        make_ins("a", ...[0, 0, 0, 0, 0].arcsec()),
+        make_ins("a", ...[0, 0, 0, 0, 0]),
         make_ins("F"),
 
         Dexter.set_parameter("J1BoundryHigh", J_inner_max[0]),
@@ -16938,6 +16840,7 @@ class Job$1{
                             ending_program_counter: ending_program_counter,
                             initial_instruction: initial_instruction,
                             data_array_transformer: data_array_transformer,
+                            get_dexter_defaults: get_dexter_defaults,
                             start_if_robot_busy: start_if_robot_busy,
                             if_robot_status_error: if_robot_status_error,
                             if_instruction_error:  if_instruction_error,
@@ -17003,6 +16906,7 @@ class Job$1{
                 ending_program_counter:"end",
                 initial_instruction: null,
                 data_array_transformer: "P",
+                get_dexter_defaults: true,
                 start_if_robot_busy: false,
                 if_robot_status_error: Job$1.prototype.if_robot_status_error_default,
                 if_instruction_error: Job$1.prototype.if_instruction_error_default,
@@ -17285,6 +17189,7 @@ class Job$1{
             this.ending_program_counter  = this.orig_args.ending_program_counter;
             this.initial_instruction     = this.orig_args.initial_instruction;
             this.data_array_transformer  = this.orig_args.data_array_transformer;
+            this.get_dexter_defaults     = this.orig_args.get_dexter_defaults;
             this.start_if_robot_busy     = this.orig_args.start_if_robot_busy;
             this.if_robot_status_error   = this.orig_args.if_robot_status_error;
             this.if_instruction_error    = this.orig_args.if_instruction_error;
@@ -25003,6 +24908,19 @@ Instruction.Dexter.read_file = class read_file extends Instruction.Dexter{
             if(payload_string_maybe.length < Instruction.Dexter.read_file.payload_max_chars){
                 read_file_instance.is_done = true;
             }
+            //if we get exactly payload_max_chars, we probably have more chars to come from the robot,
+            //but its possible we're running the sim and we just so happened to have exactly
+            //payload_max_chars
+            else {//payload_string_maybe is probably more than payload_max_chars meaning it probably came
+                //from the simulator, therefore we're done as we get all chars in one fell swoop from
+                //the simulator.
+                let rob = read_file_instance.robot;
+                const sim_actual = Robot.get_simulate_actual(rob.simulate);
+                if(sim_actual === true) { //definitely simulating so we're done.
+                    read_file_instance.is_done = true;
+                }
+                //else we are not in sim and more chars to come from the robot.
+            }
         }
         else if(typeof(payload_string_maybe) == "number"){ //an error number.
             job_instance.user_data[read_file_instance.destination] = payload_string_maybe; //set, don't append
@@ -27536,6 +27454,63 @@ Dexter$1.LINK3_AVERAGE_DIAMETER =  0.050000; //meters
 Dexter$1.LINK4_AVERAGE_DIAMETER =  0.035000; //meters
 Dexter$1.LINK5_AVERAGE_DIAMETER =  0.030000; //meters
 
+//_________new dexter defaults_________
+Dexter$1.defaults = {
+    "Built by": "Mike Philips",
+    "Dexter Model": "HDI",
+    "Dexter Serial Number": "DEX-000000",
+    "DexRun modified": "2022-02-04T21:27:24Z",
+    "Manufacture Location": "Haddington Dynamics Inc Las Vegas",
+    "OS version": "Ubuntu 16.04 LTS",
+    "xillydemo modified": "2021-09-21T18:12:58Z",
+
+    Forces: [],
+    Frictions: [],
+    BoundryHighs: [185, 105, 150, 120, 185],
+    BoundryLows: [-185, -105, -150, -120, -185],
+    PID_Ps: [],
+
+    AxisCal: [-326400, -326400, -326400, -86400, -86400],
+    Interpolation: [1, 1, 1, 1, 1],
+    LinkLengths: [0.2352, 0.339092, 0.3075, 0.0595, 0.08244],
+
+//dh_mat in Dexter units
+//             microns  arcsec microns  arcsec
+// ___ Joint,     Tz,     Rz,     Tx,     Rx
+//S JointDH 1, 235200, 324000,      0, 324000;
+//S JointDH 2, 100760, 324000, 339090, 643874;
+//S JointDH 3,  61460,      0, 307500,   4125;
+//S JointDH 4,  39300, 324000,      0, 313687;
+//S JointDH 5,  59500, 324000,      0, 324000;
+//S JointDH 6,  82440,      0,      0,-324000;
+
+// converted to meters  deg meters    deg
+    dh_mat: [[0.235200, 90, 0,        90],
+        [0.100760, 90, 0.339090, 178.8538888888889],
+        [0.061460,  0, 0.307500, 1.1458333333333333],
+        [0.039300, 90, 0,        87.13527777777777],
+        [0.059500, 90, 0,        90],
+        [0.082440,  0, 0,        -90]],
+
+    BWDampJoint: [0, 0, 0.25034065, 0.0619188, 0.00583905],
+    BWAlphaJoint: [9.77374853, 1.89690978, 1.12505283, 0.04772041, 0.00402252],
+    BWBetaJoint: [0.00591075, 6.3111515, 8.64624184, 0.18184776, 0.34199777],
+    BWGammaJoint: [0, 0, 0, 0.65140762, 24.44855881],
+    BWGainJoint: [3.3907304, 19.19908306, 1.74234028, 3.51781539, 0.73697885],
+    "BW-sticRatioJoint": [0.12760212, 0.8168827, 0.5322899, 0.0307373, 0.29133478],
+    BWElasticOffJoint: [-6.24846157, -1.21862716, 1.07327058, -5.77940025, -0.96618619],
+    RawVelocityLimits: [375840, 360, 360, 360, 360],
+    ServoSetup: []
+    /* the below are "representative values" for ServoSetup, but the
+       actual default should be "don't do anything".
+    [{"a":              [10, 0, 0, 0, 0, 0, 87],  orig_line: 99},
+              {"S, RebootServo": [3, 1],                   orig_line: 106},
+              {"z":              0.000002,                 orig_line: 107},
+              {"S, RebootServo": [1, 1],                   orig_line: 108}
+             ]
+             } */
+};
+
 //gets called regardless of whether simulate = true or not because
 //even if we're simulating, we like to get that actual link lengths from
 //the dexter IF its available
@@ -27574,51 +27549,47 @@ Dexter$1.LINK5_AVERAGE_DIAMETER =  0.030000; //meters
     }
 }*/
 
-//note that
-Dexter$1.prototype.set_link_lengths = function(job_to_start_when_done = null){
-    console.log("top of set_link_lengths with robot: " + this.name +
-                 " job_to_start_when_done: " + job_to_start_when_done.name +
-                 " Link1: " + this.Link1 +
-                 " this.simulate: " + this.simulate);
-    console.log("globalThis.platform: " + globalThis.platform);
-    //console.log("persistent_values: " + DDE_DB.persistent_values) //will error if DDE_DB is undefined as is true in job engine
+Dexter$1.prototype.set_link_lengths = function(job_to_start_when_done = null) {
     let sim_actual = Robot$1.get_simulate_actual(this.simulate);
-    console.log("sim_actual: " + sim_actual);
-    if(job_to_start_when_done && (job_to_start_when_done.name === "set_link_lengths")) {
-        console.log("in set_link_lengths with job job_to_start_when_done of set_link_lengths");
+    if (job_to_start_when_done && (job_to_start_when_done.name === "set_link_lengths")) {
         this.start_aux(job_to_start_when_done);
     }
-    else if(!this.Link1) { //no values set since dde launch
-        console.log("in set_link_lengths, no Link1");
-        if (sim_actual === true) {
-            this.set_link_lengths_using_dde_db();
+    else if (job_to_start_when_done.get_dexter_defaults) {
+        if (sim_actual !== true) { //ie "real"
+            /*if (node_server_supports_editor(this)) {
+                this.set_link_lengths_using_node_server(job_to_start_when_done)
+            } else {
+                job_to_start_when_done.stop_for_reason("errored_from_dexter_connect",
+                    "While attempting to set_link_lengths, " +
+                    " can't connect to Dexter." + this.name)
+                //dde_error("Dexter." + this.name + "'s node server is not responding.<br/>" +
+                //    "Set the Job's 'get_dexter_defaults' param to false to avoid looking for Defaults.makeins file and<br/>" +
+                //    "initialize Dexter defaults to their idealized values.")
+                //this.set_link_lengths_using_job(job_to_start_when_done)
+            }*/
+            this.set_link_lengths_using_node_server(job_to_start_when_done);
+        } else { //simulating, so set to idealized values
+            this.defaults = Dexter$1.defaults;
             this.start_aux(job_to_start_when_done);
         }
-        else {
-            let ip = job_to_start_when_done.robot.ip_address;
-            let path = ip + ":" + "/edit?edit=/srv/samba/share/Defaults.make_ins";
-            let the_dex = this;
-            DDEFile.read_file_async(path, function (err, content) {
-                if (err) {
-                    the_dex.set_link_lengths_using_dde_db();
-                    the_dex.start_aux(job_to_start_when_done);
-                } else if (content) { //node_server_supports_editor(this)) {//todo dde4 uncomment, etc.
-                    the_dex.set_link_lengths_from_file_content(content);
-                    the_dex.start_aux(job_to_start_when_done);
-                } else {
-                    warning("Dexter." + this.name + "'s node server is not responding.<br/>" +
-                        "Setting link lengths via DDE's internal defaults.");
-                    //this.set_link_lengths_using_job(job_to_start_when_done)
-                    the_dex.set_link_lengths_using_dde_db();
-                    the_dex.start_aux(job_to_start_when_done);
-                }
-            });
-        }
-    }
-    else {//link lengths already set correctly
-        console.log("link lengths already set correctly");
+    } else { // set to idealized values
+        this.defaults = Dexter$1.defaults;
         this.start_aux(job_to_start_when_done);
     }
+};
+Dexter$1.prototype.set_link_lengths_using_node_server = function(job_to_start_when_done){
+    let the_dexter = this;
+    let callback = (function(err, content){
+        if(err) { dde_error("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
+            the_url + "<br/>and error message: " +
+            err.message +
+            "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.");
+        }
+        else {
+            the_dexter.start_aux(job_to_start_when_done);
+        }
+    });
+    the_dexter.defaults_read(callback);
 };
 
 /*
@@ -27721,32 +27692,43 @@ Dexter.prototype.set_link_lengths_using_job = function(job_to_start){
 }
 */
 
-Dexter$1.prototype.set_link_lengths_using_dde_db = function(){
-        this.Link1 = Dexter$1.LINK1;
-        this.Link2 = Dexter$1.LINK2;
-        this.Link3 = Dexter$1.LINK3;
-        this.Link4 = Dexter$1.LINK4;
-        this.Link5 = Dexter$1.LINK5;
+/*
+Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
+    let path = dde_apps_folder + "/dexter_file_systems/"  + this.name + "/Defaults.make_ins"
+    if(file_exists(path)) {
+        let content = read_file(path)
+        this.set_link_lengths_from_file_content(content)
+    }
+    else {
+        this.Link1 = Dexter.LINK1
+        this.Link2 = Dexter.LINK2
+        this.Link3 = Dexter.LINK3
+        this.Link4 = Dexter.LINK4
+        this.Link5 = Dexter.LINK5
+        this.link_lengths = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]
 
-        this.J1_angle_min = Dexter$1.J1_ANGLE_MIN;
-        this.J2_angle_min = Dexter$1.J2_ANGLE_MIN;
-        this.J3_angle_min = Dexter$1.J3_ANGLE_MIN;
-        this.J4_angle_min = Dexter$1.J4_ANGLE_MIN;
-        this.J5_angle_min = Dexter$1.J5_ANGLE_MIN;
-        this.J6_angle_min = Dexter$1.J6_ANGLE_MIN;
-        this.J7_angle_min = Dexter$1.J7_ANGLE_MIN;
+        this.J1_angle_min = Dexter.J1_ANGLE_MIN
+        this.J2_angle_min = Dexter.J2_ANGLE_MIN
+        this.J3_angle_min = Dexter.J3_ANGLE_MIN
+        this.J4_angle_min = Dexter.J4_ANGLE_MIN
+        this.J5_angle_min = Dexter.J5_ANGLE_MIN
+        this.J6_angle_min = Dexter.J6_ANGLE_MIN
+        this.J7_angle_min = Dexter.J7_ANGLE_MIN
 
-        this.J1_angle_max = Dexter$1.J1_ANGLE_MAX;
-        this.J2_angle_max = Dexter$1.J2_ANGLE_MAX;
-        this.J3_angle_max = Dexter$1.J3_ANGLE_MAX;
-        this.J4_angle_max = Dexter$1.J4_ANGLE_MAX;
-        this.J5_angle_max = Dexter$1.J5_ANGLE_MAX;
-        this.J6_angle_max = Dexter$1.J6_ANGLE_MAX;
-        this.J7_angle_max = Dexter$1.J7_ANGLE_MAX;
-
-       this.dh_mat        = Dexter$1.dh_mat;
-};
-
+        this.J1_angle_max = Dexter.J1_ANGLE_MAX
+        this.J2_angle_max = Dexter.J2_ANGLE_MAX
+        this.J3_angle_max = Dexter.J3_ANGLE_MAX
+        this.J4_angle_max = Dexter.J4_ANGLE_MAX
+        this.J5_angle_max = Dexter.J5_ANGLE_MAX
+        this.J6_angle_max = Dexter.J6_ANGLE_MAX
+        this.J7_angle_max = Dexter.J7_ANGLE_MAX
+    }
+    //this.link_lengths_set_from_dde_computer = true
+    if(job_to_start) {
+        this.start_aux(job_to_start)
+    }
+}
+*/
 //content is the content of a Defaults.make_ins file
 //sets link lengths as well as any other params in the file.
 Dexter$1.prototype.set_link_lengths_from_file_content = function(content){
@@ -27806,6 +27788,44 @@ Dexter$1.prototype.set_link_lengths_from_file_content = function(content){
     }
 };
 
+//called from DexterSim for Dexter.read_from_robot("#POM", link_from_end)
+//and possibly elsewhere by user but if so,
+//gets angles from the return of the last instruction sent,
+//not the current measured angles.
+Dexter$1.prototype.get_POM = function(link_from_end=4){ //could be 5
+    const sim_actual = Robot$1.get_simulate_actual(this.simulate);
+    if(sim_actual === true){
+        let dexsim = DexterSim.robot_name_to_dextersim_instance_map[this.name];
+        if(!dexsim) {
+            dde_error("Dexter." + this.name + " called which is simulated, but there's no DexterSim instance for that Dexter.");
+        }
+        else {
+            let J_angles      = dexsim.compute_measured_angles_dexter_units();
+            J_angles          = J_angles.slice(0, 6);
+            let dh_mat        = this.defaults.dh_mat;
+            let fk_result     = DH.forward_kinematics(J_angles, dh_mat);
+            let arr_of_poms   = fk_result[2];
+            let the_pom_index = link_from_end + 1;
+            let the_pom       = arr_of_poms[the_pom_index];
+            return the_pom
+        }
+    }
+    else if(this.defaults && this.rs) {
+        let J_angles = this.rs.measured_angles(5);
+        let dh_mat = this.defaults.dh_mat;
+        let arr_of_poms = DH.forward_kinematics(J_angles, dh_mat)[2];
+        let pom = arr_of_poms[link_from_end + 1];
+        return pom
+    }
+    else {
+        dde_error("In Dexter." + this.name + " no angles or dh_mat are available until<br/>" +
+            "you've run a Job with this Dexter at least once.");
+    }
+
+};
+
+
+
 Dexter$1.LEG_LENGTH = 0.152400; //meters  6 inches
 
 //values in degrees, Dexter HDI
@@ -27823,13 +27843,6 @@ Dexter$1.J6_ANGLE_MIN = -150; //0
 Dexter$1.J6_ANGLE_MAX = 150; //296
 Dexter$1.J7_ANGLE_MIN = 0;
 Dexter$1.J7_ANGLE_MAX = 296;
-
-Dexter$1.dh_mat = [[245.656, 90.02777777777777,    0.26,    89.83694444444444],
-                 [88.421,  90.0975,              344.079, 179.83055555555555],
-                 [61.46,   0.015833333333333335, 310.258, -0.22277777777777777],
-                 [39.3,    87.87166666666667,    -0.722,  89.38583333333334],
-                 [61.474,  88.96138888888889,    0,       90],
-                 [82.736,  0,                    0,       -90]];
 
 Dexter$1.MAX_SPEED    = 30;  //degrees per second. NOT the max speed of the robot,
                          //but rather for a given instruction's envelope of speed,
@@ -28654,6 +28667,1487 @@ IO$1.take_picture = Robot.take_picture;
 
 globalThis.IO = IO$1;
 
+//See Examples at bottom of file
+
+Dexter.defaults_arg_sep = ", ";
+
+Dexter.defaults_coloned_comment_props = [
+    "Dexter Serial Number",
+    "Dexter Model",
+    "Manufacture Location",
+    "Built by"
+];
+
+Dexter.defaults_colonless_comment_props = [
+    "DexRun modified",
+    "xillydemo modified",
+    "OS version"
+];
+
+//Dexter.dexter0.defaults = {}
+
+/* Returns something like: "Dexter.dexter0:/srv/samba/share/Defaults.make_ins"
+Dexter.dexter0.defaults_url()
+*/
+Dexter.prototype.defaults_url = function(){
+    return "Dexter." + this.name + ":/srv/samba/share/Defaults.make_ins"
+};
+
+
+/*Gets the Defaults.make_ins file from Dexter and
+sets this.defaults_lines with an array of strings (1 string per line)
+Dexter.dexter0.defaults_read()
+Dexter.dexter0.defaults_lines
+*/
+
+//the callback is optional.
+//when set_link_lengths called defaults_read,
+//it has the callback call Dexter.prototype.start_aux
+Dexter.prototype.defaults_read = function(callback = null){
+    let the_url = this.defaults_url();
+    let the_dex_inst = this;
+    let normal_defaults_read_cb = (function(err, content){
+                        if(err) { dde_error("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
+                                             the_url + "<br/>and error message: " +
+                                             err.message +
+                                             "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.");
+                        }
+                        else {
+                            the_dex_inst.defaults_set_lines_from_string(content);
+                            the_dex_inst.defaults_lines_to_high_level();
+                            if(callback) {
+                                callback.call(the_dex_inst, null);
+                            }
+                        }
+        });
+    DDEFile.read_file_async(the_url, normal_defaults_read_cb);
+};
+
+//caution:  not ready for prime time.
+Dexter.prototype.defaults_write = function(){
+    Dexter.dexter0.defaults_high_level_to_defaults_lines();
+    let the_url = Dexter.prototype.defaults_url();
+    let content = this.defaults.get("whole_file_string");
+    let the_dex_inst = this;
+    write_file_async(the_url,  content,
+        function(err){
+            if(err) { warning("Dexter." + the_dex_inst.name + ".defaults_write errored with: " +
+                err.message);
+            }
+            else {
+                out(the_url + " written.");
+            }
+        });
+};
+
+
+/*
+Internal fn not called by users.
+They should use Dexter.dexter0.set("lines", "some str") instead.
+Usually this function isn't called directly
+as you can call Dexter.dexter0.defaults_read()
+but if you really want to set defaults_lines to
+a string you already have, its useful.
+
+***
+Dexter.dexter0.defaults_set_lines_from_string(read_file("Defaults.make_ins"))
+Dexter.dexter0.defaults_lines
+*/
+Dexter.prototype.defaults_set_lines_from_string = function(content){
+    content = content.trimEnd(); //don't trim beginning. James N wants top blank lines.
+    let orig_lines = content.split("\n");
+    this.defaults_lines = [];
+    for(let orig_line of orig_lines){
+        let a_clean_line = this.defaults_clean_line(orig_line);
+        this.defaults_lines.push(a_clean_line);
+    }
+    return this.defaults_lines
+};
+
+/*any combination of contiguous spaces and commas counts as
+  1 delimiter and are replace by one space in the output.
+ inspect(Dexter.dexter0.defaults_clean_line(
+    "  a    1 2  ; this    is").length)
+  Dexter.dexter0.defaults_clean_line("a    9").length
+  Dexter.dexter0.defaults_clean_line("S   RebootServo,,,   3, 1;")
+
+  Dexter.dexter0.defaults_clean_line("S, RebootServo, 3, 1;")
+*/
+Dexter.prototype.defaults_clean_line = function (orig_line){
+    let line = orig_line.trim();
+    let new_line = "";
+    let prev_char_was_space_or_comma = false;
+    let in_comment = false;
+    if(line === "") { return line }
+    else {
+        for(let char of line){
+            if(in_comment) { new_line += char; }
+            else if (char === ";") {
+                new_line += char;
+                in_comment = true;
+            }
+            else if((char === " ") || (char === ",")) {
+                if(prev_char_was_space_or_comma) ; //throw out char
+                else {
+                    new_line += Dexter.defaults_arg_sep; //canonical separator is space, and this is the ONE space separator
+                    prev_char_was_space_or_comma = true;
+                }
+            }
+            else {
+                new_line += char;
+                prev_char_was_space_or_comma = false;
+            }
+        }
+    }
+    if(!line.includes(";")) { new_line += ";"; }
+    return new_line
+};
+
+/*
+Returns array of start_index of
+    0. line starting with line_start,
+    1. start of line_start within its line
+    2. end of line_start within str. Ie the next char after the last
+       char of line_start
+Dexter.dexter0.defaults_find_index("asdf")
+Dexter.dexter0.defaults_find_index("; Dexter Serial", false)
+*/
+Dexter.prototype.defaults_find_index = function(line_start, smart=true, from_end=true){
+    if(!from_end) {
+        for(let i = 0; i < this.defaults_lines.length; i++) {
+            let line = this.defaults_lines[i];
+            if(!smart) {
+                if(line.startsWith(line_start)) {
+                    return [i, 0, line_start.length]
+                }
+            }
+            else {
+                let start_pos = line.indexOf(line_start);
+                if(start_pos != -1) {
+                    let prefix = line.substring(0, start_pos);
+                    if((prefix[0] === ";") || (prefix[0] === "S")){
+                        for(let j = 1; j < prefix.length; j++){
+                            prefix[j];
+                        }
+                    }
+                }
+            }
+        }
+        return null
+    }
+    else { //from_end
+        for(let i = this.defaults_lines.length - 1; i >= 0; i--) {
+            let line = this.defaults_lines[i];
+            if(!smart) {
+                if(line.startsWith(line_start)) {
+                    return [i, 0, line_start.length]
+                }
+            }
+        }
+        return null
+    }
+};
+
+//_______End of Utils_______
+/*
+***
+Dexter.dexter0.defaults_get("whole_file_string")
+Dexter.dexter0.defaults_get("lines")
+Dexter.dexter0.defaults_get(["line", -1])
+
+Dexter.dexter0.defaults_get("Dexter Serial Number")
+Dexter.dexter0.defaults_get("Dexter Model")
+Dexter.dexter0.defaults_get("Manufacture Location")
+Dexter.dexter0.defaults_get("Built by")
+
+Dexter.dexter0.defaults_get("DexRun modified")
+Dexter.dexter0.defaults_get("xillydemo modified")
+Dexter.dexter0.defaults_get("OS version")
+
+Dexter.dexter0.defaults_get("S, RebootServo, 3") // "1"
+Dexter.dexter0.defaults_get("S, RebootServo")    // "1, 1"
+Dexter.dexter0.defaults_get("S, J1BoundryHigh")  // "666000"
+Dexter.dexter0.defaults_get("J1BoundryHigh")     // "666000"
+
+
+Dexter.dexter0.defaults_lines
+*/
+Dexter.prototype.defaults_get = function(key){
+    if(!Array.isArray(this.defaults_lines)) {
+        warning("No content for defaults_lines yet so all calls to defaults_get will return undefined.");
+        return undefined
+    }
+    if(key === "whole_file_string") {
+        return this.defaults_lines.join("\n")
+    }
+    else if(key === "lines") { return this.defaults_lines }
+    else if (Number.isInteger(key)) {
+        if(key < 0) { key = this.defaults_lines.length + key; }
+        return this.defaults_lines[key]
+    }
+    else if (key.startsWith("^") || key.includes("\\")) { //key is a regex expression like '^J\\dBoundryHigh'
+        let the_regex = new RegExp(key);
+        let lines = [];
+        for(let i = 0; i < this.defaults_lines.length; i++){
+            let line = this.defaults_lines[i];
+            if(the_regex.test(line)) {
+                lines.push(line);
+            }
+        }
+        return lines
+    }
+    else {
+        let [result, line_number] = this.get_coloned_prop_value(key);
+        if(result !== undefined) { return result }
+        else {
+            [result, line_number] = this.get_colonless_prop_value(key);
+            if(result !== undefined) { return result }
+            else {
+                [result, line_number] = this.defaults_get_S(key);
+                if(result !== undefined) { return result }
+                else {
+                    warning("Dexter." + this.name + ".defaults_get could not find key: " + key);
+                    return undefined
+                }
+            }
+        }
+    }
+};
+
+//returns array of value(a string) and its line number(a non-neg int)
+//or undefined if not found
+Dexter.prototype.get_coloned_prop_value = function(key){
+    if(Dexter.defaults_coloned_comment_props.includes(key)) {
+        for(let i = this.defaults_lines.length - 1; i >=0; i--){
+            let line = this.defaults_lines[i];
+            if (line.startsWith(";")){
+                let trimmed_line = line.substring(1).trim();
+                let colon_pos = trimmed_line.indexOf(":");
+                if(colon_pos >= 0) {
+                    let possible_key = trimmed_line.substring(0, colon_pos).trim();
+                    if(key === possible_key){
+                        let val = trimmed_line.substring(colon_pos + 1).trim();
+                        return [val, i]
+                    }
+                }
+            }
+        }
+    }
+    return []
+};
+
+//returns array of value(a string) and its line number(a non-neg int)
+//or [] if not found
+Dexter.prototype.get_colonless_prop_value = function(key){
+    if(Dexter.defaults_colonless_comment_props.includes(key)) {
+        for(let i = this.defaults_lines.length - 1; i >=0; i--){
+            let line = this.defaults_lines[i];
+            if (line.startsWith(";")){
+                let trimmed_line = line.substring(1).trim();
+                trimmed_line.indexOf(":");
+                if(trimmed_line.startsWith(key + " ")) {
+                    let val = trimmed_line.substring(key.length + 1).trim();
+                    return [val, i]
+                }
+            }
+        }
+    }
+    return []
+};
+
+/* Dexter.dexter0.defaults_lines
+Dexter.dexter0.defaults_set("whole_file_string", ";top line\nS, hey")
+Dexter.dexter0.defaults_lines
+Dexter.dexter0.defaults_set("lines", ";diff top line\nS, hey")
+   //synonym to whole_file_string but I want it since "get"
+   //needs "whole_file_string"
+Dexter.dexter0.defaults_set("lines", [";top line too", "S, hey 9"])
+Dexter.dexter0.defaults_set(["line", 0], ";new top line")
+                                        ["a", 30, 60] => "a 30 60"
+Dexter.dexter0.defaults_get(["line", -2])
+
+Dexter.dexter0.defaults_set("Dexter Serial Number", "XYZ")
+Dexter.dexter0.defaults_set("Dexter Model", "ABC")
+Dexter.dexter0.defaults_set("Manufacture Location", "LA")
+Dexter.dexter0.defaults_set("Built by", "FRY")
+
+Dexter.dexter0.defaults_set("DexRun modified", "FEB")
+Dexter.dexter0.defaults_set("xillydemo modified", "1984")
+Dexter.dexter0.defaults_set("OS version", "1.2.3")
+
+Dexter.dexter0.defaults_set("S, RebootServo, 3", "X; a brand new comment")
+Dexter.dexter0.defaults_set("S, RebootServo", "Y")
+Dexter.dexter0.defaults_set("S, J1BoundryHigh", "ZZ")
+
+Dexter.dexter0.defaults_set("JointDH", "1, 245656, 324100, 260, 323413") //note:
+  //that first arg is really the Joint number, and semantically belongs in the key,
+  //but then we can't use the s param name for the key, so keep the joint number in the value.
+
+
+Dexter.dexter0.defaults_lines
+
+//sets low level defaults_lines, then updates high level defaults
+*/
+Dexter.prototype.defaults_set = function(key, value){
+    if(!Array.isArray(this.defaults_lines)) {
+        this.defaults_lines = []; //not great but at least the below clauses will work
+        if((key !== "whole_file_string") && (key !== "lines")) {
+            warning("No content for defaults_lines yet so initializing it to the empty array.");
+        }
+    }
+    if(typeof(this.defaults) !== "object") {
+        if((key !== "whole_file_string") && (key !== "lines")) {
+            this.defaults_init_defaults();
+            warning("No content for defaults yet so initializing it to the empty object.");
+        }
+    }
+    if(key === "whole_file_string") {
+        if(Array.isArray(value)) { this.defaults_lines = value; }
+        else if (typeof(value) === "string") {
+            this.defaults_set_lines_from_string(value);
+        }
+        this.defaults_lines_to_high_level();
+        return this.defaults
+    }
+    else if(key === "lines") {
+        if(typeof(value) === "string") { this.defaults_set_lines_from_string(value); }
+        else if(Array.isArray(value)) {
+            this.defaults_lines = value;
+        }
+        else { dde_error("Dexter defaults.set passed 'lines' with a value that isn't an array: " + value);
+        }
+        this.defaults_lines_to_high_level();
+        return this.defaults
+    }
+    else if (Number.isInteger(key)) { // -1 means we're  making a new last element.
+        if(typeof(value) !== "string") {
+            dde_error("Dexter." + this + ".defaults_set called with key of an integer<br/>" +
+                      "so value should be a string but its not: " + value);
+        }
+        if(key < 0) { key = this.defaults_lines.length + key;}
+        if(key >= this.defaults_lines.length) {
+            dde_error("Dexter." + this.name + ".defaults_set passed key: " + key +
+                " which is higher than the length of Dexter." + this.name + ".defaults_lines");
+        }
+        else {
+            if(typeof(value) !== "string") {
+                dde_error("Dexter." + this.name + ".defaults_set passed key: " + key +
+                    " which expected a value of a string, but passed instead: " + value);
+            }
+            let clean_line = this.defaults_clean_line(value);
+            this.defaults_lines[key] = clean_line;
+            this.defaults_line_to_high_level(clean_line, key); //key is line number
+            return value
+        }
+    }
+    else if (key.length === 1) {
+        dde_error("Dexter." + this.name + ".defaults_set passed key: " + key +
+                  "<br/>which looks like an oplet, but you can't use oplets as keys with defaults_set." +
+                  "<br/>Consider Dexter." + this.name + ".defaults_insert() instead.");
+    }
+    else {
+        let value_str;
+        if(typeof(value) === "string") {
+            value_str = value;
+            try {
+                value = JSON.parse(value);
+            }
+            catch(err) {
+                if (value.includes(Dexter.defaults_arg_sep)) {
+                    value = value.split(Dexter.defaults_arg_sep);
+                    for(let i = 0; i < value.length; i++){
+                        let item = value[i];
+                        let num = parseFloat(item);
+                        if(Number.isNaN(num)) {
+                            value = value_str; //assume user wanted just a string.
+                            break;
+                        }
+                        else { value[i] = num;}
+                    }
+                }
+            }
+        }
+        else {
+            if (Array.isArray(value)) {
+                value_str = value.join(Dexter.defaults_arg_sep);
+            }
+            else {
+                value_str = "" + value;
+            }
+        }
+        //now value_str is a string, and value is a num, an array, or possibly a string
+        let result = this.set_coloned_prop_value(key, value_str);
+        if(result !== undefined) {
+            this.defaults[key] = value;
+            return result
+        }
+        else {
+            result = this.set_colonless_prop_value(key, value_str);
+            if(result !== undefined) {
+                this.defaults[key] = value;
+                return result
+            }
+            else {
+                //we've got an S param
+                this.defaults_set_S(key, value_str); //sets the line in defaults_lines
+                if(Dexter.defaults_is_j_key(key)) {
+                    let [high_key, joint_number] = Dexter.defaults_j_key_to_high_key(key);
+                    let ins_arr = [];
+                    ins_arr[Instruction.INSTRUCTION_TYPE] = "S";
+                    //ins_arr.push(parsed_line.key) //arg0, the param name
+                    ins_arr[Instruction.INSTRUCTION_ARG0] = key; //low key
+                    if(Array.isArray(value)) {
+                        ins_arr = ins_arr.concat(value);
+                    }
+                    else { ins_arr[Instruction.INSTRUCTION_ARG1] = value;}
+                    let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this);
+                    let val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1);
+                    let new_high_val = val_arr[0];
+                    this.defaults[high_key][joint_number - 1] = new_high_val;
+                    return new_high_val
+                }
+                else if (key === "JointDH"){
+                    let high_key = "dh_mat";
+                    if(!Array.isArray(this.defaults.dh_mat)) {
+                        this.defaults.dh_mat = [];
+                    }
+                    this.defaults[high_key]; //at the very least, will be an empty array
+                    let joint_number = value[0];
+                    let ins_arr = [];
+                    ins_arr[Instruction.INSTRUCTION_TYPE] = "S";
+                    //ins_arr.push(parsed_line.key) //arg0, the param name
+                    ins_arr[Instruction.INSTRUCTION_ARG0] = key; //low key
+                    ins_arr = ins_arr.concat(value);
+                    let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this);
+                    let val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG2);
+                    this.defaults[high_key][joint_number - 1] = val_arr;
+                    return val_arr
+                }
+                else {
+                    this.defaults[key] = value;
+                    return value
+                }
+            }
+        }
+    }
+};
+
+Dexter.prototype.set_coloned_prop_value = function(key, value){
+    if(Dexter.defaults_coloned_comment_props.includes(key)) {
+        for(let i = this.defaults_lines.length - 1; i >=0; i--){
+            let line = this.defaults_lines[i];
+            if (line.startsWith(";")){
+                let trimmed_line = line.substring(1).trim();
+                let colon_pos = trimmed_line.indexOf(":");
+                if(colon_pos >= 0) {
+                    let possible_key = trimmed_line.substring(0, colon_pos).trim();
+                    if(key === possible_key){
+                        colon_pos = line.indexOf(":");
+                        let new_line = "; " + key + ": " + value;
+                        this.defaults_lines[i] = new_line;
+                        return value
+                    }
+                }
+            }
+        }
+    }
+    return undefined
+};
+
+Dexter.prototype.set_colonless_prop_value = function(key, value){
+    if(Dexter.defaults_colonless_comment_props.includes(key)) {
+        for(let i = this.defaults_lines.length - 1; i >=0; i--){
+            let line = this.defaults_lines[i];
+            if (line.startsWith(";")){
+                let trimmed_line = line.substring(1).trim();
+                trimmed_line.indexOf(":");
+                if(trimmed_line.startsWith(key + " ")) {
+                    let new_line = "; " + key + " " + value;
+                    this.defaults_lines[i] = new_line;
+                    return value
+                }
+            }
+        }
+    }
+    return undefined
+};
+
+Dexter.defaults_starts_with_S_oplet = function(string){
+    return string.startsWith("S" + Dexter.defaults_arg_sep)
+};
+
+//trim "S, " from front
+Dexter.defaults_trim_oplet = function(string){
+    return string.substring(1 + Dexter.defaults_arg_sep.length)
+};
+
+// key can be "asdf", or "S, asdf"  or "asdf, 2" or "S, asdf, 2" ,etc.
+//return array of value and line number of key in file
+//or []
+Dexter.prototype.defaults_get_S = function(key){
+    for(let i = this.defaults_lines.length - 1; i >=0; i--){
+        let line = this.defaults_lines[i];
+        let first_sep_pos = line.indexOf(Dexter.defaults_arg_sep);
+        let trimmed_line = line;
+        let trimmed_key  = key;
+        if((line === "") || line.startsWith(";")) { continue; } //not in this line
+        else if (first_sep_pos === -1)            { continue; } //without sep, no val so not in this line
+        else if (line.startsWith(key))            { trimmed_line = line; trimmed_key = key; }
+        else if (Dexter.defaults_starts_with_S_oplet(key)){
+            trimmed_key = Dexter.defaults_trim_oplet(key);
+            if(Dexter.defaults_starts_with_S_oplet(line)){
+                trimmed_line = Dexter.defaults_trim_oplet(line);
+            }
+            else { trimmed_line = line; }
+        }
+        else if(Dexter.defaults_starts_with_S_oplet(line)){  //we know key doesn't start with S_oplet
+            trimmed_key = key;
+            trimmed_line = Dexter.defaults_trim_oplet(line);
+        }
+        //trimmed_key and trimmed_line are set
+        if(trimmed_line.startsWith(trimmed_key)){  //we've got a match!
+            let after_key_pos = key.length;
+            if(after_key_pos >= trimmed_line.length) { return [] } //end of line after key so no value
+            else if (!(trimmed_line.substring(after_key_pos).startsWith(Dexter.defaults_arg_sep))){ return [] } //no sep after key so no value
+            else {
+                let val_begin_pos = after_key_pos + Dexter.defaults_arg_sep.length;
+                let val = trimmed_line.substring(val_begin_pos);
+                let comment_pos = val.indexOf(";");
+                if(comment_pos !== -1){ val = val.substring(0, comment_pos); }
+                val = val.trim();
+                if(length.val === 0) { return [] } //we found the key but no value
+                else { return [val, i] }
+            }
+        }
+    }
+    return []
+};
+
+//key is a string of a param name. Must be > 1 char.
+//value is a string of the value. It can start with the defaults_arg_sep(erator) or not.
+//it can have a semicolon (value terminator & comment starter or not.
+//If key exists, its value is replaced.
+//If key does not exist, a new line is added at the end of defaults_lines.
+Dexter.prototype.defaults_set_S = function(key, value_str){
+    for(let i = this.defaults_lines.length - 1; i >=0; i--){
+        let line = this.defaults_lines[i];
+        let first_sep_pos = line.indexOf(Dexter.defaults_arg_sep);
+        let trimmed_line = line;
+        let trimmed_key = key;
+        if((line === "") || line.startsWith(";")) { continue; } //not in this line
+        else if (first_sep_pos === -1)            { continue; } //without sep, no val so not in this line
+        else if (line.startsWith(key))            { trimmed_line = line; trimmed_key = key; }
+        else if (Dexter.defaults_starts_with_S_oplet(key)){
+            trimmed_key = Dexter.defaults_trim_oplet(key);
+            if(Dexter.defaults_starts_with_S_oplet(line)){
+                trimmed_line = Dexter.defaults_trim_oplet(line);
+            }
+            else { trimmed_line = line; }
+        }
+        else if(Dexter.defaults_starts_with_S_oplet(line)){
+            trimmed_line = Dexter.defaults_trim_oplet(line);
+        }
+        else { trimmed_line = line; }
+        //trimmed_key and trimmed_line are set
+        if(trimmed_line.startsWith(trimmed_key)){  //we've got a match!
+            if(!(Dexter.defaults_starts_with_S_oplet(trimmed_key))){
+                trimmed_key = "S" + Dexter.defaults_arg_sep + trimmed_key;
+            }
+            if (!(trimmed_key.endsWith(Dexter.defaults_arg_sep))){
+                trimmed_key = trimmed_key + Dexter.defaults_arg_sep;
+                let new_line = trimmed_key + value_str;
+                if(!(new_line.includes(";"))) {
+                    new_line += ";";
+                }
+                let semi_pos = line.indexOf(";");
+                if(semi_pos !== -1) { new_line += line.substring(semi_pos + 1); }
+                this.defaults_lines[i] = new_line;
+                return new_line
+            }
+        }
+    } //end of for_loop
+    //key was not existing, so tack a new line onto the end.
+    //warning("Dexter." + this.name + ".defaults_set attempted to set key: " + key +
+    //        " but that key not found.")
+    let new_line = "S";
+    if(!key.startsWith(Dexter.defaults_arg_sep)) {
+        new_line += Dexter.defaults_arg_sep;
+    }
+    new_line += key;
+    new_line += Dexter.defaults_arg_sep;
+    new_line += value_str;
+    if(!value_str.includes(";")){
+        new_line += ";";
+    }
+    this.defaults_lines.push(new_line);
+    return value_str
+};
+
+//returns deleted val
+Dexter.prototype.defaults_delete = function(key){
+    if(key === "whole_file_string") {
+        let deleted_lines = this.defaults_lines;
+        this.defaults_lines = [];
+        this.defaults = {};
+        return deleted_lines
+    }
+    else if(key === "lines") {
+        let deleted_lines = this.defaults_lines;
+        this.defaults_lines = [];
+        this.defaults = {};
+        return deleted_lines
+    }
+    else if (Number.isInteger(key)) {
+        if(key < 0) { key = this.defaults_lines.length + key; }
+        let deleted_lines = this.defaults_lines.splice(key, 1);
+        let parsed_line = Dexter.defaults_parse_line(line, line_number);
+        if(parsed_line.hasOwnProperty("key")) {
+            delete this.defaults[parsed_line.key];
+        }
+        return deleted_lines[0]
+    }
+    else if (key.startsWith("^") || key.includes("\\")) { //key is a regex expression like '^J\\dBoundryHigh'
+        let the_regex = new RegExp(key);
+        let lines_deleted_count = 0;
+        for(let i = this.defaults_lines.length - 1; i >= 0; i--){
+            let line = this.defaults_lines[i];
+            if(the_regex.test(line)) {
+                this.defaults_lines.splice(i, 1);
+                lines_deleted_count += 1;
+            }
+        }
+        this.defaults_lines_to_high_level();
+        return lines_deleted_count
+    }
+    else {
+        let [val, line_number] = this.get_coloned_prop_value(key);
+        if(val !== undefined) {
+            let deleted_lines = this.defaults_lines.splice(line_number, 1);
+            delete this.defaults[key];
+            return deleted_lines[0]
+        }
+        else {
+            [val, line_number] = this.get_colonless_prop_value(key);
+            if(val !== undefined) {
+                let deleted_lines = this.defaults_lines.splice(line_number, 1);
+                delete this.defaults[key];
+                return deleted_lines[0]
+            }
+            else {
+                [val, line_number] = this.defaults_get_S(key);
+                if(val !== undefined) {
+                    let deleted_lines = this.defaults_lines.splice(line_number, 1);
+                    if (Dexter.defaults_is_j_key(key)) {
+                        let [high_key, joint_number] = Dexter.defaults_j_key_to_high_key(key);
+                        let arr = this.defaults[high_key];
+                        delete arr[joint_number - 1];
+                    }
+                    else {
+                        delete this.defaults[key];
+                    }
+                    return deleted_lines[0]
+                }
+                else {
+                    warning("Dexter." + this.name + ".defaults_get could not find key: " + key);
+                    return undefined
+                }
+            }
+        }
+    }
+};
+//index is the index of the line after it has been inserted
+//into this.defaults_lines.
+//A -1 index makes the line arg be in the same posiition in the array
+//as the (before the call) last elt.
+//ie in the new elt it is the 2nd to last elt.
+//a bit "counter intuitive", but consistent with the
+//index in defaults.set and JS splice
+//That means the new elt will be the new 2nd to last elt
+//with the new last elt still being the (before the call) last elt.
+//this "def" of index is the same as I use in "defaults_insert"
+//and the same that JS splice uses,
+//but does mean that we don't have a way to represent how to
+// "insert" a new elt on the end of the array (after the call)
+//so an index of "last" is the way to do that.
+//a -2 makes it the  to the last elt in the array.
+// var foo = [4, 5, 6]
+// foo.splice(-2, 0, 66)
+Dexter.prototype.defaults_insert = function(line, index="last"){
+    if     (index === "last") { index = this.defaults_lines.length; }
+    else if(index < 0)        { index = this.defaults_lines.length + index;}
+
+    if((index < 0) || (index > this.defaults_lines.length)){
+        dde_error("Dexter." + this.name +
+            ".defaults_insert passed an index that is out of range for defaults_lines.");
+    }
+    line = this.defaults_clean_line(line);
+    this.defaults_lines.splice(index, 0, line);
+    this.defaults_line_to_high_level(line, index);
+};
+
+
+Dexter.defaults_parse_line = function(line, line_number_for_error_message="unknown"){
+    let result = {line: line};
+    let trimmed_line = line.trim();
+    result.trimmed_line = trimmed_line;
+    if(trimmed_line === ""){
+        result.kind = "blank_line";
+        result.value_string = "";
+    }
+    else if(trimmed_line.startsWith(";")) {
+        result.comment = trimmed_line;
+        let colon_pos  = trimmed_line.indexOf(":");
+        if(colon_pos !== -1) {
+            let key = trimmed_line.substring(1, colon_pos).trim();
+            if(Dexter.defaults_coloned_comment_props.includes(key)){
+                result.key = key;
+                result.kind = "coloned_comment_prop";
+                result.value_string = trimmed_line.substring(colon_pos + 1).trim();
+            }
+        }
+        if(!result.kind) {
+            let line_minus_semicolon = trimmed_line.substring(1).trim();
+            for(let colonless_prop_key of Dexter.defaults_colonless_comment_props){
+                if(line_minus_semicolon.startsWith(colonless_prop_key)){
+                    result.key = colonless_prop_key;
+                    result.kind = "colonless_comment_prop";
+                    result.value_string = line_minus_semicolon.substring(colonless_prop_key.length).trim();
+                    break;
+                }
+            }
+            if(!result.kind) {
+                result.kind = "whole_line_comment";
+                result.value_string = "";
+            }
+        }
+    }
+    else if (trimmed_line.startsWith("S" + Dexter.defaults_arg_sep)) {
+        result.kind = "S_param";
+        let key_start = 3;
+        let key_end = trimmed_line.indexOf(Dexter.defaults_arg_sep, 4);
+        if(key_end === -1) {
+            result.kind = "invalid";
+            result.value_string = "";
+            result.error_message = "Error in parsing Defaults.make_ins<br/>" +
+                "line number: " + line_number_for_error_message +
+                "<br/>line: " + line +
+                "<br/>S param with no proper key";
+        }
+        else {
+            result.key = trimmed_line.substring(key_start, key_end);
+            let val = trimmed_line.substring(key_end + Dexter.defaults_arg_sep.length).trim();
+            let comment_pos = val.indexOf(";");
+            if(comment_pos !== -1) {
+                result.value_string = val.substring(0, comment_pos).trim();
+                result.comment = val.substring(comment_pos + 1);
+            }
+            else {
+                result.value_string = val;
+            }
+        }
+    }
+    else if(trimmed_line.indexOf(Dexter.defaults_arg_sep) === 1){
+        result.kind = "oplet_instruction";
+        result.key = trimmed_line[0]; //the oplet
+        result.value_string = trimmed_line.substring(1 + Dexter.defaults_arg_sep.length).trim();
+    }
+    else { //lines starting with a longer than 1 char token //todo are there any?
+        result.kind = "non_oplet_instruction";
+        let key_end = trimmed_line.indexOf(Dexter.defaults_arg_sep);
+        result.key  = trimmed_line.substring(key_end);
+        let val_start = key_end + Dexter.defaults_arg_sep.length;
+        let val_str   = trimmed_line.substring(val_start);
+        let comment_start = val_str.indexOf(":");
+        if(comment_start !== -1) {
+            result.value_string = val_str.substring(0, comment_start).trim();
+        }
+        else { result.value_string = val_str; }
+    }
+    if(result.value_string){
+        if     (result.kind === "invalid")                { result.value_array = []; }
+        else if(result.kind === "blank_line")             { result.value_array = []; }
+        else if(result.kind === "coloned_comment_prop")   { result.value_array = [result.value_string]; }
+        else if(result.kind === "colonless_comment_prop") { result.value_array = [result.value_string]; }
+        else if(result.kind === "whole_line_comment")     { result.value_array = []; }
+        else { //"S_param" "oplet_instruction" "non_oplet_instruction"
+            let vs_arr = result.value_string.split(Dexter.defaults_arg_sep);
+            let val_arr = [];
+            for(let item of vs_arr){
+                let num = parseFloat(item);
+                if(Number.isNaN(num)) { val_arr.push(item); }
+                else { val_arr.push(num); }
+            }
+            result.value_array = val_arr;
+        }
+    }
+    return result
+};
+
+/*
+Dexter.dexter0.defaults_lines_to_high_level()
+Dexter.dexter0.defaults
+Dexter.dexter0.defaults_lines
+
+*/
+
+Dexter.prototype.defaults_lines_to_high_level = function(){
+    this.defaults_init_defaults(); //initialize (ie clear existing, add J_key suffixes)
+    for(let line_number = 0; line_number < this.defaults_lines.length; line_number++) {
+        let line = this.defaults_lines[line_number];
+        this.defaults_line_to_high_level(line, line_number);
+    }
+    //out("parsed " + this.defaults_lines.length + " lines.")
+    return this.defaults
+};
+/*
+Dexter.dexter0.defaults_lines
+Dexter.dexter0.defaults_line_to_high_level("S, abJ2cd, 123")
+Dexter.dexter0.defaults_line_to_high_level("S, J1BoundryHigh, 666000; 185")
+Dexter.dexter0.defaults_line_to_high_level("S, LinkLengths, 82440, 59500, 307500, 339092, 235200")
+
+FIXED bug in DDE inspect([undefined, 111]) errors: TypeError: Cannot read property '0' of undefined
+*/
+
+/*Dexter.prototype.defaults_low_to_high_values(parsed_line){
+   let orig_array = parsed_line.value_array
+   let converted_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(instruction_array, this)
+
+}*/
+
+Dexter.prototype.defaults_line_to_high_level = function(line, line_number="unknown"){
+    if(!this.defaults) { this.defaults = {}; } //usually unnecessary but safer
+    let parsed_line = Dexter.defaults_parse_line(line, line_number);
+    let low_key = parsed_line.key;
+    if      (parsed_line.kind === "invalid")    ; //ignore
+    else if (parsed_line.kind === "blank_line") ; //ignore
+    else if (parsed_line.kind === "coloned_comment_prop") {
+        this.defaults[parsed_line.key] = parsed_line.value_array[0];
+    }
+    else if (parsed_line.kind === "colonless_comment_prop") {
+        this.defaults[parsed_line.key] = parsed_line.value_array[0];
+    }
+    else if (parsed_line.kind === "whole_line_comment") ; //ignore
+    else if (parsed_line.kind === "S_param") {
+        let low_key = parsed_line.key;
+        let ins_arr = [];
+        ins_arr[Instruction.INSTRUCTION_TYPE] = "S";
+        //ins_arr.push(parsed_line.key) //arg0, the param name
+        ins_arr[Instruction.INSTRUCTION_ARG0] = low_key;
+        ins_arr = ins_arr.concat(parsed_line.value_array);
+        let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this);
+        let val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1); //the high_val array
+        parsed_line.high_value_array = val_arr;
+        if(low_key === "JointDH"){
+            let joint_number = parsed_line.value_array[0]; //the low value_array
+            if(!this.defaults.dh_mat) { this.defaults.dh_mat = []; }
+            let four_val_array = val_arr.slice(1); //take off the joint_number on the beginning of the array
+            this.defaults.dh_mat[joint_number - 1] = four_val_array;
+        }
+        else if (low_key === "LinkLengths") { //array of 5, but needs to be reversed
+            let val = parsed_line.high_value_array.slice(); //make a copy
+            val.reverse(); //copies in place
+            this.defaults[low_key] = val;
+        }
+        else if (["RebootServo", "ServoSetX", "ServoSet2X"].includes(low_key)){
+            if(!this.defaults.ServoSetup) { this.defaults.ServoSetup = []; }
+            let obj = {};
+            let high_key  = "S" + Dexter.defaults_arg_sep + low_key;
+            obj[high_key] = parsed_line.high_value_array;
+            obj.orig_line = line_number;
+            this.defaults.ServoSetup.push(obj);
+        }
+        else if (Dexter.defaults_is_j_key(low_key)) {
+            let [high_key, joint_number] = Dexter.defaults_j_key_to_high_key(low_key);
+            if(!this.defaults[high_key]) { this.defaults[high_key] = []; }
+            this.defaults[high_key][joint_number - 1] = parsed_line.high_value_array[0];
+        }
+        else if(val_arr.length === 1) { this.defaults[low_key] = parsed_line.high_value_array[0]; }
+        else if(val_arr.length === 2) {
+            let val = parsed_line.high_value_array[0];
+            let joint_number = parsed_line.value_array[1]; //use low value here
+            if(!this.defaults[parsed_line.key]) { this.defaults[low_key] = []; }
+            this.defaults[low_key][joint_number - 1] = val;
+        }
+        else if(val_arr.length > 2) {
+            this.defaults[parsed_line.key] = parsed_line.high_value_array;
+        }
+    }
+    else if (parsed_line.kind === "oplet_instruction"){ //"z", mayby "a"
+        let high_key = low_key;
+        if(parsed_line.value_array.length === 1){ //primarily for z oplet
+            let ins_arr = [];
+            ins_arr[Instruction.INSTRUCTION_TYPE] = low_key;
+            ins_arr = ins_arr.concat(parsed_line.value_array);
+            let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this);
+            let new_val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0);
+            parsed_line.high_value_array = new_val_arr;
+            if(!this.defaults.ServoSetup) { this.defaults.ServoSetup = []; }
+            let obj = {};
+            obj[high_key] = parsed_line.high_value_array[0];
+            obj.orig_line = line_number;
+            this.defaults.ServoSetup.push(obj);
+        }
+        else { //any oplet with non-1 args. primarily a, P, T
+            let ins_arr = [];
+            ins_arr[Instruction.INSTRUCTION_TYPE] = low_key;
+            ins_arr = ins_arr.concat(parsed_line.value_array);
+            let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this);
+            let new_val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0);
+            parsed_line.high_value_array = new_val_arr;
+            if(!this.defaults.ServoSetup) { this.defaults.ServoSetup = []; }
+            let obj = {};
+            obj[high_key] = parsed_line.high_value_array;
+            obj.orig_line = line_number;
+            this.defaults.ServoSetup.push(obj);
+        }
+    }
+    else { warning("bottom of Dexter.prototype.defaults_line_to_high_level <br/>" +
+        "unhandled line: " + line);
+    }
+};
+
+//returns null or an array of a number between 1 and 9 inclusive
+//and the index of that J char in the key
+/*Dexter.defaults_j_number_of_key = function(key){
+   let j_pos = key.indexOf("J")
+   if(j_pos === -1) { return null }
+   else if (j_pos === (key.length - 1)) { return null } //no room for a digit
+   else {
+     let digit_maybe = key[j_pos + 1]
+     if((digit_maybe >= '1') && (digit_maybe <= '9')) { //must be at least 1
+         return [parseInt(digit_maybe), j_pos]
+     }
+     else { return null }
+   }
+}*/
+
+Dexter.prototype.defaults_init_defaults = function(){
+    let obj = {};
+    for(let high_key of Dexter.defaults_j_key_suffixes){
+        obj[high_key + "s"] = []; //if this array is EMPTY when we attempt to write to low level, it writes nothing.
+    }
+    this.defaults = obj;
+};
+
+//A JKey is a S param name that starts with "J" followed by an integer from 1 thru 9
+Dexter.defaults_j_key_suffixes = ["Force", "Friction", "BoundryHigh", "BoundryLow", "PID_P"];
+
+// returns array of high_key (string) and integer (the joint number)
+//if null is returned, key is not a j_key
+//Dexter.defaults_j_key_to_high_key("J1Force")
+//Dexter.defaults_j_key_to_high_key("J2_PID_P")
+//J keys are above with suffixes of Dexter.defaults_j_key_suffixes .
+
+Dexter.defaults_is_j_key = function(key){
+    if(key.startsWith("J")) {
+        for(let suffix of Dexter.defaults_j_key_suffixes) {
+            if(key.endsWith(suffix)){ return true }
+        }
+    }
+    return false
+};
+
+//doesn't start with J-digit, does end in "s", ie the high level equiv of a J key
+// Dexter.defaults_is_high_j_key("Forces")
+Dexter.defaults_is_high_j_key = function(high_key){
+    if(!high_key.endsWith("s")) { return false }
+    else {
+        let low_key_suffix_maybe = high_key.substring(0, high_key.length - 1); //cut off "s" suffix
+        return Dexter.defaults_j_key_suffixes.includes(low_key_suffix_maybe)
+    }
+};
+
+Dexter.defaults_j_key_to_high_key = function(key){
+    if(key.startsWith("J")) {
+        for(let suffix of Dexter.defaults_j_key_suffixes) {
+            if(key.endsWith(suffix)){
+                let joint_number = parseInt(key[1]);
+                return [suffix + "s", joint_number] }
+        }
+    }
+    return null
+};
+
+
+//joint number is 1 based.
+//returns null if key isn't one that is supposed to be turned into a j_key
+// Dexter.defaults_high_key_to_j_key("Forces", 1)
+// Dexter.defaults_high_key_to_j_key("PID_Ps", 2)
+Dexter.defaults_high_key_to_j_key = function(key, joint_number){
+    key = key.substring(0, key.length - 1); //cut off the "s"
+    let is_j_key = false;
+    for(let suffix of Dexter.defaults_j_key_suffixes) {
+        if(key.endsWith(suffix)){is_j_key = true; break;}
+    }
+    if(!is_j_key) { return null }
+    else if(key === "PID_P") { return "J" + joint_number + "_" + key}
+    else                     { return "J" + joint_number       + key}
+};
+
+Dexter.prototype.defaults_compute_parsed_lines = function(){
+    let parsed_lines = [];
+    for(let i = 0; i < this.defaults_lines.length; i++){
+        let line = this.defaults_lines[i];
+        let parsed_line = Dexter.defaults_parse_line(line, i);
+        parsed_lines.push(parsed_line);
+    }
+    return parsed_lines
+};
+
+//warning: this deletes all the data from high_level, but then
+//fills it back in again after done.
+Dexter.prototype.defaults_high_level_to_defaults_lines = function(){
+    let parsed_lines = this.defaults_compute_parsed_lines();
+    let result_lines = [];
+    for(let line_number = 0; line_number <  parsed_lines.length; line_number++){
+        let parsed_line = parsed_lines[line_number];
+        let low_key = parsed_line.key;
+        if      (parsed_line.kind === "invalid")    ; //ignore
+        else if (parsed_line.kind === "blank_line") { result_lines.push("");}
+        else if (parsed_line.kind === "coloned_comment_prop") {
+            let high_key = low_key;
+            if(this.defaults[high_key]) { //user didn't delete it
+                let new_line = "; " + low_key + ": " + this.defaults[high_key];
+                result_lines.push(new_line);
+                delete this.defaults[high_key];
+            }
+        }
+        else if (parsed_line.kind === "colonless_comment_prop") {
+            let high_key = low_key;
+            if(this.defaults[high_key]) { //user didn't delete it
+                let new_line = "; " + low_key + " " + this.defaults[high_key];
+                result_lines.push(new_line);
+                delete this.defaults[high_key];
+            }
+        }
+        else if (parsed_line.kind === "whole_line_comment") { //there won't be any of these in the high level, but just for completeness ...
+            result_lines.push(parsed_line.comment);
+        }
+        else if (parsed_line.kind === "S_param") {
+            let ins_arr = [];
+            ins_arr[Instruction.INSTRUCTION_TYPE] = "S";
+            //ins_arr[Instruction.INSTRUCTION_ARG0] = parsed_line.key
+            //ins_arr = ins_arr.concat(parsed_line.value_array)
+            //let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this)
+            //let val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1)
+            //parsed_line.value_array = val_arr
+
+            if (low_key === "LinkLengths") { //array of 5, but needs to be reversed
+                let high_key = low_key;
+                if(this.defaults.hasOwnProperty(high_key)) { //user didn't delete it
+                    ins_arr[Instruction.INSTRUCTION_ARG0] = low_key;
+                    let high_val = this.defaults[high_key].slice(); //copy
+                    high_val.reverse(); //copies in place
+                    ins_arr = ins_arr.concat(high_val);
+                    let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1); //grab all the link lengths, now in dexter units
+                    let new_line = "S"      + Dexter.defaults_arg_sep +
+                        low_key + Dexter.defaults_arg_sep +
+                        low_val.join(Dexter.defaults_arg_sep) +
+                        ";" + parsed_line.comment;
+                    result_lines.push(new_line);
+                    delete this.defaults[high_key];
+                }
+            }
+            else if(low_key === "JointDH"){
+                if(this.defaults.hasOwnProperty("dh_mat")) { //user didn't delete it
+                    let high_val = this.defaults.dh_mat;
+                    let joint_number = parsed_line.value_array[0];
+                    let low_key = "JointDH";
+                    ins_arr[Instruction.INSTRUCTION_ARG0] = low_key;
+                    ins_arr[Instruction.INSTRUCTION_ARG1] = joint_number;
+                    let high_val_for_one_joint = high_val[joint_number - 1];
+                    ins_arr = ins_arr.concat(high_val_for_one_joint);
+                    let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                    let low_val_four_numbers = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG2); //now in dexter units
+
+                    let new_line = "S" + Dexter.defaults_arg_sep + low_key + Dexter.defaults_arg_sep +
+                        joint_number + Dexter.defaults_arg_sep +
+                        low_val_four_numbers.join(Dexter.defaults_arg_sep) +
+                        ";" + parsed_line.comment;
+                    result_lines.push(new_line);
+                    delete high_val[joint_number - 1];
+                }
+            }
+            else if (["RebootServo", "ServoSetX", "ServoSet2X"].includes(low_key)){  //no units conversion
+                let new_lines = this.defaults_high_level_to_defaults_lines_ServoSetup_line(line_number);
+                for(let new_line of new_lines) { result_lines.push(new_line); }
+            }
+            else if(Dexter.defaults_low_level_2nd_arg_is_joint_number(low_key)) {//S, BW params no units conversion
+                let high_key = low_key;
+                let joint_number = parsed_line.value_array[1];
+                if (this.defaults.hasOwnProperty(high_key)) { //user didn't delete it
+                    let high_val = this.defaults[high_key][joint_number - 1];
+                    let new_line = "S" +
+                        Dexter.defaults_arg_sep + low_key +
+                        Dexter.defaults_arg_sep + high_val +
+                        Dexter.defaults_arg_sep + joint_number +
+                        ";" + parsed_line.comment;
+                    result_lines.push(new_line);
+                    delete this.defaults[high_key][joint_number - 1];
+                }
+            }
+            else if(Dexter.defaults_is_j_key(low_key)){//ie J1BoundryLow, with high key BoundryLows
+                let [high_key, joint_number] = Dexter.defaults_j_key_to_high_key(low_key);
+                if(this.defaults.hasOwnProperty(high_key)) { //user didn't delete it
+                    ins_arr[Instruction.INSTRUCTION_ARG0] = low_key;
+                    let high_val = this.defaults[high_key][joint_number - 1];
+                    ins_arr[Instruction.INSTRUCTION_ARG1] = high_val;
+                    let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                    let low_val = dde_ins_arr[Instruction.INSTRUCTION_ARG1]; //grab all the link lengths, now in dexter units
+                    let new_line = "S" + Dexter.defaults_arg_sep + low_key +
+                        Dexter.defaults_arg_sep + low_val +
+                        ";" + parsed_line.comment;
+                    result_lines.push(new_line);
+                    delete this.defaults[high_key][joint_number - 1];
+                }
+            }
+            else { //low_key is non j_key so use it as the high key
+                let high_key = low_key;
+                if(this.defaults.hasOwnProperty(high_key)) { //user didn't delete it
+                    let high_val = this.defaults[low_key];
+                    ins_arr[Instruction.INSTRUCTION_ARG0] = low_key;
+                    let low_val_str;
+                    if(Array.isArray(high_val)) {
+                        if(high_val.length === 2) {
+                            let joint_number = parsed_line.value_array[1];
+                            let high_joint_val = high_val[joint_number - 1];
+                            ins_arr[Instruction.INSTRUCTION_ARG1] = high_joint_val;
+                            let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                            let low_val     = dde_ins_arr[Instruction.INSTRUCTION_ARG1];
+                            low_val_str = low_val;
+                        }
+                        else {
+                            ins_arr.concat(high_val);
+                            let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                            let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1);
+                            low_val.join(Dexter.defaults_arg_sep);
+                        }
+                    }
+                    else {
+                        ins_arr[Instruction.INSTRUCTION_ARG1] = high_val;
+                        let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                        dde_ins_arr[Instruction.INSTRUCTION_ARG1];
+                    }
+                    let new_line = "S" + Dexter.defaults_arg_sep + high_key +
+                        Dexter.defaults_arg_sep + low_val_str +
+                        ";" + parsed_line.comment;
+                    delete this.defaults[high_key];
+                    result_lines.push(new_line);
+                }
+            }
+        } //end S param
+        /* let ins_arr = []
+         ins_arr[Instruction.INSTRUCTION_TYPE] = "S"
+         //ins_arr.push(parsed_line.key) //arg0, the param name
+         ins_arr[Instruction.INSTRUCTION_ARG0] = parsed_line.key
+         ins_arr = ins_arr.concat(parsed_line.value_array)
+         let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this)
+         let val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1)
+         parsed_line.value_array = val_arr
+        */
+        else if (parsed_line.kind === "oplet_instruction"){
+            let new_lines = this.defaults_high_level_to_defaults_lines_ServoSetup_line(line_number);
+            for(let new_line of new_lines) { result_lines.push(new_line); }
+
+            /*if(parsed_line.value_array.length === 1){ //primarily for z oplet
+                let ins_arr = []
+                ins_arr[Instruction.INSTRUCTION_TYPE] = parsed_line.key
+                ins_arr = ins_arr.concat(parsed_line.value_array)
+                let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this)
+                let new_val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0)
+                parsed_line.value_array = new_val_arr
+                if(!this.defaults.ServoSetup) { this.defaults.ServoSetup = [] }
+                let obj = {}
+                obj[parsed_line.key] = parsed_line.value_array[0]
+                this.defaults.ServoSetup.push(obj)
+            }
+            else { //any oplet with non-1 args. primarily a, P, T
+                let ins_arr = []
+                ins_arr[Instruction.INSTRUCTION_TYPE] = parsed_line.key
+                ins_arr = ins_arr.concat(parsed_line.value_array)
+                let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this)
+                let new_val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0)
+                parsed_line.value_array = new_val_arr
+                if(!this.defaults.ServoSetup) { this.defaults.ServoSetup = [] }
+                let obj = {}
+                obj[parsed_line.key] = parsed_line.value_array
+                this.defaults.ServoSetup.push(obj)
+            } */
+        }
+        else { warning("bottom of Dexter.prototype.defaults_line_to_high_level <br/>" +
+            "unhandled line: " + parsed_line.kind);
+        }
+    }//end loop
+
+    let new_lines = this.defaults_high_level_to_defaults_lines_new_high_level();
+    for(let new_line of new_lines){ result_lines.push(new_line); }
+    //now all the data should be deleted from Dexter.dexter0.defaults (high level)
+    this.defaults_lines = result_lines; //update the low level
+    //so recreate it in case uses wants to use it after "writing it out".
+    Dexter.dexter0.defaults_lines_to_high_level(); //fill in high level since the above deletes it all.
+    return this.defaults_lines
+};
+
+//At least for now, key can be either a high_key or a low_key (ie suffix of "s" or not, start with J-digit or not)
+//returns boolean. For BackWin params
+Dexter.defaults_low_level_2nd_arg_is_joint_number = function(key){
+    return key.startsWith("BW")
+};
+
+Dexter.defaults_high_key_of_SS_obj = function(obj){
+    if(!obj) { return null }
+    for(let high_key of Object.keys(obj)){
+        if(high_key !== "orig_line") { return high_key }
+    }
+    return null //probably shouldn't
+};
+
+//ServoSetup includes S, RebootServo & friends as well as a, z and maybe other oplet instructions.
+//This fn handles both the items that were in the orign low level, as well as
+//items added to the high level
+//Handles the items in the ServoSetup array before and after the line_number,
+//but not passed the next array elt that HAS a orig_line prop.
+//But there still might remain some items in the array after the
+//orig pass going thru the low_level lines, so
+//when doing the "new" instructions pass,
+//IF we pass an invalid line number, ie null,
+//then this fn gets the rest of the items in the ServoSetup array
+Dexter.prototype.defaults_high_level_to_defaults_lines_ServoSetup_line = function(line_number = null){
+    let new_lines = [];
+    let servo_setup_orig_length = this.defaults.ServoSetup.length;
+    for(let k = 0; k < servo_setup_orig_length; k++) {
+        let an_obj = this.defaults.ServoSetup[k];
+        let high_key = Dexter.defaults_high_key_of_SS_obj(an_obj); //could be "a", "z", "S, RebootServo" or similar "S, foo"
+        let high_val = (high_key ? an_obj[high_key] : null ); //usually an array, but for "z", just a number
+        if(an_obj && high_key && Dexter.defaults_writeable_value(high_val)){
+            if(an_obj.hasOwnProperty("orig_line")){
+                if(an_obj.orig_line === line_number); //and keep going
+                //to collect those objs UNTIL the next one that has an orig_line prop.
+                else { //got to the next orig_line number so we're done until that line number is
+                    //requested by driven from the low level array of strings.
+                    return new_lines
+                }
+            }
+            let val_str; //the below just sets val_str
+            if(high_key.length === 1) { //oplet
+                if(Array.isArray(high_val)) {
+                    let ins_arr = [];
+                    ins_arr[Instruction.INSTRUCTION_TYPE] = high_key;
+                    ins_arr = ins_arr.concat(high_val);
+                    let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0);
+                    val_str = low_val.join(Dexter.defaults_arg_sep);
+                }
+                else {
+                    let ins_arr = [];
+                    ins_arr[Instruction.INSTRUCTION_TYPE] = high_key;
+                    ins_arr.push(high_val);
+                    let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0);
+                    val_str = low_val.join(Dexter.defaults_arg_sep);
+                }
+            }
+            else { // high_key looks like "S, RebootServo"
+                let [oplet, s_param_name] = high_key.split(Dexter.defaults_arg_sep);
+                let ins_arr = [];
+                ins_arr[Instruction.INSTRUCTION_TYPE] = oplet;
+                ins_arr[Instruction.INSTRUCTION_ARG0] = s_param_name;
+                if(Array.isArray(high_val)) {
+                    ins_arr = ins_arr.concat(high_val);
+                    let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0);
+                    val_str = low_val.join(Dexter.defaults_arg_sep);
+                }
+                else {
+                    ins_arr.push(high_val);
+                    let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0);
+                    val_str = low_val.join(Dexter.defaults_arg_sep);
+                }
+            }
+            let new_line = high_key + Dexter.defaults_arg_sep + val_str + ";";
+            new_lines.push(new_line);
+            delete this.defaults.ServoSetup[k]; //replaces the elt in the array with undefined
+        } //just skip over the obj. Its val is probably undefined.
+    }
+    return new_lines
+};
+
+Dexter.defaults_writeable_value = function(val){
+    if(Array.isArray(val)){
+        if(val.length === 0) { return false }
+        else {
+            for(let elt of val){
+                if(Array.isArray(elt)) {
+                    if(elt.length === 0) { return false }
+                    else { return true }
+                }
+                else if(elt || (elt === 0)) { return true } //if any elt of the array has real data, write out array
+            }
+            return false
+        }
+    }
+    else if(val || (val === 0)) { return true }
+    else { return false }
+};
+
+//loop thru remaining high level (after deleted the matching lines from low level)
+//and return an array of new lines
+Dexter.prototype.defaults_high_level_to_defaults_lines_new_high_level = function(){
+    let result_lines = [];
+    for(let high_key of Object.keys(this.defaults)){
+        let high_val = this.defaults[high_key];
+        if(!Dexter.defaults_writeable_value(high_val)) ; //no val to write out so skip it
+        else if (high_key === "LinkLengths") { //array of 5, but needs to be reversed
+            let low_key = high_key;
+            if(Dexter.defaults_writeable_value(high_val)) {
+                high_val.reverse(); //copies in place, but ok since we delete it below
+                let ins_arr = [];
+                ins_arr[Instruction.INSTRUCTION_TYPE] = "S";
+                ins_arr[Instruction.INSTRUCTION_ARG0] = low_key;
+                ins_arr = ins_arr.concat(high_val);
+                let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                let val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1);
+                let new_line = "S"      + Dexter.defaults_arg_sep +
+                    low_key + Dexter.defaults_arg_sep +
+                    val_arr.join(Dexter.defaults_arg_sep) +
+                    ";";
+                result_lines.push(new_line);
+                delete this.defaults[high_key];
+            }
+        }
+        else if(high_key === "dh_mat"){
+            for (let i = 0; i < high_val.length; i++) {
+                let joint_number = i + 1;
+                let high_val_joint_arr = high_val[i];
+                let low_key = "JointDH";
+                let ins_arr = [];
+                ins_arr[Instruction.INSTRUCTION_TYPE] = "S";
+                ins_arr[Instruction.INSTRUCTION_ARG0] = low_key;
+                ins_arr[Instruction.INSTRUCTION_ARG1] = joint_number;
+                ins_arr = ins_arr.concat(high_val_joint_arr);
+                let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                let low_val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG2);
+
+                let new_line = "S" + Dexter.defaults_arg_sep  + low_key + Dexter.defaults_arg_sep +
+                    joint_number   + Dexter.defaults_arg_sep  +
+                    low_val_arr.join(Dexter.defaults_arg_sep) +
+                    ";";
+                result_lines.push(new_line);
+                delete high_val[i];
+            }
+        }
+        else if (high_key === "ServoSetup"){ //rebootServo and oplets under this. //no units conversion
+            let new_lines = this.defaults_high_level_to_defaults_lines_ServoSetup_line(null); //null means get all the remaining ones in the ServoSetup array
+            for(let new_line of new_lines) { result_lines.push(new_line); }
+        }
+        else if(Dexter.defaults_low_level_2nd_arg_is_joint_number(high_key)) { //a BW param. No units conversion
+            for(let joint_number = 1; joint_number <= high_val.length; joint_number++){
+                let low_key      = high_key;
+                let high_val_for_joint = high_val[joint_number - 1];
+                let new_line = "S" +
+                    Dexter.defaults_arg_sep + low_key +
+                    Dexter.defaults_arg_sep + high_val_for_joint +
+                    Dexter.defaults_arg_sep + joint_number +
+                    ";";
+                result_lines.push(new_line);
+            }
+            delete this.defaults[high_key];
+        }
+        else if(Dexter.defaults_is_high_j_key(high_key)){
+            for(let joint_number = 1; joint_number <= high_val.length; joint_number++){
+                let low_key  = "J" + joint_number + high_key.substring(0, high_key.length - 1); //cut off "s" suffix from high_key
+                let high_val_for_a_joint = high_val[joint_number - 1];
+                let ins_arr = [];
+                ins_arr[Instruction.INSTRUCTION_TYPE] = "S";
+                ins_arr[Instruction.INSTRUCTION_ARG0] = high_val_for_a_joint;
+                let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                let low_val = dde_ins_arr[Instruction.INSTRUCTION_ARG1];
+                let new_line = "S" + Dexter.defaults_arg_sep + low_key +
+                    Dexter.defaults_arg_sep + low_val +
+                    ";";
+                result_lines.push(new_line);
+            }
+            delete this.defaults[high_key];
+        }
+        else { //low_key is non j_key so same as high key
+            let low_key = high_key;
+            let ins_arr = [];
+            ins_arr[Instruction.INSTRUCTION_TYPE] = "S";
+            ins_arr[Instruction.INSTRUCTION_ARG0] = low_key;
+            if(Array.isArray(high_val)) { ins_arr = ins_arr.concat(high_val); }
+            else { ins_arr[Instruction.INSTRUCTION_ARG1] = high_val; }
+            let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+            let low_val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1);
+            let low_val_str = low_val_arr.join(Dexter.defaults_arg_sep);
+            let new_line = "S" + Dexter.defaults_arg_sep + low_key +
+                Dexter.defaults_arg_sep + low_val_str + ";";
+            delete this.defaults[high_key];
+            result_lines.push(new_line);
+        }
+    }
+    return result_lines
+};
+
+/* EXAMPLES
+Dexter.dexter0.defaults_read() //the real top level. Gets the file, makes low level, then high level
+//LOW LEVEL OPERATORS
+Dexter.dexter0.defaults_set("whole_file_string", read_file("Defaults.make_ins")) //good for testing initialization
+Dexter.dexter0.defaults_get("whole_file_string") //gets content from low level data, not the file
+        //best to view the above in DDE with Output pane header "Code" checkbox checked.
+
+Dexter.dexter0.defaults_get("lines")         //see the low level representation
+Dexter.dexter0.defaults_get(3)               //see a particular line of the low level
+Dexter.dexter0.defaults_get(-1)              //see the last line of the low level
+Dexter.dexter0.defaults_get("J1BoundryHigh") //see J1BoundryHigh value
+Dexter.dexter0.defaults.BoundryHighs
+Dexter.dexter0.defaults.BoundryHighs[0] = 180
+Dexter.dexter0.defaults_get("S, JointDH, 1")
+Dexter.dexter0.defaults_get("^S, JointDH") //get array of all matching. But I might change this to get_all
+Dexter.dexter0.defaults_get("^S, JointDH, \\d")
+Dexter.dexter0.defaults_set("S, JointDH, 1", "225656, 224100, 260, 323413")
+
+Dexter.dexter0.defaults_set(0,  ";top line comment")
+Dexter.dexter0.defaults_set(-1, ";bottom line comment")
+Dexter.dexter0.defaults_set("J1BoundryHigh", 777000)
+
+Dexter.dexter0.defaults_insert("z 2000")
+
+Dexter.dexter0.defaults_delete("Dexter Model")
+Dexter.dexter0.defaults_delete("'^J\\dBoundryHi'")
+
+Dexter.dexter0.defaults_get("Dexter Model")
+
+
+Dexter.dexter0.defaults_compute_parsed_lines() //internal
+
+// Dexter.dexter0.defaults_lines_to_high_level() //internal
+Dexter.dexter0.defaults
+Dexter.dexter0.defaults.Forces[1] = 60  //high level set
+Dexter.dexter0.defaults.Forces[2] = 90  //high level set
+Dexter.dexter0.defaults.ServoSetup.push({"a": [10, 20, 30]}) //high level insert
+Dexter.dexter0.defaults.ServoSetup.unshift({"a": [90, 80, 70]}) //high level insert
+Dexter.dexter0.defaults.LinkLengths
+to_source_code({value: Dexter.dexter0.defaults.dh_mat})
+beautify.js(JSON.stringify(Dexter.dexter0.defaults))
+
+Dexter.dexter0.defaults_get("LinkLengths")
+var a_dh_mat = Dexter.dexter0.defaults.dh_mat
+a_dh_mat[0][0] = 250000
+a_dh_mat[0] = [250000, 325000, 0.26, 89.83694444444444]
+
+delete Dexter.dexter0.defaults.BWDampJoint
+
+Dexter.dexter0.defaults.LinkLengths
+Dexter.dexter0.defaults.LinkLengths[0] = 0.2
+
+
+Dexter.dexter0.defaults_high_level_to_defaults_lines()
+
+// Dexter.dexter0.defaults_write() //warning: not ready for prime time. make a backup first.
+*/
+
 /* Created by Fry on 2/4/16. */
 //https://www.hacksparrow.com/tcp-socket-programming-in-node-js.html
 //import net from "net" //dde4 only needs net pkg on server, not on the browser side.
@@ -29379,7 +30873,7 @@ class Socket$1{
             let part_of_blob = data.slice(data_start, data_end);
             payload_string_maybe = part_of_blob.toString();
         }
-        else if (payload_string_maybe instanceof Buffer) { //beware, sometimes payload_string_maybe is a buffer. This converts it to a string.
+        else if (typeof(payload_string_maybe)  !==  "string") { //beware, sometimes payload_string_maybe is a buffer. This converts it to a string.
             payload_string_maybe = payload_string_maybe.toString();
         }
         //else { payload_string_maybe is normally a string, but could be an integer of > 0 if there's an error }
@@ -30084,6 +31578,24 @@ class DexterSim$1{
                 result_array = result_array.slice(0, 5); //cut off angles 6 and 7
                 payload_string = JSON.stringify(result_array); //a crude aapproximation of the real values.
                 //should return a string of 5 integers of arcseconds.
+            }
+            else if(last_path_part.startsWith("#POM") ||
+                last_path_part.startsWith("#XYZ")){
+                /*let measured_angs = this.compute_measured_angles_dexter_units().slice(0, 5)
+                let link_lens = this.robot.link_lengths
+                if(link_lens.length !== 5) { link_lens = ink_lens.slice(0, 5) }
+                let result_array  = DexterSim.make_pom(measured_angs, link_lens) //2 arrays of 5 numbers in dexter units
+                payload_string = JSON.stringify(result_array)
+                 */
+                last_path_part = last_path_part.trim();
+                let last_path_parts = last_path_part.split(" ");
+                let num = 4;
+                if(last_path_parts.length > 1) {
+                    last(last_path_parts);
+                }
+                let rob = this.robot;
+                let pom = rob.get_POM(num); //a matrix
+                payload_string = JSON.stringify(pom);
             }
             else if(last_path_part.startsWith("#StepAngles")){
                 let result_array = this.compute_measured_angles_dexter_units();
@@ -32000,7 +33512,8 @@ globalThis.RobotStatus = RobotStatus$1;
 class DDEFile$1 {
     //utilities
     static convert_backslashes_to_slashes(a_string){
-        return a_string.replace(/\\/g, "/")
+        let result = a_string.replace(/\\/g, "/");
+        return result
     }
 
     static is_root_path(path){
@@ -32038,6 +33551,18 @@ class DDEFile$1 {
         else { return dde_apps_folder + "/" + path }
     }*/
 
+    //DDEFile.make_url only called from this file june 26, 2022
+    //beware. there's an output.js make_url too.
+    //query for this method ALWAYS starts with "/edit?"
+    //"/edit?edit=",   takes a path. get the path's content
+    //"/edit?info=",   takes a path  to get meta info on the file but not its content
+    //"/edit?path=..." takes a path to edit
+    //"/edit?list="    takes a path of a dir to get info on
+    //"/edit?start=...", "/edit?", The query args arg start (position in file) and length
+    //used only in read_path_part where the initial path of the url is the file being looked at,
+    //when you want to get just part of a file. So i guess the initial path must be absolute.
+
+
     static make_url(path, query=""){
         //if (adjust_to_os) { path = adjust_path_to_os(path) }
         let url;
@@ -32073,9 +33598,9 @@ class DDEFile$1 {
                 let [protocol, host, extracted_path] = path.split(":");
                 if((protocol === "http") || (protocol === "https")){
                     extracted_path = this.add_default_file_prefix_maybe(extracted_path);
-                    url = protocol + ":" + host + query + path;
+                    url = protocol + ":" + host + query + path; //todo cut out host, just go with extracted path here???
                 }
-                else { //only 1 colon, assume its NOT the suffix to host but the separataor between host and path
+                else { //only 1 colon, assume its NOT the suffix to host but the separator before port
                     extracted_path = host;
                     host = protocol;
                     extracted_path = this.add_default_file_prefix_maybe(extracted_path);
@@ -32206,7 +33731,6 @@ class DDEFile$1 {
     static async get_page_async(url_or_options, callback){
         //https://www.npmjs.com/package/request documents request
         let full_url = "http://" + this.host() + "/get_page?path=" + url_or_options;
-        //let full_url =  this.make_url(url_or_options, "/get_page?path=")
         let response = await fetch(full_url);
         if(response.ok){
             let content = await response.text();
@@ -34311,6 +35835,7 @@ class Monitor {
 
       //used as the default callback in a send.
      static out(value, websocket=null, json_data){
+         Monitor.last_out_value = value;
          let url_message = "";
          if(websocket) {
              url_message = "for websocket: " + websocket.url + " ";
@@ -34554,13 +36079,13 @@ code to run in Job Engine:<br/>
                          problem       = "required",
                          fast        = true,
                          verbose     = false,
-                         output        = "function(text) { console.log(text); }" //inside strips
+                         output        = "(function(text) { console.log(text); })" //inside strips
                       }) {
          if(typeof(strips_domain) === "string") ; //ok as is
          else { //assume its a JSON object
              strips_domain = JSON.stringify(strips_domain);
              if (!strips_domain.startsWith("{")) {
-                 dde_error("Monitor.strips_solve callee with object which isn't " +
+                 dde_error("Monitor.strips_solve called with object which isn't " +
                      "a proper JSON object:\n" + strips_domain);
              }
          }
@@ -34573,7 +36098,30 @@ code to run in Job Engine:<br/>
          this.send(domain, src, callback, period);
     }
 
+    static strips_pddl_to_json({
+            domain        = "required",
+            callback      = "Monitor.out",
+            period        = "run_once",
 
+            pddl_string   = "required",
+            problem_or_domain= "problem",
+
+            fast        = true,
+            verbose     = false,
+            output        = "(function(text) { console.log(text); })" //inside strips
+        }) {
+            if(typeof(pddl_string) === "string") ; //ok as is
+            else {dde_error("Monitor.strips_pddl_to_json called with object which isn't " +
+                        "a string:\n" + pddl_string);
+            }
+            let src_obj =  {pddl_string: pddl_string,
+                            problem_or_domain: problem_or_domain,
+                            fast: fast,
+                            verbose: verbose,
+                            output: output};
+            let src = JSON.stringify(src_obj);
+            this.send(domain, src, callback, period);
+     }
 }
 /*
 Monitor.ws_url()
@@ -34618,6 +36166,7 @@ class MonitorServer$1 {
                               callback: "out"
                               });
            ws_connection.on('message', function(data) {
+               console.log("MonitorServer.on message passed: " + data);
                MonitorServer$1.handle_message( ws_connection, data);
            });
            ws_connection.on('close', function (data) {
@@ -34635,7 +36184,7 @@ class MonitorServer$1 {
     //data is a string that looks like:
     // {source: "some string of js", callback: "some str"} // that evals to a fn of one arg on the client which will be passed the result of source
     static handle_message(ws_connection, data) {
-        out('MonitorServer got message: ' + data);
+        console.log('MonitorServer.handle_message got message: ' + data);
         let data_obj;
         try {
             data_obj = JSON.parse(data); //has fields src, callback, period
@@ -34645,7 +36194,10 @@ class MonitorServer$1 {
         }
         if (data_obj.period === "run_once") {
             if(data_obj.source.includes("strips_domain")) {
-                   this.handle_message_strips(ws_connection, data, data_obj);
+                   this.handle_message_strips_solve(ws_connection, data, data_obj);
+            }
+            else if (data_obj.source.includes("problem_or_domain")) {
+                this.handle_message_strips_pddl_to_json(ws_connection, data, data_obj);
             }
             else { this.handle_message_one_eval(ws_connection, data, data_obj); }
         }
@@ -34689,7 +36241,7 @@ class MonitorServer$1 {
         MonitorServer$1.send(ws_connection, message_str);
     }
 
-    static handle_message_strips(ws_connection, data, data_obj){
+    static handle_message_strips_solve(ws_connection, data, data_obj){
         let strips_data_obj = JSON.parse(data_obj.source);
         if(strips_data_obj.strips_domain  === undefined) { // required
             let err = {error_type:         "required but not passed.",
@@ -34709,7 +36261,7 @@ class MonitorServer$1 {
         }
         if(strips_data_obj.fast    !== undefined) { StripsManager.fast    = data_obj.fast; } //default true
         if(strips_data_obj.verbose !== undefined) { StripsManager.verbose = data_obj.verbose; } //default false
-        if(strips_data_obj.output  !== undefined) { //default "function(text) { console.log(text); }"
+        if(strips_data_obj.output  !== undefined) { //default "(function(text) { console.log(text); })"
                 try {
                     let fn = eval(strips_data_obj.output);
                     StripsManager.output = fn;
@@ -34739,6 +36291,52 @@ class MonitorServer$1 {
             let message_str = JSON.stringify(message_object);
             MonitorServer$1.send(ws_connection, message_str);
         }
+    }
+
+    static handle_message_strips_pddl_to_json(ws_connection, data, data_obj){
+        console.log("top of MonitorServer.handle_message_strips_pddl_to_json passed dat_obj: " + data_obj);
+        let strips_data_obj = JSON.parse(data_obj.source);
+        if(strips_data_obj.pddl_string === undefined) { // required
+            let err = {error_type:         "required but not passed.",
+                       error_message:      "pddl_string required but not passed.",
+                       full_error_message: ""
+            };
+            this.handle_message_error(ws_connection, data, data_obj, err);
+            return
+        }
+        if(strips_data_obj.problem_or_domain === undefined) { //required
+            let err = {error_type:         "required but not passed.",
+                error_message:      "problem_or_domain required but not passed.",
+                full_error_message: ""
+            };
+            this.handle_message_error(ws_connection, data, data_obj, err);
+            return
+        }
+        if(strips_data_obj.fast    !== undefined) { StripsManager.fast    = data_obj.fast; } //default true
+        if(strips_data_obj.verbose !== undefined) { StripsManager.verbose = data_obj.verbose; } //default false
+        if(strips_data_obj.output  !== undefined) { //default "(function(text) { console.log(text); })"
+            try {
+                console.log("MonitorServer.handle_message_strips_pddl_to_json about to eval: " + strips_data_obj.output);
+                let fn = eval(strips_data_obj.output);
+                StripsManager.output = fn;
+            }
+            catch(err) {
+                this.handle_message_error(ws_connection, data, data_obj, err);
+            }
+        }
+        let cb = (function(json_string) {
+            if (data_obj.callback) { //the Monitor(client) callback
+                let message_object = {
+                    source: "MonitorServer.strips_pddl_to_json(...)", //not really needed by Monitor but useful for debugging
+                    callback: data_obj.callback,
+                    value: json_string
+                };
+                let message_str = JSON.stringify(message_object);
+                MonitorServer$1.send(ws_connection, message_str);
+            }
+        });
+        console.log("in  MonitorServer.handle_message_strips_pddl_to_json about to call StripsManager.loadCode");
+        StripsManager.loadCode(strips_data_obj.problem_or_domain, strips_data_obj.pddl_string, cb);
     }
 
     static readyStateInt_to_string(int){
@@ -35328,9 +36926,15 @@ globalThis.protoLoader = protoLoader$1;
 globalThis.StripsManager = StripsManager$1;
 //extends and replaces StripsManager.loadCode
 //do not use "this" in the body of this code
-//code is a string of PDDL or a JSON string
+//code can be a string of PDDL or a string of JSON or an actual JSON object.
 function strips_loadCode(grammarFileName, code, callback) {
     // Applies a PEG.js grammar against a code string and returns the parsed JSON result.
+    if(grammarFileName === "problem") {
+        grammarFileName = StripsManager$1.grammarProblemPath;
+    }
+    else if (grammarFileName === "domain") {
+        grammarFileName = StripsManager$1.grammarDomainPath;
+    }
     console.log("strips.js top of loadCode passed: " + grammarFileName + " code: " + code);
     if(typeof(code) === "object") { //assume proper JSON object
         if (callback) {

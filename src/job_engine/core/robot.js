@@ -2517,6 +2517,63 @@ Dexter.LINK3_AVERAGE_DIAMETER =  0.050000 //meters
 Dexter.LINK4_AVERAGE_DIAMETER =  0.035000 //meters
 Dexter.LINK5_AVERAGE_DIAMETER =  0.030000 //meters
 
+//_________new dexter defaults_________
+Dexter.defaults = {
+    "Built by": "Mike Philips",
+    "Dexter Model": "HDI",
+    "Dexter Serial Number": "DEX-000000",
+    "DexRun modified": "2022-02-04T21:27:24Z",
+    "Manufacture Location": "Haddington Dynamics Inc Las Vegas",
+    "OS version": "Ubuntu 16.04 LTS",
+    "xillydemo modified": "2021-09-21T18:12:58Z",
+
+    Forces: [],
+    Frictions: [],
+    BoundryHighs: [185, 105, 150, 120, 185],
+    BoundryLows: [-185, -105, -150, -120, -185],
+    PID_Ps: [],
+
+    AxisCal: [-326400, -326400, -326400, -86400, -86400],
+    Interpolation: [1, 1, 1, 1, 1],
+    LinkLengths: [0.2352, 0.339092, 0.3075, 0.0595, 0.08244],
+
+//dh_mat in Dexter units
+//             microns  arcsec microns  arcsec
+// ___ Joint,     Tz,     Rz,     Tx,     Rx
+//S JointDH 1, 235200, 324000,      0, 324000;
+//S JointDH 2, 100760, 324000, 339090, 643874;
+//S JointDH 3,  61460,      0, 307500,   4125;
+//S JointDH 4,  39300, 324000,      0, 313687;
+//S JointDH 5,  59500, 324000,      0, 324000;
+//S JointDH 6,  82440,      0,      0,-324000;
+
+// converted to meters  deg meters    deg
+    dh_mat: [[0.235200, 90, 0,        90],
+        [0.100760, 90, 0.339090, 178.8538888888889],
+        [0.061460,  0, 0.307500, 1.1458333333333333],
+        [0.039300, 90, 0,        87.13527777777777],
+        [0.059500, 90, 0,        90],
+        [0.082440,  0, 0,        -90]],
+
+    BWDampJoint: [0, 0, 0.25034065, 0.0619188, 0.00583905],
+    BWAlphaJoint: [9.77374853, 1.89690978, 1.12505283, 0.04772041, 0.00402252],
+    BWBetaJoint: [0.00591075, 6.3111515, 8.64624184, 0.18184776, 0.34199777],
+    BWGammaJoint: [0, 0, 0, 0.65140762, 24.44855881],
+    BWGainJoint: [3.3907304, 19.19908306, 1.74234028, 3.51781539, 0.73697885],
+    "BW-sticRatioJoint": [0.12760212, 0.8168827, 0.5322899, 0.0307373, 0.29133478],
+    BWElasticOffJoint: [-6.24846157, -1.21862716, 1.07327058, -5.77940025, -0.96618619],
+    RawVelocityLimits: [375840, 360, 360, 360, 360],
+    ServoSetup: []
+    /* the below are "representative values" for ServoSetup, but the
+       actual default should be "don't do anything".
+    [{"a":              [10, 0, 0, 0, 0, 0, 87],  orig_line: 99},
+              {"S, RebootServo": [3, 1],                   orig_line: 106},
+              {"z":              0.000002,                 orig_line: 107},
+              {"S, RebootServo": [1, 1],                   orig_line: 108}
+             ]
+             } */
+}
+
 //gets called regardless of whether simulate = true or not because
 //even if we're simulating, we like to get that actual link lengths from
 //the dexter IF its available
@@ -2555,51 +2612,47 @@ Dexter.LINK5_AVERAGE_DIAMETER =  0.030000 //meters
     }
 }*/
 
-//note that
-Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null){
-    console.log("top of set_link_lengths with robot: " + this.name +
-                 " job_to_start_when_done: " + job_to_start_when_done.name +
-                 " Link1: " + this.Link1 +
-                 " this.simulate: " + this.simulate)
-    console.log("globalThis.platform: " + globalThis.platform)
-    //console.log("persistent_values: " + DDE_DB.persistent_values) //will error if DDE_DB is undefined as is true in job engine
+Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null) {
     let sim_actual = Robot.get_simulate_actual(this.simulate)
-    console.log("sim_actual: " + sim_actual)
-    if(job_to_start_when_done && (job_to_start_when_done.name === "set_link_lengths")) {
-        console.log("in set_link_lengths with job job_to_start_when_done of set_link_lengths")
+    if (job_to_start_when_done && (job_to_start_when_done.name === "set_link_lengths")) {
         this.start_aux(job_to_start_when_done)
     }
-    else if(!this.Link1) { //no values set since dde launch
-        console.log("in set_link_lengths, no Link1")
-        if (sim_actual === true) {
-            this.set_link_lengths_using_dde_db()
+    else if (job_to_start_when_done.get_dexter_defaults) {
+        if (sim_actual !== true) { //ie "real"
+            /*if (node_server_supports_editor(this)) {
+                this.set_link_lengths_using_node_server(job_to_start_when_done)
+            } else {
+                job_to_start_when_done.stop_for_reason("errored_from_dexter_connect",
+                    "While attempting to set_link_lengths, " +
+                    " can't connect to Dexter." + this.name)
+                //dde_error("Dexter." + this.name + "'s node server is not responding.<br/>" +
+                //    "Set the Job's 'get_dexter_defaults' param to false to avoid looking for Defaults.makeins file and<br/>" +
+                //    "initialize Dexter defaults to their idealized values.")
+                //this.set_link_lengths_using_job(job_to_start_when_done)
+            }*/
+            this.set_link_lengths_using_node_server(job_to_start_when_done)
+        } else { //simulating, so set to idealized values
+            this.defaults = Dexter.defaults
             this.start_aux(job_to_start_when_done)
         }
-        else {
-            let ip = job_to_start_when_done.robot.ip_address
-            let path = ip + ":" + "/edit?edit=/srv/samba/share/Defaults.make_ins"
-            let the_dex = this
-            DDEFile.read_file_async(path, function (err, content) {
-                if (err) {
-                    the_dex.set_link_lengths_using_dde_db()
-                    the_dex.start_aux(job_to_start_when_done)
-                } else if (content) { //node_server_supports_editor(this)) {//todo dde4 uncomment, etc.
-                    the_dex.set_link_lengths_from_file_content(content)
-                    the_dex.start_aux(job_to_start_when_done)
-                } else {
-                    warning("Dexter." + this.name + "'s node server is not responding.<br/>" +
-                        "Setting link lengths via DDE's internal defaults.")
-                    //this.set_link_lengths_using_job(job_to_start_when_done)
-                    the_dex.set_link_lengths_using_dde_db()
-                    the_dex.start_aux(job_to_start_when_done)
-                }
-            })
-        }
-    }
-    else {//link lengths already set correctly
-        console.log("link lengths already set correctly")
+    } else { // set to idealized values
+        this.defaults = Dexter.defaults
         this.start_aux(job_to_start_when_done)
     }
+}
+Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start_when_done){
+    let the_dexter = this
+    let callback = (function(err, content){
+        if(err) { dde_error("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
+            the_url + "<br/>and error message: " +
+            err.message +
+            "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.")
+        }
+        else {
+            the_dexter.start_aux(job_to_start_when_done)
+        }
+    })
+    the_dexter.defaults_read(callback)
 }
 
 /*
@@ -2702,12 +2755,20 @@ Dexter.prototype.set_link_lengths_using_job = function(job_to_start){
 }
 */
 
-Dexter.prototype.set_link_lengths_using_dde_db = function(){
+/*
+Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
+    let path = dde_apps_folder + "/dexter_file_systems/"  + this.name + "/Defaults.make_ins"
+    if(file_exists(path)) {
+        let content = read_file(path)
+        this.set_link_lengths_from_file_content(content)
+    }
+    else {
         this.Link1 = Dexter.LINK1
         this.Link2 = Dexter.LINK2
         this.Link3 = Dexter.LINK3
         this.Link4 = Dexter.LINK4
         this.Link5 = Dexter.LINK5
+        this.link_lengths = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]
 
         this.J1_angle_min = Dexter.J1_ANGLE_MIN
         this.J2_angle_min = Dexter.J2_ANGLE_MIN
@@ -2724,10 +2785,13 @@ Dexter.prototype.set_link_lengths_using_dde_db = function(){
         this.J5_angle_max = Dexter.J5_ANGLE_MAX
         this.J6_angle_max = Dexter.J6_ANGLE_MAX
         this.J7_angle_max = Dexter.J7_ANGLE_MAX
-
-       this.dh_mat        = Dexter.dh_mat
+    }
+    //this.link_lengths_set_from_dde_computer = true
+    if(job_to_start) {
+        this.start_aux(job_to_start)
+    }
 }
-
+*/
 //content is the content of a Defaults.make_ins file
 //sets link lengths as well as any other params in the file.
 Dexter.prototype.set_link_lengths_from_file_content = function(content){
@@ -2787,6 +2851,45 @@ Dexter.prototype.set_link_lengths_from_file_content = function(content){
     }
 }
 
+//called from DexterSim for Dexter.read_from_robot("#POM", link_from_end)
+//and possibly elsewhere by user but if so,
+//gets angles from the return of the last instruction sent,
+//not the current measured angles.
+Dexter.prototype.get_POM = function(link_from_end=4){ //could be 5
+    const sim_actual = Robot.get_simulate_actual(this.simulate)
+    if(sim_actual === true){
+        let dexsim = DexterSim.robot_name_to_dextersim_instance_map[this.name]
+        if(!dexsim) {
+            dde_error("Dexter." + this.name + " called which is simulated, but there's no DexterSim instance for that Dexter.")
+        }
+        else {
+            let J_angles      = dexsim.compute_measured_angles_dexter_units()
+            J_angles          = J_angles.slice(0, 6)
+            let dh_mat        = this.defaults.dh_mat
+            let fk_result     = DH.forward_kinematics(J_angles, dh_mat)
+            let arr_of_poms   = fk_result[2]
+            let the_pom_index = link_from_end + 1
+            let the_pom       = arr_of_poms[the_pom_index]
+            const needed_for_stepping = 1 + 1;  //if this is not here, there's a bug in stepping this fn.
+            return the_pom
+        }
+    }
+    else if(this.defaults && this.rs) {
+        let J_angles = this.rs.measured_angles(5)
+        let dh_mat = this.defaults.dh_mat
+        let arr_of_poms = DH.forward_kinematics(J_angles, dh_mat)[2]
+        let pom = arr_of_poms[link_from_end + 1]
+        return pom
+    }
+    else {
+        dde_error("In Dexter." + this.name + " no angles or dh_mat are available until<br/>" +
+            "you've run a Job with this Dexter at least once.")
+    }
+
+}
+
+
+
 Dexter.LEG_LENGTH = 0.152400 //meters  6 inches
 
 //values in degrees, Dexter HDI
@@ -2804,24 +2907,6 @@ Dexter.J6_ANGLE_MIN = -150 //0
 Dexter.J6_ANGLE_MAX = 150 //296
 Dexter.J7_ANGLE_MIN = 0
 Dexter.J7_ANGLE_MAX = 296
-
-//             microns  arcsec microns  arcsec
-// ___ Joint,     Tz,     Rz,     Tx,     Rx
-//S JointDH 1, 235200, 324000,      0, 324000;
-//S JointDH 2, 100760, 324000, 339090, 643874;
-//S JointDH 3,  61460,      0, 307500,   4125;
-//S JointDH 4,  39300, 324000,      0, 313687;
-//S JointDH 5,  59500, 324000,      0, 324000;
-//S JointDH 6,  82440,      0,      0,-324000;
-
-// converted to  meters     deg meters    deg
-
-Dexter.dh_mat = [[0.235200, 90, 0,        90],
-                 [0.100760, 90, 0.339090, 178.8538888888889],
-                 [0.061460,  0, 0.307500, 1.1458333333333333],
-                 [0.039300, 90, 0,        87.13527777777777],
-                 [0.059500, 90, 0,        90],
-                 [0.082440,  0, 0,        -90]]
 
 Dexter.MAX_SPEED    = 30  //degrees per second. NOT the max speed of the robot,
                          //but rather for a given instruction's envelope of speed,
