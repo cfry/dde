@@ -62,7 +62,7 @@ class Picture{
         let img = canvas_elt.toDataURL()
         let data = img.replace(/^data:image\/\w+;base64,/, "")
         //let buf = Buffer.from(data, 'base64')
-        write_file(path, data, 'base64')
+        DDEFile.write_file_async(path, data, 'base64')
         if(sw_index !== null) { SW.close_window(sw_index) }
     }
 
@@ -152,7 +152,8 @@ class Picture{
                         translate_x=0,
                         translate_y=0,
                         show_window_callback="Picture.show_window_callback_for_canvas_click"}={}){
-      if (!content) { content = __dirname + "/examples/snickerdoodle_board.png" }
+      if (!content) { content = "http://localhost/dde/examples/snickerdoodle_board.png" //__dirname + "/examples/snickerdoodle_board.png"
+      }
       if(!title) {
            let title_suffix
            if(typeof(content) == "string") {   //content might be a long base64 string
@@ -163,9 +164,10 @@ class Picture{
                " x " +  Picture.mat_height(content) + ")"}
            title = "Picture from: " + title_suffix
       }
-      if ((typeof(content) === "string") && (content.length < 256)){ //presumed not base64 image data
-          content = make_full_path(content)
-      }
+      //obsolete in dde4
+      //if ((typeof(content) === "string") && (content.length < 256)){ //presumed not base64 image data
+      //    content = make_full_path(content)
+      //}
       let canvas_elt
       if(html_db.is_dom_elt(canvas_id)) {
          canvas_elt = canvas_id

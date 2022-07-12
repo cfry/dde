@@ -81,7 +81,7 @@ class DDEFile {
         }
         else if(path.startsWith("host:")){
             let [full_dex_name, extracted_path] = path.split(":")
-            let ip_address = this.host //might return "localhost"
+            let ip_address = this.host() //might return "localhost"
             extracted_path = this.add_default_file_prefix_maybe(extracted_path)
             url = "http://" + ip_address + query + extracted_path
         }
@@ -231,6 +231,21 @@ class DDEFile {
         else {
             let err = ("get_page_async didn't work.")
             return this.callback_or_error(callback, err)
+        }
+    }
+
+    //from https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests
+    //scynchronous, bypasses htttpd server. Often fails due to CORS, but
+    //will work when requesting pages from server that served DDE4.
+    static get_page(url){
+        let request = new XMLHttpRequest()
+        request.open('GET', url, false)  // `false` makes the request synchronous
+        request.send(null)
+        if (request.status === 200) {
+            return request.responseText
+        }
+        else { //but it will actually error before this if its a CORS policy violation
+            throw new Error("get_page failed to get: " + url + " with error code: " + request.status)
         }
     }
 
