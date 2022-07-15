@@ -564,7 +564,7 @@ module.exports.is_2D_array_of_numbers = is_2D_array_of_numbers
 
 //used by inspector for printing 2D arrays
 function is_array_of_same_lengthed_arrays(array){
-  if (array.length === 0) { return false }
+  if (array.length < 2) { return false }
   let len = null
   for(let arr of array) {
     if (!Array.isArray(arr))     { return false }

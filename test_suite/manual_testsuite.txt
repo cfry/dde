@@ -388,5 +388,19 @@ erroring with
  but that Dexter is already running Job.my_job,
  so Job.my_job1 was automatically stopped."
  Ie 2 jobs can't attempt to control the same Dexter.
- _____________
-
+ ____________
+ Testing the button working on the tool interface
+new Job({
+	name: "Test_Button",
+    show_instructions: false,
+    do_list: [
+    	Robot.loop(true, function(){
+        	if((this.robot.robot_status[Dexter.END_EFFECTOR_IN] & 1) === 0){
+            	out("Button On", "blue", true)
+            }else{
+            	out("Button Off", "blue", true)
+            }
+            return Dexter.get_robot_status()
+        })
+    ]
+})

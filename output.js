@@ -512,20 +512,8 @@ function get_page(url, callback=out, error_callback=get_page_error_callback){//i
     }
 }*/
 
-//starts from sandbox
-//if callback not passed, this is synchronous and just returns the
-//contents of the url.
-//if callback is passed, it takes 3 args, error, response_object, body
-//where 'body" is the contents of the url"
-function get_page_async(url_or_options, callback){
-        //https://www.npmjs.com/package/request documents request
-        //as taking args of (options, cb) but the actual
-        //fn itself has params(uri, options, cb)
-        var the_url
-        var the_options
-        request(url_or_options, callback)
-}
-window.get_page_async = get_page_async
+
+//get_page_async now in storage.js and part of job engine.
 
 //synchronous.
 //bret's recommended I use npm sync-request BUT that takes different

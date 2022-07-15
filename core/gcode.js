@@ -1,8 +1,20 @@
 class Gcode{
+  //these variables are initended to be persistent accross gcode jobs, as is Gcode itself.
+  static absolute_coordinates = true
+  static absolute_distances   = true //use absolute distances for extrusion
+  static distance_units = 0.001 // _mm == 0.001 == millimeters. I think mm should be the default.
+  static hotend_temperature //in degrees C. typical 220
+  static fan_on = false
+  static feedrate = 5000 //in millimeters per minute. 5000 was just first use, not a std default
+  static X = 0 //in mm
+  static Y = 0 //in mm
+  static Z = 0 //in mm
   static init(){ //called from ready.js
       Gcode.gcode_to_instructions_workspace_pose_default =
           Vector.make_pose([0, 0.5, 0.1], [0, 0, 0], _mm)
   }
+
+  static XYZ() { return [this.X, this.Y, this.Z] } //in mm
 
 //returns lit obj or null  if gstring is a comment or blank line
   static gcode_line_to_obj (gstring){
@@ -13,17 +25,24 @@ class Gcode{
     }
     else {
         var litobj = {}
-        var garray = gstring.split(" ")
-        litobj.type = garray[0]
-        for(let arg of garray){
-            arg = arg.trim()
-            let letter = arg[0]  //typically M, G, X, Y, X, E, F
-            let num = arg.substring(1)
-            if (is_string_a_number(num)){
-                num = parseFloat(num)
+        if(gstring.startsWith("F")) {
+            litobj.type = "F"
+            let val = parseFloat(gstring.substring(1))
+            litobj.F = val
+        }
+        else {
+            var garray = gstring.split(" ")
+            litobj.type = garray[0]
+            for(let arg of garray){
+                arg = arg.trim()
+                let letter = arg[0]  //typically M, G, X, Y, X, E, F
+                let num = arg.substring(1)
+                if (is_string_a_number(num)){
+                    num = parseFloat(num)
+                }
+                litobj[letter] = num //allowed to be a string, just in case somethign wierd, but is
+                //usually a number
             }
-            litobj[letter] = num //allowed to be a string, just in case somethign wierd, but is
-            //usually a number
         }
         return litobj
     }
@@ -109,20 +128,76 @@ class Gcode{
     }
   }
 
-//G0 or G1 code
+//G0  for "rapid move" or G1 code
   static gobj_to_move_to(gobj, workspace_pose, robot){ //ok for say, gobj to not have Z. that will just return undefined, and
     //move_to will get the existing Z value and use it.
     if (typeof(gobj) == "string") {
         gobj = Gcode.gcode_line_to_obj(gobj)
     }
     if (gobj) {
-        let old_point = [gobj.X, gobj.Y, gobj.Z]
-        var new_point = Vector.transpose(Vector.matrix_multiply(workspace_pose, Vector.properly_define_point(old_point))).slice(0, 3)
-        let result = robot.move_to(new_point)
+        let [x_u, y_u, z_u] = this.XYZ()
+        let old_point = [gobj.X || x_u, gobj.Y || y_u, gobj.Z || z_u] //because one or more of x,y,z might not be present
+        //var new_point = Vector.transpose(Vector.matrix_multiply(workspace_pose, Vector.properly_define_point(old_point))).slice(0, 3)
+        //commented out since I couldn't figure it out.
+        let new_point = old_point
+        if(!this.absolute_coordinates) { //new_point is in relative coords
+            new_point = Vector.add(new_point, [Gcode.X, Gcode.Y. Gcode.Z]) //do the add first.
+        }
+        //store new positions in mm
+        Gcode.X = new_point[0]
+        Gcode.Y = new_point[1]
+        Gcode.Z = new_point[2]
+
+        //then convert to meters for Dexter
+        new_point = Vector.multiply(old_point, Gcode.distance_units)
+
+        let move_inst = robot.move_to(new_point)
+        let result = move_inst
+        if(gobj.F){
+           result = [this.set_feedrate(gobj.F)]
+           result.push(move_inst)
+        }
         return result
     }
     else { return null } //happens when passing a string for gobj and its just a comment.
   }
+    static gobj_to_move_to_straight(gobj, workspace_pose, robot){ //ok for say, gobj to not have Z. that will just return undefined, and
+        //move_to will get the existing Z value and use it.
+        if (typeof(gobj) == "string") {
+            gobj = Gcode.gcode_line_to_obj(gobj)
+        }
+        if (gobj) {
+            let [x_u, y_u, z_u] = this.XYZ()
+            let old_point = [gobj.X || x_u, gobj.Y || y_u, gobj.Z || z_u]
+            //var new_point = Vector.transpose(Vector.matrix_multiply(workspace_pose, Vector.properly_define_point(old_point))).slice(0, 3)
+            //commented out since I couldn't figure it out.
+            let new_point = old_point
+            if(!this.absolute_coordinates) { //new_point is in relative coords
+                new_point = Vector.add(new_point, [Gcode.X, Gcode.Y. Gcode.Z]) //do the add first.
+            }
+            //store new positions in mm
+            Gcode.X = new_point[0]
+            Gcode.Y = new_point[1]
+            Gcode.Z = new_point[2]
+
+            //then convert to meters for Dexter
+            new_point = Vector.multiply(old_point, Gcode.distance_units)
+            let move_inst = robot.move_to_straight({xyz: new_point})
+            let result = move_inst
+            if(gobj.F){
+                result = [this.set_feedrate(gobj.F)]
+                result.push(move_inst)
+            }
+            return result
+        }
+        else { return null } //happens when passing a string for gobj and its just a comment.
+    }
+    static set_feedrate(mm_per_min) {
+        this.feedrate = mm_per_min
+        let meters_per_min = mm_per_min / 1000
+        let meters_per_sec = meters_per_min / 60
+        return Dexter.set_parameter("CartesianSpeed", meters_per_sec)
+    }
 }
 
 //need this here because just putting a * at the end of a static method in a class errors.
@@ -134,25 +209,66 @@ Gcode.gcode_to_instructions = function* ({gcode = "",
     if (filepath) { the_content += read_file(filepath) }
     let gcode_lines = the_content.split("\n")
     for(let i = 0; i < gcode_lines.length; i++){
-        let gobj = Gcode.gcode_line_to_obj(gcode_lines[i])
+        let gcode_line = gcode_lines[i]
+        let gobj = Gcode.gcode_line_to_obj(gcode_line) //added for debugging only, sep 24, 2021
         if (gobj == null) { continue; }
         else {
             let result
             switch(gobj.type){
+                case "F":
+                    result = Gcode.set_feedrate(gobj.F)
+                    yield result
+                    break;
                 case "G0":
-                    result = Gcode.gobj_to_move_to(gobj, workspace_pose, robot)
+                    result = Gcode.gobj_to_move_to(gobj, workspace_pose, robot) //fast move
                     yield result
                     break;
                 case "G1":
-                    result = Gcode.gobj_to_move_to(gobj, workspace_pose, robot)
+                    result = Gcode.gobj_to_move_to_straight(gobj, workspace_pose, robot)
                     yield result
                     break;
-                case "G28": //home
-                    result = Gcode.gobj_to_move_to({X: 100, Y:100, Z:0}, workspace_pose, robot) //needed to initialize out of the way
+                case "G21":
+                    Gcode.distance_units = _mm
+                    break;
+                case "G28": //home  xyz 0,0,0 is unreachable so I made up some coors that are reachable
+                    Gcode.X = 0    / _mm
+                    Gcode.Y = 0.01 / _mm
+                    Gcode.Z = 0.07 / _mm
+                    result = Gcode.gobj_to_move_to({ X:Gcode.X, Y:Gcode.Y, Z:Gcode.Z }, workspace_pose, robot) //needed to initialize out of the way
                     yield result
+                    break; //added to fix, sep 24, 2021
+                case "G90":
+                     Gcode.absolute_coordinates = true
+                     break;
+                case "G91":
+                    Gcode.absolute_coordinates = false  //ie relative coords.
+                    break;
+                case "M82":
+                     Gcode.absolute_distances = true
+                     break;
+                case "M82":   //use absolute distances for extrusion
+                     Gcode.absolute_distances = true
+                     break;
+                case "M84":   //Stop idle hold. Probalby should be a no-op for Dexter.
+                    Gcode.absolute_distances = true
+                    break;
+                case "M104":  //set temp of extruder contains value like S220, degrees C.
+                    Gcode.hotend_temperature = gobj.S
+                    break;
+                case "M106":  //fan on. has lots of params ie which fan, fan speed, but this is the basic, 1 fan system.
+                    Gcode.fan_on = true
+                    break;
+                case "M107":  //fan off
+                    Gcode.fan_on = false
+                    break;
+                case "M109":  //set temp and wait for it to be reached
+                    Gcode.hotend_temperature = gobj.S
+                    //needs work
+                    break;
                 case "VAR":
                     break; //ignore. do next iteration
                 default:
+                    warning("Gcode.gcode_to_instructions got unknown instruction type: " + gobj.type)
                     break; //ignore. do next iteration
             }
         }

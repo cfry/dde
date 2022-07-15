@@ -201,12 +201,14 @@ DexterSim = class DexterSim{
                 //let angle_degrees_array = Socket.dexter_units_to_degrees_array(ds_instance.angles_dexter_units)
                 //let pid_angle_degrees_array = Socket.dexter_units_to_degrees_array(ds_instance.pid_angles_dexter_units)
                 //let sum_degrees_array = Vector.add(angle_degrees_array, pid_angle_degrees_array).slice(0, 5)
-                SimUtils.render_j1_thru_j5(ds_instance) //todo this just jumps to the new angles, not move smoothly as it should
-                if(pid_ang_du.length > 5) {
-                    SimUtils.render_j6(ds_instance)
-                }
-                if(pid_ang_du.length > 6) {
-                    SimUtils.render_j7(ds_instance) //don't bother to pass xyz and robot.pose as that's only used by simBuild.
+                if(SimUtils.is_simulator_showing()) {
+                    SimUtils.render_j1_thru_j5(ds_instance) //todo this just jumps to the new angles, not move smoothly as it should
+                    if(pid_ang_du.length > 5) {
+                        SimUtils.render_j6(ds_instance)
+                    }
+                    if(pid_ang_du.length > 6) {
+                        SimUtils.render_j7(ds_instance) //don't bother to pass xyz and robot.pose as that's only used by simBuild.
+                    }
                 }
                 ds_instance.ack_reply(instruction_array)
                 break;
@@ -281,7 +283,8 @@ DexterSim = class DexterSim{
                 ds_instance.queue_instance.start_sleep(instruction_array)
                 break;
             default:
-                warning("In DexterSim.send, got instruction not normally processed: " + oplet)
+                let temp_str = "non_normal_oplet_" + oplet //prevent this from being printed more than once between out pane clearnings
+                warning("In DexterSim.send, got instruction not normally processed: " + oplet, temp_str)
                 ds_instance.ack_reply(instruction_array)
                 break;
         }
@@ -348,9 +351,9 @@ DexterSim = class DexterSim{
         } 
          
         if (this.sim_actual === true){
-            let rob = this.robot
+            let dexter_instance = this.robot  //for closure variable
             setTimeout(function(){
-                        Socket.on_receive(robot_status_array, payload_string_maybe)
+                        Socket.on_receive(robot_status_array, payload_string_maybe, dexter_instance)
                         }, 1)
         }
     }
@@ -368,8 +371,8 @@ DexterSim = class DexterSim{
     static render_once_node(ds_instance, job_name, robot_name, force_render=true){ //inputs in arc_seconds
          //note that SimUtils.render_once has force_render=false, but
          //due to other changes, its best if render_once_node default to true
-         rs_inst = ds_instance.robot.rs
-        if (force_render){
+         let rs_inst = ds_instance.robot.rs
+         if (force_render){
             let j1 = rs_inst.measured_angle(1) //joint_number)robot_status[Dexter.J1_MEASURED_ANGLE]
             let j2 = rs_inst.measured_angle(2)
             let j3 = rs_inst.measured_angle(3)
@@ -469,16 +472,177 @@ DexterSim = class DexterSim{
     process_next_instruction_r(instruction_array) {
         let hunk_index = instruction_array[Instruction.INSTRUCTION_ARG0]
         let source     = instruction_array[Instruction.INSTRUCTION_ARG1]
-        let whole_content
-        try { whole_content = read_file(source) }//errors if path in "source" doesn't exist
-        catch(err){
-            return 2 //return the error code
+        let source_path_array = source.split("/")
+        let last_path_part = last(source_path_array)
+        let payload_string
+        if(source.startsWith("`")){
+            dde_error("The Dexter Simulator can't handle Dexter.read_from_robot instructions<br/>" +
+                      "that start with a backtick for executing BASH commands.")
         }
-        let start_index = hunk_index * Instruction.Dexter.read_file.payload_max_chars
-        let end_index = start_index + Instruction.Dexter.read_file.payload_max_chars
-        let payload_string = whole_content.substring(start_index, end_index) //ok if end_index is > whole_cotnent.length, it just gets how much it can, no error
+        else if(last_path_part.startsWith("#")) { //got special "file"
+            if(last_path_part.startsWith("#MeasuredAngles")){
+                let result_array = this.compute_measured_angles_dexter_units()
+                result_array = result_array.slice(0, 5) //cut off angles 6 and 7
+                payload_string = JSON.stringify(result_array) //a crude aapproximation of the real values.
+                //should return a string of 5 integers of arcseconds.
+            }
+            else if(last_path_part.startsWith("#POM") ||
+                    last_path_part.startsWith("#XYZ")){
+                /*let measured_angs = this.compute_measured_angles_dexter_units().slice(0, 5)
+                let link_lens = this.robot.link_lengths
+                if(link_lens.length !== 5) { link_lens = ink_lens.slice(0, 5) }
+                let result_array  = DexterSim.make_pom(measured_angs, link_lens) //2 arrays of 5 numbers in dexter units
+                payload_string = JSON.stringify(result_array)
+                 */
+                last_path_part = last_path_part.trim()
+                let last_path_parts = last_path_part.split(" ")
+                let num = 4
+                if(last_path_parts.length > 1) {
+                    let arg = last(last_path_parts)
+                    let num = parseInt(arg)
+                    if(Number.isNaN(num)) { num = 4 }
+                    else if((num > 0) && (num < 10)) {} //leave as is
+                    else { num = 4}
+                }
+                let rob = this.robot
+                let pom = rob.get_POM(num) //a matrix
+                payload_string = JSON.stringify(pom)
+            }
+            else if(last_path_part.startsWith("#StepAngles")){
+                let result_array = this.compute_measured_angles_dexter_units()
+                result_array = result_array.slice(0, 5) //cut off angles 6 and 7
+                for(let i = 0; i < result_array.length; i++){
+                    result_array[i] += 100 //StepAngles on a real Dexter will deviate from measured_angles
+                    //by a small amount, so adding 100 arcsecs just simulates that.
+                }
+                payload_string = JSON.stringify(result_array) //a crude aapproximation of the real values.
+                //should return a string of 5 integers of arcseconds.
+            }
+            else {
+                dde_error("The Dexter Simulator can't handle Dexter.read_from_robot instructions<br/>" +
+                    "with a path of: " + source)
+            }
+        }
+        else {
+            let whole_content
+            try {
+                whole_content = read_file(source)
+            }//errors if path in "source" doesn't exist
+            catch (err) {
+                return 2 //return the error code
+            }
+            let start_index = hunk_index * Instruction.Dexter.read_file.payload_max_chars
+            let end_index = start_index + Instruction.Dexter.read_file.payload_max_chars
+            payload_string = whole_content.substring(start_index, end_index) //ok if end_index is > whole_cotnent.length, it just gets how much it can, no error
+        }
         return payload_string
     }
+
+    //make_pom is a rewrite of:
+    //https://github.com/HaddingtonDynamics/Dexter/blob/Stable_2020_02_04_ConeDrive/Firmware/DexRun.c
+    // struct pos_ori_mat J_angles_to_pos_ori_mat(struct J_angles angles) {
+
+    //v is an array of x, y, z
+    static scalar_mult(a, v) {
+        let result = [0, 0, 0];
+        result[0] = a * v[0];
+        result[1] = a * v[1];
+        result[2] = a * v[2];
+        return result;
+    }
+    static vector_add(v1, v2) {
+        let result = [0, 0, 0]
+        result[0]  = v1[0] + v2[0]
+        result[1]  = v1[1] + v2[1]
+        result[2]  = v1[2] + v2[2]
+        return result;
+    }
+
+//Position and Orientation Matrix. AKA #POM
+//returns a 4 x 4 array of numbers.
+//see https://github.com/HaddingtonDynamics/Dexter/wiki/read-from-robot
+//for a description. It encodes the xyz and the orientation of the end effector.
+    /*obsoleted by Dexter.prototype.get_POM
+    static make_pom(angles,      //array of 5 arcsecs
+                      link_lengths){ //array of 5 microns???
+        let U0 = [0, 0, 0]
+        let U1 = [0, 0, 0]
+        let U2 = [0, 0, 0]
+        let U3 = [0, 0, 0]
+        let U4 = [0, 0, 0]
+        let U5 = [0, 0, 0]
+
+        let V0 = [0, 0, 1]
+        let V1 = [0, 0, 0]
+        let V2 = [0, 0, 0]
+        let V3 = [0, 0, 0]
+        let V4 = [0, 0, 0]
+
+        let P0 = [1, 0, 0]
+        let P1 = [0, 0, 0]
+        let P2 = [0, 0, 0]
+
+        //printf("Pre-allocation complete\n");
+
+        //FK:
+        P1 = Vector.rotate(P0, V0, -(angles[0] - 180*3600)); 	// Links 2, 3 and 4 lie in P1
+        V1 = Vector.rotate(V0, P1, angles[1]);		   			// Vector for Link 2
+        V2 = Vector.rotate(V1, P1, angles[2]);		   			// Vector for Link 3
+        V3 = Vector.rotate(V2, P1, angles[3]);		  			// Vector for Link 4
+        P2 = Vector.rotate(P1, V3, -(angles[4] - 180*3600));	// Link 4 and 5 lie in P2
+        V4 = Vector.rotate(V3, P2, -90*3600);				   	// Vector for Link 5 (90 degree bend)
+
+        //printf("Vector rotations complete\n");
+
+        U1 = DexterSim.vector_add(U0, DexterSim.scalar_mult(link_lengths[0], V0));
+        U2 = DexterSim.vector_add(U1, DexterSim.scalar_mult(link_lengths[1], V1));
+        U3 = DexterSim.vector_add(U2, DexterSim.scalar_mult(link_lengths[2], V2));
+        U4 = DexterSim.vector_add(U3, DexterSim.scalar_mult(link_lengths[3], V3));
+        U5 = DexterSim.vector_add(U4, DexterSim.scalar_mult(link_lengths[4], V4));
+
+        //printf("Vector adds complete\n");
+
+        //Calc pos_ori_mat:
+        let Vz = V3;
+        let Vy = V4;
+        let Vx = Vector.cross(Vy, Vz);
+        //printf("\nVector cross complete\n");
+        let result = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+        //printf("\npos_ori_mat Struct def complete\n");
+
+        result[0][0] = Vx[0]
+        result[1][0] = Vx[1]
+        result[2][0] = Vx[2]
+
+        //printf("\nResult 0 complete\n");
+
+        result[0][1] = Vy[0]
+        result[1][1] = Vy[1]
+        result[2][1] = Vy[2]
+
+        //printf("\nResult 1 complete\n");
+
+        result[0][2] = Vz[0]
+        result[1][2] = Vz[1]
+        result[2][2] = Vz[2]
+
+        //printf("\nResult 2 complete\n");
+
+        result[0][3] = U4[0]
+        result[1][3] = U4[1]
+        result[2][3] = U4[2]
+
+        //printf("\nResult 3 complete\n");
+
+        result[3][0] = 0;
+        result[3][1] = 0;
+        result[3][2] = 0;
+        result[3][3] = 1;
+
+        return result
+    }
+
+*/
     //Dexter.write_file
     process_next_instruction_W(ins_args, rob){
         let kind_of_write  = ins_args[0]

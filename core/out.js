@@ -275,6 +275,7 @@ function show_window({content = `<input type="submit" value="Done"/>`,
         '<input name="trim_strings" type="hidden" value="' + trim_strings + '"/>' +
         '<input name="job_name" type="hidden" value="' + job_name + '"/>' +
         '<input name="show_window_elt_id" type="hidden" value="' + the_sw_elt_id + '"/>' +
+        '<input name="window_index" type="hidden" value="' + SW.window_index + '"/>' +
         content +
         '</div>' //to allow selection and copying of window content
 

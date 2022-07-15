@@ -23,7 +23,7 @@
             Converts a two dimensional array into a string that has
             its rows separated by the newline character, \n and
             the "cells" within each row separated by commas.<br/>
-            <i>Parameter:</i></br/>
+            <i>Parameter:</i><br/>
             <b>an_array</b> The array is expected to be two dimensional
             with the outer arrays representing rows, and
             the inner arrays representing cells.<br/>
@@ -47,7 +47,7 @@
                 If the string has a comma char, then comma is used as the
                 separator between cells in a row, otherwise tab, \t, is used.
                 <br/>
-                <i>Parameter:</i></br/>
+                <i>Parameter:</i><br/>
                 <b>a_string</b> The string is expected to have newlines or \r separate rows
                 and commas or tab characters separate cells within a row.<br/>
                 <i>Example:</i>
@@ -70,6 +70,22 @@
             The code for your Job definitions should live under that folder (at any depth beneath
             that folder).
             If you do not have a dde_apps folder under your Documents folder, please create one.
+
+
+
+        <details id="append_to_file_doc_id" class="doc_details"><summary>append_to_file</summary>
+            Append content to a file path. Leaves the existing content in place but
+            adds to the end of it. If the file does not exist, it is created.<br/>
+            <i>Parameters</i><br/>
+            <b>path</b> Usually a string of a file name, but can be a buffer or URL.
+              If a string arg does not start with a slash, and is not a url,
+              <code>dde_apps_folder</code> is prepended to it.<br/>
+            <b>content</b> a string, Buffer or Uint8Array to append to the file.<br/>
+            <b>encoding</b> Default: <code>"utf8"</code> See
+            <a href="#" onclick="open_doc(write_file_doc_id)">encoding details</a><br/>
+            <i>Example:</i><br/>
+            <code>append_to_file("log6.txt", "hey world")</code>
+        </details>
 
         <details id="choose_file_doc_id" class="doc_details"><summary>choose_file</summary>
             Pops up a dialog box allowing you to navigate the file system to choose a file.
@@ -127,14 +143,15 @@
         <b>source_path</b> Required. A string of a file path. The file can be of any type.<br/>
         <b>destination_path</b> Required. A string of a file path. Will create a new
         file if it doesn't exist, or overwrite an existing file if it does exist.<br/>
-        <b>callback</b> A function that takes one argument, an error object.
+        <b>callback</b> Default: a function that prints out success or failure in the output pane.
+          The function takes one argument, an error object.
         The function is called if the read operation of the source_path errors,
         such as when the source_path file doesn't exist.
         If no error on the read operation, the write operation is called
         with the callback passed as its callback. If the error object passed is
         <code>null</code>, that means the operation succeeded.
         <p></p>
-        <i>Example:</i><br/>
+        <i>Examples:</i><br/>
         <pre><code>copy_file_async(
     "dde_init.js",
     "dde_init_copy_for_testing.js",
@@ -142,6 +159,13 @@
         if(err) {warning("copying dde_init.js errored with: " + err.message)}
         else { out("dde_init.js copied successfully.")}
         })    </code></pre>
+
+        <code title="Not in Testsuite">copy_file_async("foo.js", "Dexter.dexter0:foo_copy.js")</code>
+        Copies the file "dde_apps/foo.js"<br/>
+        to the ip address in<br/>
+        Dexter.dexter0, and file: /srv/samba/share/dde_apps/foo_copy.js<br/>
+        The callback defaults to one that prints success or failure
+        to DDE's output pane.
         </details>
 
         <details id="copy_folder_async_doc_id" class="doc_details"><summary>copy_folder_async</summary>
@@ -211,7 +235,7 @@
             For Windows OS's this is "\\" (backslash).
             For others its "/" (forward slash).
         </details>
-        <details id="get_latest_path_doc_id"class="doc_details"><summary>get_latest_path</summary>
+        <details id="get_latest_path_doc_id" class="doc_details"><summary>get_latest_path</summary>
            DDE has a file versioning convention. File pathames of the format
            <code>"/foo/bar/baz_2.txt"</code> are considered to be "version 2" of
            the file <code>"/foo/bar/baz.txt"</code>
@@ -239,11 +263,11 @@
               (where * means any non-negative integer) exists, then <code>null</code> is returned.
               Otherwise, the file path with the highest version number is returned, such as:
               <code>"/foo/bar/foo_5.txt"</code>
-            <p/>
+            <p> </p>
             Version numbers do not have to be contiguous.<p></p>
             See also <a href="#" onclick="open_doc(make_unique_path_doc_id)">make_unique_path</a>
         </details>
-        <details id="is_folder_doc_id"class="doc_details"><summary>is_folder</summary>
+        <details id="is_folder_doc_id" class="doc_details"><summary>is_folder</summary>
              Returns <code>true</code> if the argument represents a folder, <code>false</code> otherwise.
              <i>Parameters:</i><br/>
              <b>path</b> Default: <code>dde_apps_folder</code> The string naming the
@@ -336,7 +360,7 @@
            <br/>
            Note that the file doesn't have to actually exist for make_full_path to work.
         </details>
-        <details id="make_unique_path_doc_id"class="doc_details"><summary>make_unique_path</summary>
+        <details id="make_unique_path_doc_id" class="doc_details"><summary>make_unique_path</summary>
             DDE has a file versioning convention.
             See also <a href="#" onclick="open_doc(get_latest_path_doc_id)">get_latest_path</a>
             for details.
@@ -382,7 +406,7 @@
             <p></p>
             See <a href="#" onclick="open_doc(load_files_doc_id, event)">load_files</a>
             for grabbing the file contents, then evaling it.
-            <p/></p>
+            <p></p>
             See also Dexter instruction: <a href="#" onclick="open_doc('Dexter.read_file_doc_id', event)">Dexter.read_file</a>
             <p></p>
             <span style="color:red;">file_content</span> has been deprecated.
@@ -588,7 +612,7 @@ and reliability.
     }]</samp></pre>
     </details> <!-- end down_keys -->
 
-    <details id="Gamepad.is_key_down_doc_id"class="doc_details"><summary>is_key_down</summary>
+    <details id="Gamepad.is_key_down_doc_id" class="doc_details"><summary>is_key_down</summary>
        This method returns true if the given key is down and false otherwise.<br/>
        <i>Parameter:</i><br/>
        <b>keycode_or_keyname</b> If the given keycode (a non-negative integer)
@@ -1309,7 +1333,7 @@ For lower level, but broader capabilities, see
 
 <details id="Picture.init_doc_id" class="doc_details"><summary>init</summary>
 Before Picture methods can be used,<br/>
-<code>&nbsp;Picture.init() </code><br/> must be evaled.
+<code>Picture.init() </code><br/> must be evaled.
 It takes a few seconds because it loads in OpenCV.js and other libraries.
 The 2nd through nth times it is called, it does nothing and
 returns very quickly so no harm in calling it multiple times a session.
@@ -1402,7 +1426,7 @@ created for showing this picture, a title for the window will be made up
 based on the <i>content</i> arg. If its a string, that string will be shown in the title.<br/>
 
 <b>x</b> Default: <code>200</code> If a new window is created, the x location
-    of that window. 0 means left.</b><br/>
+    of that window. 0 means left.<br/>
 
 <b>y</b> Default: <code>40</code> If a new window is created, the y location
     of that window. 0 means top.<br/>
@@ -1438,13 +1462,13 @@ a custom callback that does what you want with the clicked on pixel.
 <code>Picture.show_picture()</code><br/> Uses all the defaults.
 <pre><code>Picture.show_picture({content:
 "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"})</code></pre>
-  A picture from the web you've seen before.<p><p/>
+  A picture from the web you've seen before.<br/><br/>
 <pre><code>Picture.show_picture({content: __dirname + "/examples/snickerdoodle_board.png",
 rect_to_draw:[20, 20, 50, 50]})</code></pre>
-A picture file in DDE.<p><p/>
+A picture file in DDE.<br/><br/>
 <pre><code>Picture.show_picture({canvas_id: "mycan", x: 20, y: 100,
         width: 200, height: 300})</code></pre>
- The default picture in a canvas with id: "mycan".</pre>
+ The default picture in a canvas with id: "mycan".
 <pre><code>Picture.show_picture({canvas_id: "mycan", content:
     "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"})</code></pre>
   Another picture displayed in "mycan".
@@ -1452,7 +1476,7 @@ A picture file in DDE.<p><p/>
   There is a corresponding instruction, <a href="#" onclick="open_doc('IO.show_picture_doc_id', event)">IO.show_picture</a>
 </details>
 
-<details id="Picture.show_video_cameras_doc_id"class="doc_details">
+<details id="Picture.show_video_cameras_doc_id" class="doc_details">
          <summary>show_video_cameras</summary>
 A given computer may have 0 or more cameras.
 If you don't have one on your computer, "webcams" that plug into
@@ -1476,7 +1500,7 @@ to be longer than 10 feet.
 The "default" webcam for the DDE software will be the one built-in to
 your computer (if any). But if you're attaching a webcam to a computer,
 you'll have to specify the ID of the camera you intend to use.<br/>
-<code> Picture.show_video_cameras() </code></br> prints out a list of the video cameras
+<code>Picture.show_video_cameras() </code><br/> prints out a list of the video cameras
 that are currently connected to your computer. Each camera has a:
 <ul>
 <li><b>kind</b> Always "videoinput"</li>
@@ -1642,7 +1666,7 @@ These two mat types can get you through a lot of image processing.
     <br/>
     <i>Parameters:</i><br/>
     <b>a_string</b> Required. If the passed in value is a string of
-    base64 format, <code>true</code> is returned</br/>
+    base64 format, <code>true</code> is returned<br/>
     <b>permit_trailing_newline</b> Boolean. Default: <code>false</code>.
     If true, a_string can have an extra newline on the end and still
     be considered as a base64 string if the rest of the string
@@ -1658,7 +1682,7 @@ These two mat types can get you through a lot of image processing.
 
     <details id="Picture.is_mat_doc_id" class="doc_details"><summary>is_mat</summary>
 Returns true if the passed in object is a mat, otherwise false.<br/>
-<i>Parameters:</i></br/>
+<i>Parameters:</i><br/>
 <b>mat</b> A mat. Required.<br/>
 <b>type</b> Default: <code>null</code> meaning any type of mat is ok.<br/>
 Possible values:<br/>
@@ -2484,8 +2508,7 @@ There are higher level "phrase processors" that make creating scores
 relatively easy. <a href="#" onclick="open_doc(music_article_doc_id, event)">
 The Language of Music</a> describes DDE's approach to music in broad themes.<br/>
 For a video presentation of many of these ideas, watch
-<a href="https://drive.google.com/open?id=0B6PCkmO9RJLJU2VUVkhReGd6RjA">Making Music</a>
-     target="blank">Making Music</a>
+<a href="https://drive.google.com/open?id=0B6PCkmO9RJLJU2VUVkhReGd6RjA" target="blank">Making Music</a>
 <p></p>
 The fundamental class is Note, that represents a musical note, including
 its duration (and, effectively, its ending time).
@@ -2551,7 +2574,7 @@ and Midi has not been inited, but there will be a slight delay in that case.<br/
 <code title="not in TestSuite">Midi.init()</code><br/>
 
 If Midi has previously been inited, this calls <code>Midi.all_notes_off</code>.
-This can also be called by choosing Insert menu/Sound/Midi.init().<br/>
+This can also be called by choosing Insert menu/Music/Midi.init().<br/>
 <i>Parameters:</i> None.
 <p></p>
 <b id="Midi.all_notes_off_doc_id">Midi.all_notes_off</b> Turns off
@@ -2574,7 +2597,7 @@ Often the first note or two will get lost so do it a few times
 and you should hear Middle C played on the instrument you have
 selected in GarageBand. <br/>
 <code>Midi.init</code> can also be called by choosing
-Insert menu/Sound/Midi.init().
+Insert menu/Music/Midi.init().
 <p></p>
 If you don't hear a sound, check the MIDI connections in
 GarageBand: menu bar/GarageBand/Preferences.<br/>
@@ -2603,8 +2626,8 @@ This is tricky.
 <b>On Windows OS</b><br/>
     One of our most savvy tech users advises:
     <ol>
-        <li>Install <a target="_blank" href="http://coolsoft.altervista.org/en/virtualmidisynth#soundfonts">VirtualMIDISynth</a></li></li>
-        <li>From <a target="_blank" ref="http://www.synthfont.com/soundfonts.html">synthfont</a>
+        <li>Install <a target="_blank" href="http://coolsoft.altervista.org/en/virtualmidisynth#soundfonts">VirtualMIDISynth</a></li>
+        <li>From <a target="_blank" href="http://www.synthfont.com/soundfonts.html">synthfont</a>
                  download and extract "FluidR3 GM Bank"</li>
         <li>In VirtualMIDISynth, import the "FuidR3 GM Bank" sound fonts.</li>
         <li>Restart DDE land oad a MIDI example code and eval it.</li>
@@ -3163,7 +3186,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         <samp>new Phrase("C D C D E F C D")</samp><br/>
     Since both phrases in the library have 2 notes, think of the output as
     4 pairs of notes, where a pair is either "C D" or "E F".
-    <p/>
+    <p></p>
     We can get the same output by inverting our pattern and reversing
     the phrases in our library like so:<br/>
     <pre><code>Phrase.pattern([1, 1, 0, 1],
@@ -3276,7 +3299,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
         Since the default velocity is 0.5, the returned phrase
         will have all of its note at a velocity of 1 (the maximum).
       </details>
-      For more extended examples of using Phrases see Insert menu/Examples/Music.
+      For more extended examples of using Phrases see Insert menu/Music.
       </details> <!-- end of Phrase methods -->
 
 </details> <!-- end Phrase -->
@@ -3410,7 +3433,7 @@ new Phrase({notes: [new Note({time: 0, dur: 1, pitch: 60, velocity: 0.25, channe
              end the dialog. Moot when <code title="unEVALable code fragment"> only_once=true</code>.
         </li>
     </ul>
-</details> <!-- end of recognize_speech -->
+</details> end of recognize_speech
 -->
 
 <details id="speak_doc_id" class="doc_details"><summary>speak</summary>
@@ -3553,8 +3576,12 @@ This will not work for Jobs run on the Job Engine on Dexter.
         These include the HTTP methods of: GET (the default), POST, PUT, PATCH, DELETE, HEAD, OPTIONS,
         plus a zillion other options for authentication, etc.<br/>
         <b>callback</b> When the content of the web page is retrieved,
-        this callback is called, passing an error (or not), the response object,
-        and the string of the content of the page.
+        this callback is called, passing:
+        <ol>
+        <li>an error object (or null), if no error.</li>
+        <li>the response object</li>
+        <li>the body, i.e. a string of the content of the page, typically HTML.</li>
+        </ol>
         JavaScript on the page will not be evaled, but if the page is not found,
         there will be an error.
         <p></p>
@@ -3632,8 +3659,8 @@ This will cause a button for the Job to be placed in the Output Pane header, suc
     <button>my_job</button>.  Clicking the button runs the Job.
 <p></p>
 Webinar videos for Job:<br/>
-<a target="_blank" href="http://hdrobotic.com/webinar#making_jobs"   target="_blank">Making Jobs</a><br/>
-<a target="_blank" href="http://hdrobotic.com/webinar#advanced_jobs" target="_blank">Advanced Jobs</a><br/>
+<a target="_blank" href="http://hdrobotic.com/webinar#making_jobs">Making Jobs</a><br/>
+<a target="_blank" href="http://hdrobotic.com/webinar#advanced_jobs">Advanced Jobs</a><br/>
 
 <details class="doc_details"><summary>Starting and Stopping Jobs</summary>
 Defined jobs remain inert until they are started by clicking their button in the Output pane header
@@ -3693,10 +3720,10 @@ Jobs either run to completion, error, or are stopped by the user via:
 </details>
 
 <details class="doc_details"><summary>Definition Time vs Run Time</summary>
-    To fully understand how a job operates, you must understand the difference
+    To fully understand how a Job operates, you must understand the difference
     between <i>Job Definition Time</i> and <i>Job Run Time</i>.
     <p></p>
-    <b>Job Definition Time</b></br/>
+    <b>Job Definition Time</b><br/>
     When you select and evaluate the source code of a job, you are
     <i>defining</i> the Job. This simply uses JavaScript's <code>eval</code>
     function to evaluate the source code, just like evaling any source code.
@@ -3706,7 +3733,7 @@ Jobs either run to completion, error, or are stopped by the user via:
     class Job. Once done, you can access the Job instance via
     <code title="unEVALable">Job.my_job</code><br/>
     Many properties of the job are accessible via, for example,
-    <code>Job.my_job.name</code> , which returns the string of the Job's name.<br/>
+    <code>Job.my_job.robot</code> , which returns the default robot of the Job.<br/>
     Of particular import is the do_list. In the case of:
     <pre><code>var ang1 = 90
 new Job({name: "my_job",
@@ -3723,17 +3750,21 @@ new Job({name: "my_job",
     just one instance of the move_all_joints instruction.
     This instance will have its joint1 angle set to 90 because <code>ang1</code>
     is evaled when the Job definition is evaluated, and <code>ang1</code> evals
-    to 90. If you simply eval <code>Dexter.move_all_joints(90)</code>,
+    to 90. By using a global variable in multiple instructions or even multiple Jobs,
+    we can change lots of instructions to have a particular consitent value
+    with just one <code>var ang1 = 90</code> .
+    <p></p>
+    If you simply eval <code>Dexter.move_all_joints(90)</code>,
     you can inspect the returned object and see that it has an
     <i>array_of_angles</i> property storing where the Dexter's angles will
     be commanded to go when the Job is actually run.
     <p></p>
-    <b>Job Run time</b></br/>
+    <b>Job Run time</b><br/>
     Now let's walk through <i>Job Run Time</i>. You run a Job
     by clicking its <button>job name</button> button or by calling
     <code title="unEVALable">Job.my_job.start()</code><br/>
-    One way to think of starting a job is that it is a <i>second</i> evaluation
-    of the Job. Only this time, it is not using JavaScript's eval, it is using
+    One way to think of starting a Job is that it is a <i>second</i> evaluation
+    of the Job. Only this time, it is not using JavaScript's <code>eval</code>, it is using
     Job's special evaluator. Instead of taking an input of JavaScript source code,
     its taking input of the items on the do_list (created via JS eval when defining the Job)
     which can be of many different types.
@@ -3745,9 +3776,9 @@ new Job({name: "my_job",
     <code>make_ins("a", 90)</code>, then the 90 is convertered from
     degrees into arcseconds, and sent to the Job's default robot, which better be a Dexter.
     <p></p>
-    <b>Re-Running a Job</b></br/>
-    After a job has finished, you can rerun it by clicking its
-    <button>job name</button> button or calling its start method again.
+    <b>Re-Running a Job</b><br/>
+    After a Job has finished, you can rerun it by clicking its
+    <button>job name</button> button or calling its <code title="not Evalable">start</code> method again.
     This does not redefine the job.
     So for instance, if between two runnings of a Job, we set our
     global variable of <code title="unEVALable">ang1</code> to 45,
@@ -3759,12 +3790,13 @@ new Job({name: "my_job",
     That Joint1 inside the instance of move_all_joints is still 90,
     so our 2nd running of my_job should behave the same, even
     if we modify the value of <code title="unEVALable">ang1</code>.
-    Actually if you do re_run my_job, it won't be exactly the same
+    Actually if you do re_run my_job, Dexter won't behave exactly the same
+    as it did the first time,
     because the Dexter robot will now be at a pose with Joint 1 equal to 90,
     so in our 2nd running, the robot won't move. But besides this initial
     "set up move", following moves would be the same between the two runnings.
     <p></p>
-    <b>Functions on the do_list</b></br/>
+    <b>Functions on the do_list</b><br/>
     A Job definition can look like it contains random old JS code.
     But like calling any constructor or function in JS
     (or any popular general purpose programming language), it can't be random old JS code.
@@ -3791,7 +3823,7 @@ new Job({name: "my_job",
     To run arbitrary JS code during the running of a Job, wrap that code
     in a function definition like so:
     <pre><code>new Job({name: "my_job1",
-        do_list: [function(){return Dexter.move_all_joints(30)}]
+         do_list: [function(){return Dexter.move_all_joints(30)}]
         })</code></pre>
     To achieve the same result, we could also do:
     <pre><code>function move_it_buddy(){return Dexter.move_all_joints(30)}
@@ -3813,17 +3845,12 @@ new Job({name: "my_job1",
     it sets local variables of the function's parameters to the values passed in,
     and evaluates the code in the body of the function.
     <p></p>
-    In the cases above, <code title="unEVALable">ang1</code> <i>will</i> be evaled at Job Run Time,
-    as will the code that creates the instance of move_all_joints.
     Anything returned by a function definition on the do_list will be
     dynamically added to the do_list right below the function definition.
     Our do_list started out with just one item, but after running
     that one item, our do_list is extended by an instance of move_all_joints.
     That instance of move_all_joints is inserted into the do_list immediately after
     the function that generated it, making it run immediately after the function.
-    So now, if we change the value of ang1 between two runnings of my_job,
-    we won't have to redefine the whole job in order to get the effect
-    of changing the value of ang1.
     <p></p>
     A function definition on a do_list doesn't
     have to return anything. It may just have side effects like calling <code>out</code>
@@ -3831,7 +3858,7 @@ new Job({name: "my_job1",
     the Job will error.
     <p></p>
     <b>Job Instance Access</b><br/>
-    If you want to access the running Job Instance at run time, use a
+    If you want to access the running Job instance at run time, use a
     function definition on the do_list, and reference <code>this</code> in
     the body of that function definition.<br/>
     <i>Example:</i><br/>
@@ -3842,7 +3869,8 @@ new Job({name: "my_job1",
                  ]})
     </code></pre>
     Note that using <code title="unEVALable">user_data</code> is a convenient way to pass values from one
-    instruction to another, without cluttering the global variable space.<br/>
+    instruction to another, without cluttering the global variable space.
+    <p></p>
     <b>Flexibility and Complexity</b><br/>
     Jobs have a great deal of flexibility. We can use the full power of
     a general purpose programming language (JS) plus DDE's libraries
@@ -3861,7 +3889,220 @@ new Job({name: "my_job1",
 
     For a more complete understanding of JavaScript <code>eval</code>, see the DDE article:
     <a href="#" onclick="open_doc('how_to_think_like_a_computer_doc_id', event)">How to Think like a Computer</a>
-</details>
+
+        <details class="doc_details"><summary>Simplified Jobs Model</summary>
+            Programmers know that you don't really understand
+            a process until you can code it.
+            But we also want the ability to effectively
+            use high level code without having to
+            understand the details.
+            These are contradictory until you realize that
+            there's a middle ground. We want to understand
+            a process just enough to know its behavior without
+            needing to understand all the details of its
+            implementation.
+            <p></p>
+            Authoring and running Jobs for a robot in DDE is a
+            complex process implemented with a huge amount of code.
+            A lot of that code simplifies the process by elevating the level
+            of coding a Job author must to. None the less,
+            to have an accurate-enough model of authoring and running
+            Jobs is not trivial. The advantage of this "non-trivial"
+            is a tremendous amount of flexibility.
+            <p></p>
+            You can grasp the essence of this process by
+            examining a simplified model of authoring Jobs and
+            their running. We've constructed one in a bare bones
+            JavaScript representation. It lacks the bells and whistles of
+            full blown DDE,
+            but hopefully is just enough for you to mentally model
+            the process of authoring and running Jobs to take advantage of DDE's power.
+            <p></p>
+            Select and <button>Eval</button> the below code as you read.
+            Examine the Output pane for the results of the evaluation.<br/>
+
+            <b>DDE model:</b>
+            <pre><code>function model_new_job(do_list_array){
+   return {do_list: do_list_array,
+           program_counter: 0}
+}</code></pre>
+
+<b>Job author model:</b><br/>
+<code>var my_job = model_new_job([[15, 30, 45], "abc" + "def"])</code>
+<p></p>
+<b>Explanation:</b><br/>
+A Job is essentially a named do_list.
+So to make one, we pass in an array and
+set the resulting Job to a variable: <code>my_job </code>
+<p></p>
+The do_list is an array of instructions to be run
+when we start the Job.
+Here we're creating a Job with just two instructons.
+<ol>
+<li>an array of 3 integers</li>
+<li>a string of 6 letters</li>
+</ol>
+The <i>source code</i> for those instructions is
+a string of<br/>
+<code>'[[15, 30, 45], "abc" + "def"]' </code> <br/>
+Evaluating that string (select the above without the surrounding single quotes and
+click <button>Eval</button> ) returns a 2 element array.
+That array becomes the Job's do_list.
+<p></p>
+You can select and eval:
+<ol>
+<li>an individual argument to an instruction</li>
+<li>the whole instruction</li>
+<li>the whole do_list</li>
+<li>the entire Job definition</li>
+</ol>
+Do all of these. Examine the content of the result in
+the inspector that appears in DDE's Output pane
+after clicking the <button>Eval</button> button.
+For more complex real jobs, piece by piece evaluation and
+inspection aids understanding and debugging.
+When evaling <code>my_job </code> , notice that we initialize the Job's program counter
+to 0 to point at "the current instruction".
+<p></p>
+Now its time to run our Job.<br/>
+<b>DDE Model:</b>
+<pre><code>function model_start_job(a_job){
+     let pc = a_job.program_counter
+     if (pc >= a_job.do_list.length) {
+        out("Finished Job.")
+        a_job.program_counter = 0 //prepare for next start of Job.
+     }
+     else {
+     	let cur_inst = a_job.do_list[pc]
+        model_do_instruction(cur_inst)
+        model_set_up_next_instruction(a_job)
+     }
+}
+
+function model_do_instruction(a_inst){
+   if(Array.isArray(a_inst)) {
+      out("running array instruction: " + a_inst, "green")
+   }
+   else if(typeof(a_inst) == "string") {
+      out("running string instruction: " + a_inst, "green")
+   }
+}
+
+function model_set_up_next_instruction(a_job){
+    //sleep for inter_do_item_dur
+    a_job.program_counter = a_job.program_counter + 1
+    model_start_job(a_job)
+}</code></pre>
+
+<b>Job author model:</b><br/>
+<code> model_start_job(my_job) </code>
+<br/>
+<b>Explanation:</b><br/>
+<code>model_start_job</code> grabs the instruction in the do_list
+at the program counter, passes it to model_do_instruction
+which models running the instruction by printing it out in <span style="color:green;">green</span>.
+In real DDE, the instruction
+is sent to a robot (or the simulator) to run.
+<p></p>
+Then model_start_job calls <code>model_set_up_next_instruction </code> .
+In real DDE, this pauses or "sleeps" the Job running, for
+a fraction of a second, to give other active Jobs a chance
+to run <i>their</i> instructions.
+<p></p>
+Then model_set_up_next_instruction increments <code>my_job.program_counter</code> and
+calls <code>model_start_job</code>
+to start the process all over again.
+This keeps going until we run out of items
+in the do_list.
+<p></p>
+DDE has many different kinds of instructions,
+but we'll describe just one particularly versatile one here,
+a function definition.
+If you have a function call in the do_list source code,
+it will be called when the Job definition is evaled,
+just like all the other arguments. But you might
+want to have the call evaled during the <i>running</i> of a job instead.
+just like another instruction is run.
+Perhaps that call depends on something that happens
+when a previous instruction is run or another condition,
+only available at run-time.
+We can "protect" the call from being evaled at Job definition
+time, by wrapping it in a function definition.
+<p></p>
+Let's say we want to print the exact time
+when an instruction in the middle of the do_list is called.
+If we defined our Job like so:<br/>
+<b>Job author model:</b><br/>
+<pre><code>model_new_job([[15, 30, 45],
+               out(new Date(), "green")])</code></pre>
+then <code>out(new Date(), "green")</code>
+gets evaled at Job definition time, and returns a Date object
+(<code>out</code> returns its first argument)
+that goes into the do_list array.
+Since DDE doesn't know what to do with a Date on the do_list,
+DDE will error if you run such a Job.
+But, if we define our Job like this instead:<br/>
+<b>Job author model:</b><br/>
+<pre><code>var my_job = model_new_job([[15, 30, 45],
+                      function(){
+                          out(new Date(), "green")
+                      }
+]) </code></pre>
+Then extend the <b>DDE model:</b>
+<pre><code>function model_do_instruction(a_inst){
+   if(Array.isArray(a_inst)) {
+      out("running array instruction: " + a_inst, "green")
+   }
+   else if(typeof(a_inst) == "string") {
+      out("running string instruction: " + a_inst, "green")
+   }
+   else if (typeof(a_inst) == "function"){
+       a_inst.call()
+   }
+}</code></pre>
+Now when we call<br/>
+<b>Job author model:</b><br/>
+<pre><code>var my_job = model_new_job([[15, 30, 45],
+          function(){
+              out(new Date(), "green")
+          }
+]) </code></pre>
+the code <code>out(new Date(), "green")</code> is <i>not</i> evaled.<br/>
+
+<b>Job author model:</b><br/>
+<code> model_start_job(my_job) </code>,<br/>
+runs our Job as usual, but with our extension to
+<code>model_do_instruction</code>, the function on the do_list is
+called, our <code>new Date</code> code is evaled,
+and we get a printout of the time when the instruction is run,
+not when the Job is defined.
+<p></p>
+We can run this Job definition many times (without redefining it)
+and it will always print out the correct time.
+Having a function definition be an "instruction" means
+we can put <i>any</i> JavaScript on the do_list
+and have it run between any two other instructions.
+<p></p>
+Furthermore, if a function on a do_list has a return value,
+that value is <i>automatically</i> inserted into the do_list immediately after the function
+instruction (in real DDE).
+Thus, such return values are treated as an instruction. The instruction's arguments
+can be determined programmatically at Job run time by the function
+creating those instructions.
+<p></p>
+An array of instructions on the do_list is treated
+just as if all its instructions were at top level,
+so a function can return multiple instructions in an array.
+We can return a different number of instructions based on
+run-time conditions. Each can be a different kind of instruction.
+All this computation can happen
+<i>while</i> the Job is running, giving DDE controled robots the
+ability to respond to conditions not exiting
+at Job definition time.
+This "self-modifying code"
+makes Jobs exceedingly dynamic and powerful.
+</details> <!-- end Simplified Jobs Model -->
+</details> <!-- end Job Definition Time vs Run Time -->
 
 <details id="new_job_parameters_doc_id" class="doc_details"><summary>new Job parameters</summary>
 The parameters used to define a new Job all have defaults.<br/>
@@ -3960,14 +4201,15 @@ new Job({name: "my_job",
            You can set existing user_data names or create new ones by setting them.
            <p></p>
            If you restart a
-           job, the user_data from its previous runnng is lost.
+           job, the user_data from its previous running is lost.
            For data that you want to persist across restarts,
            or for user_data that doesn't really belong with any one job but is used
-           by mulitple ones, use the <i>class</i> property <code>Job.global_user_data</code>.
+           by multiple ones, use the <i>class</i> property <code>Job.global_user_data</code>.
            This can be written to like so: <code>Job.global_user_data.my_count = 123</code>.
            <p></p>
-           The value for user_data is passed in when creating a job is shallow_copied when
-           the job starts. So if this value was stored in some external-to-the-job way
+            The value for user_data that is declared in the Job definition, is shallow_copied when
+            the job starts.
+            So if this value was stored in some external-to-the-job way
            and a job is run twice with that very same user_data, the 2nd time the job
            is started, it will see <i>the same</i> top level keys as the first time,
            and all the top level values that are immutable (booleans, strings, numbers).
@@ -3989,7 +4231,7 @@ new Job({name: "my_job",
            </li>
         <li id="job_param_default_workspace_pose_doc_id"><b>default_workspace_pose</b>
             Default: <code>Coor.Table</code> .
-            <p/>
+            <p></p>
             <code>Dexter.move_to</code>
             and <code>Dexter.pid_move_to</code>
             instructions take an argument of: workspace_pose.
@@ -4278,7 +4520,7 @@ when a Job stops for whatever reason, including errors.
 This comes in handy when you have to "take down" something that a Job has
 "set up" to run. One example is to turn off a laser that has been
 turned on by the Job. Regardless of how a job stops, we
-want to make sure anything dangerous is rendered harmless.<p/>
+want to make sure anything dangerous is rendered harmless.<p></p>
 The <a href="#" onclick="open_doc('job_param_when_stopped_doc_id', event)">when_stopped_conditions</a>
 Job parameter gives you fine grained control over just what stopping
 conditions will trigger the when_stopped instruction.
@@ -4366,7 +4608,7 @@ the Human robot.
          </code></pre>
         as long as those functions take no arguments.<br/>
         We could also just put both at top level on the do_list,
-        i.e. <pre><code title="unEVALable"/>new Job({name: "Job1",
+        i.e. <pre><code title="unEVALable">new Job({name: "Job1",
          do_list: [fun1, fun2]
         })
             </code></pre>
@@ -4758,9 +5000,9 @@ new Job({name: "my_job5",
 <details class="doc_details"><summary>Control</summary>
     Control instructions can be used in any Job regardless of its default robot.
 <details id="Control.break_doc_id" class="doc_details"><summary>break</summary>
-    The Control.break() instruction, when in the body of a
-    <a href="#" onclick="open_doc('Control.loop_doc_id', event)">Control.loop</a>,
-    instruction, ends the loop.
+    The Control.break() instruction, when returned from the body function of a
+    <a href="#" onclick="open_doc('Control.loop_doc_id', event)">Control.loop</a>
+    instruction, will end the loop.
     <p></p>
     <i>Parameters:</i> None.<br/>
     <i>Example:</i> <pre><code>new Job({name: "my_job6",
@@ -4774,10 +5016,35 @@ new Job({name: "my_job5",
                               else { return Control.break() } }),
                IO.out("end of job")
                ]})    </code></pre>
-    If you have nested loops, Control.break ends the inner loop only.
     If Control.break is not in a loop, a warning will be printed in the Output pane.
-    <p></p> Note that Javascript also uses the symbol <code title="unEVALable">break</code>
-    to end a JavaScript <code title="unEVALable">for</code> loop.
+    <p></p><p></p>
+    If you have nested loops, Control.break ends the inner loop only.
+    However, here's a technique to break from the outer loop based on a condition
+    set by an innner loop:
+<pre><code>new Job({
+    name: "my_job",
+    user_data: {break_outer_loop: false},
+    do_list: [
+        Control.loop(3, function(){
+            out("outer loop start")
+            if(this.user_data.break_outer_loop) {
+              return Control.break()
+            }
+            return Control.loop(3, function(){
+               out("inner loop")
+               this.user_data.break_outer_loop = true
+               return Control.break()
+            })
+         })
+    ]
+}) </code></pre>
+   Observe that the outer loop <i>starts</i> a 2nd iteration, but is
+   cut short when <code title="unEVALable">this.user_data.break_outer_loop</code> evaluates to <code>true</code>.
+   You can put the test for <code title="unEVALable">this.user_data.break_outer_loop</code>
+   at the very top of the outer loop's body function if you like.
+   <p></p>
+    Note that Javascript also uses the symbol (not a call) <code title="unEVALable">break</code>
+    to end JavaScript <code title="unEVALable">for</code> and <code title="unEVALable">while</code> loop.
 </details>
 
 <details id="Control.continue_doc_id" class="doc_details"><summary>continue</summary>
@@ -4951,7 +5218,7 @@ Generally <code>"highest_completed_instruction_or_zero"</code> is more useful th
     <code>["program_counter", {offset: "sync_point", process: "backward"}]</code>
     Searches backwards from the program_counter to
     the first instruction of type "sync_point".
-</ul>
+<p></p>
 Instruction_locations are also used in
 initializing a Job's <code title="unEVALable code fragment"> program_counter</code> in defining the job, as well as
 in calling a job's start method. The <code>Control.send_to_job</code> instruction
@@ -5020,7 +5287,7 @@ Control.include_job has a large number of very specific error messages to help y
                       of instructions. If a_variable_name is both a Job name and a global variable,
                       the Job name will be used.
                 </li>
-                <li><b>file_path</b></li> <i>Example:</i> <code>"my_job.dde"</code><br/>
+                <li><b>file_path</b> <i>Example:</i> <code>"my_job.dde"</code><br/>
                     Any string that isn't prefixed by "Job." but has a dot in it,
                     is considered to be a file_path.<br/>
                      A file path that doesn't start with a slash refers to a job in your "dde_apps" folder under
@@ -5206,7 +5473,7 @@ new Job({
                <li> array: Uses length of the array.</li>
            </ul>
         </li>
-        <li>iter_key</li> the same as iter_index except if the times_to_loop
+        <li>iter_key the same as iter_index except if the times_to_loop
             is an object (or a function that returns one), in which case
             iter_key is the property name of the property being looped
             through for this iteration.<br/>
@@ -5282,9 +5549,12 @@ new Job({
  <b>job_name</b> Required. Can be:
  <ul><li>An instance of the Job to start.</li>
     <li>A string starting with "Job." followed by the Job's name.</li>
-    <li>A string of the Job's name.</li>
+    <li>A string of the Job's name (and, if none of those ...)</li>
     <li>A string of a path (file name) to a file that contains a definition of the
-        Job to start. The first Job definition in the file will be used.</li>
+        Job to start. The first Job definition in the file will be used.
+        If the string does not start with /, then the path is relative to
+        <code>dde_apps_folder</code>, as per DDE convention.
+    </li>
  </ul>
  <b>start_options</b> A literal object. Name-value pairs that can
  be passed when creating a new Job can also be passed to a job's <i>start</i> method and
@@ -5450,6 +5720,8 @@ The method takes 1 arg, "stop_reason" that behaves as documented above.
    a lot of flexibility. This can increase the overall speed of a cooperating
    robot group over merely "all pause at each same-named sync_points" 
    because it allows those jobs that <i>can</i> proceed to do so.
+    <p></p>
+    See Jobs menu/Insert Example/Sync Jobs.
 </details>
 
 <details id="Control.send_to_job_doc_id" class="doc_details"><summary>send_to_job</summary>
@@ -5839,7 +6111,10 @@ Example:<code>Control.wait_until(2)</code><br/>
 
 <details id="Brain_doc_id" class="doc_details"><summary>Brain</summary>
 <b>Brain</b> is a virtual robot used to manage other robots or do purely software tasks.
-It has few special instructions of its own, but can use Control, Human, IO and the
+    There is a default Brain instance defined for your convenience:<br/>
+    <code>Brain.brain0</code>
+        <br/><br/>
+Brain has few special instructions of its own, but can use Control, Human, IO and the
 miscellaneous Robot instructions (function definitions, etc),
 just like all the other robots.
     <details id="Brain.eval_python_doc_id" class="doc_details"><summary>eval_python</summary>
@@ -5906,7 +6181,7 @@ Dexter's position as well as respond to forces on the arm and other sensor data.
 <p></p>
 An instance of Dexter is created like so:
 <pre><code title="not in TestSuite"> new Dexter({name: "my_dex",
-            simulate: true
+             simulate: true
            })</code></pre>
 <p></p>
 <!--Multiple jobs may use a given robot instance as their robot. It is up to the programmer
@@ -6285,7 +6560,7 @@ See also the instruction: <code>IO.grab_robot_status</code>
     FPGA.PID_TIMEBASE = 81 </code></pre>
     <a target='_blank' href="https://github.com/HaddingtonDynamics/Dexter/wiki/oplet-write">
         The latest on FPGA addresses</a>
-    </details>
+    </details> <!-- end FPGA addresses -->
 
 </details> <!-- end make_ins -->
 
@@ -6580,7 +6855,7 @@ proportional–integral–derivative controller</a>.<br/>
     except that it uses a
     <a href="https://en.wikipedia.org/wiki/PID_controller" target="_blank">
         proportional–integral–derivative controller</a>.<br/>
-    <i>Example:</i></br/>
+    <i>Example:</i><br/>
     <code>Dexter.pid_move_to([0, 0.1, 0.2])</code>
 </details>
 
@@ -6624,12 +6899,27 @@ proportional–integral–derivative controller</a>.<br/>
                    }
                ]})</code></pre>
     See also <a href="#" onclick="open_doc(read_file_doc_id, event)">read_file</a>
-    <p></p>
-    <code id="Dexter.read_from_robot_doc_id">Dexter.read_from_robot</code> is a similar instruction, except that the default folder
+</details>
+<details id="Dexter.read_from_robot_doc_id" class="doc_details"><summary>read_from_robot</summary>
+    <code>Dexter.read_from_robot</code> is similar to
+    <code>Dexter.read_file</code> except that the default folder
     for the <i>source</i> is "/srv/samba/share/" and not
     "/srv/samba/share/dde_apps" as it is for <code>Dexter.read_file</code>.
     <code>Dexter.read_from_robot</code> is maintained for backwards compatibility.
-    Most users are expected to use <code>Dexter.read_file</code>
+    Most users are expected to use <code>Dexter.read_file</code> .<br/>
+    However the path argument to read_from_robot has a few special # arguments
+    documented <a target="_blank" href="https://github.com/HaddingtonDynamics/Dexter/wiki/read-from-robot">here</a>.<br/>
+    DDE's simulator supports only the # arguments of:<br/>
+    <code>Dexter.read_from_robot("#MeasuredAngles")</code><br/>
+    <code>Dexter.read_from_robot("#StepAngles")</code><br/>
+    <code>Dexter.read_from_robot("#POM")</code><br/>
+    POM stands for Position and Orientation Matrix.
+    It is a 4x4  two dimensional array of numbers.<br/>
+    After <code>"#POM"</code> you may add a space and an integer indicating "link_from_end".
+    It defaults to <code>4</code>, but you can also use <code>5</code> or a lower positive integer.<br/>
+    Example: <code>Dexter.read_from_robot("#POM 5")</code>
+    <br/><br/>
+    The simulator does not support the BASH command argument that starts with a backtick.
 </details>
 
 <details id="Dexter.reboot_joints_doc_id" class="doc_details"><summary>reboot_joints</summary>
@@ -7075,7 +7365,7 @@ If it is passed, the instruction will be sent to that robot.
 </details> <!-- end RobotStatus -->
 
 
-<details  class="doc_details"><summary>Dexter Utilities</summary>
+<details class="doc_details"><summary>Dexter Utilities</summary>
 <details id="Instruction.add_robot_to_instruction_id" class="doc_details"><summary>add_robot_to_instruction</summary>
 This static method on the Instructon class adds the given robot to the instruction.
 If the instruction already has a robot, it is replaced. If there is no robot,
@@ -7275,7 +7565,7 @@ values in degrees<br/>
 <code>Dexter.NEUTRAL_ANGLES</code> => <samp>[0, 45, 90, -45, 0, 0, 0]</samp><br/>
 <code>Dexter.PARKED_ANGLES</code> => <samp>[0, 0, 135, 45, 0, 0, 0]</samp><br/>
 <p></p>
-First array of 3 values is in meters,<br/>2nd is J5_direction,<br/>3rd is config.</i><br/>
+First array of 3 values is in meters,<br/>2nd is J5_direction,<br/>3rd is config.<br/>
 <code>Dexter.HOME_POSITION</code> => <samp>[[0, 0.08255, 0.866775],[0, 1, 0], [1, 1, 1]]</samp><br/>
 <code>Dexter.NEUTRAL_POSITION</code> => <samp>[[0, 0.5,     0.075],[0, 0, -1],[1, 1, 1]]</samp><br/>
 <p></p>
@@ -7284,7 +7574,228 @@ First array of 3 values is in meters,<br/>2nd is J5_direction,<br/>3rd is config
 <code>Dexter.ACCELERATION</code> => <samp>0.000129</samp> degrees/(second^2)<br/>
 </details> <!--end Dexter Contantants -->
 
+<details class="doc_details"><summary>Dexter Defaults File</summary>
+    Each Dexter has a file: <code title="UnEvalable">"/srv/samba/share/Defaults.make_ins"</code>
+    that contains initialization parameters for Dexter.
+    The values in the file are customized to each Dexter with
+    physical dimensions and calibration values to help
+    Dexter's software control this Dexter accurately.
+    <p></p>
+    The file is loaded automatically when Dexter boots up.
+    It has its own special format, which is rather complex.
+    Normally it is edited with a text editor, but the code
+    documented here allows you to selectively read and write
+    parts of this file in DDE using Javascript.
+    Dexter's actual file is not modified until the user explicitly calls
+    the "write" function to do so.
+    <p></p>
+    <details class="doc_details"><summary>Dexter Defaults Low Level API</summary>
+        The low level API can read and write the file, store it in
+        an array of strings (one string per line) and allow basic
+        editing operations on those lines.
+        <p></p>
+        This code tries to maintain each line in a consistent format:
+        Each line has a semicolon, either at the end of an instruction or
+        at the beginning of a line. Comment text follows the semicolon.
+        Each argument on a line is separated from its surrounding arguments by
+        a comma and a space. Blank lines are allowed in the file.
+        <p></p>
+        The low level as values in "Dexter units", i.e.
+        arcseconds, microns, microseconds.
+        <details id="Dexter.dexter0.defaults_read_doc_id" class="doc_details"><summary>defaults_read</summary>
+            This method gets the file contents from Dexter,
+            fills in the low level data as well as the  high level data.<br/>
+            <i>Example:</i><br/>
+            <code title="Not in TestSuite">Dexter.dexter0.defaults_read()</code>
+            Because this uses an asynchronous file read, the data is not available
+            <i>immediately</i> after the call returns but will be in less than a second.
+        </details>
+        <details id="Dexter.dexter0.defaults_write_doc_id" class="doc_details"><summary>defaults_write</summary>
+            <i>Example:</i><br/>
+            <code title="Not in Testsuite">Dexter.dexter0.defaults_write()</code>
+            Because this uses an asynchronous file write, the file is not updated
+            <i>immediately</i> after the call returns but will be in less than a second.
+            <p></p>
+            <span style="color:red;">Warning: if you write out a bad file, your Dexter won't
+                initialize properly when you turn it on.</span>
+        </details>
+        <details id="Dexter.dexter0.defaults_get" class="doc_details"><summary>defaults_get</summary>
+            Get data from the low level data structure.
+            The LAST matching line is what is returned. Usually, the
+            last line for setting a given S-param is the only one that counts.
+            <br/>
+            <i>Examples:</i><br/>
+            <code>Dexter.dexter0.defaults_get("whole_file_string")</code> <br/>
+             Gets the content from low level data, as one whole string.<br/>
+             If you are returning it to DDE top level, check the Misc output pane's
+             "Code" checkbox to view it with each line taking up one line in the output.
+            <p></p>
+            <code>Dexter.dexter0.defaults_get("lines")</code> <br/>
+            See the entire low level representation as an array of strings, one per line.
+            <p></p>
+            <code>Dexter.dexter0.defaults_get(3)</code><br/>
+            Get an individual line by its line number.
+            <p></p>
+            <code>Dexter.dexter0.defaults_get(-1)</code><br/>
+            Get the last line. An arg of -2 gets the 2nd to the last line, etc.
+            <p></p>
+            <code>Dexter.dexter0.defaults_get("J1BoundryHigh")</code><br/>
+            <code>Dexter.dexter0.defaults_get("LinkLengths")</code><br/>
+            Get the value of any set_param via its name.
+            <p></p>
+            <code>Dexter.dexter0.defaults_get("S, JointDH, 1")</code><br/>
+            Get the last line in the file that starts with the argument.
+            <p></p>
+            <code>Dexter.dexter0.defaults_get("^S, JointDH, \\d")</code><br/>
+            Return an array of all the lines that match the regular expression in the argument.
+            <code title="UnEvalable">^</code> means the start of the line.<br/>
+            <code title="UnEvalable">\\d</code> matches any digit, so this regular expression gets
+            lines for JointDH 1 through JointDH 6
+            <p></p>
+            <code>Dexter.dexter0.defaults_get("Dexter Model")</code><br/>
+            Get the value of a "comment parameter" that are usually found at the top of the file.
+        </details>
+        <details id="Dexter.dexter0.defaults_set" class="doc_details"><summary>defaults_set</summary>
+            Set's the low level data structure as well as the corresponding high level
+            data structure. Each of these replace an existing value, or, if none
+            exists, adds the key and value. The keys are similar to those under "defaults_get".<br/>
+            <i>Examples:</i><br/>
+            <pre><code>Dexter.dexter0.defaults_set("whole_file_string",
+                        ";some big string")</code>
+                Grabs the content of the file <code  title="UnEvalable">dde_apps/Defaults.make_ins</code>
+                on the computer running DDE, (not where it usually is) and sets the
+                low and high level data from it.
+            </pre>
+            <code>Dexter.dexter0.defaults_set(0,  ";top line comment")</code><br/>
+            <code>Dexter.dexter0.defaults_set(-1, ";bottom line comment")</code><br/>
+            <code>Dexter.dexter0.defaults_set("J1BoundryHigh", 777000)</code><br/>
+            <code>Dexter.dexter0.defaults_set("JointDH", "1, 240000, 329999, 300, 320000")</code><br/>
+            <code>Dexter.dexter0.defaults_set("Built by", "yours truly")</code>
+        </details>
+        <details id="DexterDexter.dexter0.defaults_insert" class="doc_details"><summary>defaults_insert</summary>
+            <i>Parameters:</i><br/>
+            <b>line</b> A string of a line to add to the low level data.
+               If no semicolon is in the line, one will be added to its end.
+               The line will be "cleaned up" to conform to its normal format.
+            <br/>
+            <b>index</b> Usually an integer of of the line index where it will be after it is inserted.
+                 Can also be <code title="UnEvalable">"last"</code> (the default)
+                 to have the line added to the end of the data array.<br/>
+            <code>0</code> makes the first line be the given line.<br/>
+            <code>-1</code> makes the 2nd to last line be the given line.<br/>
+            <code>"last"</code> makes the last line be the given line.
+            <p></p>
+            <i>Examples:</i><br/>
+            <code>Dexter.dexter0.defaults_insert("z 2000")</code><br/>
+              Adds the line to the end.
+            <p></p>
+            <code>Dexter.dexter0.defaults_insert(";bottom comment", -1)</code><br/>
+              Makes the given line be the 2nd to last line in the data array.
+            <p></p>
+            <code>Dexter.dexter0.defaults_insert(";top comment", 0)</code><br/>
+              Prepends the given line to the data array.
+        </details>
+        <details id="Dexter.dexter0.defaults_delete" class="doc_details"><summary>defaults_delete</summary>
+            Deletes the matched line from the low level data array and its corresponding data
+            in the high level.<br/>
+            <i>Examples:</i><br/>
+            <code>Dexter.dexter0.defaults_delete("Dexter Model")</code><br/>
+            Removes the "comment property" line from the low level (and high level) data.
+            <p></p>
+            <code>Dexter.dexter0.defaults_delete("J1BoundryHigh")</code><br/>
+            <p></p>
+            <code>Dexter.dexter0.defaults_delete("^S, J\\dBoundryHi")</code><br/>
+               Deletes the S param lines in the low level data for
+               <code title="Unevalable">J1BoundryHigh</code> through <code title="Unevalable">J5BoundryHigh</code>.
+               Also deletes all the items in the high level array for <code title="Unevalable">BoundryHighs</code>
+        </details>
+    </details> <!-- end Dexter Defaults Low Level API -->
+    <details class="doc_details"><summary>Dexter Defaults High Level API</summary>
+        The high level API allows users to access the high level JavaScript Object,
+        using common JS built-in functions. It helps maintain synchronization
+        between the low and high level data representations, but this is
+        not perfect. When you modify a low level line via the
+          <code title="Unevalable">defaults_set</code>,
+          <code title="Unevalable">defaults_insert</code>, and
+          <code title="Unevalable">defaults_delete</code> methods,
+          the new values are auto-synced to the high level.
+        But when you modify the high level data structure, it s not synced
+        until you call a function to do so.
+        <p></p>
+        The high level has values in "DDE units", i.e.
+        degrees, meters, seconds.
+        <p></p>
+        <i>Examples:</i><br/>
+        <code>Dexter.dexter0.defaults</code><br/>
+        The high level data object.
+        Inspect this object to see what's available where.
+        <p></p>
+        <code>Dexter.dexter0.defaults.BoundryHighs</code><br/>
+          An array of the high values for
+          Joints 1 through 5, in degrees.
+        <p></p>
+        <code>Dexter.dexter0.defaults.BoundryHighs[0]</code><br/>
+          Get joint 1's BoundryHigh degrees. This is the same angle
+        as the low level <code title="UnEvalable">J1BoundryHigh</code> except that the
+        high level is in degrees whereas the low level is in arcseconds.
+        <p></p>
+        <code>Dexter.dexter0.defaults.BoundryHighs[0] = 177</code><br/>
+          Set joint 1's degrees to 177.
+        <p></p>
+        <code>Dexter.dexter0.defaults.BoundryHighs = [171, 172, 173, 174, 175]</code><br/>
+           Set the boundry highs for joints 1 through 5.
+        <p></p>
+        <code>delete Dexter.dexter0.defaults.BoundryHighs</code><br/>
+          Delete the key in the high level data for BoundryHighs
+        <p></p>
+        <code>Dexter.dexter0.defaults["Built by"]</code><br/> Get the name of the person that
+          built this Dexter.
+        <p></p>
+        <code>Dexter.dexter0.defaults.ServoSetup</code><br/>
+              Note: when inspecting this value, it makes more sense to uncheck the
+              inspector's "2D" checkbox.
+              For most of the lines in the Defaults.make_ins file, it doesn't matter
+              what order they're in. This includes the comments at the top and most
+              of the "S, ..." lines for setting parameters.
+              But for *some* of the lines, the order they are in *does* matter.
+              This is because they are executed in order, and that order can
+              affect how Dexter is initialized.
+              <p></p>
+              The lines where order matters are any lines that start with an oplet,
+              i.e. a single letter followed by a comma such as
+              <code title="UnEvalable">a</code> or
+              <code title="UnEvalable">z</code> .
+              and the S params of:
+              <code title="Unevalable">RebootServo</code>,
+              <code title="Unevalable">ServoSetX</code>,
+              <code title="Unevalable">ServoSet2X</code> .
+              Because JSON objects have unordered keys, and we might want to call these
+              ordered instructions more than once, they are stored under a special key
+              in the high level data named <code title="Unevalable">ServoSetup</code>.
+              The value of that key is an array.
+              Each element of that array has the format:
+              <code>{"the key": "the_value"}</code>,<br/>
+               for example: <code>{z: 2}</code><br/>
+              You can get, set, modify, insert new ones, delete exiting ones, and
+              even reorder these elements with JavaScript, just like the
+              other items in the high level data.
+              When the high level updates the low level (see below)
+              their order will be preserved in the resulting low level lines.
+        <p></p>
+        <code>Dexter.dexter0.defaults_high_level_to_defaults_lines()</code> Populate the
+        low level data with the current high level data.
+        Once you do this, you can call the low level <code>Dexter.dexter0.defaults_get</code>
+        method and see
+        any updates you've made to the high level in the low level format.
+        This helps you feel confident that any changes you've made will
+        match the expected syntax and values for the Defaults.make_ins file.
+        <br/>
+    </details> <!-- end Dexter Defaults High Level API -->
+
+</details> <!-- end Dexter Defaults File-->
 </details> <!-- end Dexter -->
+
+
 
 <details id="Human_doc_id" class="doc_details"><summary>Human</summary>
 <b>Human</b> is a "robot" that is commanded to do things via pop up dialog boxes.
@@ -7589,7 +8100,7 @@ If no file is chosen, the variable is bound to <code>null</code>
   <b>user_data_variable_name</b> parameter.
   <p></p>
   <i>Uncommon Paramaters:</i><br/>
-  <b>initial_value</b> Default: <code>0</code>.</br/>
+  <b>initial_value</b> Default: <code>0</code>.<br/>
   <b>min</b> Default: <code>0</code>. The minimun acceptable value.<br/>
   <b>max</b> Default: <code>100</code>. The maximum acceptable value.<br/>
   <b>step</b> Default: <code>1</code>. The step size that clicking on the
@@ -8083,6 +8594,7 @@ Though strictly unnecessary, we recommend:
 while debugging.<br/>
 See Job Example <i>Serial Port</i> for examples.
 </details> <!-- End Low Level Serial -->
+</details> <!-- End Serial -->
 
 <details class="doc_details"><summary>Modbus</summary>
 Modbus is a serial communications prototcol used to share information
@@ -8095,9 +8607,74 @@ This loads the modbus-serial software into DDE.
 For documentation, see
 <a target="_blank" href="https://www.npmjs.com/package/modbus-serial">modbus_serial</a>.
 </details>
-</details> <!-- End Serial -->
+
 
 </details> <!-- end Robots -->
+
+<details id="Dex" class="doc_details"><summary>Dex (Jobless instructions)</summary>
+   <code>Dex</code> is a facility for making it easy to execute code to move
+    Dexter without having to create a Job and stick instructions on it's do_list.<br/>
+    <span style="color:red;">This is an experimental system so please don't expect it to be perfect.
+    </span>
+    <p/>
+    The first time you run a Dex instruction, a Job named <i>DexJob</i> is defined using
+    the robot of <code>Dexter.default</code> (the Dexter set in the Misc Pane header).<br/>
+    Then that job is started and that first instruction is run.<br/>
+    Then the Job waits for more Dex instructions.
+    <p/>
+    <i>Examples:</i><br/>
+    Run a "move_all_joints" instruction:<br/>
+    <code> Dex.m_joint([5, 10, 15]) </code>
+    <p/>
+    Run a "move_to" instruction:<br/>
+    <code> Dex.m_xyz([0.1, 0.2, 0.3]) </code>
+    <p/>
+    Run both together:
+    <pre><code> Dex.m_joint([5, 10, 15])
+ Dex.m_xyz([0.1, 0.2, 0.3]) </code></pre>
+    An Extended example:
+    <pre><code> function print_measured_angles(){
+   out(this.robot.rs.measured_angles())
+ }
+ for(let i = 1; i < 4; i++) {
+    Dex.m_joint([5, 10, 15])
+    Dex.run(IO.out("i = " + i))
+    Dex.m_joint([10 * i, 20 * i, 30 * i])
+    Dex.run(print_measured_angles)
+    Dex.m_xyz([0.1, 0.2, 0.3])
+    Dex.run(print_measured_angles)
+    Dex.m_joint([0, 0, 0])
+    Dex.run(IO.out("done with i = " + i))
+} </code></pre>
+    You can stop the Job by clicking its button in the Output Pane header or
+    programmatically via:<br/>
+    <code>Job.DexJob.stop_for_reason("interrupted")</code> <!-- this must run in testsuite or the next job won't run properly-->
+    <p></p>
+    <i>Observations:</i><br/>
+    <ul>
+        <li>We're using a vanilla JS <code title="Unevalable">for</code> loop,
+            not a <code>Control.loop</code> instruction.</li>
+        <li>The 8 instuctions in the body are executed 3 times, with
+            incrementing joint angles each time in the first <code>Dex.m_joint</code> instruction.</li>
+        <li><code>Dex.run</code> is a function with one argument, which can be anything
+            you would put on the do_list in a Job, such as:<br/>
+            <code>Dexter.move_all_joints([45, 60])</code><br/>
+            Here we pass in the function definition of <code>print_measured_angles</code></li>
+        <li>The function <code>print_measured_angles</code> prints the values of measured angles
+        after the previous instruction has completed moving.
+        So the first <code>Dex.m_joint</code> instruction
+        in the first iteration of the loop, prints <code>10</code> for joint 1.<br/>
+        In the second interation, it prints <code>20</code> for joint 1.
+        </li>
+        <li>
+        We must wrap this printing of measured_angles in a function,
+        because that winds up being an instruction in our DexJob that
+        must get called after the instruction before it completes.<br/>
+        We don't want to execute any code in the body of <code>print_measured_angles</code>
+        until then.
+        </li>
+    </ul>
+</details>
 
 <details id="units_system_help_doc_id" class="doc_details"><summary>Units System</summary>
     Throughout DDE, the primary functions and instructions assume SI units for their
@@ -8352,7 +8929,7 @@ is called with no arguments. However, <code>this</code>
 is our new object with all the fields populated from the properties
 passed in the call to <code>newObject</code>, saving a ton of boiler plate code.
 In the body of <code title="unEVALable code fragment"> constructor</code>, you can call any code you like,
-including code that modifies the property values, of code title="unEVALable code fragment">this</code>,
+including code that modifies the property values, of <code title="unEVALable code fragment">this</code>,
 create
 entirely new properties or remove ones from <code>this</code>.
 <p></p>
@@ -8490,7 +9067,7 @@ Returns true if all arguments have the same prototype,
 Otherwise returns false.
 <i>Examples:</i>
 <code>Object.areSiblings(newObject({}), newObject({}))</code> => <samp>true</samp><br/>
-<code>Object.areSiblings(newObject({}), "hey")</code> => <samp>false</samp></br/>
+<code>Object.areSiblings(newObject({}), "hey")</code> => <samp>false</samp><br/>
 </details>
 
 <details id="inheritsPropertyFrom_doc_id" class="doc_details"><summary>inheritsPropertyFrom</summary>
@@ -8501,7 +9078,6 @@ Returns <code>null</code> if no such prop name.
 <i>Examples:</i><br/>
 <code>newObject({}).inheritsPropertyFrom("Coor")</code> => <samp>Root</samp><br/>
 <code>newObject({}).inheritsPropertyFrom("isn't a prop name")</code> => <samp>null</samp>
-</code>
 </details>
 
 <details id="ancestors_doc_id" class="doc_details"><summary>ancestors</summary>
@@ -8668,7 +9244,7 @@ If include_this is true, the returned source, when evaled, will return a copy of
 </details> <!-- Existing JS methods-->
 </details> <!-- ob sys -->
 <details id="operating_system_etc_doc_id" class="doc_details"><summary>Operating System, etc.</summary>
-    <details id="operating_system_doc_id"class="doc_details"><summary>operating_system</summary>
+    <details id="operating_system_doc_id" class="doc_details"><summary>operating_system</summary>
      <code>operating_system</code>
      is a global constant that has
     a value of the name of the current operating system.
@@ -8678,33 +9254,33 @@ If include_this is true, the returned source, when evaled, will return a copy of
     Ubuntu's have the value "linux".<br/>
     If you find the value of other operating systems, please tell us!
     </details>
-    <details id="dde_version_doc_id"class="doc_details"><summary>dde_version</summary>
+    <details id="dde_version_doc_id" class="doc_details"><summary>dde_version</summary>
     A global variable that contains a semantic version string
     of the format: <code>"1.2.3"</code> indicating the running version number of DDE.<br/>
     <i>Example:</i> <code>dde_version</code>
     </details>
-    <details id="version_equal_doc_id"class="doc_details"><summary>version_equal</summary>
+    <details id="version_equal_doc_id" class="doc_details"><summary>version_equal</summary>
      Compare semantic version numbers.<br/>
     <i>Parameters:</i><br/>
     <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
     <b>version_string2</b> Default: <code>dde_version</code><br/>
     <i>Example:</i> <code>version_equal("1.0.2")</code> => <samp>false</samp>
     </details>
-    <details id="version_less_than_doc_id"class="doc_details"><summary>version_less_than</summary>
+    <details id="version_less_than_doc_id" class="doc_details"><summary>version_less_than</summary>
         Compare semantic version numbers.<br/>
     <i>Parameters:</i><br/>
     <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
     <b>version_string2</b> Default: <code>dde_version</code><br/>
     <i>Example:</i> <code>version_less_than("1.0.2")</code> => <samp>true</samp>
     </details>
-    <details id="version_more_than_doc_id"class="doc_details"><summary>version_more_than</summary>
+    <details id="version_more_than_doc_id" class="doc_details"><summary>version_more_than</summary>
         Compare semantic version numbers.<br/>
     <i>Parameters:</i><br/>
     <b>version_string1</b> required string of the format <code>"1.2.3"</code><br/>
     <b>version_string2</b> Default: <code>dde_version</code><br/>
     <i>Example:</i> <code>version_more_than("1.0.2")</code> => <samp>false</samp>
     </details>
-    <details id="dde_version_between_doc_id"class="doc_details"><summary>dde_version_between</summary>
+    <details id="dde_version_between_doc_id" class="doc_details"><summary>dde_version_between</summary>
      A call to this method is meant to go above code that you want to declare the
      version of DDE that it can safely run in.<br/>
      <i>Parameters:</i><br/>
@@ -8723,13 +9299,13 @@ If include_this is true, the returned source, when evaled, will return a copy of
         If <code>"error"</code>, this function will error.<br/>
         If <code>"warn"</code>, this function will print a warning message and
         return <code>false</code><br/>
-        If <code>"boolean"</code>, return </code>true</code> if dde_version is between min and max (inclusive) or
-        </code>false</code> if it is not.
+        If <code>"boolean"</code>, return <code>true</code> if dde_version is between min and max (inclusive) or
+        <code>false</code> if it is not.
         <p></p>
         <i>Examples:</i><br/>
         <code>dde_version_between("0.1.0", "100.1.1")</code> => <samp>true</samp>
     </details>
-    <details id="quit_dde_doc_id"class="doc_details"><summary>quit_dde</summary>
+    <details id="quit_dde_doc_id" class="doc_details"><summary>quit_dde</summary>
         Exits DDE immediately. Make sure you have files saved first!<br/>
         <i>Example:</i><br/>
         <code title="Not in TestSuite">quit_dde()</code>
@@ -8996,7 +9572,7 @@ mat.delete()</code></pre>
      The error/warning messages are very explicit about what's wrong.
      <p></p>
      When debugging calls to make_html, its useful to check the Output pane checkbox
-     <br>Code</b> to see the returned HTML.
+     <b>Code</b> to see the returned HTML.
     </details>
 
     <details id="make_dom_elt_doc_id" class="doc_details"><summary>make_dom_elt</summary>
@@ -9178,7 +9754,7 @@ show_window({draggable: false,
     the move-points from a job and graph them.<br/>
     <i>Example:</i>
     <pre><code>new Job({
-    name: "my_job3",
+    name: "my_job9",
     do_list: [
         Dexter.move_all_joints(10, 20, 30, 40, 50),
         Dexter.move_to([0.1, 0.2, 0.3]),
@@ -9429,7 +10005,7 @@ Plot.show(null, [trace0, trace1])   </code></pre>
       See <a href="#" onclick="browse_page('https://plotly.com/javascript/colorscales/')">Plotly doc</a>
       for more on colorscales.
     </details>
-    <details class="doc_details"><summary>Job move points</summary>Job move points</i></b><br/>
+    <details class="doc_details"><summary>Job move points</summary>
       The move_all_joints, move_to, and friends instructions
       have their target xyz points plotted in a 3D line.<br/>
      <code> Plot.show(null, Job.latest_defined_job()) </code><br/>
@@ -9731,7 +10307,7 @@ submit: &lt;input type="submit" value="OK"/>&#96;,
     initialization of the show_window that needs the default values of the inputs,
     this argument is quite useful.<br/>
     <i>Example:</i>
-    <pre><code title="not in testsuite"/>function handle_my_win(vals){
+    <pre><code title="not in testsuite">function handle_my_win(vals){
     if(vals.clicked_button_value == "init_my_win_id"){
         out("initing my_win")
         SW.close_window(vals.window_index)
@@ -9786,7 +10362,7 @@ show_window({
     <details id="show_page_doc_id" class="doc_details"><summary>show_page</summary>
        Creates a new browser window and shows a web page in it.<br/>
        Unlike <code>browse_page</code> does not show url in an editable field,
-       but does allow you to set location and size of the widnow that pops up.<br/>
+       but does allow you to set location and size of the window that pops up.<br/>
        <i>Parameters:</i><br/>
        <b>url</b> A string. The url to show in the new browser window.<br/>
        <b>options</b> A literal object. The most useful properties are:
@@ -10492,7 +11068,7 @@ Messaging.permit_default = function(mess_obj){
        <li><code>"eval"</code>  In the receiving DDE, the variable value is passed to
        <code>to_source_code</code> to convert it to a string for tranfer back to the original
        sender.</li>
-       <b><code>null</code></b> No transformation is done on the variable value.</li>
+       <li><code>null</code> No transformation is done on the variable value.</li>
        </ul>
        <b>callback</b> Default: <code>"out"</code> A function that is passed one argument when the message comes back
        to the original sender. <br/>
@@ -10903,7 +11479,6 @@ insert_html_into_doc_pane(`&lt;details id="foo_doc_id" style="font-size:16px;">
                 i.e. <code>"Reference Manual/Lesson"</code>
              </li>
           </ul>
-      </li>
       <b>position</b> A string indicating the position of the inserted HTML W.R.T. the location.<br/>
               Possible values:
               <ul>
@@ -11410,13 +11985,13 @@ Here we point out just a few that are especially easy and useful for teaching.
           to get a read_eval_print loop for Python.
           <p></p>
           For a more recent version, browse
-              <a href="#" onclick="browse_page('https://www.python.org/downloads/')"/>Python.org</a>
+              <a href="#" onclick="browse_page('https://www.python.org/downloads/')">Python.org</a>
               for download instructions.
           </details>
           <details class="doc_details"><summary>WinOS</summary>
             <b>Windows7</b><br/> We've had a hard time installing Python3 on Windows 7
               from the download direction in
-              <a href="#" onclick="browse_page('https://www.python.org/downloads/')"/>Python.org</a> .
+              <a href="#" onclick="browse_page('https://www.python.org/downloads/')">Python.org</a> .
               There is a "missing file". The web documents some work arounds,
               but they aren't easy. We recommend using Windows 10.
             <p/>
@@ -11444,7 +12019,7 @@ Here we point out just a few that are especially easy and useful for teaching.
           </details>
           <details class="doc_details"><summary>Linux, etc</summary>
             To install Python on other Operating Systems browse
-            <a href="#" onclick="browse_page('https://www.python.org/downloads/')"/>Python.org</a>
+            <a href="#" onclick="browse_page('https://www.python.org/downloads/')">Python.org</a>
             for download instructions.
           </details>
        </details>
@@ -11455,13 +12030,13 @@ Here we point out just a few that are especially easy and useful for teaching.
            clicking <button>Eval</button> will evaluate the selection (or whole editor text if
            no selection) as Python code.<br/>
             The result will appear in the Output pane.
-           <p/>
+           <p></p>
            </li>
            <li>
            When you select <select><option>Python</option></select> from the command line menu,
            and hit ENTER in the command line, the command line text will be evaluated as Python code.<br/>
            The result will appear in the Output pane.
-           <p/>
+           <p></p>
            </li>
            <li>
            The File menu/Load ... item let's you choose a file.
@@ -11484,7 +12059,7 @@ Here we point out just a few that are especially easy and useful for teaching.
         If you can type in to a terminal some string like <code title="unEVALable">python3</code>,
         or perhaps <code title="unEVALable">python</code> and it puts you in a Python3 read_eval_print loop,
         then that string will very likely work for the value of this variable.
-        <p/>
+        <p></p>
         <i>Examples:</i><br/>
         <code>Py.python_executable_path</code><br/>
         <code title="not in TestSuite.">Py.python_executable_path = "python3"</code><br/>
@@ -11523,7 +12098,7 @@ Here we point out just a few that are especially easy and useful for teaching.
        for evaluating the Python code. That process will remain to run more Python code until
        you kill it, init a new Python process, or quit DDE.
        <p/>
-       <i>Examples:</i><p/>
+       <i>Examples:</i><br/>
        Get the length of a list:<br/>
        <code>Py.eval("len([4, 5])") </code>
        <p></p>
@@ -11659,14 +12234,14 @@ new Job({
          write to in a global variable, then using it in a function
          that writes <code>"Test47"</code> into a file in your dde_apps folder.<br/>
          <i>Example:</i>
-         <pre><code>Py.eval(`filename = dde_apps_folder + "/filename.txt"
+         <pre><code>Py.eval(`filename = dde_apps_folder + "/file_written_by_py.txt"
 def main():
   with open(filename, 'w') as f:
     f.write("Test47")`)   </code></pre>
          <code>Py.eval("main()")</code> //creates the file and sets its content to "Test47"<br/>
          This is one strategy for getting a large string from Python into DDE JavaScript
          via:<br/>
-         <code>read_file(dde_apps_folder + "/filename.txt")</code> .
+         <code>read_file(dde_apps_folder + "/file_written_by_py.txt")</code> .
          This call should return the content of the file, i.e. <code>"Test47"</code><br/>
          Note that our designation for the file is <i>the same</i> for both Python and JavaScript.
        </details>
@@ -11696,7 +12271,7 @@ def main():
          Python's sys.path, then it is added before the file is imported.
          <p></p>
          See <a href="#" onclick='open_doc(load_files_doc_id)'>load_files</a> for loading
-         JavaScript files</a>
+         JavaScript files.
        </details>
        <details id="Py.kill_doc_id" class="doc_details"><summary>Py.kill</summary>
            Ends the Python process. The Python process shouldn't take up much resources
@@ -11760,7 +12335,7 @@ def main():
 
            <li>pip attempts to install Python packages globally. You may run into
            "permissions" problems doing this, which explains the need for the
-           <code code title="unEVALable">sudo</code> prefix in the above example.</li>
+           <code title="unEVALable">sudo</code> prefix in the above example.</li>
            </ul>
        </details>
 
@@ -11887,7 +12462,7 @@ def main():
                for use by DDE.<br/>
            <b>success_callback</b> A method of one argument, an array of strings, each of which
              starts with a package name followed by "@", then its semantic version number.
-             The default value inspects the array.</b>
+             The default value inspects the array.
            <b>error_callback</b> A method of one argument, the error. This method is called
               if the call to DDE_NPM.list fails.
            <p></p>
@@ -11908,7 +12483,7 @@ def main():
           <p></p>
           <i>Examples:</i><br/>
           <code>DDE_NPM.is_installed("mathjs")</code> => <samp>true</samp><br/>
-          <code>DDE_NPM.is_installed("mathjs", "add_on")</code> => <samp>false</samp><br/>
+          <code title="not in TestSuite">DDE_NPM.is_installed("mathjs", "add_on")</code> => <samp>false</samp><br/>
           <code>DDE_NPM.is_installed("mathjs", "built_in")</code> => <samp>true</samp><br/>
           <code>DDE_NPM.is_installed("some_non_package", "all")</code> => <samp>false</samp><br/>
       </details>
@@ -11966,6 +12541,6 @@ def main():
          but be forewarned: Open Source documentation is notoriously poorly documented.
        </details>
        </details> <!-- end DDE_NPM -->
-       </details> <!-- ending Adding JavaScript
+       </details> <!-- ending Adding JavaScript -->
 
 </details> <!-- end ref man -->

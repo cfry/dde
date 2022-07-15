@@ -88,7 +88,7 @@ function inspect_out(item, stack_number, in_stack_position, html_elt_to_replace,
         const title_start = new_inspect_html.indexOf("<i>") + 3
         const title_end   = new_inspect_html.indexOf("</i>")
         const title = new_inspect_html.substring(title_start, title_end)
-        new_inspect_html = "<details><summary>" + title + "</summary></details>"
+        new_inspect_html = "<details><summary>" + title + "</summary>" + new_inspect_html + "</details>"
     }
     if (html_elt_to_replace){
         //const inspect_elt = $(event.target).closest(".inspector")
@@ -175,7 +175,7 @@ function inspect_aux(item, stack_number, in_stack_position, increase_max_display
                                       ' onchange="inspect_toggle_2d_checkbox(' + stack_number + ', ' + in_stack_position + ')" ' +
                                       (inspect_2d ? "checked" : "") +
                                       '/>2D'
-            if (inspect_2d && (item.length > 0) && is_array_of_same_lengthed_arrays(item)) { //2D arrays can't be "typed arrays"
+            if (inspect_2d && is_array_of_same_lengthed_arrays(item)) { //2D arrays can't be "typed arrays"
                   //all elts of item are arrays, but they might be of different lengths.
                 title = "A 2D Array of " + item.length + "x" + item[0].length
                 result = inspect_format_2D_array(item)
@@ -453,7 +453,7 @@ function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
     }
 
     else if (Array.isArray(item))  {
-       if ((item.length > 0) && Array.isArray(item[0])) { return inspect_format_2D_array(item) }
+       if (is_array_of_same_lengthed_arrays(item)) { return inspect_format_2D_array(item) }
        else return inspect_clickable_path(item, stack_number, in_stack_position, prop_name) +
                     inspect_extra_info(item)
     }
@@ -470,6 +470,8 @@ function inspect_one_liner(item, stack_number, in_stack_position, prop_name){
         //shouldnt("inspect_one_liner passed unhandled: " + item)
     }
 }
+
+
 
 function inspect_one_liner_regular_fn(item){
     //var bod_pos = result.indexOf("{")
@@ -520,6 +522,13 @@ function inspect_one_liner_existing_file_path(item){
         return '"' + item + '" is a folder.'
     }
     else { //item is an existing file (not a folder)
+       let the_file_content
+       try{
+           the_file_content = read_file(item)
+       }
+       catch(err){
+           return "Could not read content of: " + item
+       }
         the_file_content = replace_substrings(the_file_content, "<", "&lt;") //if I don't do this, fns with bodies containing tags
         let file_length = the_file_content.length
         let title_suffix = "&#013;This file has length: " + file_length
@@ -646,9 +655,13 @@ function inspect_format_array_of_similar_objects(item, stack_number, in_stack_po
         let a_row_array = array_of_rows[i]
         let row_html = "<tr><td>" + i + "</td>"
         for(let val of a_row_array){
+            if(should_be_inner_clickable_item) { //new Apr 5, 2022
+                in_stack_position += 1
+            }
             row_html += "<td>" +
                          inspect_one_liner(val, stack_number, in_stack_position, prop_name)//((val === undefined) ? "" :  val) +
                         "</td>"
+
         }
         row_html += "</tr>"
         the_html += row_html
@@ -656,18 +669,23 @@ function inspect_format_array_of_similar_objects(item, stack_number, in_stack_po
     the_html += "</table>"
     return the_html
 }
+function should_be_inner_clickable_item(item){ //new Apr 5, 2022
+    return (Array.isArray(item) ||
+        is_class(item) ||
+        (typeof(item) === "object" ))
+}
 
 //item has at least 1 item in it which is an array.
 function inspect_format_2D_array(item){
     let rows_count = item.length
     let cols_count = ((rows_count > 0) ? (item[0].length) : 0)
-    let opennness_html = (((item.length > 10) || (cols_count > 6)) ? "" : " open ")
-    let result = "<details " + opennness_html + " style='display:inline-block;'><summary>2D Array " + item.length + "x" + item[0].length + "</summary>\n"
+    let openness_html = (((item.length > 10) || (cols_count > 6)) ? "" : " open ")
+    let result = "<details " + openness_html + " style='display:inline-block;'><summary>2D Array " + item.length + "x" + item[0].length + "</summary>\n"
     result += "<table>\n"
-    for(let i = -1; i < item.length; i++){
+    for(let i = -1; i < rows_count; i++){
         //let row = item[i]
         result += "<tr>"
-        let row_length = ((i == -1) ? item[0].length : item[i].length)
+        let row_length = ((i == -1) ? cols_count : item[i].length)
         for(let j = -1; j < row_length; j++){
             let tag_start = "<td>"
             let tag_end   = "</td>"

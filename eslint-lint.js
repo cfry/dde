@@ -22,6 +22,7 @@
         "beeps":      false,
         "Brain":      false,
         "class":      false, //I still get a warning for class as a "reserved word"
+        "confirm":    false,
         "connectSerial": false,
         "console":    false, //permit using "console" without warning, but don't permit the setting of it.
         "Control":    false,

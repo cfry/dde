@@ -15,7 +15,10 @@ var MiRecord = class MiRecord {
                 }
                 instr_html = to_source_code({value: instr}).substr(0, 60)
             }
-            else { instr_html = " beyond final instruction" }
+            else { instr_html = " beyond final instruction." }
+        }
+        else {
+            instr_html = " not initialized."
         }
         let result = " at " + loc + " " + top_or_not + "&nbsp;is " + instr_html
         return result
@@ -76,7 +79,7 @@ var MiRecord = class MiRecord {
         return parseInt(mi_record_slider_id.value)
     }
     static set_play_loc(event_or_loc=null){ //event_or_loc, if not passed, defaults to
-        //the current slider play_loc slider position. We do this when when want to
+        //the current slider play_loc slider position. We do this when we want to
         //refresh the instruction_suffix_html because user has dragged and end or begin mark.
         //out("set_play_loc passed: " + event_or_loc)
         let job_instance = this.job_in_mi_dialog()
@@ -106,12 +109,28 @@ var MiRecord = class MiRecord {
         this.set_play_loc(event)
         let job_instance = this.job_in_mi_dialog()
         if(this.looks_like_recording(job_instance)){
-            let loc
-            if(event === null)                  { loc = MiRecord.get_play_loc() }
-            else if (typeof(event_or_loc) == "number") { loc = event }
-            else {                                       loc = parseInt(event.value) }
-            if(this.play_enabled_for_loc(loc)){
-                this.run_one_instruction(loc)
+            let new_loc
+            if(event === null)                  { new_loc = MiRecord.get_play_loc() }
+            else if (typeof(event_or_loc) == "number") { new_loc = event }
+            else {                                       new_loc = parseInt(event.value) }
+            if(this.play_enabled_for_loc(new_loc)){
+                this.run_one_instruction(new_loc)
+                /* below is a failed attempt jul 10. 2021 to get around the new
+                   restriction that only one active Job can have a dexter instance
+                   as its default robot.
+                  if(new_loc > job_instance.program_counter) {
+
+                    while(new_loc > job_instance.program_counter) {
+                        this.step_play()
+                    }
+                }
+                else if (new_loc < job_instance.program_counter) {
+                    while(new_loc < new_loc < job_instance.program_counter){
+                        this.step_reverse()
+                    }
+                }
+                else {} //prev_loc == new_loc so do nothing
+                */
             }
         }
     }
@@ -130,11 +149,11 @@ var MiRecord = class MiRecord {
     }
 
     static run_one_instruction(loc){
-        let rob = Dexter.default
+        //let rob = Dexter.default
         if(!Job.run_one){
             MiRecord.run_one_instruction_make_new_job(loc)
         }
-        else if (Job.run_one.robot != rob){
+        /*else if (Job.run_one.robot != rob){
             if(["starting", "running", "suspended", "waiting"].includes(Job.run_one.status_code)){
                 Job.run_one.stop_for_reason("interrupted", "run_one Job needs a different robot of: " + rob.name)
                 setTimeout(function(){MiRecord.run_one_instruction_make_new_job(loc)},
@@ -143,7 +162,7 @@ var MiRecord = class MiRecord {
             else {
                 MiRecord.run_one_instruction_make_new_job(loc)
             }
-        }
+        }*/
         else if(Job.run_one.status_code == "starting") {} //just forget about the instruction in loc.
         // when it finishes starting, it will run the first loc handed it,
         // and then start running subsequent dragged instructions. It may skip 2nd plus a few more insructions,
@@ -161,12 +180,20 @@ var MiRecord = class MiRecord {
                         },
                         100)
         }
+        else if(Job.run_one.status_code === "waiting"){
+            MiRecord.run_one_instruction_job_ready(loc)
+        }
+        else {
+            shouldnt("In run_one_instruction with unhandled ob.run_one.status_code of: " + ob.run_one.status_code)
+        }
     }
 
     static run_one_instruction_make_new_job(loc){
-        let rob = Dexter.default
         new Job({name: "run_one",
-                 robot: rob,
+                 robot: new Brain({name: "brain_run_one"}), //Dexter.default
+                    //had to change this too brain because the MAIN job for the record will
+                    //have the default dexter Dexter as its robot DDE doesn't allow
+                    //2 jobs to be active at once with the same Dexter instance.
                  show_instructions: false,
                  inter_do_item_dur: 0,
                  when_do_list_done: "wait"}).start()
@@ -178,6 +205,26 @@ var MiRecord = class MiRecord {
         let the_do_list  = MiState.get_do_list_smart()
         if(loc < the_do_list.length){
             let inst = the_do_list[loc]
+            if(inst instanceof Instruction.Dexter){
+                if(inst.robot === undefined){
+                   if(job_instance.robot instanceof Dexter){
+                        inst.robot = job_instance.robot
+                   }
+                   else { //this shouldn't be necessary, but is an extra precaution likely to work
+                       inst.robot = Dexter.default
+                   }
+                }
+            }
+            else if(Instruction.is_data_array(inst)){ //normal case for a recording to have do_list items of data_arrays that need to be transformed
+               inst = job_instance.transform_data_array(inst)
+               if(Instruction.is_oplet_array(inst)){ //normal as when the data transformer is the default "P" as it is when recording a job
+                   let last_elt = last(inst)
+                   if (!(last_elt instanceof Robot)) { //this is the normal case
+                       inst = inst.slice() //copy the array
+                       inst.push(job_instance.robot) //now Job.send will know what robot to send this instruction to
+                   }
+               }
+            }
             Job.run_one.insert_single_instruction(inst, false)
         }
         else {
@@ -304,6 +351,11 @@ var MiRecord = class MiRecord {
             let si_elt = MakeInstruction.arg_name_to_dom_elt_id("show_instructions")
             si_elt = window[si_elt]
             si_elt.value = "false"
+        }
+        else {
+            window[MakeInstruction.arg_name_to_dom_elt_id("do_list")].value = "[]" //just cosmetic to let users
+            // know we're creating a new recording when the user clicks the record button.
+            //the do_list will be replaced when user click the record button to stop recording.
         }
         let job_name = MakeInstruction.arg_name_to_src_in_mi_dialog("name")
         job_name = job_name.trim()
@@ -446,7 +498,7 @@ var MiRecord = class MiRecord {
                                     MiRecord.set_play_loc(loc_of_new_instr) //because we want to SEE the instr just recorded, not one beyond it
                                     //out("Recording Dexter joint angles: " + angles, "#95444a", //brown,
                                     //     true)
-                                    return job_instance.robot.get_robot_status() //immediately()
+                                    return this.robot.get_robot_status() //immediately()
                                 }
                              }),
                 Dexter.empty_instruction_queue(), // needed so record can get the timing
@@ -484,7 +536,8 @@ var MiRecord = class MiRecord {
         MiRecord.set_play_state("enabled")
         MiRecord.set_insert_recording_state("enabled")
         //Job.mi_record.undefine_job() //causes problems in sim, so just do:
-        Job.mi_record.robot.remove_from_busy_job_array(Job.mi_record)
+        //Job.mi_record.robot.remove_from_busy_job_array(Job.mi_record)
+        Dexter.remove_from_busy_job_arrays(Job.mi_record)
         Job.mi_record.remove_job_button()
         if(completed_ok){
             new Job({
@@ -624,14 +677,73 @@ var MiRecord = class MiRecord {
         return true
     }
 
+    //returns an array of start_loc and end_loc.
+    //if start_loc is undefined, don't play
+    static start_play_begin_end(step){
+        let start_loc, end_loc
+        let job_instance = this.job_in_mi_dialog()
+        let [begin1, end1, begin2, end2] = this.get_play_instruction_locs()
+        let play_loc = (job_instance.do_list ? this.get_play_loc() : 0 )
+        if(begin1 == undefined) { //no selected play region, so leave start_loc undefined and return it
+        }
+        else if(this.get_play_middle()){
+            if (play_loc < begin1) {
+                start_loc = begin1
+                end_loc = end1
+            }
+            else if ((play_loc >= begin1) && (play_loc <= end1)) {
+                start_loc = play_loc
+                end_loc = end1
+            }
+            else if (play_loc > end1) {
+                if(step){
+                    start_loc = play_loc
+                    end_loc = "end"
+                }
+                else {
+                    start_loc = begin1
+                    end_loc = end1
+                }
+            }
+            else {shouldnt("In start_play_begin_end middle") }
+        }
+        else { //play the ends
+            if (play_loc < begin1) {
+                start_loc = begin1
+                end_loc = end1
+            }
+            else if ((play_loc >= begin1) && (play_loc <= end1)) {
+                start_loc = play_loc
+                end_loc = end1
+            }
+            else if(begin2 !== undefined) {
+                if(play_loc <= begin2) {
+                    start_loc = begin2
+                    end_loc = end2
+                }
+                else if ((play_loc > begin2) && (play_loc < end2)){
+                    start_loc = play_loc
+                    end_loc = end2
+                }
+                else {  //might as well play whole end segment
+                    start_loc = begin2
+                    end_loc = end2
+                }
+             }
+             else {} //don't play anything
+        }
+        return [start_loc, end_loc]
+    }
+
     static start_play(step=false){
         if(!MiRecord.prepare_for_play()){ } //warnings already printed
         else { //we have a valid job in MiState.job_instance. It *might* not have a dolist
             MiState.status = (step ? "stepping" : "playing") //must be after prepare_for_play
             let job_instance = this.job_in_mi_dialog()
-            let play_loc = (job_instance.do_list ? this.get_play_loc() : 0 ) //if no do_list, we're going to start at 0
-            let [begin1, end1, begin2, end2] = this.get_play_instruction_locs()
-            if(begin1 === undefined) { warning("No instructions selected to play.") }
+            //let play_loc = (job_instance.do_list ? this.get_play_loc() : 0 ) //if no do_list, we're going to start at 0
+            //let [begin1, end1, begin2, end2] = this.get_play_instruction_locs()
+            let  [start_loc, end_loc] = this.start_play_begin_end(step)
+            if(start_loc === undefined) { warning("No instructions selected to play.") }
             else {
                 if(!job_instance) { shouldnt("in MiRecord." + start_play + " with bad job_instance: " +  job_instance) }
                 this.set_record_state("disabled")
@@ -643,38 +755,35 @@ var MiRecord = class MiRecord {
                 this.set_insert_recording_state("disabled")
                 if(!job_instance.do_list) { //must START the job
                     let begin1 = 0 //since no do_list, we haven't run any instructions, so only makes sense to start at the beginning, regardless of what the user has set for the begin slider. highest_completed_instruction here is none.
-                    MiRecord.set_play_loc(begin1)
-                    let end_pc = ((begin2 === undefined) ? end1 : end2) //beware, in the end2 case, there's a gap in the middle of instructions not to play
-                    end_pc += 1
-                    if(end_pc == job_instance.orig_args.do_list.length) {
-                        end_pc = "end" //pretty much always what you would want here. play to the end.
+                    MiRecord.set_play_loc(start_loc)
+                    //let end_pc = ((begin2 === undefined) ? end1 : end2) //beware, in the end2 case, there's a gap in the middle of instructions not to play
+                    //end_pc += 1
+                    if(end_loc == job_instance.orig_args.do_list.length) {
+                        end_loc = "end" //pretty much always what you would want here. play to the end.
                                        //esp given that playing may insert instructions.
                     }
                     MiRecord.play_middle_onchange() //just sets ui of highlighted segments and delete button
-                    job_instance.start({program_counter: begin1,
-                                        end_program_counter: end_pc,
+                    job_instance.start({program_counter: start_loc,
+                                        end_program_counter: end_loc,
                                         when_stopped: function() {MiRecord.pause("Job played to its end by Make Instruction.") }}) //can't used just this.pause_aux here because the job passes itsself as the subject when calling the when_stopped fn.
                 }
-                else if (play_loc == job_instance.do_list.length){
+                else if (start_loc == job_instance.do_list.length){
                     this.set_record_state("enabled")
                     this.set_step_reverse_state("enabled")
                     this.set_reverse_state("enabled")
                     this.set_step_play_state("enabled")
                     this.set_pause_state("enabled")
                     this.set_play_state("enabled")
-                    warning("Play location: " +  play_loc + " is already at the end of the Job's do_list.<br/>" +
+                    warning("Play start location: " +  start_loc + " is already at the end of the Job's do_list.<br/>" +
                             "There are no more instructions to play.<br/>" +
                             "To play back already played instructions,<br/>" +
                             "drag the play location slider (round dot) to the left.")
 
                 }
-               // else if (play_loc <= job_instance.highest_completed_instruction_id){ //don't execute
-               //     needs work
-               // }
                 else {
                    job_instance.stop_reason = null //otherwise, if we ran to completion, do_next_item wouldn't allow instructions to be run
                    job_instance.suspend("Make Instruction suspended this Job.") //If we don't have status_code = "suspended",  unsuspend will take no effect.
-                   job_instance.program_counter = play_loc - 1 //-1 because unsuspend will call set_up_next_do(1), to make the first instruction run be play_loc.
+                   job_instance.program_counter = start_loc - 1 //-1 because unsuspend will call set_up_next_do(1), to make the first instruction run be play_loc.
                    job_instance.unsuspend()  //calls set_up_next_do(1), handles setting of disable_modify_do_list
                 }
             }
@@ -788,10 +897,16 @@ var MiRecord = class MiRecord {
         result += "]\n"
         return result
     }*/
+
+    static record_dialog_open = false
     //________buttons_________
     static on_record_twistdown(event){
         if(event.target.open){
-            open_doc(recording_doc_id)
+            open_doc(make_instruction_recording_doc_id)
+            this.record_dialog_open = true //used in insert recording to see if we should really insert the two jobs of a recording
+        }
+        else {
+            this.record_dialog_open = false
         }
     }
     static make_html(){
@@ -853,9 +968,9 @@ var MiRecord = class MiRecord {
     // the instructions that are permitted to play.
     // data format: [begin1, end1, begin2, end2]
     // but note that all 4 may be undefined, or the last 2 undefined,
-    // meaning, don't play those segements
+    // meaning, don't play those segments
     //begin1 >= end1 >= begin2 >= end2  except if undefines.
-    //if begin1 is undeffined, so is begin2.
+    //if begin1 is undefined, so is begin2.
     //if a begin is undefined, so is its corresponding end.
     //if middle is checked, the numbers are inclusive.
     //if middle is unchecked, we play the two outer "end" segments,
@@ -1292,6 +1407,94 @@ var MiRecord = class MiRecord {
         }
         //don't do this. prepare_for_play prints a more accuurate message. else { warning("There's no job_instance that Make Instruction is now managing.") }
     }
+
+    static insert_recording(){
+        let full_src = Editor.get_javascript()
+        let full_src_trimmed = full_src.trim()
+        let new_high_level_job_name = MakeInstruction.arg_name_to_src_in_mi_dialog("name")
+        new_high_level_job_name = new_high_level_job_name.substring(1, new_high_level_job_name.length -1) //cut off surrounding double quotes
+        let jobs_db = Editor.find_job_defs()
+        let new_low_level_job_name = this.compute_low_level_job_name(new_high_level_job_name, jobs_db)
+        if(jobs_db.length === 0){ //editor has no jobs in it.
+                  // insert full high and low level jobs at end of buffer.
+            Editor.insert(this.make_high_level_job(new_high_level_job_name, new_low_level_job_name), "end")
+            //Editor.insert(this.make_low_level_job(new_low_level_job_name), "end")
+            full_src = Editor.get_javascript()
+            jobs_db = Editor.find_job_defs() //capture the newly inserted high level job
+        }
+        //we've got at least one job in the editor so add
+               //a Control.start_job as its new last do_list item,
+               //and insert the new low_level job at the end of the editor
+        let ref = this.ref_to_low_level_job(new_low_level_job_name)
+        this.insert_low_level_job_ref(ref, full_src, jobs_db)
+        Editor.insert("\n", "end")
+        Editor.insert(this.make_low_level_job(new_low_level_job_name), "end")
+    }
+
+    static compute_low_level_job_name(new_high_level_job_name, jobs_db){
+        if(jobs_db.length < 2) { //if the jobs_db has 1 job in it, that becomes the high level
+                                 //job, regardless of its name.
+                                 //but we use as the base of the new (first) low level job
+                                 //of the job name from the Make-insruction dialog jpb's name.
+            return new_high_level_job_name + "_0"
+        }
+        else { //we have at least 2 jobs in the jobs_db
+            let max_existing_low_level_job_number = -1
+            for(let job_array of jobs_db){
+                let existing_job_name = job_array[0]
+                if(existing_job_name.startsWith(new_high_level_job_name + "_")){
+                    let length_of_prefix = new_high_level_job_name.length + 1 //+1 for the underscore
+                    let existing_job_name_suffix = existing_job_name.substring(length_of_prefix)
+                    if((existing_job_name_suffix.length > 0) &&
+                       is_string_a_integer(existing_job_name_suffix) &&
+                        (existing_job_name_suffix[0] !== "-")){
+                     let the_int = parseInt(existing_job_name_suffix)
+                     max_existing_low_level_job_number = Math.max(the_int, max_existing_low_level_job_number)
+                    }
+                }
+            }
+            let int_of_new_low_level_job = max_existing_low_level_job_number + 1
+            let new_low_level_job_name = new_high_level_job_name + "_" + int_of_new_low_level_job
+            return new_low_level_job_name
+        }
+    }
+
+    static ref_to_low_level_job(new_low_level_job_name){
+        let options = '{start_if_robot_busy: true}'
+        let ref = '        Control.start_job("' + new_low_level_job_name + '", ' + options + ', "error", true),\n'
+        return ref
+    }
+
+    //really this is insert_instruction_src_at_end_of_do_list
+    static insert_low_level_job_ref(low_level_job_ref, full_src, jobs_db){
+        let [high_level_job_name, start_pos, end_pos] = jobs_db[0]
+        let do_list_start = full_src.indexOf("do_list:", start_pos)
+        do_list_start     = full_src.indexOf("[", do_list_start) //now do_list_start points at opening [ of do_list
+        let do_list_end   = Editor.find_matching_close(full_src, do_list_start)
+        Editor.insert(low_level_job_ref, do_list_end)
+    }
+
+    static make_high_level_job(high_level_job_name, new_low_level_job_name){
+        let options = '{start_if_robot_busy: true}'
+        //let ref = this.ref_to_low_level_job(new_low_level_job_name)
+        return '\n//A high-level Job that includes other jobs.\n' +
+                'new Job({\n' +
+                '    name: "' + high_level_job_name + '",\n' +
+                '    robot: new Brain({name: "' + high_level_job_name + '_brain"}),\n' +
+                '    do_list: [\n' +
+                //'        ' + ref +
+                ']})\n'
+    }
+    static make_low_level_job(new_low_level_job_name){
+        let src = MakeInstruction.dialog_to_instruction_src()
+        let name_pos = src.indexOf("name:")
+        let name_poses = Editor.find_literal_string(src, name_pos + 5)
+        src = src.substring(0, name_poses[0]) +
+              '"' + new_low_level_job_name + '"' +
+              src.substring(name_poses[1])
+        return '\n' + src
+    }
+
 }
 
 MiRecord.start_time_in_ms = null

@@ -5,6 +5,247 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.8.7, Jun 22, 2022</summary>
+    Please see release notes for v 3.8.6 
+</details>
+
+<details class="doc_details"><summary>v 3.8.6, Jun 22, 2022</summary>
+    Warning: This release failed to build. Please use 3.8.7 instead.
+             But the below notes are still accurate.<br/>
+Highlights:
+      Bug fixes for SSH.run_command, SW.close_window, read_file_async.<br/>
+     Simulator extended for Dexter.read_from_robot("#StepAngles") #MeasuredAngles & #POM.<br/>
+     The "net" npm package is now exported as a global variable.
+     Dexter.defaults and Dexter instances property "defaults" now mirrors Defaults.make_ins.
+     Fixes and extensions to the Command Input.
+<ul>
+    <li>Major fix to ref man formatting of about 100 tag issues.</li>
+    <li><code>SSH.run_command</code> fix to make a passed in callback actually get called.</li>
+    <li><code>SW.close_window</code> fixed to not refer to "this" so that we can do <code>globalThis.close_window=SW.close_window</code>
+        and have it work. (which it does)</li>
+    <li><code>Brain.brain0</code> defined.</li>
+    <li>Removed the undocumented <code>[3, 4, 5].micron</code> and <code>[3, 4, 5].arcsec</code> as it broke
+        <code>for(let x of [3. 4, 5])</code> and <code>for(let x in [3. 4, 5])</code></li>
+    <li>Removed from Calibrate_Encorders_Function.dde and calibrate_build_tables.js
+        the use of the <code>an_array.arcsec()</code> method.</li>
+    <li>Warning printouts for "non normal oplet" reduced to one message per oplet
+        between Output pane clears.</li>
+    <li>Simulator now handles <code>Dexter.read_from_robot("#StepAngles")</code>, with an approximate value.</li>
+    <li>Simulator now handles <code>Dexter.read_from_robot("#MeasuredAngles")</code>.</li>
+    <li>Simulator now errors explicitly with <code>Dexter.read_from_robot("`some BASH cmd")</code>.</li>
+    <li>Simulator now errors explicitly with an unhandled <code>Dexter.read_from_robot("#some_unhandled")</code>.</li>
+    <li><code>read_file_async</code> when attempting to read a non-existent file, the callback will now properly get called with an error message and undefined content.</li>
+    <li>The npm package "net" is now available via the global variable <code>net</code>.</li>
+    <li>Bug fix: Conversion of DH linear values
+        use to consider that the values
+        were in mm, but they're really in microns so the conversion between the two has been fixed
+        to use microns.</li>
+    <li>Bug fix: <code>Vector.poly_fit</code> in case: 0, changed
+        <code>result</code> to <code>sol</code> for a valid return value.
+    </li>
+    <li>Dexter instances are now given a <code>defaults</code> property the first time
+        a job is run with the given Dexter.
+        AND the Dexter class also has a <code>Dexter.defaults</code> property that contains
+        the idealized values for all
+        the Defaults.make_ins file's "high level" valies in a JSON object.</li>
+    <li><code>Dexter.read_file</code>'s got_content_hunk auxilliary method fixed when
+        simulating and there is a long content.</li>
+    <li>File menu <i>Save As...</i> item now accessible via keystroke
+        <i>Shift-Command S</i> or <i>Shift Control S</i></li>
+    <li>If you click the <button>Eval</button> button to eval 1 line of source code,
+        it will be placed on the command history.
+        In the Output pane header, click in the Command Input and use the
+        up and down arrow keys to access it.</li>
+    <li>Command Input: slight fix to behavior of the up and down arrow keys.</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.8.5, May 9, 2022</summary>
+<ul>
+    <li>In DDE's editor, fixed Lint red dot to not show up for <code>confirm()</code>.</li>
+    <li><code>copy_file_async</code> and
+        <code>read_file_async_from_dexter_using_job</code>
+        fixed to copy accurately, both ascii and binary files.</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.8.3, Apr 7, 2022</summary>
+Highlights: Bug fixes for Defaults.make_ins file processing.
+<ul>
+    <li>Defaults.makeins processing: fixed bug in <code>defaults_set("J1Boundry" ...)</code> and friends.</li>
+    <li>Defaults.makeins processing: fixed bug in <code>Dexter.dexter0.defaults_high_level_to_defaults_lines</code>
+       related to dh_mat processing.</li>
+    <li>Defaults.makeins processing: now <code>JointDH</code> and <code>dh_mat</code> are doing proper units conversion. (instead of none)</li>
+    <li>Defaults.makeins processing: <code>defaults_set</code> working better.</li>
+    <li>Defaults.makeins processing: <code>defaults_set</code> now returns the new value for all cases.</li>
+    <li>Defaults.makeins processing: minor improvements to ref man doc examples</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.8.2, Apr 5, 2022</summary>
+    Highlights: New Defaults.make_ins file processing.
+<ul>
+<li>Removed require(dex.js) from index.js. caused attempt to load this missing file.</li>
+    <li>Removed Insert menu/show_window/Build Window (app_builder.js)</li>
+    <li>In Ref Man Py example, renamed filename.txt to file_written_by_py.txt to make it more obvious in test suite that when this fails.</li>
+    <li>Fixed Plot.is_2d_array which fixed inspect for arrays containing undefined elts.</li>
+    <li>Partial fix to inspector for 2D inspection of inner objects. But this broke the inspector back arrow. to be continued.</li>
+    <li>New Defaults.make_ins handling with Dexter.defaults_   methods plus doc in ref man.</li>
+</ul>
+</details>
+<details class="doc_details"><summary>v 3.8.1, Feb 8, 2022</summary>
+    Hightlights: New "Jobless Instructions" capability.<br/>
+    Numerous: bug fixes, doc improvements, example code updated.
+<ul>
+    <li><code>folder_name_version_extension</code> fixed for working with WInOS files with
+        defaulting folders.</li>
+    <li>Now exported and available in Job Engine: <code>adjust_path_to_os</code>
+    <li><code>read_file_async</code> properly exported.</li>
+    <li>When using FIND, the output in Output pane of "Orange Rows"
+        has been extended to include "(in the Doc pane) to make it less ambiguous.</li>
+    <li>Dexter UI: changed the type-in-number-spinners such that when you click in the number and type/delete a char,
+        it doesn't actually move the robot until you hit return.
+        This prevents spurious moves to places you didn't want Dexter
+        to go to when you're in the middle of an editing operation.</li>
+    <li>Simulator: when you run a job in simulation BUT the default_robot in the
+        Misc pane header is NOT the same as the default robot of the Job,
+        then there was a bug that the simulated queue for Dexter wasn't being emptied,
+        so it clogged up and screwed up simulation. Fixed.</li>
+    <li>Ref Man fixed spurious --> comment near speech.</li>
+    <li>New Vector methods: <code>median</code>, <code>interpolate</code>.</li>
+    <li>Doc: Build Dexter/wire harness assembly: fixed buttons.</li>
+    <li>Job Examples: fixed 2 bugs in the Human Instruction examples.</li>
+    <li>gcode.js extended a lot to accomodate more G code cmds.</li>
+    <li>2 bugs fixed in click help js_info.js for foo.bar and for
+        unrecognized symbol at end of buffer.</li>
+    <li>In eval.js minor fix to render_html for passing args to out_eval_result.</li>
+    <li>In je_and_browser.js, submit_window, <code>Plot</code> window "modebar-btn" fixed.</li>
+    <li>Fixed Ref Man IO/Sound/Music with Midi,
+        fixed 3 places of Insert Menu/Sound to Insert Menu/Music.</li>
+    <li>Fixed Job Example 4c: Nested Generators.</li>
+    <li><code>Control.sync_point</code> fixed this => job_instance.</li>
+    <li>New and cleaned up Jobs menu/Insert Example/Sync Jobs plus
+        reference to the Jobs menu/InsertJobs/Sync Jobs added to Ref Man.</li>
+    <li>minor fixes to Job Example 11 for when_stopped.</li>
+    <li>Minor tweaks to other Job examples, both code and documentation.</li>
+    <li>Js_info.js robustified fn.toString()</li>
+    <li><code>show_window</code> submit process:
+        When user clicks on an A tag, if it has href="#", then the clicked_button_value gets bound to:
+        If there is a name, that, else if there is an id, that else to the innerHTML of the tag.
+        (It used to be always to the innerHTML.</li>
+    <li><code>show_window</code> restored <code>window_index</code> as property in the input obj with
+       an integer value inside window callback fn.</li>
+    <li>In SSH reboot changed "shutdown -r"  to "reboot" (better for FPGA rebooting).</li>
+    <li>Improved Ref Man for <code>Job.user_data</code>.</li>
+    <li>Fixed Inspector when inspecting 2D array and you click on one cell to
+         now inspect the correct sub-array.</li>
+    <li>Fix for choosing File menu/Manage npm  not popping up dialog.</li>
+    <li><code>Dex</code> class defined to allow "Jobless instructions" to run.
+        See Ref Man top level "Dex (Jobless Instructions)".</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.8.0, Jul 23, 2021</summary>
+Highlights: Recording Jobs more reliable, simpler UI.<br/>
+    Simulator improvements, including "both" option working.<br/>
+    Simplified Jobs Model documentation for deeper understanding of Jobs.<br/>
+    Jobs menu/Eval & Start Job improved.<br/>
+    File menu new item: Load and start Job.<br/>
+    Jobs menu item "Run Job on Dexter" improved.<br/>
+    Dexter.set_follow_me and friends now working for J6 & J7.<br/>
+    Job Engine extended with a bunch of DDE functions including require, get_page_async.
+<ul>
+    <li>Fixed 8 bugs in file_system_test_suite for folder_name_version_extension.</li>
+    <li>Changed <code>dex_inst.remove_from_busy_job_array</code>
+        to <code>Dexter.remove_from_busy_job_arrays</code>  in several places as this should
+        usually be called instead.</li>
+    <li>Now the simulator <b>both</b> option works.
+       The simulator is about 10% faster or so than the <b>real</b> Dexter.
+       Needs some work to get real dexter and sim in sync.</li>
+    <li>Dexter UI: fixed a problem when you:<br/>
+        1. launch DDE<br/>
+        2. start Dexter UI<br/>
+        3. uncheck the point down check box.<br/>
+        It use to move Dexter into a bad configuration.
+        Now it doesn't move Dexter at all (which is correct).</li>
+    <li>Removed <i>Jobs menu/Run Instruction/PARKED_ANGLES</i>
+        not useful and if Dexter is
+         uncalibrated, it may run into itself.</li>
+    <li>When you choose Jobs menu/<b>Dexter UI</b>,
+       a warning message is printed that Dexter
+        will move when you use this dialog box.</li>
+    <li> <b>Dexter UI</b> tutorial improved slightly with a warning that Dexter will move.</li>
+    <li>Fixed <code>Dexter.pid_move_to</code> to properly set up the passed in robot.</li>
+    <li>Fixed <code>Job.send</code> when an oplet array is passed in that has a
+        robot instance as its last element.</li>
+    <li>Fixed Dexter <b>simulator</b> such that when simulating a PID move,
+       and the simulator is not actually showing, it doesn't attempt to draw to it.</li>
+    <li><b>Make Instruction</b>: twisting down the "Recording" arrow automatically scrolls
+        the doc pane to documentation specific to Recording.</li>
+    <li>Improved the doc for <b>Make Instruction's record</b> facility.</li>
+    <li>Make Instruction record:
+        fixes to controls for play, stepping and dragging the "play head" circle.</li>
+    <li>Make Instruction record: insert now uses a new Brain robot for the high
+        level Job so that we don't have 2 Jobs with the same default robot.</li>
+    <li>Make Instruction record: clicking insert now does NOT pop up a dialog of
+       options. Smarter analysis and insertion plus easer-to-understand functionality
+       now make this unnecessary.</li>
+    <li>Make Instruction record: clicking "record button" sets visible form's do_list
+        to [] so user knows we're starting a new recording.</li>
+    <li>Make Instruction insertion of trailing commas improved.</li>
+    <li><code>Dexter.set_follow_me</code>, <code>force_protect</code>,
+        <code>open_loop</code> and <code>keep_position</code> instructions
+         now work for J6 and J7. Useful in Make Instruction record.</li>
+    <li>Now there's an explicit warning for user clicking on the <button>Eval</button> button
+          when only whitespace is selected.
+          This can occur when user inserts a recording with a high level Job.</li>
+    <li><b>Inspect</b> fixed for an edge case of inspecting 2D arrays.</li>
+    <li>Ref Man/Job/Definition Time vs Run Time tweaked and greatly extended with a
+          new sub-section: <b>Simplified Jobs Model</b>.
+          Recommended reading if you really want to understand what Jobs are all about.</li>
+    <li>Added to <b>Job engine</b> from regular DDE:<br/>
+        <code>file_exists</code>, <code>is_folder</code>, <code>persistent_get</code>,
+        <code>persistent_remove</code>, <code>persistent_save</code>,
+        <code>make_folder</code></li>
+    <li>new function: <code>append_to_file</code>
+         See Ref Man/IO/File Access/append_to_file.
+        Also in the Job Engine.</li>
+    <li><code>get_page_async</code> now available in the Job engine.
+        Doc improved at RefMan/IO/web/get_page_async</li>
+    <li>Job engine index.js, <code>run_node_command</code> improved eval call to make <code>require</code> calls work.</li>
+    <li>Fixed click help on a file name (path)</li>
+    <li>Fixed <code>read_file_async</code> when reading a file with a defaulting folder
+        name and we're reading from Dexter. This also fixes <code>copy_file_async</code>
+         when copying from Dexter to DDE.</li>
+    <li>Added an example to Ref Man/IO/File Access/copy_file_async for
+        copying to a Dexter.</li>
+    <li>DDE splitter-bar width increased from 5px to 8px to make dragging them easier.</li>
+    <li><b>Jobs menu/Eval & Start Job</b>: if you select instructions to run NOT in a Job definition,
+        a Job will be defined (as usual).
+        But now, such defined Jobs will use the Dexter.default
+        (selected in the Misc pane header.</li>
+    <li>Jobs menu/Eval & Start Job now functionality better matches
+        User Guide/User Interface/Editor Pane/Eval & Start Job menu item.</li>
+    <li>File menu new item: Load and start Job... that lets you choose a file.
+       It is loaded, and the first job in it (if any) is started.
+         Particularly useful for demos.</li>
+    <li><b>Simulator</b>: fixed to not attempt to display J6 & J7 movement if the simulator
+        is not showing.</li>
+    <li>Simulator controls for rotating Dexter improved.</li>
+    <li>Simulator  Middle button/scroll_wheel down is now an additional way to pan,
+        from the existing alt/option key down.</li>
+    <li>Improved <code>Socket.on_receive</code> to take the Dexter instance as an argument
+        rather than compute it,
+       (somewhat heuristically) from a robot_status. More reliable, less code.</li>
+    <li>Ref Man/Robot/Robot Instructions/<code>Control/break</code> extended to include
+        an example of having an inner loop break out of an outer loop.</li>
+    <li>Jobs menu item <b>Run Job on Dexter</b> fixed to work not just when
+        you choose the menu item, but then click the Job button created to run the
+        Job a 2nd (or 3rd ...) time. Improved the tooltip for the menu item.</li>
+
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.7.18, Jun 30, 2021</summary>
 Highlights: New Job Param: when_do_list_done. Error system clean-up. Make Instrunction bugs fixed.
  New programmatic interface to versioned files.
@@ -5252,7 +5493,7 @@ See Ref Man/Robot/Robot Instructions/suspend</li>
         Those numbers are converted to meters in the output array
         by dividing them by 1 million.</li>
 
-    <li> [ ].arcsec()
+    <li> [ ].arcsec() (removed in DDE 3.6.6)
         make_ins("a", 36000, 36000, 36000, 36000, 36000).arcsec()
         make_ins("P", 36000, 36000, 36000, 36000, 36000).arcsec()
         If the array is an instruction array with an oplet of "a" or "P" then
@@ -5322,7 +5563,7 @@ enter a "conversion suffix" after them using our new Ref Man documented
     DDE code  from v1 to v2:
     <ul><li>Search for all "move_all_joints(" and "move_all_joints_relative"<br/>
             Add suffix to first arg like so:<br/>
-             Dexter.move_all_joints([1, 2, 3, 4, 5].arcsec())<br/>
+             Dexter.move_all_joints([1, 2, 3, 4, 5].arcsec()) (removed in DDE 3.6.6)<br/>
              arcsec() makes a copy of the array with the arcseconds
              converted to degrees.
              Note for calls like<br/>
@@ -5347,14 +5588,14 @@ enter a "conversion suffix" after them using our new Ref Man documented
              robot_inst.robot_status[Dexter.J3_ANGLE],
              robot_inst.robot_status[Dexter.J4_ANGLE],
              robot_inst.robot_status[Dexter.J5_ANGLE]
-             ].arcsec()
+             ].arcsec() (removed in DDE 3.6.6)
             </li>
 
         <li>Add to make_ins("a" ...) a suffix like so:<br/>
             make_ins("a" ...).arcsec()</li>
 
         <li>Add to make_ins("P" ...) a suffix like so:<br/>
-            make_ins("P" ...).arcsec()</li>
+            make_ins("P" ...).arcsec() (removed in DDE 3.6.6)</li>
 
         <li>Search for all "move_to(" and "move_to_relative("<br/>
             Add suffix to first arg like so:<br/>

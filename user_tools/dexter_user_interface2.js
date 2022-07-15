@@ -105,9 +105,7 @@ var dui2 = class dui2 {
                             robot: dex,
                             when_do_list_done: "wait",
                             do_list: [dui2.init,
-                                      //Dexter.move_all_joints(0, 0, 0, 90, 0, 0, 0)
-                                      //Dexter.move_all_joints([0, 0, 0, 0, 0]),
-                                      //Dexter.pid_move_all_joints([0, 0, 0, 0, 0])
+                                      Dexter.empty_instruction_queue() //needed because the next instruction may need to look a the measured_angles, and we want them updated to where dexter is really at.
                                       ]
                         })
            // dex.instruction_callback = this.dui_instruction_callback //used for "run_forward" , complicated to get this to work so now run_forward does something simpler
@@ -153,7 +151,7 @@ var dui2 = class dui2 {
         let initial_angles
         let initial_move_instruction
         //set initial_angles
-        if(!dui_instance.dexter_instance.rs) {
+        if(!dui_instance.dexter_instance.rs) { //even with fresh launch of DDE, this doesn't hit because the dui2 job has already been started and its initial "g" instruction run.
             initial_angles = Dexter.HOME_ANGLES
         }
         else {//the normal case
@@ -318,9 +316,9 @@ var dui2 = class dui2 {
             '"/>' +
             '</div>'
         let xyz_num_html =
-            'X: <input name="x_num" type="number" data-oninput="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
-            'Y: <input name="y_num" type="number" data-oninput="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
-            'Z: <input name="z_num" type="number" data-oninput="true" style="width:55px;margin-top:0px;" min="' + min_z + '" max="' + max_z + '" value="0" step="0.01" ' + '"/>m<br/>'
+            'X: <input name="x_num" type="number" data-onchange="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
+            'Y: <input name="y_num" type="number" data-onchange="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
+            'Z: <input name="z_num" type="number" data-onchange="true" style="width:55px;margin-top:0px;" min="' + min_z + '" max="' + max_z + '" value="0" step="0.01" ' + '"/>m<br/>'
 
         let z_slider_restriction_html = '<div style="position:absolute; top:60px; right:25px; width:20px; height:40px; background-color:' + dui2.xy_background_color + ';"></div>'
         let the_html =
@@ -336,7 +334,7 @@ var dui2 = class dui2 {
             '<option>20</option><option>25</option><option>30</option><option>40</option>'+
             '<option>50</option><option>75</option><option>100</option>' +
              '</select>mm ' +
-            '<span style="margin-left:5px;">J6roll:</span><input name="J6_roll" data-oninput="true" type="number" min="-180" max="180" step="0.1" value="0" style="width:50px;"/>&deg;' +
+            '<span style="margin-left:5px;">J6roll:</span><input name="J6_roll" data-onchange="true" type="number" min="-180" max="180" step="0.1" value="0" style="width:50px;"/>&deg;' +
             '<span style="margin-left:3px;" title="Fill in joint angles by moving your Dexter by hand.">FromDex:<input name="from_dexter" type="checkbox" data-oninput="true"/></span>' +
             '</div>' +
                xyz_num_html
@@ -361,7 +359,7 @@ var dui2 = class dui2 {
                 'min="' + min + '" ' +
                 'max="' + max + '" ' +
                 'style="width:250px;"/>'
-            let num_html = ' <input name="j' + joint_number + '_angle_num" type="number" step="0.1" data-oninput="true" min="' + min + '" max="' + max + '" value="' + val + '" style="width:55px;"/>'
+            let num_html = ' <input name="j' + joint_number + '_angle_num" type="number" step="0.1" data-onchange="true" min="' + min + '" max="' + max + '" value="' + val + '" style="width:55px;"/>'
             result += slider_html + num_html + '&deg;<br/>'
         }
         return result
@@ -685,13 +683,34 @@ var dui2 = class dui2 {
         //dui2.update_range_and_angle_nums(vals.show_window_elt_id, maj_angles)
     }
     else if(vals.clicked_button_value == "ready"){
-        dui_instance.set_maj_angles([0, 0, 90, 0, 0, 0, 50])
+        //dui_instance.set_maj_angles([0, 0, 90, 0, 0, 0, 50])
+        let new_angs = [0, 0, 90, 0, 0, 0, 50]
+        let instr = [Dexter.pid_move_all_joints([0, 0, 0, 0, 0]),
+                     Dexter.move_all_joints(new_angs),
+                     Dexter.empty_instruction_queue()]
+        Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
+        dui_instance.set_maj_angles(new_angs)
+        dui_instance.update_all(dui_instance.should_point_down)
+        return //don't run usual code at bottom of this fn
     }
     else if(vals.clicked_button_value == "home"){
-        let instr = Dexter.move_all_joints(Dexter.HOME_ANGLES)
-        Job.insert_instruction(instr, {job: vals.job_name, offset: "end"}) //Jmaes W says HOME needs both a pidmaj and maj instructions.
-        //Job[dui_instance.job_name].insert_last_instruction_overwrite(instr)
-        dui_instance.set_maj_angles(Dexter.HOME_ANGLES) //ultimately causes a pid_move_all_joints insert
+        //let instr = [Dexter.move_all_joints(Dexter.HOME_ANGLES),
+        //             Dexter.empty_instruction_queue()]
+        //Job.insert_instruction(instr, {job: vals.job_name, offset: "end"}) //James W says HOME needs both a pid_maj and maj instructions.
+        //dui_instance.set_maj_angles(Dexter.HOME_ANGLES) //ultimately causes a pid_move_all_joints insert
+
+        //programmatically uncheck point down here
+        //if(vals.direction_checkbox){
+        dui_instance.should_point_down = false
+        //}
+        let new_angs = Dexter.HOME_ANGLES
+        let instr = [Dexter.pid_move_all_joints([0, 0, 0, 0, 0]),
+                     Dexter.move_all_joints(new_angs),
+                     Dexter.empty_instruction_queue()]
+        Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
+        dui_instance.set_maj_angles(new_angs)
+        dui_instance.update_all(dui_instance.should_point_down)
+        return //don't run usual code at bottom of this fn
     }
     else if(vals.clicked_button_value == "go_to_start"){
             let continue_running = dui2.go_to_start_button_click_action(dui_instance)
@@ -1459,5 +1478,10 @@ dui2.instances = []
 dui2.xy_background_color = "#fe8798" //   #ff7e79 is too orange
 
 } //end of top level if
+
+//effectively a "warning" but doesn't print the file name.
+out('Warning: Using this dialog with "real" selected will move Dexter.' +
+    '<br/>Please clear the area and move Dexter slowly.',
+    "#e50")
 
 dui2.make_job() //in DDE, makes a job using the default_robot in the Misc pane select.

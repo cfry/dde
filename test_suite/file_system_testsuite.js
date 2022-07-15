@@ -16,14 +16,14 @@ new TestSuite("file_system",
     )
     
 new TestSuite("folder_name_version_extension",
-    ['folder_name_version_extension("foo")', '["/Users/Fry/Documents/dde_apps", "foo", null, null]'],
-    ['folder_name_version_extension("foo.txt")', '["/Users/Fry/Documents/dde_apps", "foo", null, "txt"]'],
-    ['folder_name_version_extension("foo_7")', '["/Users/Fry/Documents/dde_apps", "foo", 7, null]'],
-    ['folder_name_version_extension("foo_7.txt")', '["/Users/Fry/Documents/dde_apps", "foo", 7, "txt"]'],
-    ['folder_name_version_extension(".foo_7.txt")', '["/Users/Fry/Documents/dde_apps", ".foo", 7, "txt"]'],
-    ['folder_name_version_extension(".foo")', '["/Users/Fry/Documents/dde_apps", ".foo", null, null]'],
-    ['folder_name_version_extension(".foo.txt")', '["/Users/Fry/Documents/dde_apps", ".foo", null, "txt"]'],
-    ['folder_name_version_extension(".foo_7")', '["/Users/Fry/Documents/dde_apps", ".foo", 7, null]']
+    ['folder_name_version_extension("foo")',        '[dde_apps_folder, "foo", null, null]'],
+    ['folder_name_version_extension("foo.txt")',    '[dde_apps_folder, "foo", null, "txt"]'],
+    ['folder_name_version_extension("foo_7")',      '[dde_apps_folder, "foo", 7, null]'],
+    ['folder_name_version_extension("foo_7.txt")',  '[dde_apps_folder, "foo", 7, "txt"]'],
+    ['folder_name_version_extension(".foo_7.txt")', '[dde_apps_folder, ".foo", 7, "txt"]'],
+    ['folder_name_version_extension(".foo")',       '[dde_apps_folder, ".foo", null, null]'],
+    ['folder_name_version_extension(".foo.txt")',   '[dde_apps_folder, ".foo", null, "txt"]'],
+    ['folder_name_version_extension(".foo_7")',     '[dde_apps_folder, ".foo", 7, null]']
 )
 
 /* for repeated runs, requires creating and deleting files. 

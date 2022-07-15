@@ -672,6 +672,9 @@ static install_menus_and_recurse(inner_lis, window_index){ //the arg is li elts 
 static submit_window(event){
     // descriptions of x & y's: http://stackoverflow.com/questions/6073505/what-is-the-difference-between-screenx-y-clientx-y-and-pagex-y
     let subject_elt = this
+    if(this.classList.contains("modebar-btn")) { //user clicked on an icon at the top of a Plot window
+        return //so don't do stopPropagation, let its normal processing happen
+    }
     event.stopPropagation();
     let result = {offsetX:event.offsetX,  offsetY:event.offsetY, //relative to the elt clocked on
         x:event.x,              y:event.y, //relative to the parent of the elt clicked on
@@ -690,7 +693,10 @@ static submit_window(event){
     }
     else if (subject_elt.tagName == "A"){
         if (subject_elt.href.endsWith("#")){
-            result.clicked_button_value = subject_elt.innerHTML
+            //result.clicked_button_value = subject_elt.innerHTML
+            if(subject_elt.name)     { result.clicked_button_value = subject_elt.name   }
+            else if (subject_elt.id) { result.clicked_button_value = subject_elt.id     }
+            else                     { result.clicked_button_value = subject_elt.innerHTML  }
         }
         else { //we've got a real url. The only thing to do with it is open a window, so
             //don't even go through the handler fn, just do it.
@@ -973,7 +979,7 @@ static close_window(window_title_index_or_elt=SW.window_index){ //elt can be a w
             SW.close_windows_of_title(window_title_index_or_elt) //don't use "this", use SW because we may call this without its subject class
         }
         else if (typeof(window_title_index_or_elt) == "number"){ //ie a window_index
-            let win = this.get_window_of_index(window_title_index_or_elt)
+            let win = SW.get_window_of_index(window_title_index_or_elt)
             SW.sw_close(win) //don't use "this", use SW because we may call this without its subject class
         }
         else if (window_title_index_or_elt instanceof HTMLElement) {
@@ -988,6 +994,9 @@ static close_window(window_title_index_or_elt=SW.window_index){ //elt can be a w
     }
 }
 }//close of class SW
+
+globalThis.close_window = SW.close_window //for backwards compatibility, but don't document.
+
 
 SW.window_index = null // The window_index of the last show_window made, or null if none made
                        // This value is incremented in show_window fn, then that incremeted value is used in the window being made

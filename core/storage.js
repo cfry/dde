@@ -212,6 +212,9 @@ function dde_init_dot_js_initialize() {
         if (!persistent_get("default_dexter_port")){
             add_to_dde_init_js += 'persistent_set("default_dexter_port", "' + default_default_dexter_port + '") //required property, but you can edit the value.\n'
         }
+        if(!Brain.brain0) {
+            add_to_dde_init_js += '\nnew Brain({name: "brain0"})\n'
+        }
         if(!Robot.dexter0){
             add_to_dde_init_js += '\nnew Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
         } //note, in the weird case that the user has defined the ip_address and/or port
@@ -249,7 +252,8 @@ function dde_init_dot_js_initialize() {
                   default_default_dexter_ip_address + '") //required property but you can edit the value.\n' +
                   'persistent_set("default_dexter_port", "'          +
                   default_default_dexter_port + '") //required property, but you can edit the value.\n' +
-                 'new Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
+                  'new Brain({name: "brain0"})\n' +
+                  'new Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
 
         eval(initial_dde_init_content)
         write_file("dde_init.js", initial_dde_init_content)
@@ -324,6 +328,7 @@ function read_file_async(path, encoding="utf8", callback){
         fs.readFile(path, encoding, callback)
     }
 }
+module.exports.read_file_async = read_file_async
 
 //this really isn't an async fn but since we want it to behavir like
 //read_file_async, it has to call the callback, so we do it.
@@ -334,21 +339,31 @@ function read_file_async_from_dexter_using_node_server(dex_instance, path, callb
         //path = path.substring(1) //because of crazy node server editor's code
     }
     else { //doesn't start with slash, meaning relative to server default
-        path = "/dde_apps/" + path //  on the node webserver, starting with / means ?srv/samba/share/
+        path = "dde_apps/" + path //  on the node webserver, starting with / means ?srv/samba/share/
                                     // so we add the dde_apps to be consistent with dde's default dir.
     }
     let url = "http://" + dex_instance.ip_address + "/edit?edit=" + path //example: "http://192.168.1.142/edit?edit=root/dde_apps/dde_init.js" whereby no beiginning slas actually means going from the server's top level of file system
-    let content = get_page(url) //does not error if file doens't exist so ...
+    let req = {
+        uri: url,
+        encoding: null
+    }
+    let content_array = get_page(req) //does not error if file doens't exist so ...
+    let content = content_array.toString("binary"); //Strings can contain binary file content
     let the_err = null
     if(content.startsWith("Error:")){
-        the_err = new Error()
-        the_err.message = content
-        content = null
+       the_err = content
+       content = undefined
     }
+    //if(content.startsWith("Error:")){
+    //    the_err = new Error()
+    //    the_err.message = content
+    //    content = null
+    //}
     callback(the_err, content)
 }
 
 function read_file_async_from_dexter_using_job(dex_instance, path, callback){
+    console.log("top of read_file_async_from_dexter_using_job passed path: " + path)
     let colon_pos = path.indexOf(":")
     let dex_file_path = path.substring(colon_pos + 1)
     new Job({name: "dex_read_file",
@@ -450,6 +465,9 @@ function write_file(path, content, encoding="utf8"){
     if (content === undefined) {
         content = Editor.get_javascript()
     }
+    if((encoding === null) && (typeof(content) === "string")){
+         content = new Buffer(content, null)
+    }
 
     try{ fs.writeFileSync(path, content, {encoding: encoding}) }
     catch(err){
@@ -545,6 +563,16 @@ function write_file_async_to_dexter_using_job(dex_instance, path, content, callb
     the_job.start()
 }
 
+//https://stackoverflow.com/questions/3459476/how-to-append-to-a-file-in-node
+//https://nodejs.org/api/fs.html#fs_fs_createwritestream_path_options
+function append_to_file(path, content, encoding="utf8"){
+    path = make_full_path(path)
+    let stream = fs.createWriteStream(path, {flags:'as', encoding: encoding});
+    stream.write(content)
+    stream.end();
+}
+module.exports.append_to_file = append_to_file
+
 //the callback takes 1 arg, err. IF it is passed non-null, there's an error.
 // copy_file_async("foo/bar.js", "Dexter.dexter0:bar_copy.js"
 function copy_file_async(source_path, destination_path, callback=null){
@@ -560,15 +588,16 @@ function copy_file_async(source_path, destination_path, callback=null){
             }
         }
     }
-   read_file_async(source_path, "binary", //"binary" should faithfully read and write content without modification.
-                                          // "ascii" fails on jpg files.
+   read_file_async(source_path, null, //"ascii" was used up thru dde3.8.3, but doesn't copy binary files properly
+                                               // "binary" *should* faithfully read and write content without modification but doesn't
+                                               // "ascii" fails on jpg files.
 
       function(err, data){
         if(err) { //only call the callback for the read IF there's a read error.
             callback(err)
         }
         else {
-            write_file_async(destination_path, data, "binary", callback)
+            write_file_async(destination_path, data, "ascii", callback)
         }
       })
 }
@@ -859,6 +888,8 @@ function adjust_path_to_os(path){
         return result
     }
 }
+
+module.exports.adjust_path_to_os = adjust_path_to_os
 
 function make_full_path(path, adjust_to_os=true){
     path = add_default_file_prefix_maybe(path)
@@ -1159,6 +1190,7 @@ folder_name_version_extension("foo_002.txt") => ["foo", 2, "txt"]
 
 function folder_name_version_extension(path){
     path = make_full_path(path)
+    path = adjust_path_to_os(path)
     let folder_parts = path.split("/")
     //folder_parts.shift() //takes off the initial ""
     let names_ver_ext = folder_parts.pop()
@@ -1245,6 +1277,14 @@ function make_unique_path(path){
     return new_path
 }
 module.exports.make_unique_path = make_unique_path
+
+function get_page_async(url_or_options, callback){
+    //https://www.npmjs.com/package/request documents request
+    //as taking args of (options, cb) but the actual
+    //fn itself has params(uri, options, cb
+    request(url_or_options, callback)
+}
+module.exports.get_page_async = get_page_async
 
 var fs        = require('fs'); //errors because require is undefined.
 var app       = require('electron').remote;  //in the electron book, "app" is spelled "remote"

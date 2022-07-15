@@ -130,7 +130,7 @@
     <script type="text/javascript" src="picture1.js"></script>
     <script type="text/javascript" src="ros_interface.js"></script>
     <script type="text/javascript" src="ssh.js"></script>
-    <script type="text/javascript" src="file_transfer.js"></script>
+    <!-- <script type="text/javascript" src="file_transfer.js"></script> -->
 
 
     <link rel="stylesheet" href="ui_widgets/awesomplete.css"/>
@@ -144,7 +144,7 @@
     <script type="text/javascript" src="gamepad.js"></script>
     <script type="text/javascript" src="svg.js"></script> <!--needed in ui only for series help -->
     <script type="text/javascript" src="eval.js"></script>
-    <script type="text/javascript" src="dex.js"></script>
+    <!-- <script type="text/javascript" src="dex.js"></script> Now in core -->
     <!--<script type="text/javascript" src="core/socket.js"></script>
     <script type="text/javascript" src="core/instruction.js"></script>
     <script type="text/javascript" src="core/robot.js"></script>-->
@@ -169,7 +169,7 @@
 
     <script type="text/javascript" src="robot_utilities.js"></script>
 
-    <script type="text/javascript" src="app_builder.js"></script>
+    <!-- <script type="text/javascript" src="app_builder.js"></script> -->
     <script type="text/javascript" src="doc_code.js"></script>
     <script type="text/javascript" src="test_suite/test_suite.js"></script>
     <script type="text/javascript" src="test_suite/test_suites.js"></script>
@@ -244,6 +244,8 @@
                                         <li id="open_system_file_id" title="Edit or show a special DDE/Dexter system file.">Open system file...</li>
                                         <li id="open_from_dexter_id"  style="width:200px;" title="Edit a file on the Dexter&#013;that is selected in the Misc Pane header.">Open from Dexter...</li>
                                         <li id="load_file_id"       title="Evaluate the content of a JavaScript file.">Load...</li>
+                                        <li id="load_and_start_job_id" title="Load the selected JavaScript file and&#013;start the first Job in it.">Load & start Job...</li>
+
                                         <li id="install_npm_pkg_id" title="List, uninstall, and install npm packages&#013;so that they are accessible to DDE apps.">Manage npm</li>
                                         <li id="insert_file_content_id"  title="Insert the content of a file&#013;into the editor at the cursor,&#013;replacing the selection if any.">Insert file...</li>
                                         <li>Insert file path
@@ -446,7 +448,7 @@
                                                 <li id="window_onchange_id"       title="Examples of using onchange and oninput&#013;to call the callback as soon as&#013;there's a change in an input.">onchange calls</li>
                                                 <li id="window_svg_id"            title="Examples of using svg&#013;to dynamically add and reposition&#013;shapes in a window.">svg (2D drawing)</li>
                                                 <li id="window_modify_id"         title="Example of using selector_set_in_ui&#013;to extend a show_window.">Modify Window</li>
-                                                <li id="build_window_id"          title="Create a show_window call via a dialog box.">Build Window</li>
+                                                <!-- not working. perhaps revive some day <li id="build_window_id"          title="Create a show_window call via a dialog box.">Build Window</li> -->
                                                 <li id="window_close_all_id"      title="Closes all open 'show_windows'.&#013;Does not close DDE's main window.&#013;Does not insert code into Editor..">Close all windows</li>
                                             </ul>
                                         </li>
@@ -631,7 +633,7 @@
                                         <li id="show_robot_status_id"  title="Pop up a dialog showing the robot status&#013;for a Dexter of your choosing.&#013;It displays updates as soon as they are available.">Show robot status</li>
                                         <li id="jobs_report_id"        title="Display a report of all Jobs in this session.">Show report</li>
                                         <li id="insert_new_job_id"     title="Insert into the editor, an empty new Job.">New Job Ctrl/&#8984;j</li>
-                                        <li id="eval_and_start_job_id" title="Run instructions based on selection and cursor position.&#013;Choosing this item scrolls to documentation on it.">Eval&Start Job</li>
+                                        <li id="eval_and_start_job_id" title="Run instructions based on selection and cursor position.&#013;Choosing this item scrolls to documentation on it.">Eval & Start Job</li>
 
                                         <li> Insert Example
                                             <ul>
@@ -658,7 +660,7 @@
                                             <ul>
                                                 <li id="move_to_home_id"    title="Runs a job on dexter0 with the instruction:&#013;Dexter.move_all_joints(Dexter.HOME_ANGLES)">HOME_ANGLES</li>
                                                 <li id="move_to_neutral_id" title="Runs a job on dexter0 with the instruction:&#013;Dexter.move_all_joints(Dexter.NEUTRAL_ANGLES)">NEUTRAL_ANGLES</li>
-                                                <li id="move_to_parked_id"  title="Runs a job on dexter0 with the instruction:&#013;Dexter.move_all_joints(Dexter.PARKED_ANGLES)">PARKED_ANGLES</li>
+                                               <!-- <li id="move_to_parked_id"  title="Runs a job on dexter0 with the instruction:&#013;Dexter.move_all_joints(Dexter.PARKED_ANGLES)">PARKED_ANGLES</li> -->
                                                 <li id="move_to_selection_id" title="Treat the selection as an instruction&#013;to run on dexter0. For:&#013;- A number or number array < 4&#013; are args to move_to.&#013;- Arrays of 4 or 5 numbers&#013; are args to move_all_joints.">selection</li>
                                                 <li id="run_instruction_dialog_id" title="Show a dialog box for running an instruction on Dexter.">Show Dialog...</li>
                                             </ul>
@@ -672,10 +674,10 @@
                                                 <li id="reboot_joints_id"    title="Re-enable Joints 6 & 7&#13;when they have been disabled and red lights flash,&#13;Documentation will be shown when you choose this.">Reboot Joints</li>
                                                 <li id="show_errors_log_id"  title="Show the content of the file errors.log&#13;on the default Dexter.">Show errors.log</li>
                                                 <li id="dexter_start_options_id" title="View and set the operations run&#13;when the Dexter selected in the Misc Pane header&#13;is turned on.">Start Options</li>
-                                                <li id="update_firmware_id"  title="Update the software on the default Dexter&#13;(selected in the Misc Pane header).">Update Firmware</li>
+                                                <!--<li id="update_firmware_id"  title="Update the software on the default Dexter&#13;(selected in the Misc Pane header).">Update Firmware</li> uses scp2 which now causes build errors-->
                                            </ul>
                                         </li>
-                                        <li id="run_job_on_dexter_id" title="Run the Job defined in the selection,&#13;or, if none, the whole editor,&#13;on Dexter.">Run Job on Dexter</li>
+                                        <li id="run_job_on_dexter_id" title="Grab the Job defined in the selection,&#13;send it to the Job's Dexter robot,&#13;define and start it in the Job Engine.&#13;Warning: takes 40 seconds to start.">Run Job on Dexter</li>
                                         <li id="show_messaging_dialog_id" title="Pop up a window of possibilities&#13;for communicating with other DDEs&#13;on the internet.">Messaging...</li>
                                     </ul>
                                 </li>

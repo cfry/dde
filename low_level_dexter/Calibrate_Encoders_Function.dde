@@ -98,12 +98,12 @@ function calibrate_encoders({
         make_ins("F"),
         make_ins("w", 42,0),
         make_ins("S", "MaxSpeed", move_speed),
-        make_ins("a", ...[0,0,0,0,0].arcsec()),
+        make_ins("a", ...[0,0,0,0,0]),
 
 		//Take a bow, loads tables:
         //make_ins("a", ...[20000,20000,20000,20000,20000].arcsec()),
         make_ins("a", [2, 2, 2, 2, 2]),
-        make_ins("a", ...[0,0,0,0,0].arcsec()),
+        make_ins("a", ...[0,0,0,0,0]),
         make_ins("F"),
 
         Dexter.set_parameter("J1BoundryHigh", J_inner_max[0]),

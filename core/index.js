@@ -1,5 +1,5 @@
-global.dde_version = "3.7.18" //require("../package.json").version
-global.dde_release_date = "Jun 30, 2021" //require("../package.json").release_date
+global.dde_version = "3.8.7" //require("../package.json").version
+global.dde_release_date = "Jun 22, 2022" //require("../package.json").release_date
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
@@ -54,10 +54,14 @@ function run_node_command(args){
     node_on_ready()
 
     let cmd_name = args[2]
-    let fn = eval(cmd_name)
+    //let fn = eval(cmd_name)
     let the_args = args.slice(3)
-    console.log("cmd_name: " + cmd_name + " args: " + the_args)
-    fn.apply(null, the_args)
+    //console.log("cmd_name: " + cmd_name + " args: " + the_args)
+    //fn.apply(null, the_args)
+
+    let cmd = cmd_name + "(\"" + the_args.join(", ") + "\");"
+    console.log(cmd)
+    eval(cmd)
 
 }
 
@@ -115,11 +119,16 @@ function run_shell_cmd(cmd_string, options={}, cb=run_shell_cmd_default_cb){
     exec(cmd_string, options, cb)
 }
 
-var {copy_file_async, copy_folder_async,
-     dde_init_dot_js_initialize, file_content, //file_content is deprecated
-     folder_listing, folder_separator, folder_name_version_extension,
-     get_latest_path, load_files, make_unique_path,
-     persistent_initialize, read_file, write_file} = require('./storage.js')
+var {adjust_path_to_os, append_to_file,
+    choose_file, choose_save_file, choose_file_and_get_content, choose_folder,
+    copy_file_async, copy_folder_async,
+    dde_init_dot_js_initialize, file_content, //file_content is deprecated
+    file_exists, folder_listing, folder_separator, folder_name_version_extension,
+    get_latest_path, get_page_async,
+    is_folder, load_files,
+    make_folder, make_full_path, make_unique_path,
+    persistent_get, persistent_initialize, persistent_remove, persistent_save,
+    read_file, read_file_async, write_file, write_file_async} = require('./storage.js')
 
 var {Root} = require("./object_system.js")
 var Coor   = require("../math/Coor.js")
@@ -130,6 +139,9 @@ var Job    = require("./job.js")
 
 var {Robot, Brain, Dexter, Human, Serial}  = require("./robot.js")
 var {RobotStatus} = require("./robot_status.js")
+
+
+//todo dde4 all the human_enter_... are now globals after you load instruction.js
 var {Instruction, make_ins, human_task_handler, human_enter_choice_handler,
     human_enter_filepath_handler, human_enter_number_handler, human_enter_position_handler,
     human_enter_instruction_handler,
@@ -139,12 +151,15 @@ var {Instruction, make_ins, human_task_handler, human_enter_choice_handler,
     } = require("./instruction.js")
 var {Control} = require("./instruction_control.js")
 var {IO}      = require("./instruction_io.js")
+require("./dex.js") //makes Dex global
 require("./je_and_browser_code.js") // must be before loading out.js as it defines SW used by out.js
 var {beep, beeps, format_text_for_code, speak, show_window}  = require("./out.js")
 var calibrate_build_tables = require("../low_level_dexter/calibrate_build_tables.js")
 var DXF    = require("../math/DXF.js")
 var {init_units} = require("./units.js")
 var {FPGA} = require("./fpga.js")
+require('./core/dexter_defaults.js')
+
 var {convertArrayBufferToString, convertStringToArrayBuffer,
      SerialPort, serial_connect, serial_connect_low_level,
      serial_devices, serial_devices_async,
@@ -204,15 +219,24 @@ global.acosd    = acosd
 global.atand    = atand
 global.atan2d   = atan2d
 
+global.adjust_path_to_os = adjust_path_to_os
+global.append_to_file = append_to_file
 global.copy_file_async = copy_file_async
 global.copy_folder_async = copy_folder_async
 global.file_content = file_content //deprecated
+global.file_exists = file_exists
 global.folder_listing = folder_listing
 global.folder_separator = folder_separator
 global.folder_name_version_extension = folder_name_version_extension
 global.get_latest_path = get_latest_path
+global.get_page_async = get_page_async
+global.is_folder = is_folder
 global.load_files = load_files
 global.make_unique_path = make_unique_path
+global.make_folder = make_folder
+global.persistent_get = persistent_get
+global.persistent_remove = persistent_remove
+global.persistent_save = persistent_save
 global.read_file = read_file
 global.write_file = write_file
 

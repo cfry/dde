@@ -220,6 +220,8 @@ module.exports.series_name_to_unity_unit = series_name_to_unity_unit
 //[123, 456].micron() => [0.000123, 0.000456]
 //assumes input array has numbers in microns, and converts
 //those numbers to meters.
+/* The below breaks for(let x of [3, 4, 5]) and for(let x in [3, 4, 5])
+   as they loop thru "micron" and "arcsec", so better not to have it.
 Array.prototype.micron = function(){
     let result = []
     for(let elt of this) {
@@ -258,6 +260,7 @@ Array.prototype.arcsec = function(){
         return result
     }
 }
+*/
 
 //TEMPERATURE
 function deg_c_to_c(deg_c){ return deg_c }

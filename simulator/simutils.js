@@ -104,6 +104,13 @@ SimUtils = class SimUtils{
             //SimUtils.prev_robot_status = robot_status //not use by  render_multi or render_multi_frame
             SimUtils.prev_robot_name   = robot_name
         }
+        else {
+            setTimeout(function(){
+                         ds_instance.queue_instance.done_with_instruction() //this is the final action of
+                         //calling SimUtils.render_multi_frame, and necessary to get this instruction
+                         //out of the queue. Must do even if we aren't redendering (ie calling SimUtils.render_multi_frame)
+                       }, dur_in_ms)
+        }
     }
     //new_js is the array of target joint angles, only used for the "last" frame.
     //new_js and prev_js are in arcseconds. prev_js

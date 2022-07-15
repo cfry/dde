@@ -49,7 +49,8 @@ Editor.init_editor = function(){
                          "Cmd-N": Editor.edit_new_file,
                          "Cmd-O": Editor.open_on_dde_computer,
                          "Cmd-R": Editor.move_to_instruction,
-                         "Cmd-S": Editor.save //mac
+                         "Cmd-S": Editor.save, //mac
+                         "Shift-Cmd-S": Editor.save_as
                        }:  //"win" and "linux"
                         {"Alt-Left":  Series.ts_or_replace_sel_left,
                          "Alt-Right":  Series.ts_or_replace_sel_right,
@@ -61,7 +62,8 @@ Editor.init_editor = function(){
                          "Ctrl-N": Editor.edit_new_file,
                          "Ctrl-O": Editor.open_on_dde_computer,
                          "Ctrl-R": Editor.move_to_instruction,
-                         "Ctrl-S": Editor.save //windows
+                         "Ctrl-S": Editor.save, //windows
+                         "Shift-Ctrl-S": Editor.save_as
                      }
                     )
         });
@@ -74,11 +76,15 @@ Editor.init_editor = function(){
     set_menu_string(find_next_id, "Find Next", "g")
     find_prev_id.onclick   = function(){CodeMirror.commands.findPrev(myCodeMirror)}
     set_menu_string(find_prev_id, "Find Prev   shift", "g")
+    set_menu_string(save_as_id,   "Save As...  shift", "s")
     replace_id.onclick     = function(){CodeMirror.commands.replace(myCodeMirror)} //allows user to also replace all.
     fold_all_id.onclick    = function(){CodeMirror.commands.foldAll(myCodeMirror)}
     unfold_all_id.onclick  = function(){CodeMirror.commands.unfoldAll(myCodeMirror)}
     select_expr_id.onclick = function(){Editor.select_expr()}
-    select_all_id.onclick  = function(){CodeMirror.commands.selectAll(myCodeMirror); myCodeMirror.focus()}
+    select_all_id.onclick  = function(){
+           CodeMirror.commands.selectAll(myCodeMirror)
+           myCodeMirror.focus()
+    }
     indent_selection_id.onclick = function(){CodeMirror.commands.indentAuto(myCodeMirror)}
     pretty_print_id.onclick = function(){
         if(Editor.view === "JS") {
@@ -1694,6 +1700,7 @@ Editor.find_delimited_expr = function(full_src, cursor_pos){
     else { return null }
 }
 
+//return array of 2 integers of the quotes or null
 Editor.find_literal_string = function(full_src, cursor_pos){
     let char = full_src[cursor_pos]
     let char_pos = cursor_pos
@@ -3027,6 +3034,50 @@ Editor.move_to_instruction = function(){
             "neither of which are valid Job instructions.")
     }
     else { Robot.dexter0.run_instruction_fn(sel) }
+}
+
+//return an array of arrays of ["a_job_name", 22, 105] ie start of job def src and end of job_def_src.
+Editor.find_job_defs = function(){
+    let full_src = Editor.get_javascript()
+    let result = []
+    let start_job_pos = -1;
+    while(true){
+        start_job_pos = full_src.indexOf("new Job(", start_job_pos + 1)
+        if(start_job_pos === -1) { break; }
+        else{
+            let open_paren_pos = start_job_pos + 7
+            let end_job_pos = Editor.find_matching_close(full_src, open_paren_pos)
+            if(end_job_pos === -1) { break; } //weird. Incomplete job, so ignore it and we're done.
+            else {
+                let name_prop_pos = full_src.indexOf("name:", open_paren_pos)
+                if(name_prop_pos == -1) { break; } //weird, a job with no name. ignore it.
+                else{
+                   let start_quote = Editor.find_forwards_any_kind_of_quote(full_src, name_prop_pos)
+                   if(start_quote == -1) { break; }
+                   let end_quote = Editor.find_forwards_matching_quote(full_src, start_quote)
+                   if(end_quote == -1) { break; }
+                   let job_name = full_src.substring(start_quote + 1, end_quote)
+                   result.push([job_name, start_job_pos, end_job_pos])
+                }
+            }
+        }
+    }
+    return result //might be an empty array
+}
+
+//returns null if can't find end of do_lsit or the pos of the ] at end of do_list.
+Editor.find_job_end_of_do_list = function(full_src, job_def_start_pos){
+    let do_list_prop = full_src.indexOf("do_list:", job_def_start_pos)
+    if(do_list_prop === -1) { return null }
+    else {
+        let open_square_pos = full_src.indexOf("[", do_list_prop)
+        if(open_square_pos === -1) { return null }
+        else {
+            let close_square_pos = Editor.find_matching_close(full_src, open_square_pos)
+            if(close_square_pos === -1) { return null }
+            else { return close_square_pos}
+        }
+    }
 }
 
 

@@ -388,6 +388,7 @@ Instruction.Dexter.pid_move_to = class pid_move_to extends Instruction.Dexter{
         this.workspace_pose = ((workspace_pose === null) ? undefined : workspace_pose)
         this.j6_angle       = j6_angle
         this.j7_angle       = j7_angle
+        this.robot          = robot
     }
     do_item (job_instance){
         if(!this.robot) { this.set_instruction_robot_from_job(job_instance) }
@@ -810,8 +811,22 @@ Instruction.Dexter.read_file = class read_file extends Instruction.Dexter{
         read_file_instance.processing_r_instruction = false
         if(typeof(payload_string_maybe) == "string"){ //do the usual
             job_instance.user_data[read_file_instance.destination] += payload_string_maybe
-            if(payload_string_maybe.length < Instruction.Dexter.read_file.payload_max_chars){
+            if(payload_string_maybe.length < Instruction.Dexter.read_file.payload_max_chars){ //meaning
+                //no more chars from the robot so we must be at the end.
                 read_file_instance.is_done = true
+            }
+            //if we get exactly payload_max_chars, we probably have more chars to come from the robot,
+            //but its possible we're running the sim and we just so happened to have exactly
+            //payload_max_chars
+            else {//payload_string_maybe is probably more than payload_max_chars meaning it probably came
+                //from the simulator, therefore we're done as we get all chars in one fell swoop from
+                //the simulator.
+                let rob = read_file_instance.robot
+                const sim_actual = Robot.get_simulate_actual(rob.simulate)
+                if(sim_actual === true) { //definitely simulating so we're done.
+                    read_file_instance.is_done = true
+                }
+                //else we are not in sim and more chars to come from the robot.
             }
         }
         else if(typeof(payload_string_maybe) == "number"){ //an error number.

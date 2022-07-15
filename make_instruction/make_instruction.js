@@ -8,8 +8,16 @@ var MakeInstruction = class MakeInstruction{
     //the few items you can make with MakeInstruction that
     //aren't valid on a do_list
     static src_looks_like_valid_instruction(src){
-       if(starts_with_one_of(src, ["new Dexter(", "new Serial("])){
+       if(starts_with_one_of(src, ["new Dexter(", "new Serial(", "new Job("])){
            return false
+       }
+       else if(src.startsWith("function")){
+           if(src.startsWith("function(")) { //anonymous fn def so likely to be a do_list item
+               return true
+           }
+           else{ //probably named fn, usually NOT used in a do_list
+              return false
+           }
        }
        else { return true }
     }
@@ -876,10 +884,12 @@ var MakeInstruction = class MakeInstruction{
             else if(mt_separate_xyzs && (param_name == "z")) { result += arg_val_src + "]"}
             else if(fn_is_keyword){
                     if(!arg_val_is_default || mi_insert_default_args_id.checked)  {
-                       if(param_name == "do_list"){
-                           arg_val_src = "\n        " + arg_val_src.trim() //8 spaces (2 tabs)
+                       if((param_name == "do_list") && (arg_val_src !== "[]")){
+                           arg_val_src = "\n " + arg_val_src.trim().substring(1) //cut off initial [ and make first instruction src look lie the other instruction sources
+                           arg_val_src = replace_substrings(arg_val_src, "\n", "\n        ") //indent instruction sources
+                           arg_val_src = "[" + arg_val_src //add back initial [
                        }
-                                                                    result += "    " + param_name + ": " + arg_val_src
+                       result += "    " + param_name + ": " + arg_val_src
                     }
                     else { did_insert_arg = false }                                         //insert nothing
             }
@@ -902,6 +912,7 @@ var MakeInstruction = class MakeInstruction{
         }
         if(fn_is_keyword) { src_before_undefined += "}" }
         result = src_before_undefined + ")"
+        out(result)
         return result
     }
 
@@ -1152,7 +1163,7 @@ var MakeInstruction = class MakeInstruction{
         //screws up the "tutorial" in the ref man for the job step.
     }
 
-    static insert_instruction(){
+    /*static insert_instruction(){
         Metrics.increment_state("Make Instruction inserts")
         let instruction_name = this.get_instruction_name_from_ui()
         if(instruction_name == "new Job") {
@@ -1171,7 +1182,34 @@ var MakeInstruction = class MakeInstruction{
                 Editor.insert(src + suffix)
             }
         }
+    }*/
+
+    static insert_instruction(){
+        Metrics.increment_state("Make Instruction inserts")
+        let instruction_name = this.get_instruction_name_from_ui()
+        let do_list = this.arg_name_to_src_in_mi_dialog("do_list")
+        if(MiRecord.record_dialog_open &&
+           (instruction_name === "new Job") &&
+           do_list.startsWith("[[") &&
+           (is_digit(do_list[2]) || (do_list[2] === "-"))
+            ) { //insert a recording. high level and low level job. might pop up dialog
+            MiRecord.insert_recording()
+        }
+        else {//normal insert
+            let src = this.dialog_to_instruction_src()
+            let suffix = ""
+            if(Editor.is_selection()) { Editor.replace_selection(src)} //trailing comma ok inside of an array
+            else {
+                let suffix
+                if(this.src_looks_like_valid_instruction(src)){ //these are valid instructions, so can be in a do_list, so should be followed by a comma
+                    suffix = ",\n    "
+                }
+                else { suffix = "\n"}
+                Editor.insert(src + suffix)
+            }
+        }
     }
+
     static handle_insert_job_dialog(vals){
         if(vals.clicked_button_value == "Insert"){
             MakeInstruction.insert_jobs()
@@ -1335,7 +1373,7 @@ var MakeInstruction = class MakeInstruction{
             let ref
             if(mi_job_instrs_wrapper_job_id.checked){
                 let options = '{start_if_robot_busy: true}'
-                    ref= 'Control.start_job("' + do_list_ref_string + '", ' + options + ', "error", true),\n'
+                ref= 'Control.start_job("' + do_list_ref_string + '", ' + options + ', "error", true),\n'
             }
             else if (mi_job_instrs_wrapper_var_id.checked ||
                      (mi_job_instrs_wrapper_data_id.checked &&
@@ -1352,6 +1390,7 @@ var MakeInstruction = class MakeInstruction{
                 return '\n//A high-level Job that includes other jobs.\n' +
                      'new Job({\n' +
                      '    name: "' + mi_job_insert_ref_job_name_id.value + '",\n' +
+                     '    robot: new Brain({name: "high_level_brain"}),\n' +
                      '    do_list: [\n' +
                      '        ' + ref +
                      '    ]})\n'
