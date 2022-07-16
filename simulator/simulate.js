@@ -29,7 +29,11 @@ function make_sim_html()
     Alignment: <button onclick="align_cam(0)">X-Side</button> 
     <button onclick="align_cam(1)">Y-Side</button> 
     <button onclick="align_cam(2)">Z-Top</button> 
-    <button onclick="align_cam(3)">Home</button> 
+    <button onclick="align_cam(3)">Home</button>       
+
+            <br>Performance(For linux): <input type="checkbox" onclick="updateFrozen(this)">Freeze Rendering
+            <input type="checkbox" onclick="updateSlow(this)">Slow Rendering</button> 
+
     
     </div>
 
@@ -73,12 +77,14 @@ function init_simulation(){
   canSize  = 
   {
     width: misc_pane_id.clientWidth-50,
-    height: persistent_get("dde_window_height")-persistent_get("top_right_panel_height") - 220
+    height: sim_pane_content_id.offsetHeight-120//Math.max(persistent_get("dde_window_height")-persistent_get("top_right_panel_height") - 220,220)
   };
 
   try{
     init_mouse()
     sim.enable_rendering = false
+    sim.renderFrozen = false;
+    sim.renderSlowed = false;
     //for organization: https://discoverthreejs.com/book/first-steps/lights-color-action/
     sim.container = sim_graphics_pane_id //a div that contains a canvas
     sim.scene  = new THREE.Scene();
@@ -815,7 +821,17 @@ function gltf_render(){
     updateRotation();
     updatePosition();
     sim.renderer.render(sim.scene, sim.camera);
-    requestAnimationFrame(gltf_render)
+    if(!sim.renderFrozen)
+    {
+        if(sim.renderSlowed)
+        {
+            setTimeout(()=>{requestAnimationFrame(gltf_render)},250);
+        }
+        else
+        {
+            requestAnimationFrame(gltf_render);
+        }
+    }
 }
 
 function stl_init_mouse(){
@@ -939,4 +955,17 @@ function updatePosition()
     pPosition.x = sim.table.position.x;
     pPosition.y = sim.table.position.y;
     pPosition.z = sim.table.position.z;
+}
+
+function updateFrozen(ele)
+{
+    sim.renderFrozen = ele.checked;
+    if(!sim.renderFrozen)
+    {
+        gltf_render();
+    }
+}
+function updateSlow(ele)
+{
+    sim.renderSlowed = ele.checked;
 }

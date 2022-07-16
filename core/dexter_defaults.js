@@ -816,6 +816,19 @@ Dexter.defaults_parse_line = function(line, line_number_for_error_message="unkno
             result.value_array = val_arr
         }
     }
+    else
+    {
+        result.value_array = [];
+
+        if(result.kind === "coloned_comment_prop")
+        {
+            warning("Information '"+result.key+"' in Defaults.make_ins file missing")
+        }
+        else if(result.kind === "colonless_comment_prop")
+        {
+            warning("Information '"+result.key+"' in Defaults.make_ins file: missing")
+        }
+    }
     return result
 }
 
