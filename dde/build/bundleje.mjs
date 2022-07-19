@@ -36982,12 +36982,6 @@ function strips_loadCode(grammarFileName, code, callback) {
 StripsManager$1.loadCode = strips_loadCode;  //extend loadCode to be able to accept JSON string, not just PDDL
 globalThis.WebSocketServer = WebSocketServer$1;
 
-
-
-
-
-
-
 function run_node_command(args) {
     console.log("Hey, top of run_node_command with args:\n" + args);
     let cmd_name = args[2];
@@ -37051,12 +37045,21 @@ async function on_ready_je(){
 
 on_ready_je();
 
-if(process.argv.length > 2) {
+function does_this_script_have_args() {
+    //for process.argv, the first elt always is the "node" cmd,
+    //and since we're not running in a repl,
+    //2nd elt always is the js file of this script.
+    //Thus, if this script is to have any args, process.argv must have more than 2 elts.
+    return process.argv.length > 2
+}
+
+if (does_this_script_have_args()) {
     run_node_command(process.argv);
 }
 else {
     console.log("no job to run");
 }
+
 
 /* example runnning of Job engine to run a job:
 node bundleje.mjs Job.define_and_start_job "/Users/Fry/Documents/dde_apps/just_prints.dde"
