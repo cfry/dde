@@ -35,7 +35,7 @@ class GrpcServer {
     static sayHello(call, callback) {
         console.log("top of sayHello") //prints out in je browser out pane whenever a message comes to the server
         let passed_in_string = call.request.name //on command line.
-          // EX cmd line: node greeter_client.js "FRY YO"
+          // EX cmd line: node greeter_client.mjs "FRY YO"
           //then passed_in_string will be "FRY YO"  (without the double quotes).
           //default is "world"
         console.log(JSON.stringify(call))

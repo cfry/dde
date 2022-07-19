@@ -72,20 +72,21 @@ import "../job_engine/core/grpc_server.js" //only in Job Engine
 
 
 
-function run_node_command(args){
-    console.log("top of run_node_command with args:\n" + args)
-    debugger;
-
+function run_node_command(args) {
+    console.log("Hey, top of run_node_command with args:\n" + args)
     let cmd_name = args[2]
-    //let fn = eval(cmd_name)
-    let the_args = args.slice(3)
-    //console.log("cmd_name: " + cmd_name + " args: " + the_args)
-    //fn.apply(null, the_args)
+    console.log("run_node_command got cmd_name of: " + cmd_name)
+    if (!cmd_name.startsWith("undefined(")) {
+        //let fn = eval(cmd_name)
+        let the_args = args.slice(3)
+        //console.log("cmd_name: " + cmd_name + " args: " + the_args)
+        //fn.apply(null, the_args)
 
-    let cmd = cmd_name + "(\"" + the_args.join(", ") + "\");"
-    console.log("Evaling: " + cmd)
-    globalThis.eval(cmd)
-
+        let cmd = cmd_name + "(\"" + the_args.join(", ") + "\");"
+        console.log("Evaling: " + cmd)
+        globalThis.eval(cmd)
+    }
+    else {console.log("started Job Engine without args.")} //not passed any real args so just do nothing.
 }
 
 function start_job(job_name){

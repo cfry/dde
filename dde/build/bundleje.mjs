@@ -36853,7 +36853,7 @@ class GrpcServer$1 {
     static sayHello(call, callback) {
         console.log("top of sayHello"); //prints out in je browser out pane whenever a message comes to the server
         let passed_in_string = call.request.name; //on command line.
-          // EX cmd line: node greeter_client.js "FRY YO"
+          // EX cmd line: node greeter_client.mjs "FRY YO"
           //then passed_in_string will be "FRY YO"  (without the double quotes).
           //default is "world"
         console.log(JSON.stringify(call));
@@ -36988,20 +36988,21 @@ globalThis.WebSocketServer = WebSocketServer$1;
 
 
 
-function run_node_command(args){
-    console.log("top of run_node_command with args:\n" + args);
-    debugger;
-
+function run_node_command(args) {
+    console.log("Hey, top of run_node_command with args:\n" + args);
     let cmd_name = args[2];
-    //let fn = eval(cmd_name)
-    let the_args = args.slice(3);
-    //console.log("cmd_name: " + cmd_name + " args: " + the_args)
-    //fn.apply(null, the_args)
+    console.log("run_node_command got cmd_name of: " + cmd_name);
+    if (!cmd_name.startsWith("undefined(")) {
+        //let fn = eval(cmd_name)
+        let the_args = args.slice(3);
+        //console.log("cmd_name: " + cmd_name + " args: " + the_args)
+        //fn.apply(null, the_args)
 
-    let cmd = cmd_name + "(\"" + the_args.join(", ") + "\");";
-    console.log("Evaling: " + cmd);
-    globalThis.eval(cmd);
-
+        let cmd = cmd_name + "(\"" + the_args.join(", ") + "\");";
+        console.log("Evaling: " + cmd);
+        globalThis.eval(cmd);
+    }
+    else {console.log("started Job Engine without args.");} //not passed any real args so just do nothing.
 }
 
 function define_and_start_job(job_file_path){

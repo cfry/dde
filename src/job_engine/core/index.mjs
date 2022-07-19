@@ -1,5 +1,5 @@
 console.log("top of file: " + "core.index.mjs")
-import "/Users/Fry/WebstormProjects/dde4/dde/build/bundle.js"
+import "/Users/Fry/WebstormProjects/dde4/dde/build/bundle.mjs"
 //global.dde_version = "4.0.0" //require("../package.json").version
 //global.dde_release_date = "Mar 8, 2022" //require("../package.json").release_date
 
