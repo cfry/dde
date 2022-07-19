@@ -1,8 +1,0 @@
-init_simulation errored with: TypeError: Class constructor Object3D cannot be invoked without 'new'
-    at MeshText2D.Text2D [as constructor] (http://localhost/build/bundle.js:124509:28)
-    at new MeshText2D (http://localhost/build/bundle.js:124705:23)
-    at Function.draw_table (http://localhost/build/bundle.js:129486:27)
-    at Function.createMeshGLTF (http://localhost/build/bundle.js:129095:31)
-    at Function.init_simulation (http://localhost/build/bundle.js:128995:40)
-    at Function.show_in_misc_pane (http://localhost/build/bundle.js:124024:26)
-    at http://localhost/build/bundle.js:416051:24
