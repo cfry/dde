@@ -92,7 +92,8 @@ function clearResourceTree(root)
             root.dispose()
         }
         catch
-        {}
+        {
+        }
     }
 }
 
@@ -152,13 +153,15 @@ function destroySimulation()
     try
     {
         destroy_mouse();
-    }
-    catch
-    {
-
-    }
+    }catch{}
+    
     clear_out_sim_graphics_pane_id();
     clearResourceTree(sim.scene);
+    try
+    {
+        sim.renderer.dispose();
+    }catch{}
+
     let hi_rez = sim.hi_rez; 
     sim = {};
     sim.hi_rez = hi_rez;

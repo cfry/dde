@@ -42,6 +42,13 @@ function clear_out_sim_graphics_pane_id(){
     }
 }
 
+function setSimPaneHTML(content)
+{
+    destroySimulation();
+    sim_pane_content_id = content;
+}
+
+
 var prev_make_instruction_src = undefined
 var init_sim_in_process = false
 //choose_file_path matters if select_val == "Choose File", and is only passed in
@@ -62,6 +69,11 @@ function set_misc_pane_menu_selection(label){
 
 
 function show_in_misc_pane(content, arg1 = "", arg2){
+    if(content!="Choose File")
+    {
+        destroySimulation();
+    }
+
     //if Choose File is called from outside dialog, and user cancels, we don't want to
     //change the combo_box value OR persistent save it.
     //But if user doesn't cancel, we DO want to change the combo box value, and,
@@ -72,6 +84,7 @@ function show_in_misc_pane(content, arg1 = "", arg2){
             $("#misc_pane_menu_id").jqxComboBox('unselectItem', "Choose File") //must do!
            // just let it fall through ////old: return show_in_misc_pane(content) //$('#misc_pane_menu_id').jqxComboBox('val', content) //causes show_in_misc_pane to be called with the chosen value
             set_misc_pane_menu_selection(content)
+            destroySimulation();
 
         }
         else { //user canceled from choose file dialog so don't persistent-save the value.
