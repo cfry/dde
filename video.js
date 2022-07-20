@@ -69,7 +69,7 @@ function set_misc_pane_menu_selection(label){
 
 
 function show_in_misc_pane(content, arg1 = "", arg2){
-    if(content!="Choose File")
+    if(content!="Choose File"&&content!="Simulate Dexter")
     {
         destroySimulation();
     }
