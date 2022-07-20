@@ -54,10 +54,79 @@ function make_sim_html()
 }
 
 var canSize;
+var simKilled = false;
 var goalRotation = {x:Math.PI*0.25,y:Math.PI*0.25};
 var goalPosition = {x:0,y:0,z:-1};
 var pRotation = {x:Math.PI*0.25,y:Math.PI*0.25};
 var pPosition = {x:0,y:0,z:-1};
+
+function clearResourceTree(root)
+{
+    if(root == undefined)
+    {
+        return;
+    }
+    if(root.material)
+    {
+        root.material.dispose();
+    }
+    if(root.geometry)
+    {
+        root.geometry.dispose();
+    }
+    if(root.children != undefined)
+    {
+        if(typeof(root.children.length) == "number")
+        {
+            for(let i = 0; i < root.children.length; i++)
+            {
+                clearResourceTree(root.children[i]);
+            }
+        }
+    }
+
+    if(root.dispose != undefined)
+    {
+        try
+        {
+            root.dispose()
+        }
+        catch
+        {}
+    }
+}
+
+
+
+let simMouseDownListener = function(event) {
+    sim.button = event.button
+    sim.mouseDown              = true
+    sim.shiftDown              = event.shiftKey
+    sim.altDown                = event.altKey
+    sim.mouseX_at_mouseDown    = event.clientX
+    sim.mouseY_at_mouseDown    = event.clientY
+    sim.tableX_at_mouseDown    = sim.table.position.x
+    sim.tableY_at_mouseDown    = sim.table.position.y
+    sim.zoom_at_mouseDown      = sim.camera.zoom
+    sim.rotationX_at_mouseDown = sim.table.rotation.x
+    sim.rotationY_at_mouseDown = sim.table.rotation.y
+};
+
+let simMouseMoveListener = function(event) {
+    if (sim.mouseDown){
+        sim.mouseX = event.clientX;
+        sim.mouseY = event.clientY;
+        sim_handle_mouse_move()
+        sim.renderer.render(sim.scene, sim.camera);
+    }
+};
+
+let simMouseUpListener = function(event) {
+    sim.mouseDown = false
+    sim.shiftDown = false
+    sim.altDown   = false
+};
+
 
 var sim = {} //used to store sim "global" vars
 sim.hi_rez = true
@@ -73,7 +142,30 @@ function init_simulation_maybe(){
 
     }
 }
+
+
+
+function destroySimulation()
+{
+    init_simulation_done = false;
+    simKilled = true;
+    try
+    {
+        destroy_mouse();
+    }
+    catch
+    {
+
+    }
+    clear_out_sim_graphics_pane_id();
+    clearResourceTree(sim.scene);
+    let hi_rez = sim.hi_rez; 
+    sim = {};
+    sim.hi_rez = hi_rez;
+}
+
 function init_simulation(){
+    simKilled = false;
   canSize  = 
   {
     width: misc_pane_id.clientWidth-50,
@@ -95,6 +187,7 @@ function init_simulation(){
     createLights()
     if(sim.hi_rez) { createMeshGLTF() }
     else           { createMeshBoxes() }
+    renderLoop();
   }
   catch(err){
           console.log("init_simulation errored with: " + err.stack)
@@ -302,7 +395,7 @@ function set_joints_in_sim(){
 
 //xyz is in dexter coords, ie z is UP
 function create_marker_mesh(xyz, rotxyz) { //radius, length, sides
-   let geom = new THREE.ConeGeometry( 0.05,    0.2,     8)
+   let geom = new THREE.ConeGeometry( 0.05,    0.2,     8);
    let mat  = new THREE.MeshPhongMaterial( { color: 0xFF0000} ); //normal material shows different color for each cube face, easier to see the 3d shape.
    let the_mesh = new THREE.Mesh(geom, mat)
    the_mesh.name = "marker"
@@ -521,34 +614,21 @@ function init_mouse(){
     sim.rotationX_at_mouseDown = 0
     sim.rotationY_at_mouseDown = 0
 
-    sim_graphics_pane_id.addEventListener("mousedown", function(event) {
-        sim.button = event.button
-        sim.mouseDown              = true
-        sim.shiftDown              = event.shiftKey
-        sim.altDown                = event.altKey
-        sim.mouseX_at_mouseDown    = event.clientX
-        sim.mouseY_at_mouseDown    = event.clientY
-        sim.tableX_at_mouseDown    = sim.table.position.x
-        sim.tableY_at_mouseDown    = sim.table.position.y
-        sim.zoom_at_mouseDown      = sim.camera.zoom
-        sim.rotationX_at_mouseDown = sim.table.rotation.x
-        sim.rotationY_at_mouseDown = sim.table.rotation.y
-    }, false);
+    sim_graphics_pane_id.addEventListener("mousedown", simMouseDownListener, false);
 
-    sim_graphics_pane_id.addEventListener('mousemove', function(event) {
-        if (sim.mouseDown){
-            sim.mouseX = event.clientX;
-            sim.mouseY = event.clientY;
-            sim_handle_mouse_move()
-            sim.renderer.render(sim.scene, sim.camera);
-        }
-    }, false);
+    sim_graphics_pane_id.addEventListener('mousemove', simMouseMoveListener, false);
 
-    sim_graphics_pane_id.addEventListener("mouseup", function(event) {
-        sim.mouseDown = false
-        sim.shiftDown = false
-        sim.altDown   = false
-    }, false);
+    sim_graphics_pane_id.addEventListener("mouseup", simMouseUpListener, false);
+}
+
+function destroy_mouse()
+{
+    sim_graphics_pane_id.removeEventListener("mousedown", simMouseDownListener, false);
+
+    sim_graphics_pane_id.removeEventListener('mousemove', simMouseMoveListener, false);
+
+    sim_graphics_pane_id.removeEventListener("mouseup", simMouseUpListener, false);
+
 }
 
 function draw_table(parent, table_width, table_length, table_height){
@@ -604,7 +684,7 @@ function draw_table(parent, table_width, table_length, table_height){
     x_text_mesh.rotation.z = -1.5708
     sim.table.add(x_text_mesh)
 
-    let y_text_mesh = new THREE_Text2D.MeshText2D(">> +Y", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true })
+    let y_text_mesh = new THREE_Text2D.MeshText2D(">> +Y", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true });
     y_text_mesh.name = "y_axis_label"
     y_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
     y_text_mesh.position.set(-0.2, 0.055, 0.11) //= THREE.Vector3(20, 8, -10)
@@ -797,6 +877,7 @@ function stl_init_viewer(){
         sim_graphics_pane_id.appendChild(sim.renderer.domElement);
 }
 
+//WARNING: If used, stl render should be called in renderLoop rather than by itself using requestAnimationFrame
 function stl_render(){
     requestAnimationFrame(stl_render)
     if (sim.mouseDown){
@@ -805,6 +886,7 @@ function stl_render(){
     sim.renderer.render(sim.scene, sim.camera);
 }
 
+//WARNING: If used, fbx render should be called in renderLoop rather than by itself using requestAnimationFrame
 function fbx_render(){
     requestAnimationFrame(fbx_render)
     if (sim.mouseDown){
@@ -818,21 +900,29 @@ function gltf_render(){
 //  if (sim.mouseDown){
 //      stl_sim_handle_mouse_move()
 //  }
-    updateRotation();
-    updatePosition();
-    sim.renderer.render(sim.scene, sim.camera);
-    if(!sim.renderFrozen)
+        updateRotation();
+        updatePosition();
+        sim.renderer.render(sim.scene, sim.camera);
+}
+
+
+function renderLoop()
+{
+    if(!sim.renderFrozen&&!simKilled)
     {
+        gltf_render();
+
         if(sim.renderSlowed)
         {
-            setTimeout(()=>{requestAnimationFrame(gltf_render)},250);
+            setTimeout(()=>{requestAnimationFrame(renderLoop)},250);
         }
         else
         {
-            requestAnimationFrame(gltf_render);
+            requestAnimationFrame(renderLoop);
         }
     }
 }
+
 
 function stl_init_mouse(){
     sim.mouseX_at_mouseDown    = 0
@@ -962,7 +1052,7 @@ function updateFrozen(ele)
     sim.renderFrozen = ele.checked;
     if(!sim.renderFrozen)
     {
-        gltf_render();
+        renderLoop();
     }
 }
 function updateSlow(ele)
