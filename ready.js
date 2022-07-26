@@ -281,6 +281,11 @@ $("#cmd_input_id").keyup(function(event){ //output pane  type in
             cmd_input_id.value = new_src
         }
     }
+    else if (event.keyCode === 8){ //delete key
+        if (js_cmds_index < js_cmds_array.length) {
+            js_cmds_index = js_cmds_array.length
+        }
+    }
     cmd_input_id.focus()
 })
 //cmd_input_id.onblur = function(){

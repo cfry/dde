@@ -44,10 +44,21 @@ Dexter.prototype.defaults_read = function(callback = null){
                                              "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.")
                         }
                         else {
-                            the_dex_inst.defaults_set_lines_from_string(content)
-                            the_dex_inst.defaults_lines_to_high_level()
-                            if(callback) {
-                                callback.call(the_dex_inst, null)
+                            try {
+                                the_dex_inst.defaults_set_lines_from_string(content)
+                                the_dex_inst.defaults_lines_to_high_level()
+                                if (callback) {
+                                    callback.call(the_dex_inst, null)
+                                }
+                            }
+                            catch(err) {
+                                let defaults_copy = JSON.parse(JSON.stringify(Dexter.defaults))
+                                the_dex_inst.defaults = defaults_copy
+                                warning("Could not parse Defaults.make_ins due to:<br/>" +
+                                     err.message +
+                                    "<br/>so Dexter." + the_dex_inst.name +
+                                    ".defaults has been set to a copy of Dexter.defaults."
+                                )
                             }
                         }
         })
@@ -854,62 +865,87 @@ Dexter.prototype.defaults_line_to_high_level = function(line, line_number="unkno
     if(!this.defaults) { this.defaults = {} } //usually unnecessary but safer
     let parsed_line = Dexter.defaults_parse_line(line, line_number)
     let low_key = parsed_line.key
-    if      (parsed_line.kind === "invalid")    {} //ignore
-    else if (parsed_line.kind === "blank_line") {} //ignore
-    else if (parsed_line.kind === "coloned_comment_prop") {
-        this.defaults[parsed_line.key] = parsed_line.value_array[0]
-    }
-    else if (parsed_line.kind === "colonless_comment_prop") {
-        this.defaults[parsed_line.key] = parsed_line.value_array[0]
+    let high_key = low_key
+    let high_value
+    if      (parsed_line.kind  === "invalid")    {} //ignore
+    else if (parsed_line.kind  === "blank_line") {} //ignore
+    else if ((parsed_line.kind === "coloned_comment_prop") ||
+             (parsed_line.kind === "colonless_comment_prop")) {
+        if(parsed_line.value_array) {high_value = parsed_line.value_array[0]}
+        else                        {
+            high_value = Dexter.defaults[high_key]
+            warning("While parsing the Defaults.make_ins file,<br/>" +
+                "there is no value for the comment_property key: " + low_key +
+                "<br/>so we're using the value from Dexter.default." + high_key +
+                "<br/>which is: " + high_value)
+        }
+        this.defaults[high_key] = high_value
     }
     else if (parsed_line.kind === "whole_line_comment") {} //ignore
     else if (parsed_line.kind === "S_param") {
-        let low_key = parsed_line.key
-        let ins_arr = []
-        ins_arr[Instruction.INSTRUCTION_TYPE] = "S"
-        //ins_arr.push(parsed_line.key) //arg0, the param name
-        ins_arr[Instruction.INSTRUCTION_ARG0] = low_key
-        ins_arr = ins_arr.concat(parsed_line.value_array)
-        let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this)
-        let val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1) //the high_val array
-        parsed_line.high_value_array = val_arr
-        if(low_key === "JointDH"){
-            let joint_number = parsed_line.value_array[0] //the low value_array
-            if(!this.defaults.dh_mat) { this.defaults.dh_mat = [] }
-            let four_val_array = val_arr.slice(1) //take off the joint_number on the beginning of the array
-            this.defaults.dh_mat[joint_number - 1] = four_val_array
+        if(!parsed_line.value_array) { //grab default from Dexter class
+            high_value = Dexter.defaults[high_key]
+            if(high_value === undefined){
+                warning("While parsing the Defaults.make_ins file,<br/>" +
+                    "there is no value for the S_param key: " + low_key +
+                    "<br/>and there's no value from Dexter.default." + high_key +
+                    "<br/>so we're ignoring: " + low_key)
+            }
+            this.defaults[high_key] = high_value
+            warning("While parsing the Defaults.make_ins file,<br/>" +
+                "there is no value for the S_param key: " + low_key +
+                "<br/>so we're using the value from Dexter.default." + high_key +
+                "<br/>which is: " + high_value)
         }
-        else if (low_key === "LinkLengths") { //array of 5, but needs to be reversed
-            let val = parsed_line.high_value_array.slice() //make a copy
-            val.reverse() //copies in place
-            this.defaults[low_key] = val
-        }
-        else if (["RebootServo", "ServoSetX", "ServoSet2X"].includes(low_key)){
-            if(!this.defaults.ServoSetup) { this.defaults.ServoSetup = [] }
-            let obj = {}
-            let high_key  = "S" + Dexter.defaults_arg_sep + low_key
-            obj[high_key] = parsed_line.high_value_array
-            obj.orig_line = line_number
-            this.defaults.ServoSetup.push(obj)
-        }
-        else if (Dexter.defaults_is_j_key(low_key)) {
-            let [high_key, joint_number] = Dexter.defaults_j_key_to_high_key(low_key)
-            if(!this.defaults[high_key]) { this.defaults[high_key] = [] }
-            this.defaults[high_key][joint_number - 1] = parsed_line.high_value_array[0]
-        }
-        else if(val_arr.length === 1) { this.defaults[low_key] = parsed_line.high_value_array[0] }
-        else if(val_arr.length === 2) {
-            let val = parsed_line.high_value_array[0]
-            let joint_number = parsed_line.value_array[1] //use low value here
-            if(!this.defaults[parsed_line.key]) { this.defaults[low_key] = [] }
-            this.defaults[low_key][joint_number - 1] = val
-        }
-        else if(val_arr.length > 2) {
-            this.defaults[parsed_line.key] = parsed_line.high_value_array
+        else { //use value from the low level.
+            let ins_arr = []
+            ins_arr[Instruction.INSTRUCTION_TYPE] = "S"
+            ins_arr[Instruction.INSTRUCTION_ARG0] = low_key
+            ins_arr = ins_arr.concat(parsed_line.value_array)
+            let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this)
+            let val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1) //the high_val array
+            parsed_line.high_value_array = val_arr
+            if (low_key === "JointDH") {
+                let joint_number = parsed_line.value_array[0] //the low value_array
+                if (!this.defaults.dh_mat) {
+                    this.defaults.dh_mat = []
+                }
+                let four_val_array = val_arr.slice(1) //take off the joint_number on the beginning of the array
+                this.defaults.dh_mat[joint_number - 1] = four_val_array
+            } else if (low_key === "LinkLengths") { //array of 5, but needs to be reversed
+                let val = parsed_line.high_value_array.slice() //make a copy
+                val.reverse() //copies in place
+                this.defaults[low_key] = val
+            } else if (["RebootServo", "ServoSetX", "ServoSet2X"].includes(low_key)) {
+                if (!this.defaults.ServoSetup) {
+                    this.defaults.ServoSetup = []
+                }
+                let obj = {}
+                high_key = "S" + Dexter.defaults_arg_sep + low_key
+                obj[high_key] = parsed_line.high_value_array
+                obj.orig_line = line_number
+                this.defaults.ServoSetup.push(obj)
+            } else if (Dexter.defaults_is_j_key(low_key)) {
+                let [high_key, joint_number] = Dexter.defaults_j_key_to_high_key(low_key)
+                if (!this.defaults[high_key]) {
+                    this.defaults[high_key] = []
+                }
+                this.defaults[high_key][joint_number - 1] = parsed_line.high_value_array[0]
+            } else if (val_arr.length === 1) {
+                this.defaults[low_key] = parsed_line.high_value_array[0]
+            } else if (val_arr.length === 2) {
+                let val = parsed_line.high_value_array[0]
+                let joint_number = parsed_line.value_array[1] //use low value here
+                if (!this.defaults[parsed_line.key]) {
+                    this.defaults[low_key] = []
+                }
+                this.defaults[low_key][joint_number - 1] = val
+            } else if (val_arr.length > 2) {
+                this.defaults[parsed_line.key] = parsed_line.high_value_array
+            }
         }
     }
     else if (parsed_line.kind === "oplet_instruction"){ //"z", mayby "a"
-        let high_key = low_key
         if(parsed_line.value_array.length === 1){ //primarily for z oplet
             let ins_arr = []
             ins_arr[Instruction.INSTRUCTION_TYPE] = low_key

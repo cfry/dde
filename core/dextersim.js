@@ -67,6 +67,22 @@ DexterSim = class DexterSim{
         //DexterSim.set_interval_id = setInterval(DexterSim.process_next_instructions, 10)
     }
 
+    //called by Socket.send when reboot_robot sent
+    //After Dexter is sent a reboot instruction, it continues to run the items in its queue,
+    //but does not accept new instructions, so simulate that.
+    static uninit(robot_name, tries=0){
+        let dexsim = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
+       if(dexsim.queue_instance.is_queue_empty() || (tries === 80)) { //80 * 200 = 16 secs. If the queue hasn't empied by that time, kill it anyway
+           setTimeout(function() {
+               delete DexterSim.robot_name_to_dextersim_instance_map[robot_name]
+           }, 4000) //Give the last instruction in  the queue a chance to finish, then kill it
+       }
+       else {
+           setTimeout(function(){DexterSim.uninit(robot_name, tries + 1)},
+                      200)
+       }
+    }
+
     init(sim_actual){
         this.sim_actual = sim_actual
         this.queue_instance = new Simqueue(this)
@@ -213,8 +229,15 @@ DexterSim = class DexterSim{
                 ds_instance.ack_reply(instruction_array)
                 break;
             case "r": //Dexter.read_file. does not go on queue
-                let payload_string_maybe = ds_instance.process_next_instruction_r(instruction_array)
-                ds_instance.ack_reply(instruction_array, payload_string_maybe)
+                let is_reboot_inst = Dexter.is_reboot_instruction(instruction_array)
+                if (is_reboot_inst) { //don't do ack_reply as the actual robot doesn't send back a robot status
+                    DexterSim.uninit(robot_name) //its over for this Dexter.
+                    warning("Rebooting simulated Dexter." + robot_name + " due to running reboot instruction.")
+                }
+                else {
+                    let payload_string_maybe = ds_instance.process_next_instruction_r(instruction_array)
+                    ds_instance.ack_reply(instruction_array, payload_string_maybe)
+                }
                 break;
             case "S":
                 let param_name = ins_args[0]

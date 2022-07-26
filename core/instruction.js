@@ -3047,6 +3047,7 @@ Instruction.wait_until = class wait_until extends Instruction{
         else if (typeof(fn_date_dur) == "number")  {}
         else if (fn_date_dur instanceof Duration)  { this.fn_date_dur = fn_date_dur.to_seconds() }
         else if (this.fn_date_dur == "new_instruction"){}
+        else if (this.fn_date_dur instanceof Job) {}
         else if (Array.isArray(this.fn_date_dur) ||
                  (typeof(this.fn_date_dur) == "object")){
                  if(!Job.instruction_location_to_job(this.fn_date_dur, false)){

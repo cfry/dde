@@ -2136,6 +2136,17 @@ Dexter.move_to_straight = function({xyz          = "required",
                                                     robot: robot})
 }
 
+Dexter.reboot_robot           = function(){ return make_ins("r", 0, "`reboot") }
+Dexter.prototype.reboot_robot = function(){ return make_ins("r", 0, "`reboot", this) }
+Dexter.is_reboot_instruction  = function (inst){
+    return Array.isArray(inst) &&
+        inst.length === 7 &&
+        inst[Instruction.INSTRUCTION_TYPE] === "r" &&
+        inst[Instruction.INSTRUCTION_ARG0] === 0 &&
+        inst[Instruction.INSTRUCTION_ARG1].endsWith("reboot") &&
+        inst[Instruction.INSTRUCTION_ARG1].startsWith("`")
+}
+
 Dexter.record_movement           = function(...args){ return make_ins("m", ...args) }
 Dexter.prototype.record_movement = function(...args){ args.push(this); return Dexter.record_movement(...args) }
 
@@ -2561,7 +2572,8 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null) {
     let sim_actual = Robot.get_simulate_actual(this.simulate)
     if (job_to_start_when_done && (job_to_start_when_done.name === "set_link_lengths")) {
         this.start_aux(job_to_start_when_done)
-    } else if (job_to_start_when_done.get_dexter_defaults) {
+    }
+    else if (job_to_start_when_done.get_dexter_defaults) {
         if (sim_actual !== true) { //ie "real"
             if (node_server_supports_editor(this)) {
                 this.set_link_lengths_using_node_server(job_to_start_when_done)
@@ -2711,7 +2723,7 @@ Dexter.prototype.set_link_lengths_using_job = function(job_to_start){
     ssl_job.start()
 }
 */
-
+/* no longer callaed
 Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
     let path = dde_apps_folder + "/dexter_file_systems/"  + this.name + "/Defaults.make_ins"
     if(file_exists(path)) {
@@ -2748,6 +2760,8 @@ Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
     }
 }
 
+
+ */
 //content is the content of a Defaults.make_ins file
 //sets link lengths as well as any other params in the file.
 Dexter.prototype.set_link_lengths_from_file_content = function(content) {

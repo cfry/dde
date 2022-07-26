@@ -6952,7 +6952,28 @@ the number of a joint to reboot. The only permissible numbers as of March, 2021 
 })    </code></pre>
 </details>
 
-<details id="Dexter.run_gcode_doc_id" class="doc_details"><summary>run_gcode</summary>
+<details id="Dexter.reboot_robot_doc_id" class="doc_details"><summary>reboot_robot</summary>
+    It is rare when you want to programmatically reboot a robot, but we provide
+    an instruction for doing that, just in case. Its the software equivalent of
+    power-cycling the robot. This instruction works in the simulator too.
+    <br/></br/>
+    There is an exception to the power-cycle functionality.
+    The <code>Dexter.reboot_robot</code> instruction will allow the robot
+    to complete the instructions in its queue,
+    but will not allow DDE to add new instructions to the queue after the instruction
+    is run. So this is not "immediately stop everything". But no more instructions in the
+    containing Job will be run, though the job will "complete" without an error.
+    The Job button will turn purple because this is the designed behavior.
+    However, a warning message is printing in the Output pane to let you know that
+    this is not a <i>normal</i> way to end a job, though it is valid.
+    <br/></br/>
+    <i>Examples:</i><br/>
+    <code>Dexter.reboot_robot()</code>
+    Reboot's the Job's default Dexter. To reboot a different robot, for example:<br/>
+    <code title="not in TestSuite.">Dexter.dexter1.reboot_robot()</code>
+</details>
+
+        <details id="Dexter.run_gcode_doc_id" class="doc_details"><summary>run_gcode</summary>
 This instruction accepts the name of a file as input and creates additional instructions 
 to move Dexter to "draw the lines" indicated by the gcode file. Most of
 the instructions created are <code>Dexter.move_to</code> instructions.
