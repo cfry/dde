@@ -5,6 +5,31 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 3.8.8, Jul 26, 2022</summary>
+    Highlights: Fixes and robustification of parsing the Defaults.make_ins file.
+    New Instruction: Dexter.reboot_robot.
+<ul>
+    <li><code>WebSocketServer</code> is now a global variable.</li>
+    <li>Misc pane header now has check boxes for slowing down the simulator's frame rate.</li>
+    <li>Parsing of <code>Defaults.make_ins</code> file bug fixed
+        for when a key is given but no value as happened with <code>Manufacture Location</code>
+    Now such missing values default to the corresponding values in Dexter.defaults.
+    A warning is printed so you know that Defaults.make_ins should probably be updated.</li>
+    <li>Parsing of <code>Defaults.make_ins</code> file protection against erroring and
+        defaulting to <code>Dexter.defaults</code> if you do get an error. </li>
+        Shows warning to user if the defaults are used.
+    <li>Removed incorrect warning when <code>Control.wait_until</code>
+        is called with a Job argument.</li>
+    <li>When editing the command line, if you delete the last char,
+    the "pointer" into the history is moved to a new last position so
+    that you're ready to add a new item into the history.
+    This makes it less likely that you lose items that you type in.</li>
+    <li>New Instruction: <code>Dexter.reboot_robot</code> is a way that a job can
+        programmatically power-cycle the robot.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.8.7, Jun 22, 2022</summary>
     Please see release notes for v 3.8.6
 </details>
