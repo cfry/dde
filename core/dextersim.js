@@ -55,6 +55,10 @@ DexterSim = class DexterSim{
             sim_inst.init(sim_actual)
         }
         else {
+            let cur_dex_inst_of_name = Dexter[robot_name]
+            sim_inst.robot = cur_dex_inst_of_name //because if the user redefined the robot of that name
+            //since the last time they made a DexterSim instance, sim_inst will have the old dexter inst,
+            //so we need to update it.
             sim_inst.sim_actual = sim_actual
         }
         //if (sim_actual === true) { //do not call new_socket_callback if simulate is "both" because we don't want to call it twice
@@ -371,7 +375,11 @@ DexterSim = class DexterSim{
            robot_status_array[Dexter.J4_SENT] = j1_5_arcsecs[3]
            robot_status_array[Dexter.J5_SENT] = j1_5_arcsecs[4]
            //unfortunately g0 doesn't support J6_SENT or J7_SENT
-        } 
+        }
+
+        if(this.status_mode === 1){
+            //needs work
+        }
          
         if (this.sim_actual === true){
             let dexter_instance = this.robot  //for closure variable
