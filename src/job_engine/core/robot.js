@@ -2193,6 +2193,19 @@ Dexter.move_to_straight = function({xyz          = "required",
                                                     robot: robot})
 }
 
+Dexter.reboot_robot           = function(){ return make_ins("r", 0, "`reboot") }
+Dexter.prototype.reboot_robot = function(){ return make_ins("r", 0, "`reboot", this) }
+Dexter.is_reboot_instruction  = function (inst){
+    return Array.isArray(inst) &&
+           inst.length === 7 &&
+           inst[Instruction.INSTRUCTION_TYPE] === "r" &&
+           inst[Instruction.INSTRUCTION_ARG0] === 0 &&
+           inst[Instruction.INSTRUCTION_ARG1].endsWith("reboot") &&
+           inst[Instruction.INSTRUCTION_ARG1].startsWith("`")
+}
+
+make_ins("r", 0, "`reboot")
+
 Dexter.record_movement           = function(...args){ return make_ins("m", ...args) }
 Dexter.prototype.record_movement = function(...args){ args.push(this); return Dexter.record_movement(...args) }
 

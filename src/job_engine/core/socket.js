@@ -494,7 +494,7 @@ class Socket{
     }
 
     static send(robot_name, oplet_array_or_string){ //can't name a class method and instance method the same thing
-
+        let is_reboot_inst = Dexter.is_reboot_instruction(oplet_array_or_string)
         let rob = Robot[robot_name]
         let oplet_array_or_string_du = Socket.instruction_array_degrees_to_arcseconds_maybe(oplet_array_or_string, rob)
         let job_id = Instruction.extract_job_id(oplet_array_or_string)
@@ -537,6 +537,10 @@ class Socket{
             if(sim_inst) {
                 setTimeout( function() { //eqiv to net_soc_inst.write(arr_buff) below.
                     DexterSim.send(robot_name, str) //dde3 used to use arr_buff for the 2nd arg.
+                    if(is_reboot_inst) {
+                        job_instance.stop_for_reason("completed", "Dexter.reboot_robot instruction sent.")
+                        DexterSim.uninit(robot_name)
+                    }
                 }, 1)}
             else {
                 Socket.close(robot_name, true) //both are send args
@@ -554,6 +558,11 @@ class Socket{
                     net_soc_inst.send(str) //dde4
                     //console.log("Socket.send just sent:     " + str)
                     //this.stop_job_if_socket_dead(job_id, robot_name)
+                    if(is_reboot_inst){
+                        job_instance.stop_for_reason("completed", "Dexter.reboot_robot instruction sent.")
+                        warning("Rebooting Dexter." + robot_name + " due to running reboot instruction.")
+                        delete Socket.robot_name_to_soc_instance_map.robot_name
+                    }
                     return
                 }
                 catch(err) {

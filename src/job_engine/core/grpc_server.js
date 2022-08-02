@@ -54,7 +54,7 @@ class GrpcServer {
                                        {job:    "wait_for_instruction",
                                         offset: "end"
                                        })
-                console.log("Inserted Instruction: passed_in_string")
+                console.log("Inserted Instruction: passed_in_string: " + passed_in_string)
             }
             mess = "Running Instruction: " + passed_in_string + "\nstatus: [" +
                     Dexter.dexter0.robot_status + "]"

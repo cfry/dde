@@ -331,7 +331,7 @@ class RobotStatus{
             for(let i = 0; i < 7; i++){
                 let new_val = array_of_measured_angles[i]
                 if(!raw) { new_val = new_val * 3600 } //usual
-                rs_array[10 + i] = new_val
+                rs_array[Dexter.J1_MEASURED_ANGLE_G1 + i] = new_val
             }
         }
         else if(sm === 2) { //angles in rs_array are in degrees
