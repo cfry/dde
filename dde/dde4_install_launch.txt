@@ -85,12 +85,12 @@ First check to see if you need the new version of node:
        (old versions of Node 11 should be updated to version 16
        via the below instructions)
 
-If the node version is not at least 18.0.0 then do the following steps:
+If the node version is not 17.9.0 then do the following steps:
 
 - Browse: nodejs.org/dist/v17.9.0/ (v 18 won't run on Dexter Ubuntu 16
    due to out of date GLIBC C compiler @#$% not easy to install GLIBC.
-    click:  node-v16.13.1-linux-armv7l.tar.xz
-    This is for Dexter's arm71 processor. Its 17Mbytes. Now in fry downloads folder.
+    click:  node-v17.9.0-linux-armv7l.tar.xz
+    This is for Dexter's arm71 processor. Its 19Mbytes. Now in fry downloads folder.
      
 
 - Untar this file.
@@ -141,7 +141,7 @@ The Node server requires 2 extra npm packages:
 formidable  and ModbusRTU, but these should
 already be on your Dexter.
 
-______Install ws nd other npm packages on Dexter_______
+______Install ws and other npm packages on Dexter_______
 From above, you should have node_modules/ws installed.
 (Its hard to find the correct node__modules folder).
 Under it should be a ws folder and under it a package.json file
@@ -233,6 +233,10 @@ ___________Starting DDE4___________
 For Server on MacOS or WinOS to launch DDE:
   - In the Chrome Web browser, browse: localhost/dde/index.html
     (stick this URL in the Favorites bar for quick launches.)
+
+  - OR In the Chrome Web browser, browse: localhost
+    and get a page of the "apps" on Dexter.
+    click on dde4
 
 For Server on Dexter to launch DDE:
   - In the Chrome Web browser, browse: 192.168.1.142/dde/index.html 

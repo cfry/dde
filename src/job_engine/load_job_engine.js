@@ -1,3 +1,5 @@
+//this file only used when Job Engie is used as part of DDE IDE
+
 //start of Job Engine imports
 
 globalThis.dde_version      = "not inited"
@@ -5,6 +7,12 @@ globalThis.dde_release_date = "not inited"
 globalThis.operating_system = "not inited" //"mac", "win" or "linux"(for Ubuntu)  bound in both ui and sandbox by ready
 globalThis.dde_apps_folder  = "not inited"
 globalThis.platform         = "not inited" //"dde" or "node"
+
+globalThis.default_default_ROS_URL           = "localhost:9090"
+globalThis.default_default_dexter_ip_address = "192.168.1.142"
+globalThis.default_default_dexter_port       = 50000
+
+
 
 globalThis.keep_alive_value = false //true
 

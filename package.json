@@ -44,6 +44,7 @@
     "i": "^0.3.7",
     "jqwidgets-scripts": "^12.2.1",
     "js-beautify": "^1.14.0",
+    "litegraph.js": "^0.7.10",
     "mark.js": "^8.11.1",
     "minimist": "^1.2.6",
     "modbus-serial": "^8.0.5",

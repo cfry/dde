@@ -4,7 +4,7 @@
 
 // This file has dom manipulation code having to do with blocks
 
-import {make_dom_elt} from "../job_engine/core/html_db.js"
+//import {make_dom_elt} from "../job_engine/core/html_db.js" //don't do in dde4
 
 var block_left_triangle  = "&#9664;" //used for open delimiter for path
 

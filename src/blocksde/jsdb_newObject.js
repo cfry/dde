@@ -7,7 +7,7 @@
 */
 
 import {newObject, Root} from "../job_engine/core/object_system.js"
-import {make_dom_elt} from "../job_engine/core/html_db.js"
+//import {make_dom_elt} from "../job_engine/core/html_db.js" //don't do in dde4
 
 function blocks_jsdb_init(){
 newObject({
@@ -820,6 +820,7 @@ newObject({prototype: Root.jsdb,
         if (typeof(path_elements) == "string")  { path_elements = path_elements.split(".") } //turns a string of 1 or more dot separated path element into an array of identifiers
         let last_elt = last(path_elements)
         let processed_path_elts = []
+        let path_val_elt
         for(let path_elt of path_elements){
             let param_val_elt
             if (is_block(path_elt)) {
@@ -1811,14 +1812,13 @@ newObject({prototype: Root.jsdb,
             result += ")"
             return result
         },
-    click_help_string(block_elt){
+        click_help_string: function(block_elt){
         let block_args = html_db.dom_elt_descendant_of_classes(block_elt,
             ["block_always_relative", "block_args"])
         let children = block_args.children
         for (let child of children){
            if (child.classList.contains("operators")){
                 return Root.jsdb.clean_select_value(child.value) //will be  a string
-                result += " " + val
             }
         }
         //we couldn't find an operator so just to not error here and try
@@ -1827,7 +1827,7 @@ newObject({prototype: Root.jsdb,
         return ["<code>" + src + "</code><br/> uses JavaScript infix operators."]
     },
 
-    infix_sub_kind(operator){
+    infix_sub_kind: function (operator){
         //all of the items in operator_choices have th actual operator followed by &nbsp;
         //its not good enough to see if each operator_choices string starts with
         //the operator because of operators < and << for instance,
@@ -2935,6 +2935,8 @@ newObject({prototype: Root.jsdb.method_call,
     params: {array_of_5_angles: Root.jsdb.literal.array.array5}
 })
 }
+
+globalThis.blocks_jsdb_init = blocks_jsdb_init
 
 
 

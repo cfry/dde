@@ -47,6 +47,7 @@ import "codemirror/addon/fold/comment-fold.js"
 
 import "shepherd.js/dist/css/shepherd.css"
 
+
 import "./styles.css"
 
 import {w3} from "../third_party/w3.js"
@@ -140,6 +141,9 @@ import "../music/phrase.js" //defines global class Phrase
 import "./gamepad.js"       //defined global class GamePad
 
 import "./lesson.js" //defines global Lesson
+import "../HCA/HCA_ui.js" //defines global HCA
+import "../HCA/HCA_objects.js"
+import "../blocksde/init.js"
 
 
 
@@ -1723,7 +1727,7 @@ window_modify_id.onclick=function(){Editor.insert(
          //PatchDDE.init()  //todo dde4 needs file system
 
 
-         //dde_init_dot_js_initialize()//todo dde4 needs file system  //must occcur after persistent_initialize
+         DDE_DB.dde_init_dot_js_initialize()//todo dde4 needs file system  //must occcur after persistent_initialize
 
          Dexter.default = (Dexter.dexter0 ?  Dexter.dexter0 : null )
          //initialize the checkbox state

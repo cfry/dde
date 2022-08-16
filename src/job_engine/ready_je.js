@@ -1,4 +1,9 @@
+///the ifle only used by Job Engine when it is running by itself
 console.log("top of ready_je.js")
+
+globalThis.default_default_ROS_URL           = "localhost:9090"
+globalThis.default_default_dexter_ip_address = "192.168.1.142"
+globalThis.default_default_dexter_port       = 50000
 
 import grpc from '@grpc/grpc-js'
 globalThis.grpc = grpc
@@ -140,7 +145,7 @@ async function on_ready_je(){
     set_operating_system()
     console.log("globalThis.operating_system is now: " + globalThis.operating_system)
     globalThis.platform = "node"
-    console.log("init_job_engine: " + init_job_engine)
+    //console.log("init_job_engine: " + init_job_engine)
     await init_job_engine()
 
     //below 3 are same as on_ready. This must be after loading series, which is only for dde IDE,

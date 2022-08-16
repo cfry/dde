@@ -1,8 +1,12 @@
-global.dde_version = "3.8.0" //require("../package.json").version
-global.dde_release_date = "Jul 23, 2021" //require("../package.json").release_date
+global.dde_version = "4.0.0" //require("../package.json").version
+global.dde_release_date = "Aug 1, 2022" //require("../package.json").release_date
 
-// import os from 'os' //todo
-//const {exec} = require('child_process') //todo //not an npm module.
+global.default_default_ROS_URL           = "localhost:9090"
+global.default_default_dexter_ip_address = "192.168.1.142"
+global.default_default_dexter_port       = 50000
+
+import os from 'os'
+const {exec} = require('child_process') //todo //not an npm module.
 
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
@@ -10,9 +14,10 @@ console.log("dde_version: " + global.dde_version + " dde_release_date: " + globa
 
 console.log("in file: " + module.filename)
 function node_on_ready() {
-    console.log("top of node_on_ready\n")
-    global.operating_system = os.platform().toLowerCase() //for Ubuntu, ths returns "linux"
-
+    console.log("top of node_on_ready  2\n")
+    globalThis.operating_system = os.platform().toLowerCase() //for Ubuntu, ths returns "linux"
+    console.log("has globalThis.operating_system: " + globalThis.operating_system)
+    console.log("has exec: " + exec)
     if      (operating_system == "darwin")       { operating_system = "mac" }
     else if (operating_system.startsWith("win")) { operating_system = "win" }
     try{dde_apps_folder}
@@ -120,6 +125,7 @@ function run_shell_cmd(cmd_string, options={}, cb=run_shell_cmd_default_cb){
     exec(cmd_string, options, cb)
 }
 
+/*
 import {adjust_path_to_os, append_to_file,
     choose_file, choose_save_file, choose_file_and_get_content, choose_folder,
     copy_file_async, copy_folder_async,
@@ -129,6 +135,7 @@ import {adjust_path_to_os, append_to_file,
     is_folder, load_files,
     make_folder, make_full_path, make_unique_path,
     read_file, read_file_async, write_file, write_file_async} from './storage.js'
+ */
 
 import {Root} from "./object_system.js"
 import Coor   from "../math/Coor.js"

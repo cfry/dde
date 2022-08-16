@@ -11,7 +11,13 @@
            )
 */
 
-import {make_dom_elt} from "../job_engine/core/html_db.js"
+import "./workspace.js"
+import "./category_newObject.js"
+import "./blocks2.js"
+import "./jsdb_newObject.js"  //should be after blocks2.js
+import "./js2b.js"
+
+//import {make_dom_elt} from "../job_engine/core/html_db.js" //in DDE4, make_dom_elt is global so don't attempt to import int
 import beautify from "js-beautify"
 
 //called from dde_init.js IFF we're in dde platform.
@@ -40,6 +46,8 @@ function blocks_init(){
     blocks_jsdb_init()
 }
 
+globalThis.blocks_init = blocks_init
+
 function make_blocksde_dom_elt(){
   return make_dom_elt("div", {id:"blocksde_id", width:"100%", height:"100%"},
 `<div id="category_menu_id"
@@ -67,7 +75,7 @@ function make_blocksde_dom_elt(){
 // onmouseup="Workspace.toolkit_bar_mouseup(event)"
 var the_codemirror_elt = null
 var blocksde_dom_elt   = null
-var HCA_dom_elt       = null
+var HCA_dom_elt        = null
 
 
 
@@ -106,6 +114,8 @@ function change_code_view_kind(event){
 
     }
 }
+
+globalThis.change_code_view_kind = change_code_view_kind
 
 function js_to_blocks(){
         out("installing blocks")

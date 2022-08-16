@@ -56,6 +56,7 @@ var dependencies = {
 	i: "^0.3.7",
 	"jqwidgets-scripts": "^12.2.1",
 	"js-beautify": "^1.14.0",
+	"litegraph.js": "^0.7.10",
 	"mark.js": "^8.11.1",
 	minimist: "^1.2.6",
 	"modbus-serial": "^8.0.5",
@@ -3988,14 +3989,14 @@ J3.get_orientation(cube)
 //Started: 6_23_17
 //Updated: 6_29_17
 
-function sind$1(theta){
+function sind(theta){
 	if(theta%180 == 0){
     	return 0
     }
 	return Math.sin(theta*Math.PI/180)
 }
 
-function cosd$1(theta){
+function cosd(theta){
 	if((theta+90)%180 == 0){
     	return 0
     }
@@ -4903,8 +4904,8 @@ class Vector$1{
                 if(Vector$1.is_equal(short_vector, point)){
             		result[i] = short_vector;
             	}else {
-                	term_1 = Vector$1.multiply(cosd$1(theta), short_vector);
-            		term_2 = Vector$1.multiply(sind$1(theta), Vector$1.cross(Vector$1.shorten(plane), short_vector));
+                	term_1 = Vector$1.multiply(cosd(theta), short_vector);
+            		term_2 = Vector$1.multiply(sind(theta), Vector$1.cross(Vector$1.shorten(plane), short_vector));
                 	result[i] = Vector$1.add(Vector$1.multiply(Vector$1.magnitude(short_vector),  Vector$1.normalize(Vector$1.add(term_1, term_2))), point);
                 }
             }
@@ -4913,8 +4914,8 @@ class Vector$1{
             if(Vector$1.magnitude(Vector$1.cross(short_vector, plane)) < 1e-10){
             	return short_vector
             }
-            term_1 = Vector$1.multiply(cosd$1(theta), short_vector);
-            term_2 = Vector$1.multiply(sind$1(theta), Vector$1.cross(Vector$1.shorten(plane), short_vector));
+            term_1 = Vector$1.multiply(cosd(theta), short_vector);
+            term_2 = Vector$1.multiply(sind(theta), Vector$1.cross(Vector$1.shorten(plane), short_vector));
             result = Vector$1.add(Vector$1.multiply(Vector$1.magnitude(short_vector),  Vector$1.normalize(Vector$1.add(term_1, term_2))), point);
         }
         return result
@@ -6002,22 +6003,22 @@ class Vector$1{
         let x_vector, y_vector, z_vector;
     	switch(axis_of_rotation){
         	case "X":
-            	trans_matrix[1][1] = cosd$1(angle);
-                trans_matrix[2][2] = cosd$1(angle);
-                trans_matrix[2][1] = sind$1(angle);
-                trans_matrix[1][2] = -sind$1(angle);
+            	trans_matrix[1][1] = cosd(angle);
+                trans_matrix[2][2] = cosd(angle);
+                trans_matrix[2][1] = sind(angle);
+                trans_matrix[1][2] = -sind(angle);
                 break
             case "Y":
-            	trans_matrix[0][0] = cosd$1(angle);
-                trans_matrix[2][2] = cosd$1(angle);
-                trans_matrix[0][2] = sind$1(angle);
-                trans_matrix[2][0] = -sind$1(angle);
+            	trans_matrix[0][0] = cosd(angle);
+                trans_matrix[2][2] = cosd(angle);
+                trans_matrix[0][2] = sind(angle);
+                trans_matrix[2][0] = -sind(angle);
             	break
             case "Z":
-            	trans_matrix[0][0] = cosd$1(angle);
-                trans_matrix[1][1] = cosd$1(angle);
-                trans_matrix[1][0] = sind$1(angle);
-                trans_matrix[0][1] = -sind$1(angle);
+            	trans_matrix[0][0] = cosd(angle);
+                trans_matrix[1][1] = cosd(angle);
+                trans_matrix[1][0] = sind(angle);
+                trans_matrix[0][1] = -sind(angle);
             	break
             case "X'":
             	x_vector = [DCM[0][0], DCM[1][0], DCM[2][0]];
@@ -7918,8 +7919,8 @@ class Kin$1{
         	y_angle = x_angle[1];
             x_angle = x_angle[0];
         }
-        let ZX_plane = [0, cosd$1(y_angle), sind$1(y_angle)];
-        let ZY_plane = [cosd$1(x_angle), 0, sind$1(x_angle)];
+        let ZX_plane = [0, cosd(y_angle), sind(y_angle)];
+        let ZY_plane = [cosd(x_angle), 0, sind(x_angle)];
         if(Vector.is_equal(ZX_plane, ZY_plane) || Vector.is_equal(Vector.multiply(-1, ZX_plane), ZY_plane)){
         	dde_error("Direction (" + x_angle +", " + y_angle + ") causes a singularity");
         }
@@ -14014,22 +14015,23 @@ var DXF$1 = new function() {
     
     	return [shift, Math.min(scale_factor_1, scale_factor_2)]
 	};
-    
-	this.fill_DXF = function(filename, scale, theta, tool_diameter = 5000, overlap_ratio = .1, toggle_fill = false, J_angles){
-		let dxf_content = read_file$1(filename);
-		let my_entities = DXF$1.content_to_entities(dxf_content);
-		let perimeter_points = DXF$1.entities_to_points(my_entities);
-    	perimeter_points = scale_points(perimeter_points, scale, J_angles);
-    
-		let perimeter = points_to_object(perimeter_points);
-		perimeter.points = Vector.matrix_multiply(perimeter.points, z_rotate_matrix(-theta));
 
-		let fill = fill_perimeter(perimeter, tool_diameter, overlap_ratio, toggle_fill);
-		perimeter.points = Vector.matrix_multiply(perimeter.points, z_rotate_matrix(theta));
-		fill.points = Vector.matrix_multiply(fill.points, z_rotate_matrix(theta));
+	/* aug 15, 2022 James W said take this out. Not used, doesn't work
+	this.fill_DXF = function(filename, scale, theta, tool_diameter = 5000, overlap_ratio = .1, toggle_fill = false, J_angles){
+		let dxf_content = read_file(filename)
+		let my_entities = DXF.content_to_entities(dxf_content)
+		let perimeter_points = DXF.entities_to_points(my_entities)
+    	perimeter_points = scale_points(perimeter_points, scale, J_angles)
+    
+		let perimeter = points_to_object(perimeter_points)
+		perimeter.points = Vector.matrix_multiply(perimeter.points, z_rotate_matrix(-theta))
+
+		let fill = fill_perimeter(perimeter, tool_diameter, overlap_ratio, toggle_fill)
+		perimeter.points = Vector.matrix_multiply(perimeter.points, z_rotate_matrix(theta))
+		fill.points = Vector.matrix_multiply(fill.points, z_rotate_matrix(theta))
     
     	return fill
-	};
+	}*/
 
 	this.points_to_object = function(point_array){
 		let dim = Vector.matrix_dimensions(point_array);
@@ -14535,50 +14537,6 @@ function scale_points(points, scale, J_angles){
     return DXF$1.edit(points, my_edit[0], my_edit[1])
 }
 
-function points_to_object(point_array){
-	let dim = Vector.matrix_dimensions(point_array);
-    let unique_points = [];
-    let lines_seg = [];
-    let connectivity = [];
-    let elt, dimu, diml;
-    for(let i = 0; i < dim[0]; i++){
-    	elt = point_array[i];
-        dimu = Vector.matrix_dimensions(unique_points);
-        let match_flag = 0;
-        for(let j = 0; j < dimu[0]; j++){
-        	if(Vector.is_equal(elt, unique_points[j])){
-            	match_flag = 1;
-                break
-            }
-        }
-        if(match_flag == 0){
-        	unique_points.push(elt);
-        }
-    }
-    dimu = Vector.matrix_dimensions(unique_points);
-    for(let i = 0; i < dim[0]; i += 2){
-    	lines_seg.push([point_array[i][0], point_array[i][1], point_array[i][2],
-                        point_array[i+1][0], point_array[i+1][1], point_array[i+1][2]]);
-    }
-    
-    diml = Vector.matrix_dimensions(lines_seg);
-    connectivity = Vector.make_matrix(diml[0], 2);
-    for(let i = 0; i < diml[0]; i++){
-    	for(let j = 0; j < 2; j++){
-        	elt = [lines_seg[i][0+3*j], lines_seg[i][1+3*j], lines_seg[i][2+3*j]];
-            for(let k = 0; k < dimu[0]; k++){
-            	unique_points[k];
-                if(Vector.is_equal(elt, unique_points[k])){
-                	connectivity[i][j] = k;
-                    break
-            	}
-            }
-        }
-    }
-    let result = {points: unique_points, lines: connectivity};
-    return result
-}
-
 
 function find_intersections(object, point_1, point_2){
 	let U2a, U2b, A, B, C, alpha, beta, int_point;
@@ -14602,72 +14560,6 @@ function find_intersections(object, point_1, point_2){
     }
     return result
 }
-
-
-function z_rotate_matrix(theta){
-	let c = cosd(theta);
-	let s = sind(theta);
-    let result = [[c, s,  0],
-                  [-s,  c,  0],
-          		  [0,  0,  1]];
-	return result
-	/*
-    //shear transformation matrix I wrote by accident
-	let theta_radians = theta*Math.PI/180
-	let m = Math.cos(theta_radians)
-    let m2 = m*m
-	let n = Math.sin(theta_radians)
-    let n2 = n*n
-	let result = [[  m2,  n2,  2*n*m],
-                  [  n2,  m2, -2*n*m],
-          		  [-n*m, n*m,  m2-n2]]
-    return result
-    */
-}
-
-
-function fill_perimeter(perimeter_obj, tool_diameter, overlap_ratio = .1, toggle_fill = false){
-	let perim = perimeter_obj;
-    Vector.matrix_dimensions(perim.points);
-    let upper_lim = Vector.max(perim.points);
-    let lower_lim = Vector.min(perim.points);
-    let R = tool_diameter/2;
-    let U1f, U2f, y, int;
-    let U1, U2;
-    let fill = {points: [], lines: [], fill_idxs: [], perim_idxs: []};
-    y = lower_lim[1]+R;
-    let t=0;
-    let direction = 1;
-    let fill_idx = 0;
-    //draws and trims lines over perimeter
-    while(y < upper_lim[1]) { 
-    	if(direction == 1){
-    		U1f = [lower_lim[0]-R, y, 0];
-    		U2f = [upper_lim[0]+R, y, 0];
-            direction = 0;
-        }else {
-        	U2f = [lower_lim[0]-R, y, 0];
-    		U1f = [upper_lim[0]+R, y, 0];
-            direction = 1;
-        }
-    	int = find_intersections(perim, U1f, U2f);
-        int.sort(function(a, b){return a.alpha-b.alpha}); //sorts based on alphas from smallest to largest
-		for(let i = 0; i < int.length; i+=2){
-            U1 = int[i].point;
-            U2 = int[i+1].point;
-            
-        	fill.points.push(U1, U2);
-            //fill.points.push(int[i].point, int[i+1].point)
-            fill.fill_idxs.push(fill_idx);
-            fill.perim_idxs.push([int[i].idx, int[i+1].idx]);
-            fill.lines.push([t, t+1]);
-            t+=2;
-        }
-        fill_idx++;
-    	y += R * (1-overlap_ratio);
-    }
-    return fill
-} // closes fill_perimeter
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -14760,8 +14652,6 @@ new Job({name: "Draw",
         }
         */
 
-        //let rapid_speed = 30
-        //let dxf_content = read_file(dxf_filepath)
 
         let J_angles_1 = three_J_angles[0];
         let J_angles_2 = three_J_angles[1];
@@ -23679,6 +23569,7 @@ Instruction$1.wait_until = class wait_until extends Instruction$1{
         else if (typeof(fn_date_dur) == "number")  ;
         else if (fn_date_dur instanceof Duration)  { this.fn_date_dur = fn_date_dur.to_seconds(); }
         else if (this.fn_date_dur == "new_instruction");
+        else if (this.fn_date_dur instanceof Job) ;
         else if (Array.isArray(this.fn_date_dur) ||
                  (typeof(this.fn_date_dur) == "object")){
                  if(!Job.instruction_location_to_job(this.fn_date_dur, false)){
@@ -27130,6 +27021,19 @@ Dexter$1.move_to_straight = function({xyz          = "required",
                                                     robot: robot})
 };
 
+Dexter$1.reboot_robot           = function(){ return make_ins("r", 0, "`reboot") };
+Dexter$1.prototype.reboot_robot = function(){ return make_ins("r", 0, "`reboot", this) };
+Dexter$1.is_reboot_instruction  = function (inst){
+    return Array.isArray(inst) &&
+           inst.length === 7 &&
+           inst[Instruction.INSTRUCTION_TYPE] === "r" &&
+           inst[Instruction.INSTRUCTION_ARG0] === 0 &&
+           inst[Instruction.INSTRUCTION_ARG1].endsWith("reboot") &&
+           inst[Instruction.INSTRUCTION_ARG1].startsWith("`")
+};
+
+make_ins("r", 0, "`reboot");
+
 Dexter$1.record_movement           = function(...args){ return make_ins("m", ...args) };
 Dexter$1.prototype.record_movement = function(...args){ args.push(this); return Dexter$1.record_movement(...args) };
 
@@ -28707,20 +28611,31 @@ Dexter.prototype.defaults_read = function(callback = null){
     let the_url = this.defaults_url();
     let the_dex_inst = this;
     let normal_defaults_read_cb = (function(err, content){
-                        if(err) { dde_error("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
-                                             the_url + "<br/>and error message: " +
-                                             err.message +
-                                             "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.");
-                        }
-                        else {
-                            the_dex_inst.defaults_set_lines_from_string(content);
-                            the_dex_inst.defaults_lines_to_high_level();
-                            if(callback) {
-                                callback.call(the_dex_inst, null);
-                            }
-                        }
-        });
-    DDEFile.read_file_async(the_url, normal_defaults_read_cb);
+        if(err) { dde_error("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
+            the_url + "<br/>and error message: " +
+            err.message +
+            "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.");
+        }
+        else {
+            try {
+                the_dex_inst.defaults_set_lines_from_string(content);
+                the_dex_inst.defaults_lines_to_high_level();
+                if (callback) {
+                    callback.call(the_dex_inst, null);
+                }
+            }
+            catch(err) {
+                let defaults_copy = JSON.parse(JSON.stringify(Dexter.defaults));
+                the_dex_inst.defaults = defaults_copy;
+                warning("Could not parse Defaults.make_ins due to:<br/>" +
+                    err.message +
+                    "<br/>so Dexter." + the_dex_inst.name +
+                    ".defaults has been set to a copy of Dexter.defaults."
+                );
+            }
+        }
+    });
+    read_file_async(the_url, undefined, normal_defaults_read_cb);
 };
 
 //caution:  not ready for prime time.
@@ -29518,62 +29433,87 @@ Dexter.prototype.defaults_line_to_high_level = function(line, line_number="unkno
     if(!this.defaults) { this.defaults = {}; } //usually unnecessary but safer
     let parsed_line = Dexter.defaults_parse_line(line, line_number);
     let low_key = parsed_line.key;
-    if      (parsed_line.kind === "invalid")    ; //ignore
-    else if (parsed_line.kind === "blank_line") ; //ignore
-    else if (parsed_line.kind === "coloned_comment_prop") {
-        this.defaults[parsed_line.key] = parsed_line.value_array[0];
-    }
-    else if (parsed_line.kind === "colonless_comment_prop") {
-        this.defaults[parsed_line.key] = parsed_line.value_array[0];
+    let high_key = low_key;
+    let high_value;
+    if      (parsed_line.kind  === "invalid")    ; //ignore
+    else if (parsed_line.kind  === "blank_line") ; //ignore
+    else if ((parsed_line.kind === "coloned_comment_prop") ||
+        (parsed_line.kind === "colonless_comment_prop")) {
+        if(parsed_line.value_array) {high_value = parsed_line.value_array[0];}
+        else                        {
+            high_value = Dexter.defaults[high_key];
+            warning("While parsing the Defaults.make_ins file,<br/>" +
+                "there is no value for the comment_property key: " + low_key +
+                "<br/>so we're using the value from Dexter.default." + high_key +
+                "<br/>which is: " + high_value);
+        }
+        this.defaults[high_key] = high_value;
     }
     else if (parsed_line.kind === "whole_line_comment") ; //ignore
     else if (parsed_line.kind === "S_param") {
-        let low_key = parsed_line.key;
-        let ins_arr = [];
-        ins_arr[Instruction.INSTRUCTION_TYPE] = "S";
-        //ins_arr.push(parsed_line.key) //arg0, the param name
-        ins_arr[Instruction.INSTRUCTION_ARG0] = low_key;
-        ins_arr = ins_arr.concat(parsed_line.value_array);
-        let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this);
-        let val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1); //the high_val array
-        parsed_line.high_value_array = val_arr;
-        if(low_key === "JointDH"){
-            let joint_number = parsed_line.value_array[0]; //the low value_array
-            if(!this.defaults.dh_mat) { this.defaults.dh_mat = []; }
-            let four_val_array = val_arr.slice(1); //take off the joint_number on the beginning of the array
-            this.defaults.dh_mat[joint_number - 1] = four_val_array;
+        if(!parsed_line.value_array) { //grab default from Dexter class
+            high_value = Dexter.defaults[high_key];
+            if(high_value === undefined){
+                warning("While parsing the Defaults.make_ins file,<br/>" +
+                    "there is no value for the S_param key: " + low_key +
+                    "<br/>and there's no value from Dexter.default." + high_key +
+                    "<br/>so we're ignoring: " + low_key);
+            }
+            this.defaults[high_key] = high_value;
+            warning("While parsing the Defaults.make_ins file,<br/>" +
+                "there is no value for the S_param key: " + low_key +
+                "<br/>so we're using the value from Dexter.default." + high_key +
+                "<br/>which is: " + high_value);
         }
-        else if (low_key === "LinkLengths") { //array of 5, but needs to be reversed
-            let val = parsed_line.high_value_array.slice(); //make a copy
-            val.reverse(); //copies in place
-            this.defaults[low_key] = val;
-        }
-        else if (["RebootServo", "ServoSetX", "ServoSet2X"].includes(low_key)){
-            if(!this.defaults.ServoSetup) { this.defaults.ServoSetup = []; }
-            let obj = {};
-            let high_key  = "S" + Dexter.defaults_arg_sep + low_key;
-            obj[high_key] = parsed_line.high_value_array;
-            obj.orig_line = line_number;
-            this.defaults.ServoSetup.push(obj);
-        }
-        else if (Dexter.defaults_is_j_key(low_key)) {
-            let [high_key, joint_number] = Dexter.defaults_j_key_to_high_key(low_key);
-            if(!this.defaults[high_key]) { this.defaults[high_key] = []; }
-            this.defaults[high_key][joint_number - 1] = parsed_line.high_value_array[0];
-        }
-        else if(val_arr.length === 1) { this.defaults[low_key] = parsed_line.high_value_array[0]; }
-        else if(val_arr.length === 2) {
-            let val = parsed_line.high_value_array[0];
-            let joint_number = parsed_line.value_array[1]; //use low value here
-            if(!this.defaults[parsed_line.key]) { this.defaults[low_key] = []; }
-            this.defaults[low_key][joint_number - 1] = val;
-        }
-        else if(val_arr.length > 2) {
-            this.defaults[parsed_line.key] = parsed_line.high_value_array;
+        else { //use value from the low level.
+            let ins_arr = [];
+            ins_arr[Instruction.INSTRUCTION_TYPE] = "S";
+            ins_arr[Instruction.INSTRUCTION_ARG0] = low_key;
+            ins_arr = ins_arr.concat(parsed_line.value_array);
+            let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this);
+            let val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1); //the high_val array
+            parsed_line.high_value_array = val_arr;
+            if (low_key === "JointDH") {
+                let joint_number = parsed_line.value_array[0]; //the low value_array
+                if (!this.defaults.dh_mat) {
+                    this.defaults.dh_mat = [];
+                }
+                let four_val_array = val_arr.slice(1); //take off the joint_number on the beginning of the array
+                this.defaults.dh_mat[joint_number - 1] = four_val_array;
+            } else if (low_key === "LinkLengths") { //array of 5, but needs to be reversed
+                let val = parsed_line.high_value_array.slice(); //make a copy
+                val.reverse(); //copies in place
+                this.defaults[low_key] = val;
+            } else if (["RebootServo", "ServoSetX", "ServoSet2X"].includes(low_key)) {
+                if (!this.defaults.ServoSetup) {
+                    this.defaults.ServoSetup = [];
+                }
+                let obj = {};
+                high_key = "S" + Dexter.defaults_arg_sep + low_key;
+                obj[high_key] = parsed_line.high_value_array;
+                obj.orig_line = line_number;
+                this.defaults.ServoSetup.push(obj);
+            } else if (Dexter.defaults_is_j_key(low_key)) {
+                let [high_key, joint_number] = Dexter.defaults_j_key_to_high_key(low_key);
+                if (!this.defaults[high_key]) {
+                    this.defaults[high_key] = [];
+                }
+                this.defaults[high_key][joint_number - 1] = parsed_line.high_value_array[0];
+            } else if (val_arr.length === 1) {
+                this.defaults[low_key] = parsed_line.high_value_array[0];
+            } else if (val_arr.length === 2) {
+                let val = parsed_line.high_value_array[0];
+                let joint_number = parsed_line.value_array[1]; //use low value here
+                if (!this.defaults[parsed_line.key]) {
+                    this.defaults[low_key] = [];
+                }
+                this.defaults[low_key][joint_number - 1] = val;
+            } else if (val_arr.length > 2) {
+                this.defaults[parsed_line.key] = parsed_line.high_value_array;
+            }
         }
     }
     else if (parsed_line.kind === "oplet_instruction"){ //"z", mayby "a"
-        let high_key = low_key;
         if(parsed_line.value_array.length === 1){ //primarily for z oplet
             let ins_arr = [];
             ins_arr[Instruction.INSTRUCTION_TYPE] = low_key;
@@ -30626,7 +30566,7 @@ class Socket$1{
     }
 
     static send(robot_name, oplet_array_or_string){ //can't name a class method and instance method the same thing
-
+        let is_reboot_inst = Dexter.is_reboot_instruction(oplet_array_or_string);
         let rob = Robot[robot_name];
         let oplet_array_or_string_du = Socket$1.instruction_array_degrees_to_arcseconds_maybe(oplet_array_or_string, rob);
         let job_id = Instruction.extract_job_id(oplet_array_or_string);
@@ -30659,6 +30599,10 @@ class Socket$1{
             if(sim_inst) {
                 setTimeout( function() { //eqiv to net_soc_inst.write(arr_buff) below.
                     DexterSim.send(robot_name, str); //dde3 used to use arr_buff for the 2nd arg.
+                    if(is_reboot_inst) {
+                        job_instance.stop_for_reason("completed", "Dexter.reboot_robot instruction sent.");
+                        DexterSim.uninit(robot_name);
+                    }
                 }, 1);}
             else {
                 Socket$1.close(robot_name, true); //both are send args
@@ -30676,6 +30620,11 @@ class Socket$1{
                     net_soc_inst.send(str); //dde4
                     //console.log("Socket.send just sent:     " + str)
                     //this.stop_job_if_socket_dead(job_id, robot_name)
+                    if(is_reboot_inst){
+                        job_instance.stop_for_reason("completed", "Dexter.reboot_robot instruction sent.");
+                        warning("Rebooting Dexter." + robot_name + " due to running reboot instruction.");
+                        delete Socket$1.robot_name_to_soc_instance_map.robot_name;
+                    }
                     return
                 }
                 catch(err) {
@@ -31130,6 +31079,10 @@ class DexterSim$1{
             sim_inst.init(sim_actual);
         }
         else {
+            let cur_dex_inst_of_name = Dexter[robot_name];
+            sim_inst.robot = cur_dex_inst_of_name; //because if the user redefined the robot of that name
+            //since the last time they made a DexterSim instance, sim_inst will have the old dexter inst,
+            //so we need to update it.
             sim_inst.sim_actual = sim_actual;
         }
         //if (sim_actual === true) { //do not call new_socket_callback if simulate is "both" because we don't want to call it twice
@@ -31140,6 +31093,22 @@ class DexterSim$1{
     static init_all(){ //called once per DDE session (normally)
         DexterSim$1.robot_name_to_dextersim_instance_map = {};
         //DexterSim.set_interval_id = setInterval(DexterSim.process_next_instructions, 10)
+    }
+
+    //called by Socklet.send when reboot_robot sent
+    //After Dexter is sent a reboot instruction, it continues to run the items in its queue,
+    //but does not accept new instructions, so simulate that.
+    static uninit(robot_name, tries=0){
+        let dexsim = DexterSim$1.robot_name_to_dextersim_instance_map[robot_name];
+        if(dexsim.queue_instance.is_queue_empty() || (tries === 80)) { //80 * 200 = 16 secs. If the queue hasn't empied by that time, kill it anyway
+            setTimeout(function() {
+                delete DexterSim$1.robot_name_to_dextersim_instance_map[robot_name];
+            }, 4000); //Give the last instruction in  the queue a chance to finish, then kill it
+        }
+        else {
+            setTimeout(function(){DexterSim$1.uninit(robot_name, tries + 1);},
+                200);
+        }
     }
 
     init(sim_actual){
@@ -31242,7 +31211,7 @@ class DexterSim$1{
         ds_instance.last_instruction_sent = instruction_array;
         let ins_args = Instruction.args(instruction_array); //in dexter_units
         let oplet  = instruction_array[Dexter.INSTRUCTION_TYPE];
-        switch(oplet){
+        switch(oplet) {
             case "a":
                 ds_instance.queue_instance.add_to_queue(instruction_array);
                 ds_instance.ack_reply_maybe(instruction_array);
@@ -31260,8 +31229,12 @@ class DexterSim$1{
                 break;
             case "g":
                 let inst_status_mode = instruction_array[Instruction.INSTRUCTION_ARG0];
-                if((inst_status_mode === null) || (inst_status_mode === undefined)){ ds_instance.status_mode = 0;} //helps backwards compatibility pre status modes.
-                else { ds_instance.status_mode = inst_status_mode; }
+                if ((inst_status_mode === null) || (inst_status_mode === undefined)) {
+                    ds_instance.status_mode = 0;
+                } //helps backwards compatibility pre status modes.
+                else {
+                    ds_instance.status_mode = inst_status_mode;
+                }
                 ds_instance.ack_reply(instruction_array);
                 break;
             /*case "G": //deprecated. get immediate. The very first instruction sent to send should be  "G",
@@ -31278,12 +31251,11 @@ class DexterSim$1{
                 //pid_move_all_joints can construct an istruction array that has less than 7 joint angles.
                 //IF a j6 or j7 is NOT present, then don't do anything with j6 and j7 ie don't set it to zero.
                 let pid_ang_du = Instruction.extract_args(instruction_array); //probably will be 5 long but could be 7
-                for(let i = 0; i < pid_ang_du.length; i++){
+                for (let i = 0; i < pid_ang_du.length; i++) {
                     let new_ang = pid_ang_du[i];
-                    if(i < 5) {
+                    if (i < 5) {
                         ds_instance.pid_angles_dexter_units[i] = new_ang;
-                    }
-                    else {
+                    } else {
                         ds_instance.angles_dexter_units[i] = new_ang; //j6 & J7.
                     }
                 }
@@ -31291,20 +31263,27 @@ class DexterSim$1{
                 //let angle_degrees_array = Socket.dexter_units_to_degrees_array(ds_instance.angles_dexter_units)
                 //let pid_angle_degrees_array = Socket.dexter_units_to_degrees_array(ds_instance.pid_angles_dexter_units)
                 //let sum_degrees_array = Vector.add(angle_degrees_array, pid_angle_degrees_array).slice(0, 5)
-                if(SimUtils.is_simulator_showing()) {
+                if (SimUtils.is_simulator_showing()) {
                     SimUtils.render_j1_thru_j5(ds_instance); //todo this just jumps to the new angles, not move smoothly as it should
-                    if(pid_ang_du.length > 5) {
+                    if (pid_ang_du.length > 5) {
                         SimUtils.render_j6(ds_instance);
                     }
-                    if(pid_ang_du.length > 6) {
+                    if (pid_ang_du.length > 6) {
                         SimUtils.render_j7(ds_instance); //don't bother to pass xyz and robot.pose as that's only used by simBuild.
                     }
                 }
                 ds_instance.ack_reply(instruction_array);
                 break;
             case "r": //Dexter.read_file. does not go on queue
-                let payload_string_maybe = await ds_instance.process_next_instruction_r(instruction_array);
-                ds_instance.ack_reply(instruction_array, payload_string_maybe);
+                let is_reboot_inst = Dexter.is_reboot_instruction(instruction_array);
+                if (is_reboot_inst) { //don't do ack_reply as the actual robot doesn't send back a robot status
+                    DexterSim$1.uninit(robot_name); //its over for this Dexter.
+                    warning("Rebooting simulated Dexter." + robot_name + " due to running reboot instruction.");
+                }
+                else {
+                    let payload_string_maybe = await ds_instance.process_next_instruction_r(instruction_array);
+                    ds_instance.ack_reply(instruction_array, payload_string_maybe);
+                }
                 break;
             case "S":
                 let param_name = ins_args[0];
@@ -31441,6 +31420,7 @@ class DexterSim$1{
             robot_status_array[Dexter.J5_SENT] = j1_5_arcsecs[4];
             //unfortunately g0 doesn't support J6_SENT or J7_SENT
         }
+        else if(this.status_mode === 1);
 
         if (this.sim_actual === true) {
             let dexter_instance = this.robot;  //for closure variable
@@ -33364,7 +33344,7 @@ class RobotStatus$1{
             for(let i = 0; i < 7; i++){
                 let new_val = array_of_measured_angles[i];
                 if(!raw) { new_val = new_val * 3600; } //usual
-                rs_array[10 + i] = new_val;
+                rs_array[Dexter.J1_MEASURED_ANGLE_G1 + i] = new_val;
             }
         }
         else if(sm === 2) { //angles in rs_array are in degrees
@@ -33696,7 +33676,7 @@ class DDEFile$1 {
     static async file_exists(path, callback){
         //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
         //path = this.add_default_file_prefix_maybe(path)
-        let full_url =  this.make_url(path, "/edit?edit=");
+        let full_url =  this.make_url(path, "/edit?info="); //was "/edit?edit=" which works for files but not folders
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
         //see httpd.mjs, serve_file()
@@ -36703,6 +36683,8 @@ function make_temperature_series(){
 
 }
 
+//this file only used when Job Engie is used as part of DDE IDE
+
 //start of Job Engine imports
 
 globalThis.dde_version      = "not inited";
@@ -36710,6 +36692,12 @@ globalThis.dde_release_date = "not inited";
 globalThis.operating_system = "not inited"; //"mac", "win" or "linux"(for Ubuntu)  bound in both ui and sandbox by ready
 globalThis.dde_apps_folder  = "not inited";
 globalThis.platform         = "not inited"; //"dde" or "node"
+
+globalThis.default_default_ROS_URL           = "localhost:9090";
+globalThis.default_default_dexter_ip_address = "192.168.1.142";
+globalThis.default_default_dexter_port       = 50000;
+
+
 
 globalThis.keep_alive_value = false; //true
 globalThis.Espree = Espree$1;
@@ -36822,7 +36810,7 @@ globalThis.close_readline = close_readline;
 //see ready_je.js which sets these 2 as global vars.
 
 class GrpcServer$1 {
-    static BUILD_PATH = process.cwd() //to path ending in "stuff/dde4/dde/build"
+    static DDE4_PATH = process.cwd() //to path ending in "stuff/dde4/dde/build"
     static PROTO_PATH  //"/Users/Fry/WebstormProjects/dde4/dde/third_party/helloworld.proto"
                         //__dirname + '/../../protos/helloworld.proto';
 
@@ -36872,7 +36860,7 @@ class GrpcServer$1 {
                                        {job:    "wait_for_instruction",
                                         offset: "end"
                                        });
-                console.log("Inserted Instruction: passed_in_string");
+                console.log("Inserted Instruction: passed_in_string: " + passed_in_string);
             }
             mess = "Running Instruction: " + passed_in_string + "\nstatus: [" +
                     Dexter.dexter0.robot_status + "]";
@@ -36915,9 +36903,9 @@ class GrpcServer$1 {
     static init() {
         console.log("top of GrpcServer.init");
         out("OUT: top of GrpcServer.init");
-        this.DDE_PATH      = path.dirname(this.BUILD_PATH); //ie stuff/dde" no slash on end
+        this.DDE_PATH      = this.DDE4_PATH + "/dde"; //path.dirname(this.BUILD_PATH) //ie stuff/dde" no slash on end
         this.PROTO_PATH    = path.join(this.DDE_PATH, "third_party", "helloworld.proto");
-        console.log("BUILD_PATH: " + this.BUILD_PATH);
+        console.log("DDE4_PATH: "  + this.DDE4_PATH);
         console.log("DDE_PATH: "   + this.DDE_PATH);
         console.log("PROTO_PATH: " + this.PROTO_PATH);
         this.init_packageDefinition();
@@ -36935,7 +36923,12 @@ globalThis.GrpcServer = GrpcServer$1;
 
 //GrpcServer.init();
 
+///the ifle only used by Job Engine when it is running by itself
 console.log("top of ready_je.js");
+
+globalThis.default_default_ROS_URL           = "localhost:9090";
+globalThis.default_default_dexter_ip_address = "192.168.1.142";
+globalThis.default_default_dexter_port       = 50000;
 globalThis.grpc = grpc$1;
 globalThis.protoLoader = protoLoader$1;
 globalThis.StripsManager = StripsManager$1;
@@ -37032,7 +37025,7 @@ async function on_ready_je(){
     set_operating_system();
     console.log("globalThis.operating_system is now: " + globalThis.operating_system);
     globalThis.platform = "node";
-    console.log("init_job_engine: " + init_job_engine);
+    //console.log("init_job_engine: " + init_job_engine)
     await init_job_engine();
 
     //below 3 are same as on_ready. This must be after loading series, which is only for dde IDE,

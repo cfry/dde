@@ -1,7 +1,6 @@
 //import Socket from "../job_engine/core/socket.js" //dde4 Socket is now global. used for string instruction processing
 //import  * as esprima  from "../../node_modules/esprima/dist/esprima.js" //not used
 import {to_source_code} from "../job_engine/core/to_source_code.js"
-import { make_full_path} from "../job_engine/core/storage.js"
 
 class MakeInstruction{
    //utilities
@@ -1320,7 +1319,7 @@ class MakeInstruction{
                 if (!path.includes(".")) {
                     path = path + ".dde"
                 }
-                return make_full_path(path)
+                return DDEFile.make_full_path(path)
             }
         }
         else { return null } //writing to end of buffer.

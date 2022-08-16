@@ -1,8 +1,8 @@
 import * as esprima from "../../node_modules/esprima/dist/esprima.js"
 
-import {make_dom_elt} from "../job_engine/core/html_db.js"
+//import {make_dom_elt} from "../job_engine/core/html_db.js" //don't do in dde4
 
-export var JS2B = class JS2B{
+globalThis.JS2B = class JS2B{
   static string_to_ast(src){
       if (src[0] == "{") { //esprima doesn't like so hack it
            let new_src = "var foo947 = " + src

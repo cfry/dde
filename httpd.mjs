@@ -526,6 +526,7 @@ var http_server = http.createServer(async function (req, res) {
     let filename = q.query.edit || q.query.download
     console.log("serving for edit filename: " + filename)
     filename = make_full_path(filename) //dde4
+    console.log("serving for edit full path filename: " + filename)
     fs.readFile(filename, function(err, data) {
         if (err) {
             res.setHeader('Access-Control-Allow-Origin', '*'); //dde4

@@ -169,7 +169,8 @@ var DXF = new function() {
     
     	return [shift, Math.min(scale_factor_1, scale_factor_2)]
 	}
-    
+
+	/* aug 15, 2022 James W said take this out. Not used, doesn't work
 	this.fill_DXF = function(filename, scale, theta, tool_diameter = 5000, overlap_ratio = .1, toggle_fill = false, J_angles){
 		let dxf_content = read_file(filename)
 		let my_entities = DXF.content_to_entities(dxf_content)
@@ -184,7 +185,7 @@ var DXF = new function() {
 		fill.points = Vector.matrix_multiply(fill.points, z_rotate_matrix(theta))
     
     	return fill
-	}
+	}*/
 
 	this.points_to_object = function(point_array){
 		let dim = Vector.matrix_dimensions(point_array)
@@ -717,6 +718,7 @@ function scale_points(points, scale, J_angles){
 ////////////////////////////////////////
 //Fill DXF code
 ////////////////////////////////////////
+	/*james w said take this out aug 16. 2022
 function fill_DXF(filename, scale, theta, tool_diameter = 5000, overlap_ratio = .1, toggle_fill = false, J_angles){
 	let dxf_content = read_file(filename)
 	let my_entities = DXF.content_to_entities(dxf_content)
@@ -732,6 +734,7 @@ function fill_DXF(filename, scale, theta, tool_diameter = 5000, overlap_ratio = 
     
     return fill
 }
+*/
 
 function points_to_object(point_array){
 	let dim = Vector.matrix_dimensions(point_array)
@@ -1018,8 +1021,6 @@ new Job({name: "Draw",
         }
         */
 
-        //let rapid_speed = 30
-        //let dxf_content = read_file(dxf_filepath)
 
         let J_angles_1 = three_J_angles[0]
         let J_angles_2 = three_J_angles[1]

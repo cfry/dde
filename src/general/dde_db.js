@@ -1,3 +1,7 @@
+//this is ONLY for DDE IDE.
+//See job_engine/core/index.js for a few more global variables
+//that in dde3 were stored in persistent
+
 class DDE_DB{
    static persistent_values_initial_object =
        {
@@ -12,7 +16,7 @@ class DDE_DB{
        "dexter0_ip_address": "auto",
        "dont_show_splash_screen_on_launch": false,
        "editor_font_size": 17,
-       "files_menu_paths": [], //todo [add_default_file_prefix_maybe("dde_init.js")],
+       "files_menu_paths": [DDEFile.add_default_file_prefix_maybe("dde_init.js")],
        "kiosk": false,
        "last_open_dexter_file_path": "", //doesn't have a dexter: prefix,not robot specific.
        "left_panel_width":   700,
@@ -199,6 +203,82 @@ class DDE_DB{
         }
     }
 
+    static async dde_init_dot_js_initialize() {
+       debugger;
+        let does_file_exist = await DDEFile.file_exists("")
+        if(!does_file_exist){
+            dde_error("dde_init_dot_js_initialize called but there is no Documents/dde_apps/ folder.")
+        }
+        else if (await DDEFile.file_exists("dde_init.js")){ //we don't want to error if the file doesn't exist.
+            if (globalThis.platform == "node") {
+                globalThis.persistent_set = this.persistent_set //todo seems weird. Was in DDE3 but ...
+            }
+            try{
+                await DDEFile.load_file("dde_init.js")
+            }
+            catch(err0){
+                if(window.Editor) { //will not hit in node platform
+                    Editor.edit_file(DDEFile.add_default_file_prefix_maybe("dde_init.js"))
+                }
+                dde_error("The file: Documents/dde_apps/dde_init.js has invalid JavaScript in it.<br/>" +
+                    "Please fix this and relaunch DDE.")
+                return
+            }
+            var add_to_dde_init_js = ""
+            //do not make default_default_ROS_URL, default_default_dexter_ip_address, default_default_dexter_port
+            //part of the persistent vars. they are globals in dde4.
+            if(!Brain.brain0) {
+                add_to_dde_init_js += '\nnew Brain({name: "brain0"})\n'
+            }
+            if(!Robot.dexter0){
+                add_to_dde_init_js += '\nnew Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
+            } //note, in the weird case that the user has defined the ip_address and/or port
+              //but not dexter0, then dexter0 gets at the front of the init file, not
+              //after the address and that's bad because it needs the ip_address
+              //but a fancier scheme of putting dextero always at the end of the file
+              //is bad too since all the "system" code is not at the beginning, before user code.
+              //So in our "weird case" loading dde_init will error. Not so terrible
+            if (add_to_dde_init_js != ""){
+                var di_content = await DDEFile.read_file_async("dde_init.js")
+                di_content = add_to_dde_init_js + di_content
+                DDEFile.write_file_async("dde_init.js", di_content)
+                eval(add_to_dde_init_js)
+            }
+        }
+        else { //the folder exists, but no dde_init.js file
+            const initial_dde_init_content =
+                '//This file content must live in Documents/dde_apps/dde_init.js\n' +
+                '//This file is loaded when you launch DDE.\n'     +
+                '//Add whatever JavaScript you like to the end.\n' +
+                '\n' +
+                '//To change DDE colors,\n' +
+                '// 1. Uncomment the below line(s).\n' +
+                '// 2. Select the first arg.\n' +
+                '// 3. Choose the "Insert" menu, "Color" item.\n' +
+                '// 4. After inserting the new color, eval the "set_" call.\n' +
+                '// 5. To get the default color, just comment out the line and relaunch DDE.\n' +
+                '// set_window_frame_background_color("#b8bbff")\n' +
+                '// set_pane_header_background_color("#bae5fe")\n' +
+                '// set_menu_background_color("#93dfff")\n' +
+                '// set_button_background_color("#93dfff")\n' +
+                '\n' +
+                'new Brain({name: "brain0"})\n' +
+                'new Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
+
+            eval(initial_dde_init_content)
+            DDEFile.write_file_async("dde_init.js", initial_dde_init_content)
+            if(!Editor.files_menu_paths_empty_or_contains_only_dde_init()){ // we don't want to
+                //print out this message on first DDE launch or if they haven't even
+                //saved a file yet, so as not to scare new users.
+                out("DDE uses the file: Documents/dde_apps/dde_init.js<br/>" +
+                    "to store JavaScript to be evaluated when DDE is Launched.<br/>" +
+                    "DDE didn't find the file so a default one was created.<br/>" +
+                    "If this is your first launch of DDE, this is normal.",
+                    "green")
+            }
+        }
+    }
+
 
     static metrics_set(key, value){
         this.metrics[key] = value
@@ -240,3 +320,43 @@ class DDE_DB{
 }
 
 globalThis.DDE_DB = DDE_DB
+
+//this is a deprication warning and automatic converter to the new style
+//to help backwards compatibility with DDE3, esp in older dde_init.js files
+globalThis.persistent_set = function(key, value){
+    if(key === "ROS_URL"){
+        warning('You have attempted to call: persistent_set with a key of: key<br/>' +
+                'That key is no longer valid, and persistent_set has been depicated.<br/>' +
+                'Please change your code to:  default_default_ros_url = ' + value)
+    }
+    else if(key === "default_default_dexter_ip_address") {
+        globalThis.default_default_dexter_ip_address = value
+        warning('You have attempted to call: persistent_set with a key of: key<br/>' +
+                'That functionality is now handled by: ' + key + " = " + value + "<br/>" +
+                'which has automatically been done for you.')
+    }
+    else if(key === "default_dexter_ip_address") {
+        globalThis.default_default_dexter_ip_address = value
+        warning('You have attempted to call: persistent_set with a key of: key<br/>' +
+            'That functionality is now handled by: default_default_dexter_ip_address  = ' + value + "<br/>" +
+            'which has automatically been done for you.')
+    }
+    else if(key === "default_default_dexter_port") {
+        globalThis.default_default_dexter_port = value
+        warning('You have attempted to call: persistent_set with a key of: key<br/>' +
+                'That functionality is now handled by: ' + key + " = " + value + "<br/>" +
+                'which has automatically been done for you.')
+    }
+    else if(key === "default_dexter_port") {
+        globalThis.default_default_dexter_port = value
+        warning('You have attempted to call: persistent_set with a key of: key<br/>' +
+            'That functionality is now handled by: default_default_dexter_port = ' + value + "<br/>" +
+            'which has automatically been done for you.')
+    }
+    else {
+        DDE_DB.persistent_set(key, value)
+        warning('You have attempted to call: persistent_set with a key of: key<br/>' +
+                'That functionality is now handled by: DDE_DB.persitent_set' + key + " = " + value + "<br/>" +
+                'which has automatically been done for you.')
+    }
+}

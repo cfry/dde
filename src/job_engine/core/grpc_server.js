@@ -4,7 +4,7 @@
 import path from 'path'
 
 class GrpcServer {
-    static BUILD_PATH = process.cwd() //to path ending in "stuff/dde4/dde/build"
+    static DDE4_PATH = process.cwd() //to path ending in "stuff/dde4/dde/build"
     static PROTO_PATH  //"/Users/Fry/WebstormProjects/dde4/dde/third_party/helloworld.proto"
                         //__dirname + '/../../protos/helloworld.proto';
 
@@ -97,9 +97,9 @@ class GrpcServer {
     static init() {
         console.log("top of GrpcServer.init")
         out("OUT: top of GrpcServer.init")
-        this.DDE_PATH      = path.dirname(this.BUILD_PATH) //ie stuff/dde" no slash on end
+        this.DDE_PATH      = this.DDE4_PATH + "/dde" //path.dirname(this.BUILD_PATH) //ie stuff/dde" no slash on end
         this.PROTO_PATH    = path.join(this.DDE_PATH, "third_party", "helloworld.proto")
-        console.log("BUILD_PATH: " + this.BUILD_PATH)
+        console.log("DDE4_PATH: "  + this.DDE4_PATH)
         console.log("DDE_PATH: "   + this.DDE_PATH)
         console.log("PROTO_PATH: " + this.PROTO_PATH)
         this.init_packageDefinition()

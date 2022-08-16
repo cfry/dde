@@ -188,7 +188,7 @@ class DDEFile {
     static async file_exists(path, callback){
         //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
         //path = this.add_default_file_prefix_maybe(path)
-        let full_url =  this.make_url(path, "/edit?edit=")
+        let full_url =  this.make_url(path, "/edit?info=") //was "/edit?edit=" which works for files but not folders
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
         //see httpd.mjs, serve_file()

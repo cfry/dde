@@ -1,5 +1,6 @@
+console.log("top of category_newObject")
 import {newObject, Root} from "../job_engine/core/object_system.js"
-import {make_html} from "../job_engine/core/html_db.js"
+//import {make_html} from "../job_engine/core/html_db.js" //not needed in dde4
 
 function blocks_category_init() {
 newObject({name: "BlockCategory",
@@ -100,6 +101,8 @@ newObject({prototype: Root.BlockCategory,
             block_types: []
 })
 }
+
+globalThis.blocks_category_init = blocks_category_init
 
 
 

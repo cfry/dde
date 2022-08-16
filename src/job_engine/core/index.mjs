@@ -3,7 +3,7 @@ import "/Users/Fry/WebstormProjects/dde4/dde/build/bundle.mjs"
 //global.dde_version = "4.0.0" //require("../package.json").version
 //global.dde_release_date = "Mar 8, 2022" //require("../package.json").release_date
 
-// import os from 'os' //todo
+import os from 'os'
 //const {exec} = require('child_process') //todo //not an npm module.
 
 
@@ -12,7 +12,8 @@ import "/Users/Fry/WebstormProjects/dde4/dde/build/bundle.mjs"
 
 
 function node_on_ready() {
-    console.log("top of node_on_ready\n")
+    console.log("top of node_on_ready 3\n")
+    console.log("os: " + os)
     //global.operating_system = os.platform().toLowerCase() //for Ubuntu, ths returns "linux"
 
     //if      (operating_system == "darwin")       { operating_system = "mac" }
