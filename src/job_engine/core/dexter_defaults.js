@@ -1506,7 +1506,7 @@ Dexter.dexter0.defaults.ServoSetup.push({"a": [10, 20, 30]}) //high level insert
 Dexter.dexter0.defaults.ServoSetup.unshift({"a": [90, 80, 70]}) //high level insert
 Dexter.dexter0.defaults.LinkLengths
 to_source_code({value: Dexter.dexter0.defaults.dh_mat})
-beautify.js(JSON.stringify(Dexter.dexter0.defaults))
+js_beautify(JSON.stringify(Dexter.dexter0.defaults))
 
 Dexter.dexter0.defaults_get("LinkLengths")
 var a_dh_mat = Dexter.dexter0.defaults.dh_mat

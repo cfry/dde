@@ -116,7 +116,7 @@ var LGraphCanvas_prototype_processKey = function(e) { //used in init
 
 globalThis.HCA = class HCA {
     static make_HCA_dom_elt(){
-        let big_div = make_dom_elt("div", {style: {display: "flex"}})
+        let big_div = make_dom_elt("div", {style: {display: "flex"}, id: "HCA_dom_elt"})
         let palette = make_dom_elt("div",
                                    {id: "HCA_palette_id", style: {width:150, height:400, "background-color":"#ffe0cd"}}, //display:"inline-block" //"overflow-block": "hidden"
                                    )
@@ -156,10 +156,18 @@ globalThis.HCA = class HCA {
         LiteGraph.DEFAULT_POSITION          = [5, 35]
     }
 
-    static init(json_string=""){ //json_string can also be a jason object or null
+    static async init(json_string=""){ //json_string can also be a jason object or null
         //this.edit_json_string(json_string)
-        let json_obj = this.string_to_json_obj(json_string) //errors if js is invalid
-        //if(!window.HCA_canvas_id) { this.make_HCA_dom_elt() }
+        let json_obj = this.string_to_json_obj(
+                          json_string,
+                     undefined,
+            "Initializing HCA UI expects the editor buffer to contain<br/>" +
+                          "JSON of a valid HCA graph, but it didn't.")
+        //if the above didn't error, we're good to go:
+        globalThis.HCA_dom_elt = HCA.make_HCA_dom_elt()
+        let the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
+        html_db.replace_dom_elt(the_codemirror_elt, HCA_dom_elt)
+        Editor.view = "HCA"
         this.config_litegraph_class()
         LiteGraph.LGraphCanvas.prototype.processKey = LGraphCanvas_prototype_processKey  //must be before creating new LiteGraph.LGraphCanvas or it won't go into effect
 
@@ -184,15 +192,15 @@ globalThis.HCA = class HCA {
 
         inspect(this.lgraph.serialize())*/
 
-        this.lgraph.configure(json_obj)
-        for(let node of this.lgraph._nodes){
+        this.lgraph.configure(json_obj) //ok if json_obj is undefined, which it will be if json_string defaults to "", or we launch HCA_UI from an empty editor buffer.
+        for(let node of this.lgraph._nodes){ //if json_string === "", lgraph._nodes will be []
             this.node_add_usual_actions(node)
         }
         //this.lgraph.start(100) //let user do this. //arg is number of milliseconds between steps, default 1. don't need this for pure graphics
-        if(!window.hca_ui_doc_id){
-            let html = read_file(__dirname + "/HCA/HCA_doc.html")
-            insert_html_into_doc_pane(html, "User Guide", "beforeend")
-            open_doc(hca_ui_doc_id)
+        if(!globalThis.hca_ui_doc_id){
+            let html = await DDEFile.read_file_async( "dde/doc/HCA_doc.html")
+            DocCode.insert_html_into_doc_pane(html, "User Guide", "beforeend")
+            DocCode.open_doc(hca_ui_doc_id)
         }
     }
 
@@ -201,12 +209,15 @@ globalThis.HCA = class HCA {
     }
 
     //returns a json_obj with a "node" property, or errors.
-    static path_to_json_obj(path){
-        let json_string = read_file(path)
+    static async path_to_json_obj(path){
+        let json_string = await DDEFile.read_file_async(path)
         let json_obj = this.string_to_json_obj(json_string, path)
         return json_obj
     }
-    static string_to_json_obj(json_string, path=null){ //path is for error messages only
+
+    static string_to_json_obj(json_string,
+                              path=null,
+                              error_message="\" does not contain a vaild HCA object.\""){ //path is for error messages only
         if(typeof(json_string) === "string") {
             json_string = json_string.trim()
             if(json_string.length > 0) {
@@ -216,24 +227,27 @@ globalThis.HCA = class HCA {
                         return json_obj
                     }
                     else {
-                        dde_error(path + " contains a valid json object but it doesn't represent an HCA object.")
+                        dde_error("path: " + path + " " + error_message)
                     }
                 }
                 catch(err){
                     if(json_string.startsWith("{") &&
                         json_string.endsWith("}") &&
-                        json_string.includes("nodes:")) { //good chance ths is src for an obj that will work, even if the keys aren't double quoted strings
+                        json_string.includes("nodes:")) { //good chance this is src for an obj that will work, even if the keys aren't double quoted strings
                         try{
                              let json_obj = eval("foo = " + json_string)
                              return json_obj
                         } //the foo= is necessary because of js broken by design evaluator. oddy it returns the object not the normal undefined for settig a var
                         catch(err){
-                            dde_error(path + " does not contain a vaild HCA object.")
+                            dde_error("path: " + path + " " + error_message)
                         }
                     }
                     else {
-                        dde_error(path + " does not contain a vaild HCA object.")                    }
+                        dde_error("path: " + path + " " + error_message)                    }
                 }
+            }
+            else {
+                return [] //no nodes in an empty string
             }
         }
         else {
@@ -241,8 +255,8 @@ globalThis.HCA = class HCA {
         }
     }
 
-    static edit_file(path){
-        let json_obj = HCA.path_to_json_obj(path) //errors if path is invalid
+    static async edit_file(path){
+        let json_obj = await HCA.path_to_json_obj(path) //errors if path is invalid
         this.lgraph.configure(json_obj) //configure must take a JSON obj, not a JSON string (which is the say its documented in the LiteGraph code
         Editor.add_path_to_files_menu(path) //this needs to be hear, not up in ready because
     }
@@ -372,7 +386,7 @@ globalThis.HCA = class HCA {
     }
 
     static make_node_button(type, button_name, action_function){
-        HCA.restore_palette() //expand the palette so we can add to it and so user can see the result
+        //HCA.restore_palette() //expand the palette so we can add to it and so user can see the result
         if(!button_name) {
             let slash_pos = type.indexOf("/")
             if(slash_pos === -1){
@@ -403,7 +417,7 @@ globalThis.HCA = class HCA {
             //cat_elt.append(but)
 
             let fn_src = "(" + action_function.toString() + ")()"
-            //fn_src = replace_substrings(fn_src, "'", "\\'") //screws up html and doesn't help because if we have a type, we know just what the actin_fn is like and it won't have any extra  single_quotes in it.
+            //fn_src = Utils.replace_substrings(fn_src, "'", "\\'") //screws up html and doesn't help because if we have a type, we know just what the actin_fn is like and it won't have any extra  single_quotes in it.
             let new_html = `<div style='margin-left:15px;'>` +
                                `<a href='#' onclick='` + fn_src + `'>` + button_name + `</a>` +
                            `</div>`
@@ -416,7 +430,7 @@ globalThis.HCA = class HCA {
             //the above fails due to my palette show and hide via setting innerHTML, because the dom programmatic
             //manipulation doesn't change what innerHTML returns.
             let fn_src = "(" + action_function.toString() + ")()"
-            fn_src = replace_substrings(fn_src, "'", "\\'")
+            fn_src = Utils.replace_substrings(fn_src, "'", "\\'")
             let new_html = "<button style='margin:2px' onclick='" + fn_src + "'>" + button_name + "</button>"
             HCA_palette_id.insertAdjacentHTML("beforeend", new_html)
 
@@ -467,8 +481,8 @@ To load all the .hco object files in a folder, click <input type='submit' value=
             this.load_node_definition_folder(path)
         }
     }
-    static load_node_definition_file(path){
-            let json_obj = this.path_to_json_obj(path)
+    static async load_node_definition_file(path){
+            let json_obj = await this.path_to_json_obj(path)
             this.nodes_json_obj_to_button(path, json_obj)
     }
 
@@ -588,29 +602,22 @@ To load all the .hco object files in a folder, click <input type='submit' value=
         }
     }*/
 
-    static define_node_type_from_canvas(path){
+    //implements button "define_object"
+    static define_node_type_from_canvas(){
         /*prompt_async({title: "Make Composite Node",
                       doc: "Enter the name of the new node type.",
                       default_value: "new_object",
                       height: 140,
                       callback: this.make_composite_node_type_aux
                       */
-        if(!path) {
-            path = choose_save_file({title: "Enter object name. Don't include extension."}) //title does not display on mac.
-                   //on windows, you can't have the options specify that you want to choose a file OR a dir.
-                   //if you put in both options, it will only allow dir selection. GRR.
-                   //I have to have a prompt_async let the user choose dir or file first,
-                   //then pass the choose_save_file options accordingly.
-        }
-        if(path){
-            if(!path.includes(".")){
-                path += ".hco"
-            }
+        let name = prompt("Enter a name for this Object")
+        if(name && (name !== "")){
+            let path = "HCA/" + name + ".hco" //stick it in dde_apps, under the HCA folder.
             //out("making HCA object: " + path)
             let js = HCA.get_javascript()
-            js = beautify.js(js)
+            js = js_beautify(js)
             //let path = HCA.current_folder + "/" + name + "." + HCA.object_file_extension
-            write_file(path, js)
+            DDEFile.write_file_async(path, js)
             out("New object stored in: " + path)
             let nodes_json_obj = JSON.parse(js)
             HCA.nodes_json_obj_to_button(path, nodes_json_obj) //"this" doesn't work here
@@ -620,18 +627,6 @@ To load all the .hco object files in a folder, click <input type='submit' value=
     static current_folder = dde_apps_folder
 
     static object_file_extension = "hco" //like HCA but with "object" instead.
-
-    /*obsolete
-     static make_composite_node_type_aux(name){
-        out("making: " + name)
-        let js = HCA.get_javascript()
-        js = beautify.js(js)
-        let path = HCA.current_folder + "/" + name + "." + HCA.object_file_extension
-        write_file(path, js)
-        out("New object stored in: " + path)
-        let nodes_json_obj = JSON.parse(js)
-        HCA.nodes_json_obj_to_button(name, nodes_json_obj) //"this" doesn't work here
-    }*/
 
     static nodes_json_obj_to_button(path, nodes_json_obj){
          let path_parts = path.split("/")
@@ -709,7 +704,6 @@ To load all the .hco object files in a folder, click <input type='submit' value=
     }
 
 
-
     static palette_objects = []
 
     static toggle_stop_run(event){
@@ -733,8 +727,8 @@ To load all the .hco object files in a folder, click <input type='submit' value=
     //don't use "this" inside this method since its called with a timeout. Use HCA instead.
     static populate_palette(){
         HCA_palette_id.innerHTML =
-          "<button onclick='HCA.toggle_stop_run(event)' style='background-color:#ff7d8e;'>stopped</button><br/>" +
-          "<div style='white-space:nowrap;'>Links " +
+          "<button onclick='HCA.toggle_stop_run(event)' title='Toggle HCA simulation between stopped and running.' style='background-color:#ff7d8e;'>stopped</button><br/>" +
+          `<div style='white-space:nowrap;' title='Specify the connection "line-drawing" between nodes.'>Wires ` +
            "<input type='radio' checked name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 2; HCA.lgraphcanvas.dirty_bgcanvas = true;'>~</input>"   + //LiteGraph.SPLINE_LINK
            "<input type='radio'         name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 0; HCA.lgraphcanvas.dirty_bgcanvas = true;'>-_</input>"  + //LiteGraph.STRAIGHT_LINK'
            "<input type='radio'         name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 1; HCA.lgraphcanvas.dirty_bgcanvas = true;'>/</input>"   + //LiteGraph.LINEAR_LINK'
@@ -761,7 +755,8 @@ To load all the .hco object files in a folder, click <input type='submit' value=
                                 inspect(HCA.lgraph.serialize(), "HCA.lgraph.serialize()")
                               }
                              )
-        HCA_palette_id.append(make_dom_elt("div", {}, "&nbsp;HCA Objects"))
+        //HCA_palette_id.append(make_dom_elt("div", {}, "&nbsp;HCA Objects"))
+        HCA_palette_id.insertAdjacentHTML("beforeend", "<div title='Click on an underlined name to create an object of that type.'>Make Objects</div>")
         HCA.make_node_button("basic/watch")
         HCA.make_node_button("basic/const", "number")
         for(let palette_obj of HCA.palette_objects){

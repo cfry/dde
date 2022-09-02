@@ -16,9 +16,14 @@ class DDEFile {
         else { return false }
     }
 
+    static is_dde_path(path){
+        return path.startsWith("dde/")
+    }
+
     static add_default_file_prefix_maybe(path){
         path = DDEFile.convert_backslashes_to_slashes(path)
-        if (this.is_root_path(path)) { return path }
+        if (this.is_root_path(path))     { return path }
+        else if (this.is_dde_path(path)) { return path } // the node server will prepend to such paths
         else if ((path === "dde_apps") || path.startsWith("dde_apps/")) { return path }
         else if (path == "new buffer") { return path } //needed by Editor.edit_file
         else { return "dde_apps/" + path }
@@ -173,7 +178,8 @@ class DDEFile {
         }
     }
 
-    static callback_or_return(callback, value="got error"){
+    //value might legitimately pass in undefined, so leave it that way
+    static callback_or_return(callback, value){
         if (callback) {
             callback(null, value)
         }
@@ -570,14 +576,14 @@ class DDEFile {
                 }
                 else if(globalThis.eval_js_part2) { //we're in IDE
                     console.log("load_file in clause globalThis.eval_js_part2")
-                    let result_obj = globalThis.eval_js_part2(content).value
+                    let result_obj = globalThis.eval_js_part2(content)
                     if(result_obj.err){
                         this.loading_file = undefined
                         this.callback_or_error(callback, err)
                         return
                     }
                     else {
-                        result = result_obj.result
+                        result = result_obj.value
                     }
                 }
                 else { //we're in node

@@ -807,7 +807,7 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
                 let fn_name = cb.name
                 if(fn_name == "") { fn_name = cb.toString() } //ie some anonymous fn
                 let arg_string = JSON.stringify(result)
-                arg_string = replace_substrings(arg_string, ",", "<br/>")
+                arg_string = Utils.replace_substrings(arg_string, ",", "<br/>")
                 if((result.clicked_button_value == "close_button") &&
                     !cb.toString().includes("close_button")) {
                     warning("The show_window callback function of: <code>" + fn_name +

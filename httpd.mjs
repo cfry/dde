@@ -106,9 +106,21 @@ function compute_dde_install_folder(){ //new in dde4 //todo dde4 result proably 
     }
 }
 
+function compute_dde_folder(){ //new in dde4 //todo dde4 result proably shouldn't end in slash
+    if(running_on_dexter()) {
+        return  SHARE_FOLDER + "/www/dde"  //'/root/Documents/dde'
+    }
+    else {
+        return path.join(process.cwd(), 'dde')
+    }
+}
+
+
+
 const SHARE_FOLDER       = '/srv/samba/share';
 const DDE_APPS_FOLDER    = compute_dde_apps_folder() //dde4
 const DDE_INSTALL_FOLDER = compute_dde_install_folder() //where DDE is installed on Dexter  //todo dde4 this changes
+const DDE_FOLDER         = compute_dde_folder()
 
 function running_on_dexter() { //dde4 added
     return fs.existsSync(SHARE_FOLDER)
@@ -125,6 +137,9 @@ function make_full_path(path){ //dde4 added
             console.log("in make_full_path, NOT running_on_dexter, prefix: " + prefix)
             path = prefix + path
         }
+    }
+    else if(path.startsWith("dde/")) {
+        path = DDE_FOLDER + "/" + path.substring(4) //cut off the "dde/" prefix or else we'll get two dde folders in the resulting path
     }
     else {
         path = SHARE_FOLDER + "/" + path

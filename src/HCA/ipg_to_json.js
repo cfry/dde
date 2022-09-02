@@ -25,15 +25,27 @@ Implement: do capture that 2nd line, perhaps as:
 
 */
 
-var ipg_to_json = class ipg_to_json{
-    static parse(ipg){
+globalThis.ipg_to_json = class ipg_to_json{
+    static async parse(ipg, callback) {
+        if ((ipg.length < 256) && (ipg.endsWith(".ipg") || ipg.endsWith(".idl"))) {
+            ipg = await DDEFile.read_file_async(ipg)
+        }
+
+        let json_obj = this.parse_string(ipg)
+        if(callback){
+            callback(json_obj)
+        }
+    }
+
+    //ipg must be a string of JSON
+    static parse_string(ipg){
         if((ipg.length < 256) && ipg.endsWith(".ipg")){
             ipg = read_file(ipg)
         }
-        ipg = replace_substrings(ipg, "\\\\", "/", false)
-        ipg = replace_substrings(ipg, "\\", "/", false)
-        ipg = replace_substrings(ipg, "\u0001", " ", false)
-        ipg = replace_substrings(ipg, "\u0002", " ", false)
+        ipg = Utils.replace_substrings(ipg, "\\\\", "/", false)
+        ipg = Utils.replace_substrings(ipg, "\\", "/", false)
+        ipg = Utils.replace_substrings(ipg, "\u0001", " ", false)
+        ipg = Utils.replace_substrings(ipg, "\u0002", " ", false)
 
         let result = {}
         let lines = ipg.split("\n")
@@ -65,7 +77,7 @@ var ipg_to_json = class ipg_to_json{
 
             else if (line.startsWith("{")) { section = "sub_objects"} //in a top level object, just before top level doc.
                                               //no content after the first char of such lines.
-            else if (is_whitespace(line))  {} //ignore
+            else if (Utils.is_whitespace(line))  {} //ignore
             else if(line.includes("revision") || line.includes("Revision")){ //must be before handling lines that start with " // "
                 if(!top_level_obj.revisions) {
                     top_level_obj.revisions = []
@@ -371,12 +383,12 @@ grab_io('(myt "myn ame", myt2 myn2)')
 grab_io(str)
 */
     static grab_io(str, start_index=0) {
-        if(str.includes("MSB008 MSB008)")) { debugger; }
+        //if(str.includes("MSB008 MSB008)")) { de bugger; }
         let cur_term = ""
         let cur_pair
         let pair_array = [] //the main result
         let state = "between_pairs"
-        if(is_whitespace(str)) { return [pair_array, start_index]}
+        if(Utils.is_whitespace(str)) { return [pair_array, start_index]}
         //states:
         //between_pairs, between_terms,
         //getting_type_string, getting_type_symbol
@@ -415,7 +427,7 @@ grab_io(str)
                 else { cur_term += char }
             }
             else if(state === "between_terms"){
-                if(is_whitespace(char)) {}
+                if(Utils.is_whitespace(char)) {}
                 else if(char === '"'){
                     state = "getting_name_string"
                 }
@@ -458,7 +470,7 @@ grab_io(str)
         for(let i = start_index; i < str.length; i++){
             let char = str[i]
             if(state === "before"){
-                if(is_whitespace(char)) {}
+                if(Utils.is_whitespace(char)) {}
                 else if(char === '"') { state = "grabbing_string" }
                 else  {
                     cur_term = char
@@ -472,7 +484,7 @@ grab_io(str)
                 else { cur_term += char }
             }
             else if(state === "grabbing_symbol"){
-                if(is_whitespace(char) ||
+                if(Utils.is_whitespace(char) ||
                    (char === ";") ||
                    (char === "(")) {
                     return [cur_term, i]
@@ -531,7 +543,7 @@ grab_io(str)
             str = Editor.pretty_print(str)
         }
         if(pretty === "HTML") {
-            str = replace_substrings(str, "\n", "<br/>")
+            str = Utils.replace_substrings(str, "\n", "<br/>")
             str = "<pre>" + str + "</pre>"
             //the below makes all the dulbe quotes not escaped,
             //and doesn't print any unnecessary stuff in the output pane.
@@ -540,8 +552,8 @@ grab_io(str)
         }
         return str
     }
-    static parse_and_print(ipg, pretty=true){
-        let result_obj = this.parse(ipg)
+    static async parse_and_print(ipg, pretty=true){
+        let result_obj = await this.parse(ipg)
         return this.print(result_obj, pretty)
     }
 } //end class

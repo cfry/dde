@@ -399,7 +399,7 @@ var FileTransfer = class FileTransfer {
            let row_str = row.join(", ")
            new_dh_matrix_html += "[" + row_str + "]<br/>"
        }
-       let new_dm_content_html = replace_substrings(new_dm_content, "\n", "<br/>")
+       let new_dm_content_html = Utils.replace_substrings(new_dm_content, "\n", "<br/>")
        out( "<b>customize_defaults_make_ins</b><br/>"    +
             "Old LinkLengths:" + orig_links_str + "<br/>" +
             "New Linklengths:" + new_links_str + "<br/>" +

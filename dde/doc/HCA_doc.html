@@ -1,0 +1,59 @@
+<details class="doc_details" id="hca_ui_doc_id"><summary>HCA User Interface</summary>
+<div style="font-color:red;">The HCA UI is a work in progress, not ready for use.</div>
+HCA stands for Heterogeneous Computing Architecture. HCA_UI is a user interface
+    to writing software for FPGA's using a graphical editor.
+    The tool creates a JSON representation of the layout of the objects in the editor.
+    That JSON representation is sent to a compiler that makes a compiled gateware file which
+    is stored on Dexter and controls the computation of the FPGA.
+    That computation moves Dexter's joints and captures joint positions
+    from the optical sensor on each joint.
+    <p></p>
+    HCA_UI reuses components of the DDE user interface
+    for those opperations that are in common with
+    normal DDE editing.
+    When the HCA UI is brought up, it replaces the editor section of
+    DDE's editor pane with a Boxes-and-Lines graph editor.
+<p></p>
+
+
+
+<details class="doc_details"><summary>HCA editor operations</summary>
+<ul>
+    <li> <b>drag a node</b> to move it.</li>
+    <li> <b>click a node</b> to select it.</li>
+    <li> <b>ctrl-a</b> select all nodes.</li>
+    <li> <b>ctrl-x</b> cut the selected nodes.</li>
+    <li> <b>ctrl-c</b> copy the selected nodes to the clipboard.</li>
+    <li> <b>ctrl-v</b> paste the selected nodes from the clipboard.</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>DDE Menu items for HCA</summary>
+<ul>
+    <li><b>File menu/New</b> Clears the canvas of all nodes and starts a "new buffer".</li>
+    <li><b>File menu/Open ...</b> Allows the user to select a file from the computer's file system
+        to edit.</li>
+    <li><b>File menu/Load ...</b> Allows the user to select a file to load, which creates
+        buttons of definitions of nodes. Clicking a button creates an instance
+        of that definition, populating the canvas with nodes.</li>
+    <li><b>File menu/Save</b> Saves the current file being edited (as a big JSON string).</li>
+    <li><b>File menu/Save as ...</b>  Lets the user choose a file to save the currently
+        being edited nodes.</li>
+    <li><b>Edit menu/pretty print</b>  arranges the nodes to be well spaced.</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>Other DDE UI for HCA</summary>
+    <b>Files menu</b> (select of recently used files)
+       If you select a file without
+       valid HCA code, it errors but leaves the current canvas and fikes menu unchanged.
+    <p></p>
+    <b>Eval button</b>
+    <ul>
+        <li>If no selection, inspect the HCA class itself.</li>
+        <li>If one selected node, inspect it.</li>
+        <li>If more than one selected node, inspect an array of those selected nodes.</li>
+    </ul>
+
+</details>
+</details>

@@ -17,8 +17,6 @@ require("codemirror/addon/fold/brace-fold.js")
 require("codemirror/addon/fold/comment-fold.js")
 */
 
-import beautify from "js-beautify"
-
 import {eval_js_part1} from "./eval.js"
 
 import {Js_info}       from "./js_info.js"
@@ -250,7 +248,7 @@ class Editor {
     }
 
     static pretty_print (js){
-        js = beautify.js(js)
+        js = js_beautify(js)
         return js
     }
 
@@ -713,7 +711,7 @@ class Editor {
         }
         else if (vals.clicked_button_value == "show dde_persistent.json"){
             let content = read_file("dde_persistent.json")
-            content = replace_substrings(content, "\n", "<br/>")
+            content = Utils.replace_substrings(content, "\n", "<br/>")
             out(content)
         }
         else if (vals.clicked_button_value.endsWith("Defaults.make_ins")){
@@ -740,7 +738,7 @@ class Editor {
                                  warning("Could not get " + path + "<br/>Error: " + err)
                               }
                               else {
-                                  content = replace_substrings(content, "\n", "<br/>")
+                                  content = Utils.replace_substrings(content, "\n", "<br/>")
                                   out("<b>" + rob_name + ":/srv/samba/share/errors.log</b> content:<br/>" + content)
                               }
                             })

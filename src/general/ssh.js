@@ -72,7 +72,7 @@ export var SSH = class SSH {
         }
         //at this point computer, username and password are filled in.
         //the_host_name *might* not be filled in, and that's ok
-        command = replace_substrings(command, "ApOsTrOpHe", "'")
+        command = Utils.replace_substrings(command, "ApOsTrOpHe", "'")
         if(command.endsWith("\n")) { command = command.substring(0, command.length - 1) } //cut off the ending newline
         this.current_cmd = command //current_cmd has no echo eof, and no new line on end.
         command = SSH.bof_cmd + ";" +
@@ -82,7 +82,7 @@ export var SSH = class SSH {
         this.init_maybe_and_write(command, callback)
     }
     static make_ls_elt_id(){
-        let result = "DirectoryListing" + replace_substrings(SSH.config.host, "\\.", "_")
+        let result = "DirectoryListing" + Utils.replace_substrings(SSH.config.host, "\\.", "_")
         return result + "_id"
     }
 
@@ -424,7 +424,7 @@ export var SSH = class SSH {
         this.stream.write(command)
    }
    static dir_list_id(){
-       return "DirectoryListing" + replace_substrings(SSH.config.host, "\\.", "_")
+       return "DirectoryListing" + Utils.replace_substrings(SSH.config.host, "\\.", "_")
    }
 
    //warning: clears only the text below the LAST dir listing, not necessarily
@@ -483,9 +483,9 @@ export var SSH = class SSH {
     //extracts and returns data from out_str, then
     //sets out_str to its remainder after the actual data for the cmd
    /*static clean_output(){
-       SSH.out_str = replace_substrings(SSH.out_str, "[01;34m", "",      false)
-       SSH.out_str = replace_substrings(SSH.out_str, "[0m",     "",      false)
-       SSH.out_str = replace_substrings(SSH.out_str, String.fromCharCode(13), "", false) //CR chars
+       SSH.out_str = Utils.replace_substrings(SSH.out_str, "[01;34m", "",      false)
+       SSH.out_str = Utils.replace_substrings(SSH.out_str, "[0m",     "",      false)
+       SSH.out_str = Utils.replace_substrings(SSH.out_str, String.fromCharCode(13), "", false) //CR chars
        if(SSH.out_str.includes("\b") &&
           (this.current_cmd.startsWith("man ") ||
            this.current_cmd.includes(";man "))){ //at least one backspace, so copy whole str, removing backspace and the following char to get rid of double letters in man panges.
@@ -562,9 +562,9 @@ export var SSH = class SSH {
     //this algorithm just grabs the next delimited data in SSH.out_str
     static clean_output(){   //uniz uses LF 10, but windows uses 2 chars 13, 10 (CR, LF
                              // ESC[number;number;numberm  (ends with "m")
-        //SSH.out_str = replace_substrings(SSH.out_str, "\x1B[01;34m", "",      false)
-        //SSH.out_str = replace_substrings(SSH.out_str, "\x1B[0m",     "",      false)
-        SSH.out_str = replace_substrings(SSH.out_str, String.fromCharCode(13), "", false) //CR chars
+        //SSH.out_str = Utils.replace_substrings(SSH.out_str, "\x1B[01;34m", "",      false)
+        //SSH.out_str = Utils.replace_substrings(SSH.out_str, "\x1B[0m",     "",      false)
+        SSH.out_str = Utils.replace_substrings(SSH.out_str, String.fromCharCode(13), "", false) //CR chars
         //warning: the above must be above the below because in the sshH.eof cmd,
         //unix mangles it when printing it onto the stream by inserting a
         // \r (13) after the mangled space it inserts after the echo "$ " .
@@ -605,7 +605,7 @@ export var SSH = class SSH {
             return SSH.handle_edit_file_cmd(command, data)
         }
         else {
-            let html_result  = replace_substrings(data, "\n", "<br/>", false)
+            let html_result  = Utils.replace_substrings(data, "\n", "<br/>", false)
             SSH.output_to_output_pane(html_result)
             return data
         }
@@ -711,7 +711,7 @@ export var SSH = class SSH {
             return result
        }
        else { //failed to parse into a table so just return string
-           result = replace_substrings(data, "\n", "<br/>", false)
+           result = Utils.replace_substrings(data, "\n", "<br/>", false)
            SSH.output_to_output_pane(result)
            return data
        }

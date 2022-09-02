@@ -36,7 +36,7 @@ newObject({
     },
 
     find_block_type: function(block_type_name){
-        let block_type_name_for_name = replace_substrings(block_type_name, "\\.", "__")
+        let block_type_name_for_name = Utils.replace_substrings(block_type_name, "\\.", "__")
         if      ((block_type_name == this.display_label) ||
                  (block_type_name_for_name == this.name)) { return this }
         else {
@@ -2375,7 +2375,7 @@ newObject({prototype: Root.jsdb.for,
         let code_body      = dom_elt_child_of_class(block_args.childNodes[5], "arg_val")
         let code_body_src  = block_to_js(code_body)
         code_body_src = "{\n" + code_body_src.substring(1) //start the first expr on a newline, like the rest of them
-        code_body_src = replace_substrings(code_body_src, "\n", "\n    ") //indent
+        code_body_src = Utils.replace_substrings(code_body_src, "\n", "\n    ") //indent
         let result = "for(" + block_to_js(assignment_elt)  + "; " +
             block_to_js(comparison_elt) + "; " +
             block_to_js(increment_elt)  + ")" +
@@ -2412,7 +2412,7 @@ newObject({prototype: Root.jsdb.for,
         let code_body      = dom_elt_child_of_class(block_args.childNodes[5], "arg_val")
         let code_body_src  = block_to_js(code_body)
         code_body_src = "{\n" + code_body_src.substring(1) //start the first expr on a newline, like the rest of them
-        code_body_src = replace_substrings(code_body_src, "\n", "\n    ") //indent
+        code_body_src = Utils.replace_substrings(code_body_src, "\n", "\n    ") //indent
         let result = "for(" + block_to_js(first)  + " " +
             block_to_js(second) + " " +
             block_to_js(third)  + ")" +

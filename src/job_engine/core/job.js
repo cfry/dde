@@ -1091,7 +1091,7 @@ class Job{
             case "errored":
                 bg_color = "rgb(255, 68, 68)";
                 let reason = this.stop_reason
-                reason = replace_substrings(reason, "<br/>", "\n")
+                reason = Utils.replace_substrings(reason, "<br/>", "\n")
                 tooltip  = "This Job errored at instruction: " + this.program_counter +
                 " with:\n" + reason + "\nClick to restart this Job."
                 break;
@@ -1689,7 +1689,7 @@ Job.prototype.if_robot_status_error_default = function(){
                                 content == "<i>errors.log is empty</i>"
                             }
                             else {
-                             content = replace_substrings(content, "\n", "<br/>")
+                             content = Utils.replace_substrings(content, "\n", "<br/>")
                              content = "Content of " + path + "<br/><code>" + content + "</code>"
                              setTimeout(function(){write_file_async(path, "")},
                                         400) //give the read_file job a chance to finish properly
@@ -1774,7 +1774,7 @@ Job.prototype.show_error_log_maybe = function(){
                         warning("Could not get " + path + "<br/>Error: " + err)
                     }
                     else {
-                        content = replace_substrings(content, "\n", "<br/>")
+                        content = Utils.replace_substrings(content, "\n", "<br/>")
                         out("<b>" + rob_name + ":/srv/samba/share/errors.log</b> content:<br/>" + content)
                     }
                 })

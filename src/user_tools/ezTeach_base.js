@@ -526,12 +526,12 @@ function Finish_Create(){
                         let coor_source_string = ez_get_object(Coor, coor_name).sourceCode()
                         let file_string = JSON.stringify({old_user_data: this.user_data, coor_source_string: coor_source_string})
                        
-                        file_string = replace_substrings(file_string, "\"saved_positions\":\\[\\{", "\"saved_positions\":\[\n\n\n{\n    ")
-                        file_string = replace_substrings(file_string, "\"start_position\"", "\n    \"start_position\"")
-                        file_string = replace_substrings(file_string, "}],\"plane_points\"", "\n}\n],\n\n\n\n\"plane_points\"")         
-                        file_string = replace_substrings(file_string, "{},", "{}, ")         
-                        file_string = replace_substrings(file_string, ",\"", ",\n    \"")
-                        file_string = replace_substrings(file_string, "},{", "\n},\n{\n    ")
+                        file_string = Utils.replace_substrings(file_string, "\"saved_positions\":\\[\\{", "\"saved_positions\":\[\n\n\n{\n    ")
+                        file_string = Utils.replace_substrings(file_string, "\"start_position\"", "\n    \"start_position\"")
+                        file_string = Utils.replace_substrings(file_string, "}],\"plane_points\"", "\n}\n],\n\n\n\n\"plane_points\"")
+                        file_string = Utils.replace_substrings(file_string, "{},", "{}, ")
+                        file_string = Utils.replace_substrings(file_string, ",\"", ",\n    \"")
+                        file_string = Utils.replace_substrings(file_string, "},{", "\n},\n{\n    ")
                         
                     	write_file(points_filepath, file_string)
                         out("Positions saved to " + points_filepath, "blue")

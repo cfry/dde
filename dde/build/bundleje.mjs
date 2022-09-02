@@ -34058,14 +34058,14 @@ class DDEFile$1 {
                 }
                 else if(globalThis.eval_js_part2) { //we're in IDE
                     console.log("load_file in clause globalThis.eval_js_part2");
-                    let result_obj = globalThis.eval_js_part2(content).value;
+                    let result_obj = globalThis.eval_js_part2(content);
                     if(result_obj.err){
                         this.loading_file = undefined;
                         this.callback_or_error(callback, err);
                         return
                     }
                     else {
-                        result = result_obj.result;
+                        result = result_obj.value;
                     }
                 }
                 else { //we're in node

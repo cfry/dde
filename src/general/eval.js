@@ -196,7 +196,9 @@ function eval_js_part2(command, call_eval_part3_if_no_error=true){ //2nd arg pas
         eval_js_part3(result)
         return "Error: " + err.message
     }
-    if (call_eval_part3_if_no_error) { eval_js_part3(result) }
+    if (call_eval_part3_if_no_error) {
+       eval_js_part3(result)
+    }
     return result
 }
 

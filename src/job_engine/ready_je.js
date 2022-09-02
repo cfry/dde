@@ -97,7 +97,6 @@ function start_job(job_name){
 }
 
 function define_and_start_job(job_file_path){
-    debugger;
     if(job_file_path.endsWith("/keep_alive")) {
         globalThis.keep_alive_value = true //set to false by stdio readline evaling "globalThis.set_keep_alive_value(false)" made in httpd.mjs
         //and sent to job engine process stdin.

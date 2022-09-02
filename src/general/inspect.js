@@ -492,7 +492,7 @@ class Inspect{
 
     static inspect_one_liner_regular_fn(item){
         let result = item.toString()
-        result = replace_substrings(result, "<", "&lt;") //if I don't do this, fns with bodies containing tags
+        result = Utils.replace_substrings(result, "<", "&lt;") //if I don't do this, fns with bodies containing tags
         //get rendered and that's wrong for viewing source code.
         var pos_of_br = result.indexOf("\n")
         if (pos_of_br == -1) { //the fn params and body all are on one line, no need for a twistdown

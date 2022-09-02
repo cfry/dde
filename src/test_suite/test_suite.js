@@ -392,7 +392,7 @@ class TestSuite{
             //because there is sometimes a comment at top of a testsuite file (like for the
             //math tests, we have to be careful about deleting that initial comma.
             //ts_src = ts_src.substring(1) //cut off initial comma
-            ts_src = replace_substrings(ts_src, "new TestSuite", ", new TestSuite") //don't stick in the open paren after new TestSuite because regexp will think its a group cmd.
+            ts_src = Utils.replace_substrings(ts_src, "new TestSuite", ", new TestSuite") //don't stick in the open paren after new TestSuite because regexp will think its a group cmd.
             let initial_comma_pos = ts_src.indexOf(", new TestSuite")
             ts_src = ts_src.substring(0, initial_comma_pos) +
                      ts_src.substring(initial_comma_pos + 1)
@@ -1086,7 +1086,7 @@ class TestSuite{
         let result_tses = TestSuite.find_test_suites(string_to_search_for)
         if (result_tses.length == 1) {
             let the_html = string_to_search_for + " is in:<br/>" + result_tses[0].to_html()
-            the_html = replace_substrings(the_html, string_to_search_for,
+            the_html = Utils.replace_substrings(the_html, string_to_search_for,
                 "<span style='background-color:yellow;'>" + string_to_search_for + "</span>")
             out(the_html)
         }
@@ -1095,7 +1095,7 @@ class TestSuite{
             for(let ts of result_tses){
                 the_html += "<details><summary>" + ts.name + "</summary>" + ts.to_html() + "</details>"
             }
-            the_html = replace_substrings(the_html, string_to_search_for,
+            the_html = Utils.replace_substrings(the_html, string_to_search_for,
                 "<span style='background-color:yellow;'>" + string_to_search_for + "</span>")
             out(the_html)
         }

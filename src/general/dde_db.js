@@ -204,7 +204,6 @@ class DDE_DB{
     }
 
     static async dde_init_dot_js_initialize() {
-       debugger;
         let does_file_exist = await DDEFile.file_exists("")
         if(!does_file_exist){
             dde_error("dde_init_dot_js_initialize called but there is no Documents/dde_apps/ folder.")
@@ -325,37 +324,37 @@ globalThis.DDE_DB = DDE_DB
 //to help backwards compatibility with DDE3, esp in older dde_init.js files
 globalThis.persistent_set = function(key, value){
     if(key === "ROS_URL"){
-        warning('You have attempted to call: persistent_set with a key of: key<br/>' +
-                'That key is no longer valid, and persistent_set has been depicated.<br/>' +
+        warning('You have attempted to call: persistent_set with a key of: ' + key + '<br/>' +
+                'That key is no longer valid, and persistent_set has been depricated.<br/>' +
                 'Please change your code to:  default_default_ros_url = ' + value)
     }
     else if(key === "default_default_dexter_ip_address") {
         globalThis.default_default_dexter_ip_address = value
-        warning('You have attempted to call: persistent_set with a key of: key<br/>' +
+        warning('You have attempted to call: persistent_set with a key of: ' + key + '<br/>' +
                 'That functionality is now handled by: ' + key + " = " + value + "<br/>" +
                 'which has automatically been done for you.')
     }
     else if(key === "default_dexter_ip_address") {
         globalThis.default_default_dexter_ip_address = value
-        warning('You have attempted to call: persistent_set with a key of: key<br/>' +
+        warning('You have attempted to call: persistent_set with a key of: ' + key + '<br/>' +
             'That functionality is now handled by: default_default_dexter_ip_address  = ' + value + "<br/>" +
             'which has automatically been done for you.')
     }
     else if(key === "default_default_dexter_port") {
         globalThis.default_default_dexter_port = value
-        warning('You have attempted to call: persistent_set with a key of: key<br/>' +
+        warning('You have attempted to call: persistent_set with a key of: ' + key + '<br/>' +
                 'That functionality is now handled by: ' + key + " = " + value + "<br/>" +
                 'which has automatically been done for you.')
     }
     else if(key === "default_dexter_port") {
         globalThis.default_default_dexter_port = value
-        warning('You have attempted to call: persistent_set with a key of: key<br/>' +
+        warning('You have attempted to call: persistent_set with a key of: ' + key + '<br/>' +
             'That functionality is now handled by: default_default_dexter_port = ' + value + "<br/>" +
             'which has automatically been done for you.')
     }
     else {
         DDE_DB.persistent_set(key, value)
-        warning('You have attempted to call: persistent_set with a key of: key<br/>' +
+        warning('You have attempted to call: persistent_set with a key of: ' + key + '<br/>' +
                 'That functionality is now handled by: DDE_DB.persitent_set' + key + " = " + value + "<br/>" +
                 'which has automatically been done for you.')
     }

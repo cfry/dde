@@ -452,12 +452,12 @@ foo
         let parent_details_elt
         let valid_positions = ["beforebegin", "afterbegin", "beforeend", "afterend"]
         if(!valid_positions.includes(position)){
-            dde_error('insert_html_into_doc_pane passed position of: <code>"' + position +
+            dde_error('DocCode.insert_html_into_doc_pane passed position of: <code>"' + position +
                 '"</code><br/> that is not one of "' + valid_positions.join('", "') + '"')
         }
         if(summary_text_path == null) {
             if((position == "beforebegin") || (position == "afterend")){
-                dde_error('In call to insert_html_into_doc_pane, position of: <code>"' + position +
+                dde_error('In call to DocCode.insert_html_into_doc_pane, position of: <code>"' + position +
                           '"</code><br/>is not valid with summary_text_path of: <code>null</code>')
             }
             else { parent_details_elt = doc_pane_content_id }
@@ -467,7 +467,7 @@ foo
             parent_details_elt = this.find_doc_pane_details_elt_with_summary(summary_text_path)
         }
         if(parent_details_elt == null) {
-           dde_error("insert_html_into_doc_pane could not find summary_text_path: " + summary_text_path)
+           dde_error("DocCode.insert_html_into_doc_pane could not find summary_text_path: " + summary_text_path)
         }
         else {
             parent_details_elt.insertAdjacentHTML(position, html)
