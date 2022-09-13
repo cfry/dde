@@ -18,7 +18,6 @@ import "./jsdb_newObject.js"  //should be after blocks2.js
 import "./js2b.js"
 
 //import {make_dom_elt} from "../job_engine/core/html_db.js" //in DDE4, make_dom_elt is global so don't attempt to import int
-import beautify from "js-beautify"
 
 //called from dde_init.js IFF we're in dde platform.
 function blocks_init(){
@@ -75,38 +74,36 @@ function make_blocksde_dom_elt(){
 // onmouseup="Workspace.toolkit_bar_mouseup(event)"
 var the_codemirror_elt = null
 var blocksde_dom_elt   = null
-var HCA_dom_elt        = null
-
 
 
 function change_code_view_kind(event){
     let new_view_kind = code_view_kind_id.value
     console.log("new_view_kind: " + new_view_kind)
-    if      (Editor.view == "JS"){ //old_view_kind
+    if      (Editor.view === "JS"){ //old_view_kind
             if(!the_codemirror_elt) {
                 the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
             }
-            if      (new_view_kind == "Blocks"){ js_to_blocks() }
-            else if (new_view_kind == "DefEng"){ js_to_defeng() }
-            else if (new_view_kind == "HCA")   { js_to_HCA() }
+            if      (new_view_kind === "Blocks"){ js_to_blocks() }
+            else if (new_view_kind === "DefEng"){ js_to_defeng() }
+            else if (new_view_kind === "HCA")   { js_to_HCA() }
     }
-    else if(Editor.view == "Blocks"){ //old_view_kind
-            if      (new_view_kind == "JS")    { blocks_to_js() }
-            else if (new_view_kind == "DefEng"){ blocks_to_defeng() }
-            else if (new_view_kind == "HCA")   { blocks_to_HCA() }
+    else if(Editor.view === "Blocks"){ //old_view_kind
+            if      (new_view_kind === "JS")    { blocks_to_js() }
+            else if (new_view_kind === "DefEng"){ blocks_to_defeng() }
+            else if (new_view_kind === "HCA")   { blocks_to_HCA() }
     }
-    else if(Editor.view == "DefEng") { //old_view_kind
-            if      (new_view_kind == "JS")    { defeng_to_js() }
-            else if (new_view_kind == "Blocks"){ defeng_to_blocks() }
-            else if (new_view_kind == "HCA")   {
+    else if(Editor.view === "DefEng") { //old_view_kind
+            if      (new_view_kind === "JS")    { defeng_to_js() }
+            else if (new_view_kind === "Blocks"){ defeng_to_blocks() }
+            else if (new_view_kind === "HCA")   {
                 code_view_kind_id.value = "DefEng"
                 warning("Sorry, can't convert from Definitive English to HCA yet.")
             }
     }
-    else if(Editor.view == "HCA") {
-            if      (new_view_kind == "JS")    { HCA_to_js() }
-            else if (new_view_kind == "Blocks"){ HCA_to_blocks() }
-            else if (new_view_kind == "DefEng"){
+    else if(Editor.view === "HCA") {
+            if      (new_view_kind === "JS")    { HCA_to_js() }
+            else if (new_view_kind === "Blocks"){ HCA_to_blocks() }
+            else if (new_view_kind === "DefEng"){
                 code_view_kind_id.value = "HCA"
                 warning("Sorry, can't convert from HCA to Definitive English yet.")
             }
@@ -120,7 +117,7 @@ function js_to_blocks(){
         let js = Editor.get_javascript() //must do before the switch
         let block_to_install
         try{
-            if (js.trim() != ""){block_to_install = JS2B.js_to_blocks(js.trim())} //do before switching views in case this errors, we want to stay in text view
+            if (js.trim() !== ""){block_to_install = JS2B.js_to_blocks(js.trim())} //do before switching views in case this errors, we want to stay in text view
         }
         catch(err){
             warning("Could not convert JavaScript source to blocks due to error:<br/>" +
@@ -173,7 +170,7 @@ function HCA_to_js(){
     let js = HCA.get_javascript()
     js = js_beautify(js)
     let the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
-    html_db.replace_dom_elt(HCA_dom_elt, the_codemirror_elt)
+    html_db.replace_dom_elt(globalThis.HCA_dom_elt, the_codemirror_elt)
     Editor.set_javascript(js)
     Editor.view = "JS"
     Editor.myCodeMirror.focus()
@@ -184,7 +181,7 @@ function HCA_to_blocks(){
     //the below mostly lifed from js_to_blocks
     let block_to_install
     try{
-        if (js.trim() != ""){block_to_install = JS2B.js_to_blocks(js.trim())} //do before switching views in case this errors, we want to stay in text view
+        if (js.trim() !== ""){block_to_install = JS2B.js_to_blocks(js.trim())} //do before switching views in case this errors, we want to stay in text view
     }
     catch(err){
         warning("Could not convert JavaScript source to blocks due to error:<br/>" +
@@ -198,12 +195,12 @@ function HCA_to_blocks(){
         let blocks_style_content = read_file(__dirname + "/blocksde/style2.css")
         let style_elt = make_dom_elt("style", {}, blocks_style_content) //"* { background-color:blue;}")
         blocksde_dom_elt.appendChild(style_elt)
-        html_db.replace_dom_elt(HCA_dom_elt, blocksde_dom_elt) //must occur before calling make_workspace_instance
+        html_db.replace_dom_elt(globalThis.HCA_dom_elt, blocksde_dom_elt) //must occur before calling make_workspace_instance
         //because that needs workspace_container_id to be installed in order to
         //install workspace_id inside it
         Workspace.make_workspace_instance()
     }
-    else { html_db.replace_dom_elt(HCA_dom_elt, blocksde_dom_elt) }
+    else { html_db.replace_dom_elt(globalThis.HCA_dom_elt, blocksde_dom_elt) }
     Workspace.inst.clear_blocks()
     if (block_to_install){ //we've got non empty js code so turn it into blocks.
         install_top_left_block(block_to_install)
@@ -213,6 +210,7 @@ function HCA_to_blocks(){
 
 function blocks_to_HCA(){
     let js = Workspace.inst.to_js()
+    let js_obj
     try { js_obj = JSON.parse(js) }
     catch(err){
         //code_view_kind_id.value = "JS"
@@ -222,7 +220,7 @@ function blocks_to_HCA(){
     }
     globalThis.HCA_dom_elt = HCA.make_HCA_dom_elt()
     let the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
-    html_db.replace_dom_elt(the_codemirror_elt, HCA_dom_elt)
+    html_db.replace_dom_elt(the_codemirror_elt, globalThis.HCA_dom_elt)
     Editor.view = "HCA"
     HCA.init(js_obj,
              "js_object from blocks" //from error message

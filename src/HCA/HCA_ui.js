@@ -13,24 +13,24 @@ var LGraphCanvas_prototype_processKey = function(e) { //used in init
     var block_default = false;
     //console.log(e); //debug
 
-    if (e.target.localName == "input") {
+    if (e.target.localName === "input") {
         return;
     }
 
-    if (e.type == "keydown") { //fry: this event not triggered in dde on mac so must use keyup
-        if (e.keyCode == 32) {
+    if (e.type === "keydown") { //fry: this event not triggered in dde on mac so must use keyup
+        if (e.keyCode === 32) {
             //esc
             this.dragging_canvas = true;
             block_default = true;
         }
 
         //select all Control A
-        if (e.keyCode == 65 && e.ctrlKey) {
+        if (e.keyCode === 65 && e.ctrlKey) {
             this.selectNodes();
             block_default = true;
         }
 
-        if (e.code == "KeyC" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
+        if (e.code === "KeyC" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
             //copy
             if (this.selected_nodes) {
                 this.copyToClipboard();
@@ -38,16 +38,16 @@ var LGraphCanvas_prototype_processKey = function(e) { //used in init
             }
         }
 
-        if (e.code == "KeyV" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
+        if (e.code === "KeyV" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
             //paste
             this.pasteFromClipboard();
         }
 
         //delete or backspace
-        if (e.keyCode == 46 || e.keyCode == 8) {
+        if (e.keyCode === 46 || e.keyCode === 8) {
             if (
-                e.target.localName != "input" &&
-                e.target.localName != "textarea"
+                e.target.localName !== "input" &&
+                e.target.localName !== "textarea"
             ) {
                 this.deleteSelectedNodes();
                 block_default = true;
@@ -65,17 +65,17 @@ var LGraphCanvas_prototype_processKey = function(e) { //used in init
                 }
             }
         }
-    } else if (e.type == "keyup") {
-        if (e.keyCode == 32) {
+    } else if (e.type === "keyup") {
+        if (e.keyCode === 32) {
             this.dragging_canvas = false;
         }
         //begin fry extension:
-        else if (e.key == "a" && e.ctrlKey) { //select all
+        else if (e.key === "a" && e.ctrlKey) { //select all
             this.selectNodes();
             block_default = true;
         }
 
-        else if (e.key == "x" && (e.metaKey || e.ctrlKey) && !e.shiftKey) { //cut note: metaKey is supposed to be mac cloverleaf but it fails, so just use cntrl key on mac, just like window.
+        else if (e.key === "x" && (e.metaKey || e.ctrlKey) && !e.shiftKey) { //cut note: metaKey is supposed to be mac cloverleaf but it fails, so just use cntrl key on mac, just like window.
             if (this.selected_nodes) {
                 this.copyToClipboard();
                 this.deleteSelectedNodes();
@@ -83,14 +83,14 @@ var LGraphCanvas_prototype_processKey = function(e) { //used in init
             }
         }
 
-        else if (e.key == "c" && (e.metaKey || e.ctrlKey) && !e.shiftKey) { //copy
+        else if (e.key === "c" && (e.metaKey || e.ctrlKey) && !e.shiftKey) { //copy
             if (this.selected_nodes) {
                 this.copyToClipboard();
                 block_default = true;
             }
         }
 
-        else if (e.key == "v" && (e.metaKey || e.ctrlKey) && !e.shiftKey) { //paste
+        else if (e.key === "v" && (e.metaKey || e.ctrlKey) && !e.shiftKey) { //paste
             this.pasteFromClipboard();
         }
 
@@ -118,7 +118,7 @@ globalThis.HCA = class HCA {
     static make_HCA_dom_elt(){
         let big_div = make_dom_elt("div", {style: {display: "flex"}, id: "HCA_dom_elt"})
         let palette = make_dom_elt("div",
-                                   {id: "HCA_palette_id", style: {width:150, height:400, "background-color":"#ffe0cd"}}, //display:"inline-block" //"overflow-block": "hidden"
+                                   {id: "HCA_palette_id", style: {width:150, height:400, "background-color":"#ffe0cd"}}//, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
                                    )
         big_div.append(palette)
         //let but = make_dom_elt("button", {margin: "5px"}, "number")
@@ -126,12 +126,13 @@ globalThis.HCA = class HCA {
         setTimeout(this.populate_palette, 100)
         let can_holder = make_dom_elt("div", {style: {"flex-grow": 1}} )
         big_div.append(can_holder)
-        let can = make_dom_elt("canvas", {id: "HCA_canvas_id",
+        let can = make_dom_elt("canvas",
+                          {id: "HCA_canvas_id",
                                           html_properties: {width: '1024',
                                                             height: '720'
                                                            }
                                           //style: { display: "inline-block"}
-                                          }
+                                    }
                                )
          //<canvas id='mycanvas' width='1024' height='720' style='border: 1px solid'></canvas>
         can_holder.append(can)
@@ -295,7 +296,7 @@ globalThis.HCA = class HCA {
     //if json_string is "", it does nothing silently
     static edit_json_string(json_string){
         let json_obj = this.json_string_to_valid_node_jason_obj(json_string)
-        if(typeof(json_obj) == "string") {
+        if(typeof(json_obj) === "string") {
 
         }
         if(typeof(json_string) === "string") {
@@ -332,7 +333,7 @@ globalThis.HCA = class HCA {
 
     static save_as(){
         const title     = 'save "' + Editor.current_file_path + '" as'
-        const default_path = ((Editor.current_file_path == "new buffer") ? dde_apps_folder : Editor.current_file_path)
+        const default_path = ((Editor.current_file_path === "new buffer") ? dde_apps_folder : Editor.current_file_path)
         const path = choose_save_file({title: title, defaultPath: default_path}) //sychronous! good
         if(path) { //path will be undefined IF user canceled the dialog
             let js = HCA.get_javascript()
@@ -400,13 +401,12 @@ globalThis.HCA = class HCA {
         if(!action_function) {
             action_function = 'function() { HCA.make_and_add_node("' + type + '", "' + button_name + '")}' //needs to be a string because if its a closure over button_name, that won't work with the toString below.
         }
-        let but
         if(type) { //its a node making button
             let category = type.split("/")[0]
             let details_id = "hca_" + category + "_details_id"
             if(!window[details_id]){
                 HCA_palette_id.insertAdjacentHTML("beforeend",
-                                                  "<details id='" + details_id + "'style='margin-left:5px;'><summary>" + category + "</summary></details>")
+                                                  "<details id='" + details_id + "' style='margin-left:5px;'><summary>" + category + "</summary></details>")
             }
             let cat_elt = window[details_id]
             //but = make_dom_elt("div")
@@ -440,13 +440,13 @@ globalThis.HCA = class HCA {
 
     static load_def_choose_folder_or_file_cb(vals){
         let path
-        if(vals.clicked_button_value == "file") {
+        if(vals.clicked_button_value === "file") {
             let path = choose_file()
             if(path) {
                 HCA.load_node_definition_file(path)
             }
         }
-        else if (vals.clicked_button_value == "folder"){
+        else if (vals.clicked_button_value === "folder"){
             let path = choose_folder()
             if(path){
                 HCA.load_node_definition_folder(path)
@@ -527,7 +527,7 @@ To load all the .hco object files in a folder, click <input type='submit' value=
     static make_and_add_node(type, button_name){
         out("making node of type: " + type)
         let node
-        if(button_name == "number") {
+        if(button_name === "number") {
             node = LiteGraph.createNode(type, button_name, {size: [150, 20]})
         }
         else if (type === "graph/subgraph") {
@@ -725,7 +725,7 @@ To load all the .hco object files in a folder, click <input type='submit' value=
     }
 
     //don't use "this" inside this method since its called with a timeout. Use HCA instead.
-    static populate_palette(){
+    static async populate_palette(){
         HCA_palette_id.innerHTML =
           "<button onclick='HCA.toggle_stop_run(event)' title='Toggle HCA simulation between stopped and running.' style='background-color:#ff7d8e;'>stopped</button><br/>" +
           `<div style='white-space:nowrap;' title='Specify the connection "line-drawing" between nodes.'>Wires ` +
@@ -756,14 +756,16 @@ To load all the .hco object files in a folder, click <input type='submit' value=
                               }
                              )
         //HCA_palette_id.append(make_dom_elt("div", {}, "&nbsp;HCA Objects"))
-        HCA_palette_id.insertAdjacentHTML("beforeend", "<div title='Click on an underlined name to create an object of that type.'>Make Objects</div>")
-        HCA.make_node_button("basic/watch")
+        HCA_palette_id.insertAdjacentHTML("beforeend", "<div style='font-weight:bold;' title='Click on an underlined name to create an object of that type.'>Make Objects</div>")
+        /*HCA.make_node_button("basic/watch")
         HCA.make_node_button("basic/const", "number")
         for(let palette_obj of HCA.palette_objects){
             HCA.make_node_button.apply(HCA, palette_obj)
-        }
+        }*/
         let width = HCA_palette_id.offsetWidth
-
+        /* having this fancy palette hiding saves room but screws up pallete scrolling and
+           you lose which details are expanded when it hides and reshows,
+           and its just too confusing.
         HCA_palette_id.onmouseenter = function(event){
             //out("got onmouseenter" + event)
             //HCA_palette_id.setAttribute("style","width:" + width + "px")
@@ -781,7 +783,30 @@ To load all the .hco object files in a folder, click <input type='submit' value=
             //HCA_palette_id.style["overflow"] = "hidden"
             HCA.minimize_palette()
         }
+
+         */
+        await ipg_to_json.parse("CorLib.ipg", HCAObjDef.insert_obj_defs_into_tree)
+        HCA.populate_palette_obj_defs(HCAObjDef.obj_def_tree)
         HCA.save_palette()
+    }
+
+    static populate_palette_obj_defs(tree){
+        out("top of populate_palette_obj_defs")
+        inspect(tree)
+        let ht = this.populate_palette_obj_defs_aux(tree)
+        HCA_palette_id.insertAdjacentHTML("beforeend", ht)
+    }
+
+    static populate_palette_obj_defs_aux(tree){
+        let ht = ((tree.folder_name === "root") ? "" : "<details class='hca_folder'><summary>" + tree.folder_name + "</summary>")
+        for(let objdef of tree.obj_defs) {
+            ht +="<div class='hca_obj_def'>" + objdef.objectName + "</div>\n"
+        }
+        for(let subfold of tree.subfolders) {
+            ht += this.populate_palette_obj_defs_aux(subfold)
+        }
+        ht += "</details>\n"
+        return ht
     }
 
     static save_palette(){

@@ -77,7 +77,6 @@ var dependencies = {
 	readline: "^1.3.0",
 	"rotating-calipers": "^0.0.0",
 	semver: "^7.3.5",
-	serialport: "^9.2.0",
 	"shepherd.js": "^8.3.1",
 	"simple-get": "^3.1.0",
 	stream: "^0.0.2",
@@ -989,7 +988,7 @@ static function_params_for_keyword_call(fn, include_parens=true){
         result = result.substring(0, result.length - 5);
         if(include_parens) { result += ")"; }
     }
-    result = replace_substrings(result, "=", ":");
+    result = this.replace_substrings(result, "=", ":");
     return result
 }
 
@@ -1054,7 +1053,7 @@ static function_param_names_and_defaults(fn){
             let closing_equal = params_full_string.lastIndexOf("=");
             params_string = params_full_string.substring(0, closing_equal).trim();
         }
-        params_string = replace_substrings(params_string, "\\n", " ");
+        params_string = this.replace_substrings(params_string, "\\n", " ");
         var inner_params_and_defaults = params_string.substring(1, params_string.length -1); //cut off { and }
         var inner_params_and_defaults_array = inner_params_and_defaults.split(",");
         var param_names = [];
@@ -1278,7 +1277,7 @@ static function_param_names_and_defaults_lit_obj(fn){
         if(params_full_string.endsWith("}")) { params_full_string = params_full_string.substring(0, params_full_string.length - 1); }
         params_full_string = params_full_string.substring(1);
     }
-    /*    params_string = replace_substrings(params_string, "\\n", " ")
+    /*    params_string = this.replace_substrings(params_string, "\\n", " ")
         var inner_params_and_defaults = params_string.substring(1, params_string.length -1) //cut off { and }
         var inner_params_and_defaults_array = inner_params_and_defaults.split(",")
         var param_names = []
@@ -1448,7 +1447,7 @@ static regexp_escape_special_chars(str){
 //To turn off that special treatment, pass in a 4th arg of false
 static replace_substrings(orig_string, substring_to_replace, replacement, substring_to_replace_treated_specially=true){
     if(!substring_to_replace_treated_specially) {
-        substring_to_replace = this.regexp_escape_special_chars(substring_to_replace);
+        substring_to_replace = Utils$1.regexp_escape_special_chars(substring_to_replace);
     }
     return orig_string.replace(new RegExp(substring_to_replace, 'g'), replacement);
 } //global (used a lot)
@@ -1492,7 +1491,7 @@ static array_to_html_table(values_array, labels_array=null, header_array=null, z
     }
     for(let i = 0; i < values_array.length; i++){
         let numstr = this.format_number(values_array[i]);
-        numstr = replace_substrings(numstr, " ", "&nbsp;");
+        numstr = this.replace_substrings(numstr, " ", "&nbsp;");
         result += "<tr><td>" + labels_array[i] + "</td><td style='font-family:monospace;'>" + numstr + "</td></tr>";
     }
     result += "</table>";
@@ -1739,9 +1738,9 @@ static stringify_value_aux(value, job, depth=0){
 //crude but guarentees fidelity with Utils.stringify_value, but that might not be what I really want.
 static stringify_value_sans_html(value){
     let result = this.stringify_value(value);
-    //result = replace_substrings(result, "<co"  + "de>", "") //screws up inspetion of this fn (while inspecting 'window') having '<co  de>' in it. //
+    //result = this.replace_substrings(result, "<co"  + "de>", "") //screws up inspetion of this fn (while inspecting 'window') having '<co  de>' in it. //
     result = result.replace(/<code>/g,   "");
-    //result = replace_substrings(result, "</co" + "de>", "") //
+    //result = this.replace_substrings(result, "</co" + "de>", "") //
     result = result.replace(/<\/code>/g, "");
     result = result.replace(/<br\/>/g,   "\n");
     result = result.replace(/&nbsp;/g,   " ");
@@ -2901,7 +2900,7 @@ class SW$1 { //stands for Show Window. These are the aux fns that the top level 
                 let fn_name = cb.name;
                 if(fn_name == "") { fn_name = cb.toString(); } //ie some anonymous fn
                 let arg_string = JSON.stringify(result);
-                arg_string = replace_substrings(arg_string, ",", "<br/>");
+                arg_string = Utils.replace_substrings(arg_string, ",", "<br/>");
                 if((result.clicked_button_value == "close_button") &&
                     !cb.toString().includes("close_button")) {
                     warning("The show_window callback function of: <code>" + fn_name +
@@ -17648,7 +17647,7 @@ class Job$1{
             case "errored":
                 bg_color = "rgb(255, 68, 68)";
                 let reason = this.stop_reason;
-                reason = replace_substrings(reason, "<br/>", "\n");
+                reason = Utils.replace_substrings(reason, "<br/>", "\n");
                 tooltip  = "This Job errored at instruction: " + this.program_counter +
                 " with:\n" + reason + "\nClick to restart this Job.";
                 break;
@@ -18242,7 +18241,7 @@ Job$1.prototype.if_robot_status_error_default = function(){
                                 content == "<i>errors.log is empty</i>";
                             }
                             else {
-                             content = replace_substrings(content, "\n", "<br/>");
+                             content = Utils.replace_substrings(content, "\n", "<br/>");
                              content = "Content of " + path + "<br/><code>" + content + "</code>";
                              setTimeout(function(){write_file_async(path, "");},
                                         400); //give the read_file job a chance to finish properly
@@ -18327,7 +18326,7 @@ Job$1.prototype.show_error_log_maybe = function(){
                         warning("Could not get " + path + "<br/>Error: " + err);
                     }
                     else {
-                        content = replace_substrings(content, "\n", "<br/>");
+                        content = Utils.replace_substrings(content, "\n", "<br/>");
                         out("<b>" + rob_name + ":/srv/samba/share/errors.log</b> content:<br/>" + content);
                     }
                 });
@@ -26689,7 +26688,7 @@ Dexter$1.get_robot_status_immediately           = function(){ return make_ins("G
 Dexter$1.prototype.get_robot_status_immediately = function(){ return Dexter$1.get_robot_status_immediately(this) }; //deprecated
 
 //pass in an array of up to 5 elts OR up to 5 separate args.
-//If an arg is not present or null, keep the value now in dexer_status unchanged.
+//If an arg is not present or null, keep the value now in dexter_status unchanged.
 //EXCEPT if no args passed in, set to home position.
 Dexter$1.load_tables     = function(...args){ return make_ins("l", ...args) }; //
 //loads the data created from calibration onto the SD card for persistent storage.
@@ -30070,7 +30069,7 @@ Dexter.dexter0.defaults.ServoSetup.push({"a": [10, 20, 30]}) //high level insert
 Dexter.dexter0.defaults.ServoSetup.unshift({"a": [90, 80, 70]}) //high level insert
 Dexter.dexter0.defaults.LinkLengths
 to_source_code({value: Dexter.dexter0.defaults.dh_mat})
-beautify.js(JSON.stringify(Dexter.dexter0.defaults))
+js_beautify(JSON.stringify(Dexter.dexter0.defaults))
 
 Dexter.dexter0.defaults_get("LinkLengths")
 var a_dh_mat = Dexter.dexter0.defaults.dh_mat
@@ -33505,9 +33504,14 @@ class DDEFile$1 {
         else { return false }
     }
 
+    static is_dde_path(path){
+        return path.startsWith("dde/")
+    }
+
     static add_default_file_prefix_maybe(path){
         path = DDEFile$1.convert_backslashes_to_slashes(path);
-        if (this.is_root_path(path)) { return path }
+        if (this.is_root_path(path))     { return path }
+        else if (this.is_dde_path(path)) { return path } // the node server will prepend to such paths
         else if ((path === "dde_apps") || path.startsWith("dde_apps/")) { return path }
         else if (path == "new buffer") { return path } //needed by Editor.edit_file
         else { return "dde_apps/" + path }
@@ -33661,7 +33665,8 @@ class DDEFile$1 {
         }
     }
 
-    static callback_or_return(callback, value="got error"){
+    //value might legitimately pass in undefined, so leave it that way
+    static callback_or_return(callback, value){
         if (callback) {
             callback(null, value);
         }
@@ -35127,7 +35132,7 @@ class html_db$1{
     "margin", "margin-bottom", "margin-left", "margin-right", "margin-top",
     "max-height", "max-width", "min-height", "min-width",
     "opacity", "orphans",
-    "outline", "outline-color", "outline-style", "outline-width", "overflow",
+    "outline", "outline-color", "outline-style", "outline-width", "overflow", "overflow-x", "overflow-y",
     "padding", "padding-bottom", "padding-left", "padding-right", "padding-top",
     "page-break-after", "page-break-before", "page-break-inside", "position",
     "quotes",  "right",
@@ -36993,7 +36998,6 @@ function run_node_command(args) {
 }
 
 function define_and_start_job(job_file_path){
-    debugger;
     if(job_file_path.endsWith("/keep_alive")) {
         globalThis.keep_alive_value = true; //set to false by stdio readline evaling "globalThis.set_keep_alive_value(false)" made in httpd.mjs
         //and sent to job engine process stdin.

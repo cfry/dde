@@ -51,7 +51,7 @@ function node_on_ready() {
     dde_init_dot_js_initialize()
     Job.class_init()
     Dexter.class_init()
-    serial_port_init()
+    //serial_port_init()
 }
 
 function run_node_command(args){

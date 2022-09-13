@@ -1859,7 +1859,7 @@ Dexter.get_robot_status_immediately           = function(){ return make_ins("G")
 Dexter.prototype.get_robot_status_immediately = function(){ return Dexter.get_robot_status_immediately(this) } //deprecated
 
 //pass in an array of up to 5 elts OR up to 5 separate args.
-//If an arg is not present or null, keep the value now in dexer_status unchanged.
+//If an arg is not present or null, keep the value now in dexter_status unchanged.
 //EXCEPT if no args passed in, set to home position.
 Dexter.load_tables     = function(...args){ return make_ins("l", ...args) } //
 //loads the data created from calibration onto the SD card for persistent storage.

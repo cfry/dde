@@ -95,6 +95,16 @@ th, td { text-align:left; }
 }
 
 
+.hca_folder {
+    margin-left:10px;
+}
+
+.hca_obj_def {
+    margin-left:10px;
+    text-decoration: blue underline;
+}
+
+
 #stop_all_jobs_id:active{ /*for button press effect */
     height:25px;
     width:30px;

@@ -39,9 +39,6 @@ globalThis.ipg_to_json = class ipg_to_json{
 
     //ipg must be a string of JSON
     static parse_string(ipg){
-        if((ipg.length < 256) && ipg.endsWith(".ipg")){
-            ipg = read_file(ipg)
-        }
         ipg = Utils.replace_substrings(ipg, "\\\\", "/", false)
         ipg = Utils.replace_substrings(ipg, "\\", "/", false)
         ipg = Utils.replace_substrings(ipg, "\u0001", " ", false)
@@ -63,8 +60,44 @@ globalThis.ipg_to_json = class ipg_to_json{
                 let split_line = line.split(" ")
                 result.VIVA_version = split_line[1]
             }
+            else if (line.startsWith("// Project ")) {
+                this.parse_project_line(line, result)
+            }
+            // remMinNumberOfObjects=10000000
+            else if (line.startsWith("// remMinNumberOfObjects")) {
+                let num_str = line.trim().split("=")[1]
+                let num = parseInt(num_str)
+                result.remMinNumberOfObjects = num
+            }
             else if(line.startsWith("// Sheet ")) {
                 result.sheet_date = line.substring(9).trim()
+            }
+
+            //example:  ComLibrary "$(DirName:Viva)SYSTEMDESCRIPTIONS\DIGILENT\NEXYS3\LIB\ADEPTUSB.DLL"
+            else if(line.startsWith("ComLibrary")){
+                let name = line.trim().split(" ")[1]
+                name = name.substring(1, name.length - 1) //trim off the double quotes
+                if(!result.ComLibraries) { result.ComLibraries = []}
+                result.ComLibraries.push(name)
+            }
+            else if(line.startsWith("ComObject")){
+                let items = line.trim().split(" ")
+                let name = items[1] + " " + items[1]
+                if(!result.ComObjects) { result.ComObjects = []}
+                result.ComObjects.push(name)
+            }
+            else if(line.startsWith("Library")){
+                let items = line.trim().split(" ")
+                let name = items[1]
+                name = name.substring(1, name.length - 1) //trim off the double quotes
+                if(!result.Libraries) { result.Libraries = []}
+                result.Libraries.push(name)
+            }
+            else if(line.startsWith("DynamicSystemFile")) {
+                let items = line.trim().split(" ")
+                let name = items[1]
+                name = name.substring(1, name.length - 1) //trim off the double quotes
+                result.DynamicSystemFile = name
             }
             else if(line.startsWith("DataSet ")) {
                 if(!result.datasets) {
@@ -74,6 +107,9 @@ globalThis.ipg_to_json = class ipg_to_json{
                 let dataset_obj = this.parse_dataset(line)
                 result.datasets[dataset_obj.name] = dataset_obj
             }
+
+            //System Description happens at the bottom of a "main" file. Rodney is Ignoring this for now so I will too.
+            else if (line.startsWith("System ")) { break; }
 
             else if (line.startsWith("{")) { section = "sub_objects"} //in a top level object, just before top level doc.
                                               //no content after the first char of such lines.
@@ -110,7 +146,7 @@ globalThis.ipg_to_json = class ipg_to_json{
             }
 
             else if(line.startsWith("Object ")) { //making a new top level object
-                if(!result.topLevelObjects) { result.topLevelObjects = [] }
+                if(!result.top_level_obj_defs) { result.top_level_obj_defs = [] }
                 for(let i = line_index; i < lines.length; i++){
                     if(i === line_index) { continue } //on first line.
                     else if(i === lines.length) { break; } //won't happen. let the line as is be the full valid object, though this probably won't happen
@@ -128,7 +164,7 @@ globalThis.ipg_to_json = class ipg_to_json{
                     //note: top level objects look like they never have a 2nd line of header info,
                     //so shouldn't need to be passed line_index & lines
                 top_level_obj.line = line //for debugging
-                result.topLevelObjects.push(top_level_obj)
+                result.top_level_obj_defs.push(top_level_obj)
             }
             else if (line.startsWith(" Object ")) { //making a new sub object
                 if(!top_level_obj.prototypes) {
@@ -163,6 +199,16 @@ globalThis.ipg_to_json = class ipg_to_json{
             }
         } //end big for loop
         return result //end parse
+    }
+
+    //example: // Project  AXI_TO_AZIDO 7/24/2021 11:09:07 PM
+    //as in the 2nd line of the "main.idl" file.
+    static parse_project_line(line, result){
+        let line_split = line.trim().split(" ")
+        let name = line_split[3]
+        let date = line_split[4] + " " + line_split[5] + " " + line_split[6]
+        result.project_name = name
+        result.project_date = date
     }
 
     static parse_dataset(line){
@@ -496,22 +542,30 @@ grab_io(str)
         return [cur_term, str.length] //top level objects that have no inputs or comments
     }
 
-        //line starts with "Attributes" (top level) or " Attributes" (sub_obj)
+    //line starts with "//_ Attributes" (top level) or " //_ Attributes" (sub_obj)
     static parse_front_of_line_attributes(line){
+        line = line.trim()
         if(line.startsWith("Attributes")) { line = line.substring(14) }
         else  { line = line.substring(15) }
-        let pairs = line.split(",")
         let attr_obj = {}
-        for(let pair of pairs){
-            let [key, val] = pair.split("=")
-            key = key.trim()
+        if(line !== "") { //has at least some attributes
+            let pairs = line.split(",")
 
-            if(!val) { val = "" }
-            else { val = val.trim() }
-            if(val.startsWith('"') && val.endsWith('"')) {
-                val = val.substring(1, val.length - 1) //cut off surrounding double quotes
+            for (let pair of pairs) {
+                let [key, val] = pair.split("=")
+                key = key.trim()
+
+                if (!val) { //note Attributes in SYSTEM defs often start with a single digit integer and no equal sign. Rodney doesn't know what that means
+                    val = "True" // Rodney advised this rather than ""
+                }
+                else {
+                    val = val.trim()
+                    if (val.startsWith('"') && val.endsWith('"')) {
+                        val = val.substring(1, val.length - 1) //cut off surrounding double quotes
+                    }
+                }
+                attr_obj[key] = val
             }
-            attr_obj[key] = val
         }
         return attr_obj
     }
@@ -545,7 +599,7 @@ grab_io(str)
         if(pretty === "HTML") {
             str = Utils.replace_substrings(str, "\n", "<br/>")
             str = "<pre>" + str + "</pre>"
-            //the below makes all the dulbe quotes not escaped,
+            //the below makes all the double quotes not escaped,
             //and doesn't print any unnecessary stuff in the output pane.
             out(str)
             return "dont_print"

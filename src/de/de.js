@@ -5,7 +5,7 @@ DE.make_verb_rule_expers()
 import peg       from "pegjs"
 import PegTracer from 'pegjs-backtrace'
 
-export var DE = class DE {
+globalThis.DE = class DE {
   static de_to_js(de_src) {
      if(de_src.trim() == "") { return de_src } //convert whitespace to whitespace even if it isn't proper DE or JS for eval.
      let tracer_instance = new DE.PegTracer(de_src,{

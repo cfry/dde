@@ -144,6 +144,8 @@ import "./lesson.js" //defines global Lesson
 import "../HCA/HCA_ui.js" //defines global HCA
 import "../HCA/HCA_objects.js"
 import "../HCA/ipg_to_json.js" //defines global ipg_to_json
+import "../HCA/HCA_objdef.js" //defines global HCAObjDef
+
 
 import "../HCA/litegraph_patches.js"
 

@@ -417,7 +417,7 @@ class html_db{
     "margin", "margin-bottom", "margin-left", "margin-right", "margin-top",
     "max-height", "max-width", "min-height", "min-width",
     "opacity", "orphans",
-    "outline", "outline-color", "outline-style", "outline-width", "overflow",
+    "outline", "outline-color", "outline-style", "outline-width", "overflow", "overflow-x", "overflow-y",
     "padding", "padding-bottom", "padding-left", "padding-right", "padding-top",
     "page-break-after", "page-break-before", "page-break-inside", "position",
     "quotes",  "right",
