@@ -74,8 +74,7 @@ class Robot {
             else {
                 result = false //don't simulate
             }
-            console.log("in get_simulate_actual passed, simulate_val: " + simulate_val +
-                        " returning: " + result)
+            //console.log("in get_simulate_actual passed, simulate_val: " + simulate_val + " returning: " + result)
             return result
         }
         else { shouldnt("get_simulate_actual passed illegal value: " + simulate_val) }

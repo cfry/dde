@@ -158,7 +158,7 @@ class Simqueue{
             for(let param_name in param_names_and_values){
                 let param_value = param_names_and_values[param_name]
                 this.sim_instance.parameters[param_name] = param_value
-                this.sim_instance.simout("set_parameter: " + param_name + " to " + param_value)
+                //this.sim_instance.simout("set_parameter: " + param_name + " to " + param_value)
             }
         }
         delete this.instr_to_param_map[cur_inst] //not needed anymore
@@ -249,7 +249,7 @@ class Simqueue{
         }
         else { //queue is empty so just set params immediately and don't put them in instr_to_param_map
                this.sim_instance.parameters[param_name] = param_value
-               this.sim_instance.simout("set_parameter: " + param_name + " to " + param_value)
+               //this.sim_instance.simout("set_parameter: " + param_name + " to " + param_value)
         }
     }
 

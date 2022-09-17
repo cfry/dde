@@ -74,7 +74,7 @@ class Editor {
         undo_id.onclick        = Editor.undo
         Editor.set_menu_string(undo_id, "Undo", "z")
         redo_id.onclick        = function(){Editor.myCodeMirror.getDoc().redo()}
-        find_id.onclick        = function(){Editor.CodeMirror.commands.findPersistent(Editor.myCodeMirror)}
+        find_id.onclick        = function(){CodeMirror.commands.findPersistent(Editor.myCodeMirror)}
         Editor.set_menu_string(find_id, "Find", "f")
         find_next_id.onclick   = function(){CodeMirror.commands.findNext(Editor.myCodeMirror)}
         Editor.set_menu_string(find_next_id, "Find Next", "g")

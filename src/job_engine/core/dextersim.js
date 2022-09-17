@@ -347,7 +347,10 @@ class DexterSim{
     //instuctions that add to the queue.
     ack_reply_maybe(instruction_array, payload_string_maybe){
         if(this.queue_instance.is_queue_full()) {
-            this.simout("queue is full.<br/>There will be no reply until the current instruction completes.")
+            let the_job = Job.active_job_with_robot(this.robot)
+            if (the_job.show_instructions) { //if we're doing a move_to_straight instruction, there's a lot of instrs per sec, so good to be able to stop this printout as it slows down sim
+                this.simout("queue is full.<br/>There will be no reply until the current instruction completes.")
+            }
         }
         else {
             this.ack_reply(instruction_array, payload_string_maybe)

@@ -116,18 +116,22 @@ var LGraphCanvas_prototype_processKey = function(e) { //used in init
 
 globalThis.HCA = class HCA {
     static make_HCA_dom_elt(){
-        let big_div = make_dom_elt("div", {style: {display: "flex"}, id: "HCA_dom_elt"})
-        let palette = make_dom_elt("div",
-                                   {id: "HCA_palette_id", style: {width:150, height:400, "background-color":"#ffe0cd"}}//, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
-                                   )
-        big_div.append(palette)
+        let big_div = make_dom_elt("div", {id: "HCA_dom_elt", style:{height: "100%"}})//, style: {display: "flex"}})
+        //let palette = make_dom_elt("div",
+        ///                           {id: "HCA_palette_id", style: { height:400, "background-color":"#ffe0cd"}}//, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
+        //                           )
+        //big_div.append(palette)
+        let pal_html = "<div id='HCA_palette_id', style='height:400px; background-color:#ffe0cd; overflow-y:scroll; display:inline-block;' </div>" //, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
+        big_div.insertAdjacentHTML("beforeend", pal_html)
         //let but = make_dom_elt("button", {margin: "5px"}, "number")
         //palette.append(but)
         setTimeout(this.populate_palette, 100)
+        //setTimeout(function(){palette.setAttribute("style", "overflow-y:scroll")}, 1000)
         let can_holder = make_dom_elt("div", {style: {"flex-grow": 1}} )
         big_div.append(can_holder)
         let can = make_dom_elt("canvas",
                           {id: "HCA_canvas_id",
+                                          display: "inline-block",
                                           html_properties: {width: '1024',
                                                             height: '720'
                                                            }
@@ -386,7 +390,7 @@ globalThis.HCA = class HCA {
         return json_string
     }
 
-    static make_node_button(type, button_name, action_function){
+    static make_node_button(type, button_name, action_function, add_newline=false){
         //HCA.restore_palette() //expand the palette so we can add to it and so user can see the result
         if(!button_name) {
             let slash_pos = type.indexOf("/")
@@ -432,8 +436,8 @@ globalThis.HCA = class HCA {
             let fn_src = "(" + action_function.toString() + ")()"
             fn_src = Utils.replace_substrings(fn_src, "'", "\\'")
             let new_html = "<button style='margin:2px' onclick='" + fn_src + "'>" + button_name + "</button>"
+            if(add_newline) {new_html += "<br>" }
             HCA_palette_id.insertAdjacentHTML("beforeend", new_html)
-
         }
         HCA.save_palette() //save the changes
     }
@@ -629,7 +633,7 @@ To load all the .hco object files in a folder, click <input type='submit' value=
     static object_file_extension = "hco" //like HCA but with "object" instead.
 
     static nodes_json_obj_to_button(path, nodes_json_obj){
-         let path_parts = path.split("/")
+        let path_parts = path.split("/")
         let name = last(path_parts)
         name = name.split(".")[0]
         let category = path_parts[path_parts.length - 2]
@@ -731,7 +735,7 @@ To load all the .hco object files in a folder, click <input type='submit' value=
           `<div style='white-space:nowrap;' title='Specify the connection "line-drawing" between nodes.'>Wires ` +
            "<input type='radio' checked name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 2; HCA.lgraphcanvas.dirty_bgcanvas = true;'>~</input>"   + //LiteGraph.SPLINE_LINK
            "<input type='radio'         name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 0; HCA.lgraphcanvas.dirty_bgcanvas = true;'>-_</input>"  + //LiteGraph.STRAIGHT_LINK'
-           "<input type='radio'         name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 1; HCA.lgraphcanvas.dirty_bgcanvas = true;'>/</input>"   + //LiteGraph.LINEAR_LINK'
+           "<input type='radio'         name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 1; HCA.lgraphcanvas.dirty_bgcanvas = true;'>/&nbsp;&nbsp;</input>"   + //LiteGraph.LINEAR_LINK' //need the nbsp to give the div a width that will acomodate longest folder name for Object defs.
            "</div>"
         HCA.save_palette() //because make_node_button calls restore
         HCA.make_node_button(null,
@@ -739,7 +743,8 @@ To load all the .hco object files in a folder, click <input type='submit' value=
             function() {
                 //HCA.make_subgraph()
                 HCA.define_node_type_from_canvas()
-            }
+            },
+            true //add_newline
         )
         HCA.make_node_button(null,
             "make_group",
@@ -747,7 +752,8 @@ To load all the .hco object files in a folder, click <input type='submit' value=
                 prompt_async({doc: "Enter a name for the new group.",
                               default_value: "group",
                               callback: HCA.make_group_cb})
-            }
+            },
+            true //add_newline
         )
         HCA.make_node_button(null,
                               "inspect_JSON",
@@ -762,7 +768,7 @@ To load all the .hco object files in a folder, click <input type='submit' value=
         for(let palette_obj of HCA.palette_objects){
             HCA.make_node_button.apply(HCA, palette_obj)
         }*/
-        let width = HCA_palette_id.offsetWidth
+        //let width = HCA_palette_id.offsetWidth
         /* having this fancy palette hiding saves room but screws up pallete scrolling and
            you lose which details are expanded when it hides and reshows,
            and its just too confusing.
