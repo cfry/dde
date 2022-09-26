@@ -1734,7 +1734,7 @@ Job.prototype.if_dexter_connect_error_default = function(robot_name){
 Job.prototype.rs_to_error_message = function(robot_status){
     let error_code = robot_status[Dexter.ERROR_CODE]
     let oplet_error_code = error_code & 0xFF //lower 8 bits
-    let msg = "error_code: " + error_code
+    let msg = "error_code: " + error_code + " "
     let oplet = robot_status[Dexter.INSTRUCTION_TYPE]
     if (error_code > 0) {
         if((oplet == "r") || (oplet == "w")) {

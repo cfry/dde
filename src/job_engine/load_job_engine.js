@@ -78,6 +78,7 @@ import "../job_engine/core/to_source_code.js" //defined to_source_code globally
 import "../job_engine/core/duration.js"
 import "../job_engine/core/monitor.js" //defines Monitor and MonitorServer
 import "../job_engine/core/py.js"      //defines class Py
+import "../job_engine/act/ActEval.js"  //defines class ActEval
 
 import {init_units} from "../job_engine/core/units.js"
 export {init_units}

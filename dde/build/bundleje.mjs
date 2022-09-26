@@ -1071,7 +1071,7 @@ static function_param_names_and_defaults(fn){
 }
 
 
-//returns an array of arrays. Each param is represented as an a array of
+//returns an array of arrays. Each param is represented as an array of
 //1 or 2 elements. The first elt is the param name (string) and
 // the 2nd elt is the default value src (which might be the symbol undefined or its a string of src
 //if you have a fn of function foo(a, b=2 {c=3, d=4}, {e=5, f=6}={}) {} then this function returns

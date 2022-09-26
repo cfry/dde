@@ -72,7 +72,6 @@ function make_blocksde_dom_elt(){
 `)
 }
 // onmouseup="Workspace.toolkit_bar_mouseup(event)"
-var the_codemirror_elt = null
 var blocksde_dom_elt   = null
 
 
@@ -80,9 +79,6 @@ function change_code_view_kind(event){
     let new_view_kind = code_view_kind_id.value
     console.log("new_view_kind: " + new_view_kind)
     if      (Editor.view === "JS"){ //old_view_kind
-            if(!the_codemirror_elt) {
-                the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
-            }
             if      (new_view_kind === "Blocks"){ js_to_blocks() }
             else if (new_view_kind === "DefEng"){ js_to_defeng() }
             else if (new_view_kind === "HCA")   { js_to_HCA() }
@@ -125,20 +121,19 @@ function js_to_blocks(){
                 "<br/> Make sure your JS text evals without errors before switching to blocks.")
             return
         }
-        let the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
         if (!blocksde_dom_elt) { //haven't used blocksde yet so initialize it
             blocksde_dom_elt = make_blocksde_dom_elt()
             let blocks_style_content = read_file(__dirname + "/blocksde/style2.css")
             let style_elt = make_dom_elt("style", {}, blocks_style_content) //"* { background-color:blue;}")
             blocksde_dom_elt.appendChild(style_elt)
-            html_db.replace_dom_elt(the_codemirror_elt, blocksde_dom_elt) //must occur before calling make_workspace_instance
+            html_db.replace_dom_elt(Editor.the_CodeMirror_elt, blocksde_dom_elt) //must occur before calling make_workspace_instance
             //because that needs workspace_container_id to be installed in order to
             //install workspace_id inside it
             Workspace.make_workspace_instance(
-                //the_codemirror_elt.offsetWidth,  the_codemirror_elt.offsetHeight //this vals are always zero
+                //Editor.the_CodeMirror_elt.offsetWidth,  Editor.the_CodeMirror_elt.offsetHeight //this vals are always zero
             )
         }
-        else { html_db.replace_dom_elt(the_codemirror_elt, blocksde_dom_elt) }
+        else { html_db.replace_dom_elt(Editor.the_CodeMirror_elt, blocksde_dom_elt) }
         Workspace.inst.clear_blocks()
         if (block_to_install){ //we've got non empty js code so turn it into blocks.
             install_top_left_block(block_to_install)
@@ -148,17 +143,12 @@ function js_to_blocks(){
 
 function js_to_HCA(){
     let js = Editor.get_javascript().trim()
-    //HCA_dom_elt = HCA.make_HCA_dom_elt()
-    //html_db.replace_dom_elt(the_codemirror_elt, HCA_dom_elt)
-    //Editor.view = "HCA"
     try {
         HCA.init(js) //for error messages only
         globalThis.HCA_dom_elt.focus()
     }
     catch(err){
         code_view_kind_id.value = "JS"
-        //html_db.replace_dom_elt(HCA_dom_elt, the_codemirror_elt)
-        //Editor.set_javascript(js)
         Editor.view = "JS"
         Editor.myCodeMirror.focus()
         warning("Sorry, could not convert the JavaScript in the Editor buffer into a valid JSON object for HCA.<br/>" +
@@ -169,8 +159,7 @@ function js_to_HCA(){
 function HCA_to_js(){
     let js = HCA.get_javascript()
     js = js_beautify(js)
-    let the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
-    html_db.replace_dom_elt(globalThis.HCA_dom_elt, the_codemirror_elt)
+    html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
     Editor.set_javascript(js)
     Editor.view = "JS"
     Editor.myCodeMirror.focus()
@@ -219,8 +208,7 @@ function blocks_to_HCA(){
         return
     }
     globalThis.HCA_dom_elt = HCA.make_HCA_dom_elt()
-    let the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
-    html_db.replace_dom_elt(the_codemirror_elt, globalThis.HCA_dom_elt)
+    html_db.replace_dom_elt(Editor.the_CodeMirror_elt, globalThis.HCA_dom_elt)
     Editor.view = "HCA"
     HCA.init(js_obj,
              "js_object from blocks" //from error message
@@ -232,8 +220,7 @@ function blocks_to_js(){
     out("installing text")
     let js = Workspace.inst.to_js()
     js = js_beautify(js)
-    let the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
-    html_db.replace_dom_elt(blocksde_dom_elt, the_codemirror_elt)
+    html_db.replace_dom_elt(blocksde_dom_elt, Editor.the_CodeMirror_elt)
     Editor.set_javascript(js)
     Editor.view = "JS"
     Editor.myCodeMirror.focus()

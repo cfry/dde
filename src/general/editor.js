@@ -174,6 +174,7 @@ class Editor {
                 delete e['returnValue'];
             }
         })
+        Editor.the_CodeMirror_elt = document.getElementsByClassName("CodeMirror")[0]
     }
 
     static handle_codemirror_mouse_click(mouse_event){
@@ -233,7 +234,9 @@ class Editor {
                 return
             }
             else {
-                Editor.save_current_file()
+                if(this.current_buffer_needs_saving) {
+                    Editor.save_current_file()
+                }
                 Editor.eval_button_action_aux(step)
             }
         }
@@ -267,7 +270,7 @@ class Editor {
 //Editor.myCodeMirrorDoc.on("change", Editor.mark_as_changed)
 
 //used both from JS pane Edit menu undo item AND by App builder (called from sandbox))
-    static undo (){ this.myCodeMirror.getDoc().undo() }
+    static undo (){ Editor.myCodeMirror.getDoc().undo() }
 //fold examples. How do I implement menu items for fold all and unfold all?
 //editor_html.foldCode(CodeMirror.Pos(0, 0));
 //editor_html.foldCode(CodeMirror.Pos(21, 0));

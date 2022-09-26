@@ -528,6 +528,15 @@ To load all the .hco object files in a folder, click <input type='submit' value=
         }
     }*/
 
+    static make_and_add_block(object_path){ //click action from pallette, dde4.
+        let last_slash = object_path.lastIndexOf(object_path)
+        let button_name = object_path.substring(last_slash + 1)
+        let node = LiteGraph.createNode(object_path, button_name)
+        this.lgraph.add(node);
+        this.node_add_usual_actions(node)
+        return node
+    }
+
     static make_and_add_node(type, button_name){
         out("making node of type: " + type)
         let node
@@ -806,7 +815,9 @@ To load all the .hco object files in a folder, click <input type='submit' value=
     static populate_palette_obj_defs_aux(tree){
         let ht = ((tree.folder_name === "root") ? "" : "<details class='hca_folder'><summary>" + tree.folder_name + "</summary>")
         for(let objdef of tree.obj_defs) {
-            ht +="<div class='hca_obj_def'>" + objdef.objectName + "</div>\n"
+            let obj_path = objdef.TreeGroup + "/" + objdef.objectName
+            let action_src = 'HCA.make_and_add_block("' + obj_path + '")'
+            ht +="<div class='hca_obj_def' onclick='" + action_src + "'>" + objdef.objectName + "</div>\n"
         }
         for(let subfold of tree.subfolders) {
             ht += this.populate_palette_obj_defs_aux(subfold)
