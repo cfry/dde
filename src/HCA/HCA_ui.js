@@ -121,25 +121,27 @@ globalThis.HCA = class HCA {
         ///                           {id: "HCA_palette_id", style: { height:400, "background-color":"#ffe0cd"}}//, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
         //                           )
         //big_div.append(palette)
-        let pal_html = "<div id='HCA_palette_id', style='height:400px; background-color:#ffe0cd; overflow-y:scroll; display:inline-block;' </div>" //, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
+        let pal_html = "<div id='HCA_palette_id', style='vertical-align:top; height:100%; background-color:#ffe0cd; overflow-y:scroll; display:inline-block; padding:5px;'</div>" //, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
         big_div.insertAdjacentHTML("beforeend", pal_html)
         //let but = make_dom_elt("button", {margin: "5px"}, "number")
         //palette.append(but)
         setTimeout(this.populate_palette, 100)
         //setTimeout(function(){palette.setAttribute("style", "overflow-y:scroll")}, 1000)
-        let can_holder = make_dom_elt("div", {style: {"flex-grow": 1}} )
-        big_div.append(can_holder)
+       //f let can_holder = make_dom_elt("div"//, {style: { display:"inline-block"}}
+       //f )
+       //f big_div.append(can_holder)
         let can = make_dom_elt("canvas",
                           {id: "HCA_canvas_id",
-                                          display: "inline-block",
-                                          html_properties: {width: '1024',
-                                                            height: '720'
+                                     display: "inline-block",
+                                     html_properties: {width: '1024',
+                                                       height: '720'
                                                            }
                                           //style: { display: "inline-block"}
                                     }
                                )
          //<canvas id='mycanvas' width='1024' height='720' style='border: 1px solid'></canvas>
-        can_holder.append(can)
+        //f can_holder.append(can)
+        big_div.append(can)
 
         //Set canvas background color
         //set_css_properties(".lgraphcanvas {background-color: #FFFFFF;}") //doesn do anything
@@ -214,7 +216,7 @@ globalThis.HCA = class HCA {
     }
 
     //returns a json_obj with a "node" property, or errors.
-    static async path_to_json_obj(path){
+    static async file_path_to_json_obj(path){
         let json_string = await DDEFile.read_file_async(path)
         let json_obj = this.string_to_json_obj(json_string, path)
         return json_obj
@@ -261,7 +263,7 @@ globalThis.HCA = class HCA {
     }
 
     static async edit_file(path){
-        let json_obj = await HCA.path_to_json_obj(path) //errors if path is invalid
+        let json_obj = await HCA.file_path_to_json_obj(path) //errors if path is invalid
         this.lgraph.configure(json_obj) //configure must take a JSON obj, not a JSON string (which is the say its documented in the LiteGraph code
         Editor.add_path_to_files_menu(path) //this needs to be hear, not up in ready because
     }
@@ -403,7 +405,7 @@ globalThis.HCA = class HCA {
         }
         //let action = "HCA.make_and_add_node('" + type + "')"
         if(!action_function) {
-            action_function = 'function() { HCA.make_and_add_node("' + type + '", "' + button_name + '")}' //needs to be a string because if its a closure over button_name, that won't work with the toString below.
+            action_function = 'function() { HCA.make_and_add_block("' + type + '", "' + button_name + '")}' //needs to be a string because if its a closure over button_name, that won't work with the toString below.
         }
         if(type) { //its a node making button
             let category = type.split("/")[0]
@@ -486,7 +488,7 @@ To load all the .hco object files in a folder, click <input type='submit' value=
         }
     }
     static async load_node_definition_file(path){
-            let json_obj = await this.path_to_json_obj(path)
+            let json_obj = await this.file_path_to_json_obj(path)
             this.nodes_json_obj_to_button(path, json_obj)
     }
 
@@ -529,7 +531,7 @@ To load all the .hco object files in a folder, click <input type='submit' value=
     }*/
 
     static make_and_add_block(object_path){ //click action from pallette, dde4.
-        let last_slash = object_path.lastIndexOf(object_path)
+        let last_slash = object_path.lastIndexOf("/")
         let button_name = object_path.substring(last_slash + 1)
         let node = LiteGraph.createNode(object_path, button_name)
         this.lgraph.add(node);
@@ -537,6 +539,7 @@ To load all the .hco object files in a folder, click <input type='submit' value=
         return node
     }
 
+    /*obsoluted with dde4 pallet items from CorLib
     static make_and_add_node(type, button_name){
         out("making node of type: " + type)
         let node
@@ -556,7 +559,7 @@ To load all the .hco object files in a folder, click <input type='submit' value=
         this.lgraph.add(node);
         this.node_add_usual_actions(node)
         return node
-    }
+    }*/
 
     static node_add_usual_actions(node){
          /*causes intermittent problems. Let  LGraphCanvas_prototype_processKey handle cut,copy,paste.
@@ -813,17 +816,36 @@ To load all the .hco object files in a folder, click <input type='submit' value=
     }
 
     static populate_palette_obj_defs_aux(tree){
-        let ht = ((tree.folder_name === "root") ? "" : "<details class='hca_folder'><summary>" + tree.folder_name + "</summary>")
-        for(let objdef of tree.obj_defs) {
-            let obj_path = objdef.TreeGroup + "/" + objdef.objectName
+        let ht = ((tree.folder_name === "root") ? "" : "<details class='hca_folder' style='cursor:zoom-in;'><summary>" + tree.folder_name + "</summary>")
+        for(let obj_def of tree.obj_defs) {
+            let obj_path_arr = obj_def.TreeGroup.slice()
+            obj_path_arr.push(obj_def.objectName)
+            let obj_path = obj_path_arr.join("/")
+            this.register_with_litegraph(obj_path, obj_def)
             let action_src = 'HCA.make_and_add_block("' + obj_path + '")'
-            ht +="<div class='hca_obj_def' onclick='" + action_src + "'>" + objdef.objectName + "</div>\n"
+            ht +="<div class='hca_obj_def' style='cursor:crosshair;' onclick='" + action_src + "'>" + obj_def.objectName + "</div>\n"
         }
         for(let subfold of tree.subfolders) {
             ht += this.populate_palette_obj_defs_aux(subfold)
         }
         ht += "</details>\n"
         return ht
+    }
+
+    static register_with_litegraph(obj_path){
+         let obj_def = HCAObjDef.path_to_json_obj(obj_path)
+         let fn = function(){
+             for(let input of obj_def.inputs) {
+                 this.addInput(input.name, input.type)
+             }
+             for(let output of obj_def.outputs) {
+                 this.addOutput(output.name, output.type)
+             }
+             //this.size = [80, 40] //width and height  if not given, this is automatically computed
+             this.properties = { precision: 1 };
+         }
+         fn.title = obj_def.objectName; //name to show
+         LiteGraph.registerNodeType(obj_path, fn); //register in the system
     }
 
     static save_palette(){

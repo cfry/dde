@@ -36,9 +36,9 @@ html, body {  width: 100%;  height: 100%; font-family: sans-serif; overflow:hidd
 
 /* summary {font-weight: 600;} now in each page for better loading on Website doc page*/
 
-input[type=button] {background-color:#ddd3ff; font-size:14px;border-style:outset;border-width:2px;border-radius: 5px}
-input[type=submit] {background-color:#93dfff; font-size:14px;border-style:outset;border-width:2px;border-radius: 5px} /*background-color: #ffb6c0; pink */
-button             {background-color:#93dfff; font-size:14px;border-style:outset;border-width:2px;border-radius: 5px} /*same color as input-submit. see output.js set_button_background_color*/
+input[type=button] {background-color:#ddd3ff; font-size:14px;border-style:outset;border-width:2px;border-radius:5px; cursor:pointer;}
+input[type=submit] {background-color:#93dfff; font-size:14px;border-style:outset;border-width:2px;border-radius:5px; cursor:pointer;} /*background-color: #ffb6c0; pink */
+button             {background-color:#93dfff; font-size:14px;border-style:outset;border-width:2px;border-radius:5px; cursor:pointer;} /*same color as input-submit. see output.js set_button_background_color*/
 /*so input type submits and buttons are blue colored and input type button will be default white background
   dde dialogs shouldn't use buttons, they should just use input type submit and  input type button.
   which will then be the different colors signifying whether they are submits or not, ie whether
@@ -72,6 +72,10 @@ th, td { text-align:left; }
 .robot_status_table TD, .robot_status_table TH {
     font-family:sans-serif;
     font-size:9pt;
+}
+
+summary {
+    cursor:zoom-in;
 }
 
 .doc_top_level_summary {

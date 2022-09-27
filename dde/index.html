@@ -71,7 +71,7 @@
             <div id="left_splitter_id"> <!-- splits editor and output pane -->
                 <div id="editor_pane_id">
                     <div id="javascript_pane_header_wrapper_id" class="pane_header_wrapper" style="margin:0px;padding-top:0px;padding-bottom:0px;">
-                        <div style="display:inline-block;"><span id="javascript_pane_help_id" class="pane_header" title="Click for help." style="vertical-align:super;margin:0px;padding:0px;"><u style="height:15px;">Editor</u></span><br/>
+                        <div style="display:inline-block;"><span id="javascript_pane_help_id" class="pane_header" title="Click for help." style="vertical-align:super;margin:0px;padding:0px;"><u style="height:15px;cursor:help;">Editor</u></span><br/>
                              <input id="font_size_id"  type="number" title="Adjust the font size of the Editor." style="vertical-align:top; width:30px; max-height:15px; margin:0px;padding:0px;" value="16" min="6" step="1"/>
                              <span id='editor_needs_saving_id' title='* indicates that the editor needs saving.'>&nbsp;</span>
                         </div>
@@ -414,7 +414,7 @@
                                         <li id="insert_color_id"       title="Choose a color to insert into the Editor.&#013;If you select a color first,&#013;the selection will be replaced.">Color...</li>
                                         <li                            title="Pops up an interactive dialog box with HTML content.">show_window
                                             <ul>
-                                                <li id="show_window_help_id"      title="Documetation for show_window">Help</li>
+                                                <li id="show_window_help_id"      title="Documentation for show_window">Help</li>
                                                 <li id="window_simple_message_id" title="Basic information presentation">Simple Message</li>
                                                 <li id="window_options_id"        title="Window title, size, position">Window Options</li>
                                                 <li id="window_buttons_id"        title="Submit and non-window-closing buttons&#013;Explains callback function.">Buttons</li>
@@ -570,7 +570,7 @@
                 </div>
                 <div style="background-color:#dddddd;">
                     <div class='pane_header_wrapper' style="white-space:nowrap;height:75px;min-height:75px;max-height:85px;">
-                        <span id="output_pane_help_id" class='pane_header' title="Click for help."><u>Output</u></span>
+                        <span id="output_pane_help_id" class='pane_header' title="Click for help."><u style="cursor:help;">Output</u></span>
                         <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS in any pane&#013;or, if none, all the JavaScript in the Editor pane.&#013;HTML is rendered in the Output pane.&#013;Can also be invoked by typing &#8984;e">Eval</button>
                         <button id="step_button_id" style="vertical-align:middle;" title="Step through the evaluation of the selected code.">Step</button>
                         <button id="run_button_id" style="vertical-align:middle;" title="Run Dex Instructions.">Run</button>
@@ -579,7 +579,7 @@
                             <!--<div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file."> <input id="save_on_eval_id" type="checkbox" style="padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; vertical-align:0%;">Save</div></div>-->
                             <div title="When checked, 'out' function calls, by default, format the output string as code." style="vertical-align:middle;display:inline-block;">
                                 <div style="padding:0px;margin:0px;font-size:10px; line-height:10px;">Code</div>
-                                <input id="format_as_code_id" type="checkbox" style="padding_bottom:15px;"/>
+                                <input id="format_as_code_id" type="checkbox" style="padding_bottom:15px; cursor:pointer;"/>
                             </div>
                         <!--</div> -->
                         <button id="clear_output_id" title="Remove all previously output text.">Clear</button>
@@ -653,7 +653,7 @@
                             <!--<button id="eval_and_start_button_id" style="vertical-align:top;" title="Eval the selected JS.&#013;With the result, call its 'start' method or, &#013;if its a do_list item, run it in a Job on dexter0.">Eval&Start</button>
                             <button id="start_job_id" style="vertical-align:top;" title='Eval job that cursor is in and start it.&#13;Click on "Output" pane title for doc.'>Start Job</button>&nbsp;
                             -->
-                            <img id="stop_all_jobs_id" src="./doc/coor_images/stop_sign.png" title="Stop all of the currently running jobs.&#13;as well as running TestSuites." style="vertical-align:top;"/>
+                            <img id="stop_all_jobs_id" src="./doc/coor_images/stop_sign.png" title="Stop all of the currently running jobs.&#13;as well as running TestSuites." style="vertical-align:top; cursor:pointer;"/>
                             <button id="undefine_jobs_id" style="vertical-align:39px;" title="Undefine all jobs that are not running.">Undef</button>
                             <!--<div style="display:inline-block;vertical-align:top;">J<br/>o<br/>b<br/>s</div>-->
                             <div style="display:inline-block;margin:0px;padding:0px;font-size:11px;vertical-align:42px;transform:rotate(-90deg);">Jobs</div>
@@ -673,9 +673,9 @@
                 <div id="doc_pane_id" style="background-color:#e1e1e1; padding-left:5px;">
                     <div class="pane_header_wrapper" style="height:30px;white-space:nowrap;">
                       <div style="display:inline-block;max-width:calc(100% - 20px);overflow:hidden;">
-                        <span id="documentation_pane_help_id" class="pane_header"><u>Doc</u></span>&nbsp;
-                        <span id="doc_prev_id" title='Show previous documentation.' style='cursor:pointer;color:blue;font-weight:900; font-size:20px; opacity:0.3;'>&lt;</span>
-                        <span id="doc_next_id" title='Show next documentation.'     style='cursor:pointer;color:blue;font-weight:900; font-size:20px; opacity:0.3;'>&gt;</span>
+                        <span id="documentation_pane_help_id" class="pane_header"><u style="cursor:help;">Doc</u></span>&nbsp;
+                        <span id="doc_prev_id" title='Show previous documentation.' style='cursor:help;color:blue;font-weight:900; font-size:20px; opacity:0.3;'>&lt;</span>
+                        <span id="doc_next_id" title='Show next documentation.'     style='cursor:help;color:blue;font-weight:900; font-size:20px; opacity:0.3;'>&gt;</span>
                         <input id="find_doc_input_id" placeholder="search string" title="If this field is empty,&#013;the selection in the&#013;Editor, Cmd line, Doc, or Output&#013;pane is used by the Find button."
                                style="width:150px; font-size:14px;"/>
                       </div>
@@ -702,7 +702,7 @@
                 </div> <!--doc_pane -->
                 <div id="misc_pane_id" style="background-color:black">
                     <div class="pane_header_wrapper" style="white-space:nowrap; margin-top:0px; padding-top:0px;">
-                        <span id="misc_pane_help_id" class="pane_header" title="Click for help."><u>Misc</u></span>
+                        <span id="misc_pane_help_id" class="pane_header" title="Click for help."><u style="cursor:help;">Misc</u></span>
                         <!--<select id='misc_pane_menu_id'> -->
                             <!-- <option value='http://hdrobotic.com/videos/'>Dexter Videos</option> can't show these in Sim pane, so forget it -->
                            <!-- <option value='Simulate Dexter'>Simulate Dexter</option>
@@ -718,29 +718,29 @@
                         <div id="default_robot_name_menu_container_id" style="margin-top:0px; padding:0px; display:inline-block"></div>
 
                         <span id="inspect_dexter_details_id" title="Inspect Dexter details."
-                              style="color:blue;cursor:pointer;font-weight:bold;"> &#9432; </span>
+                              style="color:blue;cursor:help;font-weight:bold;"> &#9432; </span>
 
-                        <span title="Pause job execution."><input  id="pause_id" type="checkbox"/>Pause</span>
-                        <button id="go_id"   title="Continue paused job execution." style="padding:2px">Go</button>
+                        <span title="Pause job execution."><input  id="pause_id" type="checkbox" style='cursor:pointer;'/>Pause</span>
+                        <button id="go_id"   title="Continue paused job execution." style="padding:2px;cursor:pointer;">Go</button>
                         <button id="demo_id" title="Moves graphical depiction of Dexter randomly." style="padding:2px">Demo</button>
                         <span title="Expand or shrink this pane.">
-                        <input style="display:inline-block; vertical-align:bottom; margin-left:15px;" id="misc_pane_expand_checkbox_id" type="checkbox">Expand</input></span>
+                        <input style="display:inline-block; vertical-align:bottom; margin-left:15px; cursor:pointer;" id="misc_pane_expand_checkbox_id" type="checkbox">Expand</input></span>
                         <br/>
                         <span id="simulate_radio_button_group"> <!-- used by Move Dexter steptorial -->
                             <span id="simulate_radio_true_wrapper_id" title="Dexter instances with a 'simulate' value of null,&#013;such as the default Dexter: 'dexter0',&#013;get their simulate value from the selected radio button.">
-                            <input id="simulate_radio_true_id"  type="radio" name="simulate" value="true" checked="true" title="Dexter instances with a 'simulate' value of null,&#013;such as the default Dexter: 'dexter0',&#013;get their simulate value from the selected radio button.">simulate</input></span>
+                            <input id="simulate_radio_true_id"  type="radio" name="simulate" value="true"  style="cursor:pointer;" checked="true" title="Dexter instances with a 'simulate' value of null,&#013;such as the default Dexter: 'dexter0',&#013;get their simulate value from the selected radio button.">simulate</input></span>
 
                             <span title="When this button is selected,&#013;Dexter instances with a 'simulate' value of null (the default)&#013;will have their instructions sent to a real Dexter.">
-                            <input id="simulate_radio_false_id" type="radio" name="simulate" value="false" title="When this button is selected,&#013;Dexter instances with a 'simulate' value of null (the default)&#013;will have their instructions sent to a real Dexter.">real</input></span>
+                            <input id="simulate_radio_false_id" type="radio" name="simulate" value="false" style="cursor:pointer;"title="When this button is selected,&#013;Dexter instances with a 'simulate' value of null (the default)&#013;will have their instructions sent to a real Dexter.">real</input></span>
 
                             <span title="Both simulate and real will be run for Dexter's with a 'simulate' value of null.">
-                            <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both" title="Both simulate and real will be run for Dexters with a 'simulate' value of null.">both</input></span> &nbsp;
+                            <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both"  style="cursor:pointer; "title="Both simulate and real will be run for Dexters with a 'simulate' value of null.">both</input></span> &nbsp;
                         </span>
                         <span title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">
-                        <input style="display:inline-block; vertical-align:bottom;" id="real_time_sim_checkbox_id" type="checkbox" checked="true" title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">real-time-sim</input></span>
+                        <input style="display:inline-block; vertical-align:bottom; cursor:pointer;" id="real_time_sim_checkbox_id" type="checkbox" checked="true" title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">real-time-sim</input></span>
                         <button id="show_queue_id"   title="Show a window&#013;that displays a simulation&#013;of Dexter's instruction queue." style="padding:2px">Show Q </button>
                         <span title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">
-                            <input style="display:inline-block; vertical-align:bottom; margin-left:15px;" id="js_debugger_checkbox_id" type="checkbox" title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">JS debugger</input>
+                            <input style="display:inline-block; vertical-align:bottom; margin-left:15px; cursor:pointer;" id="js_debugger_checkbox_id" type="checkbox" title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">JS debugger</input>
                         </span>
                         &nbsp; &nbsp; <span id="easter_egg_joke_id" title="Easter Egg!">&#x1f95a;</span>
 

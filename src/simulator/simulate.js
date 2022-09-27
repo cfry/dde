@@ -27,7 +27,7 @@ class Simulate {
         <button onclick="SimBuild.init()">Load SimBuild</button>
         <span title="Inspect simulator Details." 
         onclick="SimUtils.inspect_dexter_sim_instance()" 
-        style="margin-left:15px;color:blue;cursor:pointer;font-weight:bold;"> &#9432; </span>       
+        style="margin-left:15px;color:blue;cursor:help;font-weight:bold;"> &#9432; </span>       
         
         
         </div>
@@ -49,7 +49,7 @@ class Simulate {
         <b title="Joint 5 angle in degrees."> J5: </b><span id="sim_pane_j5_id" style="min-width:30px; text-align:left; display:inline-block"></span>
         <b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>
         <b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>
-        <div id="sim_graphics_pane_id"></div>
+        <div id="sim_graphics_pane_id" style="cursor:grab;"></div>
         `
     }
 

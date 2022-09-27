@@ -854,7 +854,7 @@ class Job{
             const job_name = this.name
             const the_id = this.get_job_button_id()
 
-            const the_button_html = '<button style="margin-left:0px; vertical-align:50%;" id="' + the_id + '">'+ job_name +
+            const the_button_html = '<button style="margin-left:0px; vertical-align:50%;cursor:pointer;" id="' + the_id + '">'+ job_name +
                                     '</button>'
             //$("#jobs_button_bar_id").append(the_html)
             let wrapper = document.createElement('div');
@@ -866,7 +866,7 @@ class Job{
             wrapper.innerHTML = the_button_html +
                                 "<div style='display:inline-block;margin-right:10px;'><span style='cursor:pointer;' onclick='" +
                                 close_on_click_fn_src +
-                                "' title='Undefine this job'>X</span><br/><span style='cursor:pointer; padding-left:2px;' onclick='" +
+                                "' title='Undefine this job'>X</span><br/><span style='cursor:help; padding-left:2px;' onclick='" +
                                 inspect_on_click_fn_src +
                                 "' title='Inspect this job'>&#9432;</span></div>"
             jobs_button_bar_id.append(wrapper) //.firstChild)

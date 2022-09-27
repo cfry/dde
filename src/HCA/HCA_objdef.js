@@ -50,5 +50,29 @@ globalThis.HCAObjDef = class HCAObjDef {
             new HCAObjDef(json_obj_def)
         }
     }
+
+    //path can be: like "CoreLib/GrammaticalOps/ReverseBits" or
+    //                 ["CoreLib", "GrammaticalOps", "ReverseBits"]
+    static path_to_json_obj(path, path_index = 0, look_in=HCAObjDef.obj_def_tree){
+        if(typeof(path) === "string"){
+            path = path.split("/")
+        }
+        let cur_path_part = path[path_index]
+        if(path.length -1 === path_index) { //we're on the last path index.
+            for (let obj of look_in.obj_defs) {
+                if (obj.objectName === cur_path_part) { //beware. might be more than 1
+                    return obj
+                }
+            }
+            shouldnt("HCA_objdef.path_to_json_obj could not find obj")
+        }
+        else { //not on last path elt
+            for(let subfold of look_in.subfolders){
+                if(subfold.folder_name === cur_path_part) {
+                    return this.path_to_json_obj(path, path_index + 1, subfold)
+                }
+            }
+        }
+    }
 }
 HCAObjDef.init()
