@@ -7,6 +7,14 @@ as parallel as it can, very little extra work for programmer.
 Programmer also doesn't have to deal with callback hell or even promises/async/await
 which interact poorly (to say hte least) with normal callstack return of values.
  */
+/* TODO
+   - implement Lisp  List.make, (cons), List.first, List.rest
+   - Decide if ActEval.eval and cont's get changed to keyword args
+   - Change low leval evals: Literal, Identifier, then assign, binary, then Array
+        use List fns to implement lex_env throughout
+   - remainder of existing stuff for continuations
+   - Call Henry to work on Futures.
+ */
 globalThis.ActEval = class ActEval{
     static string_to_ast(source){ //same as JS2B.string_to_ast
         if (source[0] == "{") { //esprima doesn't like so hack it
@@ -27,27 +35,26 @@ globalThis.ActEval = class ActEval{
 
     static read_eval(source){
         let st = ActEval.string_to_ast(source)
-        let lex_env = {}
-        this.eval(st,
-                  lex_env,
-                  out,
-                  source) ///continuation
+        this.eval({ast: st,
+                  lex_env: List.empty,
+                  cont: out,
+                  source: source}) ///continuation
     }
 
     //returns an array of block_elts (but might be only 1 long).
-    static eval(st, //st === ast === abstract_syntax_tree
-                lex_env,
+    static eval({ast, //st === ast === abstract_syntax_tree
+                lex_env = List.empty,
                 cont=out, //continuation. A fn of one arg.
-                source
-    ){
+                source}
+               ){
         try {
-            let switcher = st.type
+            let switcher = ast.type
             /*switch(switcher) {
                 case "ObjectExpression": return  this[switcher].call(this, st, lex_env, cont);
                 case "Program":          return  this[switcher].call(this, st, lex_env, cont);
                 default: shouldnt("Can't handle exprima type: " + switcher)
             }*/
-            this[switcher].call(this, st, lex_env, cont, source)
+            this[switcher].call(this, ast, lex_env, cont, source)
         }
         catch(err){
             dde_error("Could not convert JavaScript to ast: " + err.message)
@@ -105,16 +112,16 @@ globalThis.ActEval = class ActEval{
     }
 
 
-    static ExpressionStatement(st, lex_env, cont, source){
-        let part = st.expression
+    static ExpressionStatement(ast, lex_env, cont, source){
+        let part = ast.expression
         let switcher = part.type
         switch(switcher){
-            case "ArrayExpression":      return this[switcher].call(this, part, lex_env, cont, source)
+            case "ArrayExpression":      return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
             case "AssignmentExpression": return this[switcher].call(this, part, lex_env, cont, source)
             case "BinaryExpression":     return this[switcher].call(this, part, lex_env, cont, source)
             case "CallExpression":       return this[switcher].call(this, part, lex_env, cont, source)
-            case "Identifier":           return this[switcher].call(this, part, lex_env, cont, source)
-            case "Literal":              return this[switcher].call(this, part, lex_env, cont, source)
+            case "Identifier":           return this[switcher].call(this, part, {ast: part, lex_env: lex_env, cont: cont, source:source})
+            case "Literal":              return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
             case "LogicalExpression":    return this[switcher].call(this, part, lex_env, cont, source)
             case "MemberExpression":     return this[switcher].call(this, part, lex_env, cont, source)
             //when we have a path like foo.bar.baz, st.type == "MemberExpression"
@@ -166,12 +173,43 @@ globalThis.ActEval = class ActEval{
         return Root.jsdb.rword_expr_code_body.while.make_dom_elt(undefined, undefined, test_elt, body_elt)
     }
 
+    /* obsolete first fry version. wrong cont handling
     static ArrayExpression(st, lex_env, cont, source){
         let result_arr = []
         for(let a_st of st.elements){
             this.eval(a_st, lex_env, function(val) {result_arr.push(val)}, source )
         }
         cont.call(null, result_arr)
+    }
+    */
+    /* example JS:
+       let a = 11
+       let b = 22
+       [a, b]
+       so to evla "b", we have to have the lex env containing b.
+    Henry's rules:
+      -all calls to ActEval.eval and continuation fns are tail calls
+      -no JS looping (for, etc.)
+      -both ActEval and all cont get the same args execept
+          eval first arg is a st, and cont first arg is a value
+       - Both might take some additional values like in ArrayExpression for "vals_so_var"
+    */
+
+    static ArrayExpression(st, lex_env, cont, source, vals_so_far=List.empty){ //todo needs testing
+        let st_elts = st.elements
+        if(st_elts.length === 0) { //called after all st.elts are done
+            let result_array = reverse(List.to_array(vals_so_far))
+            cont.call(null, result_array, lex_env, cont, source)
+        }
+        else {
+            let first_st = st.elements[0]
+            let rest_st  = rest(st.elements) //close over this lex var.
+            this.eval(first_st, lex_env,
+                      function(val, lex_env, cont, source, vals_so_far){
+                              let new_vals_so_far = cons(val, vals_so_far)
+                              ActEval.ArrayExpression(rest_st, lex_env, cont, source, new_vals_so_far)
+                      })
+        }
     }
 
     static AssignmentExpression(st, lex_env, cont, source){
@@ -371,13 +409,13 @@ globalThis.ActEval = class ActEval{
     return Root.jsdb.function.make_dom_elt(undefined, undefined, fn_name, params_block_elt, body_block_elt, is_generator)
 }*/
 
-    static Identifier(st, lex_env, cont, source){
-        let name = st.name
+    static Identifier({ast, lex_env= List.empty, cont, source}){
+        let name = ast.name
         let val  = lex_env[name]
         if(val === undefined) {
             val = globalThis[name]
         }
-        cont.call(null, val)
+        cont.call(null, {value: val, lex_env: lex_env, cont: cont, source: source})
     }
 
     //always returns an array of block elts
@@ -394,8 +432,8 @@ globalThis.ActEval = class ActEval{
         }
     }
 
-    static Literal(st, lex_env, cont, source){
-        cont.call(null, st.value)
+    static Literal({ast, lex_env= List.empty, cont, source}){
+        cont.call(null, ast.value)
     }
 
     //called for paths

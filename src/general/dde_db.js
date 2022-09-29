@@ -204,11 +204,12 @@ class DDE_DB{
     }
 
     static async dde_init_dot_js_initialize() {
-        let does_file_exist = await DDEFile.file_exists("")
-        if(!does_file_exist){
+        let does_dde_apps_folder_exist = await DDEFile.file_exists("")
+        if(!does_dde_apps_folder_exist){
             dde_error("dde_init_dot_js_initialize called but there is no Documents/dde_apps/ folder.")
         }
-        else if (await DDEFile.file_exists("dde_init.js")){ //we don't want to error if the file doesn't exist.
+        let does_dde_init_file_exist = await DDEFile.file_exists("dde_init.js")
+        if (does_dde_init_file_exist){ //we don't want to error if the file doesn't exist.
             if (globalThis.platform == "node") {
                 globalThis.persistent_set = this.persistent_set //todo seems weird. Was in DDE3 but ...
             }
@@ -226,17 +227,6 @@ class DDE_DB{
             var add_to_dde_init_js = ""
             //do not make default_default_ROS_URL, default_default_dexter_ip_address, default_default_dexter_port
             //part of the persistent vars. they are globals in dde4.
-            if(!Brain.brain0) {
-                add_to_dde_init_js += '\nnew Brain({name: "brain0"})\n'
-            }
-            if(!Robot.dexter0){
-                add_to_dde_init_js += '\nnew Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
-            } //note, in the weird case that the user has defined the ip_address and/or port
-              //but not dexter0, then dexter0 gets at the front of the init file, not
-              //after the address and that's bad because it needs the ip_address
-              //but a fancier scheme of putting dextero always at the end of the file
-              //is bad too since all the "system" code is not at the beginning, before user code.
-              //So in our "weird case" loading dde_init will error. Not so terrible
             if (add_to_dde_init_js != ""){
                 var di_content = await DDEFile.read_file_async("dde_init.js")
                 di_content = add_to_dde_init_js + di_content
@@ -260,11 +250,9 @@ class DDE_DB{
                 '// set_pane_header_background_color("#bae5fe")\n' +
                 '// set_menu_background_color("#93dfff")\n' +
                 '// set_button_background_color("#93dfff")\n' +
-                '\n' +
-                'new Brain({name: "brain0"})\n' +
-                'new Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
+                '\n'
 
-            eval(initial_dde_init_content)
+            //eval(initial_dde_init_content) //nothing in the initial contents to eval so don't bother
             DDEFile.write_file_async("dde_init.js", initial_dde_init_content)
             if(!Editor.files_menu_paths_empty_or_contains_only_dde_init()){ // we don't want to
                 //print out this message on first DDE launch or if they haven't even

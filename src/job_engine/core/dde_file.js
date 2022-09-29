@@ -191,7 +191,7 @@ class DDEFile {
     //______end Utilites______
     //Core file manipulation methods
 
-    static async file_exists(path, callback){
+    /*static async file_exists(path, callback){
         //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
         //path = this.add_default_file_prefix_maybe(path)
         let full_url =  this.make_url(path, "/edit?info=") //was "/edit?edit=" which works for files but not folders
@@ -200,6 +200,15 @@ class DDEFile {
         //see httpd.mjs, serve_file()
         let file_info_response = await fetch(full_url)
         return this.callback_or_return(callback, file_info_response.ok)
+    }*/
+    static async file_exists(path, callback){
+        let info = await this.path_info(path, callback)
+        if(info){
+            return this.callback_or_return(callback, true)
+        }
+        else {
+            return this.callback_or_return(callback, false)
+        }
     }
 
     /*static async get_page_async(url_or_options, callback){
