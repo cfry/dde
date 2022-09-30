@@ -586,11 +586,22 @@ function inspect_extra_info(item){
     else if (window.Ammo && (item === Ammo)) { //because JSON.stringify(Ammo) causes infinite recursion
         info = "Ammo"
     }
+    else if (item.hasOwnProperty("default_workspace_pose") ||
+             item.hasOwnProperty("L0") ||
+             item.hasOwnProperty("L1") ||
+             item.hasOwnProperty("L2") ||
+             item.hasOwnProperty("L3") ||
+             item.hasOwnProperty("L4") ||
+             item.hasOwnProperty("L5")){ //the value of this field is a
+        //JSON.stringify circular structure and causes an error
+        info = //"has default_workspace_pose which is a circular structure, causing error."
+              "click blue underlined text to inspect"
+    }
     else {
         //console.log("non-array extra info: ") // + item)
         //info = "extra info cannot inspect"
         //causes infinit loop when inspecting window, but it must be some field within window, not window itself
-        try{ info = JSON.stringify(item) } //JSON.stringify(Ammo) causes infinit loop so I must catch this above.
+        try{ info = JSON.stringify(item) } //JSON.stringify(Ammo) causes infinite loop so I must catch this above.
         catch(err) { return "" }
     }
     if (info.length > 55) {

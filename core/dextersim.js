@@ -377,7 +377,7 @@ DexterSim = class DexterSim{
            //unfortunately g0 doesn't support J6_SENT or J7_SENT
         }
 
-        if(this.status_mode === 1){
+        else if(this.status_mode === 1){
             //needs work
         }
          

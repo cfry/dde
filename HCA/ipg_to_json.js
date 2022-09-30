@@ -25,11 +25,13 @@ Implement: do capture that 2nd line, perhaps as:
 
 */
 
-var ipg_to_json = class ipg_to_json{
-    static parse(ipg){
-        if((ipg.length < 256) && ipg.endsWith(".ipg")){
-            ipg = read_file(ipg)
+globalThis.ipg_to_json = class ipg_to_json{
+    //ipg can be either a file name or a big string of ipg
+    static async parse(ipg) {
+        if ((ipg.length < 256) && ipg.endsWith(".ipg")) {
+            ipg = await DDEReadFile.read_file(ipg)
         }
+
         ipg = replace_substrings(ipg, "\\\\", "/", false)
         ipg = replace_substrings(ipg, "\\", "/", false)
         ipg = replace_substrings(ipg, "\u0001", " ", false)

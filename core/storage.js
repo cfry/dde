@@ -20,8 +20,8 @@ function get_persistent_values_defaults() {
 
             "dde_window_x":       50,
             "dde_window_y":       50,
-            "dde_window_width":  outerWidth,
-            "dde_window_height":  outerHeight,
+            "dde_window_width":   1024, //outerWidth, bug fix
+            "dde_window_height":  720,  //outerHeight, bug fix
             "left_panel_width":   700,
             "top_left_panel_height": 350,
             "top_right_panel_height": 200,

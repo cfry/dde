@@ -6,6 +6,20 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.8.9, Sep 30, 2022</summary>
+Highlights: Bug fixes.
+<ul>
+    <li>Fixed bug in Simulator whereby if you redefined a Dexter that was previously
+        simulated in the current DDE session, that redefinition wasn't reflexed in the simulator,
+        causing problems.</li>
+    <li>robot_status.js now properly usesDexter.J1_MEASURED_ANGLE_G1 instead of 10.
+        This does not change functionality.</li>
+    <li>Inspector: 4 "extra info" infinite loop bugs fixed.</li>>
+    <li>Fixed bug in core/index.js for the folder of the require statement that loads dexter_defaults.js</li>
+    <li>Fixed bug in storage.js of the default value for outerWidth and outerHeight.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.8.8, Jul 26, 2022</summary>
     Highlights: Fixes and robustification of parsing the Defaults.make_ins file.
     New Instruction: Dexter.reboot_robot.
