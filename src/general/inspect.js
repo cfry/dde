@@ -590,7 +590,7 @@ class Inspect{
                    }
                }
                else  {
-                   try { elt_str = JSON.stringify(elt) }
+                   try   { elt_str = JSON.stringify(elt) }
                    catch { elt_str = "" }
                }
                if (i > 0) { info += ", " }
@@ -611,6 +611,9 @@ class Inspect{
             //JSON.stringify circular structure and causes an error
             info = //"has default_workspace_pose which is a circular structure, causing error."
                 "click blue underlined text to inspect"
+        }
+        else if (item === globalThis) { // we dont' want to stringify globalThis
+            info = "The global object"
         }
         else {
             //console.log("non-array extra info: ") // + item)

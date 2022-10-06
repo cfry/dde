@@ -389,7 +389,7 @@ class DexterUtils {
         if(vals.clicked_button_value === "Save"){
             out("saving start options.")
             let path = this.dexter_start_options_path()
-            read_file_async(path, undefined, function(err, content){
+            DDEFile.read_file_async(path, function(err, content){
                 if(err) {
                     warning("Sorry, can't connect to Dexter." + Dexter.default.name)
                 }
@@ -412,7 +412,7 @@ class DexterUtils {
                         }
                         result_content += the_new_line
                     })
-                    write_file_async(path, result_content, undefined,
+                    DDEFile.write_file_async(path, result_content, undefined,
                                      show_dexter_start_options_write_cb)
                 }
             })

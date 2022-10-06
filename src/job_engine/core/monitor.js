@@ -49,24 +49,35 @@ class Monitor {
 	//browser side code (uses server, doesn't create it)
     //if source is passed, we're going to do a SEND after the init opens the websocket
      static init(domain="localhost", source, callback, period){
-         domain = this.resolve_domain(domain) //
-         let the_url        = this.ws_url(domain)
-         this.send_source   = source    //ok if undefined
-         this.send_callback = callback  //ok if undefined
-         this.send_period   = period    //ok if undefined
-         let websocket = new WebSocket(the_url) //WebSocket defined in chrome browser
-    
-         websocket.onopen = function(evt) {
-             out("Monitor for: " + websocket.url + " websocket opened.") //onOpen(evt)
-             Monitor.set_domain_to_websocket(domain, websocket)
-             if(Monitor.send_source) {
-                 let source   = Monitor.send_source
-                 let callback = Monitor.send_callback
-                 let period   = Monitor.send_period
-                 Monitor.send_source   = undefined
-                 Monitor.send_callback = undefined
-                 Monitor.send_period   = undefined
-                 Monitor.send_aux(websocket, source, callback, period)
+         domain = this.resolve_domain(domain)
+         let the_state = this.state(domain) //returns one of "CONNECTING", "OPEN", "CLOSING", "CLOSED", "UNKOWN STATE"
+         if(["CONNECTING", "OPEN"].includes(the_state)) {
+             let warning_mess = "Monitor.init got state of: " + the_state + " so doesn't try to open the websocket again."
+             console.log(warning_mess)
+             out(warning_mess)
+         }
+         else {
+             let the_url        = this.ws_url(domain)
+             this.send_source   = source    //ok if undefined
+             this.send_callback = callback  //ok if undefined
+             this.send_period   = period    //ok if undefined
+             let status_mess    = "Monitor.init opening websocket for url: " + the_url
+             console.log(status_mess)
+             out(status_mess)
+             let websocket = new WebSocket(the_url) //WebSocket defined in chrome browser
+
+             websocket.onopen = function (evt) {
+                 out("Monitor for: " + websocket.url + " websocket opened.") //onOpen(evt)
+                 Monitor.set_domain_to_websocket(domain, websocket)
+                 if (Monitor.send_source) {
+                     let source = Monitor.send_source
+                     let callback = Monitor.send_callback
+                     let period = Monitor.send_period
+                     Monitor.send_source = undefined
+                     Monitor.send_callback = undefined
+                     Monitor.send_period = undefined
+                     Monitor.send_aux(websocket, source, callback, period)
+                 }
              }
          }
 		
@@ -134,6 +145,8 @@ class Monitor {
             else                     { return states[int] }
       }
 
+      //returns one of //returns one of "CONNECTING", "OPEN", "CLOSING", "CLOSED", "UNKOWN STATE",
+      // or "websocket for {the domain} has not been created"
       static state(domain){
           let websocket = this.domain_to_websocket(domain)
           if(!websocket) { return "websocket for " + domain + " has not been created."}
@@ -534,28 +547,43 @@ class MonitorServer {
    static server = null
 
    static init(){ //called by load_job_engine.js
-       console.log("Top of MonitorServer.init")
-       this.server = new WebSocketServer({port: Monitor.port, clientTracking: true})    //Monitor.ws_url()
-       this.server.on('connection', function connection(ws_connection) { //ws_connection is the WebSocket connection for one client
-           console.log("Top of MonitorServer onconnection")
-           MonitorServer.send(ws_connection,
-               {value: "'" + "MonitorServer top of connection, passed ws_connection: " + ws_connection + "'",
-                              callback: "out"
-                              })
-           ws_connection.on('message', function(data) {
-               console.log("MonitorServer.on message passed: " + data)
-               MonitorServer.handle_message( ws_connection, data)
+       console.log("Top of MonitorServer.init now disabled")
+       out("Top of MonitorServer.init now disabled")
+       return //TODO needs work
+       try {
+           this.server = new WebSocketServer({port: Monitor.port, clientTracking: true})    //Monitor.ws_url()
+           this.server.on('connection', function connection(ws_connection) { //ws_connection is the WebSocket connection for one client
+               console.log("Top of MonitorServer onconnection")
+               MonitorServer.send(ws_connection,
+                   {
+                       value: "'" + "MonitorServer top of connection, passed ws_connection: " + ws_connection + "'",
+                       callback: "out"
+                   })
+               ws_connection.on('message', function (data) {
+                   console.log("MonitorServer.on message passed: " + data)
+                   MonitorServer.handle_message(ws_connection, data)
+               })
+               ws_connection.on('close', function (data) {
+                   out("MonitorServer closed " + data)
+                   if (Job.monitor_dexter &&
+                       Job.monitor_dexter.is_active() &&
+                       this.server.clients.length === 0) {
+                       Job.monitor_dexter.stop_for_reason("interrupted", "MonitorServer closed")
+                   }
+                   this.server = null
+               })
+               ws_connection.on('error', function (data) { //not documented but maybe exists anyway.
+                   console.log("MonitorServer.init got error; " + data)
+               })
            })
-           ws_connection.on('close', function (data) {
-              out("MonitorServer closed " + data)
-              if (Job.monitor_dexter &&
-                  Job.monitor_dexter.is_active() &&
-                  this.server.clients.length === 0){
-                  Job.monitor_dexter.stop_for_reason("interrupted", "MonitorServer closed")
-              }
-              this.server = null
-          })
-      })    
+           this.server.onerror = function (err) {
+               console.log("MonitorServer.init error of: " + err)
+               out("MonitorServer.init error of: " + err)
+           }
+       }
+       catch (err){
+           console.log("errored while creating new WebSocketServer with: " + err.message)
+       }
 	}
 
     //data is a string that looks like:

@@ -3,7 +3,7 @@ import protoLoader$1 from '@grpc/proto-loader';
 import StripsManager$1 from 'strips';
 import fs$1 from 'fs';
 import PEG from 'pegjs';
-import { WebSocketServer as WebSocketServer$1 } from 'ws';
+import { WebSocketServer } from 'ws';
 import * as Espree$1 from 'espree';
 import js_beautify from 'js-beautify';
 import compareVersions from 'compare-versions';
@@ -50,7 +50,7 @@ var dependencies = {
 	crypto: "^1.0.1",
 	dayjs: "^1.10.5",
 	eslint: "^7.32.0",
-	espree: "^9.2.0",
+	espree: "^9.4.0",
 	formidable: "^2.0.1",
 	https: "^1.0.0",
 	i: "^0.3.7",
@@ -888,7 +888,8 @@ static value_of_path(path_string){
         dde_error("value_of_path passed: " + path_string + " which is not a string or an array.");
     }
     let result;
-    if(globalThis[path[0]] !== undefined) { result = window; }
+    console.log("In Utils.value_of_path: " + path);
+    if(globalThis[path[0]] !== undefined) { result = globalThis;} //window } //window errors in job engine
     //note globalThis["window"] returns the window obj so the arg can be "window" and we still win
     else if (Object.prototype[path[0]] !== undefined) { result = Object.prototype; }
     else { return undefined }
@@ -1071,7 +1072,7 @@ static function_param_names_and_defaults(fn){
 }
 
 
-//returns an array of arrays. Each param is represented as an array of
+//returns an array of arrays. Each param is represented as an a array of
 //1 or 2 elements. The first elt is the param name (string) and
 // the 2nd elt is the default value src (which might be the symbol undefined or its a string of src
 //if you have a fn of function foo(a, b=2 {c=3, d=4}, {e=5, f=6}={}) {} then this function returns
@@ -3142,8 +3143,8 @@ function ob_sys_is_class(obj){
     return ((typeof(obj) == "function") && obj.toString().startsWith("class "))
 }
 
-var Root = {name: "Root"}; //"root" is an old node,js global that's been depricated but still defined. I decidd to steer clear of it by using capitalied Root.
-globalThis.Root = Root;
+var Root$1 = {name: "Root"}; //"root" is an old node,js global that's been depricated but still defined. I decidd to steer clear of it by using capitalied Root.
+globalThis.Root = Root$1;
 //globalThis.Root = Root //if I don't to this, value_of_path fails since globalThis["rootObjject"] fails
 //rootObject.name = "rootObject" //errors if I do this. the error happens in Jquery on something
                                //that looks very unlrelated, in ready, when seting the operating_system variable.
@@ -3173,7 +3174,7 @@ globalThis.Root = Root;
      as the default.
      */
 
-function newObject(...property_objects){
+function newObject$1(...property_objects){
     property_objects.unshift({}); //put new obj on front as assign mungs the first arg and if first arg is used elsewhere, this would be bad.
     let properties = Object.assign(...property_objects);
     let prototype;
@@ -3181,7 +3182,7 @@ function newObject(...property_objects){
         prototype = properties.prototype;
         delete properties.prototype;
     }
-    if (!prototype){ prototype = Root; }
+    if (!prototype){ prototype = Root$1; }
     else if (typeof(prototype) == "string"){
         var new_prototype = value_of_path(prototype);
         if ((new_prototype == null) || (typeof(new_prototype) != "object")){
@@ -3191,7 +3192,7 @@ function newObject(...property_objects){
         else {prototype = new_prototype;}
     }
     if (!prototype) { //no prototype arg passed and no prototype property in properties
-        prototype = Root;
+        prototype = Root$1;
     }
     if (properties.hasOwnProperty("name")){
         const name_val = properties.name;
@@ -3249,12 +3250,12 @@ function newObject(...property_objects){
     }
 }
 
-globalThis.newObject = newObject;
+globalThis.newObject = newObject$1;
 
 Object.defineProperty(Object, 'isNewObject',{
     enumerable : false,
     value : function(obj, require_name_in_prototype = true, permit_rootObject = true){
-        if(obj == Root) {
+        if(obj == Root$1) {
             if (permit_rootObject) { return true}
             else { return false }
         }
@@ -3266,7 +3267,7 @@ Object.defineProperty(Object, 'isNewObject',{
             if (proto){
                if (obj.hasOwnProperty("prototype") && (obj.prototype == proto)){
                    if (require_name_in_prototype){
-                       if ((proto == Root) || proto.name) {
+                       if ((proto == Root$1) || proto.name) {
                             if ((obj.name == undefined) || (proto[obj.name] == obj)) { return true }
                             else { return false} //obj has a name but it isn't in the proto bound to obj
                        }
@@ -3358,8 +3359,8 @@ Object.defineProperty(Object.prototype, 'isA',{
 
 Object.defineProperty(Object.prototype, 'siblings',{
     value : function(include_this=false){
-                if(this === Root) {
-                    if (include_this){ return [Root] }
+                if(this === Root$1) {
+                    if (include_this){ return [Root$1] }
                     else { return [] }
                 }
                 else {
@@ -3408,7 +3409,7 @@ Object.defineProperty(Object.prototype, 'inheritsPropertyFrom',{
     value : function(property_name){
                 if(this == null) { return null }
                 else if (this.hasOwnProperty(property_name)) {return this}
-                else if (this === Root) { return null }
+                else if (this === Root$1) { return null }
                 else { return Object.getPrototypeOf(this).inheritsPropertyFrom(property_name) }
     },
     enumerable : false
@@ -3465,7 +3466,7 @@ Object.defineProperty(Object.prototype, 'normal_keys_aux',{
                      include_subobject_names,
                      include_name_and_prototype,
                      result){
-        if (this == Root){ return result }
+        if (this == Root$1){ return result }
         else {
             for(let key of Object.getOwnPropertyNames(this)){
                 if (!result.includes(key)) {
@@ -3493,7 +3494,7 @@ Object.defineProperty(Object.prototype, 'normal_keys_aux',{
 //result array has Root first
 Object.defineProperty(Object.prototype, 'ancestors',{ //dde4 but was 'ancestors' in dde4
     value : function(include_self=false){
-                if(this == Root){
+                if(this == Root$1){
                     if(include_self) { return [this] }
                     else { return [] }
                 }
@@ -3512,7 +3513,7 @@ Object.defineProperty(Object.prototype, 'ancestors_of_aux',{
         if (this == null){ return result }
         else {
             result.unshift(this); //push onto front of array, order is top of ancestors first
-            if (this == Root) { return result } //must do this becasue ancestors_of_axu not on this's prototype
+            if (this == Root$1) { return result } //must do this becasue ancestors_of_axu not on this's prototype
             return Object.getPrototypeOf(this).ancestors_of_aux(result)
         }
     },
@@ -3556,7 +3557,7 @@ Object.defineProperty(Object.prototype, 'objectPath',{
 Object.defineProperty(Object.prototype, 'object_path_aux',{
     value : function(result){
         if (this == null) {return result} //usually never hits
-        else if (this == Root) { return "Root" } //hits just once in the recursion
+        else if (this == Root$1) { return "Root" } //hits just once in the recursion
         else if (this.hasOwnProperty("name") && this.name){ //note obj could have name == undefined when we block inheritance.
             //var separator = ((result == "")? "" : ".")
             //result = this.name + separator + result //push onto front of path, order is top of ancestors first
@@ -3576,14 +3577,14 @@ Object.defineProperty(Object.prototype, 'object_path_aux',{
 });
 
 //new_obj.toString errors without this fn
-Root.toString = function(){
+Root$1.toString = function(){
     const path = this.objectPath();
     if (path) { return path }
     else {
         const anses = this.ancestors(true); //include self
         let result = "";
         for(let ans of anses){
-            if(ans === Root) { result = "Root"; }
+            if(ans === Root$1) { result = "Root"; }
             else if (Object.hasOwnProperty("name") && ans.name){
                 result +=  "." + ans.name;
             }
@@ -3641,7 +3642,7 @@ Object.defineProperty(Object.prototype, 'sourceCode',{
 //flat list of obj def printer.
 Object.defineProperty(Object.prototype, 'sourceCode',{
     value : function({include_this=true, include_subobjects=true, indent="", at_top_level=true}={}){
-        if (this == Root) { return "Root" }
+        if (this == Root$1) { return "Root" }
         else {
             let proto = Object.getPrototypeOf(this);
             if (!proto) { throw new Error("Object.sourceCode passed this with no prototype: " + stringify_value(this))}
@@ -3701,7 +3702,7 @@ Object.defineProperty(Object.prototype, 'sourceCode',{
 
 //Coordinate System 
 
-var Coor$1 = newObject({prototype: Root, name: "Coor"}); //, pose: Vector.make_pose()})
+var Coor$1 = newObject$1({prototype: Root$1, name: "Coor"}); //, pose: Vector.make_pose()})
 globalThis.Coor = Coor$1;
 
 Coor$1.init = function(){
@@ -3727,9 +3728,9 @@ Coor$1.create_child = function(pose, name){
     	old_child.set_pose(pose);
         return old_child
     }else if(name){
-		return newObject({prototype: this, pose: pose, name: name})
+		return newObject$1({prototype: this, pose: pose, name: name})
     }else {
-		return newObject({prototype: this, pose: pose})
+		return newObject$1({prototype: this, pose: pose})
     }
 	
 };
@@ -16931,6 +16932,9 @@ class Job$1{
     //If job_file_path has a newline in it, its considered to BE the src of
     //a file or at least one or more job defs.
     static async define_and_start_job(job_file_path){
+        if(platform === "node"){
+            init_readline(); //if already open, it leaves it alone
+        }
         let job_file_path_is_src = job_file_path.includes("\n");
         out("out: define_and_start_job set job_file_path_is_src: " + job_file_path_is_src);
         let job_instances;
@@ -16943,7 +16947,7 @@ class Job$1{
             if((platform === "node") && !globalThis.keep_alive_value){
                 warning("Closing the process of loading: " + job_file_path +
                         "<br/>If you want to keep the process up,<br/>check <b>keep_alive</b> before clicking the Job button.");
-                globalThis.close_readline(); //causes the process running this job to finish.
+               /// globalThis.close_readline() //causes the process running this job to finish.
             }
         }
         else {
@@ -17413,7 +17417,7 @@ class Job$1{
             const job_name = this.name;
             const the_id = this.get_job_button_id();
 
-            const the_button_html = '<button style="margin-left:0px; vertical-align:50%;" id="' + the_id + '">'+ job_name +
+            const the_button_html = '<button style="margin-left:0px; vertical-align:50%;cursor:pointer;" id="' + the_id + '">'+ job_name +
                                     '</button>';
             //$("#jobs_button_bar_id").append(the_html)
             let wrapper = document.createElement('div');
@@ -17424,7 +17428,7 @@ class Job$1{
             wrapper.innerHTML = the_button_html +
                                 "<div style='display:inline-block;margin-right:10px;'><span style='cursor:pointer;' onclick='" +
                                 close_on_click_fn_src +
-                                "' title='Undefine this job'>X</span><br/><span style='cursor:pointer; padding-left:2px;' onclick='" +
+                                "' title='Undefine this job'>X</span><br/><span style='cursor:help; padding-left:2px;' onclick='" +
                                 inspect_on_click_fn_src +
                                 "' title='Inspect this job'>&#9432;</span></div>";
             jobs_button_bar_id.append(wrapper); //.firstChild)
@@ -18233,7 +18237,7 @@ Job$1.prototype.if_robot_status_error_default = function(){
         let sim_actual = Robot.get_simulate_actual(rob.simulate);
         if((sim_actual === false) || (sim_actual === "both")){
             try{ let path = "Dexter." + rob.name + ":/srv/samba/share/errors.log";
-                 read_file_async(path, undefined, function(err, content){
+                 DDEFile.read_file_async(path, function(err, content){
                          if(err) {warning("Could not find: " + path);}
                          else {
                             if((typeof(content) != "string") ||
@@ -18243,7 +18247,7 @@ Job$1.prototype.if_robot_status_error_default = function(){
                             else {
                              content = Utils.replace_substrings(content, "\n", "<br/>");
                              content = "Content of " + path + "<br/><code>" + content + "</code>";
-                             setTimeout(function(){write_file_async(path, "");},
+                             setTimeout(function(){DDEFile.write_file_async(path, "");},
                                         400); //give the read_file job a chance to finish properly
                             }
                             out(content);
@@ -18286,7 +18290,7 @@ Job$1.prototype.if_dexter_connect_error_default = function(robot_name){
 Job$1.prototype.rs_to_error_message = function(robot_status){
     let error_code = robot_status[Dexter.ERROR_CODE];
     let oplet_error_code = error_code & 0xFF; //lower 8 bits
-    let msg = "error_code: " + error_code;
+    let msg = "error_code: " + error_code + " ";
     let oplet = robot_status[Dexter.INSTRUCTION_TYPE];
     if (error_code > 0) {
         if((oplet == "r") || (oplet == "w")) {
@@ -18319,8 +18323,7 @@ Job$1.prototype.show_error_log_maybe = function(){
                 (rob.rs.error_code() >= 600) &&
                 (rob.rs.error_code() < 700)){
             let path = rob.name + ":" + "../errors.log";
-            read_file_async(path,
-                undefined,
+            DDEFile.read_file_async(path,
                 function(err, content){
                     if(err) {
                         warning("Could not get " + path + "<br/>Error: " + err);
@@ -18457,8 +18460,8 @@ Job$1.prototype.finish_job = function(){
                     //as our orig job might have launched a 2nd job, so keep it open
                     //until all are done.
                     out("OUT: finish job, now calling close_readline");
-                    console.log("finish job, now calling close_readline");
-                    globalThis.close_readline(); //causes the process running this job to finish.
+                   /// console.log("finish job, now calling close_readline")
+                   /// globalThis.close_readline() //causes the process running this job to finish.
                 }
             }
           }
@@ -24908,8 +24911,7 @@ class Robot$1 {
             else {
                 result = false; //don't simulate
             }
-            console.log("in get_simulate_actual passed, simulate_val: " + simulate_val +
-                        " returning: " + result);
+            //console.log("in get_simulate_actual passed, simulate_val: " + simulate_val + " returning: " + result)
             return result
         }
         else { shouldnt("get_simulate_actual passed illegal value: " + simulate_val); }
@@ -27453,12 +27455,16 @@ Dexter$1.defaults = {
 }*/
 
 Dexter$1.prototype.set_link_lengths = function(job_to_start_when_done = null) {
+    console.log("top of Dexter.prototype.set_link_lengths");
     let sim_actual = Robot$1.get_simulate_actual(this.simulate);
     if (job_to_start_when_done && (job_to_start_when_done.name === "set_link_lengths")) {
+        console.log("set_link_lengths top of 1st if clause");
         this.start_aux(job_to_start_when_done);
     }
     else if (job_to_start_when_done.get_dexter_defaults) {
+        console.log("set_link_lengths top of 2nd if clause");
         if (sim_actual !== true) { //ie "real"
+            console.log("set_link_lengths top of 2nd if clause, real");
             /*if (node_server_supports_editor(this)) {
                 this.set_link_lengths_using_node_server(job_to_start_when_done)
             } else {
@@ -27471,11 +27477,15 @@ Dexter$1.prototype.set_link_lengths = function(job_to_start_when_done = null) {
                 //this.set_link_lengths_using_job(job_to_start_when_done)
             }*/
             this.set_link_lengths_using_node_server(job_to_start_when_done);
-        } else { //simulating, so set to idealized values
+        }
+        else { //simulating, so set to idealized values
+            console.log("set_link_lengths top of 2nd if clause, sim");
             this.defaults = Dexter$1.defaults;
             this.start_aux(job_to_start_when_done);
         }
-    } else { // set to idealized values
+    }
+    else { // set to idealized values
+        console.log("set_link_lengths top of 3rd if clause");
         this.defaults = Dexter$1.defaults;
         this.start_aux(job_to_start_when_done);
     }
@@ -28634,7 +28644,7 @@ Dexter.prototype.defaults_read = function(callback = null){
             }
         }
     });
-    read_file_async(the_url, undefined, normal_defaults_read_cb);
+    DDEFile.read_file_async(the_url, normal_defaults_read_cb);
 };
 
 //caution:  not ready for prime time.
@@ -28643,7 +28653,7 @@ Dexter.prototype.defaults_write = function(){
     let the_url = Dexter.prototype.defaults_url();
     let content = this.defaults.get("whole_file_string");
     let the_dex_inst = this;
-    write_file_async(the_url,  content,
+    DDEFile.write_file_async(the_url,  content,
         function(err){
             if(err) { warning("Dexter." + the_dex_inst.name + ".defaults_write errored with: " +
                 err.message);
@@ -31362,7 +31372,10 @@ class DexterSim$1{
     //instuctions that add to the queue.
     ack_reply_maybe(instruction_array, payload_string_maybe){
         if(this.queue_instance.is_queue_full()) {
-            this.simout("queue is full.<br/>There will be no reply until the current instruction completes.");
+            let the_job = Job.active_job_with_robot(this.robot);
+            if (the_job.show_instructions) { //if we're doing a move_to_straight instruction, there's a lot of instrs per sec, so good to be able to stop this printout as it slows down sim
+                this.simout("queue is full.<br/>There will be no reply until the current instruction completes.");
+            }
         }
         else {
             this.ack_reply(instruction_array, payload_string_maybe);
@@ -31815,7 +31828,7 @@ class Simqueue$1{
             for(let param_name in param_names_and_values){
                 let param_value = param_names_and_values[param_name];
                 this.sim_instance.parameters[param_name] = param_value;
-                this.sim_instance.simout("set_parameter: " + param_name + " to " + param_value);
+                //this.sim_instance.simout("set_parameter: " + param_name + " to " + param_value)
             }
         }
         delete this.instr_to_param_map[cur_inst]; //not needed anymore
@@ -31906,7 +31919,7 @@ class Simqueue$1{
         }
         else { //queue is empty so just set params immediately and don't put them in instr_to_param_map
                this.sim_instance.parameters[param_name] = param_value;
-               this.sim_instance.simout("set_parameter: " + param_name + " to " + param_value);
+               //this.sim_instance.simout("set_parameter: " + param_name + " to " + param_value)
         }
     }
 
@@ -33678,15 +33691,24 @@ class DDEFile$1 {
     //______end Utilites______
     //Core file manipulation methods
 
-    static async file_exists(path, callback){
+    /*static async file_exists(path, callback){
         //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
         //path = this.add_default_file_prefix_maybe(path)
-        let full_url =  this.make_url(path, "/edit?info="); //was "/edit?edit=" which works for files but not folders
+        let full_url =  this.make_url(path, "/edit?info=") //was "/edit?edit=" which works for files but not folders
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
         //see httpd.mjs, serve_file()
-        let file_info_response = await fetch(full_url);
+        let file_info_response = await fetch(full_url)
         return this.callback_or_return(callback, file_info_response.ok)
+    }*/
+    static async file_exists(path, callback){
+        let info = await this.path_info(path, callback);
+        if(info){
+            return this.callback_or_return(callback, true)
+        }
+        else {
+            return this.callback_or_return(callback, false)
+        }
     }
 
     /*static async get_page_async(url_or_options, callback){
@@ -33787,6 +33809,8 @@ class DDEFile$1 {
 
 
     //callback is optional. If not passed, return a promise
+    //if passed, the callback is called with 2 args,
+    //err (default null meaning no error, and content (ie the string of the content of the file
     static async read_file_async(path, callback){
         if (path === undefined) {
             if (Editor.current_file_path == "new buffer"){
@@ -33876,7 +33900,7 @@ class DDEFile$1 {
                                              body: formData,
                                              mode: 'no-cors'});
         if(res.ok) {
-            out("write_file_async wrote file to: " + full_url);
+            out("DDEFile.write_file_async wrote file to: " + full_url);
             return this.callback_or_return(callback, orig_content)
         }
         else {
@@ -35673,26 +35697,37 @@ class Monitor {
 	//browser side code (uses server, doesn't create it)
     //if source is passed, we're going to do a SEND after the init opens the websocket
      static init(domain="localhost", source, callback, period){
-         domain = this.resolve_domain(domain); //
-         let the_url        = this.ws_url(domain);
-         this.send_source   = source;    //ok if undefined
-         this.send_callback = callback;  //ok if undefined
-         this.send_period   = period;    //ok if undefined
-         let websocket = new WebSocket(the_url); //WebSocket defined in chrome browser
-    
-         websocket.onopen = function(evt) {
-             out("Monitor for: " + websocket.url + " websocket opened."); //onOpen(evt)
-             Monitor.set_domain_to_websocket(domain, websocket);
-             if(Monitor.send_source) {
-                 let source   = Monitor.send_source;
-                 let callback = Monitor.send_callback;
-                 let period   = Monitor.send_period;
-                 Monitor.send_source   = undefined;
-                 Monitor.send_callback = undefined;
-                 Monitor.send_period   = undefined;
-                 Monitor.send_aux(websocket, source, callback, period);
-             }
-         };
+         domain = this.resolve_domain(domain);
+         let the_state = this.state(domain); //returns one of "CONNECTING", "OPEN", "CLOSING", "CLOSED", "UNKOWN STATE"
+         if(["CONNECTING", "OPEN"].includes(the_state)) {
+             let warning_mess = "Monitor.init got state of: " + the_state + " so doesn't try to open the websocket again.";
+             console.log(warning_mess);
+             out(warning_mess);
+         }
+         else {
+             let the_url        = this.ws_url(domain);
+             this.send_source   = source;    //ok if undefined
+             this.send_callback = callback;  //ok if undefined
+             this.send_period   = period;    //ok if undefined
+             let status_mess    = "Monitor.init opening websocket for url: " + the_url;
+             console.log(status_mess);
+             out(status_mess);
+             let websocket = new WebSocket(the_url); //WebSocket defined in chrome browser
+
+             websocket.onopen = function (evt) {
+                 out("Monitor for: " + websocket.url + " websocket opened."); //onOpen(evt)
+                 Monitor.set_domain_to_websocket(domain, websocket);
+                 if (Monitor.send_source) {
+                     let source = Monitor.send_source;
+                     let callback = Monitor.send_callback;
+                     let period = Monitor.send_period;
+                     Monitor.send_source = undefined;
+                     Monitor.send_callback = undefined;
+                     Monitor.send_period = undefined;
+                     Monitor.send_aux(websocket, source, callback, period);
+                 }
+             };
+         }
 		
          websocket.onclose = function(evt) {
              Monitor.delete_domain(websocket);
@@ -35758,6 +35793,8 @@ class Monitor {
             else                     { return states[int] }
       }
 
+      //returns one of //returns one of "CONNECTING", "OPEN", "CLOSING", "CLOSED", "UNKOWN STATE",
+      // or "websocket for {the domain} has not been created"
       static state(domain){
           let websocket = this.domain_to_websocket(domain);
           if(!websocket) { return "websocket for " + domain + " has not been created."}
@@ -36157,28 +36194,9 @@ class MonitorServer$1 {
    static server = null
 
    static init(){ //called by load_job_engine.js
-       console.log("Top of MonitorServer.init");
-       this.server = new WebSocketServer({port: Monitor.port, clientTracking: true});    //Monitor.ws_url()
-       this.server.on('connection', function connection(ws_connection) { //ws_connection is the WebSocket connection for one client
-           console.log("Top of MonitorServer onconnection");
-           MonitorServer$1.send(ws_connection,
-               {value: "'" + "MonitorServer top of connection, passed ws_connection: " + ws_connection + "'",
-                              callback: "out"
-                              });
-           ws_connection.on('message', function(data) {
-               console.log("MonitorServer.on message passed: " + data);
-               MonitorServer$1.handle_message( ws_connection, data);
-           });
-           ws_connection.on('close', function (data) {
-              out("MonitorServer closed " + data);
-              if (Job.monitor_dexter &&
-                  Job.monitor_dexter.is_active() &&
-                  this.server.clients.length === 0){
-                  Job.monitor_dexter.stop_for_reason("interrupted", "MonitorServer closed");
-              }
-              this.server = null;
-          });
-      });    
+       console.log("Top of MonitorServer.init now disabled");
+       out("Top of MonitorServer.init now disabled");
+       return //TODO needs work
 	}
 
     //data is a string that looks like:
@@ -36688,6 +36706,696 @@ function make_temperature_series(){
 
 }
 
+/* Why Futures
+Automatic garbage collection wins because it frees the programmer from having to worry about
+memory management.
+Futues win becuase it frees the programmer from having to worry about serial vs parallel in
+optimizing the performance of their algorithm. The program just runs
+as parallel as it can, very little extra work for programmer.
+Programmer also doesn't have to deal with callback hell or even promises/async/await
+which interact poorly (to say hte least) with normal callstack return of values.
+ */
+/* TODO
+   - DONE implement Lisp  List.make, (cons), List.first, List.rest
+   - DONE Decide if ActEval.eval and cont's get changed to keyword args
+       but only for the EVAL fns. For the cont, pass by position:  val, lex_env, cont, source
+       This allows me to have as the cont ordinary fns like out and inspect with  no changes.
+        Note that out and inspect ignore oops: both out and inspect take more than one arg.
+        grr. Inspect's 2nd arg is "source" but that's not necessarily the same source. hmmm.
+        What do I do here? Problem! Look at teh cont fn's args and try to match them up?
+          not pass later ones and let them default?
+   - Change low leval evals: Literal, Identifier, then assign, binary, then Array
+        use List fns to implement lex_env throughout
+   - remainder of existing stuff for continuations
+   - Call Henry to work on Futures.
+ */
+globalThis.ActEval = class ActEval{
+    static string_to_ast(source){ //same as JS2B.string_to_ast
+        if (source[0] == "{") { //esprima doesn't like so hack it
+            let new_src = "var foo947 = " + source;
+            let st = Espree.parse(new_src, {range: true,
+                                                    loc: true,
+                                                    ecmaVersion: 7 //Chrome 105 (sept 2022) supports ES7 and probably more
+            });
+            let new_st = st.body[0].declarations[0].init;
+            return new_st
+        }
+        else {
+            return Espree.parse(source, {range: true, loc: true, ecmaVersion: 7})
+        }
+    }
+
+    static last_read_source = null
+
+    static read_eval(source){
+        let ast = ActEval.string_to_ast(source);
+        this.eval({ast: ast,
+                  lex_env: List.empty,
+                  cont: out,
+                  source: source}); ///continuation
+    }
+
+    //returns an array of block_elts (but might be only 1 long).
+    static eval({ast, //st === ast === abstract_syntax_tree
+                lex_env = List.empty,
+                cont=out, //continuation. A fn of one arg.
+                source}
+               ){
+        try {
+            let switcher = ast.type;
+            /*switch(switcher) {
+                case "ObjectExpression": return  this[switcher].call(this, st, lex_env, cont);
+                case "Program":          return  this[switcher].call(this, st, lex_env, cont);
+                default: shouldnt("Can't handle exprima type: " + switcher)
+            }*/
+            this[switcher].call(this, ast, lex_env, cont, source);
+        }
+        catch(err){
+            dde_error("Could not convert JavaScript to ast: " + err.message);
+        }
+    }
+    static Program(ast, lex_env, cont, source){
+        let switcher = ast.sourceType;
+        switch(switcher) {
+            case "module": dde_error("unimplemented: JS2B module");
+            case "script": {
+                let result = [];
+                for(let part of ast.body) { //expect multiple top level parts.
+                    result.push(this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source: source}));
+                }
+                return result
+            }
+            default: shouldnt("Can't handle exprima switcher: " + switcher);
+        }
+    }
+
+    static script(ast, lex_env, cont, source){
+        let switcher = st.type;
+        switch(switcher){
+            case "BlockStatement":      return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "ExpressionStatement": return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "ForStatement":        return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "ForOfStatement":      return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "FunctionDeclaration": return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "IfStatement":         return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "TryStatement":        return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "VariableDeclaration": return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "WhileStatement":      return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+
+            default: shouldnt("Can't handle exprima switcher: " + switcher);
+        }
+    }
+    static BlockStatement({ast, lex_env, cont, source}){
+        let result = undefined;
+        for(let a_st of ast.body){
+            if(a_st.type === "ReturnStatement") ;
+            this.eval({ast: a_ast, lex_env: lex_env, cont: cont, source: source});
+        }
+        if(cont && result) {
+            cont.call(null, result);
+        }
+    }
+
+
+    static ExpressionStatement({ast, lex_env, cont, source}){
+        let part = ast.expression;
+        let switcher = part.type;
+        switch(switcher){
+            case "ArrayExpression":      return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
+            case "AssignmentExpression": return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
+            case "BinaryExpression":     return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
+            case "CallExpression":       return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
+            case "Identifier":           return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
+            case "Literal":              return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
+            case "LogicalExpression":    return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
+            case "MemberExpression":     return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
+            //when we have a path like foo.bar.baz, st.type == "MemberExpression"
+            //it will have 2 important "parts"
+            // "object" the val of object will have type "MemberExpression"
+            // and itself have an "object" prop that has type Identifier with name "foo"
+            //              and "property" prop that has type Identifier with name "bar"
+            // "property". whose val will be of type Identifier with a name == "baz".
+            //note its the LAST name in foo.bar.baz.
+            //whereas the "object" encompasses all path elts except the last name, ie foo.bar
+
+            case "NewExpression":        return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source});
+            case "ReturnStatement":      return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source});
+            case "TemplateLiteral":      return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source});
+            case "UnaryExpression":      return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source});
+            case "UpdateExpression":     return JS2B[switcher].call(this,{ast: part, lex_env: lex_env, cont: cont, source:source});
+            case "YieldExpression":      return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source});
+            default: shouldnt("Can't handle exprima switcher: " + switcher);
+        }
+    }
+
+    /* obsolete first fry version. wrong cont handling
+    static ArrayExpression(st, lex_env, cont, source){
+        let result_arr = []
+        for(let a_st of st.elements){
+            this.eval(a_st, lex_env, function(val) {result_arr.push(val)}, source )
+        }
+        cont.call(null, result_arr)
+    }
+    */
+    /* example JS:
+       let a = 11
+       let b = 22
+       [a, b]
+       so to evla "b", we have to have the lex env containing b.
+    Henry's rules:
+      -all calls to ActEval.eval and continuation fns are tail calls
+      -no JS looping (for, etc.)
+      -both ActEval and all cont get the same args execept
+          eval first arg is a st, and cont first arg is a value
+       - Both might take some additional values like in ArrayExpression for "vals_so_var"
+    */
+
+    static ArrayExpression({ast, lex_env, cont, source, vals_so_far=List.empty}){ //todo needs testing
+        let ast_elts = ast.elements;
+        if(ast_elts.length === 0) { //called after all ast_elts are done
+            let result_array = List.to_array(vals_so_far).reverse();
+            cont.call(null,  {ast: result_array, lex_env: lex_env, cont: cont, source:source});
+        }
+        else {
+            let first_ast = ast.elements[0];
+            rest(ast.elements); //close over this lex var.
+            let new_cont = function(val, lex_env, cont, source, vals_so_far){
+                let new_vals_so_far = List.make_pair(val, vals_so_far);
+                ActEval.ArrayExpression({ast: rest_st, lex_env: lex_env, cont: cont, source:source, vals_so_far:new_vals_so_far});
+            };
+            this.eval({ast: first_ast, lex_env: lex_env, cont: new_cont, source:source});
+        }
+    }
+
+    static AssignmentExpression({ast, lex_env, cont, source}){
+        let right_val_ast = ast.right;
+        if(ast.left.type === "Identifier") {
+            let name_string = ast.left.name;
+            this.eval({ast: right_val_ast,
+                     lex_env:lex_env,
+                     cont: function(val){
+                         if (lex_env.hasOwnProperty(name_string)) {
+                             lex_env[name_string] = val;
+                         } else {
+                             globalThis[name_string] = val;
+                         }
+                         cont.call(null, undefined, undefined, source);
+                     },
+                     source: source});
+
+
+
+        }
+        else if(ast.left.type === "MemberExpression") {
+            let object_ast = ast.left.object;
+            let prop_name = ast.left.property.name;
+            this.eval({object_ast,
+                      lex_env,
+                      function(obj_val) {
+                          let property_ast = ast.left.property;
+                          if(property_ast.type === "Identifier") {
+                              let the_prop_name = prop_name;
+                              ActEval.eval({ast: right_val_ast,
+                                  lex_env: lex_env,
+                                  cont: function(val) {
+                                      obj_val[the_prop_name] = val;
+                                  },
+                                  source: source});
+
+                          }
+                          else {
+                              shouldnt("ActEval.eval AssignmentExpression left side needs work.");
+                          }
+                      },
+                      source: source});
+        }
+    }
+
+    static BinaryExpression(st, lex_env, cont, source){
+        let operator_string = st.operator;
+        let left_val;
+        let right_val;
+        this.eval(st.left,  lex_env, function(val){ left_val  = val;}, source);
+        this.eval(st.right, lex_env, function(val){ right_val = val;}, source);
+        let rock_bottom_source = left_val.toString() + operator_string + right_val.toString();
+        if(Future.contains_future(left_val, right_val)){
+            Future.make(function(){
+                                let result = globalThis.eval(rock_bottom_source);
+                                cont.call(null, result);
+            });
+        }
+        else {
+            //have to do toString and eval because no way to CALL an infix operator in JS.
+            let result = globalThis.eval(rock_bottom_source);
+            cont.call(null, result);
+        }
+    }
+
+    static LogicalExpression(st){ return this.BinaryExpression(st) }
+
+    /*static get_src(st) {
+        this.last_read_source.substring(st.range[0], st.range[1])
+        /* let switcher = st.type
+         if      (switcher == "Identifier") { return st.name }
+         else if (switcher == "MemberExpression") {
+             return this.get_src(st.object) +  "." + this.get_src(st.property)
+         }
+     }
+      this grabs all the possible params from the fn def of the fn call
+        and supplies ALL of them in the output block (with default vals),
+        not just the ones passed. BUT
+       doesn't handle keyworded fns properly.
+    */
+    static get_src(st, source) {
+         return source.substring(st.range[0], st.range[1])
+    }
+
+    //this does not add non passed args with their default vals
+    // the new def
+    static CallExpression(st, lex_env, cont, source) {
+        let callee = st.callee; //could be a single Identifier or could be MemberExpression when its a path
+        callee.type; //callee_type not bound due to a bug in Chrome
+        //let meth_block   = this[callee_type].call(this, callee) //might be a path, or a single "Literal" identifier
+        let meth_name = callee.name;
+        let meth = value_of_path(meth_name);
+        let param_arrays = null;
+        if (meth) {
+            param_arrays = Utils.function_param_names_and_defaults_array(meth);
+        }
+        //Process Args
+        let new_lex_env = {};
+        for (let i = 0; i < st.arguments.length; i++) {
+            let arg_name = param_arrays[i][0];
+            let arg_st = st.arguments[i];
+            this.eval(arg_st,
+                       lex_env,
+                  function (arg_val) {
+                               new_lex_env[arg_name] = arg_val;},
+                       source);
+        }
+
+        //Process Body
+        let meth_def_src = meth.toString();
+        let meth_def_ast = this.string_to_ast(meth_def_src);
+        let body_top_level_expressions = meth_def_ast.body[0].body.body;
+        let result = undefined;
+        let regular_cont = function (elt_val) {
+                              result_arr.push(elt_val);};
+        let return_cont  = function(elt_val){
+            result = elt_val; //result closed over
+        };
+        for (let top_level_expr of body_top_level_expressions) {
+            //let expr_type = top_level_expr.type.toString() //fails due to bug in Chrome
+            this.eval(top_level_expr,
+                      new_lex_env,
+                      ((top_level_expr.type === "ReturnStatement") ? return_cont : regular_cont),
+                       source
+                      );
+        }
+        cont.call(null, result);
+        //inspect(meth_def_ast)
+    }
+    static ForStatement(st){
+        let init   = JS2B[st.init.type].call(undefined, st.init);
+        let test   = JS2B[st.test.type].call(undefined, st.test);
+        let update = JS2B[st.update.type].call(undefined, st.update);
+        let body   = JS2B[st.body.type].call(undefined, st.body);
+        return Root.jsdb.for.for_iter.make_dom_elt(undefined, undefined, init, test, update, body)
+    }
+
+    static ForOfStatement(st){
+        let left   = JS2B[st.left.type].call(undefined, st.left);
+        //but have to remove the init val and equal sign of the declaration
+        if (dom_elt_block_type(left).isA(Root.jsdb.assignment)) {
+            Root.jsdb.assignment.remove_init_val(left);
+        }
+        let of_elt = newObject({prototype: Root.jsdb.one_of,
+            choices: ["of", "in"],
+            value: "of",
+            eval_each_choice: false,
+        });
+        let right  = JS2B[st.right.type].call(undefined, st.right);
+        let body   = JS2B[st.body.type].call(undefined, st.body);
+        return Root.jsdb.for.for_of.make_dom_elt(undefined, undefined, left, of_elt, right, body)
+    }
+
+    static WhileStatement(st){
+        let test_elt   = JS2B[st.test.type].call(undefined, st.test);
+        let body_elt   = JS2B[st.body.type].call(undefined, st.body);
+        return Root.jsdb.rword_expr_code_body.while.make_dom_elt(undefined, undefined, test_elt, body_elt)
+    }
+
+    static FunctionDeclaration(st, lex_env, cont, source){
+        let src = this.get_src(st, source);
+        let result = globalThis.eval(src);
+        cont.call(null, result);
+    }
+    /*let fn_name = "" //used in annoymous fn defs
+    if (st.id) { fn_name = st.id.name }
+    //else {} //handles annoymous fn defs.
+    let param_arg_name_vals = [] //an array of arrays. Each inner array has the param name and the default val block elt.
+    for(let param_st of st.params) {
+        let param_name
+        let param_val
+        if (param_st.type == "Identifier"){
+            param_name = param_st.name
+            param_val = Root.jsdb.one_of.null_undefined.make_dom_elt(undefined, undefined, undefined)
+        }
+        else if(param_st.type == "AssignmentPattern"){
+            param_name = param_st.left.name
+            param_val = JS2B[param_st.right.type].call(undefined, param_st.right)
+        }
+        else if (param_st.type == "ObjectPattern"){ //happens when function foo ({a=1, b=2})
+            param_name = ""
+            param_val = {}
+            for(let prop of param_st.properties){
+                let prop_assign_pat = prop.value
+                let prop_name = prop_assign_pat.left.name
+                let prop_val_block_elt = JS2B[prop_assign_pat.right.type].call(undefined, prop_assign_pat.right)
+                param_val[prop_name] = prop_val_block_elt
+            }
+        }
+        else {
+            shouldnt("FunctionDexlaration for: " + fn_name + " got unhandled param type of: " + param_st.type)
+        }
+        param_arg_name_vals.push([param_name, param_val])
+    }
+    let params_block_elt = Root.jsdb.function_params.make_dom_elt(undefined, undefined, param_arg_name_vals)
+    let body_st = st.body
+    let body_block_elt = JS2B[body_st.type].call(undefined, body_st)
+    let is_generator = st.generator
+    return Root.jsdb.function.make_dom_elt(undefined, undefined, fn_name, params_block_elt, body_block_elt, is_generator)
+}*/
+
+    static FunctionExpression(st, operation="if"){
+        return JS2B.FunctionDeclaration.call(undefined, st)
+    }
+
+    /*let fn_name = "" //used in annoymous fn defs
+    if (st.id) { fn_name = st.id.name }
+    //else {} //handles annoymous fn defs.
+    let param_arg_name_vals = [] //an array of arrays. Each inner array has the param name and the default val block elt.
+    for(let param_st of st.params) {
+        let param_name
+        let param_val
+        if (param_st.type == "Identifier"){
+            param_name = param_st.name
+            param_val = Root.jsdb.one_of.null_undefined.make_dom_elt(undefined, undefined, undefined)
+        }
+        else if(param_st.type == "AssignmentPattern"){
+            param_name = param_st.left.name
+            param_val = JS2B[param_st.right.type].call(undefined, param_st.right)
+        }
+        else if (param_st.type == "ObjectPattern"){ //happens when function foo ({a=1, b=2})
+            param_name = ""
+            param_val = {}
+            for(let prop of param_st.properties){
+                let prop_assign_pat = prop.value
+                let prop_name = prop_assign_pat.left.name
+                let prop_val_block_elt = JS2B[prop_assign_pat.right.type].call(undefined, prop_assign_pat.right)
+                param_val[prop_name] = prop_val_block_elt
+            }
+        }
+        else {
+            shouldnt("FunctionDexlaration for: " + fn_name + " got unhandled param type of: " + param_st.type)
+        }
+        param_arg_name_vals.push([param_name, param_val])
+    }
+    let params_block_elt = Root.jsdb.function_params.make_dom_elt(undefined, undefined, param_arg_name_vals)
+    let body_st = st.body
+    let body_block_elt = JS2B[body_st.type].call(undefined, body_st)
+    let is_generator = st.generator
+    return Root.jsdb.function.make_dom_elt(undefined, undefined, fn_name, params_block_elt, body_block_elt, is_generator)
+}*/
+
+    static Identifier({ast, lex_env= List.empty, cont, source}){
+        let name = ast.name;
+        let val  = lex_env[name];
+        if(val === undefined) {
+            val = globalThis[name];
+        }
+        cont.call(null, val, lex_env, cont, source);
+    }
+
+    //always returns an array of block elts
+    static IfStatement(st, lex_env, cont, source){
+        let test_st = st.test;
+        let action_st = st.consequent;
+        st.alternate;
+        let test_result;
+        this.eval(test_st, lex_env, function(val) { test_result = val; });
+        if(test_result) {
+            this.eval(action_st, lex_env,
+                     null,
+                      source); //JS IF doesn't return a value
+        }
+    }
+
+    static Literal({ast, lex_env= List.empty, cont, source}){
+        cont.call(null, ast.value);
+    }
+
+    //called for paths
+    static MemberExpression(st, lex_env, cont, source){
+        let obj_st = st.object;
+        let obj_val;
+        this.eval(obj_st,
+                  lex_env,
+                  function(val) { obj_val = val;},
+                  source);
+        let prop_st = st.property;
+        if(prop_st.type === "Identifier"){
+            let result = obj_val[prop_st.name];
+            cont.call(null, result);
+        }
+        else {
+            shouldnt("ActEval.MemberExpression got unhandled property type: " + prop_st.type);
+        }
+    }
+
+    static NewExpression(st) {
+        let jsclassname = st.callee.name; // a string like "Job"
+        let args = st.arguments; //an array
+        let arg_blocks = [];
+        for (let arg of args) {
+            let switcher = arg.type;
+            let arg_block = JS2B[switcher].call(undefined, arg); //in the case of new Job,
+            //the first arg_block will be a lit_obj block containing the 14 name-val pairs of
+            //a job's props.
+            arg_blocks.push(arg_block);
+        }
+        //in the case of a Job, arg_blocks will be an array of one elt, a lit_obj block
+        let the_block_type = Root.jsdb.class_instance;
+        if (Root.jsdb.class_instance.hasOwnProperty(jsclassname)) { //hits when jsclassname is "Job"
+            the_block_type = Root.jsdb.class_instance[jsclassname]; //needed to get the category prop out of the Job newobject.
+        }
+        let result_block = the_block_type.make_dom_elt(undefined, undefined, jsclassname, arg_blocks);
+        return result_block
+    }
+
+    static ObjectExpression(st){
+        let name_val_block_elt_lit_obj = {}; //names of strings, vals of actual block elts
+        for(let prop of st.properties){
+            let key = prop.key; //typically (at least) identifier
+            let name;
+            if (key.type == "Identifier") { name = key.name; }
+                //the below turn into strings anyway, so no utility in giving them real values.
+                //but I do speical case these strings in Root.jsdb.literal.object.make_dom_elt
+                //if      (key.name == "null")  { name = null }
+                //else if (key.name == "true")  { name = true }
+                // else if (key.name == "false") { name = false }
+            // else                          { name = key.name } // a string
+
+            else if (key.type == "Literal") { name = key.value; } //works for strings a la "a str" and numbers.
+            //let key_block_elt = JS2B[key.type].call(undefined, key)
+            let val = prop.value;
+            let value_block_elt = JS2B[val.type].call(undefined, val);
+            name_val_block_elt_lit_obj[name] = value_block_elt;
+        }
+        let lit_obj_block = Root.jsdb.literal.object.make_dom_elt(undefined, undefined, name_val_block_elt_lit_obj);
+        return lit_obj_block
+    }
+
+    static TryStatement(st){
+        let block_st = st.block;
+        let block_elt = JS2B[block_st.type].call(undefined, block_st);
+        let try_elt = Root.jsdb.rword_code_body.try.make_dom_elt(undefined, undefined, block_elt);
+        let result = [try_elt];
+        if(st.handler) {
+            let catch_elt = JS2B.CatchClause(st.handler);
+            result.push(catch_elt);
+        }
+        if (st.finalizer) {
+            let inner_elt = JS2B[st.finalizer.type].call(undefined, st.finalizer);
+            let finally_elt = Root.jsdb.rword_code_body.finally.make_dom_elt(undefined, undefined, inner_elt);
+            result.push(finally_elt);
+        }
+        return result
+    }
+
+    static CatchClause(st){
+        let param_elt = JS2B[st.param.type].call(undefined, st.param);
+        let body_elt  = JS2B[st.body.type].call(undefined, st.body);
+        let catch_elt = Root.jsdb.rword_expr_code_body.catch.make_dom_elt(undefined, undefined, "catch", param_elt, body_elt);
+        return catch_elt
+    }
+    /*   let test_elt = JS2B[test.type].call(undefined, test)
+       let consequent = st.consequent
+       let consequent_elt = JS2B[consequent.type].call(undefined, consequent)
+       let one_clause
+       if(operation == "if") {
+           one_clause = [Root.jsdb.rword_expr_code_body.if.make_dom_elt(undefined, undefined, operation, test_elt, consequent_elt)]
+       }
+       else { //operation is "else if"
+           one_clause = [Root.jsdb.rword_expr_code_body.elseif.make_dom_elt(undefined, undefined, operation, test_elt, consequent_elt)]
+       }
+       if(st.alternate) {
+           if(st.alternate.type == "IfStatement") { //alternate is an "else if"
+               return one_clause.concat(JS2B.IfStatement(st.alternate, "else if"))
+           }
+           else { //alternate is a "else". usually st.alternative.type is ExpressionStatement
+               let bod_block_elt = JS2B[st.alternate.type].call(undefined, st.alternate)
+               let block_elt = Root.jsdb.rword_code_body.else.make_dom_elt(undefined, undefined, bod_block_elt)
+               one_clause.push(block_elt)
+               return one_clause
+           }
+       }
+       else { return one_clause }
+   }*/
+
+    static ReturnStatement(st, lex_env, cont, source){
+        let arg = st.argument;
+        this.eval(arg, lex_env, cont, source);
+    }
+
+    static ThisExpression(st){
+        return Root.jsdb.identifier.identifiers.make_dom_elt(undefined, undefined, "this")
+    }
+
+    static TemplateLiteral(st){
+        let part = st.quasis[0].value.raw;
+        let quote_char = "`";
+        return Root.jsdb.literal.string.make_dom_elt(undefined, undefined, part, quote_char)
+    }
+
+    // ie:  -23  is a Unary Expression, delete is a unary expression.
+    static UnaryExpression(st){
+        let op = st.operator;
+        switch(op){
+            case "delete":
+                let arg_type = st.argument.type;
+                let expr_block  = JS2B[arg_type].call(undefined, st.argument);
+                return Root.jsdb.rword_expr.delete.make_dom_elt(undefined, undefined, "delete", expr_block, null)
+            case "-":
+                let arg = st.argument;
+                if ((arg.type = "Literal") && (typeof(arg.value) == "number")){ //we've got a neg number
+                    return Root.jsdb.literal.number.make_dom_elt(undefined, undefined, - arg.value)
+                }
+                else {
+                    return JS2B.UpdateExpression(st)
+                }
+            default:
+                return JS2B.UpdateExpression(st) //works for -23  but neg lit numbs treated above
+        }
+    }
+
+    static UpdateExpression(st){
+        let operator_string = st.operator;
+        let arg = JS2B[st.argument.type].call(undefined, st.argument);
+        let is_prefix = st.prefix;  // true if we have ++i,  false if we have i++
+        if(is_prefix) {
+            return Root.jsdb.identifiers_prefix.make_dom_elt(undefined, undefined, arg, operator_string)
+        }
+        else {
+            return Root.jsdb.identifiers_postfix.make_dom_elt(undefined, undefined, arg, operator_string)
+        }
+    }
+
+    static VariableDeclaration(st, lex_env, cont, source){
+        let array_of_VariableDeclarator = st.declarations;
+        st.kind; //"var" or "let". see AssignmentExpression for kind == ""
+        for(let vdr of array_of_VariableDeclarator){
+            let var_name = vdr.id.name;
+            let val_st =  vdr.init;
+            this.eval(val_st,
+                      lex_env,
+                      function(var_val) {
+                              lex_env[var_name] = var_val;},
+                     source);
+        }
+        //dont call cont
+    }
+
+    static VariableDeclarator(st, kind="var"){ //kind can also be "let"
+        let name_string = st.id.name;
+        let initial_value_st = st.init;
+        let initial_value_block;
+        if (initial_value_st === null) {
+            // inititial_value_st = undefined  //not used
+            initial_value_block = Root.jsdb.one_of.null_undefined.make_dom_elt(undefined, undefined, "undefined");
+        }
+        else { initial_value_block = JS2B[initial_value_st.type].call(undefined, initial_value_st); }
+        return Root.jsdb.assignment.make_dom_elt(undefined, undefined, kind, name_string, initial_value_block)
+    }
+
+    static YieldExpression(st){
+        let arg = st.argument;
+        let operation = (st.delegate ? "yield*" : "yield");
+        let arg_block = JS2B[arg.type].call(undefined, arg);
+        return Root.jsdb.rword_expr.make_dom_elt(undefined, undefined, operation, arg_block)
+    }
+};
+
+globalThis.List = class List{
+    static empty = null //the empty list
+    static is_empty(lst) { return lst === List.empty }
+
+    static make_pair(a_first, a_rest){
+        return [a_first, a_rest]
+    }
+    static make(...elts){
+        if(elts.length === 0){
+            return List.empty
+        }
+        else {
+            return List.make_pair(elts[0], List.make(...elts.slice(1)))
+        }
+    }
+
+    static length(lst){
+        if(lst === List.empty){
+            return 0
+        }
+        else {
+            let len = List.length(List.rest(lst));
+            return len + 1
+        }
+    }
+
+    static first(pair){
+        return pair[0]
+    }
+    static rest(pair){
+        return pair[1]
+    }
+    static replace_first(pair, value){
+        pair[0] = value;
+        return pair
+    }
+    static replace_rest(pair, value){
+        pair[1] = value;
+        return pair
+    }
+    static to_array(lst){
+        if(lst === List.empty) { return []}
+        else {
+            let arr = List.to_array(List.rest(lst));
+            arr.unshift(List.first(lst));
+            return arr
+        }
+    }
+};
+
 //this file only used when Job Engie is used as part of DDE IDE
 
 //start of Job Engine imports
@@ -36756,12 +37464,7 @@ async function init_job_engine(){
 }
 
 //see doc: https://nodejs.org/api/readline.html
-globalThis.readline = readline; //but since this file can ONLY be loaded in Job Engine, globLThis not accessible from DDE IDE
-
-const rl = readline.createInterface({
-    input:  process.stdin,
-    output: process.stdout
-});
+globalThis.readline = readline; //but since this file can ONLY be loaded in Job Engine, globalThis not accessible from DDE IDE
 
 function set_keep_alive_value(new_val){
     globalThis.keep_alive_value = new_val; //true or false
@@ -36776,34 +37479,23 @@ function set_keep_alive_value(new_val){
 
 globalThis.set_keep_alive_value = set_keep_alive_value;
 
-
-//examples of input:
-// 'Job.myJob.stop_for_reason("interrupted", "user stopped the job")'
-// 'Job.define_and_start_job("/srv/samba/share/dde_apps/myjob.js")'
-// 'Job.myjob.color_job_button()'
-// 'Job.myjob.server_job_button_click()'
-rl.on('line', function(input) {
-    console.log("<br/>stdin got line: " + input);
-    out("(out call) stdin got line: " + input + "\n");
-    console.log("eval returns: ", eval(input));
-});
-
 //https://stackoverflow.com/questions/4976466/difference-between-process-stdout-write-and-console-log-in-node-js
 function write_to_stdout(str){
-    if(str.trim() == "") ; //do nothing
+    if(!str) ;
+    else if(str.trim() == "") ; //do nothing
     else {
         //if(str.startsWith("<for_server>")){
           //console.log("write_to_stdout got: " + str)
         //}
+        //console.log("write_to_stdout writing: " + str)
         process.stdout.write(str); //"<br/>" + str) //same as console.log ???
     }
 }
 
 globalThis.write_to_stdout = write_to_stdout;
 
-
 function close_readline(){
-    console.log("top of  job engine node stdio.js close_readline"); //even wit the setTimeout,
+    console.log("top of job engine node stdio.js close_readline"); //even wit the setTimeout,
     //I still don't see this print statement come to the JE browser interface Out pane.
     setTimeout( function() {
         rl.close();
@@ -36812,7 +37504,36 @@ function close_readline(){
 
 globalThis.close_readline = close_readline;
 
-//see ready_je.js which sets these 2 as global vars.
+var rl;
+function init_readline$1() {
+    console.log("top of init_readline");
+    if (rl) {
+        console.log("init_readline: already open");
+    } else {
+        console.log("init_readline: now opening");
+        rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+        //examples of input:
+        // 'Job.myJob.stop_for_reason("interrupted", "user stopped the job")'
+        // 'Job.define_and_start_job("/srv/samba/share/dde_apps/myjob.js")'
+        // 'Job.myjob.color_job_button()'
+        // 'Job.myjob.server_job_button_click()'
+        rl.on('line', function (input) {
+            console.log("<br/>stdin got line: " + input);
+            out("(out call) stdin got line: " + input + "\n");
+            console.log("eval returns: ", eval(input));
+        });
+        rl.on('close', function () { // can't find a rl.is_open() method or prop so this will have to do
+            rl = null;
+        });
+    }
+}
+
+globalThis.init_readline = init_readline$1;
+
+// GRPC doc: https://grpc.io/docs/languages/node/basics/
 
 class GrpcServer$1 {
     static DDE4_PATH = process.cwd() //to path ending in "stuff/dde4/dde/build"
@@ -36908,19 +37629,41 @@ class GrpcServer$1 {
     static init() {
         console.log("top of GrpcServer.init");
         out("OUT: top of GrpcServer.init");
-        this.DDE_PATH      = this.DDE4_PATH + "/dde"; //path.dirname(this.BUILD_PATH) //ie stuff/dde" no slash on end
+        let last_slash = this.DDE4_PATH.lastIndexOf("/");
+        //this.DDE_PATH      = this.DDE4_PATH + "/dde" //path.dirname(this.BUILD_PATH) //ie stuff/dde" no slash on end
+        this.DDE_PATH      = this.DDE4_PATH.substring(0, last_slash); //+ "/www/dde"
+
         this.PROTO_PATH    = path.join(this.DDE_PATH, "third_party", "helloworld.proto");
         console.log("DDE4_PATH: "  + this.DDE4_PATH);
         console.log("DDE_PATH: "   + this.DDE_PATH);
         console.log("PROTO_PATH: " + this.PROTO_PATH);
         this.init_packageDefinition();
-        let server = new grpc.Server();
-        server.addService(GrpcServer$1.hello_proto.Greeter.service, {sayHello: GrpcServer$1.sayHello});
-        server.addService(GrpcServer$1.hello_proto.DexterInstruction.service, {handleDexterInstruction: GrpcServer$1.handleDexterInstruction});
+        console.log("after init_packageDefinition");
+        try {
+            let gserver = new grpc.Server();
+            console.log("after new grpc.Server with: " + gserver);
+            gserver.addService(GrpcServer$1.hello_proto.Greeter.service, {sayHello: GrpcServer$1.sayHello});
+            gserver.addService(GrpcServer$1.hello_proto.DexterInstruction.service, {handleDexterInstruction: GrpcServer$1.handleDexterInstruction});
 
-        server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => {
-            server.start();
-        });
+            gserver.bindAsync('127.0.0.1:50051', //'0.0.0.0:50051',
+                                   grpc.ServerCredentials.createInsecure(),
+                           () => {
+                                      out("grpc.Server init just before start");
+                                      out("gserver: " + gserver);
+                                      try {
+                                          gserver.start(); //this line errors *sometimes* with "Error: server must be bound in order to start"
+                                      }
+                                      catch(err){
+                                          out("grpc.Server init catch of err: " + err.message);
+                                      }
+                                      out("grpc init just after start");
+            });
+        }
+        catch(err){
+            console.log("GrpcServer.init errored with: " + err.message);
+            out("GrpcServer.init errored with: " + err.message);
+        }
+        console.log("bottom of GrpcServer.init");
     }
 }
 
@@ -36978,7 +37721,7 @@ function strips_loadCode(grammarFileName, code, callback) {
     }
 }
 StripsManager$1.loadCode = strips_loadCode;  //extend loadCode to be able to accept JSON string, not just PDDL
-globalThis.WebSocketServer = WebSocketServer$1;
+globalThis.WebSocketServer = WebSocketServer;
 
 function run_node_command(args) {
     console.log("Hey, top of run_node_command with args:\n" + args);
@@ -37037,6 +37780,7 @@ async function on_ready_je(){
     init_units(); //In dde, has to be after init_series call.
     FPGA.init();  //does not depend on Series.
     Gcode.init(); //must be after init_series which calls init_units()
+    init_readline();
     GrpcServer.init();
 }
 

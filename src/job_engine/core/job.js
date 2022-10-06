@@ -372,6 +372,9 @@ class Job{
     //If job_file_path has a newline in it, its considered to BE the src of
     //a file or at least one or more job defs.
     static async define_and_start_job(job_file_path){
+        if(platform === "node"){
+            init_readline() //if already open, it leaves it alone
+        }
         let job_file_path_is_src = job_file_path.includes("\n")
         out("out: define_and_start_job set job_file_path_is_src: " + job_file_path_is_src)
         let job_instances
@@ -384,7 +387,7 @@ class Job{
             if((platform === "node") && !globalThis.keep_alive_value){
                 warning("Closing the process of loading: " + job_file_path +
                         "<br/>If you want to keep the process up,<br/>check <b>keep_alive</b> before clicking the Job button.")
-                globalThis.close_readline() //causes the process running this job to finish.
+               /// globalThis.close_readline() //causes the process running this job to finish.
             }
         }
         else {
@@ -1681,7 +1684,7 @@ Job.prototype.if_robot_status_error_default = function(){
         let sim_actual = Robot.get_simulate_actual(rob.simulate)
         if((sim_actual === false) || (sim_actual === "both")){
             try{ let path = "Dexter." + rob.name + ":/srv/samba/share/errors.log"
-                 read_file_async(path, undefined, function(err, content){
+                 DDEFile.read_file_async(path, function(err, content){
                          if(err) {warning("Could not find: " + path)}
                          else {
                             if((typeof(content) != "string") ||
@@ -1691,7 +1694,7 @@ Job.prototype.if_robot_status_error_default = function(){
                             else {
                              content = Utils.replace_substrings(content, "\n", "<br/>")
                              content = "Content of " + path + "<br/><code>" + content + "</code>"
-                             setTimeout(function(){write_file_async(path, "")},
+                             setTimeout(function(){DDEFile.write_file_async(path, "")},
                                         400) //give the read_file job a chance to finish properly
                             }
                             out(content)
@@ -1767,8 +1770,7 @@ Job.prototype.show_error_log_maybe = function(){
                 (rob.rs.error_code() >= 600) &&
                 (rob.rs.error_code() < 700)){
             let path = rob.name + ":" + "../errors.log"
-            read_file_async(path,
-                undefined,
+            DDEFile.read_file_async(path,
                 function(err, content){
                     if(err) {
                         warning("Could not get " + path + "<br/>Error: " + err)
@@ -1907,8 +1909,8 @@ Job.prototype.finish_job = function(){
                     //as our orig job might have launched a 2nd job, so keep it open
                     //until all are done.
                     out("OUT: finish job, now calling close_readline")
-                    console.log("finish job, now calling close_readline")
-                    globalThis.close_readline() //causes the process running this job to finish.
+                   /// console.log("finish job, now calling close_readline")
+                   /// globalThis.close_readline() //causes the process running this job to finish.
                 }
             }
           }

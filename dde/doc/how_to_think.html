@@ -240,7 +240,7 @@ for side-effects like setting a variable value.
         }
         if(an_array.length === 3){
             if(an_array[1] === "+") { return eval0(an_array[0])  + eval0(an_array[2]) }
-            <samp class="new_code">if(an_array[1] === "=") { return window[an_array[0]] = eval0(an_array[2]) }</samp>
+            <samp class="new_code">if(an_array[1] === "=") { return globalThis.[an_array[0]] = eval0(an_array[2]) }</samp>
         }
     }
     return arg

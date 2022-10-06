@@ -261,41 +261,53 @@ function serve_job_button_click(browser_socket, mess_obj){
           //https://github.com/expressjs/compression/issues/56 sez call flush even though it isn't documented.
           //server_response.flushHeaders() //flush is deprecated.
           if (browser_socket.readyState != WebSocket.OPEN) {job_process.kill(); return;} //maybe should be kill()?
+          console.log("in httd.mjs serve_job_button_click on data fn, sending data_str: " + data_str)
           browser_socket.send(data_str);
 	     });
         if (".dde"==app_type) {  
             job_process.stderr.on('data', function(data) {
                 let data_str = data.toString();
-                console.log("\n\nJob." + job_name + " got stderr with data: " + data_str);
-                //remove_job_name_to_process(job_name) //just because there is an error, that don't mean the job closed.
-                //server_response.write("Job." + job_name + " errored with: " + data)
-                console.log('\n\nAbout to stringify 2\n');
-                let lit_obj = {job_name: job_name,
-                               kind: "show_job_button",
-                               button_tooltip: "Server errored with: " + data_str,
-                               button_color: "red"};
-                if (browser_socket.readyState != WebSocket.OPEN) {job_process.kill(); return;} //maybe should be kill()?
-                browser_socket.send(data_str) //redundant but the below might not be working
-                browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>");
-                //server_response.end()
-                //job_process.kill() //*probably* the right thing to do in most cases.
-                //remove_job_name_to_process(job_name);
-                //BUT even with Node v 18, it sends to stderr:
-                // " ExperimentalWarning: The Fetch API is an experimental feature. This feature could change at any time"
-                //so we don't want to kill the process just for that.
+                if(data_str.includes("ExperimentalWarning:")){
+                   //ignore these warnings. Don't change the job button color to red.
+                }
+                else {
+                    console.log("\n\nJob." + job_name + " got stderr with data: " + data_str);
+                    //remove_job_name_to_process(job_name) //just because there is an error, that don't mean the job closed.
+                    //server_response.write("Job." + job_name + " errored with: " + data)
+                    console.log('\n\nAbout to stringify 2\n');
+                    let lit_obj = {
+                        job_name: job_name,
+                        kind: "show_job_button",
+                        button_tooltip: "Server errored with: " + data_str,
+                        button_color: "red"
+                    };
+                    if (browser_socket.readyState != WebSocket.OPEN) {
+                        job_process.kill();
+                        return;
+                    } //maybe should be kill()?
+                    browser_socket.send(data_str) //redundant but the below might not be working
+                    browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>");
+                    //server_response.end()
+                    //job_process.kill() //*probably* the right thing to do in most cases.
+                    //remove_job_name_to_process(job_name);
+                    //BUT even with Node v 18, it sends to stderr:
+                    // " ExperimentalWarning: The Fetch API is an experimental feature. This feature could change at any time"
+                    //so we don't want to kill the process just for that.
+                }
             });
         } else {
             job_process.stderr.on('data', function(data) {
                 let data_str = data.toString();
-                console.log("\n\njob: " + job_name + " got stderr with data: " + data_str);
-                if (browser_socket.readyState != WebSocket.OPEN) {job_process.kill(); return;} //maybe should be kill()?
-                browser_socket.send(data_str);
+                let mess = "\n\njob: " + job_name + " got stderr with data: " + data_str
+                console.log(mess);
+                browser_socket.send(mess);
+                if(data_str.includes("ExperimentalWarning:")){} //node puts these out when calling fetch in node 17.9.0, or when using Blob. Its harmless so let it go
+                else if (browser_socket.readyState != WebSocket.OPEN) {job_process.kill(); return;} //maybe should be kill()?
                 });
-            
         }
         job_process.on('close', function(code) {
           console.log("\n\nServer closed the process of Job: " + job_name + " with code: " + code);
-          if(code !== 0 && browser_socket.readyState === WebSocket.OPEN){
+          if((code !== 0) && (code !== null) && browser_socket.readyState === WebSocket.OPEN){
           	console.log('\n\nAbout to stringify 3\n');
           	let lit_obj = {job_name: job_name, 
                            kind: "show_job_button",

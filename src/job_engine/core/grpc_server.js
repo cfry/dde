@@ -1,3 +1,4 @@
+// GRPC doc: https://grpc.io/docs/languages/node/basics/
 //see ready_je.js which sets these 2 as global vars.
 //var grpc = require('@grpc/grpc-js');
 //var protoLoader = require('@grpc/proto-loader');
@@ -97,19 +98,41 @@ class GrpcServer {
     static init() {
         console.log("top of GrpcServer.init")
         out("OUT: top of GrpcServer.init")
-        this.DDE_PATH      = this.DDE4_PATH + "/dde" //path.dirname(this.BUILD_PATH) //ie stuff/dde" no slash on end
+        let last_slash = this.DDE4_PATH.lastIndexOf("/")
+        //this.DDE_PATH      = this.DDE4_PATH + "/dde" //path.dirname(this.BUILD_PATH) //ie stuff/dde" no slash on end
+        this.DDE_PATH      = this.DDE4_PATH.substring(0, last_slash) //+ "/www/dde"
+
         this.PROTO_PATH    = path.join(this.DDE_PATH, "third_party", "helloworld.proto")
         console.log("DDE4_PATH: "  + this.DDE4_PATH)
         console.log("DDE_PATH: "   + this.DDE_PATH)
         console.log("PROTO_PATH: " + this.PROTO_PATH)
         this.init_packageDefinition()
-        let server = new grpc.Server();
-        server.addService(GrpcServer.hello_proto.Greeter.service, {sayHello: GrpcServer.sayHello});
-        server.addService(GrpcServer.hello_proto.DexterInstruction.service, {handleDexterInstruction: GrpcServer.handleDexterInstruction});
+        console.log("after init_packageDefinition")
+        try {
+            let gserver = new grpc.Server();
+            console.log("after new grpc.Server with: " + gserver)
+            gserver.addService(GrpcServer.hello_proto.Greeter.service, {sayHello: GrpcServer.sayHello});
+            gserver.addService(GrpcServer.hello_proto.DexterInstruction.service, {handleDexterInstruction: GrpcServer.handleDexterInstruction});
 
-        server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => {
-            server.start()
-        })
+            gserver.bindAsync('127.0.0.1:50051', //'0.0.0.0:50051',
+                                   grpc.ServerCredentials.createInsecure(),
+                           () => {
+                                      out("grpc.Server init just before start")
+                                      out("gserver: " + gserver)
+                                      try {
+                                          gserver.start() //this line errors *sometimes* with "Error: server must be bound in order to start"
+                                      }
+                                      catch(err){
+                                          out("grpc.Server init catch of err: " + err.message)
+                                      }
+                                      out("grpc init just after start")
+            })
+        }
+        catch(err){
+            console.log("GrpcServer.init errored with: " + err.message)
+            out("GrpcServer.init errored with: " + err.message)
+        }
+        console.log("bottom of GrpcServer.init")
     }
 }
 

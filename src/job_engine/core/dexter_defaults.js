@@ -62,7 +62,7 @@ Dexter.prototype.defaults_read = function(callback = null){
             }
         }
     })
-    read_file_async(the_url, undefined, normal_defaults_read_cb)
+    DDEFile.read_file_async(the_url, normal_defaults_read_cb)
 }
 
 //caution:  not ready for prime time.
@@ -71,7 +71,7 @@ Dexter.prototype.defaults_write = function(){
     let the_url = Dexter.prototype.defaults_url()
     let content = this.defaults.get("whole_file_string")
     let the_dex_inst = this
-    write_file_async(the_url,  content,
+    DDEFile.write_file_async(the_url,  content,
         function(err){
             if(err) { warning("Dexter." + the_dex_inst.name + ".defaults_write errored with: " +
                 err.message)

@@ -309,6 +309,8 @@ class DDEFile {
 
 
     //callback is optional. If not passed, return a promise
+    //if passed, the callback is called with 2 args,
+    //err (default null meaning no error, and content (ie the string of the content of the file
     static async read_file_async(path, callback){
         if (path === undefined) {
             if (Editor.current_file_path == "new buffer"){
@@ -398,7 +400,7 @@ class DDEFile {
                                              body: formData,
                                              mode: 'no-cors'})
         if(res.ok) {
-            out("write_file_async wrote file to: " + full_url)
+            out("DDEFile.write_file_async wrote file to: " + full_url)
             return this.callback_or_return(callback, orig_content)
         }
         else {

@@ -344,7 +344,7 @@ globalThis.HCA = class HCA {
         if(path) { //path will be undefined IF user canceled the dialog
             let js = HCA.get_javascript()
             js = Editor.pretty_print(js)
-            write_file_async(path, js)
+            DDEFile.write_file_async(path, js)
             Editor.add_path_to_files_menu(path)
             Editor.current_file_path = path
             Editor.remove("new buffer") //if any

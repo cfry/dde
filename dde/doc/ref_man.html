@@ -437,24 +437,26 @@ DDEFile.load_file("two_plus_three.js",
         </details>
         -->
 
-        <details id="read_file_async_doc_id" class="doc_details"><summary>read_file_async</summary>
-           Similar to <a href="#" onclick="DocCode.open_doc(read_file_doc_id)">read_file</a>
-           but does not return the
-           file contents. Instead, it takes an additional argument
-           of <b>callback</b>.
-           The callback is passed an error object and the content of the file.
-           If the error object is null, there was no error, and the content
-           argument contains the content of the file.
-           <p></p>
-           The <b>path</b> argument may refer to a Dexter robot to get the file from.<br/>
-           <i>Example:</i><br>
-           <pre><code title="not in TestSuite">DDEFile.read_file_async("dde_init.js",
-                    function(err, content) {out("read_file_async got err: " + err + " content: " + content)})
+     <details id="DDEFile.read_file_async_doc_id" class="doc_details"><summary>DDEFile.read_file_async</summary>
+           <b>Parameters: </b><br/>
+            <b>path</b> The string path of the file to get the contents of.<br/>
+            <b>callback</b> If callback is passed, it should be a function
+                of two arguments, an error, and the content of the file.
+                If reading the file errors, the error argument passed in is
+                non-null, containing a string of the error message.
+                Else if there is no error, the error argument passed
+                in to the callback is <code>null</code>, and the 2nd argument is
+                the content of the file.<br/>
+                If there is no callback passed in, (the default), a promise is returned.
+                <br/></br/>
+                <b>Example:</b><br>
+                <pre><code>DDEFile.read_file_async("dde_init.js"),
+                         function(err, content){
+                             out("read_file got err: " + err + " and content: " + content)})
                 </code></pre>
-        </details>
+     </details>
 
-
-     <details id="write_file_async_doc_id" class="doc_details"><summary>write_file_async</summary>
+     <details id="DDEFile.write_file_async_doc_id" class="doc_details"><summary>DDEFile.write_file_async</summary>
          <code>DDEFile.write_file_async</code> is a function that normally takes an argument of a file path
          and a new content string. It sets the content of that file.<br/>
          <i>Parameters:</i><br/>
@@ -463,7 +465,9 @@ DDEFile.load_file("two_plus_three.js",
          editor. If this is a string, usually this will not start with a slash,
          but rather the first character of a file name inside of your dde_apps folder.
          If the path starts with a slash, it should be a complete path from the root
-         of your file system, on through to the file you want to write.<br/>
+         of the node server's file system, on through to the file you want to write.<br/>
+         If the path starts with "dde", that initial "dde" will be replaced with:
+         "/srv/samba/share/www/dde
          <b>content</b> A string of the content you wish to be in the written file.
          Defaults to the text currently in the editor.<br/>
          <b>encoding</b> Default: <code>null</code> A string or null indicating the
@@ -477,7 +481,11 @@ DDEFile.load_file("two_plus_three.js",
              <li><code>"base64"</code></li>
              <li><code>"hex"</code></li>
          </ul>
-            <p></p>
+         <b>callback</b> The callback takes 2 arguments, an error and the
+            content that was written.
+            If the error arg is null, the callback was successful.
+            Else if there is an error, its a string of the error message.
+         <br/><br/>
             The <b>path</b> argument may refer to a Dexter robot to write the file to.
             If the path contains a folder that doesn't exist, it is automatically
             created.<br/>

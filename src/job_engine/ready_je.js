@@ -68,7 +68,7 @@ globalThis.WebSocketServer = WebSocketServer
 
 import {init_job_engine, init_units, package_json} from "../job_engine/load_job_engine.js" //imports je files
 import "../job_engine/core/stdio.js"   //ONLY in Job Engine so can't go in load_job_engine.js
-         //makes global: close_readline, set_keep_alive_value, write_to_stdout
+         //makes global: close_readline, set_keep_alive_value, write_to_stdout, init_readline
 import "../job_engine/core/grpc_server.js" //only in Job Engine
 
 function run_node_command(args) {
@@ -152,6 +152,7 @@ async function on_ready_je(){
     init_units() //In dde, has to be after init_series call.
     FPGA.init()  //does not depend on Series.
     Gcode.init() //must be after init_series which calls init_units()
+    init_readline()
     GrpcServer.init()
 }
 

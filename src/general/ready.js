@@ -1526,7 +1526,7 @@ window_modify_id.onclick=function(){Editor.insert(
 
       show_errors_log_id.onclick = function(){
           let path = "Dexter." + Dexter.default.name + ":/srv/samba/share/errors.log"
-          read_file_async(path, undefined, function(err, data){
+          DDEFile.read_file_async(path, function(err, data){
               if(err){
                   dde_error("While attempting to get the content of " + path + "<br>" + err.message)
               }

@@ -734,8 +734,7 @@ class Editor {
         else if (vals.clicked_button_value.endsWith("errors.log")){
             let path = vals.clicked_button_value.split(" ")[1]
             let rob_name = path.split(":")[0]
-            read_file_async(path,
-                            undefined,
+            DDEFile.read_file_async(path,
                             function(err, content){
                               if(err) {
                                  warning("Could not get " + path + "<br/>Error: " + err)
@@ -1135,7 +1134,7 @@ Clear its content?
         DDE_DB.persistent_set("last_open_dexter_file_path", path)
         path = "Dexter." + vals.dexter_name + ":" + path //we cannot close over dexter_name because show_window can't take a closure for a callback
         let content = Editor.get_javascript()
-        write_file_async(path, content)
+        DDEFile.write_file_async(path, content)
         Editor.add_path_to_files_menu(path)
         Editor.current_file_path = path
         Editor.remove("new buffer") //if any

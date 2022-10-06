@@ -319,7 +319,7 @@ var FileTransfer = class FileTransfer {
 
     static get_default_make_ins_from_dexter(dh_matrix, enable_file_transfer_to_dexter=false){
         let dm_path = "Dexter." + Dexter.default.name + ":/srv/samba/share/Defaults.make_ins"
-        read_file_async(dm_path, undefined,
+        DDEFile.read_file_async(dm_path,
             function(err, orig_dm_content){
                 if (err) {
                     dde_error("While getting " + dm_path + "<br/>" + err.message)
@@ -420,7 +420,7 @@ var FileTransfer = class FileTransfer {
                 out("Writing " + path + " succeeded.")
             }
         }
-        write_file_async(path, new_dm_content, undefined, cb)
+        DDEFile.write_file_async(path, new_dm_content, undefined, cb)
     }
 
 

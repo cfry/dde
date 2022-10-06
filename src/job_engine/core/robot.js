@@ -2625,12 +2625,16 @@ Dexter.defaults = {
 }*/
 
 Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null) {
+    console.log("top of Dexter.prototype.set_link_lengths")
     let sim_actual = Robot.get_simulate_actual(this.simulate)
     if (job_to_start_when_done && (job_to_start_when_done.name === "set_link_lengths")) {
+        console.log("set_link_lengths top of 1st if clause")
         this.start_aux(job_to_start_when_done)
     }
     else if (job_to_start_when_done.get_dexter_defaults) {
+        console.log("set_link_lengths top of 2nd if clause")
         if (sim_actual !== true) { //ie "real"
+            console.log("set_link_lengths top of 2nd if clause, real")
             /*if (node_server_supports_editor(this)) {
                 this.set_link_lengths_using_node_server(job_to_start_when_done)
             } else {
@@ -2643,11 +2647,15 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null) {
                 //this.set_link_lengths_using_job(job_to_start_when_done)
             }*/
             this.set_link_lengths_using_node_server(job_to_start_when_done)
-        } else { //simulating, so set to idealized values
+        }
+        else { //simulating, so set to idealized values
+            console.log("set_link_lengths top of 2nd if clause, sim")
             this.defaults = Dexter.defaults
             this.start_aux(job_to_start_when_done)
         }
-    } else { // set to idealized values
+    }
+    else { // set to idealized values
+        console.log("set_link_lengths top of 3rd if clause")
         this.defaults = Dexter.defaults
         this.start_aux(job_to_start_when_done)
     }

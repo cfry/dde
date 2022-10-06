@@ -8,8 +8,14 @@ Programmer also doesn't have to deal with callback hell or even promises/async/a
 which interact poorly (to say hte least) with normal callstack return of values.
  */
 /* TODO
-   - implement Lisp  List.make, (cons), List.first, List.rest
-   - Decide if ActEval.eval and cont's get changed to keyword args
+   - DONE implement Lisp  List.make, (cons), List.first, List.rest
+   - DONE Decide if ActEval.eval and cont's get changed to keyword args
+       but only for the EVAL fns. For the cont, pass by position:  val, lex_env, cont, source
+       This allows me to have as the cont ordinary fns like out and inspect with  no changes.
+        Note that out and inspect ignore oops: both out and inspect take more than one arg.
+        grr. Inspect's 2nd arg is "source" but that's not necessarily the same source. hmmm.
+        What do I do here? Problem! Look at teh cont fn's args and try to match them up?
+          not pass later ones and let them default?
    - Change low leval evals: Literal, Identifier, then assign, binary, then Array
         use List fns to implement lex_env throughout
    - remainder of existing stuff for continuations
@@ -34,8 +40,8 @@ globalThis.ActEval = class ActEval{
     static last_read_source = null
 
     static read_eval(source){
-        let st = ActEval.string_to_ast(source)
-        this.eval({ast: st,
+        let ast = ActEval.string_to_ast(source)
+        this.eval({ast: ast,
                   lex_env: List.empty,
                   cont: out,
                   source: source}) ///continuation
@@ -60,14 +66,14 @@ globalThis.ActEval = class ActEval{
             dde_error("Could not convert JavaScript to ast: " + err.message)
         }
     }
-    static Program(st, lex_env, cont, source){
-        let switcher = st.sourceType
+    static Program(ast, lex_env, cont, source){
+        let switcher = ast.sourceType
         switch(switcher) {
             case "module": dde_error("unimplemented: JS2B module");
             case "script": {
                 let result = []
-                for(let part of st.body) { //expect multiple top level parts.
-                    result.push(this[switcher].call(this, part, lex_env, cont, source))
+                for(let part of ast.body) { //expect multiple top level parts.
+                    result.push(this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source: source}))
                 }
                 return result
             }
@@ -75,25 +81,25 @@ globalThis.ActEval = class ActEval{
         }
     }
 
-    static script(st, lex_env, cont, source){
+    static script(ast, lex_env, cont, source){
         let switcher = st.type
         switch(switcher){
-            case "BlockStatement":      return this[switcher].call(this, st, lex_env, cont, source);
-            case "ExpressionStatement": return this[switcher].call(this, st, lex_env, cont, source);
-            case "ForStatement":        return this[switcher].call(this, st, lex_env, cont, source);
-            case "ForOfStatement":      return this[switcher].call(this, st, lex_env, cont, source);
-            case "FunctionDeclaration": return this[switcher].call(this, st, lex_env, cont, source);
-            case "IfStatement":         return this[switcher].call(this, st, lex_env, cont, source);
-            case "TryStatement":        return this[switcher].call(this, st, lex_env, cont, source);
-            case "VariableDeclaration": return this[switcher].call(this, st, lex_env, cont, source);
-            case "WhileStatement":      return this[switcher].call(this, st, lex_env, cont, source);
+            case "BlockStatement":      return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "ExpressionStatement": return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "ForStatement":        return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "ForOfStatement":      return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "FunctionDeclaration": return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "IfStatement":         return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "TryStatement":        return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "VariableDeclaration": return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
+            case "WhileStatement":      return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
 
             default: shouldnt("Can't handle exprima switcher: " + switcher)
         }
     }
-    static BlockStatement(st, lex_env, cont, source){
+    static BlockStatement({ast, lex_env, cont, source}){
         let result = undefined
-        for(let a_st of st.body){
+        for(let a_st of ast.body){
             let new_cont
             if(a_st.type === "ReturnStatement") {
                 new_cont = function (elt_val) {
@@ -101,10 +107,7 @@ globalThis.ActEval = class ActEval{
                 }
             }
             else { new_cont = cont}
-            this.eval(a_st,
-                      lex_env,
-                      new_cont,
-                      source)
+            this.eval({ast: a_ast, lex_env: lex_env, cont: cont, source: source})
         }
         if(cont && result) {
             cont.call(null, result)
@@ -112,18 +115,18 @@ globalThis.ActEval = class ActEval{
     }
 
 
-    static ExpressionStatement(ast, lex_env, cont, source){
+    static ExpressionStatement({ast, lex_env, cont, source}){
         let part = ast.expression
         let switcher = part.type
         switch(switcher){
             case "ArrayExpression":      return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
-            case "AssignmentExpression": return this[switcher].call(this, part, lex_env, cont, source)
-            case "BinaryExpression":     return this[switcher].call(this, part, lex_env, cont, source)
-            case "CallExpression":       return this[switcher].call(this, part, lex_env, cont, source)
-            case "Identifier":           return this[switcher].call(this, part, {ast: part, lex_env: lex_env, cont: cont, source:source})
+            case "AssignmentExpression": return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
+            case "BinaryExpression":     return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
+            case "CallExpression":       return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
+            case "Identifier":           return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
             case "Literal":              return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
-            case "LogicalExpression":    return this[switcher].call(this, part, lex_env, cont, source)
-            case "MemberExpression":     return this[switcher].call(this, part, lex_env, cont, source)
+            case "LogicalExpression":    return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
+            case "MemberExpression":     return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source})
             //when we have a path like foo.bar.baz, st.type == "MemberExpression"
             //it will have 2 important "parts"
             // "object" the val of object will have type "MemberExpression"
@@ -133,44 +136,14 @@ globalThis.ActEval = class ActEval{
             //note its the LAST name in foo.bar.baz.
             //whereas the "object" encompasses all path elts except the last name, ie foo.bar
 
-            case "NewExpression":        return this[switcher].call(this, part, lex_env, cont, source);
-            case "ReturnStatement":      return this[switcher].call(this, part, lex_env, cont, source);
-            case "TemplateLiteral":      return this[switcher].call(this, part, lex_env, cont, source);
-            case "UnaryExpression":      return this[switcher].call(this, part, lex_env, cont, source);
-            case "UpdateExpression":     return JS2B[switcher].call(this, part, lex_env, cont, source);
-            case "YieldExpression":      return this[switcher].call(this, part, lex_env, cont, source);
+            case "NewExpression":        return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source});
+            case "ReturnStatement":      return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source});
+            case "TemplateLiteral":      return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source});
+            case "UnaryExpression":      return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source});
+            case "UpdateExpression":     return JS2B[switcher].call(this,{ast: part, lex_env: lex_env, cont: cont, source:source});
+            case "YieldExpression":      return this[switcher].call(this, {ast: part, lex_env: lex_env, cont: cont, source:source});
             default: shouldnt("Can't handle exprima switcher: " + switcher)
         }
-    }
-
-    static ForStatement(st){
-        let init   = JS2B[st.init.type].call(undefined, st.init);
-        let test   = JS2B[st.test.type].call(undefined, st.test);
-        let update = JS2B[st.update.type].call(undefined, st.update);
-        let body   = JS2B[st.body.type].call(undefined, st.body);
-        return Root.jsdb.for.for_iter.make_dom_elt(undefined, undefined, init, test, update, body)
-    }
-
-    static ForOfStatement(st){
-        let left   = JS2B[st.left.type].call(undefined, st.left);
-        //but have to remove the init val and equal sign of the declaration
-        if (dom_elt_block_type(left).isA(Root.jsdb.assignment)) {
-            Root.jsdb.assignment.remove_init_val(left)
-        }
-        let of_elt = newObject({prototype: Root.jsdb.one_of,
-            choices: ["of", "in"],
-            value: "of",
-            eval_each_choice: false,
-        })
-        let right  = JS2B[st.right.type].call(undefined, st.right);
-        let body   = JS2B[st.body.type].call(undefined, st.body);
-        return Root.jsdb.for.for_of.make_dom_elt(undefined, undefined, left, of_elt, right, body)
-    }
-
-    static WhileStatement(st){
-        let test_elt   = JS2B[st.test.type].call(undefined, st.test);
-        let body_elt   = JS2B[st.body.type].call(undefined, st.body);
-        return Root.jsdb.rword_expr_code_body.while.make_dom_elt(undefined, undefined, test_elt, body_elt)
     }
 
     /* obsolete first fry version. wrong cont handling
@@ -195,49 +168,65 @@ globalThis.ActEval = class ActEval{
        - Both might take some additional values like in ArrayExpression for "vals_so_var"
     */
 
-    static ArrayExpression(st, lex_env, cont, source, vals_so_far=List.empty){ //todo needs testing
-        let st_elts = st.elements
-        if(st_elts.length === 0) { //called after all st.elts are done
-            let result_array = reverse(List.to_array(vals_so_far))
-            cont.call(null, result_array, lex_env, cont, source)
+    static ArrayExpression({ast, lex_env, cont, source, vals_so_far=List.empty}){ //todo needs testing
+        let ast_elts = ast.elements
+        if(ast_elts.length === 0) { //called after all ast_elts are done
+            let result_array = List.to_array(vals_so_far).reverse()
+            cont.call(null,  {ast: result_array, lex_env: lex_env, cont: cont, source:source})
         }
         else {
-            let first_st = st.elements[0]
-            let rest_st  = rest(st.elements) //close over this lex var.
-            this.eval(first_st, lex_env,
-                      function(val, lex_env, cont, source, vals_so_far){
-                              let new_vals_so_far = cons(val, vals_so_far)
-                              ActEval.ArrayExpression(rest_st, lex_env, cont, source, new_vals_so_far)
-                      })
+            let first_ast = ast.elements[0]
+            let rest_ast  = rest(ast.elements) //close over this lex var.
+            let new_cont = function(val, lex_env, cont, source, vals_so_far){
+                let new_vals_so_far = List.make_pair(val, vals_so_far)
+                ActEval.ArrayExpression({ast: rest_st, lex_env: lex_env, cont: cont, source:source, vals_so_far:new_vals_so_far})
+            }
+            this.eval({ast: first_ast, lex_env: lex_env, cont: new_cont, source:source})
         }
     }
 
-    static AssignmentExpression(st, lex_env, cont, source){
-        let right_val
-        this.eval(st.right, lex_env, function(val){ right_val = val}, source)
-        if(st.left.type === "Identifier") {
-            let name_string = st.left.name
-            if (lex_env.hasOwnProperty(name_string)) {
-                lex_env[name_string] = right_val
-            } else {
-                globalThis[name_string] = right_val
-            }
+    static AssignmentExpression({ast, lex_env, cont, source}){
+        let right_val_ast = ast.right
+        if(ast.left.type === "Identifier") {
+            let name_string = ast.left.name
+            this.eval({ast: right_val_ast,
+                     lex_env:lex_env,
+                     cont: function(val){
+                         if (lex_env.hasOwnProperty(name_string)) {
+                             lex_env[name_string] = val
+                         } else {
+                             globalThis[name_string] = val
+                         }
+                         cont.call(null, undefined, undefined, source)
+                     },
+                     source: source})
+
+
+
         }
-        else if(st.left.type === "MemberExpression") {
-            let object_st = st.left.object
+        else if(ast.left.type === "MemberExpression") {
+            let object_ast = ast.left.object
+            let prop_name = ast.left.property.name
             let obj_val
-            this.eval(object_st,
+            this.eval({object_ast,
                       lex_env,
-                      function(val) {
-                              obj_val = val},
-                      source)
-            let property_st = st.left.property
-            if(property_st.type === "Identifier") {
-                obj_val[property_st.name] = right_val
-            }
-            else {
-                shouldnt("ActEval.eval AssignmentExpression left side needs work.")
-            }
+                      function(obj_val) {
+                          let property_ast = ast.left.property
+                          if(property_ast.type === "Identifier") {
+                              let the_prop_name = prop_name
+                              ActEval.eval({ast: right_val_ast,
+                                  lex_env: lex_env,
+                                  cont: function(val) {
+                                      obj_val[the_prop_name] = val
+                                  },
+                                  source: source})
+
+                          }
+                          else {
+                              shouldnt("ActEval.eval AssignmentExpression left side needs work.")
+                          }
+                      },
+                      source: source})
         }
     }
 
@@ -324,6 +313,35 @@ globalThis.ActEval = class ActEval{
         }
         cont.call(null, result)
         //inspect(meth_def_ast)
+    }
+    static ForStatement(st){
+        let init   = JS2B[st.init.type].call(undefined, st.init);
+        let test   = JS2B[st.test.type].call(undefined, st.test);
+        let update = JS2B[st.update.type].call(undefined, st.update);
+        let body   = JS2B[st.body.type].call(undefined, st.body);
+        return Root.jsdb.for.for_iter.make_dom_elt(undefined, undefined, init, test, update, body)
+    }
+
+    static ForOfStatement(st){
+        let left   = JS2B[st.left.type].call(undefined, st.left);
+        //but have to remove the init val and equal sign of the declaration
+        if (dom_elt_block_type(left).isA(Root.jsdb.assignment)) {
+            Root.jsdb.assignment.remove_init_val(left)
+        }
+        let of_elt = newObject({prototype: Root.jsdb.one_of,
+            choices: ["of", "in"],
+            value: "of",
+            eval_each_choice: false,
+        })
+        let right  = JS2B[st.right.type].call(undefined, st.right);
+        let body   = JS2B[st.body.type].call(undefined, st.body);
+        return Root.jsdb.for.for_of.make_dom_elt(undefined, undefined, left, of_elt, right, body)
+    }
+
+    static WhileStatement(st){
+        let test_elt   = JS2B[st.test.type].call(undefined, st.test);
+        let body_elt   = JS2B[st.body.type].call(undefined, st.body);
+        return Root.jsdb.rword_expr_code_body.while.make_dom_elt(undefined, undefined, test_elt, body_elt)
     }
 
     static FunctionDeclaration(st, lex_env, cont, source){
@@ -415,7 +433,7 @@ globalThis.ActEval = class ActEval{
         if(val === undefined) {
             val = globalThis[name]
         }
-        cont.call(null, {value: val, lex_env: lex_env, cont: cont, source: source})
+        cont.call(null, val, lex_env, cont, source)
     }
 
     //always returns an array of block elts

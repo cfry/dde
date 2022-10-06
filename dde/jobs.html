@@ -101,16 +101,12 @@
         var job_name_with_extension_to_xhttp = {}
         function handle_job_button_click(job_name_with_extension){
             console.log("jobs.html: top of handle_job_button_click in browser")
-            /* var xhttp = job_name_with_extension_to_xhttp[job_name_with_extension]
-             if (!xhttp || (xhttp.readyState == 4)) {
-                 xhttp = new XMLHttpRequest() //this will not time out.
-                 job_name_with_extension_to_xhttp[job_name_with_extension] = xhttp
-                 xhttp.onreadystatechange = handle_stdout
-             }
-             let the_url = "/job_button_click?job_name_with_extension=" + job_name_with_extension
-             xhttp.open("GET", the_url, true);
-             xhttp.send();
-             */
+            let dot_pos   = job_name_with_extension.indexOf(".")
+            let job_name  = job_name_with_extension.substring(0, dot_pos)
+            let button_id = job_name + "_job_button_id"
+            let but_elt   = window[button_id]
+            but_elt.style["background-color"] = "rgb(210, 255, 190)" //light green
+            but_elt.title = "This Job is starting up."
             let mess_obj = {kind: "job_button_click", job_name_with_extension: job_name_with_extension};
             web_socket.send(JSON.stringify(mess_obj))
         }

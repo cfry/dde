@@ -50,7 +50,7 @@ class DDE_DB{
            dde_error("DDE's database could not be opened. Error code: " +
                      event.target.errorCode)
        }
-       //onupgradeneeded  will be called before onsuccess IFF its needed, ie in the window.indexedDB.open has a new higher db version as its 2nd arg.
+       //onupgradeneeded  will be called before onsuccess IFF its needed, ie in the globalThis.indexedDB.open has a new higher db version as its 2nd arg.
        request.onupgradeneeded = function(event) {
            DDE_DB.db = event.target.result;
            // Create an objectStore for this database
@@ -217,7 +217,7 @@ class DDE_DB{
                 await DDEFile.load_file("dde_init.js")
             }
             catch(err0){
-                if(window.Editor) { //will not hit in node platform
+                if(globalThis.Editor) { //will not hit in node platform
                     Editor.edit_file(DDEFile.add_default_file_prefix_maybe("dde_init.js"))
                 }
                 dde_error("The file: Documents/dde_apps/dde_init.js has invalid JavaScript in it.<br/>" +
