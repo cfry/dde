@@ -101,13 +101,31 @@ summary {
 
 .hca_folder {
     margin-left:10px;
+    cursor:zoom-in;
+}
+
+.hca_folder_summary:hover {
+    background-color:lightyellow;
+}
+
+.hca_folder_summary:active { /*doesn't work because CSS is fundamentally broken. */
+    background-color: #d1fcc1; /*light green */
 }
 
 .hca_obj_def {
     margin-left:10px;
     text-decoration: blue underline;
+    cursor:crosshair;
 }
 
+
+.hca_obj_def:hover {
+    background-color:lightyellow;
+}
+
+.hca_obj_def:active { /*doesn't work because CSS is fundamentally broken. */
+    background-color: #d1fcc1; /*light green */
+}
 
 #stop_all_jobs_id:active{ /*for button press effect */
     height:25px;

@@ -116,8 +116,11 @@ class GrpcServer {
 
             gserver.bindAsync('127.0.0.1:50051', //'0.0.0.0:50051',
                                    grpc.ServerCredentials.createInsecure(),
-                           () => {
-                                      out("grpc.Server init just before start")
+                           (err, port) => {
+                                      out("grpc.Server init just before start with err: " + err + " port: " + port)
+                                      if(err) {
+                                          out("err.message: " + err.message)
+                                      }
                                       out("gserver: " + gserver)
                                       try {
                                           gserver.start() //this line errors *sometimes* with "Error: server must be bound in order to start"

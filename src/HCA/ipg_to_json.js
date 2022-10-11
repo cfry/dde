@@ -54,7 +54,7 @@ globalThis.ipg_to_json = class ipg_to_json{
         let section = null
         for(let line_index = 0; line_index < lines.length; line_index++){
             let line = lines[line_index]
-            console.log("line index: " + line_index + ":" + line)
+            //console.log("line index: " + line_index + ":" + line)
             //initial meta-data
             if(line.startsWith("VIVA ")) {
                 let split_line = line.split(" ")
@@ -101,7 +101,7 @@ globalThis.ipg_to_json = class ipg_to_json{
             }
             else if(line.startsWith("DataSet ")) {
                 if(!result.datasets) {
-                    console.log("DATASETS")
+                    //console.log("DATASETS")
                     result.datasets = {}
                 }
                 let dataset_obj = this.parse_dataset(line)
@@ -130,7 +130,7 @@ globalThis.ipg_to_json = class ipg_to_json{
 
             //Behavior Topology (net_list)
             else if (line.startsWith(" //_ Behavior Topology")){
-                console.log("NETLIST")
+                //console.log("NETLIST")
                 section = "netList"
                 top_level_obj.netList = []
             }
@@ -290,7 +290,7 @@ globalThis.ipg_to_json = class ipg_to_json{
             }
             let outputs_str = before_comment.substring(outputs_start_pos + 1, outputs_end_pos).trim()
             */
-            console.log("grabbing outputs: ")
+            //console.log("grabbing outputs: ")
             let out_arr_and_end = this.grab_io(before_comment, space_after_Object_pos + 1) //this.io_string_to_obj_array(outputs_str)
             out_array_result = out_arr_and_end[0]
             outputs_end_pos  = out_arr_and_end[1]
@@ -320,7 +320,7 @@ globalThis.ipg_to_json = class ipg_to_json{
         let [name, name_end_pos] = this.grab_name(before_comment, name_start_pos) //before_comment.substring(name_start_pos, name_end_pos).trim()
         //if(name.startsWith('"')) { name = name.substring(1, name.length - 1) } //cut off double quotes in name that are *sometimes* present
         let [type, name_ext] = name.split(":") //name_ext is included in name, we don't use it separately
-        console.log("objectName: " + name)
+        //console.log("objectName: " + name)
         new_obj.objectName = name
         new_obj.objectType = type //the part of the name that's before the colon
 
@@ -342,7 +342,7 @@ globalThis.ipg_to_json = class ipg_to_json{
         //will be name, type, inputs, outputs, x, y, font ...
         //parse comment
         if(comment) { //only happens for sub_objects
-            console.log("grabbing comments: " + comment)
+            //console.log("grabbing comments: " + comment)
             if(comment.startsWith("_GUI ")){
                 let comment_start = 5
                 comment = comment.substring(comment_start)

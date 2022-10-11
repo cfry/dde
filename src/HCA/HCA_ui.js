@@ -130,7 +130,14 @@ globalThis.HCA = class HCA {
        //f let can_holder = make_dom_elt("div"//, {style: { display:"inline-block"}}
        //f )
        //f big_div.append(can_holder)
-        let can = make_dom_elt("canvas",
+        let canvas_wrapper_html = /*`<div id='HCA_canvas_wrapper_id' style=' overflow:scroll;  display:inline-block;'>
+                                        <canvas id='HCA_canvas_id' style='width:1024px; height:720px;'> </canvas>
+                                     </div>`*/
+                                    `<div id='HCA_canvas_wrapper_id' style='flex-grow: 1;'>
+                                         <canvas id='HCA_canvas_id' style='width:1024px; height:720px;'> </canvas>
+                                     </div>`
+        big_div.insertAdjacentHTML("beforeend", canvas_wrapper_html)
+        /*let can = make_dom_elt("canvas",
                           {id: "HCA_canvas_id",
                                      display: "inline-block",
                                      html_properties: {width: '1024',
@@ -142,11 +149,10 @@ globalThis.HCA = class HCA {
          //<canvas id='mycanvas' width='1024' height='720' style='border: 1px solid'></canvas>
         //f can_holder.append(can)
         big_div.append(can)
+         */
 
         //Set canvas background color
         //set_css_properties(".lgraphcanvas {background-color: #FFFFFF;}") //doesn do anything
-
-
         return big_div
     }
 
@@ -803,7 +809,8 @@ To load all the .hco object files in a folder, click <input type='submit' value=
         }
 
          */
-        await ipg_to_json.parse("CorLib.ipg", HCAObjDef.insert_obj_defs_into_tree)
+        await ipg_to_json.parse("dde/third_party/CorLib.ipg", //"CorLib.ipg",
+                                HCAObjDef.insert_obj_defs_into_tree)
         HCA.populate_palette_obj_defs(HCAObjDef.obj_def_tree)
         HCA.save_palette()
     }
@@ -816,14 +823,14 @@ To load all the .hco object files in a folder, click <input type='submit' value=
     }
 
     static populate_palette_obj_defs_aux(tree){
-        let ht = ((tree.folder_name === "root") ? "" : "<details class='hca_folder' style='cursor:zoom-in;'><summary>" + tree.folder_name + "</summary>")
+        let ht = ((tree.folder_name === "root") ? "" : "<details class='hca_folder'><summary class='hca_folder_summary'>" + tree.folder_name + "</summary>")
         for(let obj_def of tree.obj_defs) {
             let obj_path_arr = obj_def.TreeGroup.slice()
             obj_path_arr.push(obj_def.objectName)
             let obj_path = obj_path_arr.join("/")
             this.register_with_litegraph(obj_path, obj_def)
             let action_src = 'HCA.make_and_add_block("' + obj_path + '")'
-            ht +="<div class='hca_obj_def' style='cursor:crosshair;' onclick='" + action_src + "'>" + obj_def.objectName + "</div>\n"
+            ht +="<div class='hca_obj_def' onclick='" + action_src + "'>" + obj_def.objectName + "</div>\n"
         }
         for(let subfold of tree.subfolders) {
             ht += this.populate_palette_obj_defs_aux(subfold)

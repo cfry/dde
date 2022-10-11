@@ -15,7 +15,7 @@ globalThis.HCAObjDef = class HCAObjDef {
         if(!this.TreeGroup) {//hits for the obj named "CorLib".
             this.TreeGroup = []
         }
-        console.log("just made HCAObjDef " + this.objectName)
+        //console.log("just made HCAObjDef " + this.objectName)
         this.insert_obj_def_into_tree(HCAObjDef.obj_def_tree, this.TreeGroup)
     }
     insert_obj_def_into_tree(look_in_folder, TreeGroupArr){

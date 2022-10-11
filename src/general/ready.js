@@ -141,12 +141,11 @@ import "../music/phrase.js" //defines global class Phrase
 import "./gamepad.js"       //defined global class GamePad
 
 import "./lesson.js" //defines global Lesson
+
 import "../HCA/HCA_ui.js" //defines global HCA
-import "../HCA/HCA_objects.js"
+//import "../HCA/HCA_objects.js" //obsoleted by ipg_to_json..js
 import "../HCA/ipg_to_json.js" //defines global ipg_to_json
 import "../HCA/HCA_objdef.js" //defines global HCAObjDef
-
-
 import "../HCA/litegraph_patches.js"
 
 import "../blocksde/init.js" //needed for making the menu of differnt "views" of DDE's editor, including HCA
