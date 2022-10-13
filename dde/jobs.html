@@ -351,7 +351,7 @@
             //and strs has had its first elt removed.
             for (let str of strs) {
                 //str originally started with "<for_server>" but that's stripped out by split
-                let for_server_end_pos = str.indexOf("</for_server>")
+                let for_server_end_pos = str.indexOf("</for_server>\n")
                 if (for_server_end_pos == -1) { //shouldn't. incomplete for_server tag,
                     //so just spit str out
                     str_for_std_out += str

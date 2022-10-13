@@ -121,7 +121,7 @@ globalThis.HCA = class HCA {
         ///                           {id: "HCA_palette_id", style: { height:400, "background-color":"#ffe0cd"}}//, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
         //                           )
         //big_div.append(palette)
-        let pal_html = "<div id='HCA_palette_id', style='vertical-align:top; height:100%; background-color:#ffe0cd; overflow-y:scroll; display:inline-block; padding:5px;'</div>" //, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
+        let pal_html = "<div id='HCA_palette_id', style='vertical-align:top; width:170px; height:400px; background-color:#ffe0cd; overflow-y:scroll; display:inline-block; padding:5px;'</div>" //, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
         big_div.insertAdjacentHTML("beforeend", pal_html)
         //let but = make_dom_elt("button", {margin: "5px"}, "number")
         //palette.append(but)
@@ -132,10 +132,24 @@ globalThis.HCA = class HCA {
        //f big_div.append(can_holder)
         let canvas_wrapper_html = /*`<div id='HCA_canvas_wrapper_id' style=' overflow:scroll;  display:inline-block;'>
                                         <canvas id='HCA_canvas_id' style='width:1024px; height:720px;'> </canvas>
-                                     </div>`*/
+                                     </div>`
                                     `<div id='HCA_canvas_wrapper_id' style='flex-grow: 1;'>
                                          <canvas id='HCA_canvas_id' style='width:1024px; height:720px;'> </canvas>
                                      </div>`
+
+                                     `<div id='HCA_canvas_wrapper_id' style='vertical-align:top; overflow:scroll;  display:inline-block; width:calc(100% - 150px); height:100%; border:2px solid blue;''>
+                                         <canvas id='HCA_canvas_id' width='720' height='1024' <!--backing store in pixels -->
+                                            style='vertical-align:top; width:100%; height:100%; border:2px solid green;'> <!-- display size -->
+                                         </canvas>
+                                     </div>`
+                                     */
+            `<div id='HCA_canvas_wrapper_id' style='vertical-align:top; overflow:scroll;  display:inline-block; width:calc(100% - 190px); height:100%; border:1px solid blue;'>
+                <canvas id='HCA_canvas_id' width='720' height='1024' <!--backing store in pixels -->
+                    style='vertical-align:top; width:100%; height:100%;'> <!-- display size -->
+                </canvas>
+            </div>`
+
+
         big_div.insertAdjacentHTML("beforeend", canvas_wrapper_html)
         /*let can = make_dom_elt("canvas",
                           {id: "HCA_canvas_id",
@@ -215,6 +229,9 @@ globalThis.HCA = class HCA {
             DocCode.insert_html_into_doc_pane(html, "User Guide", "beforeend")
             DocCode.open_doc(hca_ui_doc_id)
         }
+        const ctx = HCA_canvas_id.getContext("2d");
+        ctx.fillStyle = "rgb(200, 0, 0)";
+        ctx.fillRect(10, 10, 50, 50);
     }
 
     static clear(){

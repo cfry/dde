@@ -316,7 +316,7 @@ function show_window({content = `<input type="submit" value="Done"/>`,
     }
     else {
         //onsole.log("bottom of show_window writing to stdout")
-        globalThis.write_to_stdout("<for_server>" + JSON.stringify(props) + "</for_server>")
+        globalThis.write_to_stdout("<for_server>" + JSON.stringify(props) + "</for_server>\n")
     }
     return SW.window_index
 }

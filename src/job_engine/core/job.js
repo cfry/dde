@@ -1120,7 +1120,7 @@ class Job{
         }
         else { //job engine
            let data = {kind: "show_job_button", job_name: this.name, status_code: this.status_code, button_color: bg_color, button_tooltip: tooltip}
-           globalThis.write_to_stdout("<for_server>" + JSON.stringify(data) + "</for_server>")
+           globalThis.write_to_stdout("<for_server>" + JSON.stringify(data) + "</for_server>\n")
         }
     }
     //end of jobs buttons

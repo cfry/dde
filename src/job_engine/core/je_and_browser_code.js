@@ -9,7 +9,7 @@ function out(val="", color="black", temp=false, code=null){
     }
     if(globalThis.platform == "node") { //console.log(val)
         let out_obj = {kind: "out_call", val: text, color: color, temp: temp, code: code} //code isn't actually used in the browser
-        globalThis.write_to_stdout("<for_server>" + JSON.stringify(out_obj) + "</for_server>")
+        globalThis.write_to_stdout("<for_server>" + JSON.stringify(out_obj) + "</for_server>\n")
         return val
     }
 
@@ -895,7 +895,7 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
     static selector_set_in_ui(path_string, value=null){
         if(globalThis.platform == "node") { //console.log(val)
             let obj = {kind: "selector_set_in_ui_call", path_string: path_string, value: value}
-            globalThis.write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>")
+            globalThis.write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>\n")
         }
         else {
             if(value === -0) { value = 0 } //in some weird raoujnding situations, we get a negative zero.
@@ -999,7 +999,7 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
     static append_in_ui(path_string, new_html){
         if(globalThis.platform == "node") { //console.log(val)
             let obj = {kind: "append_in_ui_call", path_string: path_string, new_html: new_html}
-            globalThis.write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>")
+            globalThis.write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>\n")
         }
         else {
             let elt = value_of_path(path_string)

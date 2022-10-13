@@ -286,7 +286,7 @@ function serve_job_button_click(browser_socket, mess_obj){
                         return;
                     } //maybe should be kill()?
                     browser_socket.send(data_str) //redundant but the below might not be working
-                    browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>");
+                    browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>\n");
                     //server_response.end()
                     //job_process.kill() //*probably* the right thing to do in most cases.
                     //remove_job_name_to_process(job_name);
@@ -314,7 +314,7 @@ function serve_job_button_click(browser_socket, mess_obj){
                            button_tooltip: "Errored with server close error code: " + code,
                            button_color: "red"
               	};
-          	browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>");
+          	browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>\n");
           }
           remove_job_name_to_process(job_name);
           //server_response.end()
