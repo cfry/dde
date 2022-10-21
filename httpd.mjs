@@ -227,7 +227,7 @@ function serve_job_button_click(browser_socket, mess_obj){
     //console.log("serve_job_button_click with jobfile: " + jobfile)
     let job_name = extract_job_name(app_file); //console.log("job_name: " + job_name + "taken from file name")
     console.log("job_name: " + job_name)
-    let job_process = get_job_name_to_process(app_file); //warning: might be undefined.
+    let job_process = get_job_name_to_process(job_name); //warning: might be undefined.
     //let server_response = res //to help close over
     console.log("process: " + job_process)
 
@@ -251,7 +251,7 @@ function serve_job_button_click(browser_socket, mess_obj){
                             cmd_options
                             
                            );
-        set_job_name_to_process(app_file, job_process);
+        set_job_name_to_process(job_name, job_process);
         console.log("started job_name: " + job_name + " with: "+cmd_line+" "+cmd_args+" to new process: " + job_process.pid + " of type:" + app_type);
         job_process.stdout.on('data', function(data) {
           let data_str = data.toString();

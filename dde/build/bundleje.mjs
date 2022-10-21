@@ -3,7 +3,8 @@ import protoLoader$1 from '@grpc/proto-loader';
 import StripsManager$1 from 'strips';
 import fs$1 from 'fs';
 import PEG from 'pegjs';
-import { WebSocketServer } from 'ws';
+import WebSocket$1, { WebSocketServer } from 'ws';
+import child_process from 'child_process';
 import * as Espree$1 from 'espree';
 import js_beautify from 'js-beautify';
 import compareVersions from 'compare-versions';
@@ -2104,7 +2105,7 @@ function out$1(val="", color="black", temp=false, code=null){
     }
     if(globalThis.platform == "node") { //console.log(val)
         let out_obj = {kind: "out_call", val: text, color: color, temp: temp, code: code}; //code isn't actually used in the browser
-        globalThis.write_to_stdout("<for_server>" + JSON.stringify(out_obj) + "</for_server>");
+        globalThis.write_to_stdout("<for_server>" + JSON.stringify(out_obj) + "</for_server>\n");
         return val
     }
 
@@ -2989,7 +2990,7 @@ class SW$1 { //stands for Show Window. These are the aux fns that the top level 
     static selector_set_in_ui(path_string, value=null){
         if(globalThis.platform == "node") { //console.log(val)
             let obj = {kind: "selector_set_in_ui_call", path_string: path_string, value: value};
-            globalThis.write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>");
+            globalThis.write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>\n");
         }
         else {
             if(value === -0) { value = 0; } //in some weird raoujnding situations, we get a negative zero.
@@ -3092,7 +3093,7 @@ class SW$1 { //stands for Show Window. These are the aux fns that the top level 
     static append_in_ui(path_string, new_html){
         if(globalThis.platform == "node") { //console.log(val)
             let obj = {kind: "append_in_ui_call", path_string: path_string, new_html: new_html};
-            globalThis.write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>");
+            globalThis.write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>\n");
         }
         else {
             let elt = value_of_path(path_string);
@@ -16253,7 +16254,7 @@ function show_window$1({content = `<input type="submit" value="Done"/>`,
     }
     else {
         //onsole.log("bottom of show_window writing to stdout")
-        globalThis.write_to_stdout("<for_server>" + JSON.stringify(props) + "</for_server>");
+        globalThis.write_to_stdout("<for_server>" + JSON.stringify(props) + "</for_server>\n");
     }
     return SW.window_index
 }
@@ -17677,7 +17678,7 @@ class Job$1{
         }
         else { //job engine
            let data = {kind: "show_job_button", job_name: this.name, status_code: this.status_code, button_color: bg_color, button_tooltip: tooltip};
-           globalThis.write_to_stdout("<for_server>" + JSON.stringify(data) + "</for_server>");
+           globalThis.write_to_stdout("<for_server>" + JSON.stringify(data) + "</for_server>\n");
         }
     }
     //end of jobs buttons
@@ -18278,8 +18279,9 @@ Job$1.prototype.if_dexter_connect_error_default = function(robot_name){
     let rob = Dexter[robot_name];
     let msg = "Error in connecting to Dexter." + robot_name +
               " at ip_address: " + rob.ip_address +
-              " for Job." + this.name +
-              "<br/>If Dexter." + robot_name + " is unconnected, you can still use the simulator." +
+              " port: "          + rob.port +
+              " for Job."        + this.name +
+              "<br/>If Dexter."  + robot_name + " is unconnected, you can still use the simulator." +
               "<br/>In the Misc pane header, click the <b>simulate</b> radio button.";
     warning(msg);
     return null // this default method allows the job to proceed, unlike
@@ -30108,7 +30110,7 @@ Dexter.dexter0.defaults_high_level_to_defaults_lines()
 
 //never create an instance
 class Socket$1{
-    //returns a net_soc_inst or null if none in Socket.robot_name_to_soc_instance_map
+    //returns a net_soc_inst if in node, or a WebSocket if in dde, or null if none in Socket.robot_name_to_soc_instance_map
     //this is reverse lookup in robot_name_to_soc_instance_map
     static net_soc_inst_to_robot_name(net_soc_inst){
         for(let robot_name in Socket$1.robot_name_to_soc_instance_map){
@@ -30122,6 +30124,12 @@ class Socket$1{
     //calls Socket.init, which for sim, calls DexterSim.create_or_just_init
     static init(robot_name, job_instance, instruction_to_send_on_connect=null){
        //out(job_instance.name + " Socket.init passed: " + robot_name + " " + instruction_to_send_on_connect)
+       if(platform === "node") {
+            this.init_raw_socket(robot_name, job_instance, instruction_to_send_on_connect);
+            return
+       }
+
+       //the below runs in dde4 IDE, using WebSockets
        if(!job_instance.is_active()) {
             warning(job_instance.name + " Attempt to Socket.init with inactive status: " + job_instance.status_code);
             return
@@ -30260,6 +30268,164 @@ class Socket$1{
         }
         //out(job_instance.name + " Socket.init, very bottom")
     }
+
+    //this code lifted from dde3 socket.js using raw sockets and called when running on node/job_engine
+    static async init_raw_socket(robot_name, job_instance, instruction_to_send_on_connect=null){
+        out(job_instance.name + " Socket.init_raw_socket passed: " + robot_name + " " + instruction_to_send_on_connect);
+        if(!job_instance.is_active()) {
+            warning(job_instance.name + " Attempt to Socket.init with inactive status: " + job_instance.status_code);
+            return
+        }
+        globalThis.net = await import('net');
+        out("init_raw_socket got net defined? : " + ((globalThis.net)? true : false));
+        let rob = Robot[robot_name];
+        const sim_actual = Robot.get_simulate_actual(rob.simulate); //true, false, or "both"
+        if (sim_actual === true){ //when we are ONLY simulating
+            DexterSim.create_or_just_init(robot_name, sim_actual);
+            //out("socket for Robot." + robot_name + ". is_connected? " + Robot[robot_name].is_connected)
+            Socket$1.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect);
+        }
+        else if ((sim_actual === false) || (sim_actual == "both")) {
+            if(sim_actual == "both"){
+                DexterSim.create_or_just_init(robot_name, sim_actual); //harmless if done a 2nd time. returns without callbaack
+            }
+            let net_soc_inst = Socket$1.robot_name_to_soc_instance_map[robot_name];
+            if(net_soc_inst && (net_soc_inst.readyState === "closed")) { //we need to init all the "on" event handlers
+                this.close(robot_name, true);
+                net_soc_inst = null;
+            }
+            if(!net_soc_inst){
+                //out(job_instance.name + " Socket.init net_soc_inst for " + robot_name + " doesn't yet exist or is closed.")
+                try {
+                    net_soc_inst = new net.Socket();
+                    out("init_raw_socket made new net_soc_inst: " + net_soc_inst);
+                    net_soc_inst.setKeepAlive(true);
+                    //out(job_instance.name + " Just after created, net_soc_inst.readyState: " + net_soc_inst.readyState)
+                    /* on error *could* be called, but its duration from a no-connection is
+                       highly variable so I have below a setTimeout to kill the connection
+                       after a second. But then both on error and the setTimeout method
+                       *could* get called so I take pains to kill off the setTimeout
+                       so that only one will get called.
+
+                    */
+                }
+                catch(err){
+                    console.log(job_instance.name + " Socket.init catch clause with err: " + err.message);
+                    dde_error("Error attempting to create socket to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + err.message);
+                    this.close(robot_name, true);
+                }
+                // I must define the below just once (on actual new socket init, because  calling
+                // net_soc_inst.on("data", function(data) {...} actually gives the socket 2 versions of the callback
+                // and so each will be called once, giving us a duplication that causes a difficult to find bug.
+                net_soc_inst.on("data", function(data) {
+                    Socket$1.on_receive(data, undefined, rob);
+                });
+                net_soc_inst.on("connect", function(){
+                    out(job_instance.name + " Succeeded connection to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port, "green");
+                    //clearTimeout(st_inst)
+                    Socket$1.robot_name_to_soc_instance_map[robot_name] = net_soc_inst;
+                    //the 3 below closed over vars are just used in the one call to when this on connect happens.
+                    Socket$1.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect);
+                });
+                net_soc_inst.on("error", function(err){
+                    console.log("Probably while running " + job_instance.name + " Socket.init on error while waiting for ack from instruction: " + instruction_to_send_on_connect  +
+                        " with err: " + err.message);
+                    //clearTimeout(st_inst)
+                    let rob_name = Socket$1.net_soc_inst_to_robot_name(net_soc_inst);
+                    if (rob_name == null) { rob_name = "unknown"; } //should be rare if at all.
+                    let rob_maybe = (rob_name ? Dexter[rob_name] : null);
+                    if (rob_maybe) {
+                        //warning("in Socket.init on error callback, could not find Dexter." + rob_name)
+                        rob = rob_maybe;
+                    } //let rob "default" to the closed over "rob" because can't find anything else
+                    //if(st_inst || (st_inst == 0)){ clearTimeout(st_inst) } //st_inst is just a non-neg int.
+                    //Socket.close(robot_name, true) //true, means force_close, needed if job is still active becuse that will remove the soc from the robot_name_to_soc_instance_map and get init to really work.
+                    if (rob.resend_count && (rob.resend_count >= 4)) {  //give up retrying and error
+                        let active_jobs_using_rob = Job.active_jobs_using_robot(rob);
+                        rob.resend_count = 0;
+                        for(let job_inst of active_jobs_using_rob) {
+                            job_inst.stop_for_reason("errored_from_dexter", "can't connect to Dexter." + rob_name);
+                        }
+                        return
+                    }
+                    else { //we've got a rob, keep trying
+                        if(!rob.resend_count) {
+                            rob.resend_count = 1;
+                        }
+                        else { rob.resend_count += 1; }
+                        Socket$1.close(robot_name, true);
+                        let timeout_dur = Math.pow(10, rob.resend_count);
+                        setTimeout(function(){
+                            console.log("re-initing Socket to Dexter." + rob_name);
+                            //in the below, for the 3 closed over vars, its possible that these aren't
+                            //the right closed over vars, because multiple jobs can send to a given robot.
+                            //but if we're only running one robot, or in 2 or more jobs hitting a robot,
+                            //maybe these are right, so worth a shot. Not sure what else to do.
+                            Socket$1.prepare_for_re_init(robot_name);
+                            Socket$1.init(rob_name, job_instance, instruction_to_send_on_connect);
+                        }, timeout_dur);
+                    }
+                }); //end of on("error"
+                setTimeout(function() {
+                    if(!net_soc_inst) ; //presume the job completed and so nothing to do
+                    else if (job_instance.is_done()) ; //presume the job completed and so nothing to do
+                    else if(net_soc_inst.readyState === "open") ; //connection worked, leave it alone
+                    else { //connection failed
+                        job_instance.stop_for_reason("errored_from_dexter_connect", "Connection to Dexter." + robot_name +
+                            "\n failed after 2 seconds.");
+                    }
+                }, 2000);
+                let ip_addr = rob.ip_address;
+                if (ip_addr == "localhost") ip_addr = "127.0.0.1"; // net.connect wants a number as a string
+                console.log("Socket.init trying to connect to port:"+rob.port+" ip:"+ip_addr);
+                net_soc_inst.connect(rob.port, ip_addr);
+            } //ending the case where we need to make a new net_soc_inst
+
+            /*out(job_instance.name + "Socket.init before connect, net_soc_inst.readyState: " + net_soc_inst.readyState)
+            if (net_soc_inst.readyState === "closed") {
+                 st_inst = setTimeout(function(){
+                    out(job_instance.name + " in Socket.init, setTimout of st_inst")
+                    if(net_soc_inst.readyState !== "open") { //still trying to connect after 1 sec, so presume it never will. kill it
+                        Socket.close(robot_name, true)
+                        rob.resend_count = 0
+                        if(!job_instance.is_done()){
+                            job_instance.stop_for_reason("errored_from_dexter", " socket timeout while connecting to Dexter." + rob.name)
+                        }
+                    }
+                    else {
+                        Socket.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect)
+                    }
+                }, Socket.connect_timeout_seconds * 5000)
+                out(job_instance.name + " Now attempting to connect to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + " ...", "brown")
+                net_soc_inst.connect(rob.port, rob.ip_address) //the one call to .connect()
+            } */
+            else { //net_soc_inst already existed and is open
+                Socket$1.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect);
+            }
+        }
+        //out(job_instance.name + " Socket.init, very bottom")
+    }
+
+    //works for both dde and node platforms.
+    static readyState_is_open(net_soc_inst){
+        if(platform === "node") {
+            return net_soc_inst.readyState === "open"
+        }
+        else {
+            return net_soc_inst.readyState === WebSocket.OPEN
+        }
+    }
+
+    static send_low_level(net_soc_inst, str){
+        if(platform === "node") {
+            const arr_buff = Socket$1.string_to_array_buffer(str);
+            net_soc_inst.write(arr_buff); //dde3
+        }
+        else {
+            net_soc_inst.send(str);
+        }
+    }
+
 
     //called from both above socket code and from dexsim
     static new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect){
@@ -30614,7 +30780,7 @@ class Socket$1{
                     }
                 }, 1);}
             else {
-                Socket$1.close(robot_name, true); //both are send args
+                this.close(robot_name, true); //both are send args
                 setTimeout(function(){
                     Socket$1.init(robot_name, job_instance, oplet_array_or_string);
                 }, 100);
@@ -30622,17 +30788,18 @@ class Socket$1{
         }
         if ((sim_actual === false) || (sim_actual === "both")) {
             let net_soc_inst = Socket$1.robot_name_to_soc_instance_map[robot_name];
-            if(net_soc_inst && (net_soc_inst.readyState === WebSocket.OPEN)) {
+            if(net_soc_inst && this.readyState_is_open(net_soc_inst)) {
                 try {
                     console.log("Socket.send about to send str: " + str, undefined, true);
                     //net_soc_inst.write(arr_buff) //dde3
-                    net_soc_inst.send(str); //dde4
+                    //net_soc_inst.send(str) //dde4
+                    this.send_low_level(net_soc_inst, str);
                     //console.log("Socket.send just sent:     " + str)
                     //this.stop_job_if_socket_dead(job_id, robot_name)
                     if(is_reboot_inst){
                         job_instance.stop_for_reason("completed", "Dexter.reboot_robot instruction sent.");
                         warning("Rebooting Dexter." + robot_name + " due to running reboot instruction.");
-                        delete Socket$1.robot_name_to_soc_instance_map.robot_name;
+                        delete this.robot_name_to_soc_instance_map.robot_name;
                     }
                     return
                 }
@@ -30650,7 +30817,7 @@ class Socket$1{
                             rob.resend_count = 1
                         }
                         else { rob.resend_count += 1 }*/
-                        Socket$1.close(robot_name, true);
+                        this.close(robot_name, true);
                         let timeout_dur = Math.pow(10, rob.resend_count);
                         setTimeout(function(){
                             console.log("re-initing Socket to Dexter." + robot_name);
@@ -30661,7 +30828,7 @@ class Socket$1{
                 }
             }
             else { //maybe never hits. it only hits if there is no net_soc_inst in Socket.robot_name_to_soc_instance_map
-                Socket$1.close(robot_name, true); //both are send args
+                this.close(robot_name, true); //both are send args
                 setTimeout(function(){
                     Socket$1.init(robot_name, job_instance, oplet_array_or_string);
                 }, 100);
@@ -30689,10 +30856,23 @@ class Socket$1{
     static on_receive(data, payload_string_maybe, dexter_instance){
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
         //console.log("top of Socket.on_receive.")
-        //out("Socket.on_receive passed data: " + data, undefined, true)
+        out("Socket.on_receive passed data: " + data +
+                                     " payload_string_maybe: " + payload_string_maybe +
+                                     " dexter_instance: " + dexter_instance);
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
             let robot_status = data;
             let oplet = robot_status[Dexter.INSTRUCTION_TYPE];
+            this.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance);
+        }
+        else if (platform === "node"){ //as in orig dde3
+            let view1 = new Int32Array(data.buffer); //array_buff1.bytelength / 4); //weird google syntax for getting length of a array_buff1
+            let robot_status = [];
+            for(var i = 0; i < view1.length; i++){
+                var elt_int32 = view1[i];
+                robot_status.push(elt_int32);
+            }
+            let opcode = robot_status[Dexter.INSTRUCTION_TYPE];
+            let oplet  = String.fromCharCode(opcode);
             this.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance);
         }
         else if (data instanceof Blob) {//dde4 what comes back from  websocket
@@ -30715,18 +30895,11 @@ class Socket$1{
                 Socket$1.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance);
             };
         }
-        else { //a Uint8Array when called from the robot. //todo dde4 needs work for getting data from server
-            let view1 = new Int32Array(data.buffer); //array_buff1.bytelength / 4); //weird google syntax for getting length of a array_buff1
-            let robot_status = [];
-            for(var i = 0; i < view1.length; i++){
-                var elt_int32 = view1[i];
-                robot_status.push(elt_int32);
-            }
-            let opcode = robot_status[Dexter.INSTRUCTION_TYPE];
-            let oplet  = String.fromCharCode(opcode);
-            this.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance);
+        else {
+            shouldnt("In Socket.on_receive, got unexpected data type.");
         }
     }
+
     static on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance){
         //console.log("Socket.on_receive passed DU robot status: " + robot_status)
         //the simulator automatically does this so we have to do it here in non-simulation
@@ -30940,12 +31113,20 @@ class Socket$1{
            if((rob.active_jobs_using_this_robot().length == 0) || force_close){
                 const net_soc_inst = Socket$1.robot_name_to_soc_instance_map[robot_name];
                 if(net_soc_inst){
-                   // net_soc_inst.removeAllListeners() //works in ddde3, errors in dde4
-                    //net_soc_inst.destroy() //dde3 only
-                    net_soc_inst.close();
+                    this.close_low_level(net_soc_inst);
                     delete Socket$1.robot_name_to_soc_instance_map[robot_name];
                 }
             }
+        }
+    }
+
+    static close_low_level(net_soc_inst){
+        if(platform === "node") {
+            net_soc_inst.removeAllListeners();
+            net_soc_inst.destroy();
+        }
+        else {
+            net_soc_inst.close();
         }
     }
 
@@ -33620,7 +33801,7 @@ class DDEFile$1 {
             return "localhost" //localhost:50000"
         }
         else {
-            return globalThis.location.host //ex: "192.168.1.142:5000", "localhost:80"
+            return globalThis.location.host //ex: "192.168.1.142", "localhost:80"
         }
     }
     /*
@@ -37445,7 +37626,7 @@ async function init_job_engine(){
     Job.class_init();
     Dexter.class_init();
     new Brain({name: "brain0"});
-    Dexter.default = new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 3000}); //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
+    Dexter.default = new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 50000}); //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
     //the only thing dde_init.js really MUST do is define dexter0, so just stick
     //it here and now user can screw up dde_init.js and still win.
 
@@ -37647,8 +37828,11 @@ class GrpcServer$1 {
 
             gserver.bindAsync('127.0.0.1:50051', //'0.0.0.0:50051',
                                    grpc.ServerCredentials.createInsecure(),
-                           () => {
-                                      out("grpc.Server init just before start");
+                           (err, port) => {
+                                      out("grpc.Server init just before start with err: " + err + " port: " + port);
+                                      if(err) {
+                                          out("err.message: " + err.message);
+                                      }
                                       out("gserver: " + gserver);
                                       try {
                                           gserver.start(); //this line errors *sometimes* with "Error: server must be bound in order to start"
@@ -37721,7 +37905,9 @@ function strips_loadCode(grammarFileName, code, callback) {
     }
 }
 StripsManager$1.loadCode = strips_loadCode;  //extend loadCode to be able to accept JSON string, not just PDDL
+globalThis.WebSocket = WebSocket$1;
 globalThis.WebSocketServer = WebSocketServer;
+globalThis.child_process = child_process;
 
 function run_node_command(args) {
     console.log("Hey, top of run_node_command with args:\n" + args);

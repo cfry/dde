@@ -62,9 +62,14 @@ StripsManager.loadCode = strips_loadCode  //extend loadCode to be able to accept
 //to let job_engine call fetch used in DDEFile
 //globalThis.fetch = fetch
 //see https://stackabuse.com/making-http-requests-in-node-js-with-node-fetch/
+import WebSocket from 'ws';
+globalThis.WebSocket = WebSocket
 
 import { WebSocketServer } from 'ws'; //websocket server
 globalThis.WebSocketServer = WebSocketServer
+
+import child_process from 'child_process'
+globalThis.child_process = child_process
 
 import {init_job_engine, init_units, package_json} from "../job_engine/load_job_engine.js" //imports je files
 import "../job_engine/core/stdio.js"   //ONLY in Job Engine so can't go in load_job_engine.js

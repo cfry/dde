@@ -68,7 +68,7 @@ dui_tour.addSteps([
         text: `Using this tutorial with <b>real</b> selected will move Dexter.
                Please clear its surrounding area and move Dexter slowly.`,
         popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 20] } }]},
-    },
+  },
 
   {text: `If you <b>didn't</b> see the <i>Dexter User Interface</i> dialog box just pop up,
             check the lower left Output pane in DDE for warnings.
@@ -99,7 +99,6 @@ dui_tour.addSteps([
         },
   },
   {attachTo: {element: '.dui_dialog [name=j2_range]', on: 'left'},
-
    text: `Drag the joint 2 slider <i>very</i> slowly for just a short distance.
           (Dexter has a maximum speed that's slower than you can drag.)<br/>
           Observe that the simulated Dexter's <b>joint 2</b> changes.<br/>

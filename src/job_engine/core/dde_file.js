@@ -120,7 +120,7 @@ class DDEFile {
             return "localhost" //localhost:50000"
         }
         else {
-            return globalThis.location.host //ex: "192.168.1.142:5000", "localhost:80"
+            return globalThis.location.host //ex: "192.168.1.142", "localhost:80"
         }
     }
     /*

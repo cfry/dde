@@ -830,8 +830,6 @@ class dui2 {
         let job_prefix_src =
 `\nnew Job({
     name: "my_job",
-    keep_history: false,
-    show_instructions: false,
     do_list: [
         `
         /* inserts an instruction but not the right thing if you use FromDex mode to get all points
