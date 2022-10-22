@@ -15,6 +15,12 @@ var dui2 = class dui2 {
        dui2.instances.push(this)
     }
 
+    static the_dexter
+
+    static dexter_instruction_subject_source(){
+        return "Dexter." + this.the_dexter.name + "."
+    }
+
     //if angle_array is an array whose first 5 elts are 0, return true,
     //else return false
     static is_home_angles(angle_array){
@@ -83,17 +89,16 @@ var dui2 = class dui2 {
         commanded_angles.push(0)
       }
       let angles_to_use = Vector.subtract(slider_angles, commanded_angles)
-      let instr = Dexter.pid_move_all_joints(angles_to_use)
+      let instr = dui2.the_dexter.pid_move_all_joints(angles_to_use)
       return instr
     }
 
     //this is the top level code in this file that is called when the user chooses Jobs menu, Dexter UI item.
     static make_job(explicitly_start_job=false){
-        let dex = (window.default_robot ? Dexter.default : Dexter.dexter0)
-        let name = ((platform === "dde") ? "dui2_for_" + dex.name : "dexter_user_interface2") //the job engine Job name must match the file name (sans .js")
+        let the_dex = (window.default_robot ? Dexter.default : Dexter.dexter0)
+        let name = ((platform === "dde") ? "dui2_for_" + the_dex.name : "dexter_user_interface2") //the job engine Job name must match the file name (sans .js")
         if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
             //previous version is stopped first
-            //if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
             Job[name].stop_for_reason("interrupted", "User is redefining this job.")
             setTimeout(function(){ dui2.make_job(true) }, 200)
         }
@@ -102,13 +107,12 @@ var dui2 = class dui2 {
                //with a new job_id. This should be fine.
             let new_job = new Job({
                             name: name,
-                            robot: dex,
+                            robot: new Brain({name: "dui_brain"}),
                             when_do_list_done: "wait",
                             do_list: [dui2.init,
-                                      Dexter.empty_instruction_queue() //needed because the next instruction may need to look a the measured_angles, and we want them updated to where dexter is really at.
+                                      the_dex.empty_instruction_queue() //needed because the next instruction may need to look a the measured_angles, and we want them updated to where dexter is really at.
                                       ]
                         })
-           // dex.instruction_callback = this.dui_instruction_callback //used for "run_forward" , complicated to get this to work so now run_forward does something simpler
             if(explicitly_start_job) {
                 new_job.start()
             }
@@ -147,7 +151,8 @@ var dui2 = class dui2 {
         }
         let dui_instance = new dui2()
         dui_instance.job_name = this.name
-        dui_instance.dexter_instance = this.robot
+        dui2.the_dexter = (globalThis.default_robot ? Dexter.default : Dexter.dexter0)
+        dui_instance.dexter_instance = dui2.the_dexter
         let initial_angles
         let initial_move_instruction
         //set initial_angles
@@ -168,9 +173,7 @@ var dui2 = class dui2 {
             //but, it means we have to move the dexter.
             initial_angles = Kin.point_down([0,0,0,0,0, 0, 50]) //change our initial_angles,
               //j7 needs to be 50 as it is in the new HOME, to avoid overtorque when its 0.
-            initial_move_instruction = //Dexter.pid_move_all_joints(initial_angles)
-                                       //dui_instance.make_move_instruction(initial_angles)
-                                       Dexter.move_all_joints(initial_angles)
+            initial_move_instruction = dui2.the_dexter.move_all_joints(initial_angles)
         }
         else {
             dui_instance.should_point_down = dui_instance.dexter_instance.is_direction() //the checkbox is in sync with this.
@@ -237,7 +240,7 @@ var dui2 = class dui2 {
             `<input type="button" name="ready"  style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="ready"  title="Move Dexter to a neutal position.&#013;Good for 'elbow room'."/>` +
             `<input type="button" name="home"   style="margin-left:10px;margin-top:0px;margin-bottom:3px; padding:2px;" value="home"   title="Move Dexter straight up.&#013;This doesn't allow much freedom of motion."/>` +
             "<span name='step_arrow_buttons'>" + //needed by tutorial
-            `<span class="clickable" name="go_to_start"   style="font-size: 24px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;" title="Move cursor to before the first instruction&#013;of its containing do_list.">◀</span>` +
+            `<span class="clickable" name="run_backward"  style="font-size: 24px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;" title="Move cursor to before the first instruction&#013;of its containing do_list.">◀</span>` +
             `<span class="clickable" name="step_backward" style="font-size: 18px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Step and execute the instruction before the selection&#013;or, if none, the cursor&#013;in the Job defined in the editor.">◀</span>` +
             `<span class="clickable" name="step_forward"  style="font-size: 18px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Step through the instruction after the selection&#013;or, if none, the cursor&#013;in the Job defined in the editor.">▶</span>` +
             `<span class="clickable" name="run_forward"   style="font-size: 24px; margin-left: 5px; cursor: pointer; color: rgb(0, 200, 0); vertical-align:-10%;"   title="Run the instructions &#013;from the cursor through the end.">▶</span>` +
@@ -574,8 +577,7 @@ var dui2 = class dui2 {
         if(j_angles.length === 6) { j_angles.push(dui_instance.maj_angles[6]) } //joint 7 vals.j7_angle_num)   }
         dui_instance.set_maj_angles(j_angles)
         dui_instance.update_all(dui_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
-        let instr = //Dexter.pid_move_all_joints(dui_instance.maj_angles)
-                    dui_instance.make_move_instruction(dui_instance.maj_angles)
+        let instr = dui_instance.make_move_instruction(dui_instance.maj_angles)
         //Job.insert_instruction(instr, {job: dui_instance.job_name, offset: "end"}) //todo overwrite
         Job[dui_instance.job_name].insert_last_instruction_overwrite(instr)
     }
@@ -592,7 +594,7 @@ var dui2 = class dui2 {
     //inspect(dui2.dui_instance_under_mouse())
     if(vals.clicked_button_value === "close_button"){
         if(dui_instance.dexter_mode === "follow_me") {
-            let instr = Dexter.set_keep_position()
+            let instr = dui2.the_dexter.set_keep_position()
             Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
             dui_instance.dexter_mode = "keep_position" //do this even through we're ending the job because this will stop the follow_me loop setTimeout
             out(dui_instance.dexter_instance.name + " restored to mode: keep_position.")
@@ -685,36 +687,52 @@ var dui2 = class dui2 {
     else if(vals.clicked_button_value == "ready"){
         //dui_instance.set_maj_angles([0, 0, 90, 0, 0, 0, 50])
         let new_angs = [0, 0, 90, 0, 0, 0, 50]
-        let instr = [Dexter.pid_move_all_joints([0, 0, 0, 0, 0]),
-                     Dexter.move_all_joints(new_angs),
-                     Dexter.empty_instruction_queue()]
+        let instr = [dui2.the_dexter.pid_move_all_joints([0, 0, 0, 0, 0]),
+                     dui2.the_dexter.move_all_joints(new_angs),
+                     dui2.the_dexter.empty_instruction_queue()]
         Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
         dui_instance.set_maj_angles(new_angs)
         dui_instance.update_all(dui_instance.should_point_down)
         return //don't run usual code at bottom of this fn
     }
     else if(vals.clicked_button_value == "home"){
-        //let instr = [Dexter.move_all_joints(Dexter.HOME_ANGLES),
-        //             Dexter.empty_instruction_queue()]
-        //Job.insert_instruction(instr, {job: vals.job_name, offset: "end"}) //James W says HOME needs both a pid_maj and maj instructions.
-        //dui_instance.set_maj_angles(Dexter.HOME_ANGLES) //ultimately causes a pid_move_all_joints insert
-
         //programmatically uncheck point down here
         //if(vals.direction_checkbox){
         dui_instance.should_point_down = false
         //}
         let new_angs = Dexter.HOME_ANGLES
-        let instr = [Dexter.pid_move_all_joints([0, 0, 0, 0, 0]),
-                     Dexter.move_all_joints(new_angs),
-                     Dexter.empty_instruction_queue()]
+        let instr = [dui2.the_dexter.pid_move_all_joints([0, 0, 0, 0, 0]),
+                     dui2.the_dexter.move_all_joints(new_angs),
+                     dui2.the_dexter.empty_instruction_queue()]
         Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
         dui_instance.set_maj_angles(new_angs)
         dui_instance.update_all(dui_instance.should_point_down)
         return //don't run usual code at bottom of this fn
     }
+    /*not now used but maybe add this as a feature.
     else if(vals.clicked_button_value == "go_to_start"){
             let continue_running = dui2.go_to_start_button_click_action(dui_instance)
             if(!continue_running) { return }
+    }*/
+    else if(vals.clicked_button_value == "run_backward"){
+        let continue_running
+        for(var i = 0; i < 100000; i++){
+            continue_running = dui2.step_backward_button_click_action(dui_instance) //dui2.run_forward_button_click_action(dui_instance)
+            if(!continue_running) { return } //error in processing next instr, perhaps syntactic, perhaps already did last instruction
+            else if (continue_running == "already_inserted_instruction"){ //instruction was a valid instr but not a move instruction
+            }
+            else { //got a move instruction, keep going to bottom of this method for the instruction selection and insertion
+                dui_instance.update_all(dui_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
+                let instr = dui_instance.make_move_instruction(dui_instance.maj_angles)
+                Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
+                instr = dui2.the_dexter.empty_instruction_queue() //Control.wait_until(0.5)
+                Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
+            }
+        }
+        //let show_win_elt = window[vals.show_window_elt_id]
+        //show_win_elt.focus()  //so that is_dui_the_focus will work after setting the selection.
+        //is_dui_the_focus needed by dui_instruction_callback
+        return
     }
     else if(vals.clicked_button_value == "step_backward"){
         let continue_running = dui2.step_backward_button_click_action(dui_instance)
@@ -733,8 +751,9 @@ var dui2 = class dui2 {
             }
             else { //got a move instruction, keep going to bottom of this method for the instruction selection and insertion
                 dui_instance.update_all(dui_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
-                let instr = //Dexter.pid_move_all_joints(dui_instance.maj_angles)
-                            dui_instance.make_move_instruction(dui_instance.maj_angles)
+                let instr = dui_instance.make_move_instruction(dui_instance.maj_angles)
+                Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
+                instr = dui2.the_dexter.empty_instruction_queue() //Control.wait_until(0.5)
                 Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
             }
         }
@@ -763,7 +782,7 @@ var dui2 = class dui2 {
                 if(!from_dexter_checkbox.checked) {return} //its over. user unchecked checkbox.
                 else if (dui_instance.waiting_for_user_to_start_get_points) { //not yet inited.
                     let job_instance = Job[dui_instance.job_name]
-                    job_instance.insert_single_instruction(Dexter.get_robot_status(), false)
+                    job_instance.insert_single_instruction(dui2.the_dexter.get_robot_status(), false)
                     if((!dui_instance.waiting_for_phui_gui_button_click) ||
                         dui_instance.dexter_instance.was_phui_button_down()){ //ready to start getting points
                         dui_instance.waiting_for_phui_gui_button_click = false
@@ -772,7 +791,7 @@ var dui2 = class dui2 {
                         for(let elt of output_div_id.querySelectorAll(".get_points_from_dexter")){
                             elt.disabled = true
                         }
-                        Job.insert_instruction(Dexter.set_follow_me(), {job: dui_instance.job_name, offset: "end"}) //builds up long do_list
+                        Job.insert_instruction(dui2.the_dexter.set_follow_me(), {job: dui_instance.job_name, offset: "end"}) //builds up long do_list
                         dui_instance.dexter_mode = "follow_me"
                         out("Manually move Dexter to set the Dexter User Interface dialog point.<br/>" +
                             "To record a point, click Dexter's Phui button or<br/>" +
@@ -783,7 +802,7 @@ var dui2 = class dui2 {
                     return
                 }
                 else { //we started
-                    Job[dui_instance.job_name].insert_last_instruction_overwrite(Dexter.get_robot_status())
+                    Job[dui_instance.job_name].insert_last_instruction_overwrite(dui2.the_dexter.get_robot_status())
                     let j_angles =  dui_instance.dexter_instance.rs.measured_angles(7) //note, this probably gets the prev robot status, but that's ok
                     dui_instance.set_maj_angles(j_angles)
                     dui_instance.update_all(false) //hmm, needs work on should_point_down.
@@ -804,7 +823,7 @@ var dui2 = class dui2 {
                 dui_instance.waiting_for_phui_gui_button_click = false
                 dui_instance.waiting_for_user_to_start_get_points = false
                 dui_instance.dexter_mode = "keep_position"
-                Job.insert_instruction(Dexter.set_keep_position(), {job: vals.job_name, offset: "end"})
+                Job.insert_instruction(dui2.the_dexter.set_keep_position(), {job: vals.job_name, offset: "end"})
                 dui_instance.enable_all_robot_moving_elts(true)
                 return
         }
@@ -833,8 +852,6 @@ var dui2 = class dui2 {
         let job_prefix_src =
 `\nnew Job({
     name: "my_job",
-    keep_history: false,
-    show_instructions: false,
     do_list: [
         `
         /* inserts an instruction but not the right thing if you use FromDex mode to get all points
@@ -872,8 +889,7 @@ var dui2 = class dui2 {
         return
     }
     dui_instance.update_all(dui_instance.should_point_down) // do update_all before move_all_joints because update_all may modify ui2_instance.maj_angles if the direction_checkbox is checked
-    let instr = //Dexter.pid_move_all_joints(dui_instance.maj_angles)
-                dui_instance.make_move_instruction(dui_instance.maj_angles)
+    let instr = dui_instance.make_move_instruction(dui_instance.maj_angles)
     //Job.insert_instruction(instr, {job: vals.job_name, offset: "end"})
 
     Job[dui_instance.job_name].insert_last_instruction_overwrite(instr)
@@ -1147,7 +1163,7 @@ var dui2 = class dui2 {
         }
         let do_list_pos = full_src.lastIndexOf("do_list:", start_pos)
         if(do_list_pos > prev_prev_newline_pos) {
-            warning("you're already at the first instruction of the Job.")
+            warning("you're already at the first instruction of the Job.", true)
             return null
         }
 
@@ -1201,7 +1217,7 @@ var dui2 = class dui2 {
 
     make_instruction_source(){
         let instr_name = dui_instr_type_id.value
-        let instr_code = "Dexter." + instr_name
+        let instr_code = dui2.dexter_instruction_subject_source() + instr_name
         let new_args
         if(instr_name.endsWith("move_all_joints"))  {
             /*let angles_to_use = this.maj_angles

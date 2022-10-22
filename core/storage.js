@@ -367,9 +367,9 @@ function read_file_async_from_dexter_using_job(dex_instance, path, callback){
     let colon_pos = path.indexOf(":")
     let dex_file_path = path.substring(colon_pos + 1)
     new Job({name: "dex_read_file",
-        robot: dex_instance,
+        robot: new Brain({name: "b1"}),
         do_list: [
-            Dexter.read_file(dex_file_path, "file_content"),
+            dex_instance.read_file(dex_file_path, "file_content"),
             function(){
                 let cont = this.user_data.file_content
                 if(typeof(cont) == "string"){
@@ -1291,6 +1291,7 @@ var app       = require('electron').remote;  //in the electron book, "app" is sp
 var {Robot, Brain, Dexter, Human, Serial}  = require("./robot.js")
 var {shouldnt, starts_with_one_of, replace_substrings} = require("./utils")
 var Job       = require("./job.js") //because loading a file with new Job in it needs this.
+var {value_of_path} = require('./utils.js');
 
 
 

@@ -1766,8 +1766,10 @@ Dexter.empty_instruction_queue_immediately = function(){
 }
 Dexter.prototype.empty_instruction_queue_immediately = function(...args){ args.push(this); return Dexter.empty_instruction_queue_immediately(...args) }
 
-Dexter.empty_instruction_queue           = function() { return make_ins("F") }
-Dexter.prototype.empty_instruction_queue = function(...args){ args.push(this); return Dexter.empty_instruction_queue(...args) }
+Dexter.empty_instruction_queue = function(...args) {
+        return make_ins("F", ...args)
+}
+Dexter.prototype.empty_instruction_queue = function(){  return Dexter.empty_instruction_queue(this) }
 
 Dexter.find_index           = function(...args){ return make_ins("n", ...args) }
 Dexter.prototype.find_index = function(...args){ args.push(this); return Dexter.find_index(...args) }
@@ -2575,9 +2577,15 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null) {
     }
     else if (job_to_start_when_done.get_dexter_defaults) {
         if (sim_actual !== true) { //ie "real"
-            if (node_server_supports_editor(this)) {
+            if (globalThis.platform == "node") {
+                //just get the file.
                 this.set_link_lengths_using_node_server(job_to_start_when_done)
-            } else {
+
+            }
+            else if (node_server_supports_editor(this)) {
+                this.set_link_lengths_using_node_server(job_to_start_when_done)
+            }
+            else {
                 job_to_start_when_done.stop_for_reason("errored_from_dexter_connect",
                     "While attempting to set_link_lengths, " +
                            " can't connect to Dexter." + this.name)

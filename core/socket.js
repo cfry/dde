@@ -124,7 +124,10 @@ var Socket = class Socket{
                                                      "\n failed after 2 seconds.")
                     }
                 }, 2000)
-                net_soc_inst.connect(rob.port, rob.ip_address)
+                let ip_addr = rob.ip_address
+                if (ip_addr == "localhost") ip_addr = "127.0.0.1" // net.connect wants a number as a string
+                console.log("Socket.init trying to connect to port:"+rob.port+" ip:"+ip_addr)
+                net_soc_inst.connect(rob.port, ip_addr)
             } //ending the case where we need to make a new net_soc_inst
 
             /*out(job_instance.name + "Socket.init before connect, net_soc_inst.readyState: " + net_soc_inst.readyState)

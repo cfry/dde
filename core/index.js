@@ -1,5 +1,5 @@
-global.dde_version = "3.8.9" //require("../package.json").version
-global.dde_release_date = "Sep 30, 2022" //require("../package.json").release_date
+global.dde_version = "3.8.10" //require("../package.json").version
+global.dde_release_date = "Oct 22, 2022" //require("../package.json").release_date
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
@@ -118,6 +118,10 @@ function run_shell_cmd_default_cb (error, stdout, stderr){
 function run_shell_cmd(cmd_string, options={}, cb=run_shell_cmd_default_cb){
     exec(cmd_string, options, cb)
 }
+var child_process = require("child_process")
+var WebSocket = require('ws')
+
+var Socket = require("./socket.js")
 
 var {adjust_path_to_os, append_to_file,
     choose_file, choose_save_file, choose_file_and_get_content, choose_folder,
@@ -176,6 +180,9 @@ var {Messaging, MessStat} =  require("./messaging.js")
 var {Py} = require("./py.js")
 
 // see also je_and_browser_code.js for global vars.
+global.child_process = child_process
+global.WebSocket = WebSocket
+global.Socket = Socket
 global.keep_alive_value = false
 global.Brain    = Brain
 global.Dexter   = Dexter
@@ -238,7 +245,10 @@ global.persistent_get = persistent_get
 global.persistent_remove = persistent_remove
 global.persistent_save = persistent_save
 global.read_file = read_file
+global.read_file_async = read_file_async
 global.write_file = write_file
+global.write_file_async = read_file_async
+
 
 
 global.close_readline = close_readline

@@ -193,6 +193,9 @@ var HCA = class HCA {
             insert_html_into_doc_pane(html, "User Guide", "beforeend")
             open_doc(hca_ui_doc_id)
         }
+        const ctx = HCA_canvas_id.getContext("2d");
+        ctx.fillStyle = "rgb(200, 0, 0)";
+        ctx.fillRect(10, 10, 50, 50);
     }
 
     static clear(){

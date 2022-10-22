@@ -5,6 +5,25 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.8.10, Oct 22, 2022</summary>
+    Highlights: Job Engine Improvements, Dexter UI tutorial Improvements.
+<ul>
+    <li>The Job Engine now has global variables:
+        <ul><li><code>read_file_async</code></li>
+            <li><code>write_file_async</code></li>
+            <li><code>Socket</code></li>
+            <li><code>child_process</code></li>
+            <li><code>WebSocket</code></li>
+        </ul>
+    </li>
+    <li>Additional fixes for Job Engine
+    <li>In Dexter User Interface dialog, clicking the Job button now inserts
+        new job source code WITHOUT the <code>keep_history</code> and
+        <code>show_instructions</code> params.</li>
+    <li>Numerous improvements to the Dexter UI tutorial.</li>
+    <li><code>Dexter.dexter0.empty_instruction_queue</code> fixed.</li>
+</ul>
+</details>
 
 <details class="doc_details"><summary>v 3.8.9, Sep 30, 2022</summary>
 Highlights: Bug fixes.
@@ -14,7 +33,7 @@ Highlights: Bug fixes.
         causing problems.</li>
     <li>robot_status.js now properly usesDexter.J1_MEASURED_ANGLE_G1 instead of 10.
         This does not change functionality.</li>
-    <li>Inspector: 4 "extra info" infinite loop bugs fixed.</li>>
+    <li>Inspector: 4 "extra info" infinite loop bugs fixed.</li>
     <li>Fixed bug in core/index.js for the folder of the require statement that loads dexter_defaults.js</li>
     <li>Fixed bug in storage.js of the default value for outerWidth and outerHeight.</li>
 </ul>
