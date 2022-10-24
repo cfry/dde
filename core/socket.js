@@ -494,7 +494,7 @@ var Socket = class Socket{
             job_instance.sent_instructions_strings.push(str)
         }
         const arr_buff = Socket.string_to_array_buffer(str)
-        const sim_actual = Robot.get_simulate_actual(rob.simulate)
+        var sim_actual = Robot.get_simulate_actual(rob.simulate)
         if((sim_actual === true) || (sim_actual === "both")){
             let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
             if(sim_inst) {

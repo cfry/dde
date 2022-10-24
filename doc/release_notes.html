@@ -5,6 +5,16 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+<details class="doc_details"><summary>v 3.8.11, Oct 24, 2022</summary>
+Highlights: bug fixes for Job Engine
+<ul>
+    <li>Fixed the initial defaulting of simulate at first launch to be:
+        If in the job_engine: <code>false</code>, else <code>true</code>.</li>
+    <li><code>get_simulate_actual</code> now will always return false if we're running the job engine.
+       While running Jobs in the Job engine, you can't simulate them.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.8.10, Oct 22, 2022</summary>
     Highlights: Job Engine Improvements, Dexter UI tutorial Improvements.
 <ul>

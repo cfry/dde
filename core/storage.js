@@ -15,7 +15,7 @@ function get_persistent_values_defaults() {
             "files_menu_paths": [add_default_file_prefix_maybe("dde_init.js")],
             "misc_pane_content": "Simulate Dexter",
             "misc_pane_choose_file_path": "", //only used on dde init, and only if misc_pane_content is "choose_file"
-            "default_dexter_simulate": true,
+            "default_dexter_simulate": ((platform === "node") ? false : true),
             "editor_font_size":    17,
 
             "dde_window_x":       50,

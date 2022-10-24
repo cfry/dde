@@ -50,7 +50,10 @@ var Robot = class Robot {
     }
 
     static get_simulate_actual(simulate_val){
-        if      (simulate_val === true)   { return true   }
+        if(platform === "node") {
+             return false //because now when in job engine, never attempt to run simulator
+        }
+        else if      (simulate_val === true)   { return true   }
         else if (simulate_val === false)  { return false  }
         else if (simulate_val === "both") { return "both" }
         else if (simulate_val === null)   { return persistent_get("default_dexter_simulate") }
