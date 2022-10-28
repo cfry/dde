@@ -1,3 +1,5 @@
+//Only used in the Job Engine
+
 // GRPC doc: https://grpc.io/docs/languages/node/basics/
 //see ready_je.js which sets these 2 as global vars.
 //var grpc = require('@grpc/grpc-js');
@@ -5,7 +7,7 @@
 import path from 'path'
 
 class GrpcServer {
-    static DDE4_PATH = process.cwd() //to path ending in "stuff/dde4/dde/build"
+    static DDE4_PATH = process.cwd() //to dde4, ie the folder containing dde/build/
     static PROTO_PATH  //"/Users/Fry/WebstormProjects/dde4/dde/third_party/helloworld.proto"
                         //__dirname + '/../../protos/helloworld.proto';
 
@@ -100,11 +102,13 @@ class GrpcServer {
         out("OUT: top of GrpcServer.init")
         let last_slash = this.DDE4_PATH.lastIndexOf("/")
         //this.DDE_PATH      = this.DDE4_PATH + "/dde" //path.dirname(this.BUILD_PATH) //ie stuff/dde" no slash on end
-        this.DDE_PATH      = this.DDE4_PATH.substring(0, last_slash) //+ "/www/dde"
-
-        this.PROTO_PATH    = path.join(this.DDE_PATH, "third_party", "helloworld.proto")
+        //this.DDE_PATH      = this.DDE4_PATH.substring(0, last_slash) //+ "/www/dde"
+        if(this.DDE4_PATH.endsWith("/dde/build")) {
+            this.DDE4_PATH = this.DDE4_PATH.substring(0, this.DDE4_PATH.length - ("/dde/build".length))
+        }
+        this.PROTO_PATH    = path.join(this.DDE4_PATH, "dde", "third_party", "helloworld.proto")
         console.log("DDE4_PATH: "  + this.DDE4_PATH)
-        console.log("DDE_PATH: "   + this.DDE_PATH)
+        //console.log("DDE_PATH: "   + this.DDE_PATH)
         console.log("PROTO_PATH: " + this.PROTO_PATH)
         this.init_packageDefinition()
         console.log("after init_packageDefinition")

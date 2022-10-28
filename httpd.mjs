@@ -213,7 +213,7 @@ console.log("now making wss");
 const wss = new WebSocketServer({port: 3001});    //server: http_server });
 console.log("done making wss: " + wss);
 
-
+var debug = false
 
 function serve_job_button_click(browser_socket, mess_obj){
     let app_file = mess_obj.job_name_with_extension; //includes ".js" suffix 
@@ -231,6 +231,11 @@ function serve_job_button_click(browser_socket, mess_obj){
     //let server_response = res //to help close over
     console.log("process: " + job_process)
 
+    if(job_name === "debug") {
+        debug = mess_obj.debug_value
+        return //will become active for subsequent job button clicks
+    }
+    let node_arg_for_debug = (debug ? " --inspect-brk " : "")
     if(!job_process){
         //https://nodejs.org/api/child_process.html
         //https://blog.cloudboost.io/node-js-child-process-spawn-178eaaf8e1f9
@@ -238,7 +243,7 @@ function serve_job_button_click(browser_socket, mess_obj){
         let cmd_args = [mess_obj.args || "-i"]; //if they didn't give us a -c <command> then do an interactive session
         let cmd_options = {cwd: SHARE_FOLDER, shell: true};
         if (".dde"==app_type) { //if this is a job engine job
-            cmd_line = 'node --experimental-fetch'; // --inspect'; // --inspect-brk then we run node
+            cmd_line = 'node --experimental-fetch' + node_arg_for_debug; // --inspect'; // --inspect-brk then we run node
                   //the --experimental-fetch is needed when running node v 17
             cmd_args = // ["core define_and_start_job " + jobfile]; //orig dde3 //tell it to start the job
                       ["bundleje.mjs define_and_start_job " + jobfile] //dde4
@@ -269,6 +274,15 @@ function serve_job_button_click(browser_socket, mess_obj){
                 let data_str = data.toString();
                 if(data_str.includes("ExperimentalWarning:")){
                    //ignore these warnings. Don't change the job button color to red.
+                }
+                else if(data_str.includes("Waiting for the debugger to disconnect")) {
+                    //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
+                }
+                else if(data_str.includes("Debugger attached")) {
+                    //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
+                }
+                else if(data_str.includes("Debugger listening on")) {
+                    //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
                 }
                 else {
                     console.log("\n\nJob." + job_name + " got stderr with data: " + data_str);
@@ -447,6 +461,20 @@ function isBinary(byte) { //must use numbers, not strings to compare. ' ' is 32
 
 function get_page_get_cb() {}
 
+//primarily for debugging the http.createServer callback when using the Job Engine UI
+//the args after "res" are the args to an "out" call that gets made in jobs.html.
+//BUT calling this errors so don't use as is.
+function write_server_to_browser_out_pane_message(res, val, color="black", temp=false, code=false){
+    let lit_obj = {
+        kind: "out_call",
+        val:   val,
+        color: color,
+        temp:  temp,
+        code:  code
+    }
+    res.write("<for_server>" + JSON.stringify(lit_obj) + "</for_server>\n");
+}
+
 //standard web server on port 80 to serve files
 var http_server = http.createServer(async function (req, res) {
   //see https://nodejs.org/api/http.html#http_class_http_incomingmessage 
@@ -454,9 +482,11 @@ var http_server = http.createServer(async function (req, res) {
   //console.log("web server got request: " + req.url )
   var q = url.parse(req.url, true)
   let [main_url, query_string] = ("" + req.url).split("?") //url.parse(req.url,true).search fails
-  console.log("\nweb server passed url: " + req.url +
-              "\n             pathname: " + q.pathname +
-              "\n                query: " + query_string)
+  let top_web_server_mess = "\nweb server passed url: " + req.url +
+                            "\n             pathname: " + q.pathname +
+                            "\n                query: " + query_string
+  console.log(top_web_server_mess)
+  //write_server_to_browser_out_pane_message(res, top_web_server_mess, "green") //causes errors
   if (q.pathname === "/") {
       q.pathname = "index.html"
   }
@@ -999,7 +1029,10 @@ wss.on('connection', function(the_ws, req) {
     let mess_obj = {kind: "error"}
     try { mess_obj = JSON.parse(message)} catch(e) {console.log("bad message: "+e); return;}
     console.log("\nwss server on message received kind: " + mess_obj.kind)
-    if(mess_obj.kind === "keep_alive_click") {
+    if(mess_obj.kind === "debug_click") {
+          serve_job_button_click(browser_socket, mess_obj)
+    }
+    else if(mess_obj.kind === "keep_alive_click") {
         serve_job_button_click(browser_socket, mess_obj)
     }
     else if(mess_obj.kind === "job_button_click") {

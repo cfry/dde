@@ -251,6 +251,7 @@ class Job{
     //warning might be a empty array
     static async instances_in_file(path_name){
         let base_id_before_new_defs = Job.job_id_base
+        out("top of instances_in_file passed path_name: " + path_name)
         try{ await DDEFile.load_file(path_name) }
         catch(err) {
             dde_error("In Job.instances_in_file, evaling the content of path name: " + path_name +

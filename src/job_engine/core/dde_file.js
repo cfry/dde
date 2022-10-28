@@ -558,17 +558,22 @@ class DDEFile {
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
         //see httpd.mjs, serve_file()
-        let defaulted_path = this.add_default_file_prefix_maybe(path)
         console.log("load_file passed path: " + path)
+        out("load_file passed path: " + path)
+        let defaulted_path = this.add_default_file_prefix_maybe(path)
         let full_url = this.make_url(defaulted_path, "/edit?edit=")
         console.log("load_file made url: " + full_url)
+        out("load_file made url: " + full_url)
         //console.log("about to call fetch that has value: " + fetch)
         let file_info_response = await fetch(full_url)
         console.log("load_file after 1st fetch with response: " + file_info_response.ok)
+        out("load_file after 1st fetch with response: " + file_info_response.ok)
         if(file_info_response.ok) {
             console.log("load_file got response that is OK")
+            out("load_file got response that is OK")
             let content = await file_info_response.text()
             console.log("load_file got content: " + content)
+            out("load_file got content: " + content)
             let result
             try {
                 this.loading_file = defaulted_path

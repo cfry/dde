@@ -889,7 +889,6 @@ static value_of_path(path_string){
         dde_error("value_of_path passed: " + path_string + " which is not a string or an array.");
     }
     let result;
-    console.log("In Utils.value_of_path: " + path);
     if(globalThis[path[0]] !== undefined) { result = globalThis;} //window } //window errors in job engine
     //note globalThis["window"] returns the window obj so the arg can be "window" and we still win
     else if (Object.prototype[path[0]] !== undefined) { result = Object.prototype; }
@@ -16812,6 +16811,7 @@ class Job$1{
     //warning might be a empty array
     static async instances_in_file(path_name){
         let base_id_before_new_defs = Job$1.job_id_base;
+        out("top of instances_in_file passed path_name: " + path_name);
         try{ await DDEFile.load_file(path_name); }
         catch(err) {
             dde_error("In Job.instances_in_file, evaling the content of path name: " + path_name +
@@ -24902,7 +24902,10 @@ class Robot$1 {
     }
 
     static get_simulate_actual(simulate_val){
-        if      (simulate_val === true)   { return true   }
+        if(platform === "node") {
+            return false //because now when in job engine, never attempt to run simulator
+        }
+        else if      (simulate_val === true)   { return true   }
         else if (simulate_val === false)  { return false  }
         else if (simulate_val === "both") { return "both" }
         else if (simulate_val === null)   {
@@ -26640,8 +26643,10 @@ Dexter$1.empty_instruction_queue_immediately = function(){
 };
 Dexter$1.prototype.empty_instruction_queue_immediately = function(...args){ args.push(this); return Dexter$1.empty_instruction_queue_immediately(...args) };
 
-Dexter$1.empty_instruction_queue           = function() { return make_ins("F") };
-Dexter$1.prototype.empty_instruction_queue = function(...args){ args.push(this); return Dexter$1.empty_instruction_queue(...args) };
+Dexter$1.empty_instruction_queue = function(...args) {
+    return make_ins("F", ...args)
+};
+Dexter$1.prototype.empty_instruction_queue = function(){  return Dexter$1.empty_instruction_queue(this) };
 
 Dexter$1.find_index           = function(...args){ return make_ins("n", ...args) };
 Dexter$1.prototype.find_index = function(...args){ args.push(this); return Dexter$1.find_index(...args) };
@@ -30856,9 +30861,9 @@ class Socket$1{
     static on_receive(data, payload_string_maybe, dexter_instance){
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
         //console.log("top of Socket.on_receive.")
-        out("Socket.on_receive passed data: " + data +
-                                     " payload_string_maybe: " + payload_string_maybe +
-                                     " dexter_instance: " + dexter_instance);
+        //out("Socket.on_receive passed data: " + data +
+        //                             " payload_string_maybe: " + payload_string_maybe +
+        //                             " dexter_instance: " + dexter_instance)
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
             let robot_status = data;
             let oplet = robot_status[Dexter.INSTRUCTION_TYPE];
@@ -30911,7 +30916,6 @@ class Socket$1{
         //    " Dexter." + dexter_instance.name +
         //    " oplet: " + oplet +
         //    " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE])
-        //if(job_instance.name === "monitor_dexter"){ debugger;}
         if(oplet == "r"){ //Dexter.read_file
             if(typeof(payload_string_maybe) == "number") { //only can hit im sim.// should be 2 if it hits
                 robot_status[Dexter.ERROR_CODE] = 0; //even though we got an error from file_not_found,
@@ -34239,17 +34243,22 @@ class DDEFile$1 {
         //full_url = full_url.substring(1) //cut off the leading slash makes the server code
         //think that this url is a root url for some strange reason.
         //see httpd.mjs, serve_file()
-        let defaulted_path = this.add_default_file_prefix_maybe(path);
         console.log("load_file passed path: " + path);
+        out("load_file passed path: " + path);
+        let defaulted_path = this.add_default_file_prefix_maybe(path);
         let full_url = this.make_url(defaulted_path, "/edit?edit=");
         console.log("load_file made url: " + full_url);
+        out("load_file made url: " + full_url);
         //console.log("about to call fetch that has value: " + fetch)
         let file_info_response = await fetch(full_url);
         console.log("load_file after 1st fetch with response: " + file_info_response.ok);
+        out("load_file after 1st fetch with response: " + file_info_response.ok);
         if(file_info_response.ok) {
             console.log("load_file got response that is OK");
+            out("load_file got response that is OK");
             let content = await file_info_response.text();
             console.log("load_file got content: " + content);
+            out("load_file got content: " + content);
             let result;
             try {
                 this.loading_file = defaulted_path;
@@ -37714,10 +37723,10 @@ function init_readline$1() {
 
 globalThis.init_readline = init_readline$1;
 
-// GRPC doc: https://grpc.io/docs/languages/node/basics/
+//Only used in the Job Engine
 
 class GrpcServer$1 {
-    static DDE4_PATH = process.cwd() //to path ending in "stuff/dde4/dde/build"
+    static DDE4_PATH = process.cwd() //to dde4, ie the folder containing dde/build/
     static PROTO_PATH  //"/Users/Fry/WebstormProjects/dde4/dde/third_party/helloworld.proto"
                         //__dirname + '/../../protos/helloworld.proto';
 
@@ -37810,13 +37819,15 @@ class GrpcServer$1 {
     static init() {
         console.log("top of GrpcServer.init");
         out("OUT: top of GrpcServer.init");
-        let last_slash = this.DDE4_PATH.lastIndexOf("/");
+        this.DDE4_PATH.lastIndexOf("/");
         //this.DDE_PATH      = this.DDE4_PATH + "/dde" //path.dirname(this.BUILD_PATH) //ie stuff/dde" no slash on end
-        this.DDE_PATH      = this.DDE4_PATH.substring(0, last_slash); //+ "/www/dde"
-
-        this.PROTO_PATH    = path.join(this.DDE_PATH, "third_party", "helloworld.proto");
+        //this.DDE_PATH      = this.DDE4_PATH.substring(0, last_slash) //+ "/www/dde"
+        if(this.DDE4_PATH.endsWith("/dde/build")) {
+            this.DDE4_PATH = this.DDE4_PATH.substring(0, this.DDE4_PATH.length - ("/dde/build".length));
+        }
+        this.PROTO_PATH    = path.join(this.DDE4_PATH, "dde", "third_party", "helloworld.proto");
         console.log("DDE4_PATH: "  + this.DDE4_PATH);
-        console.log("DDE_PATH: "   + this.DDE_PATH);
+        //console.log("DDE_PATH: "   + this.DDE_PATH)
         console.log("PROTO_PATH: " + this.PROTO_PATH);
         this.init_packageDefinition();
         console.log("after init_packageDefinition");

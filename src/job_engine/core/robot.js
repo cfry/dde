@@ -63,7 +63,10 @@ class Robot {
     }
 
     static get_simulate_actual(simulate_val){
-        if      (simulate_val === true)   { return true   }
+        if(platform === "node") {
+            return false //because now when in job engine, never attempt to run simulator
+        }
+        else if      (simulate_val === true)   { return true   }
         else if (simulate_val === false)  { return false  }
         else if (simulate_val === "both") { return "both" }
         else if (simulate_val === null)   {
@@ -1806,8 +1809,10 @@ Dexter.empty_instruction_queue_immediately = function(){
 }
 Dexter.prototype.empty_instruction_queue_immediately = function(...args){ args.push(this); return Dexter.empty_instruction_queue_immediately(...args) }
 
-Dexter.empty_instruction_queue           = function() { return make_ins("F") }
-Dexter.prototype.empty_instruction_queue = function(...args){ args.push(this); return Dexter.empty_instruction_queue(...args) }
+Dexter.empty_instruction_queue = function(...args) {
+    return make_ins("F", ...args)
+}
+Dexter.prototype.empty_instruction_queue = function(){  return Dexter.empty_instruction_queue(this) }
 
 Dexter.find_index           = function(...args){ return make_ins("n", ...args) }
 Dexter.prototype.find_index = function(...args){ args.push(this); return Dexter.find_index(...args) }

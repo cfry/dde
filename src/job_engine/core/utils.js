@@ -796,7 +796,6 @@ static value_of_path(path_string){
         dde_error("value_of_path passed: " + path_string + " which is not a string or an array.")
     }
     let result
-    console.log("In Utils.value_of_path: " + path)
     if(globalThis[path[0]] !== undefined) { result = globalThis} //window } //window errors in job engine
     //note globalThis["window"] returns the window obj so the arg can be "window" and we still win
     else if (Object.prototype[path[0]] !== undefined) { result = Object.prototype }

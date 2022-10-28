@@ -97,6 +97,13 @@
                             keep_alive_value: is_checked}
             web_socket.send(JSON.stringify(mess_obj))
         }
+        function get_debug_click(event){
+            let is_checked = event.target.checked
+            let mess_obj = {kind: "debug_click",
+                job_name_with_extension: "debug", //this is a pseudo-job, not a real job, but its processed like one.
+                debug_value: is_checked}
+            web_socket.send(JSON.stringify(mess_obj))
+        }
 
         var job_name_with_extension_to_xhttp = {}
         function handle_job_button_click(job_name_with_extension){
@@ -451,10 +458,14 @@ Click a Job&apos;s button to start or stop it.<br/>
     <button onclick="browser_clear_output()"
             title="Remove all previously output text (below)."
             style="margin-right:0px;">Clear</button>
+    <span title="When checked, set up debugging for Jobs.">
+           	  <input id="debug_id" type="checkbox" onchange="get_debug_click(event)"/>
+           	  <label for="debug_id">debug</label>
+    </span>
     <span title="When checked, all started Jobs will run in one process&#013;so they can share state.&#013;When unchecked, started Jobs will run in their own process.">
            	  <input id="keep_alive_id" type="checkbox" onchange="get_keep_alive_click(event)"/>
            	  <label for="keep_alive_id" >keep_alive</label>
-           </span>
+    </span>
     <div style="display:inline-block;margin:0px;padding:0px;font-size:11px;vertical-align:0px;transform:rotate(-90deg);">Jobs</div>
 </div>
 <!-- output_div_id is same spelling as DDE output pane content div on purpose. -->

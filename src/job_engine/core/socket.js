@@ -683,7 +683,6 @@ class Socket{
         if((oplet === "g") && (instr_id > 0)) {
             got_first_non_monitor_instr = true
             //out("in Socket.send for job: " + job_instance.name)
-            //debugger;
         }
         else if ((job_instance !== "monitor_job") && (oplet !== "g") && got_first_non_monitor_instr){
             //out("in Socket.send for job: " + job_instance.name)
@@ -785,9 +784,9 @@ class Socket{
     static on_receive(data, payload_string_maybe, dexter_instance){
         //data.length == 240 data is of type: Uint8Array, all values between 0 and 255 inclusive
         //console.log("top of Socket.on_receive.")
-        out("Socket.on_receive passed data: " + data +
-                                     " payload_string_maybe: " + payload_string_maybe +
-                                     " dexter_instance: " + dexter_instance)
+        //out("Socket.on_receive passed data: " + data +
+        //                             " payload_string_maybe: " + payload_string_maybe +
+        //                             " dexter_instance: " + dexter_instance)
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
             let robot_status = data
             let oplet = robot_status[Dexter.INSTRUCTION_TYPE]
@@ -840,7 +839,6 @@ class Socket{
         //    " Dexter." + dexter_instance.name +
         //    " oplet: " + oplet +
         //    " J1 angle: " + robot_status[Dexter.J1_MEASURED_ANGLE])
-        //if(job_instance.name === "monitor_dexter"){ debugger;}
         if(oplet == "r"){ //Dexter.read_file
             if(typeof(payload_string_maybe) == "number") { //only can hit im sim.// should be 2 if it hits
                 robot_status[Dexter.ERROR_CODE] = 0 //even though we got an error from file_not_found,
