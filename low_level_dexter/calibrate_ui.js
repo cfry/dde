@@ -107,9 +107,6 @@ function make_calibrate_joint_buttons_html(){
     
     for(var i = 1; i <= 5; i++){
     	let title = 'Expect a circle of points to be drawn counter-clockwise.'
-        if(i == 5){
-        	title = 'Expect a circle of points to be drawn clockwise.'
-        }
         result += 
             "<input title='" + title + "' type='button' value='Start J" + i + "' id='Start_J_" + i + "_id' style='margin-right:15px; background-color: rgb(204, 204, 204);margin-bottom:5px;'></input> " +
             "<span style='font-size:18px; margin:0px; padding:0px;' title='Make Joint " + i + " current and show recorded points.'> &#128065; </span>" +

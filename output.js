@@ -522,13 +522,32 @@ function get_page(url, callback=out, error_callback=get_page_error_callback){//i
 //so I stick with my "main.js" trick for async here.
 //Always returns a string.
 //If there's an error, the string starts with: "Error: "
+/*
 function get_page(url_or_options){
         //onsole.log("rend get_page sync: " + url_or_options)
-        const reply = ipcRenderer.sendSync('get_page', url_or_options) //see main.js "get_page"
-        //onsole.log("rend get_page sync back from: " + url_or_options + " with: " + reply.substring(0, 10))
-        return reply
+        if(platform === "node"){ //in job engine. URL better be to 127.0.0.1, "localhost"
+            //or the ip of the dexter its running on or it will error
+            let url
+            let options
+            if(typeof(url_or_options) === "string"){
+                url = url_or_options
+                options = undefined
+            }
+            else {
+                url = url_or_options.url //got an object
+                options = url_or_options
+            }
+            let content = fs.readFileSync(url, options)
+            return content
+        }
+        else {
+            const reply = ipcRenderer.sendSync('get_page', url_or_options) //see main.js "get_page"
+            //onsole.log("rend get_page sync back from: " + url_or_options + " with: " + reply.substring(0, 10))
+            return reply
+        }
 }
 window.get_page = get_page
+ */
 
 
 //returns null if it can't get the data, else an array

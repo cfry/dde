@@ -2333,25 +2333,33 @@ Dexter.prototype.turn_on_j6_and_j7_torque  = function(){
 
 
 //from Dexter_Modes.js (these are instructions. The fns return an array of instructions
-Dexter.set_follow_me                = function(){ return [make_ins("S", "RunFile", "setFollowMeMode.make_ins"),
-                                                          Dexter.turn_off_j6_and_j7_torque()]}
-Dexter.prototype.set_follow_me      = function(){ return [make_ins("S", "RunFile", "setFollowMeMode.make_ins", this),
-                                                          this.turn_off_j6_and_j7_torque()]}
+Dexter.set_follow_me                = function(){ return make_ins("S", "RunFile", "setFollowMeMode.make_ins")
+                                                          //Dexter.turn_off_j6_and_j7_torque()]
+                                        }
+Dexter.prototype.set_follow_me      = function(){ return make_ins("S", "RunFile", "setFollowMeMode.make_ins", this)
+                                                          //this.turn_off_j6_and_j7_torque()]
+                                      }
 
-Dexter.set_force_protect            = function(){ return [make_ins("S", "RunFile", "setForceProtectMode.make_ins"),
-                                                          Dexter.turn_on_j6_and_j7_torque()]}
-Dexter.prototype.set_force_protect  = function(){ return [make_ins("S", "RunFile", "setForceProtectMode.make_ins", this),
-                                                          this.turn_on_j6_and_j7_torque()]}
+Dexter.set_force_protect            = function(){ return make_ins("S", "RunFile", "setForceProtectMode.make_ins")
+                                                          //Dexter.turn_on_j6_and_j7_torque()]
+                                      }
+Dexter.prototype.set_force_protect  = function(){ return make_ins("S", "RunFile", "setForceProtectMode.make_ins", this)
+                                                          //this.turn_on_j6_and_j7_torque()]
+                                      }
 
-Dexter.set_keep_position            = function(){ return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins"),
-                                                          Dexter.turn_on_j6_and_j7_torque()]}
-Dexter.prototype.set_keep_position  = function(){ return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins", this),
-                                                          this.turn_on_j6_and_j7_torque()]}
+Dexter.set_keep_position            = function(){ return make_ins("S", "RunFile", "setKeepPositionMode.make_ins")
+                                                          //Dexter.turn_on_j6_and_j7_torque()]
+                                      }
+Dexter.prototype.set_keep_position  = function(){ return make_ins("S", "RunFile", "setKeepPositionMode.make_ins", this)
+                                                          //this.turn_on_j6_and_j7_torque()]
+                                      }
 
-Dexter.set_open_loop                = function(){ return [make_ins("S", "RunFile", "setOpenLoopMode.make_ins"),
-                                                          Dexter.turn_on_j6_and_j7_torque()]}
-Dexter.prototype.set_open_loop      = function(){ return [make_ins("S", "RunFile", "setOpenLoopMode.make_ins", this),
-                                                          this.turn_on_j6_and_j7_torque()]}
+Dexter.set_open_loop                = function(){ return make_ins("S", "RunFile", "setOpenLoopMode.make_ins")
+                                                         // Dexter.turn_on_j6_and_j7_torque()] //use to be in before Nov 3, 2022 but James N says shouldn't be there
+                                      }
+Dexter.prototype.set_open_loop      = function(){ return make_ins("S", "RunFile", "setOpenLoopMode.make_ins", this)
+                                                        // this.turn_on_j6_and_j7_torque()] //use to be in before Nov 3, 2022 but James N says shouldn't be there
+                                      }
 
 
 //End Dexter Instructions

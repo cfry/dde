@@ -933,7 +933,7 @@ class Job{
                 tooltip  = "This Job has not been started since it was defined.\nClick to start this Job."
                 break; //defined but never started.
             case "starting":
-                bg_color = "rgb(210, 255, 190)";
+                bg_color = "rgb(210, 255, 190)"; //pale green
                 tooltip  = "This Job is in the process of starting.\nClick to stop it."
                 break;
             case "running":
@@ -959,7 +959,7 @@ class Job{
                                    ', sleep (oplet "z") for ' + dur_in_seconds + " second(s)."
                     }
                     else {
-                        bg_color = "rgb(136, 255, 136)";
+                        bg_color = "rgb(136, 255, 136)"; //bright green   normal running
                         tooltip  = "This Job is running instruction " + this.program_counter +
                                    ".\nClick to stop this job."
                     }
@@ -1032,7 +1032,12 @@ class Job{
             but_elt.title = tooltip
         }
         else { //job engine
-           let data = {kind: "show_job_button", job_name: this.name, status_code: this.status_code, button_color: bg_color, button_tooltip: tooltip}
+           //out("color_job_button for job: " + this.name + " status_code: " + this.status_code + " returning bg_color: " + bg_color)
+           let data = {kind:           "show_job_button",
+                       job_name:       this.name,
+                       status_code:    this.status_code,
+                       button_color:   bg_color,
+                       button_tooltip: tooltip}
            write_to_stdout("<for_server>" + JSON.stringify(data) + "</for_server>\n")
         }
     }
@@ -1113,7 +1118,7 @@ class Job{
     //returns an array of jobs that either have "robot" as their default robot,
     //OR the job's PC is pointing at an instruction that is using "robot".
     static active_jobs_using_robot(robot){
-        result = []
+        let result = []
         let active_jobs = this.active_jobs()
         for(let job_instance of adctive_jobs){
             if(job_instance.robot === robot) { result.push(job_instance) }

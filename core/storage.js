@@ -2,6 +2,7 @@
 
 var request = require('request'); //needed by write_file_async for node server
 var fsPath  = require('fs-path')
+var os      = require('os')
 
 //_______PERSISTENT: store name-value pairs in a file. Keep a copy of hte file in JS env, persistent_values
 //and write it out every time its changed.
@@ -15,7 +16,8 @@ function get_persistent_values_defaults() {
             "files_menu_paths": [add_default_file_prefix_maybe("dde_init.js")],
             "misc_pane_content": "Simulate Dexter",
             "misc_pane_choose_file_path": "", //only used on dde init, and only if misc_pane_content is "choose_file"
-            "default_dexter_simulate": ((platform === "node") ? false : true),
+            "default_dexter_simulate": ((globalThis.platform === "node") ? false : true),
+            "default_dexter_ip_address": default_default_dexter_ip_address,
             "editor_font_size":    17,
 
             "dde_window_x":       50,
@@ -31,12 +33,15 @@ function get_persistent_values_defaults() {
             "kiosk": false,
             "ssh_show_password": false,
             "dont_show_splash_screen_on_launch": false,
-            "splash_screen_tutorial_labels": (window.SplashScreen ? SplashScreen.splash_screen_tutorial_labels() : [])
+            "splash_screen_tutorial_labels": (globalThis.SplashScreen ? SplashScreen.splash_screen_tutorial_labels() : [])
            }
 }
 //ensures that dde_apps folder exists, that dde_persistent.json, and
 //loads in values from dde_persistent.json
 function persistent_initialize() {
+    if(!globalThis.default_default_dexter_ip_address) {
+        globalThis.default_default_dexter_ip_address = ((globalThis.platform === "node") ? "localhost" : "192.168.1.142")
+    }
     if(!file_exists("")){
         make_folder("") //make dde_apps folder, synchronous
     }
@@ -178,7 +183,6 @@ module.exports.persistent_remove = persistent_remove
 
 
 var default_default_ROS_URL           = "localhost:9090"
-var default_default_dexter_ip_address = "192.168.1.142"
 var default_default_dexter_port       = 50000
 
 //gaurentees that dde_init.js exists and that it has certain content in it,
@@ -188,14 +192,14 @@ function dde_init_dot_js_initialize() {
         dde_error("dde_init_dot_js_initialize called but there is no Documents/dde_apps/ folder.")
     }
     else if (file_exists("dde_init.js")){ //we don't want to error if the file doesn't exist.
-        if (global.platform == "node") {
-            global.persistent_set = persistent_set
+        if (globalThis.platform == "node") {
+            globalThis.persistent_set = persistent_set
         }
         try{
             load_files("dde_init.js")
         }
         catch(err0){
-            if(window.Editor) { //will not hit in node platform
+            if(globalThis.Editor) { //will not hit in node platform
                 Editor.edit_file(add_default_file_prefix_maybe("dde_init.js"))
             }
             dde_error("The file: Documents/dde_apps/dde_init.js has invalid JavaScript in it.<br/>" +
@@ -257,7 +261,7 @@ function dde_init_dot_js_initialize() {
 
         eval(initial_dde_init_content)
         write_file("dde_init.js", initial_dde_init_content)
-        if(!Editor.files_menu_paths_empty_or_contains_only_dde_init()){ // we don't want to
+        if(globalThis.Editor && !Editor.files_menu_paths_empty_or_contains_only_dde_init()){ // we don't want to
             //print out this message on first DDE launch or if they haven't even
             //saved a file yet, so as not to scare new users.
             out("DDE uses the file: Documents/dde_apps/dde_init.js<br/>" +
@@ -304,12 +308,12 @@ module.exports.file_content = file_content //depricated
 function read_file_async(path, encoding="utf8", callback){
     let dex_instance = path_to_dexter_instance(path)
     if(dex_instance){
-           if(node_server_supports_editor(dex_instance)) {
+           //if(node_server_supports_editor(dex_instance)) {
                read_file_async_from_dexter_using_node_server(dex_instance, path, callback)
-           }
-           else {
-               read_file_async_from_dexter_using_job(dex_instance, path, callback)
-           }
+           //}
+           //else {
+           //    read_file_async_from_dexter_using_job(dex_instance, path, callback)
+           //}
     }
     else if (is_dexter_path(path)){
         dde_error("In read_file_async of path: " + path +
@@ -344,10 +348,10 @@ function read_file_async_from_dexter_using_node_server(dex_instance, path, callb
     }
     let url = "http://" + dex_instance.ip_address + "/edit?edit=" + path //example: "http://192.168.1.142/edit?edit=root/dde_apps/dde_init.js" whereby no beiginning slas actually means going from the server's top level of file system
     let req = {
-        uri: url,
+        url: url,
         encoding: null
     }
-    let content_array = get_page(req) //does not error if file doens't exist so ...
+    let content_array = get_page(req) //does not error if file doesn't exist so ...
     let content = content_array.toString("binary"); //Strings can contain binary file content
     let the_err = null
     if(content.startsWith("Error:")){
@@ -383,7 +387,7 @@ function read_file_async_from_dexter_using_job(dex_instance, path, callback){
         ],
         when_stopped: function(){ //this code OUGHT to be called but as of apr 2019, if we error due to dexter not connected, then Job,.finish is never called so we don't call this method. Handle it in Job.stop_for_reason
             if(this.status_code == "errored"){
-                if(window.Editor) { //won't hit in node, bu won't error either
+                if(globalThis.Editor) { //won't hit in node, bu won't error either
                     Editor.set_files_menu_to_path() //restore files menu to what it was before we tried to get the file off of dexter.
                 }
             }
@@ -1037,7 +1041,7 @@ module.exports.node_server_supports_editor = node_server_supports_editor
         let resolved_path = resolved_paths[resolved_paths_index]
         let content = contents[resolved_paths_index]
         out("loading file: " + resolved_path, "green")
-        result = window.eval(content)
+        result = globalThis.eval(content)
     }
     return result
 }*/
@@ -1096,21 +1100,21 @@ function load_files(...paths) {
           // last epxression in the file much less often than eval_js_part2, so use eval_js_part2 instead.
           //I must use eval and not eval_js_part2 because the later is not in core/job engine s
           //so that prevents loadiing files in job engine, which is a show stopper.
-        try{let prev_loading_file =  window["loading_file"]
-            window["loading_file"] = resolved_path
-            window.Job = Job //needed if content has "Job" in it.
+        try{let prev_loading_file =  globalThis["loading_file"]
+            globalThis["loading_file"] = resolved_path
+            globalThis.Job = Job //needed if content has "Job" in it.
             if(Array.isArray(content)){
                 Py.load_file(content[0])
                 result = "Loading Python files doesn't return a result."
             }
             else {
-                result = window.eval(content)
+                result = globalThis.eval(content)
             }
-            window["loading_file"] = prev_loading_file
+            globalThis["loading_file"] = prev_loading_file
         }
         catch(err){
             let file_mess = prepend_file_message_maybe(err.message) //do before undefining loading_file
-            window["loading_file"] = undefined //must do before calling dde_error or
+            globalThis["loading_file"] = undefined //must do before calling dde_error or
                                                //it won't get done BUT need dde_error to print out the loading file message.
             dde_error(file_mess)
         }
@@ -1277,6 +1281,126 @@ function make_unique_path(path){
     return new_path
 }
 module.exports.make_unique_path = make_unique_path
+
+//Code that runs in node_server AND job_engine for get_page
+
+function compute_dde_apps_folder(){ //new in dde4 //todo dde4 result proably shouldn't end in slash
+    if(running_on_dexter()) { return SHARE_FOLDER + '/dde_apps/' }
+    else {
+        return os.homedir()  //example: "/Users/Fry"
+            + "/Documents/dde_apps/"
+    }
+}
+
+function compute_dde_install_folder(){ //new in dde4 //todo dde4 result proably shouldn't end in slash
+    if(running_on_dexter()) {
+        return  SHARE_FOLDER + "/www/dde/build"  //'/root/Documents/dde'
+    }
+    else {
+        return "" //no install folder for DDE IDE  in dde3 //path.join(process.cwd(), 'dde', 'build')
+    }
+}
+
+function compute_dde_folder(){ //new in dde4 //todo dde4 result proably shouldn't end in slash
+    if(running_on_dexter()) {
+        return  SHARE_FOLDER + "/www/dde"  //'/root/Documents/dde'
+    }
+    else {
+        return compute_dde_apps_folder()
+    }
+}
+
+
+var SHARE_FOLDER
+var DDE_APPS_FOLDER
+var DDE_INSTALL_FOLDER
+var DDE_FOLDER
+
+function init_storage(){
+    SHARE_FOLDER       = '/srv/samba/share';
+    DDE_APPS_FOLDER    = compute_dde_apps_folder()  //dde4
+    DDE_INSTALL_FOLDER = compute_dde_install_folder() //where DDE is installed on Dexter  //todo dde4 this changes
+    DDE_FOLDER         = compute_dde_folder()
+}
+
+module.exports.init_storage = init_storage
+
+
+function running_on_dexter() { //dde4 added
+    /*console.log("globalThis['fs' is: " + globalThis["fs"])
+    debugger;
+    if(globalThis["fs"] && globalThis.fs["existsSync"]) {
+        return globalThis.fs.existsSync(SHARE_FOLDER)
+    }
+    else { return false }
+     */
+    return globalThis.platform === "node"
+}
+
+function make_full_path_je(path){ //dde4 added
+    if(path.startsWith("/")) {} //keep path as is
+    else if ((path === "dde_apps") || path.startsWith("dde_apps/")){
+        if(globalThis.platform === "node") {
+            path = SHARE_FOLDER + "/" + path
+        }
+        else {
+            let prefix = dde_apps_folder.substring(0, dde_apps_folder.length - 9)
+            console.log("in make_full_path_je, NOT running_on_dexter, prefix: " + prefix)
+            path = prefix + path
+        }
+    }
+    else if(path.startsWith("dde/")) {
+        path = DDE_FOLDER + "/" + path.substring(4) //cut off the "dde/" prefix or else we'll get two dde folders in the resulting path
+    }
+    else {
+        path = SHARE_FOLDER + "/" + path
+    }
+    return path
+}
+//end of Code that runs in node_server AND job_engine for get_page
+
+function url_to_file_path(url){
+    let index_of_edit = url.indexOf("edit=")
+    let result = url.substring(index_of_edit + 5)
+    result = make_full_path_je(result)
+    return result
+}
+
+
+//if url doesnt' exist, get_page doesn't actuallyy error, it just returns a "content" page
+//of a string of "Error: the err message content"
+//When we're in the job engine, and our url is one to the computer we're running on,
+//then just use fs to get that file content from the dexter.
+function get_page(url_or_options){
+    //onsole.log("rend get_page sync: " + url_or_options)
+    if(platform === "node"){ //in job engine. URL better be to 127.0.0.1, "localhost"
+        //or the ip of the dexter its running on or it will error
+        let url
+        let options
+        if(typeof(url_or_options) === "string"){
+            url = url_or_options
+            options = undefined
+        }
+        else {
+            url = url_or_options.url //got an object
+            options = url_or_options
+        }
+        let content
+        let file_path = url_to_file_path(url)
+        try { content = fs.readFileSync(file_path, options) }
+        catch(err) {
+            content = "Error: " + err.message
+        }
+        return content
+    }
+    else {
+        const reply = ipcRenderer.sendSync('get_page', url_or_options) //see main.js "get_page"
+        //onsole.log("rend get_page sync back from: " + url_or_options + " with: " + reply.substring(0, 10))
+        return reply
+    }
+}
+module.exports.get_page = get_page
+
 
 function get_page_async(url_or_options, callback){
     //https://www.npmjs.com/package/request documents request

@@ -386,7 +386,7 @@ function beep({dur = 0.5, frequency = 440, volume = 1, waveform = "triangle", ca
 }
 module.exports.beep = beep
 
-var {persistent_get} = require("./storage")
+var {persistent_get} = require("./storage.js")
 var {replace_substrings, starts_with_one_of, stringify_value} = require("./utils.js")
 var {exec} = require("child_process")
 var {month_names} = require("./utils")

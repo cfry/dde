@@ -1,8 +1,8 @@
 {
   "name": "dexter_dev_env",
   "productName": "dexter_dev_env",
-  "version": "3.8.11",
-  "release_date": "Oct 24, 2022",
+  "version": "3.8.12",
+  "release_date": "Nov 12, 2022",
   "description": "Dexter Development Environment for programming the Dexter robot.",
   "author": "Fry",
   "license": "GPL-3.0",
