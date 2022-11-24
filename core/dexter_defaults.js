@@ -65,11 +65,10 @@ Dexter.prototype.defaults_read = function(callback = null){
     read_file_async(the_url, undefined, normal_defaults_read_cb)
 }
 
-//caution:  not ready for prime time.
 Dexter.prototype.defaults_write = function(){
-    Dexter.dexter0.defaults_high_level_to_defaults_lines()
-    let the_url = Dexter.prototype.defaults_url()
-    let content = this.defaults.get("whole_file_string")
+    this.defaults_high_level_to_defaults_lines()
+    let the_url = this.defaults_url()
+    let content = this.defaults_get("whole_file_string")
     let the_dex_inst = this
     write_file_async(the_url,  content,
         function(err){
@@ -873,7 +872,9 @@ Dexter.prototype.defaults_line_to_high_level = function(line, line_number="unkno
              (parsed_line.kind === "colonless_comment_prop")) {
         if(parsed_line.value_array) {high_value = parsed_line.value_array[0]}
         else                        {
-            high_value = Dexter.defaults[high_key]
+            high_value = Dexter.defaults[high_key]  //todo bug: noah reports that Dexter.defaults
+            //is unbound. So before calling defaults_read, we need to get that
+            //Dexter.defaults bound and filled up SO that we can steal "high_value" from it.
             warning("While parsing the Defaults.make_ins file,<br/>" +
                 "there is no value for the comment_property key: " + low_key +
                 "<br/>so we're using the value from Dexter.default." + high_key +
@@ -1057,9 +1058,9 @@ Dexter.defaults_high_key_to_j_key = function(key, joint_number){
     else                     { return "J" + joint_number       + key}
 }
 
-Dexter.prototype.defaults_compute_parsed_lines = function(){
+Dexter.prototype.defaults_compute_parsed_lines = function() {
     let parsed_lines = []
-    for(let i = 0; i < this.defaults_lines.length; i++){
+    for (let i = 0; i < this.defaults_lines.length; i++) {
         let line = this.defaults_lines[i]
         let parsed_line = Dexter.defaults_parse_line(line, i)
         parsed_lines.push(parsed_line)
@@ -1191,17 +1192,17 @@ Dexter.prototype.defaults_high_level_to_defaults_lines = function(){
                             low_val_str = low_val
                         }
                         else {
-                            ins_arr.concat(high_val)
+                            ins_arr = ins_arr.concat(high_val)
                             let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this)
                             let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1)
-                            let low_val_str = low_val.join(Dexter.defaults_arg_sep)
+                            low_val_str = low_val.join(Dexter.defaults_arg_sep)
                         }
                     }
                     else {
                         ins_arr[Instruction.INSTRUCTION_ARG1] = high_val
                         let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this)
                         let low_val = dde_ins_arr[Instruction.INSTRUCTION_ARG1]
-                        let low_val_str = low_val
+                        low_val_str = low_val
                     }
                     let new_line = "S" + Dexter.defaults_arg_sep + high_key +
                         Dexter.defaults_arg_sep + low_val_str +

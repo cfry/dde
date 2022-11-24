@@ -413,7 +413,7 @@
             Please use <code>read_file</code> instead.
         </details> <!-- end read_file -->
 
-        <details id="read_file_async_doc_id" class="doc_details"><summary>read_file_async</summary>
+     <details id="read_file_async_doc_id" class="doc_details"><summary>read_file_async</summary>
            Similar to <a href="#" onclick="open_doc(read_file_doc_id)">read_file</a>
            but does not return the
            file contents. Instead, it takes an additional argument
@@ -428,6 +428,23 @@
                function(err, content){
                    out("read_file_async got err: " + err + " content: " + content)
                })    </code></pre>
+     </details>
+
+        <details id="FileTransfer.unzip_id" class="doc_details"><summary>unzip</summary>
+            Creates a folder of the contents of the passed in zip file.<br/>
+            <i>Parameters:</i><br/>
+            <b>zip_file_path</b> String of full path. Required
+            <br/>
+            <b>unzip_into_folder</b> String. Name of the folder to be created containing
+            the contents of the zip_file_path.
+            <br/></br/>
+            <i>Example:</i><br/>
+            <code tooltip="not in TestSuite">FileTransfer.unzip("/Users/Fry/Documents/dde_apps/dexchat.zip")</code><br/>
+            Makes folder: <code>"/Users/Fry/Documents/dde_apps/dexchat"</code><br/>
+            <span style="color:red;">Warning:</span> this will overwrite an existing folder if any.
+            <br/><br/>
+            See also: <a href="#" onclick="open_doc('FileTransfer.zip_folder_id')">FileTransfer.zip_folder</a>
+
         </details>
 
 
@@ -485,25 +502,42 @@
             <code>"/srv/samba/share/dde_apps/junk.js"</code> file.
      </details>
 
+    <details id="FileTransfer.zip_folder_id" class="doc_details"><summary>zip_folder</summary>
+        Creates a zip file of the contents of the passed in folder.<br/>
+        <i>Parameter:</i><br/>
+        <b>path_to_folder_to_zip</b> String of full path. Required
+        <br/><br/>
+        <i>Example:</i><br/>
+        <code tooltip="not in TestSuite">FileTransfer.zip_folder("/Users/Fry/Documents/dde_apps/dexchat")</code><br/>
+        Makes file: <code>"/Users/Fry/Documents/dde_apps/dexchat.zip"</code>
+        <br/><br/>
+        See also: <a href="#" onclick="open_doc('FileTransfer.unzip_id')">FileTransfer.unzip</a>
+    </details>
 
-        <!-- removed for security reasons
-        <details id="folder_listing_doc_id" style="margin-left:40px;"><summary>folder_listing</summary>
-          <code>folder_listing</code> retrieves an array of filenames and/or folder names that are somewhere
-              beneath the <b>dde_apps</b> folder. This function only works if you have
-              <i>Web Server for Chrome</i> installed. (See the doc for <b>load_files</b>.)<br/>
-          Arguments:<br/>
-          <b>folder</b> Default: <code>"/"</code>. The name of the folder to retreive the listing of.
-                    A folder of "/" finds the files and/or folders immediately below the <b>dde_apps</b> folder.
-                    Folder should begin and end with a slash, but if it doesn't, it will be added.<br/>
-          <b>include_folders</b> Default: <code>true</code>. Retrieved folder names end in slash.<br/>
-          <b>include_files</b> Default: <code>true</code>.<br/>
-          <b>callback</b> Default: <code>out</code> A function of one argument. It is passed the
-              array of file and/or folder names determined by the other arguments.<br/>
-          Examples:<br/>
-          <code>folder_listing()</code> Retrieves the files and folders immediately under <code>dde_apps</code>.<br/>
-          <code>folder_listing("/test_folder/", true, false)</code> Retrieves only the folder names immediately under <code>test_folder</code>.<br/>
-          <code>folder_listing("/whatever/", false, false)</code> Retrieves nothing. An empty array will be passed to the callback.
-        </details> -->
+
+
+
+
+
+
+            <!-- removed for security reasons
+            <details id="folder_listing_doc_id" style="margin-left:40px;"><summary>folder_listing</summary>
+              <code>folder_listing</code> retrieves an array of filenames and/or folder names that are somewhere
+                  beneath the <b>dde_apps</b> folder. This function only works if you have
+                  <i>Web Server for Chrome</i> installed. (See the doc for <b>load_files</b>.)<br/>
+              Arguments:<br/>
+              <b>folder</b> Default: <code>"/"</code>. The name of the folder to retreive the listing of.
+                        A folder of "/" finds the files and/or folders immediately below the <b>dde_apps</b> folder.
+                        Folder should begin and end with a slash, but if it doesn't, it will be added.<br/>
+              <b>include_folders</b> Default: <code>true</code>. Retrieved folder names end in slash.<br/>
+              <b>include_files</b> Default: <code>true</code>.<br/>
+              <b>callback</b> Default: <code>out</code> A function of one argument. It is passed the
+                  array of file and/or folder names determined by the other arguments.<br/>
+              Examples:<br/>
+              <code>folder_listing()</code> Retrieves the files and folders immediately under <code>dde_apps</code>.<br/>
+              <code>folder_listing("/test_folder/", true, false)</code> Retrieves only the folder names immediately under <code>test_folder</code>.<br/>
+              <code>folder_listing("/whatever/", false, false)</code> Retrieves nothing. An empty array will be passed to the callback.
+            </details> -->
 </details> <!-- end File Access -->
 
 <details class="doc_details"><summary>Gamepad & Keyboard</summary>

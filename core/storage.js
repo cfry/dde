@@ -1328,7 +1328,6 @@ module.exports.init_storage = init_storage
 
 function running_on_dexter() { //dde4 added
     /*console.log("globalThis['fs' is: " + globalThis["fs"])
-    debugger;
     if(globalThis["fs"] && globalThis.fs["existsSync"]) {
         return globalThis.fs.existsSync(SHARE_FOLDER)
     }
