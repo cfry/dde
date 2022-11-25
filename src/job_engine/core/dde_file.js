@@ -28,24 +28,6 @@ class DDEFile {
         else if (path == "new buffer") { return path } //needed by Editor.edit_file
         else { return "dde_apps/" + path }
     }
-    /*    else if (path.includes(":")) { return path }
-        else if (path.startsWith("dde_apps/")) {
-            path = path.substring(8)
-            return dde_apps_folder + path
-        }
-        else if(path.startsWith("./")) {  //return "dde_apps/" + path.substring(2)
-            return dde_apps_folder + path.substring(1)
-        }
-        else if (path.startsWith("../")) {
-            let core_path = path.substring(3)
-            let last_slash_pos = dde_apps_folder.lastIndexOf("/")
-
-            let up_from_dde_apps = dde_apps_folder.substring(0, last_slash_pos + 1)
-            new_path = up_from_dde_apps + core_path
-            return new_path
-        }
-        else { return dde_apps_folder + "/" + path }
-    }*/
 
     //DDEFile.make_url only called from this file june 26, 2022
     //beware. there's an output.js make_url too.
@@ -311,6 +293,7 @@ class DDEFile {
     //callback is optional. If not passed, return a promise
     //if passed, the callback is called with 2 args,
     //err (default null meaning no error, and content (ie the string of the content of the file
+    //note: assumes Node_server is up and working (unlike DDE3 which has to check with get_page)
     static async read_file_async(path, callback){
         if (path === undefined) {
             if (Editor.current_file_path == "new buffer"){

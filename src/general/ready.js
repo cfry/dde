@@ -236,9 +236,9 @@ export function on_ready() {
     init_job_engine()
 
     setTimeout(function(){
-        globalThis.document.title = "Dexter Development Environment " + dde_version
-        //dde_version_id.innerHTML      = dde_version //do this by hand because these matic values are NOT getting display in this doc's version on hdrobotic.com/software
-        //dde_release_date_id.innerHTML = dde_release_date
+        let title = "Dexter Development Environment " + dde_version + "\nreleased " + dde_release_date
+        globalThis.document.title = title
+        javascript_pane_header_wrapper_id.title = title
     }, 1000)
 
     $('#outer_splitter_id').jqxSplitter({
@@ -446,9 +446,6 @@ export function on_ready() {
     }
 
     //init_simulation() now in video.js show_in_misc_pane
-
-    //dde_version_id.innerHTML      = dde_version //todo comment back in once doc is loaded
-    //dde_release_date_id.innerHTML = dde_release_date //todo comment back in once doc is loaded
 
     Series.init_series()
 

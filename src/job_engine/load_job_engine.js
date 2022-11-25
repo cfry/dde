@@ -9,7 +9,7 @@ globalThis.dde_apps_folder  = "not inited"
 globalThis.platform         = "not inited" //"dde" or "node"
 
 globalThis.default_default_ROS_URL           = "localhost:9090"
-globalThis.default_default_dexter_ip_address = "192.168.1.142"
+globalThis.default_default_dexter_ip_address = "192.168.1.142" //careful globalThis.platform is not bound when this is evaled. If runing in node, this is over-written in ready_je.js/on_ready_je()
 globalThis.default_default_dexter_port       = 50000
 
 
@@ -90,7 +90,7 @@ import "../job_engine/act/List.js"     //defines class List
 //end  of Job Engine imports
 
 export async function init_job_engine(){
-    //out("out: top of init_job_engine") //DO NOT CALL "out" here. It willl error.
+    //out("out: top of init_job_engine") //DO NOT CALL "out" here. It will error.
     console.log("top of init_job_engine")
     globalThis.dde_version = package_json.version
     globalThis.dde_release_date = package_json.release_date
@@ -112,7 +112,8 @@ export async function init_job_engine(){
     Job.class_init()
     Dexter.class_init()
     new Brain({name: "brain0"})
-    Dexter.default = new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 50000}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
+    Dexter.default = new Dexter({name: "dexter0", //ip_address: "localhost",
+                                 port: 50000}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
     //the only thing dde_init.js really MUST do is define dexter0, so just stick
     //it here and now user can screw up dde_init.js and still win.
 

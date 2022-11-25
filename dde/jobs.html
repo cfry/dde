@@ -45,6 +45,13 @@
             xhttp.onreadystatechange = handle_init_jobs
             xhttp.open("GET", "/init_jobs", true);
             xhttp.send();
+            document.getElementById("cmd_input_id")
+                .addEventListener("keyup", function(event) {
+                    event.preventDefault();
+                    if (event.code === "Enter") { //https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode
+
+                    }
+                });
         }
         function handle_init_jobs(){
             if (this.readyState == 4 && this.status == 200) {
@@ -90,6 +97,12 @@
             job_button_container_id.appendChild(but_elt)
         }
 
+        function handle_job_process_button_click(){
+            browser_out("user clicked job_process button")
+            let mess_obj = {kind: "job_process_button_click"};
+            web_socket.send(JSON.stringify(mess_obj))
+        }
+
         function get_keep_alive_click(event){
             let is_checked = event.target.checked
             let mess_obj = {kind: "keep_alive_click",
@@ -116,6 +129,17 @@
             but_elt.title = "This Job is starting up."
             let mess_obj = {kind: "job_button_click", job_name_with_extension: job_name_with_extension};
             web_socket.send(JSON.stringify(mess_obj))
+        }
+
+        function handle_cmd_eval(){
+            let src = cmd_input_id.value.trim()
+            if(src.length > 0) {
+                let mess_obj = {kind: "eval", code: cmd_input_id.value};
+                web_socket.send(JSON.stringify(mess_obj))
+            }
+            else {
+                browser_append_to_output("Warning: no JavaScript source code to eval.")
+            }
         }
 
         function init_ws(){
@@ -316,7 +340,11 @@
             }
             for(data of data_array) {
                 //console.log("In handle_stdout with data: " + JSON.stringify(data))
-                if(data.kind === "show_job_button"){
+                if(data.kind === "job_process_button"){
+                    job_process_button_id.title = data.button_tooltip
+                    job_process_button_id.style["background-color"] = data.button_color
+                }
+                else if(data.kind === "show_job_button"){
                     let job_name = data.job_name
                     let button_id = job_name + "_job_button_id"
                     let but_elt = window[button_id]
@@ -455,6 +483,9 @@ Click a Job&apos;s button to start or stop it.<br/>
     </details>
 </details>
 <div id='job_button_container_id' style="margin:0px; padding:12px; background-color:#bae5fe;">
+    <button id="job_process_button_id" onclick="handle_job_process_button_click()"
+            title="Start the Job Engine node process."
+            style="margin-right:0px;background-color:rgb(204, 204, 204)">job_process</button>
     <button onclick="browser_clear_output()"
             title="Remove all previously output text (below)."
             style="margin-right:0px;">Clear</button>
@@ -466,7 +497,9 @@ Click a Job&apos;s button to start or stop it.<br/>
            	  <input id="keep_alive_id" type="checkbox" onchange="get_keep_alive_click(event)"/>
            	  <label for="keep_alive_id" >keep_alive</label>
     </span>
-    <div style="display:inline-block;margin:0px;padding:0px;font-size:11px;vertical-align:0px;transform:rotate(-90deg);">Jobs</div>
+    <input id="cmd_input_id" placeholder="Type in JS &amp; hit the Enter key to eval" title="Type in code &amp; hit Enter key to eval."
+           style="font-size:14px;width:500px;"/>
+    <div style="margin:0px;padding:0px;font-size:11px;vertical-align:0px;transform:rotate(-90deg);">Jobs</div>
 </div>
 <!-- output_div_id is same spelling as DDE output pane content div on purpose. -->
 <div id='output_div_id' style='margin:0px; padding:10px; background-color:#EEEEEE; overflow:auto; width:800px; height:200px;'>

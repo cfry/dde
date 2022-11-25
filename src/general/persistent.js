@@ -11,7 +11,8 @@ globalThis.Persistent = class Persistent{
             "files_menu_paths": [DDEFile.add_default_file_prefix_maybe("dde_init.js")],
             "misc_pane_content": "Simulate Dexter",
             "misc_pane_choose_file_path": "", //only used on dde init, and only if misc_pane_content is "choose_file"
-            "default_dexter_simulate": true,
+            "default_dexter_simulate": ((globalThis.platform === "node") ? false : true),
+            "default_dexter_ip_address": default_default_dexter_ip_address,
             "editor_font_size":    17,
 
             "dde_window_x":       50,
@@ -33,6 +34,9 @@ globalThis.Persistent = class Persistent{
 //ensures that dde_apps folder exists, that dde_persistent.json, and
 //loads in values from dde_persistent.json
     static async persistent_initialize() {
+        if(!globalThis.default_default_dexter_ip_address) {
+            globalThis.default_default_dexter_ip_address = ((globalThis.platform === "node") ? "localhost" : "192.168.1.142")
+        }
         let does_dde_apps_file_exist = await DDEFile.file_exists("")
         if(!does_dde_apps_file_exist){
             await DDEFile.make_folder("") //make dde_apps folder, synchronous
@@ -188,7 +192,7 @@ globalThis.Persistent = class Persistent{
                 await DDEFile.load_file("dde_init.js")
             }
             catch(err0){
-                if(window.Editor) { //will not hit in node platform
+                if(globalThis.Editor) { //will not hit in node platform
                     Editor.edit_file(add_default_file_prefix_maybe("dde_init.js"))
                 }
                 dde_error("The file: Documents/dde_apps/dde_init.js has invalid JavaScript in it.<br/>" +
@@ -250,7 +254,7 @@ globalThis.Persistent = class Persistent{
 
             eval(initial_dde_init_content)
             DDEFile.write_file_async("dde_init.js", initial_dde_init_content)
-            if(!Editor.files_menu_paths_empty_or_contains_only_dde_init()){ // we don't want to
+            if(globalThis.Editor && !Editor.files_menu_paths_empty_or_contains_only_dde_init()){ // we don't want to
                 //print out this message on first DDE launch or if they haven't even
                 //saved a file yet, so as not to scare new users.
                 out("DDE uses the file: Documents/dde_apps/dde_init.js<br/>" +

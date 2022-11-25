@@ -373,7 +373,7 @@ class Job{
     //If job_file_path has a newline in it, its considered to BE the src of
     //a file or at least one or more job defs.
     static async define_and_start_job(job_file_path){
-        if(platform === "node"){
+        if(globalThis.platform === "node"){
             init_readline() //if already open, it leaves it alone
         }
         let job_file_path_is_src = job_file_path.includes("\n")
@@ -1047,7 +1047,7 @@ class Job{
                                    ', sleep (oplet "z") for ' + dur_in_seconds + " second(s)."
                     }
                     else {
-                        bg_color = "rgb(136, 255, 136)";
+                        bg_color = "rgb(136, 255, 136)"; //bright green
                         tooltip  = "This Job is running instruction " + this.program_counter +
                                    ".\nClick to stop this job."
                     }

@@ -10,6 +10,7 @@ import os from 'os'
 //console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
 //            "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
 
+import pckg from 'package.json'
 
 function node_on_ready() {
     console.log("top of node_on_ready 3\n")

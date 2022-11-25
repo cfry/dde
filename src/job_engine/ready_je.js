@@ -148,10 +148,13 @@ async function on_ready_je(){
     console.log("Using node version: " + process.versions.node)
     set_operating_system()
     console.log("globalThis.operating_system is now: " + globalThis.operating_system)
+    //out("top of on_ready_je")
+    debugger;
     globalThis.platform = "node"
+    globalThis.default_default_dexter_ip_address = "localhost"
     //console.log("init_job_engine: " + init_job_engine)
     await init_job_engine()
-
+    out("on_ready_je after init_job_engine")
     //below 3 are same as on_ready. This must be after loading series, which is only for dde IDE,
     //so can't stick the below in the shared
     init_units() //In dde, has to be after init_series call.
@@ -162,6 +165,8 @@ async function on_ready_je(){
 }
 
 on_ready_je()
+
+out("just called on_ready_je()")
 
 function does_this_script_have_args() {
     //for process.argv, the first elt always is the "node" cmd,

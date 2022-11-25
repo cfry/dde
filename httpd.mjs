@@ -1,4 +1,3 @@
-
 import http      from "http"
 import https     from "https"
 import url       from 'url'; //url parsing
@@ -89,54 +88,72 @@ var mimeTypes = {
   "txt":  "text/plain"
   };
 
-function compute_dde_apps_folder(){ //new in dde4 //todo dde4 result proably shouldn't end in slash
-    if(running_on_dexter()) { return SHARE_FOLDER + '/dde_apps/' }
+//Code that runs in node_server AND job_engine for get_page
+
+function compute_share_folder(){
+    if(running_on_dexter()) {
+        return SHARE_FOLDER_ON_DEXTER
+    }
     else {
-        return os.homedir()  //example: "/Users/Fry"
-               + "/Documents/dde_apps/"
+        return path.join(process.cwd()) //dde4, ie the folder that httpd.mjs is in.
     }
 }
 
-function compute_dde_install_folder(){ //new in dde4 //todo dde4 result proably shouldn't end in slash
-    if(running_on_dexter()) {
-          return  SHARE_FOLDER + "/www/dde/build"  //'/root/Documents/dde'
-    }
-    else {
-        return path.join(process.cwd(), 'dde', 'build')
-    }
+function compute_www_folder(){ //contains httpd.mjs, index.html for the dexter apps titles
+    return SHARE_FOLDER + "/www"
 }
 
 function compute_dde_folder(){ //new in dde4 //todo dde4 result proably shouldn't end in slash
     if(running_on_dexter()) {
-        return  SHARE_FOLDER + "/www/dde"  //'/root/Documents/dde'
+        return  WWW_FOLDER + "/dde"  //'/root/Documents/dde'
     }
     else {
         return path.join(process.cwd(), 'dde')
     }
 }
 
-
-
-const SHARE_FOLDER       = '/srv/samba/share';
-const DDE_APPS_FOLDER    = compute_dde_apps_folder() //dde4
-const DDE_INSTALL_FOLDER = compute_dde_install_folder() //where DDE is installed on Dexter  //todo dde4 this changes
-const DDE_FOLDER         = compute_dde_folder()
-
-function running_on_dexter() { //dde4 added
-    return fs.existsSync(SHARE_FOLDER)
+function compute_dde_install_folder(){ //new in dde4 //todo dde4 result proably shouldn't end in slash
+   return DDE_FOLDER + "/build"
 }
+
+function compute_cal_data_folder(){ //new in dde4 //todo dde4 result proably shouldn't end in slash
+    return SHARE_FOLDER + "/cal_data"
+}
+
+function compute_dde_apps_folder(){ //new in dde4 //todo dde4 result proably shouldn't end in slash
+    if(running_on_dexter()) { return SHARE_FOLDER + '/dde_apps/' }
+    else {
+        return os.homedir()  //example: "/Users/Fry"
+               + "/Documents/dde_apps"
+    }
+}
+
+const SHARE_FOLDER_ON_DEXTER = "/srv/samba/share"
+function running_on_dexter() { //dde4 added
+    return fs.existsSync(SHARE_FOLDER_ON_DEXTER)
+}                                                       // folder on dexter   contains                                                        folder on Mac dev
+const SHARE_FOLDER       = compute_share_folder()       //  /srv/samba/share               //contains dde_apps, www, dde3_je,
+const WWW_FOLDER         = compute_www_folder()         //  /srv/samba/share/www           //contains dde, httpd.mjs, index.html(tiles), jobs.html(3)   dde4, contains dde httpd.mjs, index.html(tiles) but not jobs.html(3)
+const DDE_FOLDER         = compute_dde_folder()         //  /srv/samba/share/www/dde       //contains build/, index.html(dde), jobs.html(4)           dde  contains build, index.html(dde), jobs.html
+const DDE_INSTALL_FOLDER = compute_dde_install_folder() //  /srv/samba/share/www/dde/build //contains bundle.mjs, bundle_je.mjs                 dde/build contains bundle.mjs bundle_je.mjs
+const CAL_DATA_FOLDER    = compute_cal_data_folder()    //  /srv/samba/share/cal_data will include Defaults.make_ins
+const DDE_APPS_FOLDER    = compute_dde_apps_folder()    //  /srv/samba/share/dde_apps or homedir/Documents/dde_apps                           homedir/Documents/dde_apps
+
+console.log("SHARE_FOLDER:        " + SHARE_FOLDER +
+          "\nDDE_FOLDER:          " + DDE_FOLDER   +
+          "\nWWW_FOLDER:          " + WWW_FOLDER   +
+          "\nDDE_INSTALL_FOLDER:  " + DDE_INSTALL_FOLDER +
+          "\nCAL_DATA_FOLDER      " + CAL_DATA_FOLDER +
+          "\nDDE_APPS_FOLDER:     " + DDE_APPS_FOLDER)
 
 function make_full_path(path){ //dde4 added
     if(path.startsWith("/")) {} //keep path as is
-    else if ((path === "dde_apps") || path.startsWith("dde_apps/")){
-        if(running_on_dexter()) {
-            path = SHARE_FOLDER + "/" + path
-        }
-        else {
-            let prefix = os.homedir() + "/Documents/"
-            console.log("in make_full_path, NOT running_on_dexter, prefix: " + prefix)
-            path = prefix + path
-        }
+    else if (path === "dde_apps") {
+        path = DDE_APPS_FOLDER  //does not contain final slash
+    }
+    else if (path.startsWith("dde_apps/")){
+        let path_sans_dde_apps = path = path.substring(9) //strip off "dde_apps/"
+        path = DDE_APPS_FOLDER + "/" + path
     }
     else if(path.startsWith("dde/")) {
         path = DDE_FOLDER + "/" + path.substring(4) //cut off the "dde/" prefix or else we'll get two dde folders in the resulting path
@@ -146,8 +163,11 @@ function make_full_path(path){ //dde4 added
     }
     return path
 }
+//end of Code that runs in node_server AND job_engine for get_page
+
+
 //const { spawn } = require('child_process'); //see top of file
- 
+ /*
 var job_name_to_process = {};
 function get_job_name_to_process(job_name) {
      console.log("get_job_name_to_process passed: " + job_name)
@@ -168,7 +188,143 @@ function kill_all_job_processes(){
         remove_job_name_to_process(key)
     }
 }
-        
+*/
+var job_process = null
+
+function make_or_kill_job_process() {
+    console.log("top of make_or_kill_job_process")
+    if (!job_process || !job_process.connected){
+        console.log("in make_or_kill_job_process, spawning a new process")
+        let node_arg_for_debug = (debug ? " --inspect-brk " : "")
+        let cmd_line = 'node -v '//--experimental-fetch' + node_arg_for_debug
+        // --inspect'; // --inspect-brk then we run node
+        //the --experimental-fetch is needed when running node v 17
+        let jobfile = "just_prints.dde"
+        let job_name = "just_prints" //todo maybe should be "job_process", but just get working first.
+        let cmd_args = [] // ["core define_and_start_job " + jobfile]; //orig dde3 //tell it to start the job
+                       //  ["bundleje.mjs define_and_start_job " + jobfile] //dde4
+        let cmd_options = {} //{cwd: DDE_INSTALL_FOLDER, shell: true};
+        console.log("spawn\n    cmd_line: " + cmd_line + "\n    cmd_args: " + cmd_args + "\n    cmd_options: " + JSON.stringify(cmd_options) ) //+ " &") //ampersand runs node as a background process
+        job_process = spawn(cmd_line, cmd_args, cmd_options)
+        console.log("just spawned job_process: " + job_process)
+        console.log("job_process type: " + job_process.constructor.name)
+        job_process.on('close', (code) => {
+            console.log("job process closed with code: " + code)
+        })
+        job_process.stdout.on('data', function(data) {
+            let data_str = data.toString();
+            console.log("in node_server: stdout.on data got data: " + data_str + "\n");
+
+            //server_response.write(data_str) //pipe straight through to calling browser's handle_stdout
+            //https://github.com/expressjs/compression/issues/56 sez call flush even though it isn't documented.
+            //server_response.flushHeaders() //flush is deprecated.
+            if (browser_socket.readyState != WebSocket.OPEN) {job_process.kill(); return;} //maybe should be kill()?
+            console.log("in httd.mjs serve_job_button_click on data fn, sending data_str: " + data_str)
+            browser_socket.send(data_str);
+        });
+        job_process.stderr.on('data', function(data) {
+            let data_str = data.toString();
+            console.log("in node_server after spawn, got error: " + data_str)
+            if(data_str.includes("ExperimentalWarning:")){
+                //ignore these warnings. Don't change the job button color to red.
+            }
+            else if(data_str.includes("Waiting for the debugger to disconnect")) {
+                //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
+            }
+            else if(data_str.includes("Debugger attached")) {
+                //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
+            }
+            else if(data_str.includes("Debugger listening on")) {
+                //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
+            }
+            else {
+                console.log("\n\nJob." + job_name + " got stderr with data: " + data_str);
+                //remove_job_name_to_process(job_name) //just because there is an error, that don't mean the job closed.
+                //server_response.write("Job." + job_name + " errored with: " + data)
+                console.log('\n\nAbout to stringify 2\n');
+                let lit_obj = {
+                    job_name: job_name,
+                    kind: "show_job_button",
+                    button_tooltip: "Server errored with: " + data_str,
+                    button_color: "red"
+                };
+                if (browser_socket.readyState != WebSocket.OPEN) {
+                    job_process.kill();
+                    return;
+                } //maybe should be kill()?
+                browser_socket.send(data_str) //redundant but the below might not be working
+                browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>\n");
+                //server_response.end()
+                //job_process.kill() //*probably* the right thing to do in most cases.
+                //remove_job_name_to_process(job_name);
+                //BUT even with Node v 18, it sends to stderr:
+                // " ExperimentalWarning: The Fetch API is an experimental feature. This feature could change at any time"
+                //so we don't want to kill the process just for that.
+            }
+        })
+        job_process.stderr.on('data', function(data) {
+            let data_str = data.toString();
+            if(data_str.includes("ExperimentalWarning:")){
+                //ignore these warnings. Don't change the job button color to red.
+            }
+            else if(data_str.includes("Waiting for the debugger to disconnect")) {
+                //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
+            }
+            else if(data_str.includes("Debugger attached")) {
+                //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
+            }
+            else if(data_str.includes("Debugger listening on")) {
+                //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
+            }
+            else {
+                console.log("\n\nJob." + job_name + " got stderr with data: " + data_str);
+                //remove_job_name_to_process(job_name) //just because there is an error, that don't mean the job closed.
+                //server_response.write("Job." + job_name + " errored with: " + data)
+                console.log('\n\nAbout to stringify 2\n');
+                let lit_obj = {
+                    job_name: job_name,
+                    kind: "show_job_button",
+                    button_tooltip: "Server errored with: " + data_str,
+                    button_color: "red"
+                };
+                if (browser_socket.readyState != WebSocket.OPEN) {
+                    job_process.kill();
+                    return;
+                } //maybe should be kill()?
+                browser_socket.send(data_str) //redundant but the below might not be working
+                browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>\n");
+                //server_response.end()
+                //job_process.kill() //*probably* the right thing to do in most cases.
+                //remove_job_name_to_process(job_name);
+                //BUT even with Node v 18, it sends to stderr:
+                // " ExperimentalWarning: The Fetch API is an experimental feature. This feature could change at any time"
+                //so we don't want to kill the process just for that.
+            }
+        })
+        job_process.on('close', function(code) {
+            console.log("\n\nServer closed the process of Job: " + job_name + " with code: " + code);
+            if((code !== 0) && (code !== null) && browser_socket.readyState === WebSocket.OPEN){
+                console.log('\n\nAbout to stringify 3\n');
+                let lit_obj = {job_name: job_name,
+                    kind: "show_job_button",
+                    button_tooltip: "Errored with server close error code: " + code,
+                    button_color: "red"
+                };
+                browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>\n");
+            }
+            //server_response.end()
+        })
+        job_process.on('exit', function(code) { //do I really need to handle this?
+                console.log("\n\nServer on exit the process of Job: " + job_name + " with code: " + code)
+            }
+        );
+        console.log("job_process.connected: " + job_process.connected)
+    }
+    else {
+        job_process.kill()
+        job_process = null
+    }
+}
 //arg looks like "myjob.js", "myjob.dde", "myjob"
 function extract_job_name(job_name_with_extension){
     /* 
@@ -215,28 +371,53 @@ console.log("done making wss: " + wss);
 
 var debug = false
 
+function serve_job_process_button_click(browser_socket){
+    console.log("top of serve_job_process_button_click with: " + browser_socket)
+    console.log("class: " + browser_socket.constructor.name)
+    out_to_browser_out_pane(browser_socket, "hi from serve_job_process_button_click", "blue")
+    make_or_kill_job_process() //sets or unsets job_process
+    if(job_process) {
+        let lit_obj = {
+            kind: "job_process_button",
+        };
+        if (!job_process || !job_process.connected) {
+            job_process.kill()
+            lit_obj.button_tooltip = "The Job process was stopped by the user."
+            lit_obj.button_color = "rgb(255, 123, 0)" //orange
+        } else {
+            lit_obj.button_tooltip = "Job process started."
+            lit_obj.button_color = "rgb(136, 255, 136)"
+        }
+        let data_str = JSON.stringify(lit_obj)
+        //browser_socket.send(data_str) //redundant but the below might not be working
+        browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>\n");
+    }
+}
+
 function serve_job_button_click(browser_socket, mess_obj){
+    if(mess_obj.kind === "eval"){
+        let code = mess_obj.code
+
+    }
     let app_file = mess_obj.job_name_with_extension; //includes ".js" suffix 
-    console.log("\n\nserve_job_button_click for:" + app_file);
+    //out("\n\nserve_job_button_click for:" + app_file);
     console.log("\nserve_job_button_click mess_obj:\n" + JSON.stringify(mess_obj))
     let app_type = path.extname(app_file);
     console.log("app_type: " + app_type)
     if (-1!=[".dde",".js"].indexOf(app_type)) { app_type = ".dde" }//if this is a job engine job
     let jobfile = app_file;
     if (!app_file.startsWith("/")) jobfile = DDE_APPS_FOLDER + app_file; //q.search.substr(1)
-    //console.log("serve_job_button_click with jobfile: " + jobfile)
+    //out("serve_job_button_click with jobfile: " + jobfile)
     let job_name = extract_job_name(app_file); //console.log("job_name: " + job_name + "taken from file name")
     console.log("job_name: " + job_name)
-    let job_process = get_job_name_to_process(job_name); //warning: might be undefined.
-    //let server_response = res //to help close over
-    console.log("process: " + job_process)
 
     if(job_name === "debug") {
         debug = mess_obj.debug_value
         return //will become active for subsequent job button clicks
     }
     let node_arg_for_debug = (debug ? " --inspect-brk " : "")
-    if(!job_process){
+    if(!job_process || !job_process.connected){
+        make_or_kill_job_process() //todo needs work
         //https://nodejs.org/api/child_process.html
         //https://blog.cloudboost.io/node-js-child-process-spawn-178eaaf8e1f9
         let cmd_line = "bash";
@@ -254,7 +435,6 @@ function serve_job_button_click(browser_socket, mess_obj){
         job_process = spawn(cmd_line,
                             cmd_args,
                             cmd_options
-                            
                            );
         set_job_name_to_process(job_name, job_process);
         console.log("started job_name: " + job_name + " with: "+cmd_line+" "+cmd_args+" to new process: " + job_process.pid + " of type:" + app_type);
@@ -407,19 +587,19 @@ function serve_show_window_call_callback(browser_socket, mess_obj){
 //use a path of /edit?edit=/foo/bar.js instead and that
 //bypasses serve_file.
 function serve_file(q, req, res){
-    //console.log("top of serve_file")
+    console.log("top of serve_file")
     let cur_dir = process.cwd()
     let filename
-    if(fs.existsSync(SHARE_FOLDER)) { //running on Dexter
-       filename = SHARE_FOLDER + "/www/" + q.pathname  //this is in orig dexter file, but replaced for  dde4 with server laptop by the below clause
+    if(running_on_dexter()) {
+       filename = SHARE_FOLDER + "/" + q.pathname  //this is in orig dexter file, but replaced for  dde4 with server laptop by the below clause
     }
     //dde4 works except for editing a file
     else { //dde4 not running on dexter
         filename = q.pathname
         let maybe_slash = (q.pathname.startsWith("/") ? "" : "/")
         //console.log("serve_file got cur_dir: " + cur_dir)
-        filename = cur_dir + maybe_slash +  q.pathname
-
+        //filename = cur_dir + maybe_slash +  q.pathname
+        filename = SHARE_FOLDER + "/" + q.pathname
     }
     /*else { //dde4 not running on dexter
         filename = q.pathname
@@ -464,7 +644,9 @@ function get_page_get_cb() {}
 //primarily for debugging the http.createServer callback when using the Job Engine UI
 //the args after "res" are the args to an "out" call that gets made in jobs.html.
 //BUT calling this errors so don't use as is.
-function write_server_to_browser_out_pane_message(res, val, color="black", temp=false, code=false){
+//res_or_ws can be either a Request object or a WebSocket, a la browser_socket
+function out_to_browser_out_pane(browser_socket, val, color="black", temp=false, code=false){
+    console.log("out_to_browser_out_pane passed type: " + browser_socket.constructor.name)
     let lit_obj = {
         kind: "out_call",
         val:   val,
@@ -472,7 +654,16 @@ function write_server_to_browser_out_pane_message(res, val, color="black", temp=
         temp:  temp,
         code:  code
     }
-    res.write("<for_server>" + JSON.stringify(lit_obj) + "</for_server>\n");
+    let str_to_send = "<for_server>" + JSON.stringify(lit_obj) + "</for_server>\n"
+    if (browser_socket.constructor.name === "ServerResponse") { //I use lex far "res" for this. Shoujld be class ServerResponse but that isn't defined
+        browser_socket.write(str_to_send);
+    }
+    else if(browser_socket instanceof WebSocket){
+        browser_socket.send(str_to_send)
+    }
+    else {
+        console.log("out_to_browser_out_pane got invalid first arg: " + browser_socket)
+    }
 }
 
 //standard web server on port 80 to serve files
@@ -485,8 +676,8 @@ var http_server = http.createServer(async function (req, res) {
   let top_web_server_mess = "\nweb server passed url: " + req.url +
                             "\n             pathname: " + q.pathname +
                             "\n                query: " + query_string
-  console.log(top_web_server_mess)
-  //write_server_to_browser_out_pane_message(res, top_web_server_mess, "green") //causes errors
+  console.log(top_web_server_mess) //can't call out_to_browser_out_pane pane here because
+    //as soon as you do that, ther underlying server code doesn't allow setting headers.
   if (q.pathname === "/") {
       q.pathname = "index.html"
   }
@@ -1021,6 +1212,7 @@ function closed() {
 wss.on('connection', function(the_ws, req) {
   console.log("\n\nwss got connection: " + the_ws)
   console.log("\nwss SAME AS the_ws : " + (wss === the_ws))
+  console.log("got req class: " + req.constructor.name) // IncomingMessage
   let browser_socket = the_ws //the_socket used when stdout from job engine comes to the web server process
   the_ws.on('message', function(message) {
     console.log('\n\nwss server on message received: %s', message);
@@ -1029,7 +1221,10 @@ wss.on('connection', function(the_ws, req) {
     let mess_obj = {kind: "error"}
     try { mess_obj = JSON.parse(message)} catch(e) {console.log("bad message: "+e); return;}
     console.log("\nwss server on message received kind: " + mess_obj.kind)
-    if(mess_obj.kind === "debug_click") {
+    if(mess_obj.kind === "job_process_button_click"){
+       serve_job_process_button_click(browser_socket)
+    }
+    else if(mess_obj.kind === "debug_click") {
           serve_job_button_click(browser_socket, mess_obj)
     }
     else if(mess_obj.kind === "keep_alive_click") {
@@ -1120,8 +1315,3 @@ browser.on('connection', function connection(socket, req) {
     dexter.end()
     });
   });
-
-
-//test to see if we can get a status update from DexRun
-//dexter.write("1 1 1 undefined g ;")
-

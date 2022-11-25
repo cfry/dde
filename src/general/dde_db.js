@@ -322,23 +322,11 @@ globalThis.persistent_set = function(key, value){
                 'That functionality is now handled by: ' + key + " = " + value + "<br/>" +
                 'which has automatically been done for you.')
     }
-    else if(key === "default_dexter_ip_address") {
-        globalThis.default_default_dexter_ip_address = value
-        warning('You have attempted to call: persistent_set with a key of: ' + key + '<br/>' +
-            'That functionality is now handled by: default_default_dexter_ip_address  = ' + value + "<br/>" +
-            'which has automatically been done for you.')
-    }
     else if(key === "default_default_dexter_port") {
         globalThis.default_default_dexter_port = value
         warning('You have attempted to call: persistent_set with a key of: ' + key + '<br/>' +
                 'That functionality is now handled by: ' + key + " = " + value + "<br/>" +
                 'which has automatically been done for you.')
-    }
-    else if(key === "default_dexter_port") {
-        globalThis.default_default_dexter_port = value
-        warning('You have attempted to call: persistent_set with a key of: ' + key + '<br/>' +
-            'That functionality is now handled by: default_default_dexter_port = ' + value + "<br/>" +
-            'which has automatically been done for you.')
     }
     else {
         DDE_DB.persistent_set(key, value)

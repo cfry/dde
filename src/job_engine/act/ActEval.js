@@ -44,7 +44,7 @@ globalThis.ActEval = class ActEval{
         this.eval({ast: ast,
                   lex_env: List.empty,
                   cont: out,
-                  source: source}) ///continuation
+                  source: source})
     }
 
     //returns an array of block_elts (but might be only 1 long).

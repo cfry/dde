@@ -525,7 +525,7 @@ async function write_file_async_to_dexter_using_node_server(dex_instance, path, 
 
     //see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
     let url = 'http://' + ip + '/edit/'
-    options = {
+    let options = {
         method: 'POST', // *GET, POST, PUT, DELETE, etc.
         mode: 'cors', // no-cors, *cors, same-origin
         cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
@@ -839,7 +839,7 @@ function add_default_file_prefix_maybe(path){
         let last_slash_pos = dde_apps_folder.lastIndexOf("/")
 
         let up_from_dde_apps = dde_apps_folder.substring(0, last_slash_pos + 1)
-        new_path = up_from_dde_apps + core_path
+        let new_path = up_from_dde_apps + core_path
         return new_path
     }
     else { return dde_apps_folder + "/" + path }

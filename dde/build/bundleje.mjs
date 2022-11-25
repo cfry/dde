@@ -13812,7 +13812,7 @@ function add_default_file_prefix_maybe(path){
         let last_slash_pos = dde_apps_folder.lastIndexOf("/");
 
         let up_from_dde_apps = dde_apps_folder.substring(0, last_slash_pos + 1);
-        new_path = up_from_dde_apps + core_path;
+        let new_path = up_from_dde_apps + core_path;
         return new_path
     }
     else { return dde_apps_folder + "/" + path }
@@ -16933,7 +16933,7 @@ class Job$1{
     //If job_file_path has a newline in it, its considered to BE the src of
     //a file or at least one or more job defs.
     static async define_and_start_job(job_file_path){
-        if(platform === "node"){
+        if(globalThis.platform === "node"){
             init_readline(); //if already open, it leaves it alone
         }
         let job_file_path_is_src = job_file_path.includes("\n");
@@ -17604,7 +17604,7 @@ class Job$1{
                                    ', sleep (oplet "z") for ' + dur_in_seconds + " second(s).";
                     }
                     else {
-                        bg_color = "rgb(136, 255, 136)";
+                        bg_color = "rgb(136, 255, 136)"; //bright green
                         tooltip  = "This Job is running instruction " + this.program_counter +
                                    ".\nClick to stop this job.";
                     }
@@ -24923,7 +24923,7 @@ class Robot$1 {
     }
 
     static simulate_or_both_selected(){
-        if(DDE_DB && DDE_DB.persistent_get("default_dexter_simulate")) { return true} //persistent_get call returns true or "both"
+        if(globalThis.DDE_DB && DDE_DB.persistent_get("default_dexter_simulate")) { return true} //persistent_get call returns true or "both"
         else { return false } //DDE_DB.persistent_get call returns false
     }
 
@@ -25802,8 +25802,8 @@ class Dexter$1 extends Robot$1 {
            dde_error("While construction a Dexter robot named: " + name +
                      "<br/>Sorry, you can't name a Dexter with a single upper case letter.");
         }
-        if(!ip_address) { ip_address = DDE_DB.persistent_get("default_dexter_ip_address"); }
-        if(!port)       { port       = DDE_DB.persistent_get("default_dexter_port"); }
+        if(!ip_address) { ip_address = (globalThis.DDE_DB ? DDE_DB.persistent_get("default_dexter_ip_address") : globalThis.default_default_dexter_ip_address); }
+        if(!port)       { port       = (globalThis.DDE_DB ? DDE_DB.persistent_get("default_dexter_port")       : globalThis.default_default_dexter_port); }
 
         let keyword_args = {name: name,
                             simulate: simulate,
@@ -27223,25 +27223,33 @@ Dexter$1.prototype.turn_on_j6_and_j7_torque  = function(){
 
 
 //from Dexter_Modes.js (these are instructions. The fns return an array of instructions
-Dexter$1.set_follow_me                = function(){ return [make_ins("S", "RunFile", "setFollowMeMode.make_ins"),
-                                                          Dexter$1.turn_off_j6_and_j7_torque()]};
-Dexter$1.prototype.set_follow_me      = function(){ return [make_ins("S", "RunFile", "setFollowMeMode.make_ins", this),
-                                                          this.turn_off_j6_and_j7_torque()]};
+Dexter$1.set_follow_me                = function(){ return make_ins("S", "RunFile", "setFollowMeMode.make_ins")
+                                        //Dexter.turn_off_j6_and_j7_torque()]
+                                        };
+Dexter$1.prototype.set_follow_me      = function(){ return make_ins("S", "RunFile", "setFollowMeMode.make_ins", this)
+                                        //this.turn_off_j6_and_j7_torque()]
+                                        };
 
-Dexter$1.set_force_protect            = function(){ return [make_ins("S", "RunFile", "setForceProtectMode.make_ins"),
-                                                          Dexter$1.turn_on_j6_and_j7_torque()]};
-Dexter$1.prototype.set_force_protect  = function(){ return [make_ins("S", "RunFile", "setForceProtectMode.make_ins", this),
-                                                          this.turn_on_j6_and_j7_torque()]};
+Dexter$1.set_force_protect            = function(){ return make_ins("S", "RunFile", "setForceProtectMode.make_ins")
+                                         //Dexter.turn_on_j6_and_j7_torque()]
+                                        };
+Dexter$1.prototype.set_force_protect  = function(){ return make_ins("S", "RunFile", "setForceProtectMode.make_ins", this)
+                                        //this.turn_on_j6_and_j7_torque()]
+                                        };
 
-Dexter$1.set_keep_position            = function(){ return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins"),
-                                                          Dexter$1.turn_on_j6_and_j7_torque()]};
-Dexter$1.prototype.set_keep_position  = function(){ return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins", this),
-                                                          this.turn_on_j6_and_j7_torque()]};
+Dexter$1.set_keep_position            = function(){ return make_ins("S", "RunFile", "setKeepPositionMode.make_ins")
+                                        //Dexter.turn_on_j6_and_j7_torque()]
+                                        };
+Dexter$1.prototype.set_keep_position  = function(){ return make_ins("S", "RunFile", "setKeepPositionMode.make_ins", this)
+                                        //this.turn_on_j6_and_j7_torque()]
+                                        };
 
-Dexter$1.set_open_loop                = function(){ return [make_ins("S", "RunFile", "setOpenLoopMode.make_ins"),
-                                                          Dexter$1.turn_on_j6_and_j7_torque()]};
-Dexter$1.prototype.set_open_loop      = function(){ return [make_ins("S", "RunFile", "setOpenLoopMode.make_ins", this),
-                                                          this.turn_on_j6_and_j7_torque()]};
+Dexter$1.set_open_loop                = function(){ return make_ins("S", "RunFile", "setOpenLoopMode.make_ins")
+                                        // Dexter.turn_on_j6_and_j7_torque()] //use to be in before Nov 3, 2022 but James N says shouldn't be there
+                                        };
+Dexter$1.prototype.set_open_loop      = function(){ return make_ins("S", "RunFile", "setOpenLoopMode.make_ins", this)
+                                        // this.turn_on_j6_and_j7_torque()] //use to be in before Nov 3, 2022 but James N says shouldn't be there
+                                        };
 
 
 //End Dexter Instructions
@@ -28656,9 +28664,9 @@ Dexter.prototype.defaults_read = function(callback = null){
 
 //caution:  not ready for prime time.
 Dexter.prototype.defaults_write = function(){
-    Dexter.dexter0.defaults_high_level_to_defaults_lines();
-    let the_url = Dexter.prototype.defaults_url();
-    let content = this.defaults.get("whole_file_string");
+    this.defaults_high_level_to_defaults_lines();
+    let the_url = this.defaults_url();
+    let content = this.defaults_get("whole_file_string");
     let the_dex_inst = this;
     DDEFile.write_file_async(the_url,  content,
         function(err){
@@ -29774,16 +29782,17 @@ Dexter.prototype.defaults_high_level_to_defaults_lines = function(){
                             low_val_str = low_val;
                         }
                         else {
-                            ins_arr.concat(high_val);
+                            ins_arr = ins_arr.concat(high_val);
                             let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
                             let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1);
-                            low_val.join(Dexter.defaults_arg_sep);
+                            low_val_str = low_val.join(Dexter.defaults_arg_sep);
                         }
                     }
                     else {
                         ins_arr[Instruction.INSTRUCTION_ARG1] = high_val;
                         let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
-                        dde_ins_arr[Instruction.INSTRUCTION_ARG1];
+                        let low_val = dde_ins_arr[Instruction.INSTRUCTION_ARG1];
+                        low_val_str = low_val;
                     }
                     let new_line = "S" + Dexter.defaults_arg_sep + high_key +
                         Dexter.defaults_arg_sep + low_val_str +
@@ -33714,24 +33723,6 @@ class DDEFile$1 {
         else if (path == "new buffer") { return path } //needed by Editor.edit_file
         else { return "dde_apps/" + path }
     }
-    /*    else if (path.includes(":")) { return path }
-        else if (path.startsWith("dde_apps/")) {
-            path = path.substring(8)
-            return dde_apps_folder + path
-        }
-        else if(path.startsWith("./")) {  //return "dde_apps/" + path.substring(2)
-            return dde_apps_folder + path.substring(1)
-        }
-        else if (path.startsWith("../")) {
-            let core_path = path.substring(3)
-            let last_slash_pos = dde_apps_folder.lastIndexOf("/")
-
-            let up_from_dde_apps = dde_apps_folder.substring(0, last_slash_pos + 1)
-            new_path = up_from_dde_apps + core_path
-            return new_path
-        }
-        else { return dde_apps_folder + "/" + path }
-    }*/
 
     //DDEFile.make_url only called from this file june 26, 2022
     //beware. there's an output.js make_url too.
@@ -33996,6 +33987,7 @@ class DDEFile$1 {
     //callback is optional. If not passed, return a promise
     //if passed, the callback is called with 2 args,
     //err (default null meaning no error, and content (ie the string of the content of the file
+    //note: assumes Node_server is up and working (unlike DDE3 which has to check with get_page)
     static async read_file_async(path, callback){
         if (path === undefined) {
             if (Editor.current_file_path == "new buffer"){
@@ -36942,7 +36934,7 @@ globalThis.ActEval = class ActEval{
         this.eval({ast: ast,
                   lex_env: List.empty,
                   cont: out,
-                  source: source}); ///continuation
+                  source: source});
     }
 
     //returns an array of block_elts (but might be only 1 long).
@@ -37597,7 +37589,7 @@ globalThis.dde_apps_folder  = "not inited";
 globalThis.platform         = "not inited"; //"dde" or "node"
 
 globalThis.default_default_ROS_URL           = "localhost:9090";
-globalThis.default_default_dexter_ip_address = "192.168.1.142";
+globalThis.default_default_dexter_ip_address = "192.168.1.142"; //careful globalThis.platform is not bound when this is evaled. If runing in node, this is over-written in ready_je.js/on_ready_je()
 globalThis.default_default_dexter_port       = 50000;
 
 
@@ -37613,7 +37605,7 @@ Promise.resolve().then(function () { return instruction_control; }); //makes  cl
 //end  of Job Engine imports
 
 async function init_job_engine(){
-    //out("out: top of init_job_engine") //DO NOT CALL "out" here. It willl error.
+    //out("out: top of init_job_engine") //DO NOT CALL "out" here. It will error.
     console.log("top of init_job_engine");
     globalThis.dde_version = package_json.version;
     globalThis.dde_release_date = package_json.release_date;
@@ -37635,7 +37627,8 @@ async function init_job_engine(){
     Job.class_init();
     Dexter.class_init();
     new Brain({name: "brain0"});
-    Dexter.default = new Dexter({name: "dexter0", ip_address: "192.168.1.142", port: 50000}); //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
+    Dexter.default = new Dexter({name: "dexter0", //ip_address: "localhost",
+                                 port: 50000}); //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
     //the only thing dde_init.js really MUST do is define dexter0, so just stick
     //it here and now user can screw up dde_init.js and still win.
 
@@ -37968,10 +37961,13 @@ async function on_ready_je(){
     console.log("Using node version: " + process.versions.node);
     set_operating_system();
     console.log("globalThis.operating_system is now: " + globalThis.operating_system);
+    //out("top of on_ready_je")
+    debugger;
     globalThis.platform = "node";
+    globalThis.default_default_dexter_ip_address = "localhost";
     //console.log("init_job_engine: " + init_job_engine)
     await init_job_engine();
-
+    out("on_ready_je after init_job_engine");
     //below 3 are same as on_ready. This must be after loading series, which is only for dde IDE,
     //so can't stick the below in the shared
     init_units(); //In dde, has to be after init_series call.
@@ -37982,6 +37978,8 @@ async function on_ready_je(){
 }
 
 on_ready_je();
+
+out("just called on_ready_je()");
 
 function does_this_script_have_args() {
     //for process.argv, the first elt always is the "node" cmd,

@@ -533,8 +533,18 @@ class Editor {
     }
 
     static set_javascript (text){
-        //$("#js_textarea_id").val(text)
-        this.myCodeMirror.doc.setValue(text)
+        if (typeof (text) === "string") {
+        try {
+            myCodeMirror.doc.setValue(text)
+        }
+        catch (err) {}
+        //probably an error thrown by the linter which we don't want
+        //to actually throw an error, so catch it.
+        //started happening after 3.8.11
+        }
+        else {
+            shouldnt("Editor.set_javscript passed non-string: " + text)
+        }
     }
 
     static selection_start (){
