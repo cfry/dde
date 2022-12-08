@@ -535,7 +535,7 @@ class Editor {
     static set_javascript (text){
         if (typeof (text) === "string") {
         try {
-            myCodeMirror.doc.setValue(text)
+            this.myCodeMirror.doc.setValue(text)
         }
         catch (err) {}
         //probably an error thrown by the linter which we don't want
@@ -1300,7 +1300,6 @@ Clear its content?
         var new_sel_end   = new_sel_start + sel_text.length
         var doc = this.myCodeMirror.getDoc()
         //var new_cursor_pos = doc.posFromIndex(new_sel_end)
-        //myCodeMirror.setCursor(new_cursor_pos)
         Editor.select_javascript(new_sel_start, new_sel_end)
     }
 

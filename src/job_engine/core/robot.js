@@ -3089,6 +3089,7 @@ Dexter.robot_status_labels_sm = function(sm=0){
     }
 }
 
+//for g0
 Dexter.robot_status_labels = [
 //new name             old name
 // misc block                    array index
@@ -3338,8 +3339,8 @@ Dexter.robot_status_labels_g2 = [
     "ERROR_CODE",          //same name                    5 //for any error      //0 means no error. 1 means an error
     "DMA_READ_DATA",       //                             6 // deprecated DMA_READ_DATA  then deprecated  "JOB_ID_OF_CURRENT_INSTRUCTION"
     "READ_BLOCK_COUNT",    //                             7 // deprecated READ_BLOCK_COUNT then deprecated CURRENT_INSTRUCTION_ID
-    "STATUS_MODE",   //same name                    8 //was RECORD_BLOCK_SIZE and was unused
-    "END_EFFECTOR_IO_IN",     //END_EFFECTOR_IO_IN           9 // was END_EFFECTOR_IN for a while, 0, 1, or 2 indicating type of io for end effector
+    "STATUS_MODE",         //same name                    8 //was RECORD_BLOCK_SIZE and was unused
+    "END_EFFECTOR_IO_IN",  //END_EFFECTOR_IO_IN           9 // was END_EFFECTOR_IN for a while, 0, 1, or 2 indicating type of io for end effector
 
 //J1 block
     "J1_RAW_ENCODER_ANGLE_FXP_G2",            // BASE_POSITION_AT           10 //means commanded stepped angle, not commanded_angle and not current_angle
@@ -3356,46 +3357,46 @@ Dexter.robot_status_labels_g2 = [
     "J2_RAW_ENCODER_ANGLE_FXP_G2",            // END_POSITION_AT            20
     "J2_EYE_NUMBER_G2",            // END_POSITION_DELTA         21
     "J2_PID_DELTA_G2",        // END_POSITION_PID_DELTA     22 was J2_FORCE_CALC_ANGLE
-    null, // END_POSITION_FORCE_DELTA   23
+    null,                     // END_POSITION_FORCE_DELTA   23
     "J2_A2D_SIN_G2",          // END_SIN                    24
     "J2_A2D_COS_G2",          // END_COS                    25
     "J2_MEASURED_ANGLE_G2",   // PLAYBACK_END_POSITION      26 //deprecated J2_PLAYBACK
     "J2_SENT_G2",             // SENT_END_POSITION          27 //unused
     "J7_MEASURED_TORQUE_G2",  // SLOPE_END_POSITION         28 //deprecated J2_SLOPE
-    null,                 // new field                  29 //was J2_MEASURED_ANGLE, not used, get rid of,
+    null,                     // new field                  29 //was J2_MEASURED_ANGLE, not used, get rid of,
 //J2 block of 10
     "J3_RAW_ENCODER_ANGLE_FXP_G2",            // PIVOT_POSITION_AT           30
     "J3_EYE_NUMBER_G2",            // PIVOT_POSITION_DELTA        31
     "J3_PID_DELTA_G2",        // PIVOT_POSITION_PID_DELTA    32
-    null,                  // PIVOT_POSITION_FORCE_DELTA  33  was "J3_FORCE_CALC_ANGLE"
+    null,                     // PIVOT_POSITION_FORCE_DELTA  33  was "J3_FORCE_CALC_ANGLE"
     "J3_A2D_SIN_G2",          // PIVOT_SIN                   34
     "J3_A2D_COS_G2",          // PIVOT_SIN                   35
     "J3_MEASURED_ANGLE_G2",   // PLAYBACK_PIVOT_POSITION     36 //deprecated J3_PLAYBACK
     "J3_SENT_G2",             // SENT_PIVOT_POSITION         37 //unused
     "J6_MEASURED_ANGLE_G2",   // SLOPE_PIVOT_POSITION        38 //deprecated  J3_SLOPE
-    null,                 // new field                   39 //was J3_MESURED_ANGLE not used get rid of
+    null,                     // new field                   39 //was J3_MESURED_ANGLE not used get rid of
 //J4 block of 10
     "J4_RAW_ENCODER_ANGLE_FXP_G2",            // ANGLE_POSITION_AT           40
-    "J4_EYE_NUMBER_G2",            // ANGLE_POSITION_DELTA        41
+    "J4_EYE_NUMBER_G2",       // ANGLE_POSITION_DELTA        41
     "J4_PID_DELTA_G2",        // ANGLE_POSITION_PID_DELTA    42
-    null,                  // ANGLE_POSITION_FORCE_DELTA  43 was "J4_FORCE_CALC_ANGLE"
+    null,                     // ANGLE_POSITION_FORCE_DELTA  43 was "J4_FORCE_CALC_ANGLE"
     "J4_A2D_SIN_G2",          // ANGLE_SIN                   44
     "J4_A2D_COS_G2",          // ANGLE_SIN                   45
     "J4_MEASURED_ANGLE_G2",   // PLAYBACK_ANGLE_POSITION     46 //deprecated J4_PLAYBACK
     "J4_SENT_G2",             // SENT_ANGLE_POSITION         47 //unused
     "J6_MEASURED_TORQUE_G2",  // SLOPE_ANGLE_POSITION        48 //deprecated J4_SLOPE
-    null,                  // new field                   49 //not used get rid of
+    null,                     // new field                   49 //not used get rid of
 //J4 block of 10
     "J5_RAW_ENCODER_ANGLE_FXP_G2",            // ROTATE_POSITION_AT          50
     "J5_EYE_NUMBER_G2",            // ROTATE_POSITION_DELTA       51
     "J5_PID_DELTA_G2",        // ROTATE_POSITION_PID_DELTA   52
-    null,                  // ROT_POSITION_FORCE_DELTA    53 was "J5_FORCE_CALC_ANGLE"
+    null,                     // ROT_POSITION_FORCE_DELTA    53 was "J5_FORCE_CALC_ANGLE"
     "J5_A2D_SIN_G2",          // ROT_SIN                     54
     "J5_A2D_COS_G2",          // ROT_SIN                     55
     "J5_MEASURED_ANGLE_G2",   // PLAYBACK_ROT_POSITION       56 //deprecated J5_PLAYBACK
     "J5_SENT_G2",             // SENT_ROT_POSITION           57 //unused
-    null,                  // SLOPE_ROT_POSITION          58 //deprecated J5_SLOPE  unusued
-    null                   // new field                   59 //was J5_MEASURED_ANGLE, not used get rid of
+    null,                     // SLOPE_ROT_POSITION          58 //deprecated J5_SLOPE  unusued
+    null                      // new field                   59 //was J5_MEASURED_ANGLE, not used get rid of
 ]
 Dexter.robot_status_index_labels_g2 = []
 Dexter.make_robot_status_indices(Dexter.robot_status_labels_g2, Dexter.robot_status_index_labels_g2)

@@ -9,11 +9,10 @@ import * as Espree$1 from 'espree';
 import js_beautify from 'js-beautify';
 import compareVersions from 'compare-versions';
 import require$$0 from 'domain';
-import * as readline from 'readline';
 import path from 'path';
 
 var name = "dde4";
-var version = "4.0.0";
+var version = "4.0.1";
 var release_date = "Aug 26, 2021";
 var description = "test rollup";
 var author = "Fry";
@@ -2104,7 +2103,8 @@ function out$1(val="", color="black", temp=false, code=null){
     }
     if(globalThis.platform == "node") { //console.log(val)
         let out_obj = {kind: "out_call", val: text, color: color, temp: temp, code: code}; //code isn't actually used in the browser
-        globalThis.write_to_stdout("<for_server>" + JSON.stringify(out_obj) + "</for_server>\n");
+        //globalThis.write_to_stdout("<for_server>" + JSON.stringify(out_obj) + "</for_server>\n")
+        process.send(out_obj);
         return val
     }
 
@@ -16933,9 +16933,9 @@ class Job$1{
     //If job_file_path has a newline in it, its considered to BE the src of
     //a file or at least one or more job defs.
     static async define_and_start_job(job_file_path){
-        if(globalThis.platform === "node"){
-            init_readline(); //if already open, it leaves it alone
-        }
+        //if(globalThis.platform === "node"){
+        //    init_readline() //if already open, it leaves it alone
+        //}
         let job_file_path_is_src = job_file_path.includes("\n");
         out("out: define_and_start_job set job_file_path_is_src: " + job_file_path_is_src);
         let job_instances;
@@ -17538,7 +17538,7 @@ class Job$1{
         let job_name = Job$1.extract_job_name_from_file_path(job_file_path);
         let job_instance = Job$1[job_name];
         if(job_instance) {
-            job_instance.server_job_button_click(); //might bre first time starting job, or stopping running job, or 2nd time starting
+            job_instance.server_job_button_click(); //might be first time starting job, or stopping running job, or 2nd time starting
         }
         else { //no defined job of that name, so load its file and start it.
            Job$1.define_and_start_job(job_file_path); //starts first Job in file,
@@ -17677,8 +17677,10 @@ class Job$1{
             but_elt.title = tooltip;
         }
         else { //job engine
-           let data = {kind: "show_job_button", job_name: this.name, status_code: this.status_code, button_color: bg_color, button_tooltip: tooltip};
-           globalThis.write_to_stdout("<for_server>" + JSON.stringify(data) + "</for_server>\n");
+           let data_obj = {kind: "show_job_button", job_name: this.name, status_code: this.status_code, button_color: bg_color, button_tooltip: tooltip};
+           //globalThis.write_to_stdout("<for_server>" + JSON.stringify(data) + "</for_server>\n")
+            out("in Job.color_job_button sending: " + JSON.stringify(data_obj));
+            process.send(data_obj);
         }
     }
     //end of jobs buttons
@@ -18453,7 +18455,7 @@ Job$1.prototype.finish_job = function(){
                 // and might or might not be "active".
                 //onsole.log("In finish_job for job: " + this.name + " id: " + this.job_id)
                 //onsole.log("active_jobs length: " + the_active_jobs.length)
-                if(the_active_jobs.length == 1) ;
+
                 if( (the_active_jobs.length == 0) ||
                    ((the_active_jobs.length == 1) &&
                     (the_active_jobs[0].job_id === this.job_id)
@@ -18461,7 +18463,9 @@ Job$1.prototype.finish_job = function(){
                 ) { //don't close the readline if there's a job that still wants to use it.
                     //as our orig job might have launched a 2nd job, so keep it open
                     //until all are done.
-                    out("OUT: finish job, now calling close_readline");
+                    out("OUT: finished all jobs");
+                    let mess_obj = {kind: "all_jobs_finished"};
+                    process.send(mess_obj);
                    /// console.log("finish job, now calling close_readline")
                    /// globalThis.close_readline() //causes the process running this job to finish.
                 }
@@ -27920,6 +27924,7 @@ Dexter$1.robot_status_labels_sm = function(sm=0){
     }
 };
 
+//for g0
 Dexter$1.robot_status_labels = [
 //new name             old name
 // misc block                    array index
@@ -28169,8 +28174,8 @@ Dexter$1.robot_status_labels_g2 = [
     "ERROR_CODE",          //same name                    5 //for any error      //0 means no error. 1 means an error
     "DMA_READ_DATA",       //                             6 // deprecated DMA_READ_DATA  then deprecated  "JOB_ID_OF_CURRENT_INSTRUCTION"
     "READ_BLOCK_COUNT",    //                             7 // deprecated READ_BLOCK_COUNT then deprecated CURRENT_INSTRUCTION_ID
-    "STATUS_MODE",   //same name                    8 //was RECORD_BLOCK_SIZE and was unused
-    "END_EFFECTOR_IO_IN",     //END_EFFECTOR_IO_IN           9 // was END_EFFECTOR_IN for a while, 0, 1, or 2 indicating type of io for end effector
+    "STATUS_MODE",         //same name                    8 //was RECORD_BLOCK_SIZE and was unused
+    "END_EFFECTOR_IO_IN",  //END_EFFECTOR_IO_IN           9 // was END_EFFECTOR_IN for a while, 0, 1, or 2 indicating type of io for end effector
 
 //J1 block
     "J1_RAW_ENCODER_ANGLE_FXP_G2",            // BASE_POSITION_AT           10 //means commanded stepped angle, not commanded_angle and not current_angle
@@ -28187,46 +28192,46 @@ Dexter$1.robot_status_labels_g2 = [
     "J2_RAW_ENCODER_ANGLE_FXP_G2",            // END_POSITION_AT            20
     "J2_EYE_NUMBER_G2",            // END_POSITION_DELTA         21
     "J2_PID_DELTA_G2",        // END_POSITION_PID_DELTA     22 was J2_FORCE_CALC_ANGLE
-    null, // END_POSITION_FORCE_DELTA   23
+    null,                     // END_POSITION_FORCE_DELTA   23
     "J2_A2D_SIN_G2",          // END_SIN                    24
     "J2_A2D_COS_G2",          // END_COS                    25
     "J2_MEASURED_ANGLE_G2",   // PLAYBACK_END_POSITION      26 //deprecated J2_PLAYBACK
     "J2_SENT_G2",             // SENT_END_POSITION          27 //unused
     "J7_MEASURED_TORQUE_G2",  // SLOPE_END_POSITION         28 //deprecated J2_SLOPE
-    null,                 // new field                  29 //was J2_MEASURED_ANGLE, not used, get rid of,
+    null,                     // new field                  29 //was J2_MEASURED_ANGLE, not used, get rid of,
 //J2 block of 10
     "J3_RAW_ENCODER_ANGLE_FXP_G2",            // PIVOT_POSITION_AT           30
     "J3_EYE_NUMBER_G2",            // PIVOT_POSITION_DELTA        31
     "J3_PID_DELTA_G2",        // PIVOT_POSITION_PID_DELTA    32
-    null,                  // PIVOT_POSITION_FORCE_DELTA  33  was "J3_FORCE_CALC_ANGLE"
+    null,                     // PIVOT_POSITION_FORCE_DELTA  33  was "J3_FORCE_CALC_ANGLE"
     "J3_A2D_SIN_G2",          // PIVOT_SIN                   34
     "J3_A2D_COS_G2",          // PIVOT_SIN                   35
     "J3_MEASURED_ANGLE_G2",   // PLAYBACK_PIVOT_POSITION     36 //deprecated J3_PLAYBACK
     "J3_SENT_G2",             // SENT_PIVOT_POSITION         37 //unused
     "J6_MEASURED_ANGLE_G2",   // SLOPE_PIVOT_POSITION        38 //deprecated  J3_SLOPE
-    null,                 // new field                   39 //was J3_MESURED_ANGLE not used get rid of
+    null,                     // new field                   39 //was J3_MESURED_ANGLE not used get rid of
 //J4 block of 10
     "J4_RAW_ENCODER_ANGLE_FXP_G2",            // ANGLE_POSITION_AT           40
-    "J4_EYE_NUMBER_G2",            // ANGLE_POSITION_DELTA        41
+    "J4_EYE_NUMBER_G2",       // ANGLE_POSITION_DELTA        41
     "J4_PID_DELTA_G2",        // ANGLE_POSITION_PID_DELTA    42
-    null,                  // ANGLE_POSITION_FORCE_DELTA  43 was "J4_FORCE_CALC_ANGLE"
+    null,                     // ANGLE_POSITION_FORCE_DELTA  43 was "J4_FORCE_CALC_ANGLE"
     "J4_A2D_SIN_G2",          // ANGLE_SIN                   44
     "J4_A2D_COS_G2",          // ANGLE_SIN                   45
     "J4_MEASURED_ANGLE_G2",   // PLAYBACK_ANGLE_POSITION     46 //deprecated J4_PLAYBACK
     "J4_SENT_G2",             // SENT_ANGLE_POSITION         47 //unused
     "J6_MEASURED_TORQUE_G2",  // SLOPE_ANGLE_POSITION        48 //deprecated J4_SLOPE
-    null,                  // new field                   49 //not used get rid of
+    null,                     // new field                   49 //not used get rid of
 //J4 block of 10
     "J5_RAW_ENCODER_ANGLE_FXP_G2",            // ROTATE_POSITION_AT          50
     "J5_EYE_NUMBER_G2",            // ROTATE_POSITION_DELTA       51
     "J5_PID_DELTA_G2",        // ROTATE_POSITION_PID_DELTA   52
-    null,                  // ROT_POSITION_FORCE_DELTA    53 was "J5_FORCE_CALC_ANGLE"
+    null,                     // ROT_POSITION_FORCE_DELTA    53 was "J5_FORCE_CALC_ANGLE"
     "J5_A2D_SIN_G2",          // ROT_SIN                     54
     "J5_A2D_COS_G2",          // ROT_SIN                     55
     "J5_MEASURED_ANGLE_G2",   // PLAYBACK_ROT_POSITION       56 //deprecated J5_PLAYBACK
     "J5_SENT_G2",             // SENT_ROT_POSITION           57 //unused
-    null,                  // SLOPE_ROT_POSITION          58 //deprecated J5_SLOPE  unusued
-    null                   // new field                   59 //was J5_MEASURED_ANGLE, not used get rid of
+    null,                     // SLOPE_ROT_POSITION          58 //deprecated J5_SLOPE  unusued
+    null                      // new field                   59 //was J5_MEASURED_ANGLE, not used get rid of
 ];
 Dexter$1.robot_status_index_labels_g2 = [];
 Dexter$1.make_robot_status_indices(Dexter$1.robot_status_labels_g2, Dexter$1.robot_status_index_labels_g2);
@@ -37647,18 +37652,124 @@ async function init_job_engine(){
 }
 
 //see doc: https://nodejs.org/api/readline.html
-globalThis.readline = readline; //but since this file can ONLY be loaded in Job Engine, globalThis not accessible from DDE IDE
+//import {Job} from "./job.js" //now Job is global
+
+
+//no examples on web of import readline, all use require.
+//import * as readline from "readline" // "../../../node_modules/readline/readline.js" //todo but readline.js does require("fs") and require is undefined.
+//import readline from "readline"
+//globalThis.readline = readline //but since this file can ONLY be loaded in Job Engine, globalThis not accessible from DDE IDE
+
 
 function set_keep_alive_value(new_val){
     globalThis.keep_alive_value = new_val; //true or false
     let active_job_count = Job.active_jobs().length;
     console.log("in set_keep_alive_value with active_job_count: " + active_job_count +
                 " and new_val: " + new_val);
-    if((!new_val) && (active_job_count === 0)){
-        globalThis.close_readline(); //but this doesn't end the process so call:
-        process.exit(0);  //https://stackabuse.com/how-to-exit-in-node-js/
-    }
+    //if((!new_val) && (active_job_count === 0)){//todo needs to be commented back in probably
+    ///    globalThis.close_readline() //but this doesn't end the process so call:
+    //    process.exit(0)  //https://stackabuse.com/how-to-exit-in-node-js/
+    //}
 }
+
+function format_for_eval(src, result){
+    let result_str = "" + result;
+    let text = format_text_for_code(result_str, true).trim(); //defined in out.js
+    //below mostly copied from out.js
+    let src_formatted = "";
+    let src_formatted_suffix = ""; //but could be "..."
+        src_formatted = src.trim();
+        let src_first_newline = src_formatted.indexOf("\n");
+        if (src_first_newline != -1) {
+            src_formatted = src_formatted.substring(0, src_first_newline);
+            src_formatted_suffix = "...";
+        }
+        if (src_formatted.length > 55) {
+            src_formatted = src_formatted.substring(0, 55);
+            src_formatted_suffix = "...";
+        }
+        src_formatted = Utils.replace_substrings(src_formatted, "<", "&lt;");
+        src = Utils.replace_substrings(src, "'", "&apos;");
+        src_formatted = " <code style='background-color:white;' title='" + src + "'>" + src_formatted + src_formatted_suffix + "</code>";
+
+    let src_label = "The result of evaling JS ";
+    let the_html = "<div style='font-size:16px;display:inline-block'><i>" + src_label  + " </i>" + src_formatted + " <i>is...</i>" +  text + "</div>";
+    return the_html
+}
+
+/*
+process.stdin.on("data", data => {
+    data = data.toString()
+    console.log("stdin on data passed: " + data)
+    data = data.trim()
+    if(data.startsWith("{")){ //got a JSON object
+        let json_obj = JSON.parse(data)
+        globalThis.keep_alive_value = json_obj.keep_alive_value
+        if(json_obj.kind === "eval") {
+            let src = json_obj.code
+            let result = globalThis.eval(src)
+            let the_html = format_for_eval(src, result)
+            process.send(the_html) //write_to_stdout(the_html)
+            if (!globalThis.keep_alive_value) {
+                let json_obj = {
+                    kind: "job_process_button",
+                    button_tooltip: "There is no job process.",
+                    button_color: rgb(200, 200, 200)
+                }
+                write_to_stdout(JSON.stringify(json_obj))
+            }
+        }
+    }
+    else {
+        console.log("eval returns: ", globalThis.eval(input))
+    }
+    //process.stdout.write(data + "\n")
+})
+
+ */
+
+process.on("message", data_obj => {
+        globalThis.keep_alive_value = data_obj.keep_alive_value;
+        console.log("stdio.kjs top of on message with keep_alive_value: " + keep_alive_value);
+        if(data_obj.kind === "get_dde_version") {
+            data_obj.dde_version      = globalThis.dde_version;
+            data_obj.dde_release_date = globalThis.dde_release_date;
+            process.send(data_obj);
+        }
+        else if(data_obj.kind === "eval") {
+            let src = data_obj.code;
+            let result = globalThis.eval(src);
+            let the_html = format_for_eval(src, result);
+            console.log("stdio on message the_html: " + the_html);
+            //write_to_stdout(the_html)
+            let the_eval_result_obj = {
+                                    kind: "eval_result",
+                                    val_html:  the_html
+                                   };
+            process.send(the_eval_result_obj);
+            /* no need for this when job_process button goes away.
+             if (!globalThis.keep_alive_value) {
+                let json_obj = {
+                    kind: "job_process_button",
+                    button_tooltip: "There is no job process.",
+                    button_color: rgb(200, 200, 200)
+                }
+                process.send(json_obj)
+            }*/
+        }
+        else if((data_obj.kind === "job_button_click")){
+            let code = 'Job.maybe_define_and_server_job_button_click("' + data_obj.job_name_with_extension + '")';
+            console.log(" stdio on message job_button_click evaling: " + code);
+            out(" stdio on message job_button_click evaling: " + code);
+            globalThis.eval(code);
+        }
+        else {
+            console.log("eval returns: ", globalThis.eval(data_obj.code));
+        }
+    //process.stdout.write(data + "\n")
+});
+
+
 
 globalThis.set_keep_alive_value = set_keep_alive_value;
 
@@ -37677,48 +37788,64 @@ function write_to_stdout(str){
 
 globalThis.write_to_stdout = write_to_stdout;
 
+/*
+//CAN"T GET readline to work so using simpler process.stdin.on("data" ...")
+//no examples on web of import readline, all use require.
+
+
 function close_readline(){
-    console.log("top of job engine node stdio.js close_readline"); //even wit the setTimeout,
+    console.log("top of job engine node stdio.js close_readline") //even wit the setTimeout,
     //I still don't see this print statement come to the JE browser interface Out pane.
     setTimeout( function() {
-        rl.close();
-    }, 1000);
+       // rl.close() //todo comment back in when debugged
+    }, 1000)
 }
 
-globalThis.close_readline = close_readline;
+globalThis.close_readline = close_readline
 
-var rl;
-function init_readline$1() {
-    console.log("top of init_readline");
+var rl
+function init_readline() {
+    console.log("top of init_readline")
     if (rl) {
-        console.log("init_readline: already open");
+        console.log("init_readline: already open")
     } else {
-        console.log("init_readline: now opening");
+        console.log("init_readline: now opening")
         rl = readline.createInterface({
-            input: process.stdin,
+            input:  process.stdin,
             output: process.stdout
-        });
+        })
         //examples of input:
         // 'Job.myJob.stop_for_reason("interrupted", "user stopped the job")'
         // 'Job.define_and_start_job("/srv/samba/share/dde_apps/myjob.js")'
         // 'Job.myjob.color_job_button()'
         // 'Job.myjob.server_job_button_click()'
         rl.on('line', function (input) {
-            console.log("<br/>stdin got line: " + input);
-            out("(out call) stdin got line: " + input + "\n");
-            console.log("eval returns: ", eval(input));
-        });
+            console.log("<br/>stdin got line: " + input)
+            out("(out call) stdin got line: " + input + "\n")
+            input = input.trim()
+            if(input.startsWith("eval(")){
+                let code = input.substring(5, input.length - 1)
+                let result =  globalThis.eval(code)
+                let result_str = "" + result
+                out("the result of evaling: " + code + " is: <br/>" +
+                     result_str)
+            }
+            else {
+                console.log("eval returns: ", globalThis.eval(input))
+            }
+        })
         rl.on('close', function () { // can't find a rl.is_open() method or prop so this will have to do
-            rl = null;
-        });
+            rl = null
+        })
     }
 }
 
-globalThis.init_readline = init_readline$1;
+globalThis.init_readline = init_readline
+*/
 
 //Only used in the Job Engine
 
-class GrpcServer$1 {
+class GrpcServer {
     static DDE4_PATH = process.cwd() //to dde4, ie the folder containing dde/build/
     static PROTO_PATH  //"/Users/Fry/WebstormProjects/dde4/dde/third_party/helloworld.proto"
                         //__dirname + '/../../protos/helloworld.proto';
@@ -37759,7 +37886,7 @@ class GrpcServer$1 {
         try {
             instr = eval(passed_in_string);
             console.log("evaled: " + passed_in_string + " to: " + instr);
-            GrpcServer$1.define_wait_for_instruction_maybe(); //can't use "this" in sayHello.
+            GrpcServer.define_wait_for_instruction_maybe(); //can't use "this" in sayHello.
             if(!Job.wait_for_instruction.is_active()){
                 Job.wait_for_instruction.start({initial_instruction: instr});
                 console.log("Started: Job.wait_for_instruction");
@@ -37827,8 +37954,8 @@ class GrpcServer$1 {
         try {
             let gserver = new grpc.Server();
             console.log("after new grpc.Server with: " + gserver);
-            gserver.addService(GrpcServer$1.hello_proto.Greeter.service, {sayHello: GrpcServer$1.sayHello});
-            gserver.addService(GrpcServer$1.hello_proto.DexterInstruction.service, {handleDexterInstruction: GrpcServer$1.handleDexterInstruction});
+            gserver.addService(GrpcServer.hello_proto.Greeter.service, {sayHello: GrpcServer.sayHello});
+            gserver.addService(GrpcServer.hello_proto.DexterInstruction.service, {handleDexterInstruction: GrpcServer.handleDexterInstruction});
 
             gserver.bindAsync('127.0.0.1:50051', //'0.0.0.0:50051',
                                    grpc.ServerCredentials.createInsecure(),
@@ -37855,7 +37982,7 @@ class GrpcServer$1 {
     }
 }
 
-globalThis.GrpcServer = GrpcServer$1;
+globalThis.GrpcServer = GrpcServer;
 
 //GrpcServer.init();
 
@@ -37930,6 +38057,20 @@ function run_node_command(args) {
     else {console.log("started Job Engine without args.");} //not passed any real args so just do nothing.
 }
 
+//when there is no job_process and user clicks on job_process button
+function start_je_process(){
+    console.log("top of start_je_process");
+    globalThis.keep_alive_settimeout = setTimeout(
+        function() {
+            console.log("the keep_alive setTimout timed out");
+    },
+    //sec    min  hour day
+        (1000 * 60 * 60 * 24)
+    );
+    console.log("bottom of start_je_process");
+}
+globalThis.start_je_process = start_je_process;
+
 function define_and_start_job(job_file_path){
     if(job_file_path.endsWith("/keep_alive")) {
         globalThis.keep_alive_value = true; //set to false by stdio readline evaling "globalThis.set_keep_alive_value(false)" made in httpd.mjs
@@ -37962,7 +38103,6 @@ async function on_ready_je(){
     set_operating_system();
     console.log("globalThis.operating_system is now: " + globalThis.operating_system);
     //out("top of on_ready_je")
-    debugger;
     globalThis.platform = "node";
     globalThis.default_default_dexter_ip_address = "localhost";
     //console.log("init_job_engine: " + init_job_engine)
@@ -37973,8 +38113,17 @@ async function on_ready_je(){
     init_units(); //In dde, has to be after init_series call.
     FPGA.init();  //does not depend on Series.
     Gcode.init(); //must be after init_series which calls init_units()
-    init_readline();
-    GrpcServer.init();
+    //init_readline() //can't get this to work. see stdio.js
+    //GrpcServer.init() //todo this errors if running job engine on my mac *I think*
+    out("on_ready_je after calling GrpcServer.initGrpcServer.init");
+    if (does_this_script_have_args()) {
+        out("calling run_node_command with: " + process.argv);
+        run_node_command(process.argv);
+    }
+    else {
+        out("no job to run");
+    }
+
 }
 
 on_ready_je();
@@ -37987,13 +38136,6 @@ function does_this_script_have_args() {
     //2nd elt always is the js file of this script.
     //Thus, if this script is to have any args, process.argv must have more than 2 elts.
     return process.argv.length > 2
-}
-
-if (does_this_script_have_args()) {
-    run_node_command(process.argv);
-}
-else {
-    console.log("no job to run");
 }
 
 

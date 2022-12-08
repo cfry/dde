@@ -45,14 +45,30 @@
             xhttp.onreadystatechange = handle_init_jobs
             xhttp.open("GET", "/init_jobs", true);
             xhttp.send();
+
             document.getElementById("cmd_input_id")
                 .addEventListener("keyup", function(event) {
                     event.preventDefault();
-                    if (event.code === "Enter") { //https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode
-
+                    if (event.code === "Enter") {//event.keyCode == 13 //https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode
+                        let src = cmd_input_id.value.trim()
+                        if (src.length > 0) {
+                            let mess_obj = {kind: "eval",
+                                            code: cmd_input_id.value,
+                                            keep_alive_value: keep_alive_id.checked};
+                            web_socket.send(JSON.stringify(mess_obj))
+                        } else {
+                            browser_append_to_output("<span style='color:darkorange'>Warning: no JavaScript source code to eval.</span>")
+                        }
                     }
-                });
+                })
+            /*init_ws()
+            setTimeout(function() {
+                    console.log('jobs.html sending {"kind": "get_dde_version"}')
+                    web_socket.send('{"kind": "get_dde_version"}')
+                },
+                2000)*/
         }
+
         function handle_init_jobs(){
             if (this.readyState == 4 && this.status == 200) {
                 let response_text = this.responseText
@@ -68,6 +84,11 @@
                 }
             }
             init_ws()
+            setTimeout(function() {
+                    console.log('jobs.html sending {"kind": "get_dde_version"}')
+                    web_socket.send('{"kind": "get_dde_version"}')
+                },
+                       2000)
         }
         function make_job_button(job_name_with_extension_or_job_name){
             let dot_index = job_name_with_extension_or_job_name.indexOf(".")
@@ -95,12 +116,6 @@
             but_elt.style["margin-bottom"] = "5px"
             but_elt.style["padding"] = "3px"
             job_button_container_id.appendChild(but_elt)
-        }
-
-        function handle_job_process_button_click(){
-            browser_out("user clicked job_process button")
-            let mess_obj = {kind: "job_process_button_click"};
-            web_socket.send(JSON.stringify(mess_obj))
         }
 
         function get_keep_alive_click(event){
@@ -131,17 +146,6 @@
             web_socket.send(JSON.stringify(mess_obj))
         }
 
-        function handle_cmd_eval(){
-            let src = cmd_input_id.value.trim()
-            if(src.length > 0) {
-                let mess_obj = {kind: "eval", code: cmd_input_id.value};
-                web_socket.send(JSON.stringify(mess_obj))
-            }
-            else {
-                browser_append_to_output("Warning: no JavaScript source code to eval.")
-            }
-        }
-
         function init_ws(){
             web_socket = new WebSocket("ws://"+window.location.hostname+":3001")
             web_socket.onmessage = handle_ws_msg
@@ -149,6 +153,7 @@
 
         function browser_append_to_output(str){
             output_div_id.insertAdjacentHTML("beforeend", str)
+            output_div_id.scrollTop = output_div_id.scrollHeight;
         }
 
         function browser_format_text_for_code(text, code=null){
@@ -160,6 +165,7 @@
                 text = text.replaceAll("\\\\n", "\n")
                 text = "<pre><code>" + text + "</code></pre>"
             }
+            console.log("browser_format_text_for_code returning: " + text)
             return text
         }
 
@@ -174,6 +180,7 @@
         }
 
         function browser_out(val="", color="black", temp=false, code=null){
+            console.log("browser_out passed: " + val + ", " + color + ", " + temp + ", " + code)
             let text = val
             if (typeof(text) != "string"){ //if its not a string, its some data structure so make it fixed width to demonstrate code. Plus the json pretty printing doesn't work unless if its not fixed width.
                 if(globalThis["stringify_value"]) { text = Utils.stringify_value(text) }
@@ -182,9 +189,7 @@
 
             text = browser_format_text_for_code(text, code)
 
-            if ((color != "black") && (color != "#000000")){
-                text = "<span style='color:" + color + ";'>" + text + "</span>"
-            }
+            text = "<span style='color:" + color + ";'>" + text + "</span>"
             let temp_str_id = ((typeof(temp) == "string") ? temp : "temp")
             let existing_temp_elts = []
             if(globalThis["document"]){
@@ -325,24 +330,34 @@
 
         function handle_ws_msg(event){
             //onsole.log("handle_ws_msg with total text: " + event.data + "\n\n")
-            let [stdout_text, data_array] = split_response_text_into_stdout_and_data(event.data)
-            console.log("handle_ws_msg recieved text: " + stdout_text)
-            console.log("handle_ws_msg recieved data: " + JSON.stringify(data_array))
-            //onsole.log("handle_ws_msg recieved stdout_text: " + stdout_text)
-            if(stdout_text.trim() !== ""){
-                stdout_text = stdout_text.replace(new RegExp("\n", 'g'), "<br/>")
-                //stdout_id.innerHTML += (stdout_text)
-                //stdout_id.insertAdjacentHTML('beforeend', stdout_text)
-                //stdout_id.scrollTop = stdout_id.scrollHeight
+            let data_str = event.data
+            let data_array
+            if      (data_str.startsWith("[")) { data_array = JSON.parse(data_str) }   //no stdout_text
+            else if (data_str.startsWith("{")) { data_array = [JSON.parse(data_str)]}  //no stdout_text
+            else { //has stdout_text
+                let [stdout_text, the_data_array] = split_response_text_into_stdout_and_data(event.data)
+                console.log("handle_ws_msg recieved text: " + stdout_text)
+                if (!Array.isArray(data_array)) {
+                    data_array = []
+                }
+                console.log("handle_ws_msg recieved data: " + JSON.stringify(data_array))
+                //onsole.log("handle_ws_msg recieved stdout_text: " + stdout_text)
+                if (stdout_text.trim() !== "") {
+                    stdout_text = stdout_text.replace(new RegExp("\n", 'g'), "<br/>")
+                    //stdout_id.innerHTML += (stdout_text)
+                    //stdout_id.insertAdjacentHTML('beforeend', stdout_text)
+                    //stdout_id.scrollTop = stdout_id.scrollHeight
 
-                //SW.append_to_output(stdout_text)
-                browser_append_to_output(stdout_text)
+                    //SW.append_to_output(stdout_text)
+                    browser_append_to_output(stdout_text)
+                }
+                data_array = the_data_array
             }
             for(data of data_array) {
                 //console.log("In handle_stdout with data: " + JSON.stringify(data))
-                if(data.kind === "job_process_button"){
-                    job_process_button_id.title = data.button_tooltip
-                    job_process_button_id.style["background-color"] = data.button_color
+                if(data.kind === "get_dde_version"){
+                    dde_version_id.innerHTML = data.dde_version
+                    dde_release_date_id.innerHTML = data.dde_release_date
                 }
                 else if(data.kind === "show_job_button"){
                     let job_name = data.job_name
@@ -404,10 +419,11 @@
 </head>
 <body id="body_id" onload='get_init_jobs()'>
 <a href="/">Back to Dexter Applications</a><br/>
-<div style='font-size:20px; font-weight:700;'>Dexter Job Engine 4.0.0</div>
+<div style='font-size:20px; font-weight:700;'>Dexter Job Engine 4</div>
 Showing a button for the first job defined in each file in /srv/samba/share/dde_apps/<br/>
 Click a Job&apos;s button to start or stop it.<br/>
 <details class="doc_details"><summary>Help</summary>
+    This is Job Engine version: <span id='dde_version_id'>4</span> released on: <span id='dde_release_date_id'>
     <details class="doc_details"><summary>Capabilities</summary>
         The Job Engine runs Jobs that are defined in files in Dexter's /srv/samba/share/dde_apps/" folder.
         These files should have extensions of ".js" or ".dde" and contain JavaScript.
@@ -483,9 +499,6 @@ Click a Job&apos;s button to start or stop it.<br/>
     </details>
 </details>
 <div id='job_button_container_id' style="margin:0px; padding:12px; background-color:#bae5fe;">
-    <button id="job_process_button_id" onclick="handle_job_process_button_click()"
-            title="Start the Job Engine node process."
-            style="margin-right:0px;background-color:rgb(204, 204, 204)">job_process</button>
     <button onclick="browser_clear_output()"
             title="Remove all previously output text (below)."
             style="margin-right:0px;">Clear</button>
@@ -497,7 +510,7 @@ Click a Job&apos;s button to start or stop it.<br/>
            	  <input id="keep_alive_id" type="checkbox" onchange="get_keep_alive_click(event)"/>
            	  <label for="keep_alive_id" >keep_alive</label>
     </span>
-    <input id="cmd_input_id" placeholder="Type in JS &amp; hit the Enter key to eval" title="Type in code &amp; hit Enter key to eval."
+    <input id="cmd_input_id" placeholder="Type in JS &amp; hit the Enter key to eval" title="Type in JavaScript &amp; hit Enter key to eval it."
            style="font-size:14px;width:500px;"/>
     <div style="margin:0px;padding:0px;font-size:11px;vertical-align:0px;transform:rotate(-90deg);">Jobs</div>
 </div>

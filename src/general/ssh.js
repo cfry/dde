@@ -937,11 +937,11 @@ Show password? <input type="checkbox"  id="ssh_auth_dialog_show_pas_id" ` +
                     ssh_auth_dialog_user_name_id.select()
                 }})
             ssh_auth_dialog_user_name_id.focus()
-            $("#ssh_auth_dialog_pas_id").on("keyup", function(event){ //output pane  type in
+            ssh_auth_dialog_pas_id.onkeyup = function(event){ //output pane  type in
                 if(event.keyCode == 13){
                     ssh_auth_dialog_ok_id.click()
                 }
-            })
+            }
             }, 200)
     }
 } //end SSH class

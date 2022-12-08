@@ -304,7 +304,8 @@ export function on_ready() {
     //$('#jqxwindow').jqxWindow('hide');
 
     //also look in eval.js eval_part1 for js_cmds_array extension.
-    $("#cmd_input_id").keyup(function(event){ //output pane  type in
+   // $("#cmd_input_id").keyup(function(event){ //output pane  type in
+    cmd_input_id.onkeyup = function(event){
         if(event.keyCode == 13){ //ENTER key
             let src = Editor.get_cmd_selection() //will return "" if no selection
             if(src.length == 0) { src = cmd_input_id.value} //get full src if no selection
@@ -380,7 +381,7 @@ export function on_ready() {
             }
         }
         cmd_input_id.focus()
-    })
+    }
     //cmd_input_id.onblur = function(){
     //        globalThis.getSelection().collapse(cmd_input_id)
     //}
@@ -1770,12 +1771,12 @@ window_modify_id.onclick=function(){Editor.insert(
               DDE_DB.persistent_set("editor_font_size", this.value)
          }
          // $("#font_size_id").keyup(function(event){ //in dde3
-         font_size_id.onkeyup = (function(event){ //for dde4 todo: dde4 test
+         font_size_id.onkeyup = function(event){
            if(event.keyCode == 13){
                $(".CodeMirror").css("font-size", this.value + "px")
                DDE_DB.persistent_set("editor_font_size", this.value)
            }
-         })
+         }
 
 
          //init_ros_id.onclick = function(){

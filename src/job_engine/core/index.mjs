@@ -25,7 +25,7 @@ function node_on_ready() {
                                                              //+ "/Documents/dde_apps"
     }
     //not needed for node version
-    //global.dde_version      = pckg.version
+    //global.dde_version      = pckg.version //now in load_job_engine.js
     //global.dde_release_date = pckg.release_date
     global.platform  = "node" //"node" means we're in the job_engine, "dde" would mean we're not.
     global.Root      = Root

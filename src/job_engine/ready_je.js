@@ -101,6 +101,20 @@ function start_job(job_name){
     else { console.log("can't find Job named: " + job_name) }
 }
 
+//when there is no job_process and user clicks on job_process button
+function start_je_process(){
+    console.log("top of start_je_process")
+    globalThis.keep_alive_settimeout = setTimeout(
+        function() {
+            console.log("the keep_alive setTimout timed out")
+    },
+    //sec    min  hour day
+        (1000 * 60 * 60 * 24)
+    )
+    console.log("bottom of start_je_process")
+}
+globalThis.start_je_process = start_je_process
+
 function define_and_start_job(job_file_path){
     if(job_file_path.endsWith("/keep_alive")) {
         globalThis.keep_alive_value = true //set to false by stdio readline evaling "globalThis.set_keep_alive_value(false)" made in httpd.mjs
@@ -149,7 +163,6 @@ async function on_ready_je(){
     set_operating_system()
     console.log("globalThis.operating_system is now: " + globalThis.operating_system)
     //out("top of on_ready_je")
-    debugger;
     globalThis.platform = "node"
     globalThis.default_default_dexter_ip_address = "localhost"
     //console.log("init_job_engine: " + init_job_engine)
@@ -160,8 +173,17 @@ async function on_ready_je(){
     init_units() //In dde, has to be after init_series call.
     FPGA.init()  //does not depend on Series.
     Gcode.init() //must be after init_series which calls init_units()
-    init_readline()
-    GrpcServer.init()
+    //init_readline() //can't get this to work. see stdio.js
+    //GrpcServer.init() //todo this errors if running job engine on my mac *I think*
+    out("on_ready_je after calling GrpcServer.initGrpcServer.init")
+    if (does_this_script_have_args()) {
+        out("calling run_node_command with: " + process.argv)
+        run_node_command(process.argv)
+    }
+    else {
+        out("no job to run")
+    }
+
 }
 
 on_ready_je()
@@ -174,13 +196,6 @@ function does_this_script_have_args() {
     //2nd elt always is the js file of this script.
     //Thus, if this script is to have any args, process.argv must have more than 2 elts.
     return process.argv.length > 2
-}
-
-if (does_this_script_have_args()) {
-    run_node_command(process.argv)
-}
-else {
-    console.log("no job to run")
 }
 
 

@@ -9,7 +9,8 @@ function out(val="", color="black", temp=false, code=null){
     }
     if(globalThis.platform == "node") { //console.log(val)
         let out_obj = {kind: "out_call", val: text, color: color, temp: temp, code: code} //code isn't actually used in the browser
-        globalThis.write_to_stdout("<for_server>" + JSON.stringify(out_obj) + "</for_server>\n")
+        //globalThis.write_to_stdout("<for_server>" + JSON.stringify(out_obj) + "</for_server>\n")
+        process.send(out_obj)
         return val
     }
 

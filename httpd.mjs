@@ -134,9 +134,9 @@ function running_on_dexter() { //dde4 added
 }                                                       // folder on dexter   contains                                                        folder on Mac dev
 const SHARE_FOLDER       = compute_share_folder()       //  /srv/samba/share               //contains dde_apps, www, dde3_je,
 const WWW_FOLDER         = compute_www_folder()         //  /srv/samba/share/www           //contains dde, httpd.mjs, index.html(tiles), jobs.html(3)   dde4, contains dde httpd.mjs, index.html(tiles) but not jobs.html(3)
-const DDE_FOLDER         = compute_dde_folder()         //  /srv/samba/share/www/dde       //contains build/, index.html(dde), jobs.html(4)           dde  contains build, index.html(dde), jobs.html
-const DDE_INSTALL_FOLDER = compute_dde_install_folder() //  /srv/samba/share/www/dde/build //contains bundle.mjs, bundle_je.mjs                 dde/build contains bundle.mjs bundle_je.mjs
-const CAL_DATA_FOLDER    = compute_cal_data_folder()    //  /srv/samba/share/cal_data will include Defaults.make_ins
+const DDE_FOLDER         = compute_dde_folder()         //  /srv/samba/share/www/dde       //contains build/, index.html(dde), jobs.html(4)             dde  contains build, index.html(dde), jobs.html
+const DDE_INSTALL_FOLDER = compute_dde_install_folder() //  /srv/samba/share/www/dde/build //contains bundle.mjs, bundle_je.mjs                      dde/build contains bundle.mjs bundle_je.mjs
+const CAL_DATA_FOLDER    = compute_cal_data_folder()    //  /srv/samba/share/cal_data      //will include Defaults.make_ins
 const DDE_APPS_FOLDER    = compute_dde_apps_folder()    //  /srv/samba/share/dde_apps or homedir/Documents/dde_apps                           homedir/Documents/dde_apps
 
 console.log("SHARE_FOLDER:        " + SHARE_FOLDER +
@@ -191,37 +191,75 @@ function kill_all_job_processes(){
 */
 var job_process = null
 
-function make_or_kill_job_process() {
-    console.log("top of make_or_kill_job_process")
-    if (!job_process || !job_process.connected){
-        console.log("in make_or_kill_job_process, spawning a new process")
-        let node_arg_for_debug = (debug ? " --inspect-brk " : "")
-        let cmd_line = 'node -v '//--experimental-fetch' + node_arg_for_debug
-        // --inspect'; // --inspect-brk then we run node
-        //the --experimental-fetch is needed when running node v 17
-        let jobfile = "just_prints.dde"
-        let job_name = "just_prints" //todo maybe should be "job_process", but just get working first.
-        let cmd_args = [] // ["core define_and_start_job " + jobfile]; //orig dde3 //tell it to start the job
-                       //  ["bundleje.mjs define_and_start_job " + jobfile] //dde4
-        let cmd_options = {} //{cwd: DDE_INSTALL_FOLDER, shell: true};
-        console.log("spawn\n    cmd_line: " + cmd_line + "\n    cmd_args: " + cmd_args + "\n    cmd_options: " + JSON.stringify(cmd_options) ) //+ " &") //ampersand runs node as a background process
-        job_process = spawn(cmd_line, cmd_args, cmd_options)
-        console.log("just spawned job_process: " + job_process)
-        console.log("job_process type: " + job_process.constructor.name)
-        job_process.on('close', (code) => {
-            console.log("job process closed with code: " + code)
-        })
-        job_process.stdout.on('data', function(data) {
-            let data_str = data.toString();
-            console.log("in node_server: stdout.on data got data: " + data_str + "\n");
+function kill_job_process(browser_socket){
+    if(job_process) {
+        job_process.kill()
+        job_process = null
+        out_to_browser_out_pane(browser_socket, "_______Job Process Ended________", "red")
+    }
+    //else {} job_process should already be dead. Don't print the "Job Process Ended" message twice
+    //color_job_process_button(browser_socket)
+}
 
-            //server_response.write(data_str) //pipe straight through to calling browser's handle_stdout
-            //https://github.com/expressjs/compression/issues/56 sez call flush even though it isn't documented.
-            //server_response.flushHeaders() //flush is deprecated.
-            if (browser_socket.readyState != WebSocket.OPEN) {job_process.kill(); return;} //maybe should be kill()?
-            console.log("in httd.mjs serve_job_button_click on data fn, sending data_str: " + data_str)
-            browser_socket.send(data_str);
-        });
+//was make_or_kill_job_process
+function make_job_process(browser_socket) {
+    console.log("top of make_job_process with job_process: " + job_process)
+    if (!job_process){
+        console.log("in make_job_process, spawning a new process")
+        let node_arg_for_debug = (debug_value ? " --inspect-brk " : "")
+        let cmd_line = 'node --experimental-fetch' + node_arg_for_debug
+        let cmd_args =   ["bundleje.mjs start_je_process"]
+        let cmd_options = {cwd: DDE_INSTALL_FOLDER, shell: true, stdio: ['ipc']}
+        console.log("spawn\n    cmd_line: " + cmd_line + "\n    cmd_args: " + cmd_args + "\n    cmd_options: " + JSON.stringify(cmd_options) ) //+ " &") //ampersand runs node as a background process
+        console.log("in make_job_process setting job_process to result of spawn call")
+        job_process = spawn(cmd_line,
+                            cmd_args,
+                            cmd_options)
+        //color_job_process_button(browser_socket)
+        console.log("just spawned job_process: " + job_process + " pid: " + job_process.pid)
+        console.log("job_process type: " + job_process.constructor.name)
+
+        job_process.on('spawn', function() {
+            console.log("make_job_process spawned successfully")
+        })
+
+        job_process.on('message', function(data_obj) {
+            let data_str = JSON.stringify(data_obj)
+            if (browser_socket.readyState != WebSocket.OPEN) {
+                  console.log("in server job_process on message readyState NOT open passed data_obj: " + JSON.stringify(data_obj))
+                 /*kill_job_process(browser_socket);
+                 let data_obj = {
+                    kind: "job_process_button",
+                    button_tooltip: "There is no job process.",
+                    button_color: rgb(200, 200, 200)
+                }
+                browser_socket.send(data_str);
+                browser_socket.send(JSON.stringify(data_obj))
+                  */
+            }
+            else if (data_obj.kind == "out_call") {
+                browser_socket.send(data_str)
+            }
+            else if(data_obj.kind == "get_dde_version") {
+                console.log("make_job_process on message get_dde_version sending to browser: " + data_str)
+                browser_socket.send(data_str)
+                if(!keep_alive_value) { kill_job_process(browser_socket) }
+            }
+            else if(data_obj.kind == "eval_result") {
+                browser_socket.send(data_obj.val_html)
+                if(!keep_alive_value) { kill_job_process(browser_socket) }
+            }
+            else if(data_obj.kind == "all_jobs_finished"){
+                if(!keep_alive_value) { kill_job_process(browser_socket) }
+            }
+            else if(data_obj.kind == "show_job_button") {
+                console.log("make_job_process on message got show_job_button, sending " + JSON.stringify(data_obj))
+                browser_socket.send(data_str)
+            }
+            else {
+                browser_socket.send(data_str)
+            }
+        })
         job_process.stderr.on('data', function(data) {
             let data_str = data.toString();
             console.log("in node_server after spawn, got error: " + data_str)
@@ -238,57 +276,17 @@ function make_or_kill_job_process() {
                 //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
             }
             else {
-                console.log("\n\nJob." + job_name + " got stderr with data: " + data_str);
+                console.log("\n\nserver make_job_process got stderr with data: " + data_str);
                 //remove_job_name_to_process(job_name) //just because there is an error, that don't mean the job closed.
                 //server_response.write("Job." + job_name + " errored with: " + data)
                 console.log('\n\nAbout to stringify 2\n');
                 let lit_obj = {
-                    job_name: job_name,
-                    kind: "show_job_button",
+                    kind: "job_process_button",
                     button_tooltip: "Server errored with: " + data_str,
                     button_color: "red"
                 };
                 if (browser_socket.readyState != WebSocket.OPEN) {
-                    job_process.kill();
-                    return;
-                } //maybe should be kill()?
-                browser_socket.send(data_str) //redundant but the below might not be working
-                browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>\n");
-                //server_response.end()
-                //job_process.kill() //*probably* the right thing to do in most cases.
-                //remove_job_name_to_process(job_name);
-                //BUT even with Node v 18, it sends to stderr:
-                // " ExperimentalWarning: The Fetch API is an experimental feature. This feature could change at any time"
-                //so we don't want to kill the process just for that.
-            }
-        })
-        job_process.stderr.on('data', function(data) {
-            let data_str = data.toString();
-            if(data_str.includes("ExperimentalWarning:")){
-                //ignore these warnings. Don't change the job button color to red.
-            }
-            else if(data_str.includes("Waiting for the debugger to disconnect")) {
-                //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
-            }
-            else if(data_str.includes("Debugger attached")) {
-                //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
-            }
-            else if(data_str.includes("Debugger listening on")) {
-                //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
-            }
-            else {
-                console.log("\n\nJob." + job_name + " got stderr with data: " + data_str);
-                //remove_job_name_to_process(job_name) //just because there is an error, that don't mean the job closed.
-                //server_response.write("Job." + job_name + " errored with: " + data)
-                console.log('\n\nAbout to stringify 2\n');
-                let lit_obj = {
-                    job_name: job_name,
-                    kind: "show_job_button",
-                    button_tooltip: "Server errored with: " + data_str,
-                    button_color: "red"
-                };
-                if (browser_socket.readyState != WebSocket.OPEN) {
-                    job_process.kill();
+                    job_process.kill() //job_process.exit(0)
                     return;
                 } //maybe should be kill()?
                 browser_socket.send(data_str) //redundant but the below might not be working
@@ -302,11 +300,11 @@ function make_or_kill_job_process() {
             }
         })
         job_process.on('close', function(code) {
-            console.log("\n\nServer closed the process of Job: " + job_name + " with code: " + code);
+            console.log("\n\nServer closed the process.");
             if((code !== 0) && (code !== null) && browser_socket.readyState === WebSocket.OPEN){
                 console.log('\n\nAbout to stringify 3\n');
-                let lit_obj = {job_name: job_name,
-                    kind: "show_job_button",
+                let lit_obj = {
+                    kind: "job_process_button",
                     button_tooltip: "Errored with server close error code: " + code,
                     button_color: "red"
                 };
@@ -314,35 +312,24 @@ function make_or_kill_job_process() {
             }
             //server_response.end()
         })
+        https://www.geeksforgeeks.org/node-js-process-exit-event/  ie this method is called
+        //when job_process.exit() is called.
         job_process.on('exit', function(code) { //do I really need to handle this?
-                console.log("\n\nServer on exit the process of Job: " + job_name + " with code: " + code)
-            }
-        );
-        console.log("job_process.connected: " + job_process.connected)
+                setTimeout(function() {
+                    console.log("\n\nServer on exit the process.")
+                    kill_job_process(browser_socket)
+                    },
+                    3000)
+        }
+        )
+        out_to_browser_out_pane(browser_socket, "_______Job Process Started________", "green")
     }
     else {
-        job_process.kill()
-        job_process = null
+        console.log("in make_job_process, job_process already exists.")
     }
 }
 //arg looks like "myjob.js", "myjob.dde", "myjob"
 function extract_job_name(job_name_with_extension){
-    /* 
-    let job_name=""+job_name_with_extension
-	let dot_pos = job_name.indexOf(".")
-    if(dot_pos === -1) { job_name = job_name_with_extension }
-    else { job_name = job_name_with_extension.substring(0, dot_pos) }
-    return job_name
-    */
-    /*let ext = path.extname(job_name_with_extension);
-    //console.log("extension:"+ext)
-    if (ext && -1!=["dde","js"].indexOf(ext)) { //if it's a dde job
-        return job_name_with_extension.slice(0,-1-ext.length); //remove the extension
-    } else { //just return the full thing if it's not a dde job
-      return job_name_with_extension;
-    }
-    */
-    //new in dde4
     if(job_name_with_extension.endsWith(".dde")) {
         return job_name_with_extension.substring(0, job_name_with_extension.length - 4)
     }
@@ -352,11 +339,35 @@ function extract_job_name(job_name_with_extension){
     else { return job_name_with_extension}
 }
 
+
+//https://www.npmjs.com/package/ws
+console.log("now making wss");
+const wss = new WebSocketServer({port: 3001});    //server: http_server });
+console.log("done making wss: " + wss);
+
+
+/*
+function color_job_process_button(browser_socket) {
+    console.log("top of color_job_process_button with job_process: " + job_process)
+    let lit_obj = { kind: "job_process_button"}
+    if (job_process) {
+            lit_obj.button_tooltip = "Job process started."
+            lit_obj.button_color = "rgb(136, 255, 136)"
+    }
+    else {
+        lit_obj.button_tooltip = "There is no job process."
+        lit_obj.button_color = "rgb(200, 200, 200)"
+    }
+    let data_str = JSON.stringify(lit_obj)
+    //browser_socket.send(data_str) //redundant but the below might not be working
+    browser_socket.send("<for_server>" + data_str + "</for_server>\n");
+}*/
+
 function serve_init_jobs(q, req, res){
     //console.log("top of serve_init_jobs in server")
-    fs.readdir(DDE_APPS_FOLDER, 
+    fs.readdir(DDE_APPS_FOLDER,
         function(err, items){
-        	console.log('\n\nAbout to stringify 1\n');
+            console.log('serve_init_jobs callback writing labels for job buttons');
             let items_str = JSON.stringify(items);
             //console.log("serve_init_jobs writing: " + items_str)
             res.write(items_str);
@@ -364,41 +375,8 @@ function serve_init_jobs(q, req, res){
         });
 }
 
-//https://www.npmjs.com/package/ws
-console.log("now making wss");
-const wss = new WebSocketServer({port: 3001});    //server: http_server });
-console.log("done making wss: " + wss);
-
-var debug = false
-
-function serve_job_process_button_click(browser_socket){
-    console.log("top of serve_job_process_button_click with: " + browser_socket)
-    console.log("class: " + browser_socket.constructor.name)
-    out_to_browser_out_pane(browser_socket, "hi from serve_job_process_button_click", "blue")
-    make_or_kill_job_process() //sets or unsets job_process
-    if(job_process) {
-        let lit_obj = {
-            kind: "job_process_button",
-        };
-        if (!job_process || !job_process.connected) {
-            job_process.kill()
-            lit_obj.button_tooltip = "The Job process was stopped by the user."
-            lit_obj.button_color = "rgb(255, 123, 0)" //orange
-        } else {
-            lit_obj.button_tooltip = "Job process started."
-            lit_obj.button_color = "rgb(136, 255, 136)"
-        }
-        let data_str = JSON.stringify(lit_obj)
-        //browser_socket.send(data_str) //redundant but the below might not be working
-        browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>\n");
-    }
-}
-
 function serve_job_button_click(browser_socket, mess_obj){
-    if(mess_obj.kind === "eval"){
-        let code = mess_obj.code
-
-    }
+    console.log("top of serve_job_button_click with job_process: " + job_process)
     let app_file = mess_obj.job_name_with_extension; //includes ".js" suffix 
     //out("\n\nserve_job_button_click for:" + app_file);
     console.log("\nserve_job_button_click mess_obj:\n" + JSON.stringify(mess_obj))
@@ -406,172 +384,105 @@ function serve_job_button_click(browser_socket, mess_obj){
     console.log("app_type: " + app_type)
     if (-1!=[".dde",".js"].indexOf(app_type)) { app_type = ".dde" }//if this is a job engine job
     let jobfile = app_file;
-    if (!app_file.startsWith("/")) jobfile = DDE_APPS_FOLDER + app_file; //q.search.substr(1)
+    if (!app_file.startsWith("/")) jobfile = DDE_APPS_FOLDER + "/" + app_file; //q.search.substr(1)
     //out("serve_job_button_click with jobfile: " + jobfile)
     let job_name = extract_job_name(app_file); //console.log("job_name: " + job_name + "taken from file name")
     console.log("job_name: " + job_name)
 
-    if(job_name === "debug") {
-        debug = mess_obj.debug_value
-        return //will become active for subsequent job button clicks
+    let node_arg_for_debug = (debug_value ? " --inspect-brk " : "")
+    console.log("job_process defined?: "   + globalThis.job_process)
+    if(!job_process) {
+        make_job_process(browser_socket)
     }
-    let node_arg_for_debug = (debug ? " --inspect-brk " : "")
-    if(!job_process || !job_process.connected){
-        make_or_kill_job_process() //todo needs work
-        //https://nodejs.org/api/child_process.html
-        //https://blog.cloudboost.io/node-js-child-process-spawn-178eaaf8e1f9
-        let cmd_line = "bash";
-        let cmd_args = [mess_obj.args || "-i"]; //if they didn't give us a -c <command> then do an interactive session
-        let cmd_options = {cwd: SHARE_FOLDER, shell: true};
-        if (".dde"==app_type) { //if this is a job engine job
-            cmd_line = 'node --experimental-fetch' + node_arg_for_debug; // --inspect'; // --inspect-brk then we run node
-                  //the --experimental-fetch is needed when running node v 17
-            cmd_args = // ["core define_and_start_job " + jobfile]; //orig dde3 //tell it to start the job
-                      ["bundleje.mjs define_and_start_job " + jobfile] //dde4
-            cmd_options = {cwd: DDE_INSTALL_FOLDER,
-                           shell: true};
-        }
-        console.log("spawn\n    cmd_line: " + cmd_line + "\n    cmd_args: " + cmd_args + "\n    cmd_options: " + JSON.stringify(cmd_options))
-        job_process = spawn(cmd_line,
-                            cmd_args,
-                            cmd_options
-                           );
-        set_job_name_to_process(job_name, job_process);
-        console.log("started job_name: " + job_name + " with: "+cmd_line+" "+cmd_args+" to new process: " + job_process.pid + " of type:" + app_type);
-        job_process.stdout.on('data', function(data) {
-          let data_str = data.toString();
-          //console.log("\n\nserver: stdout.on data got data: " + data_str + "\n");
-
-          //server_response.write(data_str) //pipe straight through to calling browser's handle_stdout
-          //https://github.com/expressjs/compression/issues/56 sez call flush even though it isn't documented.
-          //server_response.flushHeaders() //flush is deprecated.
-          if (browser_socket.readyState != WebSocket.OPEN) {job_process.kill(); return;} //maybe should be kill()?
-          console.log("in httd.mjs serve_job_button_click on data fn, sending data_str: " + data_str)
-          browser_socket.send(data_str);
-	     });
-        if (".dde"==app_type) {  
-            job_process.stderr.on('data', function(data) {
-                let data_str = data.toString();
-                if(data_str.includes("ExperimentalWarning:")){
-                   //ignore these warnings. Don't change the job button color to red.
-                }
-                else if(data_str.includes("Waiting for the debugger to disconnect")) {
-                    //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
-                }
-                else if(data_str.includes("Debugger attached")) {
-                    //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
-                }
-                else if(data_str.includes("Debugger listening on")) {
-                    //Happens when we have the job engine UI "debug" checkbox checked. Ignore these warnings.
-                }
-                else {
-                    console.log("\n\nJob." + job_name + " got stderr with data: " + data_str);
-                    //remove_job_name_to_process(job_name) //just because there is an error, that don't mean the job closed.
-                    //server_response.write("Job." + job_name + " errored with: " + data)
-                    console.log('\n\nAbout to stringify 2\n');
-                    let lit_obj = {
-                        job_name: job_name,
-                        kind: "show_job_button",
-                        button_tooltip: "Server errored with: " + data_str,
-                        button_color: "red"
-                    };
-                    if (browser_socket.readyState != WebSocket.OPEN) {
-                        job_process.kill();
-                        return;
-                    } //maybe should be kill()?
-                    browser_socket.send(data_str) //redundant but the below might not be working
-                    browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>\n");
-                    //server_response.end()
-                    //job_process.kill() //*probably* the right thing to do in most cases.
-                    //remove_job_name_to_process(job_name);
-                    //BUT even with Node v 18, it sends to stderr:
-                    // " ExperimentalWarning: The Fetch API is an experimental feature. This feature could change at any time"
-                    //so we don't want to kill the process just for that.
-                }
-            });
-        } else {
-            job_process.stderr.on('data', function(data) {
-                let data_str = data.toString();
-                let mess = "\n\njob: " + job_name + " got stderr with data: " + data_str
-                console.log(mess);
-                browser_socket.send(mess);
-                if(data_str.includes("ExperimentalWarning:")){} //node puts these out when calling fetch in node 17.9.0, or when using Blob. Its harmless so let it go
-                else if (browser_socket.readyState != WebSocket.OPEN) {job_process.kill(); return;} //maybe should be kill()?
-                });
-        }
-        job_process.on('close', function(code) {
-          console.log("\n\nServer closed the process of Job: " + job_name + " with code: " + code);
-          if((code !== 0) && (code !== null) && browser_socket.readyState === WebSocket.OPEN){
-          	console.log('\n\nAbout to stringify 3\n');
-          	let lit_obj = {job_name: job_name, 
-                           kind: "show_job_button",
-                           button_tooltip: "Errored with server close error code: " + code,
-                           button_color: "red"
-              	};
-          	browser_socket.send("<for_server>" + JSON.stringify(lit_obj) + "</for_server>\n");
-          }
-          remove_job_name_to_process(job_name);
-          //server_response.end()
-          })
-        job_process.on('exit', function(code) { //do I really need to handle this?
-                console.log("\n\nServer on exit the process of Job: " + job_name + " with code: " + code)
-            }
-          );
-    }
-
-    else { //using an existing process
+    else {
         console.log("in serve_job_button_click already got a process")
-    	let code;
-        if(job_name === "keep_alive") { //happens when transition from keep_alive box checked to unchecked
-        	code = "globalThis.set_keep_alive_value(" + mess_obj.keep_alive_value + ")\n";
-        }
-        else if (".dde" == app_type) { //job engine job
-          //code = "Job." + job_name + ".server_job_button_click()"
-          //e.g. `web_socket.send(JSON.stringify({"job_name_with_extension": "dexter_message_interface.dde", "ws_message": "goodbye" }))`
-            if (mess_obj.ws_message ) { // {"job_name_with_extension": jobname.dde, "ws_message": data}
-              //code = 'Job.'+job_name+'.user_data.ws_message = "' + mess_obj.ws_message  + '"'
-              code = `Job.`+job_name+`.user_data.ws_message = '` + JSON.stringify(mess_obj.ws_message)  + `'\n`;
-              }
-            else if (mess_obj.code) {
-              code = mess_obj.code + "\n";
-            }
-            /*else if (mess_obj.kind === "job_button_click"){
-                code = "Job." + job_name + ".stop_for_reason('interrupted', 'user stopped the job')"
-                console.log("server button click stopping job with code: " + code)
-                setTimeout(function() {
-                    kill_all_job_processes() //todo this presumes that if there's already a process, we clicked the
-                    //job button to stop the process, so kill this process after it settles down
-                    //so that starting it up again won't run into the problem with the websocket port open
-                }, 2000)
-            }*/
-            else {
-                code = 'Job.maybe_define_and_server_job_button_click("' + jobfile + '")\n';
-                setTimeout(function() {
-                    kill_all_job_processes() //todo this presumes that since there's already a process, we clicked the
-                    //job button to stop the process, so kill this process after it settles down
-                    //so that starting it up again won't run into the problem with the websocket port open
-                }, 2000)
-            }
-
-        }
-        else { // something else, probably bash
-            code = mess_obj.ws_message  + "\n";
-        }
-        console.log("serve_job_button_click writing to job: " + job_name + " stdin: " + code);
-        //https://stackoverflow.com/questions/13230370/nodejs-child-process-write-to-stdin-from-an-already-initialised-process
-        job_process.stdin.setEncoding('utf-8');
-        job_process.stdin.write(code);
-        //job_process.stdin.end(); 
     }
-    //serve_get_refresh(q, req, res)
-    //return serve_jobs(q, req, res)  //res.end()
+    let code
+    if (".dde" == app_type) { //job engine job
+      //code = "Job." + job_name + ".server_job_button_click()"
+      //e.g. `web_socket.send(JSON.stringify({"job_name_with_extension": "dexter_message_interface.dde", "ws_message": "goodbye" }))`
+        if (mess_obj.ws_message ) { // {"job_name_with_extension": jobname.dde, "ws_message": data}
+          //code = 'Job.'+job_name+'.user_data.ws_message = "' + mess_obj.ws_message  + '"'
+          code = `Job.`+job_name+`.user_data.ws_message = '` + JSON.stringify(mess_obj.ws_message)  + `'\n`;
+          }
+        else if (mess_obj.code) {
+          code = mess_obj.code + "\n";
+        }
+        else {
+            code = 'Job.maybe_define_and_server_job_button_click("' + jobfile + '")\n';
+            //setTimeout(function() {
+            //    kill_all_job_processes() //todo this presumes that since there's already a process, we clicked the
+                //job button to stop the process, so kill this process after it settles down
+                //so that starting it up again won't run into the problem with the websocket port open
+            //}, 2000)
+        }
+    }
+    else { // something else, probably bash
+   //     code = mess_obj.ws_message  + "\n";\
+        shouldnt("In serve_job_button_click with non-job app_type: " + app_type)
+   }
+    //console.log("serve_job_button_click writing to job: " + job_name + " stdin: " + code);
+    //https://stackoverflow.com/questions/13230370/nodejs-child-process-write-to-stdin-from-an-already-initialised-process
+    console.log("in serve_job_button_click with job_process: " + job_process)
+    //job_process.stdin.setEncoding('utf-8');
+    //job_process.stdin.write(code);
+    //job_process.stdin.end();
+    mess_obj.keep_live_value = keep_alive_value
+    console.log("sending to job_process: " + JSON.stringify(mess_obj))
+    job_process.send(mess_obj)
 }
+
+function serve_get_dde_version(browser_socket, mess_obj){
+    console.log("top of serve_get_dde_version")
+    if(!job_process) {
+        make_job_process(browser_socket)
+    }
+    else {
+        console.log("in serve_get_dde_version already got a process")
+    }
+    mess_obj.keep_live_value = keep_alive_value
+    job_process.send(mess_obj)
+}
+
+//handles hitting ENTER in the cmd_input type in
+function serve_eval_button_click(browser_socket, message){
+    console.log("top of serve_eval_button_click with message: " + message)
+    let mess_obj = JSON.parse(message)
+    out_to_browser_out_pane(browser_socket, "Evaling: " + mess_obj.code)
+    if(!job_process) {
+        make_job_process(browser_socket)
+    }
+    console.log("in serve_eval_button_click sending to job_process: " + message)
+    //job_process.stdin.setEncoding('utf-8');
+    //job_process.stdin.write(message);
+    mess_obj.keep_live_value = keep_alive_value
+    job_process.send(mess_obj)
+    /*if(!mess_obj.keep_alive_value){
+        setTimeout(function(){ kill_job_process(browser_socket) },
+            3000)
+    }*/
+}
+
+var keep_alive_value = false
+function serve_keep_alive_click(browser_socket, mess_obj){
+    keep_alive_value = mess_obj.keep_alive_value
+    if(!keep_alive_value && job_process){
+        kill_job_process(browser_socket)
+    }
+}
+
+var debug_value = false
+function serve_debug_click(browser_socket, mess_obj){
+    debug_value = mess_obj.debug_value
+}
+
 
 //see bottom of je_and_browser_code.js: submit_window for
 //the properties of mess_obj
 function serve_show_window_call_callback(browser_socket, mess_obj){
     let callback_arg = mess_obj.callback_arg
     let job_name = callback_arg.job_name
+    console.log("in serve_show_window_call_callback setting local job_process that was: " + job_process)
     let job_process = get_job_name_to_process(job_name)
     console.log("\n\nserve_show_window_call_callback got job_name: " + job_name + " and its process: " + job_process)
     console.log('\n\nAbout to stringify 4\n');
@@ -647,19 +558,19 @@ function get_page_get_cb() {}
 //res_or_ws can be either a Request object or a WebSocket, a la browser_socket
 function out_to_browser_out_pane(browser_socket, val, color="black", temp=false, code=false){
     console.log("out_to_browser_out_pane passed type: " + browser_socket.constructor.name)
-    let lit_obj = {
+    let data_obj = {
         kind: "out_call",
         val:   val,
         color: color,
         temp:  temp,
         code:  code
     }
-    let str_to_send = "<for_server>" + JSON.stringify(lit_obj) + "</for_server>\n"
+    let data_str = JSON.stringify(data_obj)
     if (browser_socket.constructor.name === "ServerResponse") { //I use lex far "res" for this. Shoujld be class ServerResponse but that isn't defined
-        browser_socket.write(str_to_send);
+        browser_socket.write(data_str);
     }
     else if(browser_socket instanceof WebSocket){
-        browser_socket.send(str_to_send)
+        browser_socket.send(data_str)
     }
     else {
         console.log("out_to_browser_out_pane got invalid first arg: " + browser_socket)
@@ -860,8 +771,8 @@ var http_server = http.createServer(async function (req, res) {
       //be very careful "res" is the respoonse that goes back to the browser.
       // "get_res" is the response that comes back from the http.get
     else if(q.pathname === "/get_page") {
-      let url = q.query.path
-      if (url.startsWith("https:")) {
+      let the_url = q.query.path
+      if (the_url.startsWith("https:")) {
           let options = {headers: {"User-Agent": req.headers['user-agent']}}
           https.get(url, options, (get_res) => {
                   let rawData = '';
@@ -1088,11 +999,12 @@ function jobs(q, res){
 var modbus_reg = []
 
 function modbus_startjob(job_name) {
-	console.log(job_name)
+	console.log("top of modbus_startjob passed job_name" + job_name)
 	let jobfile = DDE_APPS_FOLDER + job_name + ".dde"
+    console.log("modbus_startjob setting local job_process to result of get_job_name_to_process")
 	let job_process = get_job_name_to_process(job_name)
 	if(!job_process){
-	    console.log("spawning " + jobfile)
+	    console.log("in modbus_startjob spawning " + jobfile)
 	    //https://nodejs.org/api/child_process.html
 	    //https://blog.cloudboost.io/node-js-child-process-spawn-178eaaf8e1f9
 	    //a jobfile than ends in "/keep_alive" is handled specially in core/index.js
@@ -1216,25 +1128,27 @@ wss.on('connection', function(the_ws, req) {
   let browser_socket = the_ws //the_socket used when stdout from job engine comes to the web server process
   the_ws.on('message', function(message) {
     console.log('\n\nwss server on message received: %s', message);
-    //the_ws.send("server sent this to browser in response to: " + message)
-    console.log('\n\nAbout to parse 1\n');
-    let mess_obj = {kind: "error"}
-    try { mess_obj = JSON.parse(message)} catch(e) {console.log("bad message: "+e); return;}
+    let mess_obj
+    try { mess_obj = JSON.parse(message)}
+    catch(err) { console.log("bad message: " + err); return; }
     console.log("\nwss server on message received kind: " + mess_obj.kind)
-    if(mess_obj.kind === "job_process_button_click"){
-       serve_job_process_button_click(browser_socket)
+    if(mess_obj.kind === "get_dde_version"){
+        serve_get_dde_version(browser_socket, mess_obj)
     }
     else if(mess_obj.kind === "debug_click") {
-          serve_job_button_click(browser_socket, mess_obj)
+        serve_debug_click(browser_socket, mess_obj)
     }
     else if(mess_obj.kind === "keep_alive_click") {
-        serve_job_button_click(browser_socket, mess_obj)
+        serve_keep_alive_click(browser_socket, mess_obj)
     }
     else if(mess_obj.kind === "job_button_click") {
     	serve_job_button_click(browser_socket, mess_obj)
     }
     else if(mess_obj.kind === "show_window_call_callback"){
         serve_show_window_call_callback(browser_socket, mess_obj)
+    }
+    else if (mess_obj.kind === "eval"){
+        serve_eval_button_click(browser_socket, message)
     }
     else {
       console.log("\n\nwss server received message kind: " + mess_obj.kind)

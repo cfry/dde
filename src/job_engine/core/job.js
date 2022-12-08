@@ -373,9 +373,9 @@ class Job{
     //If job_file_path has a newline in it, its considered to BE the src of
     //a file or at least one or more job defs.
     static async define_and_start_job(job_file_path){
-        if(globalThis.platform === "node"){
-            init_readline() //if already open, it leaves it alone
-        }
+        //if(globalThis.platform === "node"){
+        //    init_readline() //if already open, it leaves it alone
+        //}
         let job_file_path_is_src = job_file_path.includes("\n")
         out("out: define_and_start_job set job_file_path_is_src: " + job_file_path_is_src)
         let job_instances
@@ -981,7 +981,7 @@ class Job{
         let job_name = Job.extract_job_name_from_file_path(job_file_path)
         let job_instance = Job[job_name]
         if(job_instance) {
-            job_instance.server_job_button_click() //might bre first time starting job, or stopping running job, or 2nd time starting
+            job_instance.server_job_button_click() //might be first time starting job, or stopping running job, or 2nd time starting
         }
         else { //no defined job of that name, so load its file and start it.
            Job.define_and_start_job(job_file_path) //starts first Job in file,
@@ -1120,8 +1120,10 @@ class Job{
             but_elt.title = tooltip
         }
         else { //job engine
-           let data = {kind: "show_job_button", job_name: this.name, status_code: this.status_code, button_color: bg_color, button_tooltip: tooltip}
-           globalThis.write_to_stdout("<for_server>" + JSON.stringify(data) + "</for_server>\n")
+           let data_obj = {kind: "show_job_button", job_name: this.name, status_code: this.status_code, button_color: bg_color, button_tooltip: tooltip}
+           //globalThis.write_to_stdout("<for_server>" + JSON.stringify(data) + "</for_server>\n")
+            out("in Job.color_job_button sending: " + JSON.stringify(data_obj))
+            process.send(data_obj)
         }
     }
     //end of jobs buttons
@@ -1900,9 +1902,7 @@ Job.prototype.finish_job = function(){
                 // and might or might not be "active".
                 //onsole.log("In finish_job for job: " + this.name + " id: " + this.job_id)
                 //onsole.log("active_jobs length: " + the_active_jobs.length)
-                if(the_active_jobs.length == 1) {
-                    //onsole.log("In finish_job just one active job with first job: " + the_active_jobs[0].name + " job_id: " + the_active_jobs[0].job_id)
-                }
+
                 if( (the_active_jobs.length == 0) ||
                    ((the_active_jobs.length == 1) &&
                     (the_active_jobs[0].job_id === this.job_id)
@@ -1910,7 +1910,9 @@ Job.prototype.finish_job = function(){
                 ) { //don't close the readline if there's a job that still wants to use it.
                     //as our orig job might have launched a 2nd job, so keep it open
                     //until all are done.
-                    out("OUT: finish job, now calling close_readline")
+                    out("OUT: finished all jobs")
+                    let mess_obj = {kind: "all_jobs_finished"}
+                    process.send(mess_obj)
                    /// console.log("finish job, now calling close_readline")
                    /// globalThis.close_readline() //causes the process running this job to finish.
                 }

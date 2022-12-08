@@ -47,7 +47,7 @@ export function out_eval_result(text, color="#000000", src, src_label="The resul
         for(let temp_elt of existing_temp_elts){ temp_elt.remove() }
 
         if (Utils.starts_with_one_of(text, ['"<svg ', '"<circle ', '"<ellipse ', '"<foreignObject ', '"<line ', '"<polygon ', '"<polyline ', '"<rect ', '"<text '])) {
-            text = text.replace(/\</g, "&lt;") //so I can debug calls to svg_svg, svg_cirle ettc
+            text = text.replace(/\</g, "&lt;") //so I can debug calls to svg_svg, svg_cirle etc
         }
         if (color && (color != "#000000")){
             text = "<span style='color:" + color + ";'>" + text + "</span>"
@@ -84,8 +84,6 @@ export function out_eval_result(text, color="#000000", src, src_label="The resul
             orig_focus_elt.focus()
         }
     }
-    //if(Editor.get_cmd_selection().length > 0) { cmd_input_id.focus() }
-    //else { myCodeMirror.focus() }
 }
 
 function get_output(){ //rather uncommon op, used only in SW.append_to_output

@@ -1,12 +1,17 @@
-global.dde_version = "4.0.0" //require("../package.json").version
+import os from 'os'
+const {exec} = require('child_process') //todo //not an npm module.
+import pckg from "package"
+
+
+
+global.dde_version = pckg.version //"4.0.0" //require("../package.json").version
 global.dde_release_date = "Aug 1, 2022" //require("../package.json").release_date
 
 global.default_default_ROS_URL           = "localhost:9090"
 global.default_default_dexter_ip_address = "192.168.1.142"
 global.default_default_dexter_port       = 50000
 
-import os from 'os'
-const {exec} = require('child_process') //todo //not an npm module.
+
 
 
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
@@ -180,7 +185,7 @@ import {convertArrayBufferToString, convertStringToArrayBuffer,
      serial_port_path_to_info_map, serial_port_init, serial_send,
      serial_send_low_level} from "./serial.js"
 
-//import {close_readline, set_keep_alive_value, write_to_stdout} from "./stdio.js" //todo imports readline which requires fs which errors
+//import {close_readline, set_keep_alive_value, write_to_stdout} from "./stdio.js" //imports readline which requires fs which errors but I importt stdio.js in ready_je
 
 //import {html_db, is_dom_elt, make_dom_elt, make_html} from "./html_db.js" //now all global
 
