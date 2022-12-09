@@ -651,10 +651,10 @@ export class Js_info {
                 return "function " + Js_info.wrap_fn_name(fn_name) + Utils.function_params(fn13)
             case "series_note_id":
                 let fn_note = value_of_path("Note.prototype." + fn_name)
-                return "new Note()." + Js_info.wrap_fn_name(fn_name, "Note." + fn_name + "_doc_id") + function_params(fn_note)
+                return "new Note()." + Js_info.wrap_fn_name(fn_name, "Note." + fn_name + "_doc_id") + Utils.function_params(fn_note)
             case "series_phrase_id":
                 let fn_phrase = value_of_path("Note.prototype." + fn_name)
-                return "new Phrase()." + Js_info.wrap_fn_name(fn_name, "Phrase." + fn_name + "_doc_id") + function_params(fn_phrase)
+                return "new Phrase()." + Js_info.wrap_fn_name(fn_name, "Phrase." + fn_name + "_doc_id") + Utils.function_params(fn_phrase)
 
             case "series_robot_instruction_id":
                 let fn4 = value_of_path(fn_name)

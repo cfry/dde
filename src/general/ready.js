@@ -149,7 +149,7 @@ import "../HCA/HCA_objdef.js" //defines global HCAObjDef
 import "../HCA/litegraph_patches.js"
 
 import "../blocksde/init.js" //needed for making the menu of differnt "views" of DDE's editor, including HCA
-
+import "./speechly.js"       //defines global Speechly
 
 
 
