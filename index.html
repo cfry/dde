@@ -1,41 +1,257 @@
-<!DOCTYPE html>
 <html>
 <head>
     <title>Dexter</title>
-    <link rel="shortcut icon" href="#" />
 
     <style>
-    </style>
+    
+body {
+    font-family: Verdana, Arial, sans-serif;
+    font-size: 0.9em;
+}
+    
+ul {
+  list-style: none;
+  width: 90%;
+}
+  
+ul li {
+  float: left;
+  padding: 10px; 
+  border: 10px solid #FFF;
+  background-color: #EEE;
+  width: 20%;
+  height: 200px;
+}
+
+ul li:nth-child(3n+1) {
+  margin-left: -1px;
+  border-left: 10px solid #FFF;
+  
+}
+
+ul li:nth-child(-n+3) {
+  padding-top: 100px solid #AAA;
+  border-top: 10px solid #FFF;
+}
+
+ul li img:first-child {
+    width: 100%;
+    height: 100px;
+}
+
+a img { border: 2px blue dashed;  }
+
+#bot-status {
+      float: left;
+      padding: 10px; 
+      background-color: #EEE;
+      width: 25%;
+      height: 80%;
+      clear:both;
+}
+#bot-status img {
+    width: 100%;
+    padding-top: 10px;
+}
+
+        </style>
     </head>
 <body> 
-    <h1>Dexter</h1> 
+    <h1>Dexter <TT><span id="serial"></span></TT> Web Interface</h1> 
+<div id="bot-status">
+<div id="errors"></div>
+<div id="config"></div>
+<div id="time"></div>
+<img src="HDO_Smile_logo_L.jpg">
+</div>
     <ul>
-        <li><a href="http://hdrobotic.com">HDRobotic.com</a> Company home page</li>
-        <li><a href="./dde/jobs.html">Job Engine</a> Run DDE jobs on Dexter but controlled in your browser.</li>
-        <li><a href="./dde/index.html">Dexter Development Environment (DDE)</a></li>
-        <li><a href="/scratch/index.html">Scratch</a> A simple block langauge. 
-            <BR>To use, click the <img src="/scratch/AddExtension.png"> 
+        <li><a href="http://hdrobotic.com"><img src="screen-hdrobotic-s.png">HDRobotic.com</a> Company home page.</li>
+        <li><a href="/jobs.html"><img src="screen-job-s.png">Job Engine</a> Run DDE jobs locally on Dexter</li>
+	<li><a href="./dde/index.html"><img src="screen_dde.png">Dexter Development Environment (DDE)</a></li>
+        <li><a href="/edit/edit.html"><img src="screen-edit-s.png">Edit</a> files on Dexter. Use this to update the autoexec.job file which controls what Job Engine jobs Dexter runs on startup.</li>
+        <li><a href="/console.html"><img src="screen-console-s.png">Console</a> a simple but powerful replacement for SSH which allows Linux bash shell access via the web browser. Be careful.</li>
+        <li><a href="/scratch/index.html"><img src="screen-scratch-s.png">Scratch</a> A simple block langauge. 
+            To use, click the <img src="/scratch/AddExtension.png" style="float:right"> 
             button (lower left) and select the "Dexter HD" extension.</li>
-        <li><a href="/chat.html">DexChat</a> A bare bones direct interface to Dexter for testing and development.</li>
+        <li><a href="/chat.html"><img src="screen-chat-s.png">DexChat</a> A bare bones direct interface to Dexter for testing and development.</li>
     </ul>
-<div id="jobs"></div>
+
 
 <script type="text/javascript">
+var Dexter = {servos: {} }
+function byId(id) {return document.getElementById(id) || {}}
+function parseComment(c) { console.log("  Comment "+c)
+  let s = ""
+  if (s = c.match(/Dexter Serial Number: (DEX-[0-9]*)/)) {
+    Dexter.serial = s[1]
+    byId("serial").innerHTML = Dexter.serial
+    s = "Serial Number: " + Dexter.serial
+  } else if (s = c.match(/xillydemo modified (.*)/)) {
+    Dexter.fpga_date = s[1]
+    s = "FPGA Date: " + Dexter.fpga_date
+  } else if (s = c.match(/DexRun modified (.*)/)) {
+    Dexter.firmware_date = s[1]
+    s = "Firmware Date: " + Dexter.firmware_date
+  } else if (s = c.match(/OS version (.*)/)) {
+    Dexter.os_version = s[1]
+    s = "OS Version: " + Dexter.os_version
+  } //else s = "?"+c
+  
+  return s
+}
+function parseWrite(t) { console.log("  w "+t.join(", "))
+  return ""
+}
+
+function parseSetParameter(p) { console.log("  S "+p.join(" "))
+  let s = ""
+  switch (p[0]) {
+    case "RebootServo":
+      let id = p[1], joint, t = ""
+      if (3 == id) joint = 6
+      if (1 == id) joint = 7
+      switch (p[2]) { //find the type
+        case "430": t = "XC-430"; break;
+        case "320": t = "XL-320"; break;
+        default: break;
+      }
+      Dexter.servos[id] = p[2]
+      s += (joint?"Joint "+joint+": ":"Unattached ") + t + " servo, ID:" + id
+      break;
+  
+    default:
+      break;
+  }
+  return s
+}
+
+function parseDefaults(data) {
+  o = []
+  for(const line of data.split("\n")) {
+    if (line.slice(0,1) == ";") {o.push(parseComment(line)); continue;}
+    let toks = line.split(/[\s,]+/)
+    switch (toks[0]) {
+      case "w": o.push(parseWrite(toks)); break;
+      case "S": o.push(parseSetParameter(toks.slice(1))); break;
+      case "":
+      case "a":
+      case "z": 
+        break;
+      default: o.push("? "+line)
+    }
+  }
+  console.log(Dexter)
+  return o.filter((l) => l).join("\n<BR>")
+}
+
+var dexclock = 0
+function setDextersClock() {
+    if (dexclock && Math.abs(dexclock - Date.now())<1000) { //node server sent a date, and it's within 1 second? (1000ms)
+        let dt = new Date(dexclock);
+        document.getElementById("time").innerHTML = "Clock: " + dt //display it
+        return //its good enough 
+    } //otherwise, let's try to set Dexters clock.
+    let port = 3000
+    let ip_address = self.location.hostname //"192.168.0.137"
+    //may not be an ip address... 
+    let interval = 1000 //how often to update status
+    let time = 0
+    let ws = new WebSocket('ws://'+ip_address+":"+port)
+    ws.binaryType = "arraybuffer" //avoids the blob
+    let timesup = setTimeout(function() {
+        console.log("timeout, can't set the time");
+        document.getElementById("time").innerHTML = `
+<FONT COLOR='RED'>Clock NOT set, web socket connection timed out.</FONT>
+Is your robot in <A HREF="https://github.com/HaddingtonDynamics/Dexter/wiki/PhysicalUserInterface">PhUI mode</A>? 
+Tip the end effector up two notches to exit PhUI and refresh this page, or restart robot before editing files.
+`
+    }, 2000)
+    ws.onopen = function(){
+        //clearTimeout(timesup) //no, not unless we also get a reply.
+        time = Date.now() //send milliseconds, not seconds to match DDE
+        console.log("websocket open, sending time:" + time)
+        ws.send("1 1 " + time +" undefined g;")
+        }
+    ws.onerror = function(error) {
+        clearTimeout(timesup)
+        console.log("errored, can't set the time")
+        document.getElementById("time").innerHTML = `
+<FONT COLOR='RED'>Clock NOT set, web socket errored.</FONT>
+Refresh this page, or restart robot before editing files.
+`
+        }
+    ws.onclose = function(error) {
+        console.log("ws done")
+        }
+    ws.onmessage = function(socket) {
+        let data = new Int32Array(socket.data)
+        if (!data[2]) { //contains the clock on Dexter.
+            console.log(data)
+            clearTimeout(timesup)
+            document.getElementById("time").innerHTML = `
+<FONT COLOR='RED'>Clock NOT set</FONT>
+Is your robot in <A HREF="https://github.com/HaddingtonDynamics/Dexter/wiki/PhysicalUserInterface">PhUI mode</A>? 
+Tip the end effector up two notches to exit PhUI and refresh this page, or restart robot before editing files.
+`
+            }
+        else {
+            clearTimeout(timesup)
+            let dt = new Date(data[2]*1000); //data FROM Dexter is seconds, convert to ms
+            console.log("Dexter clock set to " + data[2]  )
+            if ( Math.abs(data[2] - time/1000) > 120 ) {
+                document.getElementById("time").innerHTML = `
+<FONT COLOR='RED'>Clock NOT set, new time ignored.</FONT> 
+<TABLE>
+    <TR><TD>Current time:</TD><TD>${new Date(time)}</TD></TR>
+    <TR><TD>Dexters time:</TD><TD>${dt} </TD></TR>
+    </TABLE>
+Refresh this page, or restart robot before editing files.
+`
+                console.log("time error:", Math.abs(data[2] - time/1000))
+                }
+            else {
+                document.getElementById("time").innerHTML = "Clock: " + dt + " (" + data[2] + ")"
+            }
+            }
+        ws.close()
+        }
+    }
+
 var xhttp = new XMLHttpRequest();
 xhttp.onreadystatechange = function() {
   if (this.readyState == 4 && this.status == 200) {
-    let jobs = ""
-    for(const job of xhttp.responseText.split("\n")) {
-      if (job)
-        jobs += '<LI><A HREF="/runjob?'+job+'">'+job+'</A>'
+    let file = xhttp.responseURL.split('=').slice(-1)[0] //xhttp.responseURL.split('/').slice(-1)[0]
+    console.log("file:",file)
+    let data = xhttp.responseText
+    switch (file) {
+      case "/srv/samba/share/":
+        dir = JSON.parse(data)
+        data = ""
+        for (const entry in dir) {//console.log(data[dir].name)
+            if (dir[entry].name == ".." && (dexclock = dir[entry].date)) { 
+                console.log("found time" + dexclock)
+            }
+            if (dir[entry].name == "errors.log") 
+              data = "<P>Errors found (<a href='/edit/edit.html?file=errors.log' target='new'>edit</a> errors.log to view/clear)"
+        }
+        document.getElementById("errors").innerHTML = data
+        break
+      case "/srv/samba/share/Defaults.make_ins":
+        document.getElementById("config").innerHTML = parseDefaults(data)
+
       }
-    if (jobs) {
-      jobs = "<P>Onboard jobs, click to run:<UL>"+jobs+"</UL>"
+    if (xhttp.que.length) {
+      xhttp.open("GET", xhttp.que.pop(), true);
+      xhttp.send();
       }
-    document.getElementById("jobs").innerHTML = jobs
+    else {
+        console.log("Files finished\n")
+        setDextersClock()
+        }
     }
   };
-xhttp.open("GET", "/jobs", true);
+xhttp.que = ["/edit?list=/srv/samba/share/", "/edit?edit=/srv/samba/share/Defaults.make_ins"]
+xhttp.open("GET", xhttp.que.pop(), true);
 xhttp.send();
 </script>
 

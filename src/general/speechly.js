@@ -75,34 +75,37 @@ Bug report to Speechly:
 */
 //import { BrowserClient, BrowserMicrophone, Segment } from '@speechly/browser-client' //from Speechly example but Segment is non-existent export
 import { BrowserClient, BrowserMicrophone} from '@speechly/browser-client'
-
+globalThis.BrowserClient = BrowserClient
 // Create a new client.
 // NOTE: Configure and get your appId from https://api.speechly.com/dashboard
 // NOTE: Set vad.enable to true for hands free use
-const client = new BrowserClient({
-    appId: '2357493e-4713-4d54-a041-a792f4952a62',
-    vad: { enabled: false, noiseGateDb: -24.0 }
-})
+var client
 
 // Create a microphone
-const microphone = new BrowserMicrophone()
+var microphone
 
 
-// React to the updates from the API.
-client.onSegmentChange((segment) => {
-    console.log('Received new segment from the API:',
-        segment.intent,
-        segment.entities,
-        segment.words,
-        segment.isFinal
-    )
-    if(segment.isFinal) {
-        Speechly.handle_final_utterance(segment)
-    }
-})
+
 
 class Speechly {
     static async initialize(){
+        client = new BrowserClient({
+            appId: '2357493e-4713-4d54-a041-a792f4952a62',
+            vad: { enabled: false, noiseGateDb: -24.0 }
+        })
+        microphone = new BrowserMicrophone()
+        // React to the updates from the API.
+        client.onSegmentChange((segment) => {
+            console.log('Received new segment from the API:',
+                segment.intent,
+                segment.entities,
+                segment.words,
+                segment.isFinal
+            )
+            if(segment.isFinal) {
+                Speechly.handle_final_utterance(segment)
+            }
+        })
         // Initialize the microphone - this will ask the user for microphone permissions
 // and establish the connection to Speechly API.
 // Make sure you call `initialize` from a user action handler

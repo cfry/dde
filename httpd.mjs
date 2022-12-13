@@ -497,12 +497,13 @@ function serve_show_window_call_callback(browser_socket, mess_obj){
 //not used for dde getting file content from the server.
 //use a path of /edit?edit=/foo/bar.js instead and that
 //bypasses serve_file.
+
 function serve_file(q, req, res){
-    console.log("top of serve_file")
+    let filename = q.pathname
     let cur_dir = process.cwd()
-    let filename
+    console.log("top of serve_file filename: " + filename + " cur_dir: " + cur_dir)
     if(running_on_dexter()) {
-       filename = SHARE_FOLDER + "/" + q.pathname  //this is in orig dexter file, but replaced for  dde4 with server laptop by the below clause
+       filename = WWW_FOLDER + "/" + q.pathname  //this is in orig dexter file, but replaced for  dde4 with server laptop by the below clause
     }
     //dde4 works except for editing a file
     else { //dde4 not running on dexter
