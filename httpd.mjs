@@ -135,8 +135,8 @@ function running_on_dexter() { //dde4 added
 const SHARE_FOLDER       = compute_share_folder()       //  /srv/samba/share               //contains dde_apps, www, dde3_je,
 const WWW_FOLDER         = compute_www_folder()         //  /srv/samba/share/www           //contains dde, httpd.mjs, index.html(tiles), jobs.html(3)   dde4, contains dde httpd.mjs, index.html(tiles) but not jobs.html(3)
 const DDE_FOLDER         = compute_dde_folder()         //  /srv/samba/share/www/dde       //contains build/, index.html(dde), jobs.html(4)             dde  contains build, index.html(dde), jobs.html
-const DDE_INSTALL_FOLDER = compute_dde_install_folder() //  /srv/samba/share/www/dde/build //contains bundle.mjs, bundle_je.mjs                      dde/build contains bundle.mjs bundle_je.mjs
-const CAL_DATA_FOLDER    = compute_cal_data_folder()    //  /srv/samba/share/cal_data      //will include Defaults.make_ins
+const DDE_INSTALL_FOLDER = compute_dde_install_folder() //  /srv/samba/share/www/dde/build //contains bundle.mjs, bundle_je.mjs                         dde/build contains bundle.mjs bundle_je.mjs
+const CAL_DATA_FOLDER    = compute_cal_data_folder()    //  /srv/samba/share/cal_data      //will contain Defaults.make_ins
 const DDE_APPS_FOLDER    = compute_dde_apps_folder()    //  /srv/samba/share/dde_apps or homedir/Documents/dde_apps                           homedir/Documents/dde_apps
 
 console.log("SHARE_FOLDER:        " + SHARE_FOLDER +

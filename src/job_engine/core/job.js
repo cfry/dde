@@ -1803,8 +1803,12 @@ Job.prototype.stop_for_reason = function(condition_when_stopped="interrupted", /
         if(pos_of_underscore > 0) {
             this.set_status_code(condition_when_stopped.substring(0, pos_of_underscore),
                 reason)
+            this.color_job_button()
         }
-        else { this.set_status_code(condition_when_stopped, reason) }
+        else {
+            this.set_status_code(condition_when_stopped, reason)
+            this.color_job_button()
+        }
         if (this.robot.heartbeat_timeout_obj) { clearTimeout(this.robot.heartbeat_timeout_obj) }
         this.stop_time    = new Date()
         //this.current_instruction().init_instruction() //needed by at least wait_until and loop. now done in Job.start

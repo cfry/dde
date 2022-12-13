@@ -133,7 +133,7 @@ static warning(message, temp=false){
             //it really shouldn't be according to:
             // https://stackoverflow.com/questions/41586293/how-can-i-get-a-js-stack-trace-without-halting-the-script
             let err = new Error();
-            stack_trace = this.replace_substrings(err.stack, "\n", "<br/>")
+            stack_trace = Utils.replace_substrings(err.stack, "\n", "<br/>") //don't use "this", use "Utils." because warning can be called without a subject
             //get rid of the "Error " at the beginning
             stack_trace = stack_trace.substring(stack_trace.indexOf(" "))
         }
