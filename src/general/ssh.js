@@ -950,11 +950,11 @@ function ssh_show_config_dialog_handler(vals){
     if(vals.clicked_button_value == "ssh_auth_dialog_show_pas_id"){
         if(vals.ssh_auth_dialog_show_pas_id) {
             ssh_auth_dialog_pas_id.type = "text"
-            persistent_set("ssh_show_password", true)
+            DDE_DB.persistent_set("ssh_show_password", true)
         }
         else {
             ssh_auth_dialog_pas_id.type = "password"
-            persistent_set("ssh_show_password", false)
+            DDE_DB.persistent_set("ssh_show_password", false)
         }
     }
     else if(vals.clicked_button_value == "ssh_auth_dialog_ok_id"){

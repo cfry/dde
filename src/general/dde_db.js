@@ -210,7 +210,7 @@ class DDE_DB{
         }
         let does_dde_init_file_exist = await DDEFile.file_exists("dde_init.js")
         if (does_dde_init_file_exist){ //we don't want to error if the file doesn't exist.
-            if (globalThis.platform == "node") {
+            if (globalThis.platform === "node") {
                 globalThis.persistent_set = this.persistent_set //todo seems weird. Was in DDE3 but ...
             }
             try{
@@ -223,15 +223,6 @@ class DDE_DB{
                 dde_error("The file: Documents/dde_apps/dde_init.js has invalid JavaScript in it.<br/>" +
                     "Please fix this and relaunch DDE.")
                 return
-            }
-            var add_to_dde_init_js = ""
-            //do not make default_default_ROS_URL, default_default_dexter_ip_address, default_default_dexter_port
-            //part of the persistent vars. they are globals in dde4.
-            if (add_to_dde_init_js != ""){
-                var di_content = await DDEFile.read_file_async("dde_init.js")
-                di_content = add_to_dde_init_js + di_content
-                DDEFile.write_file_async("dde_init.js", di_content)
-                eval(add_to_dde_init_js)
             }
         }
         else { //the folder exists, but no dde_init.js file

@@ -1,7 +1,6 @@
 import "./object_system.js"
 //import {Instruction} from "./instruction.js" //now global
 
-
 export function to_source_code({value, indent="", function_names=false, newObject_paths=false,
                         job_names=false, robot_names=false,
                         depth_limit=100, depth=0, job_orig_args=false,
@@ -60,7 +59,7 @@ export function to_source_code({value, indent="", function_names=false, newObjec
         }
         else if (typeof(value) == "object"){//beware if we didn't catch arrays above this would hit
                                             //assumes at this point we just have a lit obj.
-            return to_source_code_lit_obj(arguments[0])
+            return to_source_code_lit_obj({value: value, indent: indent}) //arguments[0]
         }
         else { shouldnt("to_source_code passed: " + value + " which is not a handled type.") }
 }

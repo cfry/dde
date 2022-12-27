@@ -153,21 +153,6 @@ class MakeInstruction{
         else { return false }
     }
 
-    /*static onchange_job_robot(event){
-       let rob = value_of_path(event.target.value) ///might not be a dexter
-       if(rob instanceof Dexter) { Dexter.default = rob }
-       else { Dexter.default = Dexter.dexter0 } //yes, I *could* have just
-         //left the Dexter.default be its last value.
-         //BUT then user would have to remember that,
-         //AND that's not what default_dexter()  does (it returns dexter0
-         //if the robot in the select widget is NOT a dexter.
-         //So beware, changing the select widget from "dex2" to "brain1"
-         //will also change Dexter.default to dexter0.
-       if(this.get_instruction_name_from_ui() == "new Job"){
-           globalThis[this.arg_name_to_dom_elt_id("robot")].value = DexterUtils.default_dexter_full_name()
-       }
-    }
-    */
     static make_instruction_menu_item_html(label_array){
       let result = "<li>" + label_array[0] + "<ul>"
       for(let i = 1; i < label_array.length; i++){

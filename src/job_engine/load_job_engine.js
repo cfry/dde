@@ -112,11 +112,6 @@ export async function init_job_engine(){
     Job.class_init()
     Dexter.class_init()
     new Brain({name: "brain0"})
-    Dexter.default = new Dexter({name: "dexter0", //ip_address: "localhost",
-                                 port: 50000}) //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
-    //the only thing dde_init.js really MUST do is define dexter0, so just stick
-    //it here and now user can screw up dde_init.js and still win.
-
 
     Dexter.draw_dxf = DXF.dxf_to_instructions //see Robot.js
     Dexter.prototype.draw_dxf = function({robot = null}={}) {

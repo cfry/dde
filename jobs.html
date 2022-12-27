@@ -356,7 +356,7 @@
             for(data of data_array) {
                 //console.log("In handle_stdout with data: " + JSON.stringify(data))
                 if(data.kind === "get_dde_version"){
-                    dde_version_id.innerHTML = data.dde_version
+                    dde_version_id.innerHTML      = data.dde_version
                     dde_release_date_id.innerHTML = data.dde_release_date
                 }
                 else if(data.kind === "show_job_button"){

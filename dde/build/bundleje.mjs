@@ -12,8 +12,8 @@ import require$$0 from 'domain';
 import path from 'path';
 
 var name = "dde4";
-var version = "4.0.1";
-var release_date = "Aug 26, 2021";
+var version = "4.0.3";
+var release_date = "Dec 8, 2022";
 var description = "test rollup";
 var author = "Fry";
 var license = "GPL-3.0";
@@ -42,6 +42,7 @@ var dependencies = {
 	"@grpc/grpc-js": "^1.6.7",
 	"@grpc/proto-loader": "^0.6.12",
 	"@rollup/plugin-json": "^4.1.0",
+	"@speechly/browser-client": "^2.6.1",
 	acorn: "^8.4.1",
 	"adm-zip": "^0.5.5",
 	asap: "^2.0.6",
@@ -225,7 +226,7 @@ static warning(message, temp=false){
             //it really shouldn't be according to:
             // https://stackoverflow.com/questions/41586293/how-can-i-get-a-js-stack-trace-without-halting-the-script
             let err = new Error();
-            stack_trace = this.replace_substrings(err.stack, "\n", "<br/>");
+            stack_trace = Utils$1.replace_substrings(err.stack, "\n", "<br/>"); //don't use "this", use "Utils." because warning can be called without a subject
             //get rid of the "Error " at the beginning
             stack_trace = stack_trace.substring(stack_trace.indexOf(" "));
         }
@@ -18356,8 +18357,12 @@ Job$1.prototype.stop_for_reason = function(condition_when_stopped="interrupted",
         if(pos_of_underscore > 0) {
             this.set_status_code(condition_when_stopped.substring(0, pos_of_underscore),
                 reason);
+            this.color_job_button();
         }
-        else { this.set_status_code(condition_when_stopped, reason); }
+        else {
+            this.set_status_code(condition_when_stopped, reason);
+            this.color_job_button();
+        }
         if (this.robot.heartbeat_timeout_obj) { clearTimeout(this.robot.heartbeat_timeout_obj); }
         this.stop_time    = new Date();
         //this.current_instruction().init_instruction() //needed by at least wait_until and loop. now done in Job.start
@@ -36382,7 +36387,6 @@ class MonitorServer$1 {
 
    static init(){ //called by load_job_engine.js
        console.log("Top of MonitorServer.init now disabled");
-       out("Top of MonitorServer.init now disabled");
        return //TODO needs work
 	}
 
@@ -38127,8 +38131,6 @@ async function on_ready_je(){
 }
 
 on_ready_je();
-
-out("just called on_ready_je()");
 
 function does_this_script_have_args() {
     //for process.argv, the first elt always is the "node" cmd,

@@ -1731,9 +1731,20 @@ window_modify_id.onclick=function(){Editor.insert(
          //PatchDDE.init()  //todo dde4 needs file system
 
 
-         DDE_DB.dde_init_dot_js_initialize()//todo dde4 needs file system  //must occcur after persistent_initialize
+         DDE_DB.dde_init_dot_js_initialize()//must occcur after persistent_initialize
 
-         Dexter.default = (Dexter.dexter0 ?  Dexter.dexter0 : null )
+         //for Job engine see similar code in ready_je.js,  on_ready_js function
+         //this should be after DDE_DB.dde_init_dot_js_initialize
+         if(!Dexter.dexter0){
+             Dexter.dexter0 = new Dexter({name: "dexter0"})
+         }
+         if(!Dexter.dexter0.ip_address){
+             let addr = DDE_DB.get("dexter0_ip_address")
+             if(!addr || (addr === "auto")){
+                 Dexter.dexter0.ip_address = "192.168.1.142"
+             }
+         }
+         Dexter.default = Dexter.dexter0
          //initialize the checkbox state
          $("#animate_ui_checkbox_id").jqxCheckBox({ checked: DDE_DB.persistent_get("animate_ui")})
 

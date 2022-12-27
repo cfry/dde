@@ -49,7 +49,7 @@ function node_on_ready() {
     //new Dexter({name: "dexter0"})
 
     DDE_DB.init()
-    dde_init_dot_js_initialize()
+    DDE_DB.dde_init_dot_js_initialize()
     Job.class_init()
     Dexter.class_init()
     //serial_port_init()

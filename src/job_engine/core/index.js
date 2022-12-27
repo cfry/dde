@@ -4,8 +4,8 @@ import pckg from "package"
 
 
 
-global.dde_version = pckg.version //"4.0.0" //require("../package.json").version
-global.dde_release_date = "Aug 1, 2022" //require("../package.json").release_date
+global.dde_version      = pckg.version //"4.0.0" //require("../package.json").version
+global.dde_release_date = pckg.release_date //require("../package.json").release_date
 
 global.default_default_ROS_URL           = "localhost:9090"
 global.default_default_dexter_ip_address = "192.168.1.142"

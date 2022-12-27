@@ -548,7 +548,6 @@ class MonitorServer {
 
    static init(){ //called by load_job_engine.js
        console.log("Top of MonitorServer.init now disabled")
-       out("Top of MonitorServer.init now disabled")
        return //TODO needs work
        try {
            this.server = new WebSocketServer({port: Monitor.port, clientTracking: true})    //Monitor.ws_url()

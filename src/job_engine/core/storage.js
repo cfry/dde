@@ -216,12 +216,12 @@ export function dde_init_dot_js_initialize() {
         if(!Brain.brain0) {
             add_to_dde_init_js += '\nnew Brain({name: "brain0"})\n'
         }
-        if(!Robot.dexter0){
-            add_to_dde_init_js += '\nnew Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
+        if(!Dexter.dexter0){
+            add_to_dde_init_js += '\nDexter.default = new Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
         } //note, in the weird case that the user has defined the ip_address and/or port
           //but not dexter0, then dexter0 gets at the front of the init file, not
           //after the address and that's bad because it needs the ip_address
-          //but a fancier scheme of putting dextero always at the end of the file
+          //but a fancier scheme of putting dexter0 always at the end of the file
           //is bad too since all the "system" code is not at the beginning, before user code.
           //So in our "weird case" loading dde_init will error. Not so terrible
         if (add_to_dde_init_js != ""){

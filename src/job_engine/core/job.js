@@ -464,7 +464,7 @@ class Job{
             this.stop_for_reason("errored", "Dexter." + this.robot.name +
                                  " already running Job." + the_active_job_with_robot_maybe.name)
             dde_error("Attempt to start Job." + this.name + " with Dexter." + this.robot.name +
-                      ",<br/>but that Dexter is already running Job." + the_active_job_with_robot_maybe.name +
+                      ",<br/>but Dexter." + this.robot.name + " is already the default robot in Job." + the_active_job_with_robot_maybe.name +
                       ",<br/>so Job." + this.name + " was automatically stopped.")
         }
         if(this.wait_until_this_prop_is_false) { this.wait_until_this_prop_is_false = false } //just in case previous running errored before it could set this to false, used by start_objects
@@ -3337,7 +3337,7 @@ Job.prototype.to_source_code = function(args={}){
             }
        }
     }
-    result += props_indent + "do_list: ["
+    result += props_indent + "do_list: [\n"
     let do_list_val = props_container.do_list
     if (!args.job_orig_args){
         let last_instr  = last(do_list_val)
@@ -3350,10 +3350,19 @@ Job.prototype.to_source_code = function(args={}){
     for(let i = 0; i < do_list_val.length; i++){
        let on_last = (i == do_list_val.length - 1)
        let prop_args = Object.assign({}, arguments[0])
-       prop_args.value = do_list_val[i]
-       prop_args.indent = (on_first ? "" : props_indent + "          ")
-       let instr_src = to_source_code(prop_args)
-       result += instr_src + (on_last ? "" : ",") + "\n"
+       let do_list_item = do_list_val[i]
+       prop_args.value = do_list_item
+       props_indent = args.indent + "          "
+       let instr_src
+       if((typeof(prop_args.value) === "function") &&
+           do_list_item.simple_command){ //Speechly cmd
+           instr_src = 'simple("' + do_list_item.simple_command + '")'
+           result += props_indent + instr_src + (on_last ? "" : ",") + "\n"
+       }
+       else {
+           instr_src = to_source_code(prop_args)
+           result += props_indent + instr_src + (on_last ? "" : ",") + "\n"
+       }
        on_first = false
     }
     result += props_indent + "         " + "]\n" + args.indent + "})"

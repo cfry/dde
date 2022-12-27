@@ -167,6 +167,19 @@ async function on_ready_je(){
     globalThis.default_default_dexter_ip_address = "localhost"
     //console.log("init_job_engine: " + init_job_engine)
     await init_job_engine()
+
+    //for DDE_ID equivalent see ready.js on_ready function
+    if(!Dexter.dexter0){
+        Dexter.dexter0 = new Dexter({name: "dexter0"})
+    }
+    if(!Dexter.dexter0.ip_address){
+        let addr = DDE_DB.get("dexter0_ip_address")
+        if(!addr || (addr === "auto")){
+            Dexter.dexter0.ip_address = "localhost" //but in DDE_IDE this is "192.168.1.142"
+        }
+    }
+    Dexter.default = Dexter.dexter0
+
     out("on_ready_je after init_job_engine")
     //below 3 are same as on_ready. This must be after loading series, which is only for dde IDE,
     //so can't stick the below in the shared
@@ -187,8 +200,6 @@ async function on_ready_je(){
 }
 
 on_ready_je()
-
-out("just called on_ready_je()")
 
 function does_this_script_have_args() {
     //for process.argv, the first elt always is the "node" cmd,
