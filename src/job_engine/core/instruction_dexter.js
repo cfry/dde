@@ -92,9 +92,11 @@ Instruction.Dexter.move_all_joints = class move_all_joints extends Instruction.D
     }
     to_source_code(args){
         args = Object.assign({}, args)
-        args.value = this.array_of_angles
         args.indent = ""
-        return args.indent + "Dexter.move_all_joints(" + to_source_code(args) + ")"
+        return args.indent +
+              "Dexter." +
+              (args.value.robot ? args.value.robot.name + "." : "") +
+              "move_all_joints(" + to_source_code({value: args.value.array_of_angles}) + ")"
     }
 }
 

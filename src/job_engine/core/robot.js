@@ -1525,7 +1525,10 @@ class Dexter extends Robot {
         //only comming for simulation and not from read dexter.
         //else if (ins_id == -1) {}
      // else {
-        if (job_instance.keep_history && (oplet == "g")){ //don't do it for oplet "G", get_robot_status_immediate
+        if (job_instance.keep_history &&
+            ((oplet === "g") || //don't do it for oplet "G", get_robot_status_immediate
+              (oplet === "F")   //added in dde4
+            )){
                 job_instance.rs_history.push(robot_status)
         }
         if(globalThis.platform === "dde"){

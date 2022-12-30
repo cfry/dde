@@ -3339,13 +3339,6 @@ Job.prototype.to_source_code = function(args={}){
     }
     result += props_indent + "do_list: [\n"
     let do_list_val = props_container.do_list
-    if (!args.job_orig_args){
-        let last_instr  = last(do_list_val)
-        if (Instruction.is_oplet_array(last_instr) &&
-            last_instr[Instruction.INSTRUCTION_TYPE] == "g") { //don't print the auto_added g instr at end of a run job
-            do_list_val = do_list_val.slice(0, (do_list_val.length - 1))
-        }
-    }
     let on_first = true
     for(let i = 0; i < do_list_val.length; i++){
        let on_last = (i == do_list_val.length - 1)

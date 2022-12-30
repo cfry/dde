@@ -17025,7 +17025,7 @@ class Job$1{
             this.stop_for_reason("errored", "Dexter." + this.robot.name +
                                  " already running Job." + the_active_job_with_robot_maybe.name);
             dde_error("Attempt to start Job." + this.name + " with Dexter." + this.robot.name +
-                      ",<br/>but that Dexter is already running Job." + the_active_job_with_robot_maybe.name +
+                      ",<br/>but Dexter." + this.robot.name + " is already the default robot in Job." + the_active_job_with_robot_maybe.name +
                       ",<br/>so Job." + this.name + " was automatically stopped.");
         }
         if(this.wait_until_this_prop_is_false) { this.wait_until_this_prop_is_false = false; } //just in case previous running errored before it could set this to false, used by start_objects
@@ -19886,7 +19886,7 @@ Job$1.prototype.to_source_code = function(args={}){
             }
        }
     }
-    result += props_indent + "do_list: [";
+    result += props_indent + "do_list: [\n";
     let do_list_val = props_container.do_list;
     if (!args.job_orig_args){
         let last_instr  = last(do_list_val);
@@ -19895,15 +19895,22 @@ Job$1.prototype.to_source_code = function(args={}){
             do_list_val = do_list_val.slice(0, (do_list_val.length - 1));
         }
     }
-    let on_first = true;
     for(let i = 0; i < do_list_val.length; i++){
        let on_last = (i == do_list_val.length - 1);
        let prop_args = Object.assign({}, arguments[0]);
-       prop_args.value = do_list_val[i];
-       prop_args.indent = (on_first ? "" : props_indent + "          ");
-       let instr_src = to_source_code(prop_args);
-       result += instr_src + (on_last ? "" : ",") + "\n";
-       on_first = false;
+       let do_list_item = do_list_val[i];
+       prop_args.value = do_list_item;
+       props_indent = args.indent + "          ";
+       let instr_src;
+       if((typeof(prop_args.value) === "function") &&
+           do_list_item.simple_command){ //Speechly cmd
+           instr_src = 'simple("' + do_list_item.simple_command + '")';
+           result += props_indent + instr_src + (on_last ? "" : ",") + "\n";
+       }
+       else {
+           instr_src = to_source_code(prop_args);
+           result += props_indent + instr_src + (on_last ? "" : ",") + "\n";
+       }
     }
     result += props_indent + "         " + "]\n" + args.indent + "})";
     return result
@@ -35628,7 +35635,6 @@ globalThis.make_dom_elt = make_dom_elt;
 
 //import {Instruction} from "./instruction.js" //now global
 
-
 function to_source_code$1({value, indent="", function_names=false, newObject_paths=false,
                         job_names=false, robot_names=false,
                         depth_limit=100, depth=0, job_orig_args=false,
@@ -35687,7 +35693,7 @@ function to_source_code$1({value, indent="", function_names=false, newObject_pat
         }
         else if (typeof(value) == "object"){//beware if we didn't catch arrays above this would hit
                                             //assumes at this point we just have a lit obj.
-            return to_source_code_lit_obj(arguments[0])
+            return to_source_code_lit_obj({value: value, indent: indent}) //arguments[0]
         }
         else { shouldnt("to_source_code passed: " + value + " which is not a handled type."); }
 }
@@ -37636,11 +37642,6 @@ async function init_job_engine(){
     Job.class_init();
     Dexter.class_init();
     new Brain({name: "brain0"});
-    Dexter.default = new Dexter({name: "dexter0", //ip_address: "localhost",
-                                 port: 50000}); //normally in dde_init.js but that file can over-ride this bare-bones def when its loaded
-    //the only thing dde_init.js really MUST do is define dexter0, so just stick
-    //it here and now user can screw up dde_init.js and still win.
-
 
     Dexter.draw_dxf = DXF.dxf_to_instructions; //see Robot.js
     Dexter.prototype.draw_dxf = function({robot = null}={}) {
@@ -38111,6 +38112,19 @@ async function on_ready_je(){
     globalThis.default_default_dexter_ip_address = "localhost";
     //console.log("init_job_engine: " + init_job_engine)
     await init_job_engine();
+
+    //for DDE_ID equivalent see ready.js on_ready function
+    if(!Dexter.dexter0){
+        Dexter.dexter0 = new Dexter({name: "dexter0"});
+    }
+    if(!Dexter.dexter0.ip_address){
+        let addr = DDE_DB.get("dexter0_ip_address");
+        if(!addr || (addr === "auto")){
+            Dexter.dexter0.ip_address = "localhost"; //but in DDE_IDE this is "192.168.1.142"
+        }
+    }
+    Dexter.default = Dexter.dexter0;
+
     out("on_ready_je after init_job_engine");
     //below 3 are same as on_ready. This must be after loading series, which is only for dde IDE,
     //so can't stick the below in the shared

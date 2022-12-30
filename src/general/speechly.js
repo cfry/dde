@@ -1,17 +1,16 @@
 /*
 //todo
+   After Edit some_recording, the display is just the rcording list with
+     no way to get back to "listening" mode.
    new cmds:
         grab, release //close, open  (j7)// uses the value incremented by more, less.
         pitch up, pitch down   uses the value incremented by more, less.
         yawl left, yawl right  uses the value incremented by more, less.
         roll left, roll right  uses the value incremented by more, less.
         OR increase pitch, decrease pitch, same for yawl and role
-        softer, louder
+        softer, louder and display status of volume next to Speaker: off
         initialize??? (stick in mode initial list of displayed cmds, but not elsewhere.)
-        mic on, mic off
-         See: https://github.com/speechly/speechly/blob/main/libraries/browser-client/docs/classes/client.BrowserClient.md#start  client.start(), client.stop()
-        respell talk, be quiet to: "speaker on" "speaker off".
-        back (implementation: Job.talk_to_dexter.keep_history = true //even though now the default, may not be in future.
+        backward/forward (implementation: Job.talk_to_dexter.keep_history = true //even though now the default, may not be in future.
              Go up the robot_status's until you get to an "a" oplet,
              then use those angles to move_all_joints to those angles.
              Skip the first, one, check for the last one and give a warning when at beginning,
@@ -19,10 +18,13 @@
              set the instruction_id_back_pointer var to null.
              so first "back" sets it to the 2nd newest instriction_id of a "a" oplet,
              and subsequent ones in
+        out (Just Speechly.speechly_out for some output in a job like IO.out,
+             but we want to have bot speech output and text like Speechly.speechly_out
+             Needs an input like waiting_for_recording_name
    ---
    Convert from step_distance to degrees for pitch, yawl, roll and distance for j7 open.close
    ---
-   In show_window, display state of:  DONE enable_talking, speak_volume
+   In show_window, display state of:
       should I show, along with step_distance, the equiv step_degrees and step_gripper_distance?
    ---
    Speechly => Say (shorter, separates from underlying implementation)
@@ -194,7 +196,7 @@ class Speechly {
      */
 
     //returns the kind of string that speech-reco would
-    static prose_name_to_utterance(prose_name){
+   /* static prose_name_to_utterance(prose_name){
         let result = prose_name.trim()
         let paren_index = result.indexOf("(")
         if(paren_index !== -1){
@@ -203,7 +205,7 @@ class Speechly {
         result = result.replaceAll(",", "")
         result = result.toLowerCase()
         return result
-    }
+    }*/
 
     //cmds is a list of a list of methods  without their subject, lower-case, with underscores
     static make_command_list_items(...cmds){
@@ -211,14 +213,15 @@ class Speechly {
         for(let cmd_arr of cmds){
             result += "<li style='height:30px;'>"
             for(let cmd of cmd_arr) {
-                if ((cmd_arr.length > 1) && cmd !== cmd_arr[0]) { //put comma before every non-first elt
-                    result += ", &nbsp; &nbsp;"
+                if ((cmd_arr.length > 1) && (cmd !== cmd_arr[0])) { //put comma before every non-first elt
+                    result += ", &nbsp;"
                 }
                 let li_body_html
-                let arg_str = this.prose_name_to_utterance(cmd)
-                if(arg_str.length > 0){ //meth could be null as in case of (recording name) in which case we
-                    let click_source = "Speechly.handle_command('" + arg_str + "')"
-                    li_body_html = '<a href="#" onclick="' + click_source + '">' + cmd + '</a>'
+                let display_prose = this.cmd_display_prose(cmd)
+                let norm = this.cmd_normalized_prose(cmd)
+                if(norm.length > 0){ //meth could be null as in case of (recording name) in which case we
+                    let click_source = "Speechly.handle_command('" + norm + "')"
+                    li_body_html = '<a href="#" onclick="' + click_source + '">' + display_prose + '</a>'
                 }
                 else {
                     li_body_html = cmd
@@ -282,7 +285,7 @@ class Speechly {
     }
      */
 
-    static async initialize(){
+    static async initialize(enable_speech_reco=true){
         this.recordings = {}
         new Job ({name: "talk_to_dexter",
                   robot: Brain.brain0,
@@ -292,33 +295,35 @@ class Speechly {
                         //this.dexter_instance.empty_instruction_queue()
             ]
         }).start()
-        this.client = new BrowserClient({
-            appId: '2357493e-4713-4d54-a041-a792f4952a62',
-            vad: { enabled: false, noiseGateDb: -24.0 } // https://github.com/speechly/speechly/blob/main/libraries/browser-client/docs/interfaces/client.VadOptions.md#enabled
-        })
-        this.microphone = new BrowserMicrophone()
-        // React to the updates from the API.
-        this.client.onSegmentChange((segment) => {
-            console.log('Received new segment from the API:',
-                segment.intent,
-                segment.entities,
-                segment.words,
-                segment.isFinal
-            )
-            if(segment.isFinal) {
-                Speechly.handle_command(segment)
-            }
-        })
-        // Initialize the microphone - this will ask the user for microphone permissions
+        if(enable_speech_reco) {
+            this.client = new BrowserClient({
+                appId: '2357493e-4713-4d54-a041-a792f4952a62',
+                vad: {enabled: false, noiseGateDb: -24.0} // https://github.com/speechly/speechly/blob/main/libraries/browser-client/docs/interfaces/client.VadOptions.md#enabled
+            })
+            this.microphone = new BrowserMicrophone()
+            // React to the updates from the API.
+            this.client.onSegmentChange((segment) => {
+                console.log('Received new segment from the API:',
+                    segment.intent,
+                    segment.entities,
+                    segment.words,
+                    segment.isFinal
+                )
+                if (segment.isFinal) {
+                    Speechly.handle_command(segment)
+                }
+            })
+            // Initialize the microphone - this will ask the user for microphone permissions
 // and establish the connection to Speechly API.
 // Make sure you call `initialize` from a user action handler
 // (e.g. from a button press handler).
-        await this.microphone.initialize()
+            await this.microphone.initialize()
 
 // bind the microphone to the client
-        await this.client.attach(this.microphone.mediaStream)// Initialize the microphone - this will ask the user for microphone permissions
+            await this.client.attach(this.microphone.mediaStream)// Initialize the microphone - this will ask the user for microphone permissions
 
-        this.client.start()
+            this.client.start()
+        }
         setTimeout(this.display_ui, 1000) //give chance for the above init to work,
         //before showing UI that the user can interact with since
         //if they try speaking before the above init, it will fail.
@@ -326,18 +331,19 @@ class Speechly {
 
     static display_ui(){
         show_window({title: "Valid Dexter Commands",
-            x: 400, y:78, width: 520, height: 500,
+            x: 400, y:78, width: 540, height: 500,
             content: `<ul id='valid_commands_id' style="font-size:22px;"></ul>
                       <fieldset><legend><i>Status</i></legend>
                             <div><i>Mode:</i> <span id="mode_id"></span></div>
                             <div><i>Step distance:</i> <span id="step_distance_id"></span></div>
-                            <div><i>Enable talking:</i> <span id="enable_talking_id"></span></div>
+                            <div><span id="audio_id"></span></div>
                       </field_set>
                       <div id="speechly_out_id" style="background-color:white;font-size:20px;padding:10px;"></div>`,
             callback: "Speechly.sw_callback"
         })
-        Speechly.set_mode("initial") //need "Speechly" here, not "this"
-        setTimeout(Speechly.display_status, 1000)
+        Speechly.set_mode("initial")
+        setTimeout(function() { Speechly.display_status() }, //need "Speechly" here, not "this"
+                   1000)
         Speechly.speechly_out("Say or click on a valid command.")
     }
 
@@ -367,13 +373,13 @@ class Speechly {
     static display_status(){
         out("top of display_status")
         if(globalThis.mode_id) {
-            let mode_str = Speechly.mode //can't use "this", must use "Speechly"
-            if(Speechly.recording_name_now_playing){ //don't use mode "playing_recording" as during recording, its often NOT in that mode
-                mode_str += ": " + Speechly.recording_name_now_playing
-            }
-            mode_id.innerHTML = mode_str
-            step_distance_id.innerHTML = Speechly.step_distance
-            enable_talking_id.innerHTML = Speechly.enable_talking
+            let status_html =
+                "<i>Mode: </i><b>"          + Speechly.mode + (Speechly.recording_name_now_playing ?  " " + Speechly.recording_name_now_playing : "") + "</b> &nbsp;" +
+                "<i>Step distance: </i><b>" + Speechly.step_distance               + "</b> &nbsp;" +
+                "<i>Mic: </i><b>"           + (this.is_mic_on() ? "on" : "off")    + "</b> &nbsp;" +
+                "<i>Speaker: </i><b>"       + (this.enable_speaker ? "on" : "off") + "</b>"
+            mode_id.innerHTML = status_html
+
             let valid_cmds_html_fn_name
             valid_cmds_html_fn_name = "show_" + Speechly.mode + "_mode_commands"
             out("display_status valid_cmds_html_fn_name: " + valid_cmds_html_fn_name)
@@ -429,8 +435,8 @@ class Speechly {
 
     static cmd_table = [
         //cmd_normalized_prose,    cmd_display_prose,          cmd_method_name,    can_be_in_   alternatives..
-        //                                                     aka recording_name, recording,
-        ["dexter start listening", "Dexter, start listening",  "start_listening",  false, "dexter started listening", "dexter starred listening", "dexter stark listening", "dexter startles listening"],
+        //aka utterance from reco                              aka recording_name, recording,
+        ["dexter start listening", "Dexter, start listening",  "start_listening",  false, "dexter started listening", "dexter starred listening", "dexter stark listening", "dexter stock listening", "dexter startles listening"],
         ["dexter stop listening",  "Dexter, stop listening",   "stop_listening",   false],
         ["dexter off",             "Dexter, off",              "off",              false],
 
@@ -440,17 +446,27 @@ class Speechly {
         ["left",                   "Left",                     "left",             true],
         ["right",                  "Right",                    "right",            true],
         ["closer",                 "Closer",                   "closer",           true],
-        ["farther",                "Farther",                  "farther",          true, "further"],
+        ["farther",                "Farther",                  "farther",          true,  "further"],
+        ["backward",               "Backward",                 "backward",         true],
+        ["forward",                "Forward",                  "forward",          true,  "foreword"],
+
 
         ["more",                   "More",                     "more",             true],
         ["less",                   "Less",                     "less",             true],
-        ["talk",                   "Talk",                     "talk",             true],
-        ["be quiet",               "Be quiet",                 "be_quiet",         true],
 
+        ["mic on",                 "Mic on",                   "mic_on",           true, "mike on"],
+        ["mic off",                "Mic off",                  "mic_off",          true, "mike off"],
+
+        ["speaker on",             "Speaker on",               "speaker_on",       true],
+        ["speaker off",            "Speaker off",              "speaker_off",      true],
+
+        ["listen for other commands", "Listen for other commands", "listen_for_other_commands", false],
+        ["name position",          "Name position",            "name_position",    false],
         ["start recording",        "Start recording",          "start_recording",  false, "started recording"],
         ["stop recording",         "Stop recording",           "stop_recording",   false],
         ["play recording",         "Play Recording (name)",    "play_recording",   true],
-        ["stop playing",           "Stop playing",             "stop_playing",     true]
+        ["stop playing",           "Stop playing",             "stop_playing",     true],
+        ["list recordings",        "List recordings",          "list_recordings",  true]
     ]
 
     //does not check for existance, just converts string to the right FORMAT of a cmd_normalized_prose.
@@ -471,6 +487,12 @@ class Speechly {
         string = this.string_to_cmd_normalized_prose(string)
         string = string.replaceAll(" ", "_")
         string = string.replaceAll("'", "") // "don't" => "dont"
+        return string
+    }
+
+    static string_to_display_prose(string){
+        string = string.replaceAll("_", " ")
+        string = Utils.make_first_char_upper_case(string)
         return string
     }
 
@@ -499,7 +521,7 @@ class Speechly {
         for(let row of this.cmd_table){
             if(row.includes(cmd)) { return row[1] }
         }
-        return null //not found
+        return this.string_to_display_prose(cmd)
     }
 
     static cmd_method_name(cmd){
@@ -530,16 +552,18 @@ class Speechly {
     //called in both "listening" and "now recording" modes
     static core_listening_cmds = [
         ["Dexter, stop listening", "Dexter, off"],
-        ["Down",   "Up",           "Straight up"],
-        ["Left",   "Right"],
-        ["Closer", "Farther"],
-        ["More",   "Less"],
-        ["Talk",   "Be quiet"]
+        ["Down",     "Up",         "Straight up"],
+        ["Left",     "Right"],
+        ["Closer",   "Farther"],
+        ["Backward", "Forward"],
+        ["More",     "Less"],
+        ["Mic on",   "Mic off"],
+        ["Speaker on",  "Speaker off"]
     ]
 
     static show_listening_mode_commands() {
         let arr = this.core_listening_cmds.slice()
-        arr.push(["Start recording", "List recordings"])
+        arr.push(["Name position", "Start recording", "List recordings"])
         arr.push(["Play recording (name)"])
         let items = this.make_command_list_items(...arr)
         valid_commands_id.innerHTML = items
@@ -559,9 +583,10 @@ class Speechly {
              "dexter started listening",
              "dexter starred listening",
              "dexter stark listening",
-             "dexter startles listening"].includes(full_text)){
+             "dexter startles listening",
+             "dexter startled listening"].includes(full_text)){
             full_text = "dexter start listening"
-            this.speechly_out("Recognized command: " + full_text)
+            this.speechly_out("Say or click a valid command.")
             this.set_mode("listening")
             return "valid"
         }
@@ -570,7 +595,7 @@ class Speechly {
 
     static stop_listening(full_text="dexter stop listening"){
         if (full_text === "dexter stop listening") {
-            this.speechly_out("Recognized command: " + full_text)
+            this.speechly_out("Say or click a valid command.")
             this.set_mode("initial")
             return "valid"
         }
@@ -609,19 +634,34 @@ class Speechly {
     }
      */
 
-    static enable_talking = false
+    static enable_speaker = false
     static speak_volume = 0.5
+
+    //from: https://stackoverflow.com/questions/822452/strip-html-from-text-javascript
+    static strip_html(str){
+        str=str.replace(/<\s*br\/*>/gi, "\n");
+        str=str.replace(/<\s*a.*href="(.*?)".*>(.*?)<\/a>/gi, " $2 (Link->$1) ");
+        str=str.replace(/<\s*\/*.+?>/ig, "\n");
+        str=str.replace(/ {2,}/gi, " ");
+        str=str.replace(/\n+\s*/gi, "\n\n");
+        return str
+    }
     static speechly_out(html){
         if(globalThis.speechly_out_id) {
             speechly_out_id.innerHTML = html
-            if (this.enable_talking) { //todo needs work due to "feedback". I have to turn off mic,
+            if (this.enable_speaker) {
                 // but having problems turning it back on.
                 //this.microphone.close()
                 this.client.stop()
-                //speak({speak_data: html, volume: this.speak_volume})
-                //this.client.start()
-                //this.microphone.initialize()// doesn't work
-                setTimeout(this.speak_and_restart(html), 1000)
+                let str = this.strip_html(html)
+                speak({
+                    speak_data: str, volume:
+                    this.speak_volume,
+                    callback: function () {
+                        Speechly.client.start()
+                    }
+                })
+                //setTimeout(this.speak_and_restart(html), 1000)
             }
         }
         else { out(html) }
@@ -725,74 +765,142 @@ class Speechly {
         the_job.insert_instructions(instrs, false)
     }
 
+    //moves dester straight up if we don't know hwere it is, and then
+    //calls the next_full_text
+    //returns true if it has to do the init, and false if its already good to go.
+    //called by move_incrementally and name_position
+    static initialize_dexter_maybe(next_full_text, playing_a_recording_cmd, the_job){
+        let dex = this.dexter_for_job(the_job)
+        if (dex.rs) { return false} //does not need to be initialized so the caller can keep going
+        else {
+            this.handle_command("straight_up", playing_a_recording_cmd, the_job)
+            Speechly.speechly_out("Initializing Dexter to straight up position.")
+            setTimeout(function () {
+                Speechly.handle_command(next_full_text, playing_a_recording_cmd, the_job)
+            }, 5000) //beware, possible infinite loop if straight_up fails to set the_job.robot.rs
+            return true
+        }
+    }
+
     //return "valid" if valid cmd and performed.
     //return "out_of_reach" if out of reach
     //return "invalid" if word is not left, right, etc.
     static move_incrementally(full_text="down", playing_a_recording_cmd=false, the_job=Job.talk_to_dexter) {
         //make sure dex is initialized with both dexter_instance and its robot.rs
-        let dex = this.dexter_for_job(the_job)
-        if(!dex.rs){
-            this.handle_command("straight_up", playing_a_recording_cmd, the_job)
-            setTimeout(function(){
-                Speechly.handle_command(full_text, playing_a_recording_cmd, the_job)
-            }, 5000) //beware, possible infinite loop if straight_up fails to set the_job.robot.rs
-            return "valid"  //even if its not really valid, validate anyway. If full_text isn't valid,
-                           //it will get caught by the handle_command in the setTimeout fn
-        }
-        let axis_index_dir = this.word_to_axis_index_and_direction(full_text)
-        if(!axis_index_dir){ return "invalid"}
-        else { //now
-            this.speechly_out("Recognized command: " + full_text)
-            let ma = this.initial_straight_up_angles_maybe(the_job)
-            let orig_xyz = Kin.J_angles_to_xyz(ma)[0] //the_job.robot.rs.xyz()[0]
-
-            let [axis_index, dir] = axis_index_dir //axis_index is 9, 1, 2 for x,y, z. dir is 1 or -1
-            let [new_x, new_y, new_z] = orig_xyz
-            if (axis_index === 0) {
-                new_x = orig_xyz[axis_index] + (dir * this.step_distance)
-            } else if (axis_index === 1) {
-                new_y = orig_xyz[axis_index] + (dir * this.step_distance)
-            } else if (axis_index === 2) {
-                new_z = orig_xyz[axis_index] + (dir * this.step_distance)
+        if(Utils.starts_with_one_of(full_text, ["down", "up", "left", "right", "closer", "farther"])) {
+            if (this.initialize_dexter_maybe(full_text, playing_a_recording_cmd, the_job)) {
+                return "valid"  //even if its not really valid, validate anyway. If full_text isn't valid,
+                //it will get caught by the handle_command in the setTimeout fn
             }
-
-            //let orig_angles2 = Kin.xyz_to_J_angles(orig_xyz)
-            let new_xyz = [new_x, new_y, new_z]
-            new_xyz = this.fix_xyz(new_xyz)[0]
-            //out("is_in_reach? " + new_xyz)
-            if (true) { //Kin.is_in_reach(new_xyz)) {
-                this.send_instruction_to_dexter(dex.move_to(new_xyz), the_job)
-                return "valid"
+            let axis_index_dir = this.word_to_axis_index_and_direction(full_text)
+            if (!axis_index_dir) {
+                return "invalid"
             }
             else {
-                this.speechly_out("Moving " + full_text + " is out of Dexter's reach.")
-                return "valid"
+                let ma = this.initial_straight_up_angles_maybe(the_job)
+                let orig_xyz = Kin.J_angles_to_xyz(ma)[0] //the_job.robot.rs.xyz()[0]
+
+                let [axis_index, dir] = axis_index_dir //axis_index is 9, 1, 2 for x,y, z. dir is 1 or -1
+                let [new_x, new_y, new_z] = orig_xyz
+                if (axis_index === 0) {
+                    new_x = orig_xyz[axis_index] + (dir * this.step_distance)
+                } else if (axis_index === 1) {
+                    new_y = orig_xyz[axis_index] + (dir * this.step_distance)
+                } else if (axis_index === 2) {
+                    new_z = orig_xyz[axis_index] + (dir * this.step_distance)
+                }
+
+                //let orig_angles2 = Kin.xyz_to_J_angles(orig_xyz)
+                let new_xyz = [new_x, new_y, new_z]
+                new_xyz = this.fix_xyz(new_xyz)[0]
+                let dex = this.dexter_for_job(the_job)
+                //out("is_in_reach? " + new_xyz)
+                if (true) { //Kin.is_in_reach(new_xyz)) {
+                    this.speechly_out("Moving Dexter " + full_text)
+                    this.send_instruction_to_dexter(dex.move_to(new_xyz), the_job)
+                    return "valid"
+                } else {
+                    this.speechly_out("Moving " + full_text + " is out of Dexter's reach.")
+                    return "valid"
+                }
             }
         }
+        else { return "invalid" }
     }
-    //______end move_incrementally_______
-    /*static more(full_text="more"){ return this.more_or_less(full_text)}
-    static less(full_text="less"){ return this.more_or_less(full_text)}
 
-    static more_or_less(full_text){
-        if(full_text === "more"){
-            this.speechly_out("Recognized command: " + full_text)
-            this.set_step_distance(this.step_distance * 2)
-            this.speechly_out("Step distance is now: " + this.step_distance + " meters.")
+    static last_backward_forward_index = null
+    static forward_limit_index = null  //backward_limit_index is always 0. but we need this because
+       //doing a backward cmd extends the length of the rs_history and we don't want to count that
+       //as when we go back ,then go forward, we want to stop the forward at the orig
+       //length of rs_history, NOT including the extra "backs" or "forwards" we did
+       //when we started the back and forward sequence
+
+    static backward(full_text="backward", playing_a_recording_cmd=false, the_job=Job.talk_to_dexter){
+        if(full_text === "backward"){
+            let dex = this.dexter_for_job(the_job)
+            let hist_arr   = the_job.rs_history
+            if(this.last_backward_forward_index === null) {
+                this.last_backward_forward_index = hist_arr.length - 1
+                this.forward_limit_index = hist_arr.length - 1
+            }  //skip past the latest one
+
+            if(this.last_backward_forward_index === 0){
+                Speechly.speechly_out("There are no more commands to go backward to.")
+                return "valid"
+            }
+            let RS_inst = new RobotStatus({})
+            for(let i = this.last_backward_forward_index - 1; i >= 0; i--){
+                let single_rs = hist_arr[i]
+                if(single_rs[Dexter.INSTRUCTION_TYPE] === "F"){ //this is the one to go back to.
+                    RS_inst.robot_status = single_rs
+                    let angles = RS_inst.measured_angles()
+                    let instr = dex.move_all_joints(angles)
+                    this.last_backward_forward_index = i
+                    Speechly.speechly_out("Backing up to: " + angles)
+                    this.send_instruction_to_dexter(instr, the_job)
+                    return "valid"
+                }
+            }
+            Speechly.speechly_out("There are no more commands to go backward to.")
             return "valid"
         }
-        else if(full_text === "less"){
-            this.speechly_out("Recognized command: " + full_text)
-            this.set_step_distance(this.step_distance / 2)
-            this.speechly_out("Step distance is now: " + this.step_distance + " meters.")
+        else { return "invalid" }
+    }
+
+    static forward(full_text="forward", playing_a_recording_cmd=false, the_job=Job.talk_to_dexter){
+        if(full_text === "forward"){
+            let dex = this.dexter_for_job(the_job)
+            let hist_arr   = Job.talk_to_dexter.rs_history
+            if(this.last_backward_forward_index === null){
+                this.last_backward_forward_index = hist_arr.length - 1  //skip past the latest one
+                this.forward_limit_index = hist_arr.length - 1
+            }
+            //now we're at the prev_index. First time in the loop we do prev_index + 1
+            if(this.last_backward_forward_index >= this.forward_limit_index){
+                Speechly.speechly_out("There are no more commands to go forward to.")
+                return "valid"
+            }
+            let RS_inst = new RobotStatus({})
+            for(let i = this.last_backward_forward_index + 1; i <= this.forward_limit_index; i++){
+                let single_rs = hist_arr[i]
+                if(single_rs[Dexter.INSTRUCTION_TYPE] === "F"){ //this is the one to go back to.
+                    RS_inst.robot_status = single_rs
+                    let angles = RS_inst.measured_angles()
+                    let instr = dex.move_all_joints(angles)
+                    this.last_backward_forward_index = i
+                    Speechly.speechly_out("Going forward to: " + angles)
+                    this.send_instruction_to_dexter(instr, the_job)
+                    return "valid"
+                }
+            }
+            Speechly.speechly_out("There are no more commands to go forward to.")
             return "valid"
         }
-        else { return "invalid"}
-    }*/
+        else { return "invalid" }
+    }
 
     static more(full_text="more"){
         if(full_text === "more"){
-            this.speechly_out("Recognized command: " + full_text)
             this.set_step_distance(this.step_distance * 2)
             this.speechly_out("Step distance has been increased to: " + this.step_distance + " meters.")
             return "valid"
@@ -802,7 +910,6 @@ class Speechly {
 
     static less(full_text="less"){
         if(full_text === "less"){
-            this.speechly_out("Recognized command: " + full_text)
             this.set_step_distance(this.step_distance / 2)
             this.speechly_out("Step distance has been decreased to: " + this.step_distance + " meters.")
             return "valid"
@@ -810,20 +917,47 @@ class Speechly {
         else { return "invalid"}
     }
 
-    static talk(full_text = "talk") {
-        if (full_text === "talk") {
-            this.enable_talking = true
-            this.speechly_out('Say or click on "Be quiet" to stop me talking.')
+    static is_mic_on(){
+        if(!this.client) { return false }
+        else { return this.client.isActive() }
+    }
+
+    static mic_on(full_text){
+        if (full_text === "mic on"){
+            this.client.start()
+            this.display_status()
+            Speechly.speechly_out("The microphone is now on.")
+            return "valid"
+        }
+        else { return "invalid"}
+    }
+
+    static mic_off(full_text){
+        if (full_text === "mic off"){
+            this.client.stop()
+            this.display_status()
+            Speechly.speechly_out("The microphone is now off.")
+            return "valid"
+        }
+        else { return "invalid"}
+    }
+
+    static speaker_on(full_text = "speaker on") {
+        if (full_text === "speaker on") {
+            this.enable_speaker = true
+            this.display_status()
+            this.speechly_out('Say or click on "Speaker off" to stop Dexter from talking.')
             return "valid"
         } else {
             return "invalid"
         }
     }
 
-    static be_quiet(full_text = "Be quiet"){
-        if(full_text === "be quiet"){
-            this.enable_talking = false
-            this.speechly_out('Say or click on "talk" to start me talking again.')
+    static speaker_off(full_text = "speaker off"){
+        if(full_text === "speaker off"){
+            this.enable_speaker = false
+            this.display_status()
+            this.speechly_out('Say or click on "Speaker on" to start Dexter talking.')
             return "valid"
         }
         else { return "invalid"}
@@ -870,7 +1004,7 @@ class Speechly {
             this.handle_command(full_text, true) //true means play it even though the mode is "now_recording"
             let cmd_number = this.the_recording_in_progress.length
             this.speechly_out("Recorded command #" + cmd_number + ": " + full_text + "." +
-                                   '<br/>Say or click on another command or "Stop recording".')
+                                   '<br/>Say or click another command or "Stop recording".')
             return "valid"
         }
         else {
@@ -880,8 +1014,8 @@ class Speechly {
     }
 
     static show_waiting_for_recording_name_mode_commands(){
-        let items = this.make_command_list_items( ["(the name of this recording)"],
-                                                        ["List recordings"],
+        let items = this.make_command_list_items( ["(the name for this recording)"],
+                                                        //["List recordings"], //too confusing
                                                         ["Stop recording"],
                                                         ["Dexter, stop listening", "Dexter, off"])
         valid_commands_id.innerHTML = items
@@ -943,36 +1077,84 @@ class Speechly {
         return Job[job_name]
     }
 
-    /*static list_recordings(full_text="list recordings"){
-        if(["list recordings", "liszt recordings"].includes(full_text)) {
-            //this.speechly_out("Recognized command: " + full_text)
-            if (this.array_of_recording_names().length === 0){
-                this.speechly_out('There are no recordings.<br/>Use "Start recording" to make one.')
+    //_____name position_______
+    static name_position(full_text, playing_a_recording_cmd=false, the_job=Job.talk_to_dexter){
+        if(full_text.startsWith("name position")){
+
+            let name_maybe = full_text.substring("name position ".length).trim()
+            if (name_maybe.length > 0){
+                full_text = this.clean_full_text(full_text)
+                let prose_name = full_text.substring("name position ".length).trim()
+                let recording_name = this.string_to_method_name(prose_name)
+
+                if(this.is_known_cmd(recording_name)) { //we want to exclude known recording names
+                    this.speechly_out('"' + full_text + '" is a command, so it can&apos;t be used to name a position.')
+                    return "invalid"
+                }
+                else {
+                    if(this.is_recording_name(recording_name)) {
+                        this.speechly_out('"' + recording_name + '" has been over-written with your new position.')
+                    }
+                    else {
+                        this.speechly_out('"' + recording_name + '" is now a named position.')
+                    }
+                    if (this.initialize_dexter_maybe(full_text, playing_a_recording_cmd, the_job)) {
+                        return "valid"  //even if its not really valid, validate anyway. If full_text isn't valid,
+                        //it will get caught by the handle_command in the setTimeout fn
+                    }
+                    let dex = this.dexter_for_job(the_job)
+                    let angles = dex.rs.measured_angles()
+                    let instrs = [dex.move_all_joints(angles), dex.empty_instruction_queue()]
+                    this.define_name_position(recording_name, instrs)
+                    this.set_mode("listening")
+                    return "valid"
+                }
             }
             else {
-                let rec_names = this.array_of_recording_names()
-                let arr_of_arrs = []
-                for(let name of rec_names){
-                    arr_of_arrs.push([name])
-                }
-                let items = this.make_command_list_items(...arr_of_arrs)
-                valid_commands_id.innerHTML = items
-                this.speechly_out("Say or click the name of a recording to play it.")
+                this.speechly_out("Say the name of your recording or<br/>" +
+                    "type it in and hit Enter: " +
+                    "<input id='recording_name_id'  onkeyup='Speechly.name_position_from_type_in(event)'/>"
+                )
+                setTimeout(function(){recording_name_id.focus() }, 200)
+                return "valid"
             }
+        }
+        else { return "invalid"}
+    }
+
+    static name_position_from_type_in(event){
+        if(event.key === "Enter") {
+            let rec_name = event.target.value
+            if(rec_name && (rec_name.length > 0)) {
+                Speechly.name_position("name position "  + rec_name) //should pass in Job here but that's hard.
+            }
+        }
+    }
+
+    //just move the robot to the named position
+    //having a whole job is kinda overkill, but fits in well with recordings.
+    //instrs are actual dde job instruction instances
+    static define_name_position(job_name, instrs){
+        return new Job({name: job_name, do_list: instrs})
+    }
+
+
+    static listen_for_other_commands(full_text="listen for other commands"){
+        if(full_text === "listen for other commands"){
+            this.set_mode("listening")
             return "valid"
         }
         else { return "invalid" }
-    }*/
+    }
 
     static list_recordings(full_text="list recordings"){
         if(["list recordings", "liszt recordings"].includes(full_text)) {
-            //this.speechly_out("Recognized command: " + full_text)
             let job_names = this.array_of_recording_names()
             if (job_names.length === 0){
                 this.speechly_out('There are no recordings.<br/>Use "Start recording" to make one.')
             }
             else {
-                let arr_of_arrs = []
+                let arr_of_arrs = [["listen for other commands", "dexter stop listening"]]
                 for(let job_name of job_names){
                     job_name = job_name.replaceAll("_", " ")
                     arr_of_arrs.push([job_name, "Edit " + job_name])
@@ -1052,8 +1234,7 @@ class Speechly {
             return "valid"
        }
        else {
-            this.speechly_out("There are no recordings named: " + recording_name)
-            return "valid" //not "invalid" because we know the full_text starts with "play recording"
+            return "invalid" //not "invalid" because we know the full_text starts with "play recording"
        }
     }
 
@@ -1090,8 +1271,12 @@ class Speechly {
         if(typeof(full_text) !== "string"){
             full_text = this.segment_to_text(segment_or_full_text)
         }
-        this.speechly_out("Starting to handle: " + full_text)
+        out("Starting to handle: " + full_text)
         full_text = this.cmd_normalized_prose(full_text)
+        if(!["backward", "forward"].includes(full_text)){
+            this.last_backward_forward_index = null //no longer in backward-forward sequence
+            this.forward_limit_index = null
+        }
         let status
         //full_text is a valid normalized command
         //the "listening mode needs to be first, See the below comment on "initia;" mode.
@@ -1108,25 +1293,43 @@ class Speechly {
             status = this.move_incrementally(full_text, playing_a_recording_cmd, the_job)
             if(status === "valid") { return }
 
+            status = this.backward(full_text, playing_a_recording_cmd, the_job)
+            if(status === "valid") { return }
+
+            status = this.forward(full_text, playing_a_recording_cmd, the_job)
+            if(status === "valid") { return }
+
             status = this.more(full_text)
             if(status === "valid") { return }
 
             status = this.less(full_text)
             if(status === "valid") { return }
 
-            status = this.talk(full_text)
+            status = this.mic_on(full_text)
+            if(status === "valid") { return }
+
+            status = this.mic_off(full_text)
+            if(status === "valid") { return }
+
+            status = this.speaker_on(full_text)
             if(status === "valid") { return } //speechly_out already called.
 
-            status = this.be_quiet(full_text)
+            status = this.speaker_off(full_text)
             if(status === "valid") { return }
 
             status = this.start_recording(full_text)
+            if(status === "valid") { return }
+
+            status = this.name_position(full_text, playing_a_recording_cmd, the_job)
             if(status === "valid") { return }
 
             status = this.list_recordings(full_text)
             if(status === "valid") { return }
 
             status = this.edit(full_text)
+            if(status === "valid") { return }
+
+            status = this.listen_for_other_commands(full_text)
             if(status === "valid") { return }
 
             //this should be last because full_text can be a user made up name of recording.
