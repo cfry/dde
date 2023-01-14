@@ -1513,6 +1513,9 @@ Job.all_jobs = function(){
 }
 
 Job.job_id_to_job_instance = function(job_id){
+    if(typeof(job_id) === "string"){
+        job_id = parseInt(job_id)
+    }
     for(let name of Job.all_names){
         if (Job[name].job_id === job_id) {return Job[name]}
     }
@@ -1712,11 +1715,11 @@ Job.prototype.if_robot_status_error_default = function(){
     //this default method stops the job but allows the when_stopped instruction to run.
 }
 
-Job.prototype.if_instruction_error_default = function(){
+Job.prototype.if_instruction_error_default = function(error_message){
     let pc_of_error_instruction = this.program_counter - 1
     let erroring_instruction = this.do_list[pc_of_error_instruction]
     let instr_src = to_source_code(erroring_instruction)
-    let msg = "Error in instruction of Job." + this.name + " at do_list program counter of: " + pc_of_error_instruction +
+    let msg = "Error: " + error_message + " in instruction of Job." + this.name + " at do_list program counter of: " + pc_of_error_instruction +
               "<br/>" + instr_src
     //warning(msg) //redundant. Let Control.error print the msg.
     return Control.error(msg)
@@ -2366,7 +2369,10 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             //of instructions. If its an array, we insert it as just one instruction,
             //and that will cause all to be run.
             //it has a default that prints out a message.
-            this.insert_single_instruction(this.if_instruction_error)
+            let fn = function(){
+                this.if_instruction_error(err.message)
+            }
+            this.insert_single_instruction(fn)
         }
         this.set_up_next_do()
     }

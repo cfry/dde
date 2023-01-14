@@ -82,7 +82,9 @@ class Kin{
         let U = Vector.make_matrix(5, 3)
         let P = [0, 0, 0, 0]
         let L
-        if(dexter_inst) { L = [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5] } //Link Lengths
+        if(dexter_inst && dexter_inst.defaults && dexter_inst.LinkLengths) {
+            L = dexter_inst.LinkLengths //[dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5]
+        }
 		else            { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] }
 		let normal = direction
     	let right_arm = config[0]
@@ -194,8 +196,14 @@ class Kin{
         	let out_of_reach_dist = Vector.round(D3 - (L[1] + L[2]), 4)
         	dde_error("Point [" + Vector.round(xyz, 3)+"], [" + Vector.round(V54,3) + '] is ' + out_of_reach_dist + 'm out of reach')
         }
-        
-        
+
+        if(!Vector.is_valid_triangle(L[1], L[2], D3)){
+            dde_error("In Kin.xyz_to_J_angles(), Point [" + Vector.round(xyz, 3)+"], [" + Vector.round(V54,3) + "]"
+                + " is too close to the robot\'s base."
+                +  "<br>Try moving the goal xyz up or away from the origin"
+            )
+        }
+
     	//let Beta = acosd((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3, 2)) / (2 * D3 * L[1])) // Law of Cosines
         let Beta = acosd((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3, 2)) / (2 * D3 * L[1])) // Law of Cosines
         let V31 = Vector.normalize(Vector.subtract(U[3], U[1]))
@@ -271,8 +279,10 @@ class Kin{
         if(Array.isArray(dexter_inst_or_workspace_pose))  { workspace_pose = dexter_inst_or_workspace_pose}
         else { dexter_inst = dexter_inst_or_workspace_pose; workspace_pose = dexter_inst_or_workspace_pose.pose}
         let L
-        if(dexter_inst) { L = [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5] } //Link Lengths
-        else            { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] }
+        if(dexter_inst && dexter_inst.defaults && dexter_inst.LinkLengths) {
+            L = dexter_inst.LinkLengths
+        }
+        else  { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] }
 
         let P = new Array(3).fill(new Array(4)) //Planes
         
@@ -356,8 +366,10 @@ class Kin{
             if(Array.isArray(dexter_inst_or_workspace_pose)) { workspace_pose = dexter_inst_or_workspace_pose}
             else if (dexter_inst_or_workspace_pose) { dexter_inst = dexter_inst_or_workspace_pose; workspace_pose = dexter_inst_or_workspace_pose.pose}
             let L
-            if(dexter_inst) { L = [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5] } //Link Lengths
-            else            { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] }
+            if(dexter_inst && dexter_inst.defaults && dexter_inst.LinkLengths) {
+               L = dexter_inst.LinkLengths
+            }
+            else { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] }
 
             let xyz_trans
             let normal_trans
@@ -427,8 +439,10 @@ class Kin{
         //note that dexter_inst_or_workspace_pose might be undefined.
         //we don't actually need workspace_pose in this method, but I'm following a pattern here.
         let L
-        if(dexter_inst) { L = [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5] } //Link Lengths
-        else            { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] }
+        if(dexter_inst && dexter_inst.defaults && dexter_inst.LinkLengths) {
+            L = dexter_inst.LinkLengths
+        }
+        else  { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] }
 
         let right_arm, elbow_up, wrist_out
         let P = fk[2]
@@ -696,9 +710,11 @@ class Kin{
         }else{
         	dde_error("L0_pose input arg must be a Coordinate System Object, a pose, or undefined")
         }
-        let L = ((dexter_inst instanceof Dexter) ?
-                   [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5] :
-                   [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5])
+        let L
+        if(dexter_inst && dexter_inst.defaults && dexter_inst.LinkLengths) {
+            L = dexter_inst.LinkLengths
+        }
+        else  { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5] }
         let J = joint_angles
         
         

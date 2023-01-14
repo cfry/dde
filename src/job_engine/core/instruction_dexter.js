@@ -31,7 +31,10 @@ Instruction.Dexter.get_robot_status = class get_robot_status extends Instruction
         if(this.status_mode == null) { arg_src = "" }
         else { arg_src = "" + this.status_mode }
         args.indent = ""
-        return args.indent + "Dexter." + this.robot.name + ".get_robot_status(" + arg_src + ")"
+        return args.indent +
+               "Dexter." +
+               (args.value.robot ? args.value.robot.name + "." : "") +
+               this.robot.name + ".get_robot_status(" + arg_src + ")"
     }
 }
 
@@ -96,7 +99,8 @@ Instruction.Dexter.move_all_joints = class move_all_joints extends Instruction.D
         return args.indent +
               "Dexter." +
               (args.value.robot ? args.value.robot.name + "." : "") +
-              "move_all_joints(" + to_source_code({value: args.value.array_of_angles}) + ")"
+              "move_all_joints(" + to_source_code({value: args.value.array_of_angles}) +
+              ")"
     }
 }
 
@@ -154,7 +158,12 @@ Instruction.Dexter.pid_move_all_joints = class pid_move_all_joints extends Instr
         args        = Object.assign({}, args)
         args.value  = this.array_of_angles
         args.indent = ""
-        return args.indent + "Dexter.pid_move_all_joints(" + to_source_code(args) + ")"
+        return args.indent +
+              "Dexter." +
+              (args.value.robot ? args.value.robot.name + "." : "") +
+              "pid_move_all_joints("  +
+              to_source_code({value: args.value.array_of_angles}) +
+              ")"
     }
 }
 
@@ -218,17 +227,22 @@ Instruction.Dexter.move_all_joints_relative = class move_all_joints_relative ext
         args        = Object.assign({}, args)
         args.value  = this.delta_angles
         args.indent = ""
-        return args.indent + "Dexter.move_all_joints_relative(" + to_source_code(args) + ")"
+        return args.indent +
+              "Dexter." +
+              (args.value.robot ? args.value.robot.name + "." : "") +
+              "pid_move_all_joints("  +
+              to_source_code({value: args.value.array_of_angles}) +
+              ")"
     }
 }
 
 Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
-    constructor (xyz           = [],
-                 J5_direction  = [0, 0, -1], //pointing down
-                 config        = Dexter.RIGHT_UP_OUT,
-                 workspace_pose = null, //default's to the job's default_workspace_pose
-                 j6_angle = [0], //default is to move relatively 0, ie don't change
-                 j7_angle = [0],
+    constructor (xyz            = [],
+                 J5_direction= [0, 0, -1], //pointing down
+                 config               = Dexter.RIGHT_UP_OUT,
+                 workspace_pose  = null, //default's to the job's default_workspace_pose
+                 j6_angle    = [0], //default is to move relatively 0, ie don't change
+                 j7_angle    = [0],
                  robot
     ){
         super()
@@ -356,7 +370,7 @@ Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
     to_source_code(args){
         args        = Object.assign({}, args)
         args.indent = ""
-
+        let rob = args.value.robot
         args.value  = this.xyz
         let xyx_src = to_source_code(args)
 
@@ -366,10 +380,26 @@ Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
         args.value  = this.config
         let config_src = to_source_code(args)
 
-        return args.indent + "Dexter.move_to(" +
-            xyx_src          + ", " +
-            J5_direction_src + ", " +
-            config_src       +
+        args.value  = this.workspace_pose
+        let workspace_pose = to_source_code(args)
+
+        args.value  = this.j6_angle
+        let j6_angle = to_source_code(args)
+
+        args.value  = this.j7_angle
+        let j7_angle = to_source_code(args)
+
+
+        return args.indent +
+              "Dexter." +
+               (rob ? rob.name  + "." : "") +
+               "move_to("       +
+               xyx_src          + ", " +
+               J5_direction_src + ", " +
+               config_src       + ", " +
+               workspace_pose   + ", " +
+               j6_angle         + ", " +
+               j7_angle         + ", " +
             ")"
     }
 }
@@ -484,8 +514,10 @@ Instruction.Dexter.pid_move_to = class pid_move_to extends Instruction.Dexter{
     toString(){ return "{instanceof: pid_move_to " + this.xyz + "}" }
 
     to_source_code(args){
-        args        = Object.assign({}, args)
+        args  = Object.assign({}, args)
         args.indent = ""
+
+        let rob = args.value.robot
 
         args.value  = this.xyz
         let xyx_src = to_source_code(args)
@@ -496,10 +528,25 @@ Instruction.Dexter.pid_move_to = class pid_move_to extends Instruction.Dexter{
         args.value  = this.config
         let config_src = to_source_code(args)
 
-        return args.indent + "Dexter.pid_move_to(" +
+        args.value  = this.workspace_pose
+        let workspace_pose = to_source_code(args)
+
+        args.value  = this.j6_angle
+        let j6_angle = to_source_code(args)
+
+        args.value  = this.j7_angle
+        let j7_angle = to_source_code(args)
+
+        return args.indent +
+            "Dexter." +
+            (rob ? rob.name + "." : "") +
+            "pid_move_to(" +
             xyx_src          + ", " +
             J5_direction_src + ", " +
-            config_src       +
+            config_src       + ", " +
+            workspace_pose   + ", " +
+            j6_angle         + ", " +
+            j7_angle         + ", " +
             ")"
     }
 }
@@ -558,10 +605,31 @@ Instruction.Dexter.move_to_relative = class move_to_relative extends Instruction
         return "{instanceof: move_to_relative " + this.delta_xyz + "}"
     }
     to_source_code(args){
-        let prop_args        = Object.assign({}, args)
-        prop_args.indent     = ""
-        prop_args.value      = this.delta_xyz
-        return args.indent + "Dexter.move_to_relative(" + to_source_code(prop_args) + ")"
+        args        = Object.assign({}, args)
+        args.indent = ""
+        let rob     = args.value.robot
+
+        args.value = this.delta_xyz
+        let delta_xyz = to_source_code(args)
+
+        args.value = this.workspace_pose
+        let workspace_pose = to_source_code(args)
+
+        args.value = this.j6_delta_angle
+        let j6_delta_angle = to_source_code(args)
+
+        args.value = this.j7_delta_angle
+        let j7_delta_angle = to_source_code(args)
+
+        return args.indent +
+               "Dexter." +
+               (rob ? rob.name + "." : "") +
+               "move_to_relative(" +
+                delta_xyz  + ", " +
+                workspace_pose + ", " +
+                j6_delta_angle + ", " +
+                j7_delta_angle + ", " +
+            ")"
     }
 }
 
@@ -695,27 +763,48 @@ Instruction.Dexter.move_to_straight = class move_to_straight extends Instruction
         args        = Object.assign({}, args)
         args.indent = ""
 
+        let rob = args.value.robot
+
         args.value  = this.xyz
-        let xyx_src = to_source_code(args)
+        let xyx = to_source_code(args)
 
         args.value  = this.J5_direction
-        let J5_direction_src = to_source_code(args)
+        let J5_direction = to_source_code(args)
 
         args.value  = this.config
-        let config_src = to_source_code(args)
+        let config = to_source_code(args)
+
+        args.value  = this.workspace_pose
+        let workspace_pose = to_source_code(args)
 
         args.value  = this.tool_speed
-        let tool_speed_src = to_source_code(args)
+        let tool_speed = to_source_code(args)
 
         args.value  = this.resolution
-        let resolution_src = to_source_code(args)
+        let resolution = to_source_code(args)
 
-        return args.indent + "Dexter.move_to_straight(" +
-            xyx_src          + ", " +
-            J5_direction_src + ", " +
-            config_src       + ", " +
-            tool_speed_src   + ", " +
-            resolution_src   +
+        args.value  = this.j6_angle
+        let j6_angle = to_source_code(args)
+
+        args.value  = this.j7_angle
+        let j7_angle = to_source_code(args)
+
+        args.value  = this.single_instruction
+        let single_instruction = to_source_code(args)
+
+        return args.indent +
+            "Dexter." +
+            (rob ? rob.name + "." : "") +
+            "move_to_straight({"  +
+            "xyx: "                + xyz                + ", " +
+            "J5_direction: "       + J5_direction       + ", " +
+            "config: "             + config             + ", " +
+            "workspace_pose: "     + workspace_pose     + ", " +
+            "tool_speed: "         + tool_speed         + ", " +
+            "resolution: "         + resolution         + ", " +
+            "j6_angle: "           + j6_angle           + ", " +
+            "j7_angle: "           + j7_angle           + ", " +
+            "single_instruction: " + single_instruction +
             ")"
     }
 }
@@ -850,13 +939,14 @@ Instruction.Dexter.read_file = class read_file extends Instruction.Dexter{
     }*/
 
     to_source_code(args){
-        let result = "Dexter."
-        if(this.robot) { result += this.robot.name + "." }
-        result += args.indent +
-                  "read_file(" +
-                  to_source_code({value: this.source}) + ", " +
-                  to_source_code({value: this.destination}) +
-                  ")"
+        let rob = args.value.robot
+        return args.indent +
+               "Dexter." +
+               (rob ? rob.name + "." : "") +
+               "read_file(" +
+               to_source_code({value: this.source}) + ", " +
+               to_source_code({value: this.destination}) +
+               ")"
         return result
     }
 }

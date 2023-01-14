@@ -11,7 +11,9 @@ class Instruction {
     init_instruction(){} //shadowed by at least wait_until and loop
 
     static to_string(instr){
-       if(instr instanceof Instruction) { return instr.toString() }
+       if(instr === undefined) { return "undefined"} //a valid instr but a no-op
+       else if(instr === null) { return "null"}      //a valid instr but a no-op
+       else if(instr instanceof Instruction) { return instr.toString() }
        else if (Instruction.is_oplet_array(instr)) {
            var oplet   = instr[Dexter.INSTRUCTION_TYPE]
            var fn_name = Dexter.instruction_type_to_function_name(oplet)
@@ -28,6 +30,27 @@ class Instruction {
     }
     toString(){
         return "{instanceof: " + Utils.stringify_value_aux(this.constructor) + "}"
+    }
+
+    static oplet_array_to_source_code(instr_arr){
+        let result = "make_ins("
+        for(let i = Dexter.INSTRUCTION_TYPE;  //skip over job_id, datetimes
+                i < instr_arr.length;
+                i++){
+            let elt = instr_arr[i]
+            if(i === (instr_arr.length - 1)) { //the last instr
+                if(elt instanceof Dexter){
+                    result += "Dexter." + elt.name
+                }
+                else {
+                    result += to_source_code({value: elt}) //no comma after last element
+                }
+            }
+            else {
+                result += to_source_code({value: elt}) + ", "
+            }
+        }
+        return result + ")"
     }
 
     //excludes at_sign instructions but includes "a" and "a!

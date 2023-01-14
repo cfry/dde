@@ -2830,6 +2830,7 @@ Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
 */
 //content is the content of a Defaults.make_ins file
 //sets link lengths as well as any other params in the file.
+/* obsoleted by Dexter.defaults
 Dexter.prototype.set_link_lengths_from_file_content = function(content){
     for(let line of content.split("\n")){
         //first get rid of comment, if any, at line end.
@@ -2886,6 +2887,7 @@ Dexter.prototype.set_link_lengths_from_file_content = function(content){
         this.J7_angle_max = Dexter.J7_ANGLE_MAX
     }
 }
+ */
 
 //called from DexterSim for Dexter.read_from_robot("#POM", link_from_end)
 //and possibly elsewhere by user but if so,

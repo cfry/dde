@@ -35,15 +35,18 @@ export function to_source_code({value, indent="", function_names=false, newObjec
             if (newObject_paths) { return value.objectPath }
             else                 { return value.sourceCode() }
         }
+        else if (Instruction.is_oplet_array(value)){
+            return Instruction.oplet_array_to_source_code(value)
+        }
         else if (Utils.typed_array_name(value)){ //any type of array
             //console.log("calling to_source_code_array")
-            return to_source_code_array(arguments[0])
+            return to_source_code_array({value: value, one_line_per_array_elt: one_line_per_array_elt, array_elt_max_chars: array_elt_max_chars})
         }
         //Job, Robot, Instruction, Duration
         else if (value.to_source_code){
             let new_args = {value: value, indent: indent, depth: depth + 1} //use depth because we can potentially have infinite recursion here.
-            if (arguments[0].hasOwnProperty("job_orig_args")) {
-                new_args.job_orig_args = arguments[0].job_orig_args //If true, src generated is from the orig props, not
+            if (value.hasOwnProperty("job_orig_args")) {
+                new_args.job_orig_args = value.job_orig_args //If true, src generated is from the orig props, not
                 //the current instance props.  current instance props is the default.
             }
             return value.to_source_code(new_args)

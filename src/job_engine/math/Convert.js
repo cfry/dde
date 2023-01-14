@@ -11,11 +11,16 @@ export class Convert{
         //return JSON.parse(JSON.stringify(arg))
     	if (typeof(arg) == "number"){
         	return arg
-        }else{
+        }
+        else if (arg === null) { return null }
+        else if (arg === undefined) { return undefined }
+        else{
         	let result = []
         	for(var i = 0; i < arg.length; i++){
             	let elt = arg[i]
-                if (typeof(elt) !== "number"){
+                if(elt === null) {}
+                else if (elt === undefined) {}
+                else if (typeof(elt) !== "number"){
                     elt = elt.slice(0)
                 }
                 result.push(elt)

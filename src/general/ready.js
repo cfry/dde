@@ -149,7 +149,7 @@ import "../HCA/HCA_objdef.js" //defines global HCAObjDef
 import "../HCA/litegraph_patches.js"
 
 import "../blocksde/init.js" //needed for making the menu of differnt "views" of DDE's editor, including HCA
-import "./speechly.js"       //defines global Speechly
+import "./talk.js"       //defines global Speechly
 
 
 
@@ -1507,6 +1507,8 @@ window_modify_id.onclick=function(){Editor.insert(
           //Job.define_and_start_job(__dirname + "/user_tools/dexter_user_interface2.js")
           dui2.make_job()
       }
+
+      talk_id.onclick = function() { Talk.initialize() }
 
       monitor_id.onclick           = function() { Monitor.show_dialog() }
       ping_dexter_id.onclick       = function() { DexterUtils.ping_a_dexter(); DocCode.open_doc(ping_doc_id) }

@@ -2682,6 +2682,13 @@ class Vector{
     var interpolated_y = interpolate(data_0_x, data_1_x, data_1_y)
     out(interpolated_y) //[0, 2, 4]
     */
+
+	//from James W Jan 8, 2023
+	static is_valid_triangle = function(L1, L2, L3){
+		return (L1 + L2) > L3 && (L2 + L3) > L1 && (L3 + L1) > L2
+	}
+	//Vector.is_valid_triangle(3, 4, 5) //true
+    //Vector.is_valid_triangle(0.339092, 0.3075, 0.0265968) //false
 } //end class
 
 globalThis.Vector = Vector

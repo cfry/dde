@@ -206,6 +206,10 @@ div.CodeMirror-cursors {
   width:400px;
 }
 
+.simple_cmd:hover{background-color:rgb(180, 255, 180);}
+.simple_cmd:active{color:lime;}
+
+
 /*
 .vsplitbar {
     width: 10px;

@@ -365,7 +365,7 @@ class DexterSim{
         let robot_status_array = Dexter.make_default_status_array_g_sm(this.status_mode)
         let rs_inst = new RobotStatus({robot_status: robot_status_array})
         let opcode = instruction_array[Instruction.INSTRUCTION_TYPE]
-        robot_status_array[Dexter.JOB_ID] = instruction_array[Instruction.JOB_ID]
+        robot_status_array[Dexter.JOB_ID] = job_id
         robot_status_array[Dexter.INSTRUCTION_ID] = instruction_array[Instruction.INSTRUCTION_ID]
         robot_status_array[Dexter.START_TIME] = instruction_array[Instruction.START_TIME] //Date.now()
         robot_status_array[Dexter.STOP_TIME] = Date.now()
