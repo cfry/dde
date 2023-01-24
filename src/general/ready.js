@@ -144,8 +144,8 @@ import "./lesson.js" //defines global Lesson
 
 import "../HCA/HCA_ui.js" //defines global HCA
 //import "../HCA/HCA_objects.js" //obsoleted by ipg_to_json..js
-import "../HCA/ipg_to_json.js" //defines global ipg_to_json
-import "../HCA/HCA_objdef.js" //defines global HCAObjDef
+import "../HCA/ipg_to_json.js"   //defines global ipg_to_json
+import "../HCA/HCA_objdef.js"    //defines global HCAObjDef
 import "../HCA/litegraph_patches.js"
 
 import "../blocksde/init.js" //needed for making the menu of differnt "views" of DDE's editor, including HCA
@@ -584,17 +584,7 @@ export function on_ready() {
 
  open_id.onclick = function(){
      if (globalThis.HCA && (Editor.view === "HCA")){
-         const path = choose_file({title: "Choose a file to edit", properties: ['openFile']})
-         if (path){
-             try{
-                 HCA.edit_file(path)
-             }
-             catch(err){
-                 dde_error(path + " doesn't contain vaild HCA object(s).<br/>" + err.message)
-             }
-             //Editor.add_path_to_files_menu(path) //now down in edit_file because edit_file is called
-             //from more places than ready.
-         }
+         HCA.choose_and_edit_file()
      }
      else {
          //Editor.open_on_dde_computer() //Editor.open
@@ -604,6 +594,7 @@ export function on_ready() {
          Editor.edit_file_no_path()
      }
  }
+
  Editor.set_menu_string(open_id, "Open...", "o")
 
  //open_from_dexter_id.onclick = Editor.open_from_dexter_computer

@@ -1,7 +1,13 @@
 globalThis.HCAObjDef = class HCAObjDef {
-    static obj_def_tree
+    static obj_def_tree //will be a json obj of fields: folder_name, subfolders, obj_defs
+    static sheets = []
+    static current_sheet = null
+
     static init() {
-        this.obj_def_tree = {folder_name: "root", subfolders: [], obj_defs: []}
+        this.obj_def_tree = {folder_name: "root", //always a single path part string. no slashes
+                             subfolders: [], //each is an obj with fields of folder_name, subfolders, obj_defs
+                             obj_defs: [] //each of which will have a TreeGroup prop that is an array of strings, each a path part, that last one being the name of the folder that obj_def is in
+                             }
 
     }
     constructor(json_obj){
@@ -18,6 +24,9 @@ globalThis.HCAObjDef = class HCAObjDef {
         //console.log("just made HCAObjDef " + this.objectName)
         this.insert_obj_def_into_tree(HCAObjDef.obj_def_tree, this.TreeGroup)
     }
+
+    //"this" is the obj_def that we're inserting into the tree, based on its
+    //TreeGroup prop which is originally the TreeGroupArr arg.
     insert_obj_def_into_tree(look_in_folder, TreeGroupArr){
         if(TreeGroupArr.length === 0){
             look_in_folder.obj_defs.push(this)
@@ -73,6 +82,13 @@ globalThis.HCAObjDef = class HCAObjDef {
                 }
             }
         }
+    }
+
+    static object_name_to_sheet(obj_name){
+        for(let obj of this.sheets){
+            if(obj.objectName === obj_name) { return obj}
+        }
+        return null //no sheet of that name
     }
 }
 HCAObjDef.init()

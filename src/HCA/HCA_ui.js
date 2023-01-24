@@ -148,8 +148,8 @@ globalThis.HCA = class HCA {
                     style='vertical-align:top; width:100%; height:100%;'> <!-- display size -->
                 </canvas>
             </div>`
-
-
+        let header_html = '<div  style="padding:5px;">Sheets <select id="sheets_id"  oninput="HCA.sheet_onclick_fn(event)"/></div>'
+        big_div.insertAdjacentHTML("afterbegin", header_html)
         big_div.insertAdjacentHTML("beforeend", canvas_wrapper_html)
         /*let can = make_dom_elt("canvas",
                           {id: "HCA_canvas_id",
@@ -183,7 +183,7 @@ globalThis.HCA = class HCA {
         LiteGraph.DEFAULT_POSITION          = [5, 35]
     }
 
-    static async init(json_string=""){ //json_string can also be a jason object or null
+    static async init(json_string=""){ //json_string can also be a json object or null
         //this.edit_json_string(json_string)
         let json_obj = this.string_to_json_obj(
                           json_string,
@@ -837,12 +837,14 @@ To load all the .hco object files in a folder, click <input type='submit' value=
     static populate_palette_obj_defs(tree){
         out("top of populate_palette_obj_defs")
         inspect(tree)
-        let ht = this.populate_palette_obj_defs_aux(tree)
-        HCA_palette_id.insertAdjacentHTML("beforeend", ht)
+        let html = this.populate_palette_obj_defs_aux(tree)
+        HCA_palette_id.insertAdjacentHTML("beforeend", html)
     }
 
     static populate_palette_obj_defs_aux(tree){
-        let ht = ((tree.folder_name === "root") ? "" : "<details class='hca_folder'><summary class='hca_folder_summary'>" + tree.folder_name + "</summary>")
+        let ht = //((tree.folder_name === "root") ? "" :
+                 "<details class='hca_folder'><summary class='hca_folder_summary'>" + tree.folder_name + "</summary>"
+                 //)
         for(let obj_def of tree.obj_defs) {
             let obj_path_arr = obj_def.TreeGroup.slice()
             obj_path_arr.push(obj_def.objectName)
@@ -850,6 +852,16 @@ To load all the .hco object files in a folder, click <input type='submit' value=
             this.register_with_litegraph(obj_path, obj_def)
             let action_src = 'HCA.make_and_add_block("' + obj_path + '")'
             ht +="<div class='hca_obj_def' onclick='" + action_src + "'>" + obj_def.objectName + "</div>\n"
+            if(obj_def.WipSheet){
+                let html = "<option>" + obj_def.objectName + "</option>\n"
+                sheets_id.insertAdjacentHTML("beforeend", html)
+                HCAObjDef.sheets.push(obj_def)
+            }
+            else if (obj_def.CurrentSheet){
+                let html = "<option>" + obj_def.objectName + "</option>\n"
+                sheets_id.insertAdjacentHTML("afterbegin", html)
+                HCAObjDef.sheets.unshift(obj_def) //put CurrentSheet first
+            }
         }
         for(let subfold of tree.subfolders) {
             ht += this.populate_palette_obj_defs_aux(subfold)
@@ -884,6 +896,153 @@ To load all the .hco object files in a folder, click <input type='submit' value=
 
     static minimize_palette(){
         HCA_palette_id.innerHTML = "<br/>P<br/>u<br/>t<br/><br/>m<br/>o<br/>u<br/>s<br/>e<br/><br/>h<br/>e<br/>r<br/>e."
+    }
+
+    static choose_and_edit_file() {
+        DDEFile.choose_file(
+            {
+                folder: undefined,
+                title: 'Choose an .idl file to edit',
+                callback: "HCA.choose_and_edit_file_cb"
+            })
+    }
+
+    static choose_and_edit_file_cb(val) {
+        SW.close_window(val.window_index)
+        let path = val.clicked_button_value
+        if (path) {
+            if (path.endsWith(".idl")) {
+                HCA.edit_idl_file(path)
+            } else {
+                try {
+                    HCA.edit_file(path)
+                } catch (err) {
+                    dde_error(path + " doesn't contain vaild HCA object(s).<br/>" + err.message)
+                }
+                //Editor.add_path_to_files_menu(path) //now down in edit_file because edit_file is called
+                //from more places than ready.
+            }
+        }
+    }
+
+    static async edit_idl_file(path_or_content){
+        await ipg_to_json.parse(path_or_content,
+                                HCAObjDef.insert_obj_defs_into_tree) //,this.edit_idl_file_cb
+
+        HCA.populate_palette_obj_defs(HCAObjDef.obj_def_tree)
+        setTimeout(function(){
+            sheets_id.dispatchEvent(new Event('input', {bubbles:true}));
+        }, 200)
+    }
+
+    //obsolete?
+    static edit_idl_file_cb(big_obj){
+        inspect(big_obj)
+        for(let obj_def of big_obj.top_level_obj_defs){
+            if(obj_def.CurrentSheet) {
+                HCAObjDef.sheets.unshift(obj_def)  //put on front of list
+                HCAObjDef.current_sheet = obj_def
+            }
+            else if(obj_def.WipSheet) {
+                HCAObjDef.sheets.push(obj_def)
+            }
+        }
+        let sheets_menu_items_html = ""
+        for(let sheet_obj of HCAObjDef.sheets){
+            sheets_menu_items_html += ("<option>" + sheet_obj.objectName + "</option>\n")
+        }
+        sheets_id.innerHTML = sheets_menu_items_html
+
+        //the below is to pretend the user clicked on the top most elt in the menu,
+        //which is the CurrentSheet upon loading the file,
+        //so that it will automatically display the current sheet's prototypes.
+        setTimeout(function(){
+            sheets_id.dispatchEvent(new Event('input', {bubbles:true}));
+        }, 200)
+    }
+
+    static sheet_onclick_fn(event){
+        let obj_name = event.target.value
+        console.log("got sheet named: " + obj_name)
+        debugger;
+        let sheet_obj = HCAObjDef.object_name_to_sheet(obj_name)
+        HCAObjDef.current_sheet = sheet_obj
+        console.log("got sheet : " + sheet_obj)
+        HCA.lgraph.clear() //remove all nodes
+        if(!sheet_obj.prototypes) { return } //no prototypes to display in canvas
+        let lgraph_config_json = { "last_node_id": 2,
+                                    "last_link_id": 1,
+                                    "nodes": [],
+                                    "links": [
+                                    //[1, 2, 0, 1, 0, "Variant"]
+                                    ],
+                                    "groups": [],
+                                    "config": {},
+                                    "extra":  {},
+                                    "version": 0.4
+                                 }
+        let min_x = null
+        let min_y = null
+        for(let i = 0; i <  sheet_obj.prototypes.length;i++){
+            let obj_call = sheet_obj.prototypes[i]
+            let a_node = this.make_lgraph_node_json(obj_call, i)
+            let x = a_node.pos[0]
+            if((min_x === null) || (min_x > x)) { min_x = x}
+            let y = a_node.pos[1]
+            if((min_y === null) || (min_y > y)) { min_y = y}
+            lgraph_config_json.nodes.push(a_node)
+        }
+        for(let node of lgraph_config_json.nodes){
+            node.pos[0] -= min_x
+            node.pos[1] -= min_y
+        }
+
+        this.lgraph.configure(lgraph_config_json) //ok if json_obj is undefined, which it will be if json_string defaults to "", or we launch HCA_UI from an empty editor buffer.
+        for(let node of this.lgraph._nodes){ //if json_string === "", lgraph._nodes will be []
+            this.node_add_usual_actions(node)
+        }
+    }
+
+    static make_lgraph_node_json(obj_call, id){
+        let result = {
+            "id": id,
+            "type": obj_call.objectName, //"CoreLib/GrammaticalOps/One",
+            "title": obj_call.objectName,
+            "pos": [obj_call.x * 40, obj_call.y * 40],
+            "size": {
+                "0": 140,
+                "1": 26
+            },
+            "flags": {},
+            "order": 1,
+            "mode": 0,
+            "inputs": [{
+                "name": "In1",
+                "type": "Variant",
+                "link": 1
+             }],
+            "outputs": [{
+                "name": "Out1",
+                "type": "Variant",
+                "links": null
+            }],
+            "properties": {
+            "precision": 1
+        }
+        }
+        return result
+    }
+
+    static make_and_add_block2(obj_call){ //click action from pallette, dde4.
+        obj_call.objectName
+        obj_call.x
+        obj_call.y
+        let last_slash = object_path.lastIndexOf("/")
+        let button_name = object_path.substring(last_slash + 1)
+        let node = LiteGraph.createNode(obj_call.objectName, obj_call.objectName, )
+        this.lgraph.add(node);
+        this.node_add_usual_actions(node)
+        return node
     }
 
 } //end HCA class

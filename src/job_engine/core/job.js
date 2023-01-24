@@ -2369,10 +2369,13 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             //of instructions. If its an array, we insert it as just one instruction,
             //and that will cause all to be run.
             //it has a default that prints out a message.
-            let fn = function(){
-                this.if_instruction_error(err.message)
-            }
-            this.insert_single_instruction(fn)
+
+            //let the_job = this
+            //let fn = function(){
+            //    the_job.if_instruction_error(err.message)
+            //}
+            //this.insert_single_instruction(fn)
+            this.insert_single_instruction(this.if_instruction_error)
         }
         this.set_up_next_do()
     }

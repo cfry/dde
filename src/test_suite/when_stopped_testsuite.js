@@ -159,7 +159,7 @@ new TestSuite("when_stopped_error",
    [`new Job({
     name: "my_job_e2",
     user_data: {an_array: [80]},
-    if_instruction_error: Control.stop_job(),
+    if_instruction_error: Control.stop_job,
     when_stopped: function(){ this.user_data.an_array.push(83)}, //runs
     do_list: [
         function(){ this.user_data.an_array.push(81)}, //runs

@@ -1,5 +1,10 @@
 /* spec
 there's just two levels of objects, the top level
+Example of a top level objext line:
+//its an obj the ( & the outputs, each with a type and a name then ending with a comma|name of the obj then ( and type, name, comma for each output ending )
+  "Object ( Variant A, Variant B, Variant C , Variant D, Bit Done, Bit Busy) MoveLin( List MotorParam , Variant 1, Variant 2, Variant 3, Variant 4 , Variant StartSpeed, Variant Acceleration, Variant MaxSpeed, Bit Go) "
+
+
 and an inner level (typicaly of many object)
                      
  Object Text;  //_GUI 4,8,Welcome to CoreLib 3.1.1Arial,20,8388608,1 
@@ -37,7 +42,7 @@ globalThis.ipg_to_json = class ipg_to_json{
         }
     }
 
-    //ipg must be a string of JSON
+    //ipg must be a string of the contents of an .ipg or .idl file
     static parse_string(ipg){
         ipg = Utils.replace_substrings(ipg, "\\\\", "/", false)
         ipg = Utils.replace_substrings(ipg, "\\", "/", false)
@@ -153,7 +158,8 @@ globalThis.ipg_to_json = class ipg_to_json{
                     //else if (line.includes(";")) { break; }
                     else {
                        let next_line = lines[i]
-                       if (next_line.startsWith("//_")) { break; } //proper end of top level object header
+                       if (next_line.startsWith("//_"))     { break; } //proper end of top level object header
+                       else if  (next_line.startsWith("{")) { break; }
                        else { //loop around looking for another line
                            line += next_line
                            line_index = i
@@ -166,7 +172,7 @@ globalThis.ipg_to_json = class ipg_to_json{
                 top_level_obj.line = line //for debugging
                 result.top_level_obj_defs.push(top_level_obj)
             }
-            else if (line.startsWith(" Object ")) { //making a new sub object
+            else if (line.startsWith(" Object ")) { //making a new sub object/prototype/ref/fn call
                 if(!top_level_obj.prototypes) {
                     top_level_obj.prototypes = []
                 }
@@ -182,14 +188,33 @@ globalThis.ipg_to_json = class ipg_to_json{
                 sub_obj.line = line //for debugging
                 top_level_obj.prototypes.push(sub_obj)
             }
-            else if(line.startsWith("//_ Attributes ")) { //top level Attributes
-                let attr_obj = this.parse_front_of_line_attributes(line)
+            else if(line.startsWith("//_ Attributes ")) { //top level object Attributes
+                let next_line = ((line_index === (lines.length - 1)) ? null : lines[line_index + 1])
+                if(next_line.startsWith(" ") && next_line.trim().startsWith(",")) {} //its a true 2nd line of attributes
+                else { next_line = null}
+                //to handle kludgy syntax where a top level attribute line might have a 2nd line of attributes.
+                if(line.includes("(")){
+                    out("line: " + line_index + " of: " + line)
+                }
+                if(next_line && !next_line.startsWith("{")){
+                    debugger;
+                }
+                let attr_obj = this.parse_front_of_line_attributes(line, next_line)
                 for(let key of Object.keys(attr_obj)) {
                     top_level_obj[key] = attr_obj[key]
                 }
+                section = "top_level_object_attributes" //there *might be another line of
+                  //attributes that starts with spaces, then a comma then the attributes then the close paran
             }
-            else if(line.startsWith(" //_ Attributes ")) { //sub_obj Attributes
-                let attr_obj = this.parse_front_of_line_attributes(line)
+            //the following clause should be after the clause: (line.startsWith("{"))
+            else if ((section === "top_level_object_attributes") &&
+                     line.startsWith(" ") &&
+                     line.trim().startsWith(",")) { //we have a 2nd line of top level obj attributes
+                //which is ignored because the clause line.startsWith("//_ Attributes ") handles it.
+            }
+            else if(line.startsWith(" //_ Attributes ")) { //sub_obj Attributes, doesn't have a 2nd line of attributes in az.idl, but allow for it
+                let next_line = ((line_index === (lines.length - 1)) ? null : lines[line_index + 1])
+                let attr_obj = this.parse_front_of_line_attributes(line, next_line)
                 for(let key of Object.keys(attr_obj)) {
                     sub_obj[key] = attr_obj[key]
                 }
@@ -265,7 +290,6 @@ globalThis.ipg_to_json = class ipg_to_json{
 
     */
     static parse_object(line, is_top_level, line_index, lines){
-        //debugger
         let new_obj   = {}
         //new_obj.line = line //for debugging only.
         let [before_comment, comment] = line.split("//")
@@ -543,12 +567,29 @@ grab_io(str)
     }
 
     //line starts with "//_ Attributes" (top level) or " //_ Attributes" (sub_obj)
-    static parse_front_of_line_attributes(line){
+    static parse_front_of_line_attributes(line, next_line = null){
         line = line.trim()
         if(line.startsWith("Attributes")) { line = line.substring(14) }
         else  { line = line.substring(15) }
+        if(next_line){
+            line += next_line
+        }
         let attr_obj = {}
         if(line !== "") { //has at least some attributes
+            //this CopyOf hack special cases such lines becuase they are hard to parse because they
+            //contain commas that AREN'T separators of name-val pairs, but rather
+            //inside parens and separate "args".
+            //there are only 2 such attribute lines in az.idl, and both of them
+            //are the values of CopyOf attr name that is the last attr of the attributes line,
+            //and both of them have a "next_line".
+            //so cut that CopyOf attr off of line, process the new shortened line as usual,
+            //then at end of this fn, process the CopyOf attr specially.
+            let index_of_copyof_attr = line.indexOf(",CopyOf=")
+            let copyof_text = null
+            if(index_of_copyof_attr !== -1){
+                copyof_text = line.substring(index_of_copyof_attr + 1)
+                line = line.substring(0, index_of_copyof_attr)
+            }
             let pairs = line.split(",")
 
             for (let pair of pairs) {
@@ -565,6 +606,10 @@ grab_io(str)
                     }
                 }
                 attr_obj[key] = val
+            }
+            if(copyof_text){
+                let val = copyof_text.substring(",CopyOf=".length - 1)
+                attr_obj["CopyOf"] = val
             }
         }
         return attr_obj

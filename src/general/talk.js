@@ -15,6 +15,9 @@
         Convert from step_distance to degrees for pitch, yawl, roll and distance for j7 open.close
         In show_window, display state of:
           should I show, along with step_distance, the equiv step_degrees and step_gripper_distance?
+
+        Start recording =>  define path
+        Move => Move <i>aka</i> Show movement commands  (and have "Show movement commands" as an alternative)
    ______
        mode: calculate
               add 23 and/to 5 and/to 6
@@ -332,16 +335,18 @@ class Talk {
 
     static display_ui(){
         this.sw_index =
-        show_window({title: "<b>Talk to Dexter</b>: &nbsp; <i>valid commands</i>",
-            x: 200, y:7, width: 550, height: 500,
-            content: `<ul id='valid_commands_id' style="font-size:22px;"></ul>
-                      <fieldset><legend><i>Status</i></legend>
+        show_window({title: "<b>Talk to Dexter</b>",
+            x: 200, y:7, width: 570, height: 500,
+            content: `<fieldset><legend><i>Status</i></legend>
                             <div id="status_id"></div>
-                      </field_set>
-                      <div id="talk_out_id" style="background-color:white;font-size:20px;padding:10px;"></div>`,
+                            <div id="talk_out_id" style="background-color:white;font-size:20px;padding:10px;"></div>
+                      </fieldset>
+                      <fieldset><legend><i>Valid Commands</i></legend>
+                            <ul id='valid_commands_id' style="font-size:22px;margin:0px;padding:15px;"></ul>
+                      </fieldset>`,
             callback: "Talk.sw_callback"
         })
-        setTimeout(function() { Talk.set_mode("listening") }, //need "Talk" here, not "this"
+        setTimeout(function() { Talk.set_mode("main_menu") }, //need "Talk" here, not "this"
             200)
         Talk.talk_out(Talk.say_or_click() + " on a valid command.")
     }
@@ -375,7 +380,7 @@ class Talk {
         if(globalThis.status_id) { //show_window is shown
             let status_html =
                 "<i>Mode: </i><b>"          + Talk.mode + (Talk.recording_name_now_playing ?  " " + Talk.recording_name_now_playing : "") + "</b> &nbsp;" +
-                "<i>Step distance: </i><b>" + Talk.step_distance               + "</b> &nbsp;" +
+                "<i>Step distance: </i><b>" + Talk.step_distance                   + "</b> &nbsp;" +
                 "<i>Mic: </i><b>"           + (this.is_mic_on() ?    "on" : "off") + "</b> &nbsp;" +
                 "<i>Speaker: </i><b>"       + (this.enable_speaker ? "on" : "off") + "</b> &nbsp;" +
                 "<i>Recording: </i><b>"     + (this.is_recording ?   "on" : "off") + "</b> &nbsp;"
@@ -414,14 +419,14 @@ class Talk {
             for(let cmd of cmd_arr) {
                 if(!cmd ) { continue }
                 if ((cmd_arr.length > 1) && (cmd !== cmd_arr[0])) { //put comma before every non-first elt
-                    result += ", &nbsp;"
+                    result += " &nbsp;&#x2022;&nbsp;"
                 }
                 let li_body_html
                 let display_prose = this.cmd_display_prose(cmd) //upoper case first letter, spaces between words
                 let norm = this.cmd_normalized_prose(cmd)
                 if(norm.length > 0){ //meth could be null as in case of (recording name) in which case we
                     let click_source = "Talk.handle_command('" + norm + "')"
-                    let color = ((norm === 'stop recording')? ' style="background-color:rgb(255, 180, 180);" ' : "") //see show_listening_mode_commands for whether Stop recording is even in the list.
+                    let color = ((norm === 'stop recording')? ' style="background-color:rgb(255, 180, 180);" ' : "") //see show_main_menu_mode_commands for whether Stop recording is even in the list.
                     li_body_html = '<a class="simple_cmd" href="#" ' + color + ' onclick="' + click_source + '">' + display_prose + '</a>'
                 }
                 else {
@@ -456,14 +461,14 @@ class Talk {
     static cmd_table = [
         //cmd_normalized_prose,    cmd_display_prose,          cmd_method_name,    can_be_in_   alternatives..
         //aka utterance from reco                              aka recording_name, recording,
-        ["dexter off",             "Dexter, off",              "off",              false],
+        ["off",                    "Off",                      "off",              false],
 
         ["turn on mic",            "Turn on mic",              "turn_on_mic",      true, "turn on mike",  "turn on microphone"],
         ["turn off mic",           "Turn off mic",             "turn_off_mic",     true, "turn off mike", "turn off microphone"],
 
         ["turn on speaker",        "Turn on speaker",          "turn_on_speaker",  true],
         ["turn off speaker",       "Turn off speaker",         "turn_off_speaker", true],
-
+        ["move",                   "Move (<i>aka</i> Show movement commands)", "move",    false, "show movement commands"],
         ["print",                  "Print (take a note)",      "print",            true],
         ["say selection",          "Say selection",            "say_selection",    true],
         ["define saying",          "Define saying",            "define_saying",    true],
@@ -475,7 +480,6 @@ class Talk {
         ["stop playing",           "Stop playing",             "stop_playing",     true],
         ["list recordings",        "List recordings",          "list_recordings",  true],
 
-        ["stop",                   "Stop",                     "stop",             true],
         ["straight up",            "Straight up",              "straight_up",      true],
         ["down",                   "Down",                     "down",             true],
         ["up",                     "Up",                       "up",               true],
@@ -486,7 +490,9 @@ class Talk {
         ["reverse",                "Reverse",                  "reverse",          true],
         ["forward",                "Forward",                  "forward",          true,  "foreword"],
         ["faster",                 "Faster",                   "faster",           true],
-        ["slower",                 "Slower",                   "slower",           true]
+        ["slower",                 "Slower",                   "slower",           true],
+        ["stop",                   "Stop",                     "stop",             true],
+
     ]
 
     //does not check for existance, just converts string to the right FORMAT of a cmd_normalized_prose.
@@ -571,25 +577,28 @@ class Talk {
 
 //______Show mode commands__________
 
-    static show_listening_mode_commands() {
+    static show_main_menu_mode_commands() {
         let mic_cmd = []
         if(this.speech_reco_possible){
           mic_cmd.push((this.is_mic_on() ? "Turn off mic" : "Turn on mic"))
         }
         mic_cmd.push((this.is_speaker_on()? "Turn off speaker" : "Turn on speaker"))
-        let arr = [["Dexter, off"],
+        let arr = [
                    mic_cmd,
+                   ["Move (aka Show movement commands)"],
                    ["Print", "Say selection"],
                    ["Define saying", "Define position", (this.is_recording ? "Stop recording" : "Start recording")],
                    ["List recordings", "Play recording (name)"],
-                   ["Straight up", "move"]
+
+                   ["off"],
                   ]
         let items = this.make_command_list_items(...arr)
         valid_commands_id.innerHTML = items
     }
 
     static show_move_mode_commands(){
-        let arr =  [ //even if not moving, we need this to get back to listening mode
+        let arr =  [ //even if not moving, we need this to get back to main_menu mode
+                    ["Straight up"],
                     ["Up",       "Down"],
                     ["Left",     "Right"],
                     ["Closer",   "Farther"],
@@ -626,10 +635,10 @@ class Talk {
                     speak_data: str, volume:
                     this.speak_volume,
                     callback: function () {
-                        if(this.speech_reco_possible && !this.is_mic_on()) {
+                        if(Talk.speech_reco_possible && !Talk.is_mic_on()) {
                             //Talk.client.start()
-                            this.is_vad_enabled = true
-                            this.client.adjustAudioProcessor( { vad: { enabled: true }})
+                            Talk.is_vad_enabled = true
+                            Talk.client.adjustAudioProcessor( { vad: { enabled: true }})
                         }
                     }
                 })
@@ -656,10 +665,10 @@ class Talk {
     }
 
 //_______Start of Command Implementations________
-    //if called with "dexter off" or NO arg, it should still work
-    static off(full_text="dexter off"){
-        if(full_text === "dexter off") {
-            this.set_mode("listening")
+    //if called with "off" or NO arg, it should still work
+    static off(full_text="off"){
+        if(full_text === "off") {
+            this.set_mode("main_menu")
             SW.close_window(Talk.sw_index)
 
             if (Job.talk_to_dexter) {
@@ -711,7 +720,8 @@ class Talk {
         Talk.is_vad_enabled = true
         Talk.client.adjustAudioProcessor( { vad: { enabled: true }})
         Talk.display_status()
-        Talk.talk_out("The microphone is now on.")
+        Talk.talk_out("The microphone is now on.<br/>" +
+              Talk.say_or_click() + " on a valid command.")
     }
 
     static turn_off_mic(full_text="turn off mic"){
@@ -850,19 +860,19 @@ class Talk {
     //instrs are actual dde job instruction instances
     static define_saying_name(saying_name, saying=Talk.saying_being_defined) {
         if(Talk.is_known_cmd(saying_name)) { //we want to exclude known recording names
-            Talk.set_mode("listening")
+            Talk.set_mode("main_menu")
             Talk.talk_out('"' + saying_name + '" is a command, so it can&apos;t be used to name a saying.')
             return "valid"
         }
         else {
-            Talk.set_mode("listening")
-            Talk.talk_out('The saying ' + saying_name + " has been defined.")
+            Talk.set_mode("main_menu")
+            Talk.talk_out('The saying "' + saying_name + '" has been defined.')
             new Job({
                 name: saying_name,
                 do_list:
                     [function () {
                         //speak({speak_data: saying})
-                        out(saying)
+                        out("<b>" + saying + "</b>")
                         Talk.talk_out(saying)
                     }]
             })
@@ -888,12 +898,6 @@ class Talk {
         //return this.array_of_recording_names().includes(cmd)
         return (Job[cmd] ? true : false)
     }
-    
-    static show_recording_mode_commands(){
-        let items = this.make_command_list_items(["Stop recording"],
-                                                       ["Dexter, stop listening", "Dexter, off"])
-        valid_commands_id.innerHTML = items
-    }
 
     static is_recording = false
 
@@ -903,7 +907,7 @@ class Talk {
            Talk.is_recording = true
            this.the_recording_in_progress = [] //clear out the previous recording
            this.talk_out("Now recording.<br/>" + this.say_or_click() + " on commands, pausing between each.")
-           this.show_listening_mode_commands() //needs to replace "Start recording" with "Stop recording"
+           this.show_main_menu_mode_commands() //needs to replace "Start recording" with "Stop recording"
            this.display_status() //needs to update "Recording" status
            return "valid"
         }
@@ -927,14 +931,21 @@ class Talk {
 
     static show_waiting_for_recording_name_mode_commands(){
         let items = this.make_command_list_items( ["(the name for this recording)"],
-                                                        ["Listen for other commands (don't name recording)"]
+                                                        ["Main menu (cancel recording)"]
                                                         )
         valid_commands_id.innerHTML = items
     }
 
     static show_waiting_for_saying_name_mode_commands(){
         let items = this.make_command_list_items( ["(the name for this saying)"],
-            ["Listen for other commands (don't name saying)"]
+            ["Main menu (cancel saying)"]
+        )
+        valid_commands_id.innerHTML = items
+    }
+
+    static show_waiting_for_position_name_mode_commands(){
+        let items = this.make_command_list_items( ["(the name for this saying)"],
+            ["Main menu (cancel position)"]
         )
         valid_commands_id.innerHTML = items
     }
@@ -974,7 +985,7 @@ class Talk {
             this.talk_out('"' + full_text + '" is now a brand new recording.')
         }
         this.define_job(recording_name, this.the_recording_in_progress)
-        this.set_mode("listening")
+        this.set_mode("main_menu")
         return "valid"
     }
 
@@ -1030,7 +1041,7 @@ class Talk {
                         this.talk_out('"' + recording_name + '" has been over-written with your new position.')
                     }
                     else {
-                        this.talk_out('"' + recording_name + '" is now a named position.')
+                        this.talk_out('"' + recording_name + '" is now a defined position.')
                     }
                     //if (this.initialize_dexter_maybe(full_text, playing_a_recording_cmd, the_job)) {
                     //    return "valid"  //even if its not really valid, validate anyway. If full_text isn't valid,
@@ -1038,8 +1049,7 @@ class Talk {
                     //}
                     let angles = dex.rs.measured_angles()
                     let instrs = [dex.move_all_joints(angles), dex.empty_instruction_queue()]
-                    this.define_name_position(recording_name, instrs)
-                    this.set_mode("listening")
+                    this.define_position_name(recording_name, instrs) //got all the info we need dto define position and show main menu
                     return "valid"
                 }
             }
@@ -1048,6 +1058,7 @@ class Talk {
                 return "valid"
             }
             else {
+                this.set_mode("waiting_for_position_name")
                 this.talk_out("Say the name of your recording or<br/>" +
                     "type it in and hit Enter: " +
                     "<input id='recording_name_id'  onkeyup='Talk.define_position_from_type_in(event)'/>"
@@ -1074,14 +1085,14 @@ class Talk {
     //just move the robot to the named position
     //having a whole job is kinda overkill, but fits in well with recordings.
     //instrs are actual dde job instruction instances
-    static define_name_position(job_name, instrs){
+    static define_position_name(job_name, instrs){
+        this.set_mode("main_menu")
         return new Job({name: job_name, do_list: instrs})
     }
 
-    //not now used but maybe needed in the future
-    static listen_for_other_commands(full_text="listen for other commands"){
-        if(full_text === "listen for other commands"){
-            this.set_mode("listening")
+    static main_menu(full_text="main menu"){
+        if(full_text === "main menu"){
+            this.set_mode("main_menu")
             Talk.talk_out(this.say_or_click() + " on a valid command.")
             return "valid"
         }
@@ -1095,7 +1106,7 @@ class Talk {
                 this.talk_out('There are no recordings.<br/>Use "Start recording" to make one.')
             }
             else {
-                let arr_of_arrs = [["listen for other commands"]]
+                let arr_of_arrs = [["main menu"]]
                 for(let job_name of job_names){
                     job_name = job_name.replaceAll("_", " ")
                     arr_of_arrs.push([job_name, "Edit " + job_name])
@@ -1128,8 +1139,7 @@ class Talk {
     }
 
     static show_playing_recording_mode_commands(){
-        let items = this.make_command_list_items(["Stop playing"],
-                                                       ["Dexter, stop listening", "Dexter, off"])
+        let items = this.make_command_list_items(["Stop playing"])
             valid_commands_id.innerHTML = items
     }
 
@@ -1195,7 +1205,7 @@ class Talk {
             if (the_job.is_active()) {
                 the_job.stop_for_reason("interrupted", 'User said "stop playing".')
             }
-            Talk.set_mode("listening")
+            Talk.set_mode("main_menu")
             Talk.talk_out("Finished playing: " + rec_name + ", with status: " +  the_job.status_code + ".")
             return "valid"
         }
@@ -1293,8 +1303,10 @@ class Talk {
             return [1, -1]}
 
         //z
-        else if(word == "up")    { return [2, 1]}
-        else if(word == "down")  { return [2, -1]}
+        else if(word == "up")       { return [2, 1]}
+        else if(word == "down")     { return [2, -1]}
+        else if(word == "pitch up") { return [3, 1] }
+
         else { return false} //not a valid word
     }
 
@@ -1319,6 +1331,7 @@ class Talk {
     static stop(full_text="stop"){
         if(full_text === "stop"){
             Talk.stop_aux()
+            Talk.talk_out(this.say_or_click() + " on a valid command")
             return "valid"
         }
         else { return "invalid" }
@@ -1329,7 +1342,7 @@ class Talk {
     static stop_aux(message){
         Talk.is_moving = false
         //Talk.set_display_status_color()
-        Talk.set_mode("listening", message)
+        Talk.set_mode("main_menu", message)
         for(let job_inst of Job.active_jobs()){
             if(job_inst.name !== "talk_to_dexter"){
                 job_inst.stop_for_reason("interrupted", "user said stop")
@@ -1368,7 +1381,7 @@ class Talk {
                     }],
                 the_job)
 
-            Talk.talk_out("Dexter is moving straight up.")
+            Talk.talk_out("Dexter is moving straight up...")
             return "valid"
         }
         else { return "invalid"}
@@ -1427,6 +1440,7 @@ class Talk {
         }
         else { return "invalid"}
     }
+
 
     static send_init_and_control(the_job){
         if(this.is_moving){} //if we're moving, its been initialized and the control loop is running, so nothing to do
@@ -1523,7 +1537,8 @@ class Talk {
             return Control.break()
         }
         if (Talk.current_command !== Talk.last_move_command){
-            Talk.talk_out("Moving Dexter " + Talk.current_command)
+            Talk.talk_out("Moving Dexter " + Talk.current_command +
+                           '...<br/>Click "Stop" to stop.')
             Talk.last_move_command = Talk.current_command
         }
         let the_job = this
@@ -1555,7 +1570,8 @@ class Talk {
             if (axis_index === 0) {  //x
                 new_x = orig_xyz[axis_index] + (axis_direction * Talk.step_distance)
                 new_xyz[0] = new_x
-            } else if (axis_index === 1) {  //y
+            }
+            else if (axis_index === 1) {  //y
                 new_y = orig_xyz[axis_index] + (axis_direction * Talk.step_distance)
                 new_xyz[1] = new_y
                 if (new_y < 0) {
@@ -1563,7 +1579,17 @@ class Talk {
                     Talk.stop_aux()
                     return Control.break()
                 }
-            } else if (axis_index === 2) {  //z
+            }
+            else if (axis_index === 2) {  //z
+                new_z = orig_xyz[axis_index] + (axis_direction * Talk.step_distance)
+                new_xyz[2] = new_z
+                if (new_z < 0) {
+                    Talk.talk_out("This installation of Dexter prevents Dexter from going below it base: " + to_source_code(new_xyz))
+                    Talk.stop_aux()
+                    return Control.break()
+                }
+            }
+            else if (axis_index === 5) {  //pitch up j6 clockwis4/counterclockwide
                 new_z = orig_xyz[axis_index] + (axis_direction * Talk.step_distance)
                 new_xyz[2] = new_z
                 if (new_z < 0) {
@@ -1710,10 +1736,10 @@ class Talk {
         //}
         let status
         //full_text is a valid normalized command
-        //the "listening mode needs to be first, See the below comment on "initia;" mode.
-        if((this.mode === "listening") || playing_a_recording_cmd) {
+        //the "main_menu mode needs to be first, See the below comment on "initia;" mode.
+        if((this.mode === "main_menu") || playing_a_recording_cmd) {
 
-            status = this.listen_for_other_commands(full_text) //usuely not in listen valid comd display but is displayed hwen you run "list recordings"
+            status = this.main_menu(full_text) //usualy not in listen valid comd display but is displayed when you run "list recordings"
             if(status === "valid") {return}
 
             status = this.off(full_text)
@@ -1767,17 +1793,22 @@ class Talk {
 
             this.talk_out("Unrecognized command: " + full_text + ".")
             return
-        } //end of "listening" mode
+        } //end of "main_menu" mode
 
         if(this.mode === "move") {
             status = this.stop(full_text)
             if(status === "valid") {return}
 
-            status = this.down(full_text, playing_a_recording_cmd, the_job)
+            status = this.straight_up(full_text, playing_a_recording_cmd, the_job)
             if(status === "valid") { return }
 
             status = this.up(full_text, playing_a_recording_cmd, the_job)
             if(status === "valid") { return }
+
+            status = this.down(full_text, playing_a_recording_cmd, the_job)
+            if(status === "valid") { return }
+
+
 
             status = this.left(full_text, playing_a_recording_cmd, the_job)
             if(status === "valid") { return }
@@ -1815,7 +1846,7 @@ class Talk {
             status = this.off(full_text)
             if(status === "valid") {return}
 
-            status = this.listen_for_other_commands(full_text)
+            status = this.main_menu(full_text)
             if(status === "valid") {return}
 
             status = this.define_recording(full_text)
@@ -1830,7 +1861,7 @@ class Talk {
             status = this.off(full_text)
             if(status === "valid") {return}
 
-            status = this.listen_for_other_commands(full_text)
+            status = this.main_menu(full_text)
             if(status === "valid") {return}
 
             status = this.define_saying_name(full_text)
@@ -1839,6 +1870,21 @@ class Talk {
             this.talk_out("Unrecognized command: " + full_text + ".")
             return
         }
+        if(this.mode === "waiting_for_position_name"){
+
+            status = this.off(full_text)
+            if(status === "valid") {return}
+
+            status = this.main_menu(full_text)
+            if(status === "valid") {return}
+
+            status = this.define_position_name(full_text)
+            if(status === "valid") { return }
+
+            this.talk_out("Unrecognized command: " + full_text + ".")
+            return
+        }
+
 
         if(this.mode === "playing_recording"){
 

@@ -773,6 +773,7 @@ var http_server = http.createServer(async function (req, res) {
       // "get_res" is the response that comes back from the http.get
     else if(q.pathname === "/get_page") {
       let the_url = q.query.path
+      console.log("in get_page clause with the_url: " + the_url)
       if (the_url.startsWith("https:")) {
           let options = {headers: {"User-Agent": req.headers['user-agent']}}
           https.get(url, options, (get_res) => {
@@ -807,8 +808,9 @@ var http_server = http.createServer(async function (req, res) {
           })
       }
       else { //presume starts with http:
+          console.log("in get_page, http clause")
           let options = {headers: {"User-Agent": req.headers['user-agent']}}
-          http.get(url, options,
+          http.get(the_url, options,
               (get_res) => {
               let rawData = '';
               get_res.on('data', (chunk) => {

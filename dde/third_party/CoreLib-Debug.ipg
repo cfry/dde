@@ -1,0 +1,2641 @@
+VIVA 3.02 Implementation Independent Algorithm Description Language
+// Sheet   4/18/2007 3:39:44 PM
+
+ComLibrary "$S\VIVA STANDARD OBJECTS.DLL"
+ComLibrary "$S\WAVEDISPLAYPROJ1.OCX"
+
+DataSet Complex = ( List ); //_Attributes 1,8421504
+DataSet Fixed = ( List ); //_Attributes 1,4227327
+DataSet Floating = ( List ); //_Attributes 1,32896
+DataSet Signed = ( Variant ); //_Attributes 1,16776960
+DataSet "MSB032*" = ( Word , Word ); //_Attributes 1,11141375,System\$MSB,16385
+DataSet "IVivaString*" = ( Word , Word ); //_Attributes 1,11141375,VIVASTANDARDOBJECTSLib,9
+DataSet "IWaveDisplay*" = ( Word , Word ); //_Attributes 1,11141375,WaveDisplayProj1,9
+DataSet "IDispatch**" = ( Word , Word ); //_Attributes 1,11141375,System\Com
+DataSet WFD_Enable = ( Bit ); //_Attributes 1,8388863,User\Join
+DataSet WFD_Analyzer = ( List ); //_Attributes 1,8388863,User\Join
+
+Object CoreLib-Debug
+//_Attributes WipSheet
+{
+ //_ Object Prototypes
+ Object Text;  //_GUI 26,20,<TreeGroup>CoreLib-DebugArial,8,-2147483640,0
+
+ //_ Behavior Topology
+}
+
+Object ( Variant "Probe 01") "$Probe 01"( Variant In1) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Variant In1) Input;  //_GUI 48,105
+ Object Output( Variant "Probe 01") ;  //_GUI 56,105
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Text;  //_GUI 30,11,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object Text;  //_GUI 29,96,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+}
+
+Object "Probe 01"( Variant In1) 
+//_Attributes TreeGroup=CoreLib-Debug\Input/output Probes
+{
+ //_ Object Prototypes
+ Object ( Variant In1) Input;  //_GUI 44,30
+ Object Text;  //_GUI 27,14,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object ( Variant "Probe 01") "$Probe 01"( Variant In1) ;  //_GUI 51,28
+
+ //_ Behavior Topology
+ "$Probe 01".0 = Input.0;  
+}
+
+Object ( Variant "Probe 02") "$Probe 02"( Variant In1) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Variant In1) Input;  //_GUI 48,109
+ Object Output( Variant "Probe 02") ;  //_GUI 56,109
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Text;  //_GUI 30,11,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object Text;  //_GUI 26,95,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+}
+
+Object ( Variant "Probe 03") "$Probe 03"( Variant In1) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Variant In1) Input;  //_GUI 48,113
+ Object Output( Variant "Probe 03") ;  //_GUI 56,113
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Text;  //_GUI 30,11,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object Text;  //_GUI 30,103,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+}
+
+Object ( Variant "Probe 04") "$Probe 04"( Variant In1) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Variant In1) Input;  //_GUI 47,120
+ Object Output( Variant "Probe 04") ;  //_GUI 56,120
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Text;  //_GUI 30,11,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object Text;  //_GUI 28,109,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+}
+
+Object "Probe 02"( Variant In1) 
+//_Attributes TreeGroup=CoreLib-Debug\Input/output Probes
+{
+ //_ Object Prototypes
+ Object ( Variant In1) Input;  //_GUI 44,30
+ Object Text;  //_GUI 27,14,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object ( Variant "Probe 02") "$Probe 02"( Variant In1) ;  //_GUI 52,28
+
+ //_ Behavior Topology
+ "$Probe 02".0 = Input.0;  
+}
+
+Object "Probe 03"( Variant In1) 
+//_Attributes TreeGroup=CoreLib-Debug\Input/output Probes
+{
+ //_ Object Prototypes
+ Object ( Variant In1) Input;  //_GUI 44,30
+ Object Text;  //_GUI 27,14,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object ( Variant "Probe 03") "$Probe 03"( Variant In1) ;  //_GUI 52,28
+
+ //_ Behavior Topology
+ "$Probe 03".0 = Input.0;  
+}
+
+Object "Probe 04"( Variant In1) 
+//_Attributes TreeGroup=CoreLib-Debug\Input/output Probes
+{
+ //_ Object Prototypes
+ Object ( Variant In1) Input;  //_GUI 44,30
+ Object Text;  //_GUI 27,14,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object ( Variant "Probe 04") "$Probe 04"( Variant In1) ;  //_GUI 52,28
+
+ //_ Behavior Topology
+ "$Probe 04".0 = Input.0;  
+}
+
+Object ( WFD_Enable Out1) JoinGlobals( WFD_Enable In1, WFD_Enable In2) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes,Documentation="WFD_Enable",JoinGlobalsDeletePri=100
+{
+ //_ Object Prototypes
+ Object ( WFD_Enable In1) Input;  //_GUI 26,22
+ Object ( WFD_Enable In2) Input:A;  //_GUI 26,27
+ Object Output( WFD_Enable Out1) ;  //_GUI 39,27
+ Object Text;  //_GUI 7,11,Discard all of the "Enable (WFD)" input widgets except for one.Arial,12,8388608,0
+
+ //_ Behavior Topology
+ Output.0 = Input:A.0;  
+}
+
+Object ( Bit Out1) $EnableSelect( WFD_Enable "Enable (WFD)") 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( WFD_Enable "Enable (WFD)") Input;  //_GUI 40,25
+ //_Attributes Resource=*Global
+ Object Output( Bit Out1) ;  //_GUI 66,25
+ Object Text;  //_GUI 2,11,Selects between the automatic "Enable (WFD)" input widget and a user supplied enable.Required because the "Probe WFD" object has a Bit enable and "JoinGlobals" requires "WFD_Enable".Arial,12,8388608,0
+ Object ( Bit Out1) WFD_EnableIn( WFD_Enable In) ;  //_GUI 47,23
+
+ //_ Behavior Topology
+ Output.0 = WFD_EnableIn.0;  
+ WFD_EnableIn.0 = Input.0;  
+}
+
+Object ( Bit Changed) IsChanged( Variant Data, Bit ClkG) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Variant Data) Input;  //_GUI 11,31
+ Object ( Bit ClkG) Input:A;  //_GUI 11,45
+ //_Attributes Resource=*Global
+ Object Output( Bit Changed) ;  //_GUI 97,41
+ Object ( Bit Out1) Equal( Variant In1, Variant In2) ;  //_GUI 49,31
+ Object ( Variant Q) RegEn( Variant D, Bit ClkG
+    , Bit EN) ;  //_GUI 84,26
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction
+    ( Bit In0) ;  //_GUI 75,33
+ Object ( Bit Out) INVERT( Bit In1) ;  //_GUI 62,31
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction:A
+    ( Variant In0) ;  //_GUI 20,31
+ Object Text;  //_GUI 21,12,Produces a 1/0 pulse each time Data changes.Arial,12,8388608,0
+ Object ( Variant Out1) Cast( Variant Type, Variant Data) ;  //_GUI 29,30
+
+ //_ Behavior Topology
+ Output.0 = Junction.2;  //_GUI 76,42
+ Equal.0 = Cast.0;  
+ Equal.1 = Junction:A.2;  //_GUI 49,40, 21,40
+ RegEn.0 = Junction:A.0;  //_GUI 21,28
+ RegEn.1 = Input:A.0;  //_GUI 80,31, 80,46
+ RegEn.2 = Junction.1;  
+ Junction.0 = INVERT.0;  
+ INVERT.0 = Equal.0;  
+ Junction:A.0 = Input.0;  
+ Cast.0 = Junction:A.1;  
+ Cast.1 = RegEn.0;  //_GUI 26,35, 26,22, 94,22
+}
+
+Object ( Variant LI) ListInfo( Variant ListElement) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes,Documentation="Variant"
+{
+ //_ Object Prototypes
+ Object ( Variant ListElement) Input;  //_GUI 13,20
+ Object Output( Variant LI) ;  //_GUI 151,27
+ //_Attributes WidgetHex=True,WidgetWidth=159,WidgetHeight=46
+ Object ( Variant Out1) BitLength( Variant Type) ;  //_GUI 62,23
+ Object ( MSB008 Type) Input:A;  //_GUI 98,28
+ //_Attributes Constant="*0"
+ Object ( Variant Out1) MSB( Variant In1) ;  //_GUI 119,24
+ Object ( MSB016 Type) Input:B;  //_GUI 79,18
+ //_Attributes Constant="*0"
+ Object ( Bit Out1) IsContextual( Variant In1) ;  //_GUI 17,34
+ //_Attributes Documentation="Variant"
+ Object ( Variant Out) $Select( Variant "#0", Variant "#1"
+    , Bit S) ;  //_GUI 47,23
+ Object ( Variant Out) $Select:A( Variant "#0", Variant "#1"
+    , Bit S) ;  //_GUI 136,25
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction
+    ( Variant In1) ;  //_GUI 16,24
+ Object ( MSB008 Type) Input:C;  //_GUI 100,50
+ //_Attributes Constant="*255"
+ Object ( Variant Out1, Variant Out2) VariantIn( Variant In) ;  //_GUI 62,43
+ Object ( List Out) ListOut( Variant In1, Variant In2) ;  //_GUI 107,46
+ Object ( Variant Out1) MSB:A( Variant In1) ;  //_GUI 121,46
+ Object Text;  //_GUI 90,57,Type 255 is for unknown Context Data Sets
+ Object Text;  //_GUI 99,18,Type 0 is for cardinal types
+ Object ( Variant Out) $Select:B( Variant "#0", Variant "#1"
+    , Bit S) ;  //_GUI 47,43
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction:A
+    ( Variant In0) ;  //_GUI 34,24
+ Object Output:A( Bit Out) ;  //_GUI 41,62
+ //_Attributes Trap="Unknown Context"
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:B
+    ( Bit In1) ;  //_GUI 40,50
+ Object ( Variant LI) ListInfo( Variant ListElement) ;  //_GUI 79,45
+ //_Attributes Documentation="Variant"
+ Object ( List Out) ListOut:A( Variant In1, Variant In2) ;  //_GUI 105,24
+ Object ( Bit OFL, Variant Out1) Convert( Variant Type
+    , Variant Data) ;  //_GUI 83,21
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:C
+    ( Bit In0) ;  //_GUI 40,36
+ Object Text;  //_GUI 33,5,Encodes all of the Viva data set information into a special MSB format that COM objects can interpret.Arial,12,8388608,0
+
+ //_ Behavior Topology
+ Output.0 = $Select:A.0;  
+ BitLength.0 = $Select.0;  
+ MSB.0 = ListOut:A.0;  
+ IsContextual.0 = Junction.2;  
+ $Select.0 = Junction:A.1;  
+ $Select.2 = Junction:C.0;  //_GUI 41,31
+ $Select:A.0 = MSB.0;  
+ $Select:A.1 = MSB:A.0;  //_GUI 131,30
+ $Select:A.2 = Junction:C.1;  //_GUI 136,37
+ Junction.0 = Input.0;  
+ VariantIn.0 = $Select:B.0;  
+ ListOut.0 = Input:C.0;  
+ ListOut.1 = ListInfo.0;  
+ MSB:A.0 = ListOut.0;  
+ $Select:B.1 = Junction:A.2;  //_GUI 35,48
+ $Select:B.2 = Junction:B.1;  
+ Junction:A.0 = Junction.1;  
+ Output:A.0 = Junction:B.2;  
+ Junction:B.0 = Junction:C.2;  
+ ListInfo.0 = VariantIn.0;  
+ ListOut:A.0 = Input:A.0;  
+ ListOut:A.1 = Convert.1;  
+ Convert.0 = Input:B.0;  
+ Convert.1 = BitLength.0;  
+ Junction:C.0 = IsContextual.0;  
+}
+
+Object ( List LI) ListInfo( List ListElement) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes,Documentation="List"
+{
+ //_ Object Prototypes
+ Object ( List ListElement) Input;  //_GUI 14,25
+ Object Output( List LI) ;  //_GUI 75,25
+ Object ( List Out) ListOut( Variant In1, Variant In2) ;  //_GUI 59,23
+ Object ( Variant Out1, Variant Out2) ListIn( List In) ;  //_GUI 22,23
+ Object ( Variant LI) ListInfo( Variant ListElement) ;  //_GUI 38,22
+ //_Attributes Documentation="Variant"
+ Object ( Variant LI) ListInfo:A( Variant ListElement) ;  //_GUI 38,29
+ //_Attributes Documentation="Variant"
+ Object Text;  //_GUI 8,10,Encodes all of the Viva data set information into a special MSB format that COM objects can interpret.Arial,12,8388608,0
+
+ //_ Behavior Topology
+ Output.0 = ListOut.0;  
+ ListOut.0 = ListInfo:A.0;  //_GUI 59,32
+ ListOut.1 = ListInfo.0;  
+ ListIn.0 = Input.0;  
+ ListInfo.0 = ListIn.1;  
+ ListInfo:A.0 = ListIn.0;  //_GUI 33,32
+}
+
+Object ( Variant LI) ListInfo( Floating ListElement) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes,Documentation="Floating"
+{
+ //_ Object Prototypes
+ Object ( Floating ListElement) Input;  //_GUI 12,29
+ Object Output( Variant LI) ;  //_GUI 102,29
+ Object ( Variant Out1, Variant Out2) ListIn( List In) ;  //_GUI 33,27
+ Object ( MSB008 Type) Input:A;  //_GUI 68,34
+ //_Attributes Constant="*3"
+ Object ( List Out1) PackMSB( Variant In1, Variant In2
+    , Variant In3) ;  //_GUI 75,27
+ Object ( Variant Out1) MSB( Variant In1) ;  //_GUI 89,27
+ Object ( List Out1) FloatingIn( Floating In) ;  //_GUI 19,27
+ Object ( Variant LI) ListInfo( Variant ListElement) ;  //_GUI 48,29
+ //_Attributes Documentation="Variant"
+ Object ( Variant LI) ListInfo:A( Variant ListElement) ;  //_GUI 48,21
+ //_Attributes Documentation="Variant"
+ Object Text;  //_GUI 24,10,Encodes all of the Viva data set information into a special MSB format that COM objects can interpret.Arial,12,8388608,0
+
+ //_ Behavior Topology
+ Output.0 = MSB.0;  
+ ListIn.0 = FloatingIn.0;  
+ PackMSB.0 = ListInfo:A.0;  //_GUI 75,24
+ PackMSB.1 = ListInfo.0;  
+ PackMSB.2 = Input:A.0;  
+ MSB.0 = PackMSB.0;  
+ FloatingIn.0 = Input.0;  
+ ListInfo.0 = ListIn.0;  
+ ListInfo:A.0 = ListIn.1;  //_GUI 44,24
+}
+
+Object ( Variant LI) ListInfo( Complex ListElement) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes,Documentation="Complex"
+{
+ //_ Object Prototypes
+ Object ( Complex ListElement) Input;  //_GUI 16,33
+ Object Output( Variant LI) ;  //_GUI 105,33
+ Object ( List Out1) ComplexIn( Complex In) ;  //_GUI 23,31
+ Object ( MSB008 Type) Input:A;  //_GUI 71,38
+ //_Attributes Constant="*4"
+ Object ( List Out1) PackMSB( Variant In1, Variant In2
+    , Variant In3) ;  //_GUI 78,31
+ Object ( Variant Out1) MSB( Variant In1) ;  //_GUI 92,31
+ Object ( Variant Out1, Variant Out2) VariantIn( Variant In) ;  //_GUI 37,31
+ Object ( Variant LI) ListInfo( Variant ListElement) ;  //_GUI 51,25
+ //_Attributes Documentation="Variant"
+ Object ( Variant LI) ListInfo:A( Variant ListElement) ;  //_GUI 51,33
+ //_Attributes Documentation="Variant"
+ Object Text;  //_GUI 28,11,Encodes all of the Viva data set information into a special MSB format that COM objects can interpret.Arial,12,8388608,0
+
+ //_ Behavior Topology
+ Output.0 = MSB.0;  
+ ComplexIn.0 = Input.0;  
+ PackMSB.0 = ListInfo.0;  //_GUI 78,28
+ PackMSB.1 = ListInfo:A.0;  
+ PackMSB.2 = Input:A.0;  
+ MSB.0 = PackMSB.0;  
+ VariantIn.0 = ComplexIn.0;  
+ ListInfo.0 = VariantIn.1;  //_GUI 48,28
+ ListInfo:A.0 = VariantIn.0;  
+}
+
+Object ( Variant LI) ListInfo( Signed ListElement) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes,Documentation="Signed"
+{
+ //_ Object Prototypes
+ Object ( Signed ListElement) Input;  //_GUI 12,30
+ Object Output( Variant LI) ;  //_GUI 93,31
+ Object ( Variant Out1) SignedIn( Signed In) ;  //_GUI 20,28
+ Object ( MSB008 Type) Input:A;  //_GUI 59,33
+ //_Attributes Constant="*1"
+ Object ( Variant Out1) MSB( Variant In1) ;  //_GUI 80,29
+ Object ( List Out) ListOut( Variant In1, Variant In2) ;  //_GUI 66,29
+ Object ( Variant LI) ListInfo( Variant ListElement) ;  //_GUI 35,28
+ //_Attributes Documentation="Variant"
+ Object Text;  //_GUI 15,13,Encodes all of the Viva data set information into a special MSB format that COM objects can interpret.Arial,12,8388608,0
+
+ //_ Behavior Topology
+ Output.0 = MSB.0;  
+ SignedIn.0 = Input.0;  
+ MSB.0 = ListOut.0;  
+ ListOut.0 = Input:A.0;  
+ ListOut.1 = ListInfo.0;  
+ ListInfo.0 = SignedIn.0;  
+}
+
+Object ( Variant LI) ListInfo( Fixed ListElement) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes,Documentation="Fixed"
+{
+ //_ Object Prototypes
+ Object ( Fixed ListElement) Input;  //_GUI 13,32
+ Object Output( Variant LI) ;  //_GUI 107,32
+ Object ( Variant Out1, Variant Out2) ListIn( List In) ;  //_GUI 34,30
+ Object ( MSB008 Type) Input:A;  //_GUI 73,37
+ //_Attributes Constant="*2"
+ Object ( List Out1) PackMSB( Variant In1, Variant In2
+    , Variant In3) ;  //_GUI 80,30
+ Object ( Variant Out1) MSB( Variant In1) ;  //_GUI 94,30
+ Object ( List Out1) FixedIn( Fixed In) ;  //_GUI 20,30
+ Object ( Variant LI) ListInfo( Variant ListElement) ;  //_GUI 51,24
+ //_Attributes Documentation="Variant"
+ Object ( Variant LI) ListInfo:A( Variant ListElement) ;  //_GUI 51,32
+ //_Attributes Documentation="Variant"
+ Object Text;  //_GUI 23,11,Encodes all of the Viva data set information into a special MSB format that COM objects can interpret.Arial,12,8388608,0
+
+ //_ Behavior Topology
+ Output.0 = MSB.0;  
+ ListIn.0 = FixedIn.0;  
+ PackMSB.0 = ListInfo.0;  //_GUI 80,27
+ PackMSB.1 = ListInfo:A.0;  
+ PackMSB.2 = Input:A.0;  
+ MSB.0 = PackMSB.0;  
+ FixedIn.0 = Input.0;  
+ ListInfo.0 = ListIn.1;  //_GUI 45,27
+ ListInfo:A.0 = ListIn.0;  
+}
+
+Object ( Bit Done) BuildString( List StringList, "IVivaString*" MemberOf
+    , BinaryString Separator, Bit Go) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes,Documentation="List"
+{
+ //_ Object Prototypes
+ Object ( List StringList) Input;  //_GUI 10,32
+ Object ( "IVivaString*" MemberOf) Input:A;  //_GUI 10,38
+ Object ( BinaryString Separator) Input:B;  //_GUI 10,41
+ Object ( Bit Go) Input:C;  //_GUI 10,44
+ Object Output( Bit Done) ;  //_GUI 91,44
+ Object ( "IVivaString*" Out1, "IVivaString*" Out2, "IVivaString*" Out3) Junction
+    ( "IVivaString*" In0) ;  //_GUI 38,38
+ Object ( Variant Out1, Variant Out2) ListIn( List In) ;  //_GUI 18,30
+ Object ( Bit Done) BuildString( Variant StringList, "IVivaString*" MemberOf
+    , BinaryString Separator, Bit Go) ;  //_GUI 70,34
+ Object ( Bit Done) BuildString:A( Variant StringList, "IVivaString*" MemberOf
+    , BinaryString Separator, Bit Go) ;  //_GUI 47,21
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:A
+    ( BinaryString In0) ;  //_GUI 41,41
+ Object Text;  //_GUI 10,10,Append the Separator character onto the end of each string in the list and concatenate them all together into the MemberOf string.Arial,12,8388608,0
+
+ //_ Behavior Topology
+ Output.0 = BuildString.0;  
+ Junction.0 = Input:A.0;  
+ ListIn.0 = Input.0;  
+ BuildString.0 = ListIn.1;  //_GUI 34,36, 34,32
+ BuildString.1 = Junction.1;  
+ BuildString.2 = Junction:A.1;  
+ BuildString.3 = BuildString:A.0;  //_GUI 66,45, 66,32
+ BuildString:A.0 = ListIn.0;  //_GUI 32,23, 32,35
+ BuildString:A.1 = Junction.0;  //_GUI 39,26
+ BuildString:A.2 = Junction:A.0;  //_GUI 42,29
+ BuildString:A.3 = Input:C.0;  //_GUI 45,32, 45,45
+ Junction:A.0 = Input:B.0;  
+}
+
+Object ( Bit Done) BuildString( BinaryString String, "IVivaString*" MemberOf
+    , BinaryString Separator, Bit Go) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes,Documentation="String"
+{
+ //_ Object Prototypes
+ Object ( BinaryString String) Input;  //_GUI 14,33
+ Object ( "IVivaString*" MemberOf) Input:A;  //_GUI 14,36
+ Object ( BinaryString Separator) Input:B;  //_GUI 14,39
+ Object ( Bit Go) Input:C;  //_GUI 14,42
+ Object Output( Bit Done) ;  //_GUI 90,33
+ Object ( Bit Done, Bit Exception, Bit Exception) "VivaString::Concatenate"
+    ( Bit Go, "IVivaString*" MemberOf, BinaryString StringToAppend) ;  //_GUI 63,32
+ //_Attributes Primitive,System=X86UI,Resource=TIMESLICE,KeepObject=One side,ProgID=VIVASTANDARDOBJECTSLib::VivaString::Concatenate
+ Object ( "IVivaString*" Out1, "IVivaString*" Out2, "IVivaString*" Out3) Junction
+    ( "IVivaString*" In0) ;  //_GUI 22,36
+ Object ( Bit Done, Bit Exception, Bit Exception) "VivaString::Concatenate":A
+    ( Bit Go, "IVivaString*" MemberOf, BinaryString StringToAppend) ;  //_GUI 34,26
+ //_Attributes Primitive,System=X86UI,Resource=TIMESLICE,KeepObject=One side,ProgID=VIVASTANDARDOBJECTSLib::VivaString::Concatenate
+ Object Text;  //_GUI 13,12,Concatenate the String and the Separator character onto the end of the MemberOf string.Arial,12,8388608,0
+
+ //_ Behavior Topology
+ Output.0 = "VivaString::Concatenate".0;  
+ "VivaString::Concatenate".0 = "VivaString::Concatenate":A.0;  //_GUI 63,28
+ "VivaString::Concatenate".1 = Junction.1;  
+ "VivaString::Concatenate".2 = Input:B.0;  
+ Junction.0 = Input:A.0;  
+ "VivaString::Concatenate":A.0 = Input:C.0;  //_GUI 26,28, 26,43
+ "VivaString::Concatenate":A.1 = Junction.0;  //_GUI 23,31
+ "VivaString::Concatenate":A.2 = Input.0;  
+}
+
+Object ( Bit Busy) WFDCapture( "IDispatch*" MemberOf, Variant Names
+    , Variant Data, Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ // Prepares the Viva data for the Wave Form Display and calls WFDInterface.
+ //
+ // Inputs:
+ //
+ // IDispatch* MemberOf:  The Active X dispatch pointer to the Wave Form Display being used.
+ //
+ // Variant Names:  If Data is a List, then this is also a List of BinaryString names (one for each element in the list).  Otherwise, it is the BinaryString name of the Data.  These names appear on the Wave Form Display widget.
+ //
+ // Variant Data:  The data being reported in the Wave Form Display.  If Data is a List, then each element in the List will be reported as a separate graph.
+ //
+ // Bit Tick:  Normally set to the Go signal to increment the Tick count each time data is received.  Defaults to 1 to increment the Tick count on every clock cycle.
+ //
+ // MSB007 TickSize:  A constant to specify the number of bits used to store the Tick count.  Once Tick reaches its maximum value, the Wave Form Display quits reporting data.  Defaults to 16 (MSB016).
+ //
+ // MSB007 QueueSize:  A constant to specify the size of the queue used to store the Data waiting to be sent to the Wave Form Display.  Defaults to 9 (2 ** 9 - 1 = 511 entries).
+ //
+ // MSB009 ComSize:  A constant to specify the number of communication lines to use to send data to the Wave Form Display.  Defaults to 1--the size of Data.  Used to consume less/more BCS data lines.  The constant value must be a multiple/factor of the size of Data.
+ //
+ // Bit AClr:  Standard clear signal.  A value of 1 will clear all of the Wave Form Display data.  Defaults to 0 (don't clear).
+ //
+ // Bit ClkG:  Standard clock signal.  Defaults to ClkG.
+ //
+ // Bit Go:  Standard Go signal.  1 indicates that Data is ready to be recorded.
+ //
+ //
+ // Outputs:
+ //
+ // Bit Busy:  Standard Busy indicator.
+ //_ Object Prototypes
+ Object ( "IDispatch*" MemberOf) Input;  //_GUI 13,12
+ Object ( Variant Names) Input:A;  //_GUI 13,15
+ Object ( Variant Data) Input:B;  //_GUI 13,32
+ Object ( Bit Tick) Input:C;  //_GUI 13,49
+ //_Attributes Constant="1"
+ Object ( MSB007 TickSize) Input:D;  //_GUI 13,55
+ //_Attributes Constant="16"
+ Object ( MSB007 QueueSize) Input:E;  //_GUI 13,78
+ //_Attributes Constant="9"
+ Object ( MSB009 ComSize) Input:F;  //_GUI 13,85
+ //_Attributes Constant="1"
+ Object ( Bit AClr) Input:G;  //_GUI 13,94
+ //_Attributes Constant="0"
+ Object ( Bit ClkG) Input:H;  //_GUI 13,97
+ //_Attributes Resource=*Global
+ Object ( Bit Go) Input:I;  //_GUI 13,100
+ Object Output( Bit Busy) ;  //_GUI 257,100
+ Object ( MSB008 Type) Input:J;  //_GUI 117,37
+ //_Attributes Constant="*0"
+ Object ( List Out1) PackMSB( Variant In1, Variant In2
+    , Variant In3) ;  //_GUI 144,25
+ Object ( Variant Out1) MSB( Variant In1) ;  //_GUI 158,25
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction
+    ( Variant In3) ;  //_GUI 88,50
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:A
+    ( Bit In0) ;  //_GUI 70,67
+ Object ( Variant Out1) One( Variant In1) ;  //_GUI 59,53
+ Object ( Variant Out1) MSB:A( Variant In1) ;  //_GUI 46,53
+ Object ( Bit CO, Variant Count) Count( Variant CBy
+    , Bit ClkG, Bit EN, Bit CLR) ;  //_GUI 74,54
+ Object ( Variant Out1) MSB:B( Variant In1) ;  //_GUI 123,59
+ Object ( Variant LI) ListInfo( Variant ListElement) ;  //_GUI 80,21
+ //_Attributes Documentation="Variant"
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction:B
+    ( Variant In0) ;  //_GUI 73,32
+ Object ( Variant Out1) BitLength( Variant Type) ;  //_GUI 94,30
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction:C
+    ( Variant In0) ;  //_GUI 136,61
+ Object ( Variant N_Bits) "Constant->N_Bits"( Variant Constant) ;  //_GUI 23,76
+ Object ( Variant N_Bits) "Constant->N_Bits":A( Variant Constant) ;  //_GUI 21,53
+ Object ( Variant N_Bits) "Constant->N_Bits":B( Variant Constant) ;  //_GUI 23,83
+ Object ( Variant Out) $Select( Variant "#0", Variant "#1"
+    , Bit S) ;  //_GUI 146,84
+ Object ( MSB009 Out1, MSB009 Out2, MSB009 Out3) Junction:D
+    ( MSB009 In0) ;  //_GUI 19,85
+ Object ( Bit Out1) EqualOne( Variant In1) ;  //_GUI 65,89
+ Object ( Variant Out1) BitLength:A( Variant Type) ;  //_GUI 94,38
+ Object ( List Out) ListOut( Variant In1, Variant In2) ;  //_GUI 94,46
+ Object ( Bit OFL, Variant Out1) Convert( Variant Type
+    , Variant Data) ;  //_GUI 123,28
+ Object ( Bit OFL, Variant Out1) Convert:A( Variant Type
+    , Variant Data) ;  //_GUI 123,36
+ Object ( Variant DataOut, Bit ClkG, Bit AClr
+    , Variant Done, Variant Busy) Queue( Variant DataIn, Variant Size
+    , Bit ClkG, Bit AClr, Variant Go, Variant Wait) ;  //_GUI 105,60
+ //_Attributes Documentation="var/bit"
+ Object ( Bit Out1) VouchBit( Variant In1) ;  //_GUI 105,98
+ Object Text;  //_GUI 27,5,Prepares the Viva data for the Wave Form Display and calls WFDInterface.Arial,12,8388608,0
+ Object ( MSB008 Type) Input:K;  //_GUI 117,29
+ //_Attributes Constant="*0"
+ Object ( Variant Size) ListSize( Variant List) ;  //_GUI 80,30
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:E
+    ( Bit In0) ;  //_GUI 95,70
+ Object ( Variant Data, Variant In_Type, Variant StageMsk
+    , Bit Done, Bit Busy) PToS_Or_SToP( Variant Data, Variant Out_Type
+    , Bit ClkG, Bit AClr, Bit Go, Bit Wait) ;  //_GUI 159,57
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:F
+    ( Bit In0) ;  //_GUI 98,67
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:G
+    ( Bit In3) ;  //_GUI 48,70
+ Object ( Variant Data, Bit "Data0 Ready", Bit "Data1 Ready"
+    , Bit CLR, Bit Busy) SyncWFD( Variant DataIn, Bit "Data0 Processed"
+    , Bit "Data1 Processed", Bit ClkG, Bit CLR, Bit Go) ;  //_GUI 196,51
+ Object ( Bit "Data0 Processed", Bit "Data1 Processed") WFDInterface( "IDispatch*" MemberOf
+    , Variant Names, Variant Format, Variant DataIn, Bit "Data0 Ready"
+    , Bit "Data1 Ready", Bit CLR) ;  //_GUI 230,42
+ //_Attributes System=X86CPU
+
+ //_ Behavior Topology
+ Output.0 = VouchBit.0;  
+ PackMSB.0 = ListInfo.0;  //_GUI 144,24
+ PackMSB.1 = Convert:A.1;  //_GUI 141,30, 141,41
+ PackMSB.2 = Convert.1;  
+ MSB.0 = PackMSB.0;  
+ Junction.0 = Count.1;  //_GUI 89,59
+ Junction:A.0 = Input:H.0;  //_GUI 46,68, 46,98
+ One.0 = MSB:A.0;  
+ MSB:A.0 = "Constant->N_Bits":A.0;  
+ Count.0 = One.0;  
+ Count.1 = Junction:A.0;  //_GUI 71,59
+ Count.2 = Input:C.0;  //_GUI 42,62, 42,50
+ Count.3 = Junction:G.1;  //_GUI 49,65
+ MSB:B.0 = Queue.0;  
+ ListInfo.0 = Junction:B.0;  //_GUI 74,24
+ Junction:B.0 = Input:B.0;  
+ BitLength.0 = ListSize.0;  
+ Junction:C.0 = MSB:B.0;  
+ "Constant->N_Bits".0 = Input:E.0;  
+ "Constant->N_Bits":A.0 = Input:D.0;  
+ "Constant->N_Bits":B.0 = Junction:D.1;  
+ $Select.0 = "Constant->N_Bits":B.0;  
+ $Select.1 = Junction:C.2;  //_GUI 137,89
+ $Select.2 = EqualOne.0;  
+ Junction:D.0 = Input:F.0;  
+ EqualOne.0 = Junction:D.2;  //_GUI 20,92
+ BitLength:A.0 = Junction.1;  //_GUI 89,41
+ ListOut.0 = Junction.2;  
+ ListOut.1 = Junction:B.2;  //_GUI 74,48
+ Convert.0 = Input:K.0;  
+ Convert.1 = BitLength.0;  
+ Convert:A.0 = Input:J.0;  
+ Convert:A.1 = BitLength:A.0;  
+ Queue.0 = ListOut.0;  
+ Queue.1 = "Constant->N_Bits".0;  //_GUI 93,65, 93,79
+ Queue.2 = Junction:F.1;  
+ Queue.3 = Junction:E.1;  
+ Queue.4 = Input:I.0;  //_GUI 102,74, 102,101
+ Queue.5 = PToS_Or_SToP.4;  //_GUI 159,77
+ VouchBit.0 = Queue.4;  
+ ListSize.0 = Junction:B.1;  
+ Junction:E.0 = Junction:G.2;  
+ PToS_Or_SToP.0 = Junction:C.1;  //_GUI 153,59, 153,62
+ PToS_Or_SToP.1 = $Select.0;  //_GUI 156,62
+ PToS_Or_SToP.2 = Queue.1;  
+ PToS_Or_SToP.3 = Queue.2;  
+ PToS_Or_SToP.4 = Queue.3;  //_GUI 120,71
+ PToS_Or_SToP.5 = SyncWFD.4;  
+ Junction:F.0 = Junction:A.1;  
+ Junction:G.0 = Input:G.0;  //_GUI 49,95
+ SyncWFD.0 = PToS_Or_SToP.0;  //_GUI 178,53
+ SyncWFD.1 = WFDInterface.0;  //_GUI 183,56, 183,89, 261,89, 261,44
+ SyncWFD.2 = WFDInterface.1;  //_GUI 186,59, 186,87, 258,87
+ SyncWFD.3 = Junction:F.2;  //_GUI 189,62, 189,81, 99,81
+ SyncWFD.4 = Junction:E.2;  //_GUI 192,65, 192,83, 96,83
+ SyncWFD.5 = PToS_Or_SToP.3;  
+ WFDInterface.0 = Input.0;  //_GUI 230,13
+ WFDInterface.1 = Input:A.0;  //_GUI 227,47, 227,16
+ WFDInterface.2 = MSB.0;  //_GUI 224,50, 224,28
+ WFDInterface.3 = SyncWFD.0;  
+ WFDInterface.4 = SyncWFD.1;  
+ WFDInterface.5 = SyncWFD.2;  
+ WFDInterface.6 = SyncWFD.3;  
+}
+
+Object ( Variant Out1) "Probe In01"( Variant "Probe In01") 
+//_Attributes TreeGroup=CoreLib-Debug\Input/output Probes
+{
+ //_ Object Prototypes
+ Object ( Variant "Probe In01") Input;  //_GUI 48,105
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Output( Variant Out1) ;  //_GUI 63,105
+ Object Text;  //_GUI 30,11,Encapsolated widget input for debugging purposes.The data set must be entered on each usage.Arial,12,8388608,0
+ Object Text;  //_GUI 29,96,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+}
+
+Object ( Variant Out1) "Probe In02"( Variant "Probe In02") 
+//_Attributes TreeGroup=CoreLib-Debug\Input/output Probes
+{
+ //_ Object Prototypes
+ Object ( Variant "Probe In02") Input;  //_GUI 48,109
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Output( Variant Out1) ;  //_GUI 63,109
+ Object Text;  //_GUI 30,11,Encapsolated widget input for debugging purposes.The data set must be entered on each usage.Arial,12,8388608,0
+ Object Text;  //_GUI 29,100,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+}
+
+Object ( Variant Out1) "Probe In03"( Variant "Probe In03") 
+//_Attributes TreeGroup=CoreLib-Debug\Input/output Probes
+{
+ //_ Object Prototypes
+ Object ( Variant "Probe In03") Input;  //_GUI 49,112
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Output( Variant Out1) ;  //_GUI 64,112
+ Object Text;  //_GUI 30,11,Encapsolated widget input for debugging purposes.The data set must be entered on each usage.Arial,12,8388608,0
+ Object Text;  //_GUI 30,103,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+}
+
+Object ( Variant Out1) "Probe In04"( Variant "Probe In04") 
+//_Attributes TreeGroup=CoreLib-Debug\Input/output Probes
+{
+ //_ Object Prototypes
+ Object ( Variant "Probe In04") Input;  //_GUI 49,116
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Output( Variant Out1) ;  //_GUI 64,116
+ Object Text;  //_GUI 30,11,Encapsolated widget input for debugging purposes.The data set must be entered on each usage.Arial,12,8388608,0
+ Object Text;  //_GUI 30,107,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+}
+
+Object ( Bit "Data0 Processed", Bit "Data1 Processed") WFDInterface( "IDispatch*" MemberOf
+    , Variant Names, Variant Format, Variant DataIn, Bit "Data0 Ready"
+    , Bit "Data1 Ready", Bit CLR) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( "IDispatch*" MemberOf) Input;  //_GUI 13,22
+ Object ( Variant Names) Input:A;  //_GUI 13,25
+ Object ( Variant Format) Input:B;  //_GUI 12,47
+ Object ( Variant DataIn) Input:C;  //_GUI 12,64
+ Object ( Bit "Data0 Ready") Input:D;  //_GUI 12,100
+ Object ( Bit "Data1 Ready") Input:E;  //_GUI 12,103
+ Object ( Bit CLR) Input:F;  //_GUI 12,116
+ //_Attributes Constant="0"
+ Object Output( Bit "Data0 Processed") ;  //_GUI 111,110
+ Object Output:A( Bit "Data1 Processed") ;  //_GUI 111,136
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction
+    ( Variant In0) ;  //_GUI 50,64
+ Object ( "IDispatch*" Out1, "IDispatch*" Out2, "IDispatch*" Out3) Junction:A
+    ( "IDispatch*" In0) ;  //_GUI 97,50
+ Object ( Bit Done, "MSB032*" Address) Ref( Bit Go
+    , MSB032 Data) ;  //_GUI 134,18
+ //_Attributes Resource=TIMESLICE
+ Object ( MSB032 Separator) Input:G;  //_GUI 124,22
+ //_Attributes Constant="*0x0000000a"
+ Object ( BinaryString Out) $Cast( "MSB032*" Data, BinaryString Type) ;  //_GUI 153,18
+ Object ( Bit Done, Bit Exception, Bit Exception) "WaveDisplay::SetFormat"
+    ( Bit Go, "IWaveDisplay*" MemberOf, DInt Format) ;  //_GUI 87,38
+ //_Attributes Primitive,System=X86UI,Resource=TIMESLICE,KeepObject=One side,ProgID=WaveDisplayProj1::WaveDisplay::SetFormat
+ Object ( Bit Done, Variant Address) Ref:A( Bit Go
+    , Variant Data) ;  //_GUI 46,43
+ //_Attributes Resource=TIMESLICE
+ Object ( DInt Out) $Cast:A( Variant Data, DInt Type) ;  //_GUI 66,43
+ Object ( Bit Done, "IVivaString*" Dispatch) "ComCreate: VIVASTANDARDOBJECTSLib::VivaString"( Bit Go) ;  //_GUI 114,37
+ //_Attributes System=X86UI,Resource=TIMESLICE,KeepObject=One side,ProgID=VIVASTANDARDOBJECTSLib::VivaString::[Create]
+ Object ( "IVivaString*" Out1, "IVivaString*" Out2, "IVivaString*" Out3) Junction:B
+    ( "IVivaString*" In0) ;  //_GUI 166,41
+ Object ( Bit Done) Release( Bit Go, "IDispatch*" Dispatch) ;  //_GUI 236,37
+ //_Attributes Resource=TIMESLICE,KeepObject=One side
+ Object ( Variant Out1) BitLength( Variant Type) ;  //_GUI 55,62
+ Object ( Bit Done, Bit Exception, Bit Exception) "WaveDisplay::DoDataXfer_OneTicknumForAll"
+    ( Bit Go, "IWaveDisplay*" MemberOf, DInt Length, DInt Data) ;  //_GUI 117,62
+ //_Attributes Primitive,System=X86UI,Resource=TIMESLICE,KeepObject=One side,ProgID=WaveDisplayProj1::WaveDisplay::DoDataXfer_OneTicknumForAll
+ Object ( Bit Done, Variant Address) Ref:B( Bit Go
+    , Variant Data) ;  //_GUI 66,52
+ //_Attributes Resource=TIMESLICE
+ Object ( Bit Done, Bit Exception, BinaryString "Ret Val") "VivaString::(Get)Data"
+    ( Bit Go, "IVivaString*" MemberOf) ;  //_GUI 185,37
+ //_Attributes Primitive,System=X86UI,Resource=TIMESLICE,KeepObject=One side,ProgID=VIVASTANDARDOBJECTSLib::VivaString::(Get)Data
+ Object ( "IDispatch*" Out1, "IDispatch*" Out2, "IDispatch*" Out3) Junction:C
+    ( "IDispatch*" In1) ;  //_GUI 83,42
+ Object ( "IDispatch*" Out1, "IDispatch*" Out2, "IDispatch*" Out3) Junction:D
+    ( "IDispatch*" In1) ;  //_GUI 83,33
+ Object ( Bit Done) BuildString( Variant StringList, "IVivaString*" MemberOf
+    , BinaryString Separator, Bit Go) ;  //_GUI 169,13
+ Object Text;  //_GUI 9,8,Sets up the Wave Form Display and sends data to it.Arial,12,8388608,0
+ Object ( DInt Out1) $Cast:B( Variant Data, DInt Type) ;  //_GUI 70,60
+ Object ( DInt Out1) $Cast:C( Variant Data, DInt Type) ;  //_GUI 84,52
+ Object ( Bit Done, "IDispatch**" Address) Ref:C( Bit Go
+    , "IDispatch*" Data) ;  //_GUI 17,37
+ //_Attributes Resource=TIMESLICE
+ Object ( Bit Out1) OR( Bit In1, Bit In2) ;  //_GUI 36,37
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:E
+    ( Bit In0) ;  //_GUI 32,38
+ Object ( Variant Entered, Variant Active, Variant Leaving) State
+    ( Variant Enter, Variant Leave, Bit ClkG, Bit AClr) ;  //_GUI 54,106
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:F
+    ( Bit In0) ;  //_GUI 22,116
+ Object ( Bit Out1) VouchBit( Variant In1) ;  //_GUI 72,108
+ Object Text;  //_GUI 22,86,Synchronize data between FPGA and COM object (COM side).Arial,12,8388608,0
+ Object ( Bit Out) INVERT( Bit In1) ;  //_GUI 31,108
+ Object ( Bit Pulse) OneShot( Bit I, Bit ClkG) ;  //_GUI 36,99
+ Object ( Bit Pulse) OneShot:A( Bit I, Bit ClkG) ;  //_GUI 35,123
+ Object ( Variant Entered, Variant Active, Variant Leaving) State:A
+    ( Variant Enter, Variant Leave, Bit ClkG, Bit AClr) ;  //_GUI 50,132
+ Object ( Bit Out1) VouchBit:A( Variant In1) ;  //_GUI 69,134
+ Object ( Bit Out) INVERT:A( Bit In1) ;  //_GUI 27,134
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:G
+    ( Bit In1) ;  //_GUI 26,124
+ Object ( Bit Out) OR:A( Bit In1, Bit In2) ;  //_GUI 54,93
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:H
+    ( Bit In0) ;  //_GUI 53,101
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:I
+    ( Bit In0) ;  //_GUI 49,125
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:J
+    ( Bit In0) ;  //_GUI 61,39
+ Object Text;  //_GUI 58,103,Let COM object process.
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:K
+    ( Bit In0) ;  //_GUI 30,100
+ Object ( Bit Done, Bit Exception, Bit Exception) "WaveDisplay::SetNames"
+    ( Bit Go, "IWaveDisplay*" MemberOf, BinaryString Names) ;  //_GUI 210,37
+ //_Attributes Primitive,System=X86UI,Resource=TIMESLICE,KeepObject=One side,ProgID=WaveDisplayProj1::WaveDisplay::SetNames
+ Object Text;  //_GUI 53,128,Let COM object process.
+ Object Text;  //_GUI 9,13,Warning!  Parent object should always have System=X86CPU.Arial,12,255,0
+
+ //_ Behavior Topology
+ Output.0 = VouchBit.0;  
+ Output:A.0 = VouchBit:A.0;  
+ Junction.0 = Input:C.0;  
+ Junction:A.0 = Junction:C.2;  //_GUI 84,51
+ Ref.0 = "ComCreate: VIVASTANDARDOBJECTSLib::VivaString".0;  //_GUI 131,20, 131,32, 163,32
+ Ref.1 = Input:G.0;  
+ $Cast.0 = Ref.1;  
+ "WaveDisplay::SetFormat".0 = Junction:J.1;  
+ "WaveDisplay::SetFormat".1 = Junction:C.1;  
+ "WaveDisplay::SetFormat".2 = $Cast:A.0;  
+ Ref:A.0 = OR.0;  
+ Ref:A.1 = Input:B.0;  
+ $Cast:A.0 = Ref:A.1;  
+ "ComCreate: VIVASTANDARDOBJECTSLib::VivaString".0 = "WaveDisplay::SetFormat".0;  
+ Junction:B.0 = "ComCreate: VIVASTANDARDOBJECTSLib::VivaString".1;  
+ Release.0 = "WaveDisplay::SetNames".0;  
+ Release.1 = Junction:B.2;  //_GUI 236,55, 167,55
+ BitLength.0 = Junction.1;  
+ "WaveDisplay::DoDataXfer_OneTicknumForAll".0 = OR:A.0;  //_GUI 112,64, 112,96
+ "WaveDisplay::DoDataXfer_OneTicknumForAll".1 = Junction:A.2;  //_GUI 98,67
+ "WaveDisplay::DoDataXfer_OneTicknumForAll".2 = $Cast:B.0;  //_GUI 80,70
+ "WaveDisplay::DoDataXfer_OneTicknumForAll".3 = $Cast:C.0;  //_GUI 94,73
+ Ref:B.0 = Junction:J.2;  //_GUI 62,54
+ Ref:B.1 = Junction.0;  //_GUI 51,57
+ "VivaString::(Get)Data".0 = BuildString.0;  
+ "VivaString::(Get)Data".1 = Junction:B.1;  
+ Junction:C.0 = Junction:D.2;  
+ Junction:D.0 = Input.0;  //_GUI 84,23
+ BuildString.0 = Input:A.0;  //_GUI 111,15, 111,26
+ BuildString.1 = Junction:B.0;  //_GUI 167,18
+ BuildString.2 = $Cast.0;  
+ BuildString.3 = Ref.0;  //_GUI 169,28, 150,28, 150,20
+ $Cast:B.0 = BitLength.0;  
+ $Cast:C.0 = Ref:B.1;  
+ Ref:C.1 = Junction:D.0;  //_GUI 14,42, 14,34
+ OR.0 = Junction:E.1;  
+ OR.1 = Junction:E.2;  //_GUI 33,42
+ Junction:E.0 = Ref:C.0;  
+ State.0 = Junction:H.2;  
+ State.1 = INVERT.0;  
+ State.3 = Junction:F.1;  
+ Junction:F.0 = Input:F.0;  
+ VouchBit.0 = State.1;  
+ INVERT.0 = Junction:K.2;  
+ OneShot.0 = Junction:K.1;  
+ OneShot:A.0 = Junction:G.1;  
+ State:A.0 = Junction:I.2;  
+ State:A.1 = INVERT:A.0;  
+ State:A.3 = Junction:F.2;  //_GUI 23,143
+ VouchBit:A.0 = State:A.1;  
+ INVERT:A.0 = Junction:G.2;  
+ Junction:G.0 = Input:E.0;  //_GUI 27,104
+ OR:A.0 = Junction:I.0;  //_GUI 50,95
+ OR:A.1 = Junction:H.0;  
+ Junction:H.0 = OneShot.0;  
+ Junction:I.0 = OneShot:A.0;  
+ Junction:J.0 = Ref:A.0;  //_GUI 59,40
+ Junction:K.0 = Input:D.0;  
+ "WaveDisplay::SetNames".0 = "VivaString::(Get)Data".0;  
+ "WaveDisplay::SetNames".1 = Junction:A.1;  //_GUI 208,42, 208,51
+ "WaveDisplay::SetNames".2 = "VivaString::(Get)Data".2;  
+}
+
+Object ( Variant "Probe 05a", Variant "Probe 05b") "$Probe 05ab"( Variant In1
+    , Variant In1) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Variant In1) Input;  //_GUI 48,139
+ Object ( Variant In1) Input:A;  //_GUI 48,142
+ Object Output( Variant "Probe 05a") ;  //_GUI 63,139
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Output:A( Variant "Probe 05b") ;  //_GUI 63,142
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Text;  //_GUI 30,11,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object Text;  //_GUI 29,130,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+ Output:A.0 = Input:A.0;  
+}
+
+Object ( Variant "Probe 06a", Variant "Probe 06b") "$Probe 06ab"( Variant In1
+    , Variant In1) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Variant In1) Input;  //_GUI 48,145
+ Object ( Variant In1) Input:A;  //_GUI 48,148
+ Object Output( Variant "Probe 06a") ;  //_GUI 63,145
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Output:A( Variant "Probe 06b") ;  //_GUI 63,148
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Text;  //_GUI 30,11,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object Text;  //_GUI 26,131,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+ Output:A.0 = Input:A.0;  
+}
+
+Object ( Variant "Probe 07a", Variant "Probe 07b") "$Probe 07ab"( Variant In1
+    , Variant In1) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Variant In1) Input;  //_GUI 52,151
+ Object ( Variant In1) Input:A;  //_GUI 52,154
+ Object Output( Variant "Probe 07a") ;  //_GUI 67,151
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Output:A( Variant "Probe 07b") ;  //_GUI 67,154
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Text;  //_GUI 30,11,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object Text;  //_GUI 34,141,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+ Output:A.0 = Input:A.0;  
+}
+
+Object ( Variant "Probe 08a", Variant "Probe 08b") "$Probe 08ab"( Variant In1
+    , Variant In1) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Variant In1) Input;  //_GUI 53,159
+ Object ( Variant In1) Input:A;  //_GUI 53,162
+ Object Output( Variant "Probe 08a") ;  //_GUI 68,159
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Output:A( Variant "Probe 08b") ;  //_GUI 68,162
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object Text;  //_GUI 30,11,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object Text;  //_GUI 34,148,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+ Output:A.0 = Input:A.0;  
+}
+
+Object "Probe 05ab"( Variant a, Variant b) 
+//_Attributes TreeGroup=CoreLib-Debug\Input/output Probes
+{
+ //_ Object Prototypes
+ Object ( Variant a) Input;  //_GUI 44,30
+ Object ( Variant b) Input:A;  //_GUI 44,33
+ Object Text;  //_GUI 27,14,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object ( Variant "Probe 05a", Variant "Probe 05b") "$Probe 05ab"( Variant In1
+    , Variant In1) ;  //_GUI 51,29
+
+ //_ Behavior Topology
+ "$Probe 05ab".0 = Input.0;  
+ "$Probe 05ab".1 = Input:A.0;  
+}
+
+Object "Probe 06ab"( Variant a, Variant b) 
+//_Attributes TreeGroup=CoreLib-Debug\Input/output Probes
+{
+ //_ Object Prototypes
+ Object ( Variant a) Input;  //_GUI 44,30
+ Object ( Variant b) Input:A;  //_GUI 44,33
+ Object Text;  //_GUI 27,14,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object ( Variant "Probe 06a", Variant "Probe 06b") "$Probe 06ab"( Variant In1
+    , Variant In1) ;  //_GUI 52,29
+
+ //_ Behavior Topology
+ "$Probe 06ab".0 = Input.0;  
+ "$Probe 06ab".1 = Input:A.0;  
+}
+
+Object "Probe 07ab"( Variant a, Variant b) 
+//_Attributes TreeGroup=CoreLib-Debug\Input/output Probes
+{
+ //_ Object Prototypes
+ Object ( Variant a) Input;  //_GUI 44,30
+ Object ( Variant b) Input:A;  //_GUI 44,33
+ Object Text;  //_GUI 27,14,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object ( Variant "Probe 07a", Variant "Probe 07b") "$Probe 07ab"( Variant In1
+    , Variant In1) ;  //_GUI 52,29
+
+ //_ Behavior Topology
+ "$Probe 07ab".0 = Input.0;  
+ "$Probe 07ab".1 = Input:A.0;  
+}
+
+Object "Probe 08ab"( Variant a, Variant b) 
+//_Attributes TreeGroup=CoreLib-Debug\Input/output Probes
+{
+ //_ Object Prototypes
+ Object ( Variant a) Input;  //_GUI 44,30
+ Object ( Variant b) Input:A;  //_GUI 44,33
+ Object Text;  //_GUI 27,14,Encapsolated widget output for debugging purposes.Arial,12,8388608,0
+ Object ( Variant "Probe 08a", Variant "Probe 08b") "$Probe 08ab"( Variant In1
+    , Variant In1) ;  //_GUI 52,29
+
+ //_ Behavior Topology
+ "$Probe 08ab".0 = Input.0;  
+ "$Probe 08ab".1 = Input:A.0;  
+}
+
+Object ( Bit Busy) "Probe WFD a-f"( Variant "Data a", Variant "Data b"
+    , Variant "Data c", Variant "Data d", Variant "Data e", Variant "Data f"
+    , BinaryString "Name a", BinaryString "Name b", BinaryString "Name c", BinaryString "Name d"
+    , BinaryString "Name e", BinaryString "Name f", Bit ClkG, Bit Enable) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Variant "Data a") Input;  //_GUI 12,21
+ Object ( Variant "Data b") Input:A;  //_GUI 12,24
+ Object ( Variant "Data c") Input:B;  //_GUI 12,27
+ Object ( Variant "Data d") Input:C;  //_GUI 12,30
+ Object ( Variant "Data e") Input:D;  //_GUI 12,33
+ Object ( Variant "Data f") Input:E;  //_GUI 12,36
+ Object ( BinaryString "Name a") Input:F;  //_GUI 12,45
+ //_Attributes Constant="Probe a"
+ Object ( BinaryString "Name b") Input:G;  //_GUI 12,48
+ //_Attributes Constant="Probe b"
+ Object ( BinaryString "Name c") Input:H;  //_GUI 12,51
+ //_Attributes Constant="Probe c"
+ Object ( BinaryString "Name d") Input:I;  //_GUI 12,54
+ //_Attributes Constant="Probe d"
+ Object ( BinaryString "Name e") Input:J;  //_GUI 12,57
+ //_Attributes Constant="Probe e"
+ Object ( BinaryString "Name f") Input:K;  //_GUI 12,60
+ //_Attributes Constant="Probe f"
+ Object ( Bit ClkG) Input:L;  //_GUI 9,117
+ //_Attributes Resource=*Global
+ Object ( Bit Enable) Input:M;  //_GUI 9,120
+ Object Output( Bit Busy) ;  //_GUI 127,100
+ Object Text;  //_GUI 20,124,If Enable is left unconnected, then $EnableSelect will ensure one automatic "Enable (WFD)" input widget.
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction
+    ( Bit In0) ;  //_GUI 121,88
+ Object Output:A( WFD_Enable "Enable (WFD)") ;  //_GUI 120,50
+ //_Attributes Resource=Global
+ Object ( WFD_Enable Out1) $Cast( Bit Data, WFD_Enable Type) ;  //_GUI 86,86
+ Object ( WFD_Enable Out) WFD_EnableOut( Bit In1) ;  //_GUI 100,48
+ Object ( Bit Out1) $EnableSelect( WFD_Enable "Enable (WFD)") ;  //_GUI 100,86
+ Object Text;  //_GUI 6,9,Encapsolated wave form display for easy output for debugging purposes.This version exposes 6 Data/Names, ClkG, Enable and Busy parameters.Arial,12,8388608,0
+ Object ( Bit Busy) WFDCapture( "IDispatch*" MemberOf, Variant Names
+    , Variant Data, Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) ;  //_GUI 127,57
+ Object ( List Out1) PackMSB( Variant In1, Variant In2
+    , Variant In3, Variant In4, Variant In5, Variant In6) ;  //_GUI 61,35
+ Object ( List Out1) PackMSB:A( Variant In1, Variant In2
+    , Variant In3, Variant In4, Variant In5, Variant In6) ;  //_GUI 58,59
+ Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD a-f"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") ;  //_GUI 82,54
+ Object "WFD Null Warn"( BinaryString String) ;  //_GUI 55,80
+ Object "WFD Null Warn":A( BinaryString String) ;  //_GUI 52,89
+ Object "WFD Null Warn":B( BinaryString String) ;  //_GUI 26,80
+ Object "WFD Null Warn":C( BinaryString String) ;  //_GUI 23,89
+ Object "WFD Null Warn":D( BinaryString String) ;  //_GUI 19,98
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:A
+    ( BinaryString In1) ;  //_GUI 25,69
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:B
+    ( BinaryString In1) ;  //_GUI 22,72
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:C
+    ( BinaryString In1) ;  //_GUI 18,75
+ Object "WFD Null Warn":E( BinaryString String) ;  //_GUI 48,99
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:D
+    ( BinaryString In0) ;  //_GUI 54,60
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:E
+    ( BinaryString In0) ;  //_GUI 51,63
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:F
+    ( BinaryString In0) ;  //_GUI 47,66
+
+ //_ Behavior Topology
+ Output.0 = WFDCapture.0;  
+ Junction.0 = $EnableSelect.0;  
+ Output:A.0 = WFD_EnableOut.0;  
+ $Cast.0 = Input:M.0;  //_GUI 86,121
+ WFD_EnableOut.0 = "$Probe WFD a-f".0;  
+ $EnableSelect.0 = $Cast.0;  
+ WFDCapture.0 = "$Probe WFD a-f".1;  
+ WFDCapture.1 = PackMSB:A.0;  
+ WFDCapture.2 = PackMSB.0;  //_GUI 72,65
+ WFDCapture.3 = Junction.0;  //_GUI 122,68
+ WFDCapture.8 = Input:L.0;  //_GUI 82,83, 82,118
+ WFDCapture.9 = Junction.1;  
+ PackMSB.0 = Input:E.0;  
+ PackMSB.1 = Input:D.0;  //_GUI 55,40, 55,34
+ PackMSB.2 = Input:C.0;  //_GUI 52,43, 52,31
+ PackMSB.3 = Input:B.0;  //_GUI 49,46, 49,28
+ PackMSB.4 = Input:A.0;  //_GUI 46,49, 46,25
+ PackMSB.5 = Input.0;  //_GUI 43,52, 43,22
+ PackMSB:A.0 = Junction:D.1;  
+ PackMSB:A.1 = Junction:E.1;  
+ PackMSB:A.2 = Junction:F.1;  
+ PackMSB:A.3 = Junction:A.1;  
+ PackMSB:A.4 = Junction:B.1;  
+ PackMSB:A.5 = Junction:C.1;  
+ "WFD Null Warn".0 = Junction:D.2;  
+ "WFD Null Warn":A.0 = Junction:E.2;  
+ "WFD Null Warn":B.0 = Junction:A.2;  
+ "WFD Null Warn":C.0 = Junction:B.2;  
+ "WFD Null Warn":D.0 = Junction:C.2;  
+ Junction:A.0 = Input:H.0;  //_GUI 26,52
+ Junction:B.0 = Input:G.0;  //_GUI 23,49
+ Junction:C.0 = Input:F.0;  //_GUI 19,46
+ "WFD Null Warn":E.0 = Junction:F.2;  
+ Junction:D.0 = Input:K.0;  
+ Junction:E.0 = Input:J.0;  //_GUI 32,64, 32,58
+ Junction:F.0 = Input:I.0;  //_GUI 29,67, 29,55
+}
+
+Object ( Variant "Regular Counter", Variant "Exponential Counter") "Ex_Wave Form Display (Standard)"( MSB010 In1
+    , BinaryString "Probe Name", Bit Enable) 
+//_Attributes TreeGroup=CoreLib-Debug\Examples
+{
+ //_ Object Prototypes
+ Object ( MSB010 In1) Input;  //_GUI 10,59
+ //_Attributes Constant="1"
+ Object ( BinaryString "Probe Name") Input:A;  //_GUI 77,79
+ //_Attributes Constant="Counter (Exp)"
+ Object ( Bit Enable) Input:B;  //_GUI 10,110
+ Object Output( Variant "Regular Counter") ;  //_GUI 108,57
+ Object Output:A( Variant "Exponential Counter") ;  //_GUI 108,65
+ Object ( Bit Out) INVERT( Bit In1) ;  //_GUI 84,102
+ Object ( Bit CO, Variant Count) Count( Variant CBy
+    , Bit ClkG, Bit EN, Bit CLR) ;  //_GUI 64,61
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction
+    ( Variant In0) ;  //_GUI 41,62
+ Object ( Bit CO, Variant Count) Count:A( Variant CBy
+    , Bit ClkG, Bit EN, Bit CLR) ;  //_GUI 24,58
+ Object ( Bit Out) INVERT:A( Bit In1) ;  //_GUI 42,105
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:A
+    ( Bit In3) ;  //_GUI 19,80
+ Object ( Variant Out1) AND( Variant In1, Variant In2
+    , Variant In3) ;  //_GUI 98,103
+ Object ( Bit Out1) VouchBit( Variant In1) ;  //_GUI 112,103
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:B
+    ( Bit In2) ;  //_GUI 61,98
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:C
+    ( Bit In3) ;  //_GUI 61,85
+ Object Text;  //_GUI 7,11,This sheet demonstrates the standard Wave Form Display probe objects.It allows the user to specify a Name (defaults to "Probe 01"), clock and Enable (defaults to the automatic "Enable (WFD)" input).Run the sheet as follows:      Set "Enable" high.      Wait a few seconds.      Set "Enable" low.The "Probe 01" and "Counter (Exp)" wave form displays will record all of the values of the two outputs.Arial,12,8388608,0
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction:D
+    ( Variant In0) ;  //_GUI 83,65
+ Object ( Bit Busy) "Probe WFD 01"( Variant Data, BinaryString "Name 01"
+    , Bit ClkG, Bit Enable) ;  //_GUI 42,70
+ Object ( Bit Busy) "Probe WFD 02"( Variant Data, BinaryString "Name 02"
+    , Bit ClkG, Bit Enable) ;  //_GUI 84,75
+
+ //_ Behavior Topology
+ Output.0 = Junction.0;  //_GUI 42,58
+ Output:A.0 = Junction:D.1;  
+ INVERT.0 = "Probe WFD 02".0;  
+ Count.0 = Junction.1;  
+ Count.2 = Junction:C.1;  //_GUI 62,69
+ Junction.0 = Count:A.1;  
+ Count:A.0 = Input.0;  
+ Count:A.2 = Junction:A.1;  //_GUI 20,66
+ INVERT:A.0 = "Probe WFD 01".0;  
+ Junction:A.0 = Junction:B.0;  //_GUI 20,99
+ AND.0 = INVERT.0;  
+ AND.1 = INVERT:A.0;  
+ AND.2 = Input:B.0;  
+ VouchBit.0 = AND.0;  
+ Junction:B.0 = VouchBit.0;  //_GUI 122,99
+ Junction:C.0 = Junction:B.1;  
+ Junction:D.0 = Count.1;  
+ "Probe WFD 01".0 = Junction.2;  
+ "Probe WFD 01".3 = Junction:A.2;  
+ "Probe WFD 02".0 = Junction:D.2;  
+ "Probe WFD 02".1 = Input:A.0;  
+ "Probe WFD 02".3 = Junction:C.2;  
+}
+
+Object ( Variant "Regular Counter", Variant "Exponential Counter") "Ex_Wave Form Display (Advanced)"( MSB010 In1
+    , "IDispatch*" "Wave Form Display", BinaryString "Probe Name", BinaryString "Probe Name", MSB007 TickSize
+    , MSB007 QueueSize, MSB009 ComSize, Bit AClr, Bit ClkG
+    , Bit Enable) 
+//_Attributes TreeGroup=CoreLib-Debug\Examples
+{
+ //_ Object Prototypes
+ Object ( MSB010 In1) Input;  //_GUI 12,74
+ //_Attributes Constant="1"
+ Object ( "IDispatch*" "Wave Form Display") Input:A;  //_GUI 112,86
+ //_Attributes System=X86UI,Resource=TIMESLICE,ActiveXWidget=WaveDisplayProj1::WaveDisplay,WidgetProperty=[Dispatch],WidgetEvent=(Event)OnPaint,WidgetWidth=600,WidgetHeight=450,WidgetLeft=340
+ Object ( BinaryString "Probe Name") Input:B;  //_GUI 71,88
+ //_Attributes Constant="Counter (Reg)"
+ Object ( BinaryString "Probe Name") Input:C;  //_GUI 71,91
+ //_Attributes Constant="Counter (Exp)"
+ Object ( MSB007 TickSize) Input:D;  //_GUI 112,98
+ //_Attributes Constant="10"
+ Object ( MSB007 QueueSize) Input:E;  //_GUI 112,101
+ //_Attributes Constant="9"
+ Object ( MSB009 ComSize) Input:F;  //_GUI 112,104
+ //_Attributes Constant="480"
+ Object ( Bit AClr) Input:G;  //_GUI 112,107
+ //_Attributes Constant="0"
+ Object ( Bit ClkG) Input:H;  //_GUI 112,110
+ //_Attributes Resource=*Global
+ Object ( Bit Enable) Input:I;  //_GUI 12,141
+ Object Output( Variant "Regular Counter") ;  //_GUI 130,66
+ Object Output:A( Variant "Exponential Counter") ;  //_GUI 131,80
+ Object Text;  //_GUI 6,12,This sheet demonstrates the advanced Wave Form Display object (WFDCapture).The Active X input is used to create the Wave Form Display and specify its widget size and location.  This one control is used for both counters (note the 2 ListOut objects).  Speed across the BCS is improved by reducing the Tick Size to 10 bits and sending 16 data packets (480 bits) at a time.  Only 1 out of every 4 data values is captured.Run the sheet as follows:      Set "Enable" high.      Wait a few seconds.      Set "Enable" low.The "Counter (Reg)" and "Counter (Exp)" wave form displays will record every 4th value of the two outputs up to the max Tick Size of 1023.Arial,12,8388608,0
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction
+    ( Bit In2) ;  //_GUI 43,132
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:A
+    ( Bit In3) ;  //_GUI 43,122
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction:B
+    ( Variant In0) ;  //_GUI 81,80
+ Object ( Bit CO, Variant Count) Count( Variant CBy
+    , Bit ClkG, Bit EN, Bit CLR) ;  //_GUI 26,73
+ Object ( Bit Out) INVERT( Bit In1) ;  //_GUI 121,136
+ Object ( Bit CO, Variant Count) Count:A( Variant CBy
+    , Bit ClkG, Bit EN, Bit CLR) ;  //_GUI 46,76
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction:C
+    ( Variant In0) ;  //_GUI 41,77
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:D
+    ( Bit In3) ;  //_GUI 43,95
+ Object ( Bit CO, Variant Count) Count:B( Variant CBy
+    , Bit ClkG, Bit EN, Bit CLR) ;  //_GUI 91,115
+ Object ( DBit CBy) Input:J;  //_GUI 84,116
+ //_Attributes Constant="*1"
+ Object Text;  //_GUI 79,112,Capture every 4th value.
+ Object ( Bit Out) AND( Bit In1, Bit In2) ;  //_GUI 135,137
+ Object ( List Out) ListOut( Variant In1, Variant In2) ;  //_GUI 78,87
+ Object ( List Out) ListOut:A( Variant In1, Variant In2) ;  //_GUI 82,70
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction:E
+    ( Variant In0) ;  //_GUI 81,66
+ Object ( Bit Busy) WFDCapture( "IDispatch*" MemberOf, Variant Names
+    , Variant Data, Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) ;  //_GUI 121,85
+
+ //_ Behavior Topology
+ Output.0 = Junction:E.1;  
+ Output:A.0 = Junction:B.1;  
+ Junction.0 = AND.0;  //_GUI 145,133
+ Junction:A.0 = Junction.1;  
+ Junction:B.0 = Count:A.1;  
+ Count.0 = Input.0;  
+ Count.2 = Junction.0;  //_GUI 23,81, 23,133
+ INVERT.0 = WFDCapture.0;  
+ Count:A.0 = Junction:C.1;  
+ Count:A.2 = Junction:D.1;  //_GUI 44,84
+ Junction:C.0 = Count.1;  
+ Junction:D.0 = Junction:A.1;  
+ Count:B.0 = Input:J.0;  
+ Count:B.2 = Junction:A.2;  
+ AND.0 = INVERT.0;  
+ AND.1 = Input:I.0;  
+ ListOut.0 = Input:C.0;  
+ ListOut.1 = Input:B.0;  
+ ListOut:A.0 = Junction:B.0;  
+ ListOut:A.1 = Junction:E.2;  
+ Junction:E.0 = Junction:C.0;  //_GUI 42,67
+ WFDCapture.0 = Input:A.0;  
+ WFDCapture.1 = ListOut.0;  
+ WFDCapture.2 = ListOut:A.0;  //_GUI 93,93
+ WFDCapture.3 = Junction:D.2;  
+ WFDCapture.4 = Input:D.0;  
+ WFDCapture.5 = Input:E.0;  
+ WFDCapture.6 = Input:F.0;  
+ WFDCapture.7 = Input:G.0;  
+ WFDCapture.8 = Input:H.0;  
+ WFDCapture.9 = Count:B.0;  
+}
+
+Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD a-b"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Bit "Enable (WFD)") Input;  //_GUI 40,137
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object ( "IDispatch*" "Wave Form Display") Input:A;  //_GUI 40,140
+ //_Attributes System=X86UI,Resource=TIMESLICE,ActiveXWidget=WaveDisplayProj1::WaveDisplay,WidgetProperty=[Dispatch],WidgetEvent=(Event)OnPaint,WidgetWidth=600,WidgetHeight=350,WidgetLeft=340
+ Object Output( Bit Out1) ;  //_GUI 51,137
+ Object Output:A( "IDispatch*" Out1) ;  //_GUI 51,140
+ Object Text;  //_GUI 11,16,Encapsolated input horns to prevent them from being promoted.The WidgetHeight attribute is based on the number of Data nodes.Arial,12,8388608,0
+ Object Text;  //_GUI 28,127,Objects placed low on the sheet to put the Wave Form Display on the bottom of the widget form.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+ Output:A.0 = Input:A.0;  
+}
+
+Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD a-c"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Bit "Enable (WFD)") Input;  //_GUI 42,135
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object ( "IDispatch*" "Wave Form Display") Input:A;  //_GUI 42,138
+ //_Attributes System=X86UI,Resource=TIMESLICE,ActiveXWidget=WaveDisplayProj1::WaveDisplay,WidgetProperty=[Dispatch],WidgetEvent=(Event)OnPaint,WidgetWidth=600,WidgetHeight=390,WidgetLeft=340
+ Object Output( Bit Out1) ;  //_GUI 53,135
+ Object Output:A( "IDispatch*" Out1) ;  //_GUI 53,138
+ Object Text;  //_GUI 11,16,Encapsolated input horns to prevent them from being promoted.The WidgetHeight attribute is based on the number of Data nodes.Arial,12,8388608,0
+ Object Text;  //_GUI 27,125,Objects placed low on the sheet to put the Wave Form Display on the bottom of the widget form.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+ Output:A.0 = Input:A.0;  
+}
+
+Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD a-d"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Bit "Enable (WFD)") Input;  //_GUI 45,137
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object ( "IDispatch*" "Wave Form Display") Input:A;  //_GUI 45,140
+ //_Attributes System=X86UI,Resource=TIMESLICE,ActiveXWidget=WaveDisplayProj1::WaveDisplay,WidgetProperty=[Dispatch],WidgetEvent=(Event)OnPaint,WidgetWidth=600,WidgetHeight=430,WidgetLeft=340
+ Object Output( Bit Out1) ;  //_GUI 56,137
+ Object Output:A( "IDispatch*" Out1) ;  //_GUI 56,140
+ Object Text;  //_GUI 11,16,Encapsolated input horns to prevent them from being promoted.The WidgetHeight attribute is based on the number of Data nodes.Arial,12,8388608,0
+ Object Text;  //_GUI 32,127,Objects placed low on the sheet to put the Wave Form Display on the bottom of the widget form.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+ Output:A.0 = Input:A.0;  
+}
+
+Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD a-e"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Bit "Enable (WFD)") Input;  //_GUI 39,136
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object ( "IDispatch*" "Wave Form Display") Input:A;  //_GUI 39,139
+ //_Attributes System=X86UI,Resource=TIMESLICE,ActiveXWidget=WaveDisplayProj1::WaveDisplay,WidgetProperty=[Dispatch],WidgetEvent=(Event)OnPaint,WidgetWidth=600,WidgetHeight=470,WidgetLeft=340
+ Object Output( Bit Out1) ;  //_GUI 50,136
+ Object Output:A( "IDispatch*" Out1) ;  //_GUI 50,139
+ Object Text;  //_GUI 11,16,Encapsolated input horns to prevent them from being promoted.The WidgetHeight attribute is based on the number of Data nodes.Arial,12,8388608,0
+ Object Text;  //_GUI 26,126,Objects placed low on the sheet to put the Wave Form Display on the bottom of the widget form.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+ Output:A.0 = Input:A.0;  
+}
+
+Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD a-f"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Bit "Enable (WFD)") Input;  //_GUI 36,136
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object ( "IDispatch*" "Wave Form Display") Input:A;  //_GUI 36,139
+ //_Attributes System=X86UI,Resource=TIMESLICE,ActiveXWidget=WaveDisplayProj1::WaveDisplay,WidgetProperty=[Dispatch],WidgetEvent=(Event)OnPaint,WidgetWidth=600,WidgetHeight=510,WidgetLeft=340
+ Object Output( Bit Out1) ;  //_GUI 47,136
+ Object Output:A( "IDispatch*" Out1) ;  //_GUI 47,139
+ Object Text;  //_GUI 11,16,Encapsolated input horns to prevent them from being promoted.The WidgetHeight attribute is based on the number of Data nodes.Arial,12,8388608,0
+ Object Text;  //_GUI 24,125,Objects placed low on the sheet to put the Wave Form Display on the bottom of the widget form.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+ Output:A.0 = Input:A.0;  
+}
+
+Object ( Bit Busy) "Probe WFD a-e"( Variant "Data a", Variant "Data b"
+    , Variant "Data c", Variant "Data d", Variant "Data e", BinaryString "Name a"
+    , BinaryString "Name b", BinaryString "Name c", BinaryString "Name d", BinaryString "Name e"
+    , Bit ClkG, Bit Enable) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Variant "Data a") Input;  //_GUI 10,24
+ Object ( Variant "Data b") Input:A;  //_GUI 10,27
+ Object ( Variant "Data c") Input:B;  //_GUI 10,30
+ Object ( Variant "Data d") Input:C;  //_GUI 10,33
+ Object ( Variant "Data e") Input:D;  //_GUI 10,36
+ Object ( BinaryString "Name a") Input:E;  //_GUI 10,44
+ //_Attributes Constant="Probe a"
+ Object ( BinaryString "Name b") Input:F;  //_GUI 10,47
+ //_Attributes Constant="Probe b"
+ Object ( BinaryString "Name c") Input:G;  //_GUI 10,50
+ //_Attributes Constant="Probe c"
+ Object ( BinaryString "Name d") Input:H;  //_GUI 10,53
+ //_Attributes Constant="Probe d"
+ Object ( BinaryString "Name e") Input:I;  //_GUI 10,56
+ //_Attributes Constant="Probe e"
+ Object ( Bit ClkG) Input:J;  //_GUI 8,107
+ //_Attributes Resource=*Global
+ Object ( Bit Enable) Input:K;  //_GUI 8,110
+ Object Output( Bit Busy) ;  //_GUI 125,96
+ Object Text;  //_GUI 15,114,If Enable is left unconnected, then $EnableSelect will ensure one automatic "Enable (WFD)" input widget.
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction
+    ( Bit In0) ;  //_GUI 119,84
+ Object Output:A( WFD_Enable "Enable (WFD)") ;  //_GUI 118,46
+ //_Attributes Resource=Global
+ Object ( WFD_Enable Out1) $Cast( Bit Data, WFD_Enable Type) ;  //_GUI 84,82
+ Object ( WFD_Enable Out) WFD_EnableOut( Bit In1) ;  //_GUI 98,44
+ Object ( Bit Out1) $EnableSelect( WFD_Enable "Enable (WFD)") ;  //_GUI 98,82
+ Object Text;  //_GUI 6,9,Encapsolated wave form display for easy output for debugging purposes.This version exposes 5 Data/Names, ClkG, Enable and Busy parameters.Arial,12,8388608,0
+ Object ( Bit Busy) WFDCapture( "IDispatch*" MemberOf, Variant Names
+    , Variant Data, Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) ;  //_GUI 125,53
+ Object ( List Out1) PackMSB( Variant In1, Variant In2
+    , Variant In3, Variant In4, Variant In5) ;  //_GUI 57,35
+ Object ( List Out1) PackMSB:A( Variant In1, Variant In2
+    , Variant In3, Variant In4, Variant In5) ;  //_GUI 54,55
+ Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD a-e"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") ;  //_GUI 80,50
+ Object "WFD Null Warn"( BinaryString String) ;  //_GUI 48,74
+ Object "WFD Null Warn":A( BinaryString String) ;  //_GUI 44,82
+ Object "WFD Null Warn":B( BinaryString String) ;  //_GUI 24,73
+ Object "WFD Null Warn":C( BinaryString String) ;  //_GUI 21,82
+ Object "WFD Null Warn":D( BinaryString String) ;  //_GUI 17,90
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:A
+    ( BinaryString In1) ;  //_GUI 16,68
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:B
+    ( BinaryString In1) ;  //_GUI 20,65
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:C
+    ( BinaryString In1) ;  //_GUI 23,62
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:D
+    ( BinaryString In0) ;  //_GUI 47,56
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:E
+    ( BinaryString In0) ;  //_GUI 43,59
+
+ //_ Behavior Topology
+ Output.0 = WFDCapture.0;  
+ Junction.0 = $EnableSelect.0;  
+ Output:A.0 = WFD_EnableOut.0;  
+ $Cast.0 = Input:K.0;  //_GUI 84,111
+ WFD_EnableOut.0 = "$Probe WFD a-e".0;  
+ $EnableSelect.0 = $Cast.0;  
+ WFDCapture.0 = "$Probe WFD a-e".1;  
+ WFDCapture.1 = PackMSB:A.0;  
+ WFDCapture.2 = PackMSB.0;  //_GUI 68,61
+ WFDCapture.3 = Junction.0;  //_GUI 120,64
+ WFDCapture.8 = Input:J.0;  //_GUI 80,79, 80,108
+ WFDCapture.9 = Junction.1;  
+ PackMSB.0 = Input:D.0;  
+ PackMSB.1 = Input:C.0;  //_GUI 50,40, 50,34
+ PackMSB.2 = Input:B.0;  //_GUI 47,43, 47,31
+ PackMSB.3 = Input:A.0;  //_GUI 44,46, 44,28
+ PackMSB.4 = Input.0;  //_GUI 41,49, 41,25
+ PackMSB:A.0 = Junction:D.1;  
+ PackMSB:A.1 = Junction:E.1;  
+ PackMSB:A.2 = Junction:C.1;  
+ PackMSB:A.3 = Junction:B.1;  
+ PackMSB:A.4 = Junction:A.1;  
+ "WFD Null Warn".0 = Junction:D.2;  
+ "WFD Null Warn":A.0 = Junction:E.2;  
+ "WFD Null Warn":B.0 = Junction:C.2;  
+ "WFD Null Warn":C.0 = Junction:B.2;  
+ "WFD Null Warn":D.0 = Junction:A.2;  
+ Junction:A.0 = Input:E.0;  //_GUI 17,45
+ Junction:B.0 = Input:F.0;  //_GUI 21,48
+ Junction:C.0 = Input:G.0;  //_GUI 24,51
+ Junction:D.0 = Input:I.0;  
+ Junction:E.0 = Input:H.0;  //_GUI 27,60, 27,54
+}
+
+Object ( Bit Busy) "Probe WFD a-d"( Variant "Data a", Variant "Data b"
+    , Variant "Data c", Variant "Data d", BinaryString "Name a", BinaryString "Name b"
+    , BinaryString "Name c", BinaryString "Name d", Bit ClkG, Bit Enable) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Variant "Data a") Input;  //_GUI 10,22
+ Object ( Variant "Data b") Input:A;  //_GUI 10,25
+ Object ( Variant "Data c") Input:B;  //_GUI 10,28
+ Object ( Variant "Data d") Input:C;  //_GUI 10,31
+ Object ( BinaryString "Name a") Input:D;  //_GUI 10,38
+ //_Attributes Constant="Probe a"
+ Object ( BinaryString "Name b") Input:E;  //_GUI 10,41
+ //_Attributes Constant="Probe b"
+ Object ( BinaryString "Name c") Input:F;  //_GUI 10,44
+ //_Attributes Constant="Probe c"
+ Object ( BinaryString "Name d") Input:G;  //_GUI 10,47
+ //_Attributes Constant="Probe d"
+ Object ( Bit ClkG) Input:H;  //_GUI 10,74
+ //_Attributes Resource=*Global
+ Object ( Bit Enable) Input:I;  //_GUI 10,77
+ Object Output( Bit Busy) ;  //_GUI 125,87
+ Object Text;  //_GUI 68,83,If Enable is left unconnected, then $EnableSelect will ensure one automatic "Enable (WFD)" input widget.
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction
+    ( Bit In0) ;  //_GUI 119,75
+ Object Output:A( WFD_Enable "Enable (WFD)") ;  //_GUI 118,37
+ //_Attributes Resource=Global
+ Object ( WFD_Enable Out1) $Cast( Bit Data, WFD_Enable Type) ;  //_GUI 84,73
+ Object ( WFD_Enable Out) WFD_EnableOut( Bit In1) ;  //_GUI 98,35
+ Object ( Bit Out1) $EnableSelect( WFD_Enable "Enable (WFD)") ;  //_GUI 98,73
+ Object Text;  //_GUI 6,9,Encapsolated wave form display for easy output for debugging purposes.This version exposes 4 Data/Names, ClkG, Enable and Busy parameters.Arial,12,8388608,0
+ Object ( Bit Busy) WFDCapture( "IDispatch*" MemberOf, Variant Names
+    , Variant Data, Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) ;  //_GUI 125,44
+ Object ( List Out1) PackMSB( Variant In1, Variant In2
+    , Variant In3, Variant In4) ;  //_GUI 55,30
+ Object ( List Out1) PackMSB:A( Variant In1, Variant In2
+    , Variant In3, Variant In4) ;  //_GUI 55,46
+ Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD a-d"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") ;  //_GUI 80,41
+ Object "WFD Null Warn"( BinaryString String) ;  //_GUI 50,60
+ Object "WFD Null Warn":A( BinaryString String) ;  //_GUI 47,68
+ Object "WFD Null Warn":B( BinaryString String) ;  //_GUI 21,59
+ Object "WFD Null Warn":C( BinaryString String) ;  //_GUI 17,67
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:A
+    ( BinaryString In1) ;  //_GUI 16,56
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:B
+    ( BinaryString In1) ;  //_GUI 20,53
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:C
+    ( BinaryString In0) ;  //_GUI 49,47
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:D
+    ( BinaryString In0) ;  //_GUI 46,50
+
+ //_ Behavior Topology
+ Output.0 = WFDCapture.0;  
+ Junction.0 = $EnableSelect.0;  
+ Output:A.0 = WFD_EnableOut.0;  
+ $Cast.0 = Input:I.0;  
+ WFD_EnableOut.0 = "$Probe WFD a-d".0;  
+ $EnableSelect.0 = $Cast.0;  
+ WFDCapture.0 = "$Probe WFD a-d".1;  
+ WFDCapture.1 = PackMSB:A.0;  
+ WFDCapture.2 = PackMSB.0;  //_GUI 69,52, 69,33
+ WFDCapture.3 = Junction.0;  //_GUI 120,55
+ WFDCapture.8 = Input:H.0;  //_GUI 80,70, 80,75
+ WFDCapture.9 = Junction.1;  
+ PackMSB.0 = Input:C.0;  
+ PackMSB.1 = Input:B.0;  //_GUI 47,35, 47,29
+ PackMSB.2 = Input:A.0;  //_GUI 44,38, 44,26
+ PackMSB.3 = Input.0;  //_GUI 41,41, 41,23
+ PackMSB:A.0 = Junction:C.1;  
+ PackMSB:A.1 = Junction:D.1;  
+ PackMSB:A.2 = Junction:B.1;  
+ PackMSB:A.3 = Junction:A.1;  
+ "WFD Null Warn".0 = Junction:C.2;  
+ "WFD Null Warn":A.0 = Junction:D.2;  
+ "WFD Null Warn":B.0 = Junction:B.2;  
+ "WFD Null Warn":C.0 = Junction:A.2;  
+ Junction:A.0 = Input:D.0;  //_GUI 17,39
+ Junction:B.0 = Input:E.0;  //_GUI 21,42
+ Junction:C.0 = Input:G.0;  
+ Junction:D.0 = Input:F.0;  //_GUI 24,51, 24,45
+}
+
+Object ( Bit Busy) "Probe WFD a-c"( Variant "Data a", Variant "Data b"
+    , Variant "Data c", BinaryString "Name a", BinaryString "Name b", BinaryString "Name c"
+    , Bit ClkG, Bit Enable) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Variant "Data a") Input;  //_GUI 10,23
+ Object ( Variant "Data b") Input:A;  //_GUI 10,26
+ Object ( Variant "Data c") Input:B;  //_GUI 10,29
+ Object ( BinaryString "Name a") Input:C;  //_GUI 10,37
+ //_Attributes Constant="Probe a"
+ Object ( BinaryString "Name b") Input:D;  //_GUI 10,40
+ //_Attributes Constant="Probe b"
+ Object ( BinaryString "Name c") Input:E;  //_GUI 10,43
+ //_Attributes Constant="Probe c"
+ Object ( Bit ClkG) Input:F;  //_GUI 10,70
+ //_Attributes Resource=*Global
+ Object ( Bit Enable) Input:G;  //_GUI 10,73
+ Object Output( Bit Busy) ;  //_GUI 125,83
+ Object Text;  //_GUI 68,79,If Enable is left unconnected, then $EnableSelect will ensure one automatic "Enable (WFD)" input widget.
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction
+    ( Bit In0) ;  //_GUI 119,71
+ Object Output:A( WFD_Enable "Enable (WFD)") ;  //_GUI 118,33
+ //_Attributes Resource=Global
+ Object ( WFD_Enable Out1) $Cast( Bit Data, WFD_Enable Type) ;  //_GUI 84,69
+ Object ( WFD_Enable Out) WFD_EnableOut( Bit In1) ;  //_GUI 98,31
+ Object ( Bit Out1) $EnableSelect( WFD_Enable "Enable (WFD)") ;  //_GUI 98,69
+ Object Text;  //_GUI 6,9,Encapsolated wave form display for easy output for debugging purposes.This version exposes 3 Data/Names, ClkG, Enable and Busy parameters.Arial,12,8388608,0
+ Object ( Bit Busy) WFDCapture( "IDispatch*" MemberOf, Variant Names
+    , Variant Data, Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) ;  //_GUI 125,40
+ Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD a-d"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") ;  //_GUI 80,37
+ Object ( List Out1) PackMSB( Variant In1, Variant In2
+    , Variant In3) ;  //_GUI 58,28
+ Object ( List Out1) PackMSB:A( Variant In1, Variant In2
+    , Variant In3) ;  //_GUI 55,42
+ Object "WFD Null Warn"( BinaryString String) ;  //_GUI 51,58
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:A
+    ( BinaryString In0) ;  //_GUI 50,43
+ Object "WFD Null Warn":A( BinaryString String) ;  //_GUI 33,57
+ Object "WFD Null Warn":B( BinaryString String) ;  //_GUI 17,57
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:B
+    ( BinaryString In1) ;  //_GUI 16,49
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:C
+    ( BinaryString In0) ;  //_GUI 32,46
+
+ //_ Behavior Topology
+ Output.0 = WFDCapture.0;  
+ Junction.0 = $EnableSelect.0;  
+ Output:A.0 = WFD_EnableOut.0;  
+ $Cast.0 = Input:G.0;  
+ WFD_EnableOut.0 = "$Probe WFD a-d".0;  
+ $EnableSelect.0 = $Cast.0;  
+ WFDCapture.0 = "$Probe WFD a-d".1;  
+ WFDCapture.1 = PackMSB:A.0;  
+ WFDCapture.2 = PackMSB.0;  //_GUI 69,48
+ WFDCapture.3 = Junction.0;  //_GUI 120,51
+ WFDCapture.8 = Input:F.0;  //_GUI 80,66, 80,71
+ WFDCapture.9 = Junction.1;  
+ PackMSB.0 = Input:B.0;  
+ PackMSB.1 = Input:A.0;  //_GUI 44,33, 44,27
+ PackMSB.2 = Input.0;  //_GUI 41,36, 41,24
+ PackMSB:A.0 = Junction:A.1;  
+ PackMSB:A.1 = Junction:C.1;  
+ PackMSB:A.2 = Junction:B.1;  
+ "WFD Null Warn".0 = Junction:A.2;  
+ Junction:A.0 = Input:E.0;  
+ "WFD Null Warn":A.0 = Junction:C.2;  
+ "WFD Null Warn":B.0 = Junction:B.2;  
+ Junction:B.0 = Input:C.0;  //_GUI 17,38
+ Junction:C.0 = Input:D.0;  //_GUI 21,47, 21,41
+}
+
+Object ( Bit Busy) "Probe WFD a-b"( Variant "Data a", Variant "Data b"
+    , BinaryString "Name a", BinaryString "Name b", Bit ClkG, Bit Enable) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Variant "Data a") Input;  //_GUI 10,27
+ Object ( Variant "Data b") Input:A;  //_GUI 10,30
+ Object ( BinaryString "Name a") Input:B;  //_GUI 10,39
+ //_Attributes Constant="Probe a"
+ Object ( BinaryString "Name b") Input:C;  //_GUI 10,42
+ //_Attributes Constant="Probe b"
+ Object ( Bit ClkG) Input:D;  //_GUI 10,69
+ //_Attributes Resource=*Global
+ Object ( Bit Enable) Input:E;  //_GUI 10,72
+ Object Output( Bit Busy) ;  //_GUI 125,82
+ Object Text;  //_GUI 68,78,If Enable is left unconnected, then $EnableSelect will ensure one automatic "Enable (WFD)" input widget.
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction
+    ( Bit In0) ;  //_GUI 119,70
+ Object Output:A( WFD_Enable "Enable (WFD)") ;  //_GUI 118,32
+ //_Attributes Resource=Global
+ Object ( WFD_Enable Out1) $Cast( Bit Data, WFD_Enable Type) ;  //_GUI 84,68
+ Object ( WFD_Enable Out) WFD_EnableOut( Bit In1) ;  //_GUI 98,30
+ Object ( Bit Out1) $EnableSelect( WFD_Enable "Enable (WFD)") ;  //_GUI 98,68
+ Object Text;  //_GUI 6,9,Encapsolated wave form display for easy output for debugging purposes.This version exposes 2 Data/Names, ClkG, Enable and Busy parameters.Arial,12,8388608,0
+ Object ( Bit Busy) WFDCapture( "IDispatch*" MemberOf, Variant Names
+    , Variant Data, Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) ;  //_GUI 125,39
+ Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD a-d"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") ;  //_GUI 80,36
+ Object ( List Out) ListOut( Variant In1, Variant In2) ;  //_GUI 58,29
+ Object ( List Out) ListOut:A( Variant In1, Variant In2) ;  //_GUI 55,41
+ Object "WFD Null Warn"( BinaryString String) ;  //_GUI 44,51
+ Object "WFD Null Warn":A( BinaryString String) ;  //_GUI 41,59
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:A
+    ( BinaryString In0) ;  //_GUI 43,42
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:B
+    ( BinaryString In0) ;  //_GUI 40,45
+
+ //_ Behavior Topology
+ Output.0 = WFDCapture.0;  
+ Junction.0 = $EnableSelect.0;  
+ Output:A.0 = WFD_EnableOut.0;  
+ $Cast.0 = Input:E.0;  
+ WFD_EnableOut.0 = "$Probe WFD a-d".0;  
+ $EnableSelect.0 = $Cast.0;  
+ WFDCapture.0 = "$Probe WFD a-d".1;  
+ WFDCapture.1 = ListOut:A.0;  
+ WFDCapture.2 = ListOut.0;  //_GUI 69,47
+ WFDCapture.3 = Junction.0;  //_GUI 120,50
+ WFDCapture.8 = Input:D.0;  //_GUI 80,65, 80,70
+ WFDCapture.9 = Junction.1;  
+ ListOut.0 = Input.0;  //_GUI 41,34, 41,28
+ ListOut.1 = Input:A.0;  
+ ListOut:A.0 = Junction:B.1;  
+ ListOut:A.1 = Junction:A.1;  
+ "WFD Null Warn".0 = Junction:A.2;  
+ "WFD Null Warn":A.0 = Junction:B.2;  
+ Junction:A.0 = Input:C.0;  
+ Junction:B.0 = Input:B.0;  //_GUI 17,46, 17,40
+}
+
+Object ( Variant "Regular Counter") "Ex_Wave Form Display (Standard a-e)"( MSB010 In1, BinaryString In4
+    , BinaryString In5, BinaryString In6, Bit Enable) 
+//_Attributes TreeGroup=CoreLib-Debug\Examples
+{
+ //_ Object Prototypes
+ Object ( MSB010 In1) Input;  //_GUI 9,50
+ //_Attributes Constant="1"
+ Object ( BinaryString In4) Input:A;  //_GUI 96,85
+ //_Attributes Constant="AND"
+ Object ( BinaryString In5) Input:B;  //_GUI 96,88
+ //_Attributes Constant="OR"
+ Object ( BinaryString In6) Input:C;  //_GUI 96,91
+ //_Attributes Constant="XOR"
+ Object ( Bit Enable) Input:D;  //_GUI 8,117
+ Object Output( Variant "Regular Counter") ;  //_GUI 107,53
+ Object ( Variant Out1) LSB( Variant In1) ;  //_GUI 37,68
+ //_Attributes Documentation="NULL"
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction
+    ( Variant In0) ;  //_GUI 36,53
+ Object ( Variant Out1, Variant Out2) VariantIn( Variant In) ;  //_GUI 47,79
+ Object ( Variant Out1, Variant Out2) VariantIn:A( Variant In) ;  //_GUI 58,68
+ Object ( Variant Out1) AND( Variant In1, Variant In2) ;  //_GUI 83,64
+ //_Attributes Documentation="Var/NULL"
+ Object ( Variant Out1) OR( Variant In1, Variant In2) ;  //_GUI 83,71
+ Object ( Variant Out1) XOR( Variant In1, Variant In2) ;  //_GUI 83,79
+ //_Attributes Documentation="Bit/Bit"
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction:A
+    ( Variant In0) ;  //_GUI 77,83
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction:B
+    ( Variant In3) ;  //_GUI 77,75
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction:C
+    ( Variant In3) ;  //_GUI 77,68
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction:D
+    ( Variant In0) ;  //_GUI 72,72
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction:E
+    ( Variant In3) ;  //_GUI 72,65
+ Object ( Bit Out) AND:A( Bit In1, Bit In2) ;  //_GUI 124,113
+ Object ( Bit CO, Variant Count) Count( Variant CBy
+    , Bit ClkG, Bit EN, Bit CLR) ;  //_GUI 21,49
+ Object ( Bit Out) INVERT( Bit In1) ;  //_GUI 108,112
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:F
+    ( Bit In3) ;  //_GUI 17,97
+ Object Text;  //_GUI 7,11,This sheet demonstrates a standard Wave Form Display probe object (Probe WFD a-e).It requires the user to specify 5 Data lines.  The 5 Names, clock and Enable are optional.Run the sheet as follows:      Set "Enable" high.      Wait a few seconds.      Set "Enable" low.The wave form displays will show the indicated values using the lowest 2 bits of Count.Arial,12,8388608,0
+ Object ( Bit Busy) "Probe WFD a-e"( Variant "Data a", Variant "Data b"
+    , Variant "Data c", Variant "Data d", Variant "Data e", BinaryString "Name a"
+    , BinaryString "Name b", BinaryString "Name c", BinaryString "Name d", BinaryString "Name e"
+    , Bit ClkG, Bit Enable) ;  //_GUI 108,63
+
+ //_ Behavior Topology
+ Output.0 = Junction.1;  
+ LSB.0 = Junction.2;  
+ Junction.0 = Count.1;  
+ VariantIn.0 = LSB.0;  
+ VariantIn:A.0 = VariantIn.1;  
+ AND.0 = Junction:E.2;  
+ AND.1 = Junction:C.2;  
+ OR.0 = Junction:D.1;  
+ OR.1 = Junction:B.2;  
+ XOR.0 = Junction:D.2;  //_GUI 73,81
+ XOR.1 = Junction:A.1;  
+ Junction:A.0 = VariantIn.0;  
+ Junction:B.0 = Junction:A.0;  
+ Junction:C.0 = Junction:B.1;  
+ Junction:D.0 = VariantIn:A.0;  
+ Junction:E.0 = Junction:D.0;  
+ AND:A.0 = INVERT.0;  
+ AND:A.1 = Input:D.0;  
+ Count.0 = Input.0;  
+ Count.2 = Junction:F.1;  //_GUI 18,57
+ INVERT.0 = "Probe WFD a-e".0;  
+ Junction:F.0 = AND:A.0;  //_GUI 18,109, 134,109
+ "Probe WFD a-e".0 = Junction:C.1;  //_GUI 108,57, 78,57
+ "Probe WFD a-e".1 = Junction:E.1;  //_GUI 105,68, 105,60, 73,60
+ "Probe WFD a-e".2 = AND.0;  //_GUI 93,71
+ "Probe WFD a-e".3 = OR.0;  
+ "Probe WFD a-e".4 = XOR.0;  //_GUI 95,77, 95,82
+ "Probe WFD a-e".7 = Input:A.0;  
+ "Probe WFD a-e".8 = Input:B.0;  
+ "Probe WFD a-e".9 = Input:C.0;  
+ "Probe WFD a-e".11 = Junction:F.2;  
+}
+
+Object ( Bit Busy) "Probe WFD 01"( Variant Data, BinaryString "Name 01"
+    , Bit ClkG, Bit Enable) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Variant Data) Input;  //_GUI 22,40
+ Object ( BinaryString "Name 01") Input:A;  //_GUI 22,43
+ //_Attributes Constant="Probe 01"
+ Object ( Bit ClkG) Input:B;  //_GUI 21,58
+ //_Attributes Resource=*Global
+ Object ( Bit Enable) Input:C;  //_GUI 21,66
+ Object Output( Bit Busy) ;  //_GUI 70,76
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction
+    ( Bit In0) ;  //_GUI 64,64
+ Object Output:A( WFD_Enable "Enable (WFD)") ;  //_GUI 64,26
+ //_Attributes Resource=Global
+ Object Text;  //_GUI 13,74,If Enable is left unconnected, then $EnableSelect will ensure one automatic "Enable (WFD)" input widget.
+ Object ( WFD_Enable Out1) $Cast( Bit Data, WFD_Enable Type) ;  //_GUI 29,62
+ Object ( WFD_Enable Out) WFD_EnableOut( Bit In1) ;  //_GUI 43,24
+ Object ( Bit Out1) $EnableSelect( WFD_Enable "Enable (WFD)") ;  //_GUI 43,62
+ Object Text;  //_GUI 4,9,Encapsolated wave form display for easy output for debugging purposes.This version exposes the Name, ClkG, Enable and Busy parameters.Arial,12,8388608,0
+ Object ( Bit Busy) WFDCapture( "IDispatch*" MemberOf, Variant Names
+    , Variant Data, Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) ;  //_GUI 70,33
+ Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD 01"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") ;  //_GUI 25,30
+ Object "WFD Null Warn"( BinaryString String) ;  //_GUI 38,47
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:A
+    ( BinaryString In0) ;  //_GUI 37,43
+
+ //_ Behavior Topology
+ Output.0 = WFDCapture.0;  
+ Junction.0 = $EnableSelect.0;  
+ Output:A.0 = WFD_EnableOut.0;  
+ $Cast.0 = Input:C.0;  
+ WFD_EnableOut.0 = "$Probe WFD 01".0;  
+ $EnableSelect.0 = $Cast.0;  
+ WFDCapture.0 = "$Probe WFD 01".1;  
+ WFDCapture.1 = Junction:A.1;  //_GUI 62,38, 62,44
+ WFDCapture.2 = Input.0;  
+ WFDCapture.3 = Junction.0;  //_GUI 65,44
+ WFDCapture.8 = Input:B.0;  
+ WFDCapture.9 = Junction.1;  
+ "WFD Null Warn".0 = Junction:A.2;  
+ Junction:A.0 = Input:A.0;  
+}
+
+Object ( Bit Busy) "Probe WFD 02"( Variant Data, BinaryString "Name 02"
+    , Bit ClkG, Bit Enable) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Variant Data) Input;  //_GUI 22,40
+ Object ( BinaryString "Name 02") Input:A;  //_GUI 22,43
+ //_Attributes Constant="Probe 02"
+ Object ( Bit ClkG) Input:B;  //_GUI 21,58
+ //_Attributes Resource=*Global
+ Object ( Bit Enable) Input:C;  //_GUI 21,66
+ Object Output( Bit Busy) ;  //_GUI 70,76
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction
+    ( Bit In0) ;  //_GUI 64,64
+ Object Output:A( WFD_Enable "Enable (WFD)") ;  //_GUI 64,26
+ //_Attributes Resource=Global
+ Object Text;  //_GUI 13,74,If Enable is left unconnected, then $EnableSelect will ensure one automatic "Enable (WFD)" input widget.
+ Object ( WFD_Enable Out1) $Cast( Bit Data, WFD_Enable Type) ;  //_GUI 29,62
+ Object ( WFD_Enable Out) WFD_EnableOut( Bit In1) ;  //_GUI 43,24
+ Object ( Bit Out1) $EnableSelect( WFD_Enable "Enable (WFD)") ;  //_GUI 43,62
+ Object Text;  //_GUI 4,9,Encapsolated wave form display for easy output for debugging purposes.This version exposes the Name, ClkG, Enable and Busy parameters.Arial,12,8388608,0
+ Object ( Bit Busy) WFDCapture( "IDispatch*" MemberOf, Variant Names
+    , Variant Data, Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) ;  //_GUI 70,33
+ Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD 02"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") ;  //_GUI 25,30
+ Object "WFD Null Warn"( BinaryString String) ;  //_GUI 38,47
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:A
+    ( BinaryString In0) ;  //_GUI 37,43
+
+ //_ Behavior Topology
+ Output.0 = WFDCapture.0;  
+ Junction.0 = $EnableSelect.0;  
+ Output:A.0 = WFD_EnableOut.0;  
+ $Cast.0 = Input:C.0;  
+ WFD_EnableOut.0 = "$Probe WFD 02".0;  
+ $EnableSelect.0 = $Cast.0;  
+ WFDCapture.0 = "$Probe WFD 02".1;  
+ WFDCapture.1 = Junction:A.1;  //_GUI 62,38, 62,44
+ WFDCapture.2 = Input.0;  
+ WFDCapture.3 = Junction.0;  //_GUI 65,44
+ WFDCapture.8 = Input:B.0;  
+ WFDCapture.9 = Junction.1;  
+ "WFD Null Warn".0 = Junction:A.2;  
+ Junction:A.0 = Input:A.0;  
+}
+
+Object ( Bit Busy) "Probe WFD 03"( Variant Data, BinaryString "Name 03"
+    , Bit ClkG, Bit Enable) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Variant Data) Input;  //_GUI 22,40
+ Object ( BinaryString "Name 03") Input:A;  //_GUI 22,43
+ //_Attributes Constant="Probe 03"
+ Object ( Bit ClkG) Input:B;  //_GUI 21,58
+ //_Attributes Resource=*Global
+ Object ( Bit Enable) Input:C;  //_GUI 21,66
+ Object Output( Bit Busy) ;  //_GUI 70,76
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction
+    ( Bit In0) ;  //_GUI 64,64
+ Object Output:A( WFD_Enable "Enable (WFD)") ;  //_GUI 64,26
+ //_Attributes Resource=Global
+ Object Text;  //_GUI 13,74,If Enable is left unconnected, then $EnableSelect will ensure one automatic "Enable (WFD)" input widget.
+ Object ( WFD_Enable Out1) $Cast( Bit Data, WFD_Enable Type) ;  //_GUI 29,62
+ Object ( WFD_Enable Out) WFD_EnableOut( Bit In1) ;  //_GUI 43,24
+ Object ( Bit Out1) $EnableSelect( WFD_Enable "Enable (WFD)") ;  //_GUI 43,62
+ Object Text;  //_GUI 4,9,Encapsolated wave form display for easy output for debugging purposes.This version exposes the Name, ClkG, Enable and Busy parameters.Arial,12,8388608,0
+ Object ( Bit Busy) WFDCapture( "IDispatch*" MemberOf, Variant Names
+    , Variant Data, Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) ;  //_GUI 70,33
+ Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD 03"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") ;  //_GUI 25,30
+ Object "WFD Null Warn"( BinaryString String) ;  //_GUI 39,48
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:A
+    ( BinaryString In0) ;  //_GUI 38,43
+
+ //_ Behavior Topology
+ Output.0 = WFDCapture.0;  
+ Junction.0 = $EnableSelect.0;  
+ Output:A.0 = WFD_EnableOut.0;  
+ $Cast.0 = Input:C.0;  
+ WFD_EnableOut.0 = "$Probe WFD 03".0;  
+ $EnableSelect.0 = $Cast.0;  
+ WFDCapture.0 = "$Probe WFD 03".1;  
+ WFDCapture.1 = Junction:A.1;  //_GUI 62,38, 62,44
+ WFDCapture.2 = Input.0;  
+ WFDCapture.3 = Junction.0;  //_GUI 65,44
+ WFDCapture.8 = Input:B.0;  
+ WFDCapture.9 = Junction.1;  
+ "WFD Null Warn".0 = Junction:A.2;  
+ Junction:A.0 = Input:A.0;  
+}
+
+Object ( Bit Busy) "Probe WFD 04"( Variant Data, BinaryString "Name 04"
+    , Bit ClkG, Bit Enable) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Variant Data) Input;  //_GUI 22,40
+ Object ( BinaryString "Name 04") Input:A;  //_GUI 22,43
+ //_Attributes Constant="Probe 04"
+ Object ( Bit ClkG) Input:B;  //_GUI 21,58
+ //_Attributes Resource=*Global
+ Object ( Bit Enable) Input:C;  //_GUI 21,66
+ Object Output( Bit Busy) ;  //_GUI 70,76
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction
+    ( Bit In0) ;  //_GUI 64,64
+ Object Output:A( WFD_Enable "Enable (WFD)") ;  //_GUI 64,26
+ //_Attributes Resource=Global
+ Object Text;  //_GUI 13,74,If Enable is left unconnected, then $EnableSelect will ensure one automatic "Enable (WFD)" input widget.
+ Object ( WFD_Enable Out1) $Cast( Bit Data, WFD_Enable Type) ;  //_GUI 29,62
+ Object ( WFD_Enable Out) WFD_EnableOut( Bit In1) ;  //_GUI 43,24
+ Object ( Bit Out1) $EnableSelect( WFD_Enable "Enable (WFD)") ;  //_GUI 43,62
+ Object Text;  //_GUI 4,9,Encapsolated wave form display for easy output for debugging purposes.This version exposes the Name, ClkG, Enable and Busy parameters.Arial,12,8388608,0
+ Object ( Bit Busy) WFDCapture( "IDispatch*" MemberOf, Variant Names
+    , Variant Data, Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) ;  //_GUI 70,33
+ Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD 04"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") ;  //_GUI 25,30
+ Object "WFD Null Warn"( BinaryString String) ;  //_GUI 38,47
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction:A
+    ( BinaryString In0) ;  //_GUI 37,43
+
+ //_ Behavior Topology
+ Output.0 = WFDCapture.0;  
+ Junction.0 = $EnableSelect.0;  
+ Output:A.0 = WFD_EnableOut.0;  
+ $Cast.0 = Input:C.0;  
+ WFD_EnableOut.0 = "$Probe WFD 04".0;  
+ $EnableSelect.0 = $Cast.0;  
+ WFDCapture.0 = "$Probe WFD 04".1;  
+ WFDCapture.1 = Junction:A.1;  //_GUI 62,38, 62,44
+ WFDCapture.2 = Input.0;  
+ WFDCapture.3 = Junction.0;  //_GUI 65,44
+ WFDCapture.8 = Input:B.0;  
+ WFDCapture.9 = Junction.1;  
+ "WFD Null Warn".0 = Junction:A.2;  
+ Junction:A.0 = Input:A.0;  
+}
+
+Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD 01"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Bit "Enable (WFD)") Input;  //_GUI 43,126
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object ( "IDispatch*" "Wave Form Display") Input:A;  //_GUI 43,129
+ //_Attributes System=X86UI,Resource=TIMESLICE,ActiveXWidget=WaveDisplayProj1::WaveDisplay,WidgetProperty=[Dispatch],WidgetEvent=(Event)OnPaint,WidgetWidth=600,WidgetHeight=310,WidgetLeft=340
+ Object Output( Bit Out1) ;  //_GUI 54,126
+ Object Output:A( "IDispatch*" Out1) ;  //_GUI 54,129
+ Object Text;  //_GUI 11,16,Encapsolated input horns to prevent them from being promoted.The WidgetHeight attribute is based on the number of Data nodes.Arial,12,8388608,0
+ Object Text;  //_GUI 25,119,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+ Output:A.0 = Input:A.0;  
+}
+
+Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD 02"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Bit "Enable (WFD)") Input;  //_GUI 43,129
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object ( "IDispatch*" "Wave Form Display") Input:A;  //_GUI 43,132
+ //_Attributes System=X86UI,Resource=TIMESLICE,ActiveXWidget=WaveDisplayProj1::WaveDisplay,WidgetProperty=[Dispatch],WidgetEvent=(Event)OnPaint,WidgetWidth=600,WidgetHeight=310,WidgetLeft=340
+ Object Output( Bit Out1) ;  //_GUI 54,129
+ Object Output:A( "IDispatch*" Out1) ;  //_GUI 54,132
+ Object Text;  //_GUI 11,16,Encapsolated input horns to prevent them from being promoted.The WidgetHeight attribute is based on the number of Data nodes.Arial,12,8388608,0
+ Object Text;  //_GUI 25,122,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+ Output:A.0 = Input:A.0;  
+}
+
+Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD 03"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Bit "Enable (WFD)") Input;  //_GUI 44,133
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object ( "IDispatch*" "Wave Form Display") Input:A;  //_GUI 44,136
+ //_Attributes System=X86UI,Resource=TIMESLICE,ActiveXWidget=WaveDisplayProj1::WaveDisplay,WidgetProperty=[Dispatch],WidgetEvent=(Event)OnPaint,WidgetWidth=600,WidgetHeight=310,WidgetLeft=340
+ Object Output( Bit Out1) ;  //_GUI 55,133
+ Object Output:A( "IDispatch*" Out1) ;  //_GUI 55,136
+ Object Text;  //_GUI 11,16,Encapsolated input horns to prevent them from being promoted.The WidgetHeight attribute is based on the number of Data nodes.Arial,12,8388608,0
+ Object Text;  //_GUI 26,126,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+ Output:A.0 = Input:A.0;  
+}
+
+Object ( Bit Out1, "IDispatch*" Out1) "$Probe WFD 04"( Bit "Enable (WFD)"
+    , "IDispatch*" "Wave Form Display") 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Bit "Enable (WFD)") Input;  //_GUI 44,139
+ //_Attributes System=X86UI,Resource=TIMESLICE
+ Object ( "IDispatch*" "Wave Form Display") Input:A;  //_GUI 44,142
+ //_Attributes System=X86UI,Resource=TIMESLICE,ActiveXWidget=WaveDisplayProj1::WaveDisplay,WidgetProperty=[Dispatch],WidgetEvent=(Event)OnPaint,WidgetWidth=600,WidgetHeight=310,WidgetLeft=340
+ Object Output( Bit Out1) ;  //_GUI 55,139
+ Object Output:A( "IDispatch*" Out1) ;  //_GUI 55,142
+ Object Text;  //_GUI 11,16,Encapsolated input horns to prevent them from being promoted.The WidgetHeight attribute is based on the number of Data nodes.Arial,12,8388608,0
+ Object Text;  //_GUI 26,132,Objects placed low on the sheet to sort the widgets by probe name.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+ Output:A.0 = Input:A.0;  
+}
+
+Object ( Variant Data, Bit "Data0 Ready", Bit "Data1 Ready"
+    , Bit CLR, Bit Busy) SyncWFD( Variant DataIn, Bit "Data0 Processed"
+    , Bit "Data1 Processed", Bit ClkG, Bit CLR, Bit Go) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( Variant DataIn) Input;  //_GUI 18,26
+ Object ( Bit "Data0 Processed") Input:A;  //_GUI 18,32
+ Object ( Bit "Data1 Processed") Input:B;  //_GUI 18,40
+ Object ( Bit ClkG) Input:C;  //_GUI 18,48
+ //_Attributes Resource=*Global
+ Object ( Bit CLR) Input:D;  //_GUI 18,51
+ //_Attributes Constant="0"
+ Object ( Bit Go) Input:E;  //_GUI 18,54
+ Object Output( Variant Data) ;  //_GUI 129,27
+ Object Output:A( Bit "Data0 Ready") ;  //_GUI 129,64
+ Object Output:B( Bit "Data1 Ready") ;  //_GUI 129,73
+ Object Output:C( Bit CLR) ;  //_GUI 129,79
+ Object Output:D( Bit Busy) ;  //_GUI 129,82
+ Object ( Variant Entered, Variant Active, Variant Leaving) State
+    ( Variant Enter, Variant Leave, Bit ClkG, Bit AClr) ;  //_GUI 73,41
+ Object ( Bit Out) INVERT( Bit In1) ;  //_GUI 93,64
+ Object ( Bit Q) RegClr( Bit D, Bit ClkG
+    , Bit EN, Bit CLR) ;  //_GUI 75,64
+ //_Attributes Documentation="leaf"
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction
+    ( Bit In0) ;  //_GUI 58,51
+ Object ( Bit Out) AND( Bit In1, Bit In2) ;  //_GUI 116,62
+ Object ( Bit Out1) VouchBit( Variant In1) ;  //_GUI 91,43
+ Object Text;  //_GUI 79,60,Toggle Data Channel
+ Object ( Bit Out) AND:A( Bit In1, Bit In2) ;  //_GUI 116,71
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:A
+    ( Bit In1) ;  //_GUI 111,63
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:B
+    ( Bit In0) ;  //_GUI 66,48
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:C
+    ( Bit In0) ;  //_GUI 62,54
+ Object ( Variant Q) RegClr:A( Variant D, Variant ClkG
+    , Variant EN, Variant CLR) ;  //_GUI 75,25
+ //_Attributes Documentation="NULL/bit/bit/bit"
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:D
+    ( Bit In1) ;  //_GUI 58,74
+ Object Text;  //_GUI 17,7,Synchronizes the data communication between the FPGA hardware and the Wave Form Display COM object (Data side).Arial,12,8388608,0
+ Object ( Bit Pulse) OneShot( Bit I, Bit ClkG) ;  //_GUI 31,31
+ Object ( Bit Out) OR( Bit In1, Bit In2) ;  //_GUI 45,41
+ Object ( Bit Pulse) OneShot:A( Bit I, Bit ClkG) ;  //_GUI 31,39
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:E
+    ( Bit In0) ;  //_GUI 26,48
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:F
+    ( Bit In3) ;  //_GUI 26,43
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:G
+    ( Bit In3) ;  //_GUI 62,42
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:H
+    ( Bit In0) ;  //_GUI 88,66
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:I
+    ( Bit In0) ;  //_GUI 107,66
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:J
+    ( Bit In1) ;  //_GUI 111,72
+
+ //_ Behavior Topology
+ Output.0 = RegClr:A.0;  
+ Output:A.0 = AND.0;  
+ Output:B.0 = AND:A.0;  
+ Output:C.0 = Junction:D.2;  //_GUI 59,80
+ Output:D.0 = Junction:J.2;  //_GUI 112,83
+ State.0 = Junction:G.2;  
+ State.1 = OR.0;  //_GUI 55,46
+ State.2 = Junction:B.1;  
+ State.3 = Junction.1;  
+ INVERT.0 = Junction:H.1;  
+ RegClr.0 = Junction:I.0;  //_GUI 75,58, 108,58
+ RegClr.1 = Junction:B.2;  //_GUI 67,69
+ RegClr.2 = Junction:C.2;  //_GUI 63,72
+ RegClr.3 = Junction:D.1;  
+ Junction.0 = Input:D.0;  
+ AND.0 = Junction:A.1;  
+ AND.1 = Junction:I.1;  
+ VouchBit.0 = State.1;  
+ AND:A.0 = Junction:J.1;  
+ AND:A.1 = Junction:H.2;  //_GUI 89,76
+ Junction:A.0 = VouchBit.0;  //_GUI 112,46
+ Junction:B.0 = Junction:E.1;  
+ Junction:C.0 = Input:E.0;  
+ RegClr:A.0 = Input.0;  
+ RegClr:A.1 = Junction:B.0;  //_GUI 67,30
+ RegClr:A.2 = Junction:G.1;  //_GUI 63,33
+ RegClr:A.3 = Junction.0;  //_GUI 59,36
+ Junction:D.0 = Junction.2;  
+ OneShot.0 = Input:A.0;  
+ OneShot.1 = Junction:F.1;  //_GUI 27,36
+ OR.0 = OneShot.0;  //_GUI 45,34
+ OR.1 = OneShot:A.0;  //_GUI 42,46
+ OneShot:A.0 = Input:B.0;  
+ OneShot:A.1 = Junction:F.2;  
+ Junction:E.0 = Input:C.0;  
+ Junction:F.0 = Junction:E.0;  
+ Junction:G.0 = Junction:C.0;  
+ Junction:H.0 = RegClr.0;  
+ Junction:I.0 = INVERT.0;  
+ Junction:J.0 = Junction:A.2;  
+}
+
+Object ( WFD_Analyzer Out1) JoinGlobals( WFD_Analyzer In1, WFD_Analyzer In2) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes,Documentation="WFD_Analyzer",JoinGlobalsDeletePri=100
+{
+ //_ Object Prototypes
+ Object ( WFD_Analyzer In1) Input;  //_GUI 5,30
+ Object ( WFD_Analyzer In2) Input:A;  //_GUI 5,43
+ Object Output( WFD_Analyzer Out1) ;  //_GUI 107,31
+ Object ( Variant Out1, Variant Out2) ListIn( List In) ;  //_GUI 34,28
+ Object Text;  //_GUI 6,10,Join the data from two "Analyzer Probe" objects into one Analyzer Wave Form Display as follows:1.  Combine the probe Names into a List.2.  Combine the Data lines into a List.Arial,12,8388608,0
+ Object ( List Out) ListOut( Variant In1, Variant In2) ;  //_GUI 54,28
+ Object ( List Out1) WFD_AnalyzerIn( WFD_Analyzer In) ;  //_GUI 14,28
+ Object ( WFD_Analyzer Out) WFD_AnalyzerOut( List In1) ;  //_GUI 83,29
+ Object ( List Out) ListOut:A( Variant In1, Variant In2) ;  //_GUI 54,41
+ Object ( Variant Out1, Variant Out2) ListIn:A( List In) ;  //_GUI 34,41
+ Object ( List Out1) WFD_AnalyzerIn:A( WFD_Analyzer In) ;  //_GUI 14,41
+ Object ( List Out) ListOut:B( Variant In1, Variant In2) ;  //_GUI 69,29
+
+ //_ Behavior Topology
+ Output.0 = WFD_AnalyzerOut.0;  
+ ListIn.0 = WFD_AnalyzerIn.0;  
+ ListOut.0 = ListIn:A.1;  //_GUI 51,33, 51,43
+ ListOut.1 = ListIn.1;  
+ WFD_AnalyzerIn.0 = Input.0;  
+ WFD_AnalyzerOut.0 = ListOut:B.0;  
+ ListOut:A.0 = ListIn:A.0;  
+ ListOut:A.1 = ListIn.0;  //_GUI 54,39, 45,39
+ ListIn:A.0 = WFD_AnalyzerIn:A.0;  
+ WFD_AnalyzerIn:A.0 = Input:A.0;  
+ ListOut:B.0 = ListOut:A.0;  //_GUI 69,44
+ ListOut:B.1 = ListOut.0;  
+}
+
+Object ( Variant "Regular Counter", Variant "Exponential Counter") "Ex_Wave Form Display (Analyzer)"( MSB010 In1
+    , BinaryString "Probe Name", Bit Enable, MSB010 "Manual Data", BinaryString "Probe Name") 
+//_Attributes TreeGroup=CoreLib-Debug\Examples
+{
+ //_ Object Prototypes
+ Object ( MSB010 In1) Input;  //_GUI 15,61
+ //_Attributes Constant="1"
+ Object ( BinaryString "Probe Name") Input:A;  //_GUI 82,81
+ //_Attributes Constant="Counter (Exp)"
+ Object ( Bit Enable) Input:B;  //_GUI 15,106
+ Object ( MSB010 "Manual Data") Input:C;  //_GUI 15,112
+ Object ( BinaryString "Probe Name") Input:D;  //_GUI 15,115
+ //_Attributes Constant="Manual"
+ Object Output( Variant "Regular Counter") ;  //_GUI 113,59
+ Object Output:A( Variant "Exponential Counter") ;  //_GUI 113,67
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction
+    ( Variant In0) ;  //_GUI 46,64
+ Object ( Bit CO, Variant Count) Count( Variant CBy
+    , Bit ClkG, Bit EN, Bit CLR) ;  //_GUI 29,60
+ Object ( Bit Out) INVERT( Bit In1) ;  //_GUI 47,101
+ Object ( Variant Out1) AND( Variant In1, Variant In2
+    , Variant In3) ;  //_GUI 103,99
+ Object ( Bit Out1) VouchBit( Variant In1) ;  //_GUI 117,99
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:A
+    ( Bit In2) ;  //_GUI 66,94
+ Object Text;  //_GUI 12,12,This sheet demonstrates the Wave Form Display analyzer objects.The data from the 3 Analyzer01 Probe objects is sent to the Wave Form Display set up by the Analyzer01 object.Run the sheet as follows:      Set "Enable" high.      Enter data in the "Manual Data" input.      Set "Enable" low.The "Analyzer01", "Counter (Exp)" and "Manual" wave forms will display the requested data.Arial,12,8388608,0
+ Object ( Variant Out1, Variant Out2, Variant Out3) Junction:B
+    ( Variant In0) ;  //_GUI 88,67
+ Object ( Bit Out) INVERT:A( Bit In1) ;  //_GUI 89,98
+ Object ( Bit CO, Variant Count) Count:A( Variant CBy
+    , Bit ClkG, Bit EN, Bit CLR) ;  //_GUI 69,63
+ Object ( Bit Out1, Bit Out2, Bit Out3) Junction:C
+    ( Bit In3) ;  //_GUI 126,94
+ Object Analyzer01( Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) ;  //_GUI 147,72
+ Object ( Bit Busy) "Analyzer01 Probe"( Variant Data, BinaryString Name) ;  //_GUI 47,72
+ Object ( Bit Busy) "Analyzer01 Probe":A( Variant Data, BinaryString Name) ;  //_GUI 89,77
+ Object ( Bit Busy) "Analyzer01 Probe":B( Variant Data, BinaryString Name) ;  //_GUI 25,111
+
+ //_ Behavior Topology
+ Output.0 = Junction.0;  //_GUI 47,60
+ Output:A.0 = Junction:B.1;  
+ Junction.0 = Count.1;  
+ Count.0 = Input.0;  
+ Count.2 = Junction:A.0;  //_GUI 25,68, 25,95
+ INVERT.0 = "Analyzer01 Probe".0;  
+ AND.0 = INVERT:A.0;  
+ AND.1 = INVERT.0;  
+ AND.2 = Input:B.0;  
+ VouchBit.0 = AND.0;  
+ Junction:A.0 = Junction:C.0;  
+ Junction:B.0 = Count:A.1;  
+ INVERT:A.0 = "Analyzer01 Probe":A.0;  
+ Count:A.0 = Junction.1;  
+ Count:A.2 = Junction:A.1;  //_GUI 67,71
+ Junction:C.0 = VouchBit.0;  
+ Analyzer01.0 = Junction:C.1;  //_GUI 127,74
+ Analyzer01.6 = Junction:C.2;  
+ "Analyzer01 Probe".0 = Junction.2;  
+ "Analyzer01 Probe":A.0 = Junction:B.2;  
+ "Analyzer01 Probe":A.1 = Input:A.0;  
+ "Analyzer01 Probe":B.0 = Input:C.0;  
+ "Analyzer01 Probe":B.1 = Input:D.0;  
+}
+
+Object ( Bit Busy) "Analyzer01 Probe"( Variant Data, BinaryString Name) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Variant Data) Input;  //_GUI 9,25
+ Object ( BinaryString Name) Input:A;  //_GUI 9,28
+ //_Attributes Constant="Analyzer01"
+ Object Output( Bit Busy) ;  //_GUI 87,36
+ Object Text;  //_GUI 4,11,Uses the "JoinGlobal" capability to send the data from all of the "Analyzer01 probe" objects to the Analyzer01 Wave Form Display.Arial,12,8388608,0
+ Object ( List Out) ListOut( Variant In1, Variant In2) ;  //_GUI 24,27
+ Object Output:A( WFD_Analyzer "Analyzer01 Data") ;  //_GUI 61,29
+ //_Attributes Resource=Global
+ Object ( Bit "Analyzer01 Busy") Input:B;  //_GUI 80,36
+ //_Attributes Resource=Global
+ Object ( WFD_Analyzer Out) WFD_AnalyzerOut( List In1) ;  //_GUI 39,27
+ Object "WFD Null Warn"( BinaryString String) ;  //_GUI 17,40
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction
+    ( BinaryString In0) ;  //_GUI 16,28
+
+ //_ Behavior Topology
+ Output.0 = Input:B.0;  
+ ListOut.0 = Input.0;  //_GUI 20,32, 20,26
+ ListOut.1 = Junction.1;  
+ Output:A.0 = WFD_AnalyzerOut.0;  
+ WFD_AnalyzerOut.0 = ListOut.0;  
+ "WFD Null Warn".0 = Junction.2;  
+ Junction.0 = Input:A.0;  
+}
+
+Object Analyzer01( Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Bit Tick) Input;  //_GUI 19,43
+ //_Attributes Constant="1"
+ Object ( MSB007 TickSize) Input:A;  //_GUI 19,46
+ //_Attributes Constant="16"
+ Object ( MSB007 QueueSize) Input:B;  //_GUI 19,49
+ //_Attributes Constant="9"
+ Object ( MSB009 ComSize) Input:C;  //_GUI 19,52
+ //_Attributes Constant="1"
+ Object ( Bit AClr) Input:D;  //_GUI 19,55
+ //_Attributes Constant="0"
+ Object ( Bit ClkG) Input:E;  //_GUI 19,58
+ //_Attributes Resource=*Global
+ Object ( Bit Go) Input:F;  //_GUI 19,64
+ Object Output( Bit "Analyzer01 Busy") ;  //_GUI 60,75
+ //_Attributes Resource=Global
+ Object ( Bit Busy) WFDCapture( "IDispatch*" MemberOf, Variant Names
+    , Variant Data, Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) ;  //_GUI 60,33
+ Object ( Variant Out1, Variant Out2) ListIn( List In) ;  //_GUI 46,36
+ Object Text;  //_GUI 5,11,Uses the "JoinGlobal" capability to send the data from all of the "Analyzer01 probe" objects to the Analyzer01 Wave Form Display.Arial,12,8388608,0
+ Object ( List Out1) WFD_AnalyzerIn( WFD_Analyzer In) ;  //_GUI 27,36
+ Object ( WFD_Analyzer "Analyzer01 Data") Input:G;  //_GUI 19,38
+ //_Attributes Resource=Global
+ Object ( "IDispatch*" Out1) "$Probe WFD Analyzer01"( "IDispatch*" "Wave Form Display") ;  //_GUI 37,26
+
+ //_ Behavior Topology
+ Output.0 = WFDCapture.0;  
+ WFDCapture.0 = "$Probe WFD Analyzer01".0;  
+ WFDCapture.1 = ListIn.1;  
+ WFDCapture.2 = ListIn.0;  
+ WFDCapture.3 = Input.0;  
+ WFDCapture.4 = Input:A.0;  
+ WFDCapture.5 = Input:B.0;  
+ WFDCapture.6 = Input:C.0;  
+ WFDCapture.7 = Input:D.0;  
+ WFDCapture.8 = Input:E.0;  
+ WFDCapture.9 = Input:F.0;  
+ ListIn.0 = WFD_AnalyzerIn.0;  
+ WFD_AnalyzerIn.0 = Input:G.0;  
+}
+
+Object ( Bit Busy) "Analyzer02 Probe"( Variant Data, BinaryString Name) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Variant Data) Input;  //_GUI 12,25
+ Object ( BinaryString Name) Input:A;  //_GUI 12,28
+ //_Attributes Constant="Analyzer02"
+ Object Output( Bit Busy) ;  //_GUI 90,36
+ Object Text;  //_GUI 4,11,Uses the "JoinGlobal" capability to send the data from all of the "Analyzer02 probe" objects to the Analyzer02 Wave Form Display.Arial,12,8388608,0
+ Object ( List Out) ListOut( Variant In1, Variant In2) ;  //_GUI 27,27
+ Object Output:A( WFD_Analyzer "Analyzer02 Data") ;  //_GUI 64,29
+ //_Attributes Resource=Global
+ Object ( Bit "Analyzer02 Busy") Input:B;  //_GUI 83,36
+ //_Attributes Resource=Global
+ Object ( WFD_Analyzer Out) WFD_AnalyzerOut( List In1) ;  //_GUI 42,27
+ Object "WFD Null Warn"( BinaryString String) ;  //_GUI 20,40
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction
+    ( BinaryString In0) ;  //_GUI 19,28
+
+ //_ Behavior Topology
+ Output.0 = Input:B.0;  
+ ListOut.0 = Input.0;  //_GUI 23,32, 23,26
+ ListOut.1 = Junction.1;  
+ Output:A.0 = WFD_AnalyzerOut.0;  
+ WFD_AnalyzerOut.0 = ListOut.0;  
+ "WFD Null Warn".0 = Junction.2;  
+ Junction.0 = Input:A.0;  
+}
+
+Object ( Bit Busy) "Analyzer03 Probe"( Variant Data, BinaryString Name) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Variant Data) Input;  //_GUI 12,25
+ Object ( BinaryString Name) Input:A;  //_GUI 12,28
+ //_Attributes Constant="Analyzer03"
+ Object Output( Bit Busy) ;  //_GUI 90,36
+ Object Text;  //_GUI 4,11,Uses the "JoinGlobal" capability to send the data from all of the "Analyzer03 probe" objects to the Analyzer03 Wave Form Display.Arial,12,8388608,0
+ Object ( List Out) ListOut( Variant In1, Variant In2) ;  //_GUI 27,27
+ Object Output:A( WFD_Analyzer "Analyzer03 Data") ;  //_GUI 64,29
+ //_Attributes Resource=Global
+ Object ( Bit "Analyzer03 Busy") Input:B;  //_GUI 83,36
+ //_Attributes Resource=Global
+ Object ( WFD_Analyzer Out) WFD_AnalyzerOut( List In1) ;  //_GUI 42,27
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction
+    ( BinaryString In0) ;  //_GUI 19,28
+ Object "WFD Null Warn"( BinaryString String) ;  //_GUI 20,40
+
+ //_ Behavior Topology
+ Output.0 = Input:B.0;  
+ ListOut.0 = Input.0;  //_GUI 23,32, 23,26
+ ListOut.1 = Junction.1;  
+ Output:A.0 = WFD_AnalyzerOut.0;  
+ WFD_AnalyzerOut.0 = ListOut.0;  
+ Junction.0 = Input:A.0;  
+ "WFD Null Warn".0 = Junction.2;  
+}
+
+Object ( Bit Busy) "Analyzer04 Probe"( Variant Data, BinaryString Name) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Variant Data) Input;  //_GUI 12,25
+ Object ( BinaryString Name) Input:A;  //_GUI 12,28
+ //_Attributes Constant="Analyzer04"
+ Object Output( Bit Busy) ;  //_GUI 90,36
+ Object Text;  //_GUI 4,11,Uses the "JoinGlobal" capability to send the data from all of the "Analyzer04 probe" objects to the Analyzer04 Wave Form Display.Arial,12,8388608,0
+ Object ( List Out) ListOut( Variant In1, Variant In2) ;  //_GUI 27,27
+ Object Output:A( WFD_Analyzer "Analyzer04 Data") ;  //_GUI 64,29
+ //_Attributes Resource=Global
+ Object ( Bit "Analyzer04 Busy") Input:B;  //_GUI 83,36
+ //_Attributes Resource=Global
+ Object ( WFD_Analyzer Out) WFD_AnalyzerOut( List In1) ;  //_GUI 42,27
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction
+    ( BinaryString In0) ;  //_GUI 19,28
+ Object "WFD Null Warn"( BinaryString String) ;  //_GUI 20,37
+
+ //_ Behavior Topology
+ Output.0 = Input:B.0;  
+ ListOut.0 = Input.0;  //_GUI 23,32, 23,26
+ ListOut.1 = Junction.1;  
+ Output:A.0 = WFD_AnalyzerOut.0;  
+ WFD_AnalyzerOut.0 = ListOut.0;  
+ Junction.0 = Input:A.0;  
+ "WFD Null Warn".0 = Junction.2;  
+}
+
+Object Analyzer02( Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Bit Tick) Input;  //_GUI 19,43
+ //_Attributes Constant="1"
+ Object ( MSB007 TickSize) Input:A;  //_GUI 19,46
+ //_Attributes Constant="16"
+ Object ( MSB007 QueueSize) Input:B;  //_GUI 19,49
+ //_Attributes Constant="9"
+ Object ( MSB009 ComSize) Input:C;  //_GUI 19,52
+ //_Attributes Constant="1"
+ Object ( Bit AClr) Input:D;  //_GUI 19,55
+ //_Attributes Constant="0"
+ Object ( Bit ClkG) Input:E;  //_GUI 19,58
+ //_Attributes Resource=*Global
+ Object ( Bit Go) Input:F;  //_GUI 19,64
+ Object Output( Bit "Analyzer02 Busy") ;  //_GUI 60,75
+ //_Attributes Resource=Global
+ Object ( Bit Busy) WFDCapture( "IDispatch*" MemberOf, Variant Names
+    , Variant Data, Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) ;  //_GUI 60,33
+ Object ( Variant Out1, Variant Out2) ListIn( List In) ;  //_GUI 46,36
+ Object Text;  //_GUI 5,11,Uses the "JoinGlobal" capability to send the data from all of the "Analyzer02 probe" objects to the Analyzer02 Wave Form Display.Arial,12,8388608,0
+ Object ( List Out1) WFD_AnalyzerIn( WFD_Analyzer In) ;  //_GUI 27,36
+ Object ( WFD_Analyzer "Analyzer02 Data") Input:G;  //_GUI 19,38
+ //_Attributes Resource=Global
+ Object ( "IDispatch*" Out1) "$Probe WFD Analyzer02"( "IDispatch*" "Wave Form Display") ;  //_GUI 37,26
+
+ //_ Behavior Topology
+ Output.0 = WFDCapture.0;  
+ WFDCapture.0 = "$Probe WFD Analyzer02".0;  
+ WFDCapture.1 = ListIn.1;  
+ WFDCapture.2 = ListIn.0;  
+ WFDCapture.3 = Input.0;  
+ WFDCapture.4 = Input:A.0;  
+ WFDCapture.5 = Input:B.0;  
+ WFDCapture.6 = Input:C.0;  
+ WFDCapture.7 = Input:D.0;  
+ WFDCapture.8 = Input:E.0;  
+ WFDCapture.9 = Input:F.0;  
+ ListIn.0 = WFD_AnalyzerIn.0;  
+ WFD_AnalyzerIn.0 = Input:G.0;  
+}
+
+Object Analyzer03( Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Bit Tick) Input;  //_GUI 19,43
+ //_Attributes Constant="1"
+ Object ( MSB007 TickSize) Input:A;  //_GUI 19,46
+ //_Attributes Constant="16"
+ Object ( MSB007 QueueSize) Input:B;  //_GUI 19,49
+ //_Attributes Constant="9"
+ Object ( MSB009 ComSize) Input:C;  //_GUI 19,52
+ //_Attributes Constant="1"
+ Object ( Bit AClr) Input:D;  //_GUI 19,55
+ //_Attributes Constant="0"
+ Object ( Bit ClkG) Input:E;  //_GUI 19,58
+ //_Attributes Resource=*Global
+ Object ( Bit Go) Input:F;  //_GUI 19,64
+ Object Output( Bit "Analyzer03 Busy") ;  //_GUI 60,75
+ //_Attributes Resource=Global
+ Object ( Bit Busy) WFDCapture( "IDispatch*" MemberOf, Variant Names
+    , Variant Data, Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) ;  //_GUI 60,33
+ Object ( Variant Out1, Variant Out2) ListIn( List In) ;  //_GUI 46,36
+ Object Text;  //_GUI 5,11,Uses the "JoinGlobal" capability to send the data from all of the "Analyzer03 probe" objects to the Analyzer03 Wave Form Display.Arial,12,8388608,0
+ Object ( List Out1) WFD_AnalyzerIn( WFD_Analyzer In) ;  //_GUI 27,36
+ Object ( WFD_Analyzer "Analyzer03 Data") Input:G;  //_GUI 19,38
+ //_Attributes Resource=Global
+ Object ( "IDispatch*" Out1) "$Probe WFD Analyzer03"( "IDispatch*" "Wave Form Display") ;  //_GUI 37,26
+
+ //_ Behavior Topology
+ Output.0 = WFDCapture.0;  
+ WFDCapture.0 = "$Probe WFD Analyzer03".0;  
+ WFDCapture.1 = ListIn.1;  
+ WFDCapture.2 = ListIn.0;  
+ WFDCapture.3 = Input.0;  
+ WFDCapture.4 = Input:A.0;  
+ WFDCapture.5 = Input:B.0;  
+ WFDCapture.6 = Input:C.0;  
+ WFDCapture.7 = Input:D.0;  
+ WFDCapture.8 = Input:E.0;  
+ WFDCapture.9 = Input:F.0;  
+ ListIn.0 = WFD_AnalyzerIn.0;  
+ WFD_AnalyzerIn.0 = Input:G.0;  
+}
+
+Object Analyzer04( Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( Bit Tick) Input;  //_GUI 19,43
+ //_Attributes Constant="1"
+ Object ( MSB007 TickSize) Input:A;  //_GUI 19,46
+ //_Attributes Constant="16"
+ Object ( MSB007 QueueSize) Input:B;  //_GUI 19,49
+ //_Attributes Constant="9"
+ Object ( MSB009 ComSize) Input:C;  //_GUI 19,52
+ //_Attributes Constant="1"
+ Object ( Bit AClr) Input:D;  //_GUI 19,55
+ //_Attributes Constant="0"
+ Object ( Bit ClkG) Input:E;  //_GUI 19,58
+ //_Attributes Resource=*Global
+ Object ( Bit Go) Input:F;  //_GUI 19,64
+ Object Output( Bit "Analyzer04 Busy") ;  //_GUI 60,75
+ //_Attributes Resource=Global
+ Object ( Bit Busy) WFDCapture( "IDispatch*" MemberOf, Variant Names
+    , Variant Data, Bit Tick, MSB007 TickSize, MSB007 QueueSize
+    , MSB009 ComSize, Bit AClr, Bit ClkG, Bit Go) ;  //_GUI 60,33
+ Object ( Variant Out1, Variant Out2) ListIn( List In) ;  //_GUI 46,36
+ Object Text;  //_GUI 5,11,Uses the "JoinGlobal" capability to send the data from all of the "Analyzer04 probe" objects to the Analyzer04 Wave Form Display.Arial,12,8388608,0
+ Object ( List Out1) WFD_AnalyzerIn( WFD_Analyzer In) ;  //_GUI 27,36
+ Object ( WFD_Analyzer "Analyzer04 Data") Input:G;  //_GUI 19,38
+ //_Attributes Resource=Global
+ Object ( "IDispatch*" Out1) "$Probe WFD Analyzer04"( "IDispatch*" "Wave Form Display") ;  //_GUI 37,26
+
+ //_ Behavior Topology
+ Output.0 = WFDCapture.0;  
+ WFDCapture.0 = "$Probe WFD Analyzer04".0;  
+ WFDCapture.1 = ListIn.1;  
+ WFDCapture.2 = ListIn.0;  
+ WFDCapture.3 = Input.0;  
+ WFDCapture.4 = Input:A.0;  
+ WFDCapture.5 = Input:B.0;  
+ WFDCapture.6 = Input:C.0;  
+ WFDCapture.7 = Input:D.0;  
+ WFDCapture.8 = Input:E.0;  
+ WFDCapture.9 = Input:F.0;  
+ ListIn.0 = WFD_AnalyzerIn.0;  
+ WFD_AnalyzerIn.0 = Input:G.0;  
+}
+
+Object ( "IDispatch*" Out1) "$Probe WFD Analyzer01"( "IDispatch*" "Wave Form Display") 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( "IDispatch*" "Wave Form Display") Input;  //_GUI 43,129
+ //_Attributes System=X86UI,Resource=TIMESLICE,ActiveXWidget=WaveDisplayProj1::WaveDisplay,WidgetProperty=[Dispatch],WidgetEvent=(Event)OnPaint,WidgetWidth=800,WidgetHeight=800,WidgetTabSheet=Analyzer01
+ Object Output( "IDispatch*" Out1) ;  //_GUI 54,129
+ Object Text;  //_GUI 11,16,Encapsolated input horns to prevent them from being promoted.The WidgetHeight attribute is based on the estimated number of Data nodes.Arial,12,8388608,0
+ Object Text;  //_GUI 30,118,Objects placed low on the sheet to put the Wave Form Display on the bottom of the widget form.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+}
+
+Object ( "IDispatch*" Out1) "$Probe WFD Analyzer02"( "IDispatch*" "Wave Form Display") 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( "IDispatch*" "Wave Form Display") Input;  //_GUI 43,129
+ //_Attributes System=X86UI,Resource=TIMESLICE,ActiveXWidget=WaveDisplayProj1::WaveDisplay,WidgetProperty=[Dispatch],WidgetEvent=(Event)OnPaint,WidgetWidth=800,WidgetHeight=800,WidgetTabSheet=Analyzer02
+ Object Output( "IDispatch*" Out1) ;  //_GUI 54,129
+ Object Text;  //_GUI 11,16,Encapsolated input horns to prevent them from being promoted.The WidgetHeight attribute is based on the estimated number of Data nodes.Arial,12,8388608,0
+ Object Text;  //_GUI 30,118,Objects placed low on the sheet to put the Wave Form Display on the bottom of the widget form.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+}
+
+Object ( "IDispatch*" Out1) "$Probe WFD Analyzer03"( "IDispatch*" "Wave Form Display") 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( "IDispatch*" "Wave Form Display") Input;  //_GUI 43,129
+ //_Attributes System=X86UI,Resource=TIMESLICE,ActiveXWidget=WaveDisplayProj1::WaveDisplay,WidgetProperty=[Dispatch],WidgetEvent=(Event)OnPaint,WidgetWidth=800,WidgetHeight=800,WidgetTabSheet=Analyzer03
+ Object Output( "IDispatch*" Out1) ;  //_GUI 54,129
+ Object Text;  //_GUI 11,16,Encapsolated input horns to prevent them from being promoted.The WidgetHeight attribute is based on the estimated number of Data nodes.Arial,12,8388608,0
+ Object Text;  //_GUI 30,118,Objects placed low on the sheet to put the Wave Form Display on the bottom of the widget form.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+}
+
+Object ( "IDispatch*" Out1) "$Probe WFD Analyzer04"( "IDispatch*" "Wave Form Display") 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( "IDispatch*" "Wave Form Display") Input;  //_GUI 43,129
+ //_Attributes System=X86UI,Resource=TIMESLICE,ActiveXWidget=WaveDisplayProj1::WaveDisplay,WidgetProperty=[Dispatch],WidgetEvent=(Event)OnPaint,WidgetWidth=800,WidgetHeight=800,WidgetTabSheet=Analyzer04
+ Object Output( "IDispatch*" Out1) ;  //_GUI 54,129
+ Object Text;  //_GUI 11,16,Encapsolated input horns to prevent them from being promoted.The WidgetHeight attribute is based on the estimated number of Data nodes.Arial,12,8388608,0
+ Object Text;  //_GUI 30,118,Objects placed low on the sheet to put the Wave Form Display on the bottom of the widget form.
+
+ //_ Behavior Topology
+ Output.0 = Input.0;  
+}
+
+Object "WFD Null Warn"( BinaryString String) 
+//_Attributes TreeGroup=CoreLib-Debug\$Probes
+{
+ //_ Object Prototypes
+ Object ( BinaryString String) Input;  //_GUI 10,33
+ Object ( Bit Done, DWord Sent) Go;  //_GUI 4,18
+ //_Attributes System=X86CPU,Resource=TIMESLICE,KeepObject=One side
+ Object ( "IVivaString*" Out1, "IVivaString*" Out2, "IVivaString*" Out3) Junction
+    ( "IVivaString*" In0) ;  //_GUI 75,27
+ Object ( "IVivaString*" Out1, "IVivaString*" Out2, "IVivaString*" Out3) Junction:A
+    ( "IVivaString*" In0) ;  //_GUI 107,43
+ Object ( Bit Done, Bit Exception) "VivaString::Concatenate"( Bit Go
+    , "IVivaString*" MemberOf, BinaryString StringToAppend) ;  //_GUI 80,23
+ //_Attributes Primitive,System=X86UI,Resource=TIMESLICE,KeepObject=One side,ProgID=VIVASTANDARDOBJECTSLib::VivaString::Concatenate
+ Object ( Bit Out1) OR-NInput( Variant In1) ;  //_GUI 128,35
+ Object ( Bit Done, "IVivaString*" Dispatch) "ComCreate: VIVASTANDARDOBJECTSLib::VivaString"( Bit Go) ;  //_GUI 22,23
+ //_Attributes System=X86UI,Resource=TIMESLICE,KeepObject=One side,ProgID=VIVASTANDARDOBJECTSLib::VivaString::[Create]
+ Object ( Bit Done, Bit Exception, ComUInt "Ret Val") "VivaString::GetLength"
+    ( Bit Go, "IVivaString*" MemberOf) ;  //_GUI 108,23
+ //_Attributes Primitive,System=X86UI,Resource=TIMESLICE,KeepObject=One side,ProgID=VIVASTANDARDOBJECTSLib::VivaString::GetLength
+ Object ( Bit Out) INVERT( Bit In1) ;  //_GUI 146,35
+ Object Text;  //_GUI 14,10,Warn the user if the String is empty when the Wave Form Display is initialized (program startup).Arial,12,8388608,0
+ Object ( Bit Done) Release( Bit Go, "IDispatch*" Dispatch) ;  //_GUI 142,23
+ //_Attributes Resource=TIMESLICE,KeepObject=One side
+ Object ( Bit Out) AND( Bit In1, Bit In2) ;  //_GUI 160,33
+ Object Output( Bit Trap) ;  //_GUI 174,35
+ //_Attributes Trap="20"
+
+ //_ Behavior Topology
+ Junction.0 = "ComCreate: VIVASTANDARDOBJECTSLib::VivaString".1;  
+ Junction:A.0 = Junction.2;  //_GUI 76,44
+ "VivaString::Concatenate".0 = "ComCreate: VIVASTANDARDOBJECTSLib::VivaString".0;  
+ "VivaString::Concatenate".1 = Junction.1;  
+ "VivaString::Concatenate".2 = Input.0;  //_GUI 80,34
+ OR-NInput.0 = "VivaString::GetLength".2;  
+ "ComCreate: VIVASTANDARDOBJECTSLib::VivaString".0 = Go.0;  
+ "VivaString::GetLength".0 = "VivaString::Concatenate".0;  
+ "VivaString::GetLength".1 = Junction:A.0;  
+ INVERT.0 = OR-NInput.0;  
+ Release.0 = "VivaString::GetLength".0;  
+ Release.1 = Junction:A.1;  //_GUI 142,44
+ AND.0 = Release.0;  //_GUI 160,26
+ AND.1 = INVERT.0;  
+ Output.0 = AND.0;  
+}
+
+Object ( Bit Busy) "Analyzer01 Probe"( List Data, BinaryString Name) 
+//_Attributes TreeGroup=CoreLib-Debug\Wave Form Display Probes
+{
+ //_ Object Prototypes
+ Object ( List Data) Input;  //_GUI 9,25
+ Object ( BinaryString Name) Input:A;  //_GUI 9,28
+ //_Attributes Constant="Analyzer01"
+ Object Output( Bit Busy) ;  //_GUI 87,36
+ Object ( Bit "Analyzer01 Busy") Input:B;  //_GUI 80,36
+ //_Attributes Resource=Global
+ Object ( Variant Out1, Variant Out2) ListIn( List In) ;  //_GUI 20,23
+ Object ( Bit Busy) "Analyzer01 Probe"( Variant Data, BinaryString Name) ;  //_GUI 47,13
+ Object ( Bit Busy) "Analyzer01 Probe":A( Variant Data, BinaryString Name) ;  //_GUI 46,36
+ Object ( BinaryString Out1, BinaryString Out2, BinaryString Out3) Junction
+    ( BinaryString In0) ;  //_GUI 39,40
+
+ //_ Behavior Topology
+ Output.0 = Input:B.0;  
+ ListIn.0 = Input.0;  
+ "Analyzer01 Probe".0 = ListIn.1;  //_GUI 31,15
+ "Analyzer01 Probe".1 = Junction.0;  //_GUI 40,18
+ "Analyzer01 Probe":A.0 = ListIn.0;  //_GUI 37,38, 37,28
+ "Analyzer01 Probe":A.1 = Junction.1;  
+ Junction.0 = Input:A.0;  //_GUI 13,41
+}
+
