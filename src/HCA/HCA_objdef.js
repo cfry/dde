@@ -13,14 +13,24 @@ globalThis.HCAObjDef = class HCAObjDef {
     constructor(json_obj){
         for(let key of Object.keys(json_obj)){
             let val = json_obj[key]
-            this[key] = val
             if(key === "TreeGroup") {
                 this.TreeGroup = val.split("/")
             }
+            else {
+                this[key] = val
+            }
         }
-        if(!this.TreeGroup) {//hits for the obj named "CorLib".
-            this.TreeGroup = []
+        if(!this.TreeGroup) {//hits for the obj named "CoreLib".
+            if(this.Primitive){
+                this.TreeGroup = ["Primitives"]
+            }
+            else {
+                this.TreeGroup = ["Misc"] //[this.objectName]
+            } //fry added this because some objects didin't have a TreeGroup, such as the obj with objectName: "CoreLib". So I gave it one
         }
+        if(!this.outputs) { this.outputs = [] } //CoreLib doesn't have an outputs field.
+        if(!this.inputs)  { this.inputs  = [] } //CoreLib doesn't have an outputs field.
+
         //console.log("just made HCAObjDef " + this.objectName)
         this.insert_obj_def_into_tree(HCAObjDef.obj_def_tree, this.TreeGroup)
     }

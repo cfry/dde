@@ -839,6 +839,7 @@ To load all the .hco object files in a folder, click <input type='submit' value=
         inspect(tree)
         let html = this.populate_palette_obj_defs_aux(tree)
         HCA_palette_id.insertAdjacentHTML("beforeend", html)
+        //HCA_palette_id.innerHTML = html
     }
 
     static populate_palette_obj_defs_aux(tree){
