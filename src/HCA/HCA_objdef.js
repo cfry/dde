@@ -28,8 +28,13 @@ globalThis.HCAObjDef = class HCAObjDef {
                 this.TreeGroup = ["Misc"] //[this.objectName]
             } //fry added this because some objects didin't have a TreeGroup, such as the obj with objectName: "CoreLib". So I gave it one
         }
-        if(!this.outputs) { this.outputs = [] } //CoreLib doesn't have an outputs field.
         if(!this.inputs)  { this.inputs  = [] } //CoreLib doesn't have an outputs field.
+        if(this.objectName === "Output") {
+            debugger;
+        }
+        if(!this.outputs) {
+            this.outputs = []
+        } //CoreLib doesn't have an outputs field.
 
         //console.log("just made HCAObjDef " + this.objectName)
         this.insert_obj_def_into_tree(HCAObjDef.obj_def_tree, this.TreeGroup)
@@ -70,25 +75,35 @@ globalThis.HCAObjDef = class HCAObjDef {
         }
     }
 
+    //questionable because it means only one obj def per obj_name regardless of different arg types.
+    //but if not, how could the netlist work with only objectNames in it?
+    static obj_name_to_obj_def_map = {}
+
+    static obj_name_to_obj_def(obj_name){
+        return this.obj_name_to_obj_def_map[obj_name]
+    }
+
+
     //path can be: like "CoreLib/GrammaticalOps/ReverseBits" or
     //                 ["CoreLib", "GrammaticalOps", "ReverseBits"]
-    static path_to_json_obj(path, path_index = 0, look_in=HCAObjDef.obj_def_tree){
+    static path_to_obj_def(path, path_index = 0, look_in=HCAObjDef.obj_def_tree){
         if(typeof(path) === "string"){
             path = path.split("/")
         }
         let cur_path_part = path[path_index]
         if(path.length -1 === path_index) { //we're on the last path index.
-            for (let obj of look_in.obj_defs) {
-                if (obj.objectName === cur_path_part) { //beware. might be more than 1
-                    return obj
+            for (let obj_def of look_in.obj_defs) {
+                if (obj_def.objectName === cur_path_part) { //beware. might be more than 1
+                    this.obj_name_to_obj_def_map[obj_def.objectName] = obj_def
+                    return obj_def
                 }
             }
-            shouldnt("HCA_objdef.path_to_json_obj could not find obj")
+            shouldnt("HCA_objdef.path_to_obj_def could not find obj")
         }
         else { //not on last path elt
             for(let subfold of look_in.subfolders){
                 if(subfold.folder_name === cur_path_part) {
-                    return this.path_to_json_obj(path, path_index + 1, subfold)
+                    return this.path_to_obj_def(path, path_index + 1, subfold)
                 }
             }
         }

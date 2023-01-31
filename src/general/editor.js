@@ -1063,8 +1063,11 @@ Clear its content?
 //quit the infinite loop, relaunch DDE and have our old content, just as we want it.
     static save_current_file(){
         //out("Saved: " + Editor.current_file_path)
-        DDEFile.write_file_async(Editor.current_file_path, Editor.get_javascript())
-        Editor.unmark_as_changed()
+        if(Editor.current_file_path) {
+            DDEFile.write_file_async(Editor.current_file_path, Editor.get_javascript())
+            Editor.unmark_as_changed()
+        }
+        //else no current file to save, so do nothing.
     }
 
 //called by the File menu "Save" item and Cmd-s keystroke

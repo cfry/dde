@@ -3,7 +3,7 @@ console.log("top of ready_je.js")
 
 globalThis.default_default_ROS_URL           = "localhost:9090"
 globalThis.default_default_dexter_ip_address = "192.168.1.142"
-globalThis.default_default_dexter_port       = 50000
+globalThis.default_default_dexter_port       = 3000 //was 50000 in dde3
 
 import grpc from '@grpc/grpc-js'
 globalThis.grpc = grpc
@@ -175,7 +175,7 @@ async function on_ready_je(){
     if(!Dexter.dexter0.ip_address){
         let addr = DDE_DB.get("dexter0_ip_address")
         if(!addr || (addr === "auto")){
-            Dexter.dexter0.ip_address = "localhost" //but in DDE_IDE this is "192.168.1.142"
+            Dexter.dexter0.ip_address = globalThis.default_default_dexter_ip_address //but in DDE_IDE this is "192.168.1.142"
         }
     }
     Dexter.default = Dexter.dexter0

@@ -196,9 +196,7 @@ globalThis.ipg_to_json = class ipg_to_json{
                 if(line.includes("(")){
                     out("line: " + line_index + " of: " + line)
                 }
-                if(next_line && !next_line.startsWith("{")){
-                    debugger;
-                }
+                //if(next_line && !next_line.startsWith("{")){ d//ebugger;}
                 let attr_obj = this.parse_front_of_line_attributes(line, next_line)
                 for(let key of Object.keys(attr_obj)) {
                     top_level_obj[key] = attr_obj[key]

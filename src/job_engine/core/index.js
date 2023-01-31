@@ -9,7 +9,7 @@ global.dde_release_date = pckg.release_date //require("../package.json").release
 
 global.default_default_ROS_URL           = "localhost:9090"
 global.default_default_dexter_ip_address = "192.168.1.142"
-global.default_default_dexter_port       = 50000
+global.default_default_dexter_port       = 3000 // was 50000 in dde3
 
 
 

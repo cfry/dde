@@ -1,8 +1,8 @@
 //see examples in: https://www.sitepoint.com/rollup-javascript-bundler-introduction/
 import { nodeResolve } from '@rollup/plugin-node-resolve'
-import commonjs from '@rollup/plugin-commonjs'
-import json     from '@rollup/plugin-json'
-import styles   from "rollup-plugin-styles";
+import commonjs        from '@rollup/plugin-commonjs'
+import json            from '@rollup/plugin-json'
+import styles          from "rollup-plugin-styles";
 //import sourcemaps from 'rollup-plugin-sourcemaps'; // https://github.com/maxdavidson/rollup-plugin-sourcemaps
 import copy from 'rollup-plugin-copy'
 

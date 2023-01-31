@@ -16,7 +16,14 @@ import net       from 'net'; //network
 //import WebSocket from 'ws';
 //WebSocketServer = WebSocket.Server
 //const WebSocketServer = WebSocket.Server
+
+///below fails on Dexter but works on Fry mac
 import WebSocket, { WebSocketServer } from 'ws'; //see https://www.npmjs.com/package/ws
+//workaround for dexter fails
+//import ws_pkg from 'ws';
+//const { WebSocketServer } = ws_pkg;
+//const { WebSocket } = ws_pkg
+
 import path      from 'path';
 import { spawn } from 'child_process'
 import ModbusRTU from "modbus-serial"

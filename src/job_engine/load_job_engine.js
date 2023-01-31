@@ -10,7 +10,7 @@ globalThis.platform         = "not inited" //"dde" or "node"
 
 globalThis.default_default_ROS_URL           = "localhost:9090"
 globalThis.default_default_dexter_ip_address = "192.168.1.142" //careful globalThis.platform is not bound when this is evaled. If runing in node, this is over-written in ready_je.js/on_ready_je()
-globalThis.default_default_dexter_port       = 50000
+globalThis.default_default_dexter_port       = 3000 //was 50000 in dde3
 
 
 

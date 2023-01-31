@@ -99,7 +99,7 @@ class DDEFile {
 
     static host(){
         if(globalThis.platform === "node") {
-            return "localhost" //localhost:50000"
+            return "localhost"
         }
         else {
             return globalThis.location.host //ex: "192.168.1.142", "localhost:80"

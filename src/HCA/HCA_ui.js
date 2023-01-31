@@ -2,6 +2,7 @@ import {LiteGraph} from "litegraph.js";
 globalThis.LiteGraph = LiteGraph
 
 //copied from https://github.com/jagenjo/litegraph.js/blob/master/src/litegraph.js
+//src of litegraph is in big file: https://github.com/jagenjo/litegraph.js
 var LGraphCanvas_prototype_processKey = function(e) { //used in init
     if(Editor.view !== "HCA"){
         return
@@ -171,7 +172,7 @@ globalThis.HCA = class HCA {
     }
 
     static config_litegraph_class(){
-        LiteGraph.NODE_DEFAULT_BGCOLOR      = "#CCCCFF" //the background color of the lower part of a node
+        LiteGraph.NODE_DEFAULT_BGCOLOR      = "#FFCCCC" //the background color of the lower part of a node
         LiteGraph.NODE_DEFAULT_COLOR        = "#CCCCFF" //the background color of a node's title header
         LiteGraph.NODE_DEFAULT_BOXCOLOR     = "#00CC00" //the color of a node's upper left circle for expand/collase
         LiteGraph.NODE_BOX_OUTLINE_COLOR    = "#000000"
@@ -799,7 +800,9 @@ To load all the .hco object files in a folder, click <input type='submit' value=
                               }
                              )
         //HCA_palette_id.append(make_dom_elt("div", {}, "&nbsp;HCA Objects"))
-        HCA_palette_id.insertAdjacentHTML("beforeend", "<div style='font-weight:bold;' title='Click on an underlined name to create an object of that type.'>Make Objects</div>")
+        HCA_palette_id.insertAdjacentHTML("beforeend", "<details title='Click on an underlined name to create an object of that type.'><summary style='font-weight:bold;'>Make Objects</summary>\n" +
+                                           "<div  id='HCA_palette_make_objects_id'>" +
+                                           "</div></details>")
         /*HCA.make_node_button("basic/watch")
         HCA.make_node_button("basic/const", "number")
         for(let palette_obj of HCA.palette_objects){
@@ -826,8 +829,10 @@ To load all the .hco object files in a folder, click <input type='submit' value=
             //HCA_palette_id.style["overflow"] = "hidden"
             HCA.minimize_palette()
         }
-
          */
+        //HCA_palette_id.insertAdjacentHTML("beforeend",
+        //    "<details id='HCA_palette_make_objects_id' style='margin-left:5px;'><summary>Make Objects</summary>\n</details>")
+
         await ipg_to_json.parse("dde/third_party/CorLib.ipg", //"CorLib.ipg",
                                 HCAObjDef.insert_obj_defs_into_tree)
         HCA.populate_palette_obj_defs(HCAObjDef.obj_def_tree)
@@ -838,14 +843,15 @@ To load all the .hco object files in a folder, click <input type='submit' value=
         out("top of populate_palette_obj_defs")
         inspect(tree)
         let html = this.populate_palette_obj_defs_aux(tree)
-        HCA_palette_id.insertAdjacentHTML("beforeend", html)
+        //HCA_palette_id.insertAdjacentHTML("beforeend", html)
         //HCA_palette_id.innerHTML = html
+        HCA_palette_make_objects_id.innerHTML = html
     }
 
     static populate_palette_obj_defs_aux(tree){
-        let ht = //((tree.folder_name === "root") ? "" :
+        let ht = ((tree.folder_name === "root") ? "" :
                  "<details class='hca_folder'><summary class='hca_folder_summary'>" + tree.folder_name + "</summary>"
-                 //)
+                 )
         for(let obj_def of tree.obj_defs) {
             let obj_path_arr = obj_def.TreeGroup.slice()
             obj_path_arr.push(obj_def.objectName)
@@ -867,12 +873,12 @@ To load all the .hco object files in a folder, click <input type='submit' value=
         for(let subfold of tree.subfolders) {
             ht += this.populate_palette_obj_defs_aux(subfold)
         }
-        ht += "</details>\n"
+        ht += ((tree.folder_name === "root") ? "" : "</details>\n")
         return ht
     }
 
     static register_with_litegraph(obj_path){
-         let obj_def = HCAObjDef.path_to_json_obj(obj_path)
+         let obj_def = HCAObjDef.path_to_obj_def(obj_path)
          let fn = function(){
              for(let input of obj_def.inputs) {
                  this.addInput(input.name, input.type)
@@ -965,18 +971,15 @@ To load all the .hco object files in a folder, click <input type='submit' value=
     static sheet_onclick_fn(event){
         let obj_name = event.target.value
         console.log("got sheet named: " + obj_name)
-        debugger;
         let sheet_obj = HCAObjDef.object_name_to_sheet(obj_name)
         HCAObjDef.current_sheet = sheet_obj
         console.log("got sheet : " + sheet_obj)
-        HCA.lgraph.clear() //remove all nodes
+        HCA.lgraph.clear() //remove all existing graphical nodes
         if(!sheet_obj.prototypes) { return } //no prototypes to display in canvas
-        let lgraph_config_json = { "last_node_id": 2,
-                                    "last_link_id": 1,
-                                    "nodes": [],
-                                    "links": [
-                                    //[1, 2, 0, 1, 0, "Variant"]
-                                    ],
+        let lgraph_config_json = { "last_node_id": sheet_obj.prototypes.length - 1,
+                                    //"last_link_id" //set below
+                                    "nodes":  [], //filled in below
+                                    "links":  [],//filled in below, example of elt: //[1, 2, 0, 1, 0, "Variant"]
                                     "groups": [],
                                     "config": {},
                                     "extra":  {},
@@ -984,8 +987,13 @@ To load all the .hco object files in a folder, click <input type='submit' value=
                                  }
         let min_x = null
         let min_y = null
+        let objectName_to_lgraph_node_id_map = {}
+        let objectName_to_obj_def = {}
+
+        //make the lgraph node json obj and compute the min_x and min_y position for all the nodes
         for(let i = 0; i <  sheet_obj.prototypes.length;i++){
             let obj_call = sheet_obj.prototypes[i]
+            objectName_to_lgraph_node_id_map[obj_call.objectName] = i
             let a_node = this.make_lgraph_node_json(obj_call, i)
             let x = a_node.pos[0]
             if((min_x === null) || (min_x > x)) { min_x = x}
@@ -993,40 +1001,119 @@ To load all the .hco object files in a folder, click <input type='submit' value=
             if((min_y === null) || (min_y > y)) { min_y = y}
             lgraph_config_json.nodes.push(a_node)
         }
+
+        //shift the nodes such that the min-x is up against left side of the canvas and
+        //min_y is up against the top of the canvas.
         for(let node of lgraph_config_json.nodes){
             node.pos[0] -= min_x
             node.pos[1] -= min_y
         }
 
+        let netList = sheet_obj.netList //an array of objs, one per link.
+                                        //each of these link objs has 2 props: "sink" and "source"
+                                        //the sink obj as 2 props: objectName and outputNumber (a non-neg int)
+                                        //the source obj as 2 props: objectName and inputNumber (a non-neg int)
+        let lgraph_links = []
+        for(let net_list_item_index = 0;  net_list_item_index < netList.length; net_list_item_index++){
+            let net_list_item       = netList[net_list_item_index]
+            let sink_objectName     = net_list_item.sink.objectName
+            let sink_outputNumber   = net_list_item.sink.outputNumber
+            let source_objectName   = net_list_item.source.objectName
+            let source_inputNumber  = net_list_item.source.inputNumber
+            let type
+            try {
+                let obj_def = HCAObjDef.obj_name_to_obj_def(sink_objectName)
+                type = obj_def.outputs[sink_outputNumber].type
+            }
+            catch(err) { type = "Varient"} //todo this is a hack, need to fix.
+            let links_item = [net_list_item_index, //LLink.id
+                              objectName_to_lgraph_node_id_map[sink_objectName],  //LLink.origin_id,
+                              sink_outputNumber,  //LLink.origin_slot,
+                              objectName_to_lgraph_node_id_map[source_objectName],  //LLink.target_id,
+                              source_inputNumber,  ///LLink.target_slot,
+                              type  //LLink.type
+                             ]
+            lgraph_links.push(links_item)
+        }
+        lgraph_config_json.links        = lgraph_links
+        lgraph_config_json.last_link_id = lgraph_links.length - 1
+
+        //acutally render the nodes.
         this.lgraph.configure(lgraph_config_json) //ok if json_obj is undefined, which it will be if json_string defaults to "", or we launch HCA_UI from an empty editor buffer.
         for(let node of this.lgraph._nodes){ //if json_string === "", lgraph._nodes will be []
             this.node_add_usual_actions(node)
         }
     }
 
+    static compute_block_width(obj_call){
+        let max_in_letters = 0
+        let max_out_letters = 0
+        if(obj_call.inputs) {
+            for (let a_in of obj_call.inputs) {
+                max_in_letters = Math.max(max_in_letters, a_in.name.length)
+            }
+        }
+        if(obj_call.outputs) {
+            for (let a_out of obj_call.outputs) {
+                max_out_letters = Math.max(max_out_letters, a_out.name.length)
+            }
+        }
+        let io_letters_length = max_in_letters + max_out_letters
+        if((max_in_letters > 0) && (max_out_letters > 0)) {
+            io_letters_length += 2 //space between input and output labels
+        }
+        if(max_in_letters)  {max_in_letters  += 2 }//for the bullet point
+        if(max_out_letters) {max_out_letters += 2 }//for the bullet point
+
+        let title_letters_length = obj_call.objectName.length
+        let title_pix      = (title_letters_length * 9) + 24 //24 is pixels of title's bullet point width title font wider than io names font
+        let io_letters_pix = io_letters_length     * 7
+        let block_width = Math.max(title_pix, io_letters_pix)
+        return block_width
+    }
+
+    static compute_block_height(obj_call){
+        let ins_count  = (obj_call.inputs  ? obj_call.inputs.length  : 0)
+        let outs_count = (obj_call.outputs ? obj_call.outputs.length : 0)
+        let vert_sections = 1 + //the title
+            Math.max(ins_count, outs_count)
+        return vert_sections * 18 //32   LiteGraph.NODE_TITLE_HEIGHT
+    }
+
     static make_lgraph_node_json(obj_call, id){
+        let ins = []
+        //make json of format:
+        // "inputs": [{ "name": "In1", "type": "Variant", "link": null_or_pos_int }]
+        let hca_call_ins = (obj_call.inputs? obj_call.inputs : [])
+        for(let an_in of hca_call_ins){
+            let a_graph_in = {name: an_in.name, type: an_in.type, link: null}
+            ins.push(a_graph_in)
+        }
+        let outs = []
+        //make json of format:
+        // "outputs": [{ "name": "In1", "type": "Variant", "link": null_or_pos_int }]
+        let hca_call_outs = (obj_call.outputs? obj_call.outputs : [])
+
+        for(let an_out of hca_call_outs){
+            let a_graph_out = {name: an_out.name, type: an_out.type, links: []} //links can be null if none
+            outs.push(a_graph_out)
+        }
+        let width  = this.compute_block_width(obj_call)
+        let height = this.compute_block_height(obj_call)
         let result = {
             "id": id,
             "type": obj_call.objectName, //"CoreLib/GrammaticalOps/One",
             "title": obj_call.objectName,
             "pos": [obj_call.x * 40, obj_call.y * 40],
             "size": {
-                "0": 140,
-                "1": 26
+                "0": width, //140
+                "1": height //26
             },
             "flags": {},
             "order": 1,
             "mode": 0,
-            "inputs": [{
-                "name": "In1",
-                "type": "Variant",
-                "link": 1
-             }],
-            "outputs": [{
-                "name": "Out1",
-                "type": "Variant",
-                "links": null
-            }],
+            "inputs": ins,
+            "outputs": outs,
             "properties": {
             "precision": 1
         }

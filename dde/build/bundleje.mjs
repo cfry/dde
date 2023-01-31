@@ -6684,6 +6684,13 @@ class Vector$1{
     var interpolated_y = interpolate(data_0_x, data_1_x, data_1_y)
     out(interpolated_y) //[0, 2, 4]
     */
+
+	//from James W Jan 8, 2023
+	static is_valid_triangle = function(L1, L2, L3){
+		return (L1 + L2) > L3 && (L2 + L3) > L1 && (L3 + L1) > L2
+	}
+	//Vector.is_valid_triangle(3, 4, 5) //true
+    //Vector.is_valid_triangle(0.339092, 0.3075, 0.0265968) //false
 } //end class
 
 globalThis.Vector = Vector$1;
@@ -6870,11 +6877,16 @@ class Convert$1{
         //return JSON.parse(JSON.stringify(arg))
     	if (typeof(arg) == "number"){
         	return arg
-        }else {
+        }
+        else if (arg === null) { return null }
+        else if (arg === undefined) { return undefined }
+        else {
         	let result = [];
         	for(var i = 0; i < arg.length; i++){
             	let elt = arg[i];
-                if (typeof(elt) !== "number"){
+                if(elt === null) ;
+                else if (elt === undefined) ;
+                else if (typeof(elt) !== "number"){
                     elt = elt.slice(0);
                 }
                 result.push(elt);
@@ -7011,7 +7023,9 @@ class Kin$1{
         let U = Vector.make_matrix(5, 3);
         let P = [0, 0, 0, 0];
         let L;
-        if(dexter_inst) { L = [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5]; } //Link Lengths
+        if(dexter_inst && dexter_inst.defaults && dexter_inst.LinkLengths) {
+            L = dexter_inst.LinkLengths; //[dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5]
+        }
 		else            { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]; }
 		let normal = direction;
     	let right_arm = config[0];
@@ -7123,8 +7137,14 @@ class Kin$1{
         	let out_of_reach_dist = Vector.round(D3 - (L[1] + L[2]), 4);
         	dde_error("Point [" + Vector.round(xyz, 3)+"], [" + Vector.round(V54,3) + '] is ' + out_of_reach_dist + 'm out of reach');
         }
-        
-        
+
+        if(!Vector.is_valid_triangle(L[1], L[2], D3)){
+            dde_error("In Kin.xyz_to_J_angles(), Point [" + Vector.round(xyz, 3)+"], [" + Vector.round(V54,3) + "]"
+                + " is too close to the robot\'s base."
+                +  "<br>Try moving the goal xyz up or away from the origin"
+            );
+        }
+
     	//let Beta = acosd((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3, 2)) / (2 * D3 * L[1])) // Law of Cosines
         let Beta = acosd((-Math.pow(L[2], 2) + Math.pow(L[1], 2) + Math.pow(D3, 2)) / (2 * D3 * L[1])); // Law of Cosines
         let V31 = Vector.normalize(Vector.subtract(U[3], U[1]));
@@ -7199,8 +7219,10 @@ class Kin$1{
         if(Array.isArray(dexter_inst_or_workspace_pose))  { workspace_pose = dexter_inst_or_workspace_pose;}
         else { dexter_inst = dexter_inst_or_workspace_pose; workspace_pose = dexter_inst_or_workspace_pose.pose;}
         let L;
-        if(dexter_inst) { L = [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5]; } //Link Lengths
-        else            { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]; }
+        if(dexter_inst && dexter_inst.defaults && dexter_inst.LinkLengths) {
+            L = dexter_inst.LinkLengths;
+        }
+        else  { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]; }
 
         let P = new Array(3).fill(new Array(4)); //Planes
         
@@ -7284,8 +7306,10 @@ class Kin$1{
             if(Array.isArray(dexter_inst_or_workspace_pose)) { workspace_pose = dexter_inst_or_workspace_pose;}
             else if (dexter_inst_or_workspace_pose) { dexter_inst = dexter_inst_or_workspace_pose; workspace_pose = dexter_inst_or_workspace_pose.pose;}
             let L;
-            if(dexter_inst) { L = [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5]; } //Link Lengths
-            else            { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]; }
+            if(dexter_inst && dexter_inst.defaults && dexter_inst.LinkLengths) {
+               L = dexter_inst.LinkLengths;
+            }
+            else { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]; }
 
             let xyz_trans;
             let normal_trans;
@@ -7355,8 +7379,10 @@ class Kin$1{
         //note that dexter_inst_or_workspace_pose might be undefined.
         //we don't actually need workspace_pose in this method, but I'm following a pattern here.
         let L;
-        if(dexter_inst) { L = [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5]; } //Link Lengths
-        else            { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]; }
+        if(dexter_inst && dexter_inst.defaults && dexter_inst.LinkLengths) {
+            L = dexter_inst.LinkLengths;
+        }
+        else  { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]; }
 
         let right_arm, elbow_up, wrist_out;
         let P = fk[2];
@@ -7624,9 +7650,11 @@ class Kin$1{
         }else {
         	dde_error("L0_pose input arg must be a Coordinate System Object, a pose, or undefined");
         }
-        let L = ((dexter_inst instanceof Dexter) ?
-                   [dexter_inst.Link1, dexter_inst.Link2, dexter_inst.Link3, dexter_inst.Link4, dexter_inst.Link5] :
-                   [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]);
+        let L;
+        if(dexter_inst && dexter_inst.defaults && dexter_inst.LinkLengths) {
+            L = dexter_inst.LinkLengths;
+        }
+        else  { L = [Dexter.LINK1, Dexter.LINK2, Dexter.LINK3, Dexter.LINK4, Dexter.LINK5]; }
         let J = joint_angles;
         
         
@@ -10178,7 +10206,7 @@ var txt$1 = new function(){
 
     this.C_max = function(){return 0.6688626609616222};
 	this.C = function(){
-    	return points = [
+    	return [
                           [0.6682814896378205, 0.6682895598691232, 0],
                           [0.6265096329805147, 0.7936029914735343, 0],
                           [0.6265096329805147, 0.7936029914735343, 0],
@@ -13447,7 +13475,7 @@ DxfParser.prototype._parse = function(dxfString) {
                curr = scanner.next();
                break;
             case 210:
-                    extrusionDirection = parsePoint();
+                entity.extrusionDirection = parsePoint();
                break;
             default:
                checkCommonEntityProperties(entity);
@@ -18067,6 +18095,9 @@ Job$1.all_jobs = function(){
 };
 
 Job$1.job_id_to_job_instance = function(job_id){
+    if(typeof(job_id) === "string"){
+        job_id = parseInt(job_id);
+    }
     for(let name of Job$1.all_names){
         if (Job$1[name].job_id === job_id) {return Job$1[name]}
     }
@@ -18266,11 +18297,11 @@ Job$1.prototype.if_robot_status_error_default = function(){
     //this default method stops the job but allows the when_stopped instruction to run.
 };
 
-Job$1.prototype.if_instruction_error_default = function(){
+Job$1.prototype.if_instruction_error_default = function(error_message){
     let pc_of_error_instruction = this.program_counter - 1;
     let erroring_instruction = this.do_list[pc_of_error_instruction];
     let instr_src = to_source_code(erroring_instruction);
-    let msg = "Error in instruction of Job." + this.name + " at do_list program counter of: " + pc_of_error_instruction +
+    let msg = "Error: " + error_message + " in instruction of Job." + this.name + " at do_list program counter of: " + pc_of_error_instruction +
               "<br/>" + instr_src;
     //warning(msg) //redundant. Let Control.error print the msg.
     return Control.error(msg)
@@ -18920,6 +18951,12 @@ Job$1.prototype.do_next_item = function(){ //user calls this when they want the 
             //of instructions. If its an array, we insert it as just one instruction,
             //and that will cause all to be run.
             //it has a default that prints out a message.
+
+            //let the_job = this
+            //let fn = function(){
+            //    the_job.if_instruction_error(err.message)
+            //}
+            //this.insert_single_instruction(fn)
             this.insert_single_instruction(this.if_instruction_error);
         }
         this.set_up_next_do();
@@ -19888,13 +19925,6 @@ Job$1.prototype.to_source_code = function(args={}){
     }
     result += props_indent + "do_list: [\n";
     let do_list_val = props_container.do_list;
-    if (!args.job_orig_args){
-        let last_instr  = last(do_list_val);
-        if (Instruction.is_oplet_array(last_instr) &&
-            last_instr[Instruction.INSTRUCTION_TYPE] == "g") { //don't print the auto_added g instr at end of a run job
-            do_list_val = do_list_val.slice(0, (do_list_val.length - 1));
-        }
-    }
     for(let i = 0; i < do_list_val.length; i++){
        let on_last = (i == do_list_val.length - 1);
        let prop_args = Object.assign({}, arguments[0]);
@@ -20507,7 +20537,9 @@ class Instruction$1 {
     init_instruction(){} //shadowed by at least wait_until and loop
 
     static to_string(instr){
-       if(instr instanceof Instruction$1) { return instr.toString() }
+       if(instr === undefined) { return "undefined"} //a valid instr but a no-op
+       else if(instr === null) { return "null"}      //a valid instr but a no-op
+       else if(instr instanceof Instruction$1) { return instr.toString() }
        else if (Instruction$1.is_oplet_array(instr)) {
            var oplet   = instr[Dexter.INSTRUCTION_TYPE];
            var fn_name = Dexter.instruction_type_to_function_name(oplet);
@@ -20524,6 +20556,27 @@ class Instruction$1 {
     }
     toString(){
         return "{instanceof: " + Utils.stringify_value_aux(this.constructor) + "}"
+    }
+
+    static oplet_array_to_source_code(instr_arr){
+        let result = "make_ins(";
+        for(let i = Dexter.INSTRUCTION_TYPE;  //skip over job_id, datetimes
+                i < instr_arr.length;
+                i++){
+            let elt = instr_arr[i];
+            if(i === (instr_arr.length - 1)) { //the last instr
+                if(elt instanceof Dexter){
+                    result += "Dexter." + elt.name;
+                }
+                else {
+                    result += to_source_code({value: elt}); //no comma after last element
+                }
+            }
+            else {
+                result += to_source_code({value: elt}) + ", ";
+            }
+        }
+        return result + ")"
     }
 
     //excludes at_sign instructions but includes "a" and "a!
@@ -24037,7 +24090,10 @@ Instruction.Dexter.get_robot_status = class get_robot_status extends Instruction
         if(this.status_mode == null) { arg_src = ""; }
         else { arg_src = "" + this.status_mode; }
         args.indent = "";
-        return args.indent + "Dexter." + this.robot.name + ".get_robot_status(" + arg_src + ")"
+        return args.indent +
+               "Dexter." +
+               (args.value.robot ? args.value.robot.name + "." : "") +
+               this.robot.name + ".get_robot_status(" + arg_src + ")"
     }
 };
 
@@ -24098,9 +24154,12 @@ Instruction.Dexter.move_all_joints = class move_all_joints extends Instruction.D
     }
     to_source_code(args){
         args = Object.assign({}, args);
-        args.value = this.array_of_angles;
         args.indent = "";
-        return args.indent + "Dexter.move_all_joints(" + to_source_code(args) + ")"
+        return args.indent +
+              "Dexter." +
+              (args.value.robot ? args.value.robot.name + "." : "") +
+              "move_all_joints(" + to_source_code({value: args.value.array_of_angles}) +
+              ")"
     }
 };
 
@@ -24158,7 +24217,12 @@ Instruction.Dexter.pid_move_all_joints = class pid_move_all_joints extends Instr
         args        = Object.assign({}, args);
         args.value  = this.array_of_angles;
         args.indent = "";
-        return args.indent + "Dexter.pid_move_all_joints(" + to_source_code(args) + ")"
+        return args.indent +
+              "Dexter." +
+              (args.value.robot ? args.value.robot.name + "." : "") +
+              "pid_move_all_joints("  +
+              to_source_code({value: args.value.array_of_angles}) +
+              ")"
     }
 };
 
@@ -24222,17 +24286,22 @@ Instruction.Dexter.move_all_joints_relative = class move_all_joints_relative ext
         args        = Object.assign({}, args);
         args.value  = this.delta_angles;
         args.indent = "";
-        return args.indent + "Dexter.move_all_joints_relative(" + to_source_code(args) + ")"
+        return args.indent +
+              "Dexter." +
+              (args.value.robot ? args.value.robot.name + "." : "") +
+              "pid_move_all_joints("  +
+              to_source_code({value: args.value.array_of_angles}) +
+              ")"
     }
 };
 
 Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
-    constructor (xyz           = [],
-                 J5_direction  = [0, 0, -1], //pointing down
-                 config        = Dexter.RIGHT_UP_OUT,
-                 workspace_pose = null, //default's to the job's default_workspace_pose
-                 j6_angle = [0], //default is to move relatively 0, ie don't change
-                 j7_angle = [0],
+    constructor (xyz            = [],
+                 J5_direction= [0, 0, -1], //pointing down
+                 config               = Dexter.RIGHT_UP_OUT,
+                 workspace_pose  = null, //default's to the job's default_workspace_pose
+                 j6_angle    = [0], //default is to move relatively 0, ie don't change
+                 j7_angle    = [0],
                  robot
     ){
         super();
@@ -24360,7 +24429,7 @@ Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
     to_source_code(args){
         args        = Object.assign({}, args);
         args.indent = "";
-
+        let rob = args.value.robot;
         args.value  = this.xyz;
         let xyx_src = to_source_code(args);
 
@@ -24370,10 +24439,26 @@ Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
         args.value  = this.config;
         let config_src = to_source_code(args);
 
-        return args.indent + "Dexter.move_to(" +
-            xyx_src          + ", " +
-            J5_direction_src + ", " +
-            config_src       +
+        args.value  = this.workspace_pose;
+        let workspace_pose = to_source_code(args);
+
+        args.value  = this.j6_angle;
+        let j6_angle = to_source_code(args);
+
+        args.value  = this.j7_angle;
+        let j7_angle = to_source_code(args);
+
+
+        return args.indent +
+              "Dexter." +
+               (rob ? rob.name  + "." : "") +
+               "move_to("       +
+               xyx_src          + ", " +
+               J5_direction_src + ", " +
+               config_src       + ", " +
+               workspace_pose   + ", " +
+               j6_angle         + ", " +
+               j7_angle         + ", " +
             ")"
     }
 };
@@ -24488,8 +24573,10 @@ Instruction.Dexter.pid_move_to = class pid_move_to extends Instruction.Dexter{
     toString(){ return "{instanceof: pid_move_to " + this.xyz + "}" }
 
     to_source_code(args){
-        args        = Object.assign({}, args);
+        args  = Object.assign({}, args);
         args.indent = "";
+
+        let rob = args.value.robot;
 
         args.value  = this.xyz;
         let xyx_src = to_source_code(args);
@@ -24500,10 +24587,25 @@ Instruction.Dexter.pid_move_to = class pid_move_to extends Instruction.Dexter{
         args.value  = this.config;
         let config_src = to_source_code(args);
 
-        return args.indent + "Dexter.pid_move_to(" +
+        args.value  = this.workspace_pose;
+        let workspace_pose = to_source_code(args);
+
+        args.value  = this.j6_angle;
+        let j6_angle = to_source_code(args);
+
+        args.value  = this.j7_angle;
+        let j7_angle = to_source_code(args);
+
+        return args.indent +
+            "Dexter." +
+            (rob ? rob.name + "." : "") +
+            "pid_move_to(" +
             xyx_src          + ", " +
             J5_direction_src + ", " +
-            config_src       +
+            config_src       + ", " +
+            workspace_pose   + ", " +
+            j6_angle         + ", " +
+            j7_angle         + ", " +
             ")"
     }
 };
@@ -24562,10 +24664,31 @@ Instruction.Dexter.move_to_relative = class move_to_relative extends Instruction
         return "{instanceof: move_to_relative " + this.delta_xyz + "}"
     }
     to_source_code(args){
-        let prop_args        = Object.assign({}, args);
-        prop_args.indent     = "";
-        prop_args.value      = this.delta_xyz;
-        return args.indent + "Dexter.move_to_relative(" + to_source_code(prop_args) + ")"
+        args        = Object.assign({}, args);
+        args.indent = "";
+        let rob     = args.value.robot;
+
+        args.value = this.delta_xyz;
+        let delta_xyz = to_source_code(args);
+
+        args.value = this.workspace_pose;
+        let workspace_pose = to_source_code(args);
+
+        args.value = this.j6_delta_angle;
+        let j6_delta_angle = to_source_code(args);
+
+        args.value = this.j7_delta_angle;
+        let j7_delta_angle = to_source_code(args);
+
+        return args.indent +
+               "Dexter." +
+               (rob ? rob.name + "." : "") +
+               "move_to_relative(" +
+                delta_xyz  + ", " +
+                workspace_pose + ", " +
+                j6_delta_angle + ", " +
+                j7_delta_angle + ", " +
+            ")"
     }
 };
 
@@ -24699,27 +24822,48 @@ Instruction.Dexter.move_to_straight = class move_to_straight extends Instruction
         args        = Object.assign({}, args);
         args.indent = "";
 
+        let rob = args.value.robot;
+
         args.value  = this.xyz;
-        let xyx_src = to_source_code(args);
+        to_source_code(args);
 
         args.value  = this.J5_direction;
-        let J5_direction_src = to_source_code(args);
+        let J5_direction = to_source_code(args);
 
         args.value  = this.config;
-        let config_src = to_source_code(args);
+        let config = to_source_code(args);
+
+        args.value  = this.workspace_pose;
+        let workspace_pose = to_source_code(args);
 
         args.value  = this.tool_speed;
-        let tool_speed_src = to_source_code(args);
+        let tool_speed = to_source_code(args);
 
         args.value  = this.resolution;
-        let resolution_src = to_source_code(args);
+        let resolution = to_source_code(args);
 
-        return args.indent + "Dexter.move_to_straight(" +
-            xyx_src          + ", " +
-            J5_direction_src + ", " +
-            config_src       + ", " +
-            tool_speed_src   + ", " +
-            resolution_src   +
+        args.value  = this.j6_angle;
+        let j6_angle = to_source_code(args);
+
+        args.value  = this.j7_angle;
+        let j7_angle = to_source_code(args);
+
+        args.value  = this.single_instruction;
+        let single_instruction = to_source_code(args);
+
+        return args.indent +
+            "Dexter." +
+            (rob ? rob.name + "." : "") +
+            "move_to_straight({"  +
+            "xyx: "                + xyz                + ", " +
+            "J5_direction: "       + J5_direction       + ", " +
+            "config: "             + config             + ", " +
+            "workspace_pose: "     + workspace_pose     + ", " +
+            "tool_speed: "         + tool_speed         + ", " +
+            "resolution: "         + resolution         + ", " +
+            "j6_angle: "           + j6_angle           + ", " +
+            "j7_angle: "           + j7_angle           + ", " +
+            "single_instruction: " + single_instruction +
             ")"
     }
 };
@@ -24853,14 +24997,14 @@ Instruction.Dexter.read_file = class read_file extends Instruction.Dexter{
     }*/
 
     to_source_code(args){
-        let result = "Dexter.";
-        if(this.robot) { result += this.robot.name + "."; }
-        result += args.indent +
-                  "read_file(" +
-                  to_source_code({value: this.source}) + ", " +
-                  to_source_code({value: this.destination}) +
-                  ")";
-        return result
+        let rob = args.value.robot;
+        return args.indent +
+               "Dexter." +
+               (rob ? rob.name + "." : "") +
+               "read_file(" +
+               to_source_code({value: this.source}) + ", " +
+               to_source_code({value: this.destination}) +
+               ")"
     }
 };
 Instruction.Dexter.read_file.payload_max_chars = 62;
@@ -25801,7 +25945,7 @@ class Dexter$1 extends Robot$1 {
     constructor({name = null,
                  simulate = null,
                  ip_address = null,
-                 port = null,
+                 port = globalThis.default_default_dexter_port,
                  pose = Vector.identity_matrix(4),
                  enable_heartbeat=true,
                  instruction_callback = Job.prototype.set_up_next_do}={}){
@@ -26375,7 +26519,10 @@ class Dexter$1 extends Robot$1 {
         //only comming for simulation and not from read dexter.
         //else if (ins_id == -1) {}
      // else {
-        if (job_instance.keep_history && (oplet == "g")){ //don't do it for oplet "G", get_robot_status_immediate
+        if (job_instance.keep_history &&
+            ((oplet === "g") || //don't do it for oplet "G", get_robot_status_immediate
+              (oplet === "F")   //added in dde4
+            )){
                 job_instance.rs_history.push(robot_status);
         }
         if(globalThis.platform === "dde"){
@@ -27675,62 +27822,64 @@ Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
 */
 //content is the content of a Defaults.make_ins file
 //sets link lengths as well as any other params in the file.
-Dexter$1.prototype.set_link_lengths_from_file_content = function(content){
+/* obsoleted by Dexter.defaults
+Dexter.prototype.set_link_lengths_from_file_content = function(content){
     for(let line of content.split("\n")){
         //first get rid of comment, if any, at line end.
-        let semi_pos = line.indexOf(";");
-        if (semi_pos > -1) { line = line.substring(0, semi_pos); }
-        line = line.trim();
+        let semi_pos = line.indexOf(";")
+        if (semi_pos > -1) { line = line.substring(0, semi_pos) }
+        line = line.trim()
         if(line.length > 0) {
-            let line_elts = line.split(",");
-            let oplet = line_elts[0].trim();
+            let line_elts = line.split(",")
+            let oplet = line_elts[0].trim()
             if(oplet == "S"){
-                let param_name = line_elts[1].trim();
+                let param_name = line_elts[1].trim()
                 if(line_elts.length == 3){
-                    let val = parseFloat(line_elts[2].trim());
-                    let new_param_name = param_name;
+                    let val = parseFloat(line_elts[2].trim())
+                    let new_param_name = param_name
                     if(param_name.includes("Boundry")) {
-                        val = val * _arcsec;
-                        new_param_name = "J";
-                        new_param_name += param_name[1];
-                        new_param_name = new_param_name + "_angle_"; //+= fails here. JS bug
-                        if(param_name.endsWith("Low")) {new_param_name += "min";}
-                        else                           {new_param_name += "max";}
+                        val = val * _arcsec
+                        new_param_name = "J"
+                        new_param_name += param_name[1]
+                        new_param_name = new_param_name + "_angle_" //+= fails here. JS bug
+                        if(param_name.endsWith("Low")) {new_param_name += "min"}
+                        else                           {new_param_name += "max"}
                     }
-                    this[new_param_name] = val;
+                    this[new_param_name] = val
                 }
                 //the rest have more than one val
                 else if (param_name == "LinkLengths") { //link5 length is in the array first. }
                     for(let i = 2; i < line_elts.length; i++){
-                        let i_val = parseFloat(line_elts[i].trim()) * _um;  //convert from string of microns to meters.
-                        if     (i == 2) { this.Link5 = i_val; }
-                        else if(i == 3) { this.Link4 = i_val; }
-                        else if(i == 4) { this.Link3 = i_val; }
-                        else if(i == 5) { this.Link2 = i_val; }
-                        else if(i == 6) { this.Link1 = i_val; }
-                        else { shouldnt("set_parameter of: " + param_name + " got more than 5 link lengths."); }
+                        let i_val = parseFloat(line_elts[i].trim()) * _um  //convert from string of microns to meters.
+                        if     (i == 2) { this.Link5 = i_val }
+                        else if(i == 3) { this.Link4 = i_val }
+                        else if(i == 4) { this.Link3 = i_val }
+                        else if(i == 5) { this.Link2 = i_val }
+                        else if(i == 6) { this.Link1 = i_val }
+                        else { shouldnt("set_parameter of: " + param_name + " got more than 5 link lengths.") }
                     }
                 }
                 else {
-                    let val = line_elts.slice(2, line_elts.length - 1);
-                    this[param_name] = val;
+                    let val = line_elts.slice(2, line_elts.length - 1)
+                    this[param_name] = val
                 }
             }
         }
     }
     if(!this.J6_angle_min) { //not included in some defaults.makeins files
-        this.J6_angle_min = Dexter$1.J6_ANGLE_MIN;
+        this.J6_angle_min = Dexter.J6_ANGLE_MIN
     }
     if(!this.J6_angle_max) { //not included in some defaults.makeins files
-        this.J6_angle_max = Dexter$1.J6_ANGLE_MAX;
+        this.J6_angle_max = Dexter.J6_ANGLE_MAX
     }
     if(!this.J7_angle_min) { //not included in some defaults.makeins files
-        this.J7_angle_min = Dexter$1.J7_ANGLE_MIN;
+        this.J7_angle_min = Dexter.J7_ANGLE_MIN
     }
     if(!this.J7_angle_max) { //not included in some defaults.makeins files
-        this.J7_angle_max = Dexter$1.J7_ANGLE_MAX;
+        this.J7_angle_max = Dexter.J7_ANGLE_MAX
     }
-};
+}
+ */
 
 //called from DexterSim for Dexter.read_from_robot("#POM", link_from_end)
 //and possibly elsewhere by user but if so,
@@ -29895,6 +30044,7 @@ Dexter.defaults_high_key_of_SS_obj = function(obj){
 //when doing the "new" instructions pass,
 //IF we pass an invalid line number, ie null,
 //then this fn gets the rest of the items in the ServoSetup array
+//below includes bug fix by Noah Jan 25, 2023
 Dexter.prototype.defaults_high_level_to_defaults_lines_ServoSetup_line = function(line_number = null){
     let new_lines = [];
     let servo_setup_orig_length = this.defaults.ServoSetup.length;
@@ -29938,13 +30088,13 @@ Dexter.prototype.defaults_high_level_to_defaults_lines_ServoSetup_line = functio
                 if(Array.isArray(high_val)) {
                     ins_arr = ins_arr.concat(high_val);
                     let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
-                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0);
+                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1);
                     val_str = low_val.join(Dexter.defaults_arg_sep);
                 }
                 else {
                     ins_arr.push(high_val);
                     let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
-                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0);
+                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1);
                     val_str = low_val.join(Dexter.defaults_arg_sep);
                 }
             }
@@ -31601,7 +31751,7 @@ class DexterSim$1{
         let robot_status_array = Dexter.make_default_status_array_g_sm(this.status_mode);
         let rs_inst = new RobotStatus({robot_status: robot_status_array});
         let opcode = instruction_array[Instruction.INSTRUCTION_TYPE];
-        robot_status_array[Dexter.JOB_ID] = instruction_array[Instruction.JOB_ID];
+        robot_status_array[Dexter.JOB_ID] = job_id;
         robot_status_array[Dexter.INSTRUCTION_ID] = instruction_array[Instruction.INSTRUCTION_ID];
         robot_status_array[Dexter.START_TIME] = instruction_array[Instruction.START_TIME]; //Date.now()
         robot_status_array[Dexter.STOP_TIME] = Date.now();
@@ -33810,7 +33960,7 @@ class DDEFile$1 {
 
     static host(){
         if(globalThis.platform === "node") {
-            return "localhost" //localhost:50000"
+            return "localhost"
         }
         else {
             return globalThis.location.host //ex: "192.168.1.142", "localhost:80"
@@ -35669,15 +35819,18 @@ function to_source_code$1({value, indent="", function_names=false, newObject_pat
             if (newObject_paths) { return value.objectPath }
             else                 { return value.sourceCode() }
         }
+        else if (Instruction.is_oplet_array(value)){
+            return Instruction.oplet_array_to_source_code(value)
+        }
         else if (Utils.typed_array_name(value)){ //any type of array
             //console.log("calling to_source_code_array")
-            return to_source_code_array(arguments[0])
+            return to_source_code_array({value: value, one_line_per_array_elt: one_line_per_array_elt, array_elt_max_chars: array_elt_max_chars})
         }
         //Job, Robot, Instruction, Duration
         else if (value.to_source_code){
             let new_args = {value: value, indent: indent, depth: depth + 1}; //use depth because we can potentially have infinite recursion here.
-            if (arguments[0].hasOwnProperty("job_orig_args")) {
-                new_args.job_orig_args = arguments[0].job_orig_args; //If true, src generated is from the orig props, not
+            if (value.hasOwnProperty("job_orig_args")) {
+                new_args.job_orig_args = value.job_orig_args; //If true, src generated is from the orig props, not
                 //the current instance props.  current instance props is the default.
             }
             return value.to_source_code(new_args)
@@ -37605,7 +37758,7 @@ globalThis.platform         = "not inited"; //"dde" or "node"
 
 globalThis.default_default_ROS_URL           = "localhost:9090";
 globalThis.default_default_dexter_ip_address = "192.168.1.142"; //careful globalThis.platform is not bound when this is evaled. If runing in node, this is over-written in ready_je.js/on_ready_je()
-globalThis.default_default_dexter_port       = 50000;
+globalThis.default_default_dexter_port       = 3000; //was 50000 in dde3
 
 
 
@@ -37996,7 +38149,7 @@ console.log("top of ready_je.js");
 
 globalThis.default_default_ROS_URL           = "localhost:9090";
 globalThis.default_default_dexter_ip_address = "192.168.1.142";
-globalThis.default_default_dexter_port       = 50000;
+globalThis.default_default_dexter_port       = 3000; //was 50000 in dde3
 globalThis.grpc = grpc$1;
 globalThis.protoLoader = protoLoader$1;
 globalThis.StripsManager = StripsManager$1;
@@ -38120,7 +38273,7 @@ async function on_ready_je(){
     if(!Dexter.dexter0.ip_address){
         let addr = DDE_DB.get("dexter0_ip_address");
         if(!addr || (addr === "auto")){
-            Dexter.dexter0.ip_address = "localhost"; //but in DDE_IDE this is "192.168.1.142"
+            Dexter.dexter0.ip_address = globalThis.default_default_dexter_ip_address; //but in DDE_IDE this is "192.168.1.142"
         }
     }
     Dexter.default = Dexter.dexter0;

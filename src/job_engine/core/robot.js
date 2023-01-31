@@ -946,7 +946,7 @@ class Dexter extends Robot {
     constructor({name = null,
                  simulate = null,
                  ip_address = null,
-                 port = null,
+                 port = globalThis.default_default_dexter_port,
                  pose = Vector.identity_matrix(4),
                  enable_heartbeat=true,
                  instruction_callback = Job.prototype.set_up_next_do}={}){

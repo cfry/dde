@@ -1287,6 +1287,7 @@ Dexter.defaults_high_key_of_SS_obj = function(obj){
 //when doing the "new" instructions pass,
 //IF we pass an invalid line number, ie null,
 //then this fn gets the rest of the items in the ServoSetup array
+//below includes bug fix by Noah Jan 25, 2023
 Dexter.prototype.defaults_high_level_to_defaults_lines_ServoSetup_line = function(line_number = null){
     let new_lines = []
     let servo_setup_orig_length = this.defaults.ServoSetup.length
@@ -1331,13 +1332,13 @@ Dexter.prototype.defaults_high_level_to_defaults_lines_ServoSetup_line = functio
                 if(Array.isArray(high_val)) {
                     ins_arr = ins_arr.concat(high_val)
                     let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this)
-                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0)
+                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1)
                     val_str = low_val.join(Dexter.defaults_arg_sep)
                 }
                 else {
                     ins_arr.push(high_val)
                     let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this)
-                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0)
+                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1)
                     val_str = low_val.join(Dexter.defaults_arg_sep)
                 }
             }

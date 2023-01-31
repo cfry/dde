@@ -205,7 +205,7 @@ Job.job_c.start(); Job.job_d.start()
 //They can add instructions to other jobs (send_to_job)
 // as well as pause (suspend) and resume (unsuspend) jobs.
 
-new Dexter({name: "my_dex", ip_address: "192.168.1.142", port: 50000})
+new Dexter({name: "my_dex", ip_address: "192.168.1.142"})
 new Job({
     name: "j4", 
     robot: Robot.my_dex,
@@ -216,7 +216,7 @@ new Job({
     ]})
 Job.j4.start()
 
-new Dexter({name: "my_dex2", ip_address: "192.168.1.143", port: 50000})
+new Dexter({name: "my_dex2", ip_address: "192.168.1.143"})
 new Job({
     name: "j5", 
     robot: Robot.my_dex2,
@@ -451,7 +451,7 @@ new Job({
 //An instruction can be entered via text or we can GENERATE
 //instructions by moving a Dexter robot where we want it to
 //go as in 'training'.
-new Dexter({name: "my_dex", ip_address: "192.168.1.142", port: 50000})
+new Dexter({name: "my_dex", ip_address: "192.168.1.142"})
 
 new Job({
     name: "my_job",

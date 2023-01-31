@@ -1518,7 +1518,7 @@ DxfParser.prototype._parse = function(dxfString) {
                curr = scanner.next();
                break;
             case 210:
-                    extrusionDirection = parsePoint();
+                entity.extrusionDirection = parsePoint();
                break;
             default:
                checkCommonEntityProperties(entity);
