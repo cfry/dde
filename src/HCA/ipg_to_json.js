@@ -146,7 +146,7 @@ globalThis.ipg_to_json = class ipg_to_json{
                 sub_obj = null
             }
             else if (section === "netList"){
-                let bt_obj = this.parse_behavior_topology(line)
+                let bt_obj = this.parse_behavior_topology(line, top_level_obj)
                 top_level_obj.netList.push(bt_obj)
             }
 
@@ -321,6 +321,7 @@ globalThis.ipg_to_json = class ipg_to_json{
             name_start_pos = outputs_end_pos + 2
         }
         else {
+            out_array_result = []
             name_start_pos = space_after_Object_pos + 1
         }
        /* let inputs_open_pos = before_comment.indexOf("(", name_start_pos)
@@ -535,11 +536,12 @@ grab_io(str)
     static grab_name(str, start_index=0) {
         let cur_term = ""
         let state = "before"
+        let extra_chars_length = 0
         for(let i = start_index; i < str.length; i++){
             let char = str[i]
             if(state === "before"){
                 if(Utils.is_whitespace(char)) {}
-                else if(char === '"') { state = "grabbing_string" }
+                else if(char === '"') { state = "grabbing_string" } //happens when name has double quotes around it like "Parallel->Serial_Clr"
                 else  {
                     cur_term = char
                     state = "grabbing_symbol"
@@ -547,7 +549,8 @@ grab_io(str)
             }
             else if (state === "grabbing_string") {
                 if(char === '"') {
-                    return [cur_term, i]
+                    //cur_term = cur_term.substring(0, cur_term.length - 1)
+                    return [cur_term, i + 1] //the extra 1 causes us to skip over the closing double quote when grabbing_io
                 }
                 else { cur_term += char }
             }
@@ -561,7 +564,7 @@ grab_io(str)
             }
             else { shouldnt("grab_name got invalid state: " + state) }
         }
-        return [cur_term, str.length] //top level objects that have no inputs or comments
+        return [cur_term, str.length + extra_chars_length] //top level objects that have no inputs or comments
     }
 
     //line starts with "//_ Attributes" (top level) or " //_ Attributes" (sub_obj)
@@ -613,20 +616,33 @@ grab_io(str)
         return attr_obj
     }
 
-    static parse_behavior_topology(line){
+    //the netList
+    static parse_behavior_topology(line, top_level_obj_for_debugging_only){
         line = line.trim()
         line = line.substring(0, line.length - 1) //cut off trailing semicomon
-        let [sink, src] = line.split("=")
+        let [sink, src] = line.split("=") //bad design: sink comes before source.
         src = src.trim()
         let src_split = src.split(".")
-        let src_obj = {objectName: src_split[0],
-                       inputNumber: parseInt(src_split[1])
+        let obj_name  = src_split[0]
+        if(obj_name.startsWith('"') && obj_name.endsWith('"')){ //happens when name is "Serial->Parallel_Clr" (including the double quotes, which need to be stripped off
+            obj_name = obj_name.substring(1, obj_name.length - 1)
+        }
+        let src_obj = {objectName: obj_name, // src_split[0],
+                       outputNumber: parseInt(src_split[1])
         }
 
         sink = sink.trim()
         let sink_split = sink.split(".")
-        let sink_obj = {objectName: sink_split[0],
-                        outputNumber: parseInt(sink_split[1])
+        obj_name = sink_split[0]
+        let sink_in = parseInt(sink_split[1])
+        if(obj_name.startsWith('"') && obj_name.endsWith('"')){ //happens when name is "Serial->Parallel_Clr" (including the double quotes, which need to be stripped off
+            obj_name = obj_name.substring(1, obj_name.length - 1)
+        }
+        if((obj_name === "ListOut:F") && (top_level_obj_for_debugging_only.objectName === "testshift")){
+            debugger;
+        }
+        let sink_obj = {objectName: obj_name, // sink_split[0],
+                        inputNumber: sink_in
         }
         let bt_obj = {source: src_obj, sink: sink_obj}
         return bt_obj

@@ -8,7 +8,7 @@ globalThis.HCAObjDef = class HCAObjDef {
                              subfolders: [], //each is an obj with fields of folder_name, subfolders, obj_defs
                              obj_defs: [] //each of which will have a TreeGroup prop that is an array of strings, each a path part, that last one being the name of the folder that obj_def is in
                              }
-
+        this.define_built_ins()
     }
     constructor(json_obj){
         for(let key of Object.keys(json_obj)){
@@ -84,6 +84,13 @@ globalThis.HCAObjDef = class HCAObjDef {
     }
 
 
+    //if passed foo:A, cut off the :A and return "foo"
+    //else return the arg.
+    static call_name_to_def_name(str){
+        let colon_pos = str.indexOf(":")
+        if(colon_pos === -1) {return str}
+        else { return str.substring(0, colon_pos)}
+    }
     //path can be: like "CoreLib/GrammaticalOps/ReverseBits" or
     //                 ["CoreLib", "GrammaticalOps", "ReverseBits"]
     static path_to_obj_def(path, path_index = 0, look_in=HCAObjDef.obj_def_tree){
@@ -114,6 +121,77 @@ globalThis.HCAObjDef = class HCAObjDef {
             if(obj.objectName === obj_name) { return obj}
         }
         return null //no sheet of that name
+    }
+
+    /*Object ( Bit Out1) INVERT( Bit In1) ; //note it Out1 not Out like the others? Output also has Out1
+    Object ( Bit Out) AND( Bit In1, Bit In2) ;
+    Object ( Bit Out) OR( Bit In1, Bit In2) ;
+    Object ( Variant In1) Input;
+    Object Output( Variant Out1) ;
+    Object ( Variant Out1, Variant Out2, Variant Out3) Junction( Variant In0) ;
+    Object Text;
+    Object ( Variant Out) $Select( Variant "#0", Variant "#1", Bit S) ;
+    Object ( Variant Out) $Cast( Variant Data, Variant Type) ;
+    */
+    static define_built_ins(){
+        this.insert_obj_defs_into_tree({top_level_obj_defs: [
+        {TreeGroup: "BuiltIn", objectName: 'INVERT', objectType: 'INVERT',
+            inputs: [{type: 'Bit', name: 'In1'}],
+            outputs:[{type: 'Bit', name: "Out1"}],
+            netlist:[],
+            prototypes:[],
+            line: "Object ( Bit Out1) INVERT( Bit In1)"
+         },
+        {TreeGroup: "BuiltIn", objectName: 'AND', objectType: 'AND',
+            inputs: [{type: 'Bit', name: 'In1'}, {type: 'Bit', name: 'In2'}],
+            outputs:[{type: 'Bit', name: "Out"}],
+            netlist:[],
+            prototypes:[],
+            line: "Object ( Bit Out) AND( Bit In1, Bit In2)"
+        },
+        {TreeGroup: "BuiltIn", objectName: 'OR', objectType: 'OR',
+            inputs: [{type: 'Bit', name: 'In1'}, {type: 'Bit', name: 'In2'}],
+            outputs:[{type: 'Bit', name: "Out"}],
+            netlist:[],
+            prototypes:[],
+            line: "Object ( Bit OUT) OR( Bit In1, Bit In2)"
+        },
+        {TreeGroup: "BuiltIn", objectName: 'Input', objectType: 'Input',
+            inputs: [],
+            outputs:[{type: 'Variant', name: 'In1'}],
+            netlist:[],
+            prototypes:[],
+            line: "Object ( Variant In1) Input"
+        },
+        {TreeGroup: "BuiltIn", objectName: 'Output', objectType: 'Output',
+            inputs: [{type: 'Variant', name: 'Out1'}],
+            outputs:[],
+            netlist:[],
+            prototypes:[],
+            line: "Object Output( Variant Out1)"
+        },
+        {TreeGroup: "BuiltIn", objectName: 'Junction', objectType: 'Junction',
+            inputs: [{type: 'Variant', name: 'In0'}],
+            outputs:[{type: 'Variant', name: 'Out1'}, {type: 'Variant', name: 'Out2'}, {type: 'Variant', name: 'Out3'}],
+            netlist:[],
+            prototypes:[],
+            line: "Object ( Variant Out1, Variant Out2, Variant Out3) Junction( Variant In0)"
+        },
+        {TreeGroup: "BuiltIn", objectName: '$Select', objectType: '$Select',
+            inputs: [{type: 'Variant', name: '#0'}, {type: 'Variant', name: '#1'}, {type: 'Bit', name: 'S'}],
+            outputs:[{type: 'Variant', name: 'Out'}],
+            netlist:[],
+            prototypes:[],
+            line: "Object ( Variant Out) $Select( Variant '#0', Variant '#1', Bit S)"
+        },
+        {TreeGroup: "BuiltIn", objectName: '$Cast', objectType: '$Cast',
+            inputs: [{type: 'Variant', name: 'Data'}, {type: 'Variant', name: 'Type'}],
+            outputs:[{type: 'Variant', name: 'Out'}],
+            netlist:[],
+            prototypes:[],
+            line: "Object ( Variant Out) $Cast( Variant Data, Variant Type)"
+        }
+        ]})
     }
 }
 HCAObjDef.init()

@@ -1,5 +1,5 @@
 //see examples in: https://www.sitepoint.com/rollup-javascript-bundler-introduction/
-//import { nodeResolve } from '@rollup/plugin-node-resolve'
+import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs        from '@rollup/plugin-commonjs'
 import json            from '@rollup/plugin-json'
 
@@ -8,11 +8,12 @@ export default {
     inlineDynamicImports: true, //needed to support dynamic imports in my code
     input: "./src/job_engine/ready_je.js",
     plugins: [
-       // nodeResolve({
-       //     browser: true //https://www.npmjs.com/package/@rollup/plugin-node-resolve
-            //jsnext: true,         //not in rollplay
-            //preferBuiltins: true  //not in rollplay
-       // }),
+        nodeResolve( //{
+                      //browser: true //https://www.npmjs.com/package/@rollup/plugin-node-resolve
+                      //jsnext: true,         //not in rollplay
+                     //preferBuiltins: true  //not in rollplay
+                    //}
+        ),
         commonjs({
             //there is a bug in rollup importing npm 'ws' which causes it to think
             //ws needs 'bufferutil' and  'utf-8-validate' but it doesn't

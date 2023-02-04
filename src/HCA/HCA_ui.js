@@ -145,7 +145,7 @@ globalThis.HCA = class HCA {
                                      </div>`
                                      */
             `<div id='HCA_canvas_wrapper_id' style='vertical-align:top; overflow:scroll;  display:inline-block; width:calc(100% - 190px); height:100%; border:1px solid blue;'>
-                <canvas id='HCA_canvas_id' width='720' height='1024' <!--backing store in pixels -->
+                <canvas id='HCA_canvas_id' width='720px' height='1024px' <!--backing store in pixels -->
                     style='vertical-align:top; width:100%; height:100%;'> <!-- display size -->
                 </canvas>
             </div>`
@@ -172,11 +172,11 @@ globalThis.HCA = class HCA {
     }
 
     static config_litegraph_class(){
-        LiteGraph.NODE_DEFAULT_BGCOLOR      = "#FFCCCC" //the background color of the lower part of a node
+        LiteGraph.NODE_DEFAULT_BGCOLOR      = "#ABF" //the background color of the lower part of a node
         LiteGraph.NODE_DEFAULT_COLOR        = "#CCCCFF" //the background color of a node's title header
         LiteGraph.NODE_DEFAULT_BOXCOLOR     = "#00CC00" //the color of a node's upper left circle for expand/collase
         LiteGraph.NODE_BOX_OUTLINE_COLOR    = "#000000"
-        LiteGraph.NODE_SELECTED_TITLE_COLOR = "#FF0000"
+        LiteGraph.NODE_SELECTED_TITLE_COLOR = "#00FF00"
         LiteGraph.NODE_TEXT_COLOR           = "#000000"
         LiteGraph.NODE_TITLE_COLOR          = "#000000"
         LiteGraph.NODE_TITLE_HEIGHT         = 25
@@ -987,13 +987,12 @@ To load all the .hco object files in a folder, click <input type='submit' value=
                                  }
         let min_x = null
         let min_y = null
-        let objectName_to_lgraph_node_id_map = {}
-        let objectName_to_obj_def = {}
+        let objectNames_array = [] //array indices are lgraph node ids. arr elts are objectNames
 
         //make the lgraph node json obj and compute the min_x and min_y position for all the nodes
-        for(let i = 0; i <  sheet_obj.prototypes.length;i++){
+        for(let i = 0; i <  sheet_obj.prototypes.length; i++){
             let obj_call = sheet_obj.prototypes[i]
-            objectName_to_lgraph_node_id_map[obj_call.objectName] = i
+            objectNames_array[i] = obj_call.objectName
             let a_node = this.make_lgraph_node_json(obj_call, i)
             let x = a_node.pos[0]
             if((min_x === null) || (min_x > x)) { min_x = x}
@@ -1014,36 +1013,75 @@ To load all the .hco object files in a folder, click <input type='submit' value=
                                         //the sink obj as 2 props: objectName and outputNumber (a non-neg int)
                                         //the source obj as 2 props: objectName and inputNumber (a non-neg int)
         let lgraph_links = []
-        for(let net_list_item_index = 0;  net_list_item_index < netList.length; net_list_item_index++){
-            let net_list_item       = netList[net_list_item_index]
-            let sink_objectName     = net_list_item.sink.objectName
-            let sink_outputNumber   = net_list_item.sink.outputNumber
-            let source_objectName   = net_list_item.source.objectName
-            let source_inputNumber  = net_list_item.source.inputNumber
+        for(let connection_index = 0;  connection_index < netList.length; connection_index++){
+            let connection          = netList[connection_index]
+            let source_objectName   = connection.source.objectName
+            let source_outputNumber = connection.source.outputNumber
+            let sink_objectName     = connection.sink.objectName
+            let sink_inputNumber    = connection.sink.inputNumber
+
+            let source_node =  this.objectName_to_node(lgraph_config_json.nodes, source_objectName) //this.node_id_to_node(lgraph_config_json.nodes, source_node_id)
+            let sink_node   =  this.objectName_to_node(lgraph_config_json.nodes, sink_objectName) //this.node_id_to_node(lgraph_config_json.nodes, sink_node_id)
+
             let type
             try {
-                let obj_def = HCAObjDef.obj_name_to_obj_def(sink_objectName)
-                type = obj_def.outputs[sink_outputNumber].type
+                type = source_node.outputs[source_outputNumber].type
+                //let obj_def = HCAObjDef.obj_name_to_obj_def(sink_objectName)
+                //type = obj_def.outputs[sink_outputNumber].type
+                //let source_obj_call = connection.source //sheet_obj.prototypes[i]
+                //type = source_obj_call.outputs[source_outputNumber].type //todo cant work. no type info in call
             }
             catch(err) { type = "Varient"} //todo this is a hack, need to fix.
-            let links_item = [net_list_item_index, //LLink.id
-                              objectName_to_lgraph_node_id_map[sink_objectName],  //LLink.origin_id,
-                              sink_outputNumber,  //LLink.origin_slot,
-                              objectName_to_lgraph_node_id_map[source_objectName],  //LLink.target_id,
-                              source_inputNumber,  ///LLink.target_slot,
+            let source_node_id = this.objectName_to_node_id(objectNames_array, source_objectName)
+            let sink_node_id   = this.objectName_to_node_id(objectNames_array, sink_objectName)
+            let links_elt  = [connection_index, //LLink.id
+                              source_node_id,  //LLink.origin_id,
+                              source_outputNumber,  //LLink.origin_slot,
+                              sink_node_id,  //LLink.target_id,
+                              sink_inputNumber,  ///LLink.target_slot,
                               type  //LLink.type
                              ]
-            lgraph_links.push(links_item)
+            lgraph_links.push(links_elt)
+            source_node.outputs[source_outputNumber].links.push(connection_index)
+            sink_node.inputs[sink_inputNumber].link = connection_index
+            console.log("connected lgraph nodes")
         }
         lgraph_config_json.links        = lgraph_links
         lgraph_config_json.last_link_id = lgraph_links.length - 1
 
-        //acutally render the nodes.
+        //actually render the nodes.
         this.lgraph.configure(lgraph_config_json) //ok if json_obj is undefined, which it will be if json_string defaults to "", or we launch HCA_UI from an empty editor buffer.
         for(let node of this.lgraph._nodes){ //if json_string === "", lgraph._nodes will be []
             this.node_add_usual_actions(node)
         }
     }
+
+    static node_id_to_node(nodes, id){
+        for(let node of nodes) {
+            if(node.id === id) {
+                return node
+            }
+        }
+        return null
+    }
+
+    static objectName_to_node_id(objectNames_array, objectName){
+        for(let i = 0; i < objectNames_array.length; i++) {
+            if(objectNames_array[i] === objectName) {
+                return i
+            }
+        }
+        return null
+    }
+
+    static objectName_to_node(nodes, objectName){
+        for(let node of nodes){
+            if(node.title === objectName){
+                return node
+            }
+        }
+    }
+
 
     static compute_block_width(obj_call){
         let max_in_letters = 0
@@ -1102,7 +1140,7 @@ To load all the .hco object files in a folder, click <input type='submit' value=
         let height = this.compute_block_height(obj_call)
         let result = {
             "id": id,
-            "type": obj_call.objectName, //"CoreLib/GrammaticalOps/One",
+            "type": HCAObjDef.call_name_to_def_name(obj_call.objectName),
             "title": obj_call.objectName,
             "pos": [obj_call.x * 40, obj_call.y * 40],
             "size": {
@@ -1115,8 +1153,8 @@ To load all the .hco object files in a folder, click <input type='submit' value=
             "inputs": ins,
             "outputs": outs,
             "properties": {
-            "precision": 1
-        }
+                "precision": 1
+            }
         }
         return result
     }
