@@ -580,6 +580,25 @@ static is_array_of_same_lengthed_arrays(array){
   return true
 }
 
+//written because JS built in slice doesn't work
+//with just the first arg, returns a shallow copy of the first arg
+//otherwise returns an array with the elements starting with start_index
+//and up through but not including end_index.
+//end_index defaults to the length of the array
+//if end index is longer than array it will be set to the length of the array.
+//if end index is the length of the array, subarray will copy arr elts from
+//start_index through end of arr.
+static subarray(arr, start_index=0, end_index){
+    if(end_index === undefined) { end_index = arr.length}
+    end_index = Math.min(end_index, arr.length) //permit passed in end_index to be longer than arr, and don't error, just copy over to end of array
+    let result = []
+    for(let index = start_index; index < end_index; index++){
+        result.push(arr[index])
+    }
+    return result
+}
+
+//_____ set operations______
 static intersection(arr1, arr2){
     let result = []
     for(let elt of arr1) {
@@ -587,6 +606,35 @@ static intersection(arr1, arr2){
     }
     return result
 }
+
+// elements from arr1 that are not in arr2
+static difference(arr1, arr2){
+    let result = []
+    for(let elt of arr1) {
+        if (!arr2.includes(elt)) { result.push(elt) }
+    }
+    return result
+}
+
+// elements that are in arr1 and not in arr2 AND
+// elements that are in arr2 and not in arr1
+static symmetric_difference(arr1, arr2){
+    let result = this.difference(arr1, arr2)
+    let more = this.difference(arr2, arr1)
+    return result.concat(more)
+}
+
+//result does not contain duplicates
+static union(arr1, arr2){
+      return [...new Set([...arr1, ...arr2])]
+}
+
+//result does not contain duplicates
+static de_duplicate(arr1){
+    return [...new Set(arr1)]
+}
+
+//_____ end set operations______
 
 static similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg1_already_seen=[], arg2_already_seen=[]){
     //I started to do a infinite circularity test but its trick to do quickly and maybe unnecessary because

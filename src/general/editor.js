@@ -228,17 +228,17 @@ class Editor {
         else     { Metrics.increment_state("Eval button clicks") }
         if(step instanceof CodeMirror) { step = false } //means Cmd E was typed in the editor and we don't want to step in this case
         if((Editor.current_file_path != "new buffer") && DDE_DB.persistent_get("save_on_eval")){
-            if (globalThis.HCA && (Editor.view === "HCA")){
+            /*if (globalThis.HCA && (Editor.view === "HCA")){
                 HCA.save_current_file()
                 Editor.eval_button_action_aux(step)
                 return
             }
-            else {
+            else {*/
                 if(this.current_buffer_needs_saving) {
                     Editor.save_current_file()
                 }
                 Editor.eval_button_action_aux(step)
-            }
+            //}
         }
         else { Editor.eval_button_action_aux(step) }
     }
@@ -477,16 +477,16 @@ class Editor {
         }
         //sel_text = Editor.get_cmd_selection() //this is caught by the above clause
         //if(sel_text.length > 0 ) { return sel_text }
-        if (Editor.view == "JS") {
+        if (Editor.view === "JS") {
             sel_text = Editor.myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
         }
-        else if (Editor.view == "DefEng") {
+        else if (Editor.view === "DefEng") {
             sel_text = Editor.myCodeMirror.doc.getValue().substring(Editor.selection_start(), Editor.selection_end())
         }
-        else if (Editor.view == "Blocks"){ //Blocks view
+        else if (Editor.view === "Blocks"){ //Blocks view
             sel_text = Workspace.inst.get_javascript(true)
         }
-        else if (Editor.view == "HCA"){
+        else if (Editor.view === "HCA"){
             sel_text = HCA.get_javascript(true) //gets JSON string
         }
         else { sel_text = "" }

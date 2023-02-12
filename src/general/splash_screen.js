@@ -71,7 +71,7 @@ class SplashScreen {
     `<div style="font-size:18px;margin-left:15px;">
          <div style="font-size:30px;">Tutorials</div> 
          Please start with the first tutorial.<br/>     
-        <select id="splash_screen_which_tutorial_id" size="9" data-oninput="true" style="font-size:16px;">` +
+        <select id="splash_screen_which_tutorial_id" size="10" data-oninput="true" style="font-size:16px;">` +
         this.splash_screen_tutorial_options_html() +
        `</select>
         <div style="margin-top:5px;">
@@ -186,6 +186,8 @@ class SplashScreen {
                                       "DocCode.open_doc(make_instruction_pane_doc_id)"],
         ["Adding JavaScript",         "Extend DDE and create applications.",
                                       "DocCode.open_doc(adding_javascript_doc_id)"],
+        ["FPGA Programming",          "Use DDE's HCA User Interface to edit program's for Dexter's FPGA.",
+                                      "DocCode.open_doc(hca_ui_doc_id)"],
         ["Help System",               "How DDE helps you learn DDE.",
                                       "DocCode.open_doc(help_system_doc_id)"]
        /* ["Dexter Features",           "Videos demonstrating Dexter capabilities&#013;plus an early look at DDE.",

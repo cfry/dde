@@ -602,10 +602,7 @@ export function on_ready() {
  //open_system_file_id.onclick = Editor.open_system_file
 
  load_file_id.onclick=function(e) {
-     if (globalThis.HCA && (Editor.view === "HCA")){
-         HCA.load_node_definition()
-     }
-     else { //presume JS
+     //presume JS
          //const path = choose_file({title: "Choose a file to load"})
          //if (path){
          //    if(path.endsWith(".py")){
@@ -617,7 +614,7 @@ export function on_ready() {
                                       callback: "DDEFile.choose_file_to_load_handler" })
          //    }
          //}
-     }
+
  }
 
  load_and_start_job_id.onclick = function(){
@@ -1809,7 +1806,13 @@ window_modify_id.onclick=function(){Editor.insert(
           set_top_left_panel_height(DDE_DB.persistent_get("top_left_panel_height"))
           set_top_right_panel_height(DDE_DB.persistent_get("top_right_panel_height"))
 
-
+          DDEFile.read_file_async( "dde/doc/HCA_doc.html",
+                function(err, html){
+                   DocCode.insert_html_into_doc_pane(html, "User Guide", "beforeend")
+                   setTimeout(function() {
+                       DocCode.open_doc(hca_ui_doc_id)
+                   }, 200)
+               })
 
           help_system_id.onclick = function(){
              //DocCode.open_doc(help_system_doc_id)

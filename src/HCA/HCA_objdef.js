@@ -1,14 +1,15 @@
 globalThis.HCAObjDef = class HCAObjDef {
     static obj_def_tree //will be a json obj of fields: folder_name, subfolders, obj_defs
     static sheets = []
-    static current_sheet = null
+    static current_sheet   = null
+    static current_obj_def = null
+    static core_lib_top_level_tree_names = "not_inited"
 
     static init() {
         this.obj_def_tree = {folder_name: "root", //always a single path part string. no slashes
                              subfolders: [], //each is an obj with fields of folder_name, subfolders, obj_defs
                              obj_defs: [] //each of which will have a TreeGroup prop that is an array of strings, each a path part, that last one being the name of the folder that obj_def is in
                              }
-        this.define_built_ins()
     }
     constructor(json_obj){
         for(let key of Object.keys(json_obj)){
@@ -20,6 +21,10 @@ globalThis.HCAObjDef = class HCAObjDef {
                 this[key] = val
             }
         }
+        if(!this.objectName){
+            DDE.error("Attempt to create an HCA object definition without an objectName.<br/>" +
+                      "Other Attributes: " + JSON.stringify(json_obj))
+        }
         if(!this.TreeGroup) {//hits for the obj named "CoreLib".
             if(this.Primitive){
                 this.TreeGroup = ["Primitives"]
@@ -28,21 +33,31 @@ globalThis.HCAObjDef = class HCAObjDef {
                 this.TreeGroup = ["Misc"] //[this.objectName]
             } //fry added this because some objects didin't have a TreeGroup, such as the obj with objectName: "CoreLib". So I gave it one
         }
-        if(!this.inputs)  { this.inputs  = [] } //CoreLib doesn't have an outputs field.
-        if(this.objectName === "Output") {
-            debugger;
+        if(!this.objectType) {
+            this.objectType = this.objectName
         }
+        if(!this.inputs)  { this.inputs  = [] } //CoreLib doesn't have an outputs field.
         if(!this.outputs) {
             this.outputs = []
         } //CoreLib doesn't have an outputs field.
-
+        if(!this.prototypes) {
+            this.prototypes = []
+        }
+        if(!this.netList){
+            this.netList = []
+        }
+        if(!this.line){
+            this.line = JSON.stringify(json_obj)
+        }
         //console.log("just made HCAObjDef " + this.objectName)
         this.insert_obj_def_into_tree(HCAObjDef.obj_def_tree, this.TreeGroup)
+        this.insert_obj_def_into_sheets_menu_maybe()
+        HCA.insert_obj_def_into_pallette(this)
     }
 
     //"this" is the obj_def that we're inserting into the tree, based on its
     //TreeGroup prop which is originally the TreeGroupArr arg.
-    insert_obj_def_into_tree(look_in_folder, TreeGroupArr){
+    insert_obj_def_into_tree(look_in_folder, TreeGroupArr, pallette_dom_elt){
         if(TreeGroupArr.length === 0){
             look_in_folder.obj_defs.push(this)
         }
@@ -54,10 +69,11 @@ globalThis.HCAObjDef = class HCAObjDef {
             else {
                 let new_fold = {folder_name: TreeGroupArr[0], subfolders: [], obj_defs: []}
                 look_in_folder.subfolders.push(new_fold)
-                return this.insert_obj_def_into_tree(new_fold, TreeGroupArr.slice(1))
+                return this.insert_obj_def_into_tree(new_fold, TreeGroupArr.slice(1)) //slice(1) cuts off the first elt of the array and makes a copy of the rest.
             }
         }
     }
+
     static get_subfolder_named(parent_folder, subfolder_name){
         for(let subfold of parent_folder.subfolders){
             if(subfold.folder_name === subfolder_name){
@@ -66,21 +82,195 @@ globalThis.HCAObjDef = class HCAObjDef {
         }
         return null
     }
-    static insert_obj_defs_into_tree(json_obj_defs){
+    //the defaul callback to parse()
+    static insert_obj_defs_into_tree(json_obj_defs, file_name_maybe=null){
         if(json_obj_defs.top_level_obj_defs){
             json_obj_defs = json_obj_defs.top_level_obj_defs
         }
-        for(let json_obj_def of json_obj_defs){
+        if(file_name_maybe){
+            ipg_to_json.file_path_to_parse_obj_map[file_name_maybe] = json_obj_defs
+            ipg_to_json.loaded_files.push(file_name_maybe)
+            if(file_name_maybe.endsWith("CorLib.ipg")) {
+                HCAObjDef.core_lib_top_level_tree_names = HCAObjDef.top_level_treegroup_names()
+            }
+            else if (file_name_maybe.endsWith("AXI_TO_AZIDO.idl")){
+                HCAObjDef.core_lib_and_az_top_level_tree_names = HCAObjDef.top_level_treegroup_names()
+            }
+        }
+        HCAObjDef.make_object_defs_slowly(json_obj_defs)
+    }
+
+    static make_object_defs_slowly(json_obj_defs, next_index = 0){
+        if(HCA.pending_rendering_dom_id && !window[HCA.pending_rendering_dom_id]) { //take a lap waiting for the pendeing folder elt to render
+            setTimeout(function(){
+                HCAObjDef.make_object_defs_slowly(json_obj_defs, next_index)
+            }, 200)
+            return
+        }
+        else if (next_index >= json_obj_defs.length ) {} //all done with json_obj_defs
+        else {
+            let json_obj_def = json_obj_defs[next_index]
             new HCAObjDef(json_obj_def)
+            HCAObjDef.make_object_defs_slowly(json_obj_defs, next_index + 1)
         }
     }
+
+    insert_obj_def_into_sheets_menu_maybe(){
+        if(globalThis.sheets_id){
+            if(this.WipSheet || this.CurrentSheet){
+                let name = this.objectName
+                let the_html = "<option>" + name + "</option>"
+                globalThis.sheets_id.insertAdjacentHTML("beforeend", the_html)
+                HCAObjDef.sheets.push(this)
+            }
+        }
+    }
+
+//_______SAVING____________
+    static json_string_of_defs_in_sheet(obj_def, top_level_tree_group_names_to_ignore){
+        let json_obj = this.json_obj_of_defs_in_sheet(obj_def, top_level_tree_group_names_to_ignore)
+        return Editor.pretty_print(JSON.stringify(json_obj))
+    }
+
+    static json_obj_of_defs_in_sheet(obj_def, top_level_tree_group_names_to_ignore){
+        let found_obj_defs = this.obj_defs_in_sheet(obj_def, [], top_level_tree_group_names_to_ignore)
+        let result = {top_level_obj_defs: found_obj_defs,
+                      project_name: obj_def.objectName,
+                      project_date: Utils.date_or_number_to_ymdhms(Date.now())
+                     }
+        return result
+    }
+
+    //the arg can really be any obj_def.
+    //walk the prototypes to collect all the obj_defs including passed in obj_def
+    //and all the obj_defs of its obj_calls recursively on down.
+    static obj_defs_in_sheet(obj_def, result_obj_defs=[], top_level_tree_group_names_to_ignore=[]){
+        let top_level_tree_group_name = obj_def.TreeGroup[0]
+        if(top_level_tree_group_names_to_ignore.includes(top_level_tree_group_name)) {}
+        else {
+          if(result_obj_defs.includes(obj_def)) {} //already got this obj_def so don't add it again!
+          else {
+              result_obj_defs.push(obj_def)
+              for(let obj_call of obj_def.prototypes){
+                  let a_obj_def = this.obj_call_to_obj_def(obj_call, top_level_tree_group_names_to_ignore)
+                  if(!a_obj_def){
+                      warning("obj_defs_in_sheet found obj_call that has no definition: " + obj_call.objectName)
+                  }
+                  else {
+                      this.obj_defs_in_sheet(a_obj_def, result_obj_defs, top_level_tree_group_names_to_ignore)
+                  }
+              }
+          }
+        }
+        return result_obj_defs
+    }
+
+    static top_level_treegroup_names(){
+        let result = []
+        for(let subfolder of this.obj_def_tree.subfolders){
+            result.push(subfolder.folder_name)
+        }
+        return result
+    }
+
+    static obj_call_to_obj_def(obj_call, top_level_tree_group_names_to_ignore=[] ){
+        let all_top_tree_names = this.top_level_treegroup_names()
+        let useful_tree_names  = Utils.difference(all_top_tree_names, top_level_tree_group_names_to_ignore)
+        for(let tree_node of this.obj_def_tree.subfolders){
+            if(useful_tree_names.includes(tree_node.folder_name)){
+                let found_obj_def = this.obj_call_to_obj_def_in_tree_name(call_obj, tree_node)
+                if(found_obj_def) { return found_obj_def}
+            }
+        }
+        return null
+    }
+
+    static obj_call_to_obj_def_in_tree_name(call_obj, tree_node){
+        for(let a_obj_def of tree_node.obj_defs){
+            if(this.obj_call_matches_obj_def(obj_call, obj_def)){
+                return a_obj_def
+            }
+            else {
+                for(let a_tree_node of tree_node.subfolders){
+                    let result_obj_def = this.obj_call_to_obj_def_in_tree_name(call_obj, a_tree_node)
+                    if(result_obj_def){
+                        return result_obj_def
+                    }
+                }
+                return null //didn't find obj_def matching call_obj in tree_node
+            }
+        }
+    }
+
+    static obj_call_matches_obj_def(obj_call, obj_def){
+        let def_name_from_call = this.call_name_to_def_name(obj_call.objectName)
+        if(def_name_from_call === obj_def.objectName){
+            return this.inputs_match_inputs(obj_call.inputs, obj_def.inputs)
+        }
+        else { return false }
+    }
+
+    static inputs_match_inputs(insA, insB){
+        if(insA.length === insB.length){
+            for(let i = 0; i < insA.length; i++){
+                let inA = insA[i]
+                let inB = insB[i]
+                if(inA.type !== inB.type) { return false}
+            }
+            return true
+        }
+        else { return false}
+    }
+//_______END OF SAVING____________
 
     //questionable because it means only one obj def per obj_name regardless of different arg types.
     //but if not, how could the netlist work with only objectNames in it?
     static obj_name_to_obj_def_map = {}
 
-    static obj_name_to_obj_def(obj_name){
-        return this.obj_name_to_obj_def_map[obj_name]
+    static obj_name_to_obj_def(obj_name, tree_folder=HCAObjDef.obj_def_tree){
+        obj_name = this.call_name_to_def_name(obj_name)
+        obj_name = obj_name.toLowerCase()
+        for(let obj_def of tree_folder.obj_defs){
+            if(obj_name === obj_def.objectName.toLowerCase()){
+                return obj_def
+            }
+        }
+        for(let subfold of tree_folder.subfolders){
+            let result = this.obj_name_to_obj_def(obj_name, subfold)
+            if (result) {
+                return result
+            }
+        }
+        return null
+        //return this.obj_name_to_obj_def_map[obj_name]
+    }
+
+    //search_string is case-insensitive.
+    //returns an array of 3 arrays of obj_defs:
+    // def_match: those obj_defs whose names match, case_insensitive.
+    // included_in_name: search_string is in their name (case insensitive
+    // def_calls_match: inside the def has calls who's names match the search_string, case_insensitive
+    // Note: included_in_name is a superset of def_match
+    static find_obj_defs_including_name_part(search_string, tree_folder=HCAObjDef.obj_def_tree, def_match=[], included_in_name=[], def_calls_match=[]){
+        search_string = search_string.toLowerCase()
+        for(let obj_def of tree_folder.obj_defs){
+            let obj_def_name_lc = obj_def.objectName.toLowerCase()
+            if(obj_def_name_lc.toLowerCase().includes(search_string)){
+                included_in_name.push(obj_def)
+                if(obj_def_name_lc === search_string) {
+                    def_match.push(obj_def)
+                }
+            }
+            for(let obj_call of obj_def.prototypes){
+                if(obj_call.objectName.toLowerCase() === search_string){
+                    def_calls_match.push(obj_def)
+                }
+            }
+        }
+        for(let subfold of tree_folder.subfolders){
+            this.find_obj_defs_including_name_part(search_string, subfold, def_match, included_in_name, def_calls_match)
+        }
+        return [def_match,included_in_name, def_calls_match ]
     }
 
 
@@ -117,8 +307,9 @@ globalThis.HCAObjDef = class HCAObjDef {
     }
 
     static object_name_to_sheet(obj_name){
-        for(let obj of this.sheets){
-            if(obj.objectName === obj_name) { return obj}
+        obj_name = this.call_name_to_def_name(obj_name)
+        for(let obj_def of this.sheets){
+            if(obj_def.objectName === obj_name) { return obj_def }
         }
         return null //no sheet of that name
     }
@@ -134,7 +325,7 @@ globalThis.HCAObjDef = class HCAObjDef {
     Object ( Variant Out) $Cast( Variant Data, Variant Type) ;
     */
     static define_built_ins(){
-        this.insert_obj_defs_into_tree({top_level_obj_defs: [
+        let json_obj_defs = [
         {TreeGroup: "BuiltIn", objectName: 'INVERT', objectType: 'INVERT',
             inputs: [{type: 'Bit', name: 'In1'}],
             outputs:[{type: 'Bit', name: "Out1"}],
@@ -191,7 +382,11 @@ globalThis.HCAObjDef = class HCAObjDef {
             prototypes:[],
             line: "Object ( Variant Out) $Cast( Variant Data, Variant Type)"
         }
-        ]})
+        ]
+        HCAObjDef.insert_obj_defs_into_tree(json_obj_defs)
+        //for(let json_obj_def of json_obj_defs){
+        //    new HCAObjDef(json_obj_def)
+        //}
     }
 }
 HCAObjDef.init()

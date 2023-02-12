@@ -31,14 +31,19 @@ Implement: do capture that 2nd line, perhaps as:
 */
 
 globalThis.ipg_to_json = class ipg_to_json{
-    static async parse(ipg, callback) {
+    static file_path_to_parse_obj_map = {}
+    static loaded_files = [] //in chronological order, first to last loaded.
+
+    static async parse(ipg, callback=HCAObjDef.insert_obj_defs_into_tree){
+        let file_name_maybe = null
         if ((ipg.length < 256) && (ipg.endsWith(".ipg") || ipg.endsWith(".idl"))) {
+            file_name_maybe = ipg
             ipg = await DDEFile.read_file_async(ipg)
         }
 
         let json_obj = this.parse_string(ipg)
         if(callback){
-            callback(json_obj)
+            callback(json_obj, file_name_maybe)
         }
     }
 
@@ -193,9 +198,7 @@ globalThis.ipg_to_json = class ipg_to_json{
                 if(next_line.startsWith(" ") && next_line.trim().startsWith(",")) {} //its a true 2nd line of attributes
                 else { next_line = null}
                 //to handle kludgy syntax where a top level attribute line might have a 2nd line of attributes.
-                if(line.includes("(")){
-                    out("line: " + line_index + " of: " + line)
-                }
+                //if(line.includes("(")){ out("line: " + line_index + " of: " + line)}
                 //if(next_line && !next_line.startsWith("{")){ d//ebugger;}
                 let attr_obj = this.parse_front_of_line_attributes(line, next_line)
                 for(let key of Object.keys(attr_obj)) {
@@ -638,9 +641,6 @@ grab_io(str)
         if(obj_name.startsWith('"') && obj_name.endsWith('"')){ //happens when name is "Serial->Parallel_Clr" (including the double quotes, which need to be stripped off
             obj_name = obj_name.substring(1, obj_name.length - 1)
         }
-        if((obj_name === "ListOut:F") && (top_level_obj_for_debugging_only.objectName === "testshift")){
-            debugger;
-        }
         let sink_obj = {objectName: obj_name, // sink_split[0],
                         inputNumber: sink_in
         }
@@ -665,17 +665,9 @@ grab_io(str)
         }
         return str
     }
-    static async parse_and_print(ipg, pretty=true){
-        let result_obj = await this.parse(ipg)
-        return this.print(result_obj, pretty)
-    }
 } //end class
 /*
-ipg_to_json.parse("CorLibTop.ipg")
-ipg_to_json.parse_and_print("CorLibTop.ipg")
-ipg_to_json.parse_and_print("CorLibTop.ipg", "HTML")
-
-ipg is case sensitive:  preserve csae.
+ipg is case sensitive:  preserve case.
 todo: for dataset change "comment" to "Attributes": with
   a value of an array of numbers and strings.
 */

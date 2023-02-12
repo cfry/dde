@@ -381,6 +381,10 @@ class DocCode {
         //$("#doc_pane_content_id").mark(search_string)
         //let elts = $( "#doc_pane_content_id > :contains(" + search_string + ")" )
         //elts.css( "text-decoration", "underline" );
+
+        if(Editor.view === "HCA") {
+            HCA.find(search_string)
+        }
     }
 
     static undecorate_doc_details(unmark_options){
