@@ -119,6 +119,10 @@ var LGraphCanvas_prototype_processKey = function(e) { //used in init
 globalThis.HCA = class HCA {
     static object_file_extension = "hco" //like HCA but with "object" instead. Not now used
 
+    static is_valid_hca_json_obj(json_obj) {
+        return json_obj.project_date
+    }
+
     static make_HCA_dom_elt(){
         let big_div = make_dom_elt("div", {id: "HCA_dom_elt", style:{height: "100%"}})//, style: {display: "flex"}})
         //let palette = make_dom_elt("div",
@@ -196,14 +200,8 @@ globalThis.HCA = class HCA {
         LiteGraph.DEFAULT_POSITION          = [5, 35]
     }
 
-    static async init(json_string=""){ //json_string can also be a json object or null
-        //this.edit_json_string(json_string)
-        let json_obj = this.string_to_json_obj(
-                          json_string,
-                     undefined,
-            "Initializing HCA UI expects the editor buffer to contain<br/>" +
-                          "JSON of a valid HCA graph, but it didn't.")
-        //if the above didn't error, we're good to go:
+    //source is a string of json describing a new style HCA app.
+    static async init(source_path, source=""){ //json_string can also be a json object or null
         globalThis.HCA_dom_elt = HCA.make_HCA_dom_elt()
         let the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
         html_db.replace_dom_elt(the_codemirror_elt, HCA_dom_elt)
@@ -232,21 +230,36 @@ globalThis.HCA = class HCA {
 
         inspect(this.lgraph.serialize())*/
 
-        this.lgraph.configure(json_obj) //ok if json_obj is undefined, which it will be if json_string defaults to "", or we launch HCA_UI from an empty editor buffer.
-        for(let node of this.lgraph._nodes){ //if json_string === "", lgraph._nodes will be []
-            this.node_add_usual_actions(node)
-        }
+        this.lgraph.configure()
+        //the below is unneeded.
+        //this.lgraph.configure((json_obj ? json_obj : undefined)) //ok if json_obj is undefined, which it will be if json_string defaults to "", or we launch HCA_UI from an empty editor buffer.
+        //for(let node of this.lgraph._nodes){ //if json_string === "", lgraph._nodes will be []
+        //    this.node_add_usual_actions(node)
+        //}
+
+
+
         //this.lgraph.start(100) //let user do this. //arg is number of milliseconds between steps, default 1. don't need this for pure graphics
-        if(!globalThis.hca_ui_doc_id){
-            let html = await DDEFile.read_file_async( "dde/doc/HCA_doc.html")
-            DocCode.insert_html_into_doc_pane(html, "User Guide", "beforeend")
-            DocCode.open_doc(hca_ui_doc_id)
-        }
         /* just for testing canvas
         const ctx = HCA_canvas_id.getContext("2d");
         ctx.fillStyle = "rgb(200, 0, 0)";
         ctx.fillRect(10, 10, 50, 50);
         */
+        source = source.trim()
+        if(source.length === 0) {}
+        else {
+            try {
+                let json_obj = this.string_to_json_obj(source_path, source,
+                    "Initializing HCA UI expects the editor buffer to contain<br/>" +
+                    "JSON of a valid HCA graph, but it didn't.")
+                setTimeout(function(){
+                    HCAObjDef.insert_obj_defs_into_tree(source_path, json_obj)
+                }, 300)
+            }
+            catch (err) {
+                warning("The text in the editor did not represent a valid HCA application<br/> so starting a new one.")
+            }
+        }
     }
 
     static clear(){
@@ -254,41 +267,29 @@ globalThis.HCA = class HCA {
     }
 
     //returns a json_obj with a "node" property, or errors.
-    static async file_path_to_json_obj(path){
-        let json_string = await DDEFile.read_file_async(path)
-        let json_obj = this.string_to_json_obj(json_string, path)
+    static async file_path_to_json_obj(source_path){
+        let source = await DDEFile.read_file_async(path)
+        let json_obj = this.string_to_json_obj(source_path, source)
         return json_obj
     }
 
-    static string_to_json_obj(json_string,
-                              path=null,
+    static string_to_json_obj(source_path,
+                              source,
                               error_message="\" does not contain a vaild HCA object.\""){ //path is for error messages only
-        if(typeof(json_string) === "string") {
-            json_string = json_string.trim()
-            if(json_string.length > 0) {
+        if(typeof(source) === "string") {
+            source = source.trim()
+            if(source.length > 0) {
                 try {
-                    let json_obj = JSON.parse(json_string)
-                    if(json_obj.nodes) {
+                    let json_obj = JSON.parse(source)
+                    if(HCA.is_valid_hca_json_obj(json_obj)) {
                         return json_obj
                     }
                     else {
-                        dde_error("path: " + path + " " + error_message)
+                        dde_error("HCA.string_to_json_obj passed path: " + source_path + " that isn't valid HCA JSON. " + error_message)
                     }
                 }
                 catch(err){
-                    if(json_string.startsWith("{") &&
-                        json_string.endsWith("}") &&
-                        json_string.includes("nodes:")) { //good chance this is src for an obj that will work, even if the keys aren't double quoted strings
-                        try{
-                             let json_obj = eval("foo = " + json_string)
-                             return json_obj
-                        } //the foo= is necessary because of js broken by design evaluator. oddy it returns the object not the normal undefined for settig a var
-                        catch(err){
-                            dde_error("path: " + path + " " + error_message)
-                        }
-                    }
-                    else {
-                        dde_error("path: " + path + " " + error_message)                    }
+                    dde_error("HCA.string_to_json_obj passed path: " + source_path + " that isn't valid JSON. " + error_message)
                 }
             }
             else {
@@ -296,14 +297,14 @@ globalThis.HCA = class HCA {
             }
         }
         else {
-            dde_error(path + " isn't a valid path to an existing file.")
+            dde_error("HCA.string_to_json_obj passed path: " + source_path  + " that isn't a string.")
         }
     }
 
-    static async edit_file(path){
-        let json_obj = await HCA.file_path_to_json_obj(path) //errors if path is invalid
-        this.lgraph.configure(json_obj) //configure must take a JSON obj, not a JSON string (which is the say its documented in the LiteGraph code
-        Editor.add_path_to_files_menu(path) //this needs to be hear, not up in ready because
+    //source_path is to a file containing JSON HCA source.
+    static async edit_file(source_path){
+        let json_obj = await HCA.file_path_to_json_obj(source_path) //errors if path is invalid
+        HCAObjDef.insert_obj_defs_into_tree(source_path, json_obj)
     }
     /* obsolete
     //return a json obj (name-value pair that has a "node" prop) or
@@ -389,6 +390,7 @@ globalThis.HCA = class HCA {
         }
     }
 
+    //called by Edit menu/pretty print
     static pretty_print(){
         HCA.lgraph.arrange()
     }
@@ -629,7 +631,8 @@ globalThis.HCA = class HCA {
         }
     }*/
 
-    static define_object(){
+    //called by File menu/new and other places
+    static new_object(){
          HCA.lgraph.clear()
          HCAObjDef.current_sheet = null
          HCAObjDef.current_obj_def = null
@@ -685,13 +688,14 @@ globalThis.HCA = class HCA {
            "<input type='radio'         name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 1; HCA.lgraphcanvas.dirty_bgcanvas = true;'>/&nbsp;&nbsp;</input>"   + //LiteGraph.LINEAR_LINK' //need the nbsp to give the div a width that will acomodate longest folder name for Object defs.
            "</div>"
         HCA.save_palette() //because make_node_button calls restore
-        HCA.make_node_button(null,
+        /*obsoleted by File menu/new
+          HCA.make_node_button(null,
             "define object",
             function() {
-                HCA.define_object()
+                HCA.new_object()
             },
             true //add_newline
-        )
+        )*/
         /*HCA.make_node_button(null,
             "make_group",
             function() {
@@ -932,7 +936,7 @@ globalThis.HCA = class HCA {
     static sheet_onclick_fn(event) {
         let obj_name = event.target.value
         if (obj_name === "None") {
-            this.define_object() //doesn't actually define a new object, just clears the way for one.
+            this.new_object() //doesn't actually define a new object, just clears the way for one.
             //sheet_kind_id.value = "not a sheet"
             //HCAObjDef.current_sheet = null
             //HCAObjDef.current_obj_def = null
@@ -965,6 +969,7 @@ globalThis.HCA = class HCA {
         let tree_path = HCAObjDef.current_obj_def.TreeGroup.join("/")
         tree_path_id.value = tree_path
         this.redraw_obj_def()
+        inspect(HCAObjDef.current_obj_def)
     }
 
     static redraw_obj_def(obj_def=HCAObjDef.current_obj_def) {
@@ -1085,7 +1090,6 @@ globalThis.HCA = class HCA {
         }
     }
 
-
     static compute_block_width(obj_call){
         let max_in_letters = 0
         let max_out_letters = 0
@@ -1163,7 +1167,7 @@ globalThis.HCA = class HCA {
     }
 
     static find(search_string){
-        let [def_match, included_in_name, def_calls_match] = HCAObjDef.find_obj_defs_including_name_part(search_string)
+        let [def_match, included_in_name, def_calls_match] = HCAObjDef.find_obj_defs(search_string)
         if ((included_in_name.length > 0) || (def_calls_match.length > 0))  {
             inspect({"Definition name matches":  def_match,
                           "Definition name includes": included_in_name,

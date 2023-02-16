@@ -34,21 +34,19 @@ globalThis.ipg_to_json = class ipg_to_json{
     static file_path_to_parse_obj_map = {}
     static loaded_files = [] //in chronological order, first to last loaded.
 
-    static async parse(ipg, callback=HCAObjDef.insert_obj_defs_into_tree){
-        let file_name_maybe = null
-        if ((ipg.length < 256) && (ipg.endsWith(".ipg") || ipg.endsWith(".idl"))) {
-            file_name_maybe = ipg
-            ipg = await DDEFile.read_file_async(ipg)
+    static async parse(source_path=null, ipg, callback=HCAObjDef.insert_obj_defs_into_tree){
+        if(!ipg) {
+            if(!source_path) { shouldnt("ipg_to_json.parse passed no source_path or ipg.")}
+            else { ipg = await DDEFile.read_file_async(source_path) }
         }
-
-        let json_obj = this.parse_string(ipg)
+        let json_obj = this.parse_string(source_path, ipg)
         if(callback){
-            callback(json_obj, file_name_maybe)
+            callback(source_path, json_obj)
         }
     }
 
     //ipg must be a string of the contents of an .ipg or .idl file
-    static parse_string(ipg){
+    static parse_string(source_path, ipg){
         ipg = Utils.replace_substrings(ipg, "\\\\", "/", false)
         ipg = Utils.replace_substrings(ipg, "\\", "/", false)
         ipg = Utils.replace_substrings(ipg, "\u0001", " ", false)
@@ -140,7 +138,6 @@ globalThis.ipg_to_json = class ipg_to_json{
 
             //Behavior Topology (net_list)
             else if (line.startsWith(" //_ Behavior Topology")){
-                //console.log("NETLIST")
                 section = "netList"
                 top_level_obj.netList = []
             }
@@ -174,7 +171,8 @@ globalThis.ipg_to_json = class ipg_to_json{
                 top_level_obj = this.parse_object(line, true) //note don't make this "let top_level_obj" as we use it outside this scope.
                     //note: top level objects look like they never have a 2nd line of header info,
                     //so shouldn't need to be passed line_index & lines
-                top_level_obj.line = line //for debugging
+                top_level_obj.line        = line        //for debugging, not in VIVA
+                top_level_obj.source_path = source_path //not in VIVA
                 result.top_level_obj_defs.push(top_level_obj)
             }
             else if (line.startsWith(" Object ")) { //making a new sub object/prototype/ref/fn call
@@ -259,7 +257,7 @@ globalThis.ipg_to_json = class ipg_to_json{
             types: types_array,
             contextType: context_type,
             color: color_int,
-            TreeGroup: tree_group}
+            TreeGroup: tree_group.split("/'")}
         return dataset
     }
 
@@ -470,6 +468,7 @@ grab_io(str)
             if(state === "between_pairs"){
                 if(char === "(")     {} //throw away. happens only at very beginning
                 else if(char == " ") {} //throw away
+                else if(char == "\r") {} //throw away. causes big problems when parsing a $Select call ins.
                 else if(char == ",") {} //throw away
                 else if(char == '"') {  //throw away
                     state = "getting_type_string"
@@ -509,7 +508,7 @@ grab_io(str)
                 }
             }
             else if(state === "getting_name_symbol") {
-                if((char === ",") || (char == " ")) {
+                if((char === ",") || (char === " ") || (char === "\r")) {
                     cur_pair.name = cur_term
                     pair_array.push(cur_pair)
                     cur_term = ""
@@ -608,6 +607,9 @@ grab_io(str)
                     if (val.startsWith('"') && val.endsWith('"')) {
                         val = val.substring(1, val.length - 1) //cut off surrounding double quotes
                     }
+                }
+                if(key === "TreeGroup"){
+                    val = val.split("/")
                 }
                 attr_obj[key] = val
             }

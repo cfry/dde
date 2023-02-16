@@ -142,27 +142,11 @@ function js_to_blocks(){
 }
 
 function js_to_HCA(){
-    let js = Editor.get_javascript().trim()
-    try {
-        HCA.init(js) //for error messages only
-        globalThis.HCA_dom_elt.focus()
-    }
-    catch(err){
-        code_view_kind_id.value = "JS"
-        Editor.view = "JS"
-        Editor.myCodeMirror.focus()
-        warning("Sorry, could not convert the JavaScript in the Editor buffer into a valid JSON object for HCA.<br/>" +
-                "If you want to start a new HCA program, please create an empty editor buffer first.")
-    }
+    HCAObjDef.js_to_HCA()
 }
 
 function HCA_to_js(){
-    let js = HCA.get_javascript()
-    js = js_beautify(js)
-    html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
-    Editor.set_javascript(js)
-    Editor.view = "JS"
-    Editor.myCodeMirror.focus()
+    HCAObjDef.hca_to_js()
 }
 
 function HCA_to_blocks(){
@@ -210,7 +194,7 @@ function blocks_to_HCA(){
     globalThis.HCA_dom_elt = HCA.make_HCA_dom_elt()
     html_db.replace_dom_elt(Editor.the_CodeMirror_elt, globalThis.HCA_dom_elt)
     Editor.view = "HCA"
-    HCA.init(js_obj,
+    HCA.init(js_obj, //todo won't work.
              "js_object from blocks" //from error message
     )
     globalThis.HCA_dom_elt.focus()

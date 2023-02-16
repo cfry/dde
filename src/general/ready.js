@@ -47,6 +47,9 @@ import "codemirror/addon/fold/comment-fold.js"
 
 import "shepherd.js/dist/css/shepherd.css"
 
+import nlp from "compromise"
+globalThis.nlp = nlp //used in talk.js
+
 
 import "./styles.css"
 
@@ -555,8 +558,7 @@ export function on_ready() {
 
  new_id.onclick = function() {
      if (globalThis.HCA && (Editor.view === "HCA")){
-         HCA.clear()
-         Editor.add_path_to_files_menu("new buffer")
+         HCA.new_object()
      }
      else {
          Editor.edit_new_file()

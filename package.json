@@ -36,6 +36,7 @@
     "asap": "^2.0.6",
     "codemirror": "^5.63.1",
     "compare-versions": "^4.1.1",
+    "compromise": "^14.8.2",
     "crypto": "^1.0.1",
     "dayjs": "^1.10.5",
     "eslint": "^7.32.0",

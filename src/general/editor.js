@@ -504,21 +504,27 @@ class Editor {
         else { return "" }
     }
 
+    //gets text editor content regardless of the "view" that DDE is now showing
+    //used directly in HCA editor when saving.
+    static get_text_editor_content(use_selection = false){
+        let  full_src =  this.myCodeMirror.doc.getValue() //$("#js_textarea_id").val() //careful: js_textarea_id.value returns a string with an extra space on the end! A crhome bug that jquery fixes
+        if (use_selection){ //true or "auto"
+            let sel_text = full_src.substring(Editor.selection_start(), Editor.selection_end())
+            if (use_selection === true) { return sel_text}
+            else if (use_selection == "auto") {
+                if (sel_text == "") { return full_src}
+                else { return sel_text }
+            }
+        }
+        else { return full_src }
+    }
+
     static get_javascript (use_selection=false){
         //if use_selection is true, return it.
         // if false, return whole buffer.
         // if "auto", then if sel, return it, else return whole buffer.
         if((Editor.view == "JS") || (Editor.view == "DefEng")) {
-            let  full_src =  this.myCodeMirror.doc.getValue() //$("#js_textarea_id").val() //careful: js_textarea_id.value returns a string with an extra space on the end! A crhome bug that jquery fixes
-            if (use_selection){ //true or "auto"
-                let sel_text = full_src.substring(Editor.selection_start(), Editor.selection_end())
-                if (use_selection === true) { return sel_text}
-                else if (use_selection == "auto") {
-                    if (sel_text == "") { return full_src}
-                    else { return sel_text }
-                }
-            }
-            else { return full_src }
+            return this.get_text_editor_content(use_selection)
         }
         else if (Editor.view == "Blocks"){
             return Workspace.inst.get_javascript(use_selection)
@@ -718,7 +724,7 @@ class Editor {
         setTimeout(function() {open_on_dexter_computer_file_path_id.focus()}, 100)
     }
 
-    static  handle_open_system_file(vals){
+    static handle_open_system_file(vals){
         if(vals.clicked_button_value == "edit dde_init.js"){
             Editor.edit_file("dde_init.js")
         }

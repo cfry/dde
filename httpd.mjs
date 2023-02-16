@@ -230,6 +230,11 @@ function make_job_process(browser_socket) {
             console.log("make_job_process spawned successfully")
         })
 
+        //https://stackoverflow.com/questions/34208614/how-to-catch-an-enoent-with-nodejs-child-process-spawn
+        job_process.on('error', function(err) {
+            console.log("make_job_process failed to spawn a new job process: " + err);
+        })
+
         job_process.on('message', function(data_obj) {
             let data_str = JSON.stringify(data_obj)
             if (browser_socket.readyState != WebSocket.OPEN) {

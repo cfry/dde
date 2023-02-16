@@ -212,6 +212,20 @@ function eval_js_part3(result, src_label){
         start_of_selection = Editor.selection_start()
     }
     if (result.error_type){
+        if((result.command.length > 0) &&
+           (result.command[0] === "{") &&
+           (result.error_message === "Unexpected token ':'"))
+         {
+            let json_obj
+            try {
+                json_obj = JSON.parse(result.command)
+                //can't eval it but it is a valid JSON name-value pair so inspecg the result
+                warning("The evaluated code errors as Javacript, but it IS valid JSON.")
+                inspect(json_obj, undefined, "The result of parsing JSON")
+                return
+            }
+            catch(err) {} //let if fall through to the below and error as usual
+        }
         string_to_print = result.error_type + ": " + result.error_message
         if (result.starting_index != undefined) { //beware, starting_index might == 0 which is false to IF
             var cm_pos = Editor.myCodeMirror.doc.posFromIndex(start_of_selection + result.starting_index)
