@@ -57,7 +57,7 @@ globalThis.HCAObjDef = class HCAObjDef {
 
     //"this" is the obj_def that we're inserting into the tree, based on its
     //TreeGroup prop which is originally the TreeGroupArr arg.
-    insert_obj_def_into_tree(look_in_folder, TreeGroupArr, pallette_dom_elt){
+    insert_obj_def_into_tree(look_in_folder=HCAObjDef.obj_def_tree, TreeGroupArr, pallette_dom_elt){
         if(TreeGroupArr.length === 0){
             look_in_folder.obj_defs.push(this)
         }
@@ -108,7 +108,7 @@ globalThis.HCAObjDef = class HCAObjDef {
             }, 200)
             return
         }
-        else if (next_index >= json_obj_defs.length ) {} //all done with json_obj_defs
+        else if (next_index >= json_obj_defs.length) {} //all done with json_obj_defs. usually this doesn't hit, but if 0 obj_defs in a file, it will
         else {
             let json_obj_def = json_obj_defs[next_index]
             json_obj_def.source_path = source_path //do this here, just before new HCAObjDef so
@@ -117,18 +117,55 @@ globalThis.HCAObjDef = class HCAObjDef {
             //a file, and we want that file name to be "updated" to the actual source file,
             //not just what might happen to be in the json string in the file for source_path
             new HCAObjDef(json_obj_def)
-            HCAObjDef.make_object_defs_slowly(source_path, json_obj_defs, next_index + 1)
+            if(next_index < (json_obj_defs.length - 1)) {
+                HCAObjDef.make_object_defs_slowly(source_path, json_obj_defs, next_index + 1)
+            }
+            else{ //all done loading obj_defs, so display an obj_def
+                if(HCAObjDef.current_sheet && HCAObjDef.current_sheet.source_path === source_path){
+                    HCA.display_obj_def(HCAObjDef.current_sheet)
+                }
+                else {
+                    for(let sheet of HCAObjDef.sheets){
+                        if(sheet.source_path === source_path){
+                            HCA.display_obj_def(sheet)
+                            return
+                        }
+                    }
+                    let an_obj_def = this.first_obj_def_with_source_path(source_path)
+                    if(an_obj_def){
+                        HCA.display_obj_def(an_obj_def)
+                    }
+                    else {
+                        warning("There are no object definitions in: " + source_path)
+                    }
+                }
+            }
         }
     }
 
     insert_obj_def_into_sheets_menu_maybe(){
-        if(globalThis.sheets_id){
-            if(this.WipSheet || this.CurrentSheet){
-                let name = this.objectName
+        /*if(globalThis.sheets_id) {
+            let name = this.objectName
+            if (this.CurrentSheet) {
+                HCAObjDef.current_sheet = this
+            }
+            if (this.WipSheet || this.CurrentSheet) {
                 let the_html = "<option>" + name + "</option>"
                 globalThis.sheets_id.insertAdjacentHTML("beforeend", the_html)
                 HCAObjDef.sheets.push(this)
             }
+        }*/
+        if(globalThis.current_obj_def_select_id){
+            if(this.CurrentSheet){
+                HCAObjDef.current_sheet = this
+                HCA.add_to_obj_def_menu_maybe(this)
+            }
+            else if(this.WipSheet){
+                HCAObjDef.sheets.push(this)
+                HCA.add_to_obj_def_menu_maybe(this)
+            }
+            //see HCA.display_obj_def for other insertion into the menu.
+            //but the sheets at the top, and the non-sheets at the bottom
         }
     }
 
@@ -360,6 +397,24 @@ globalThis.HCAObjDef = class HCAObjDef {
         //return this.obj_name_to_obj_def_map[obj_name]
     }
 
+    //used when showing a def from a file when the file is loaded, and doesn't have any sheets,
+    //we show a random obj_def from the file computed by this fn.
+    static first_obj_def_with_source_path(source_path, tree_folder=HCAObjDef.obj_def_tree){
+        for(let obj_def of tree_folder.obj_defs){
+            if(obj_def.source_path === source_path){
+                return obj_def
+            }
+        }
+        for(let subfold of tree_folder.subfolders){
+            let result = this.first_obj_def_with_source_path(source_path, subfold)
+            if (result) {
+                return result
+            }
+        }
+        return null
+        //return this.obj_name_to_obj_def_map[obj_name]
+    }
+
 
     //called by Doc pane "Find" button & return of type in.
     //search_string is case-insensitive.
@@ -499,6 +554,13 @@ globalThis.HCAObjDef = class HCAObjDef {
             netList:[],
             prototypes:[],
             line: "Object ( Variant Out) $Cast( Variant Data, Variant Type)"
+        },
+        {TreeGroup: ["BuiltIn"], objectName: 'Text', objectType: 'Text',
+            inputs: [],
+            outputs:[],
+            netList:[],
+            prototypes:[],
+            line: "Object () Text()"
         }
         ]
         HCAObjDef.insert_obj_defs_into_tree("built_in", json_obj_defs)

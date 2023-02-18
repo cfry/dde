@@ -100,7 +100,7 @@ summary {
 
 
 .hca_folder {
-    margin-left:10px;
+    margin-left:15px;
     cursor:zoom-in;
 }
 
@@ -113,7 +113,7 @@ summary {
 }
 
 .hca_obj_def {
-    margin-left:10px;
+    margin-left:15px;
     text-decoration: blue underline;
     cursor:crosshair;
 }

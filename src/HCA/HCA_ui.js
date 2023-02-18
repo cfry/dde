@@ -156,15 +156,17 @@ globalThis.HCA = class HCA {
                     style='vertical-align:top; width:100%; height:100%;'> <!-- display size -->
                 </canvas>
             </div>`
-        let header_html = `<div  style="padding:5px;">Sheet: <select id="sheets_id"  oninput="HCA.sheet_onclick_fn(event)"><option>None</option></select>
-                           <select id="sheet_kind_id">
+        let header_html = `<div  style="padding:5px;">    
+                           TreeGroup:  <input id="tree_path_id" value="Misc"/>
+                           ObjectName: <input id="current_obj_def_name_id" onchange="HCA.current_object_name_onchange()"/>
+                           <select id="current_obj_def_select_id" onchange="HCA.obj_def_select_onchange(event)" title="Choose a name to edit its object definition." style="width:20px;height:20px;"></select> &nbsp;
+                           <select id="sheet_kind_id" title="Sheet status of the edited object definition.">
                                 <option value="not a sheet">not a sheet</option>
                                 <option value="WipSheet">WipSheet</option>
                                 <option value="CurrentSheet">CurrentSheet</option>
-                           </select>     
-                           TreePath:   <input id="tree_path_id" value="Misc"/>
-                           ObjectName: <input id="current_object_name_id" onchange="HCA.current_object_name_onchange()"/>
-                           Spread: <button onclick="HCA.spread()">less</button> <button onclick="HCA.spread(1.5)">more</button>
+                           </select> 
+                           Spread: <button onclick="HCA.spread()"    title="Decrease the distance between object calls.">less</button> 
+                                   <button onclick="HCA.spread(1.5)" title="Increase the distance between object calls.">more</button>
                            </div>`
         big_div.insertAdjacentHTML("afterbegin", header_html)
         big_div.insertAdjacentHTML("beforeend", canvas_wrapper_html)
@@ -636,16 +638,16 @@ globalThis.HCA = class HCA {
          HCA.lgraph.clear()
          HCAObjDef.current_sheet = null
          HCAObjDef.current_obj_def = null
-         current_object_name_id.value = ""
+         current_obj_def_name_id.value = ""
          sheet_kind_id.value = "not a sheet"
          sheets_id.value = "None"
          out("Enter a new object name and<br/>optionally edit its tree path and sheet status<br/>to define a new object.",
               "green")
-         current_object_name_id.focus()
+         current_obj_def_name_id.focus()
     }
 
     static current_object_name_onchange(){
-        let new_obj_name = current_object_name_id.value
+        let new_obj_name = current_obj_def_name_id.value
         if (HCAObjDef.current_obj_def){
             HCAObjDef.rename_obj_def(HCAObjDef.current_obj_def, new_obj_name)
         }
@@ -933,43 +935,63 @@ globalThis.HCA = class HCA {
         this.redraw_obj_def()
     }
 
-    static sheet_onclick_fn(event) {
-        let obj_name = event.target.value
-        if (obj_name === "None") {
-            this.new_object() //doesn't actually define a new object, just clears the way for one.
-            //sheet_kind_id.value = "not a sheet"
-            //HCAObjDef.current_sheet = null
-            //HCAObjDef.current_obj_def = null
-            //current_object_name_id.value = ""
-            //tree_path_id.value = "" //just let this default to whatever it was previously since user often wants to define a new object with the same tree path.
-        } else {
-            this.display_obj_def(obj_name)
-        }
+    static menu_label_to_obj_name(label){
+        if(label.startsWith("CurSheet:"))     { return label.substring(9) }
+        else if(label.startsWith("WipSheet:")){ return label.substring(9) }
+        else { return label }
     }
-    static display_obj_def(obj_name){
-        let sheet_obj = HCAObjDef.object_name_to_sheet(obj_name)
-        if(sheet_obj) {
-            HCAObjDef.current_sheet = sheet_obj
-            HCAObjDef.current_obj_def = sheet_obj
-            sheet_kind_id.value = (sheet_obj.WipSheet ? "WipSheet" : "CurrentSheet")
-        }
-        else {
-            let obj_def = HCAObjDef.obj_name_to_obj_def(obj_name)
-            if(obj_def) {
-                HCAObjDef.current_obj_def = obj_def
-                sheet_kind_id.value = "not a sheet"
-            }
-            else {
-                warning("Attempt to edit an object definition named: " + obj_name +
-                        " but couldn't find it.")
+
+    static obj_def_select_onchange(event){
+        let label    = event.target.value
+        let obj_name = this.menu_label_to_obj_name(label)
+        this.display_obj_def(obj_name)
+    }
+
+    static display_obj_def(obj_name_or_def){
+        let obj_def
+        if(typeof(obj_name_or_def)  === "string"){
+            obj_def = HCAObjDef.obj_name_to_obj_def(obj_name_or_def)
+            if(!obj_def) {
+                warning("Attempt to edit an object definition named: " + obj_name_or_def +
+                    " but couldn't find it.")
                 return
             }
         }
-        current_object_name_id.value = obj_name
+        else { obj_def = obj_name_or_def }
+        //let sheet_obj = HCAObjDef.object_name_to_sheet(obj_name)
+        HCAObjDef.current_obj_def = obj_def
+        if(obj_def.CurrentSheet) {
+            HCAObjDef.current_sheet = obj_def
+            sheet_kind_id.value = "CurrentSheet"
+        }
+        else if(obj_def.WipSheet){
+            HCAObjDef.current_sheet = obj_def
+            sheet_kind_id.value = "WipSheet"
+        }
+        else {
+            //should I set HCAObjDef.current_sheet to null??? We might still have a "working sheet".
+            sheet_kind_id.value = "not a sheet"
+            HCA.add_to_obj_def_menu_maybe(obj_def)
+            //see HCAObjDef
+        }
+        current_obj_def_name_id.value = obj_def.objectName
         let tree_path = HCAObjDef.current_obj_def.TreeGroup.join("/")
         tree_path_id.value = tree_path
         this.redraw_obj_def()
         inspect(HCAObjDef.current_obj_def)
+    }
+
+    static add_to_obj_def_menu_maybe(obj_def){
+        let label = obj_def.objectName
+        let is_sheet = false
+        if     (obj_def.CurrentSheet) { label = "CurSheet:" + label; is_sheet = true}
+        else if(obj_def.WipSheet)     { label = "WipSheet:" + label; is_sheet = true}
+        for(let dom_elt of current_obj_def_select_id.children){
+            if(dom_elt.innerText === label) { return}
+        }
+        let the_html = "<option>" + label + "</option>"
+        let pos = (is_sheet ? "afterbegin" : "beforeend")
+        current_obj_def_select_id.insertAdjacentHTML(pos, the_html)
     }
 
     static redraw_obj_def(obj_def=HCAObjDef.current_obj_def) {
