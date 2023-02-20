@@ -85,8 +85,8 @@ globalThis.HCAObjDef = class HCAObjDef {
 
     //the default callback to parse()
     static insert_obj_defs_into_tree(source_path, json_obj_defs=null){
-        if(json_obj_defs.top_level_obj_defs){
-            json_obj_defs = json_obj_defs.top_level_obj_defs
+        if(json_obj_defs.object_definitions){
+            json_obj_defs = json_obj_defs.object_definitions
         }
         if(source_path){
             ipg_to_json.file_path_to_parse_obj_map[source_path] = json_obj_defs
@@ -193,101 +193,132 @@ globalThis.HCAObjDef = class HCAObjDef {
 
 //_______SAVING____________
     static hca_to_js(){
-        if(!HCAObjDef.current_obj_def){ //just switch back to text editor with its old contents
-            out("Since there is no current object in the HCA editor,<br/>the text in the text editor has not been changed.")
-            html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
-            Editor.view = "JS"
-            Editor.myCodeMirror.focus()
-            return
-        }
-
         let old_js_full = Editor.get_text_editor_content(false) //get text regardles of view, if there's a selection, use it.
         let old_js = old_js_full.trim()
-        if(old_js.length === 0) {
-            let new_json_str = this.json_string_of_defs_in_obj_def()
-            new_json_str = js_beautify(new_json_str)
-            html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
-            Editor.set_javascript(new_json_str)
-            Editor.view = "JS"
-            Editor.myCodeMirror.focus()
+        let old_content_to_show = ((old_js.length > 50) ? (old_js.substring(0, 50) + "...") : old_js)
+        old_content_to_show = old_content_to_show.replaceAll("\n", "<br/>")
+        let sel_text = Editor.get_text_editor_content(true).trim()//get selection or empty string
+        let sel_text_to_show = ((sel_text.length > 50) ? (sel_text.substring(0, 50) + "...") : sel_text)
+        sel_text_to_show = sel_text_to_show.replaceAll("\n" + "<br/>")
+        let replace_sel_or_insert_html = ((sel_text.length > 0) ?
+                               ( "<input type='submit' value='Replace Selection'/> of:<br/>" +
+                               sel_text_to_show) :
+                               "<input type='submit' value='Insert'/> at cursor position " + Editor.selection_start() + " of " + old_js_full.length + ".")
+        show_window({title: "Save HCA Program to Text Editor",
+                x: 200, y: 100, width: 640, height: 330,
+                content: `<fieldset style="display: inline-block;vertical-align:top;">
+                             <input type="radio" value="save_all"         name="save_obj_restriction"> Save ALL objects in the selected files.</input><br/>
+                             <input type="radio" value="save_cur_obj_def" name="save_obj_restriction" checked>
+                                  Save only objects that are connected to</input><br/> 
+                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the current object definition<br/>
+                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AND in the selected files.                                                                 <br/>
+                             <hr/>
+                             <b>Loaded Files:</b><br/>` +
+                             this.make_file_checkboxes_html() +
+                           `</fieldset>
+                          <div style="display: inline-block;">
+                          <input type='submit' value='Cancel'/> the save.<p/>
+                          <input type='button' value='Inspect'/> what would be saved but<br/>
+                          don't actually save it. Keeps this dialog up.<p/>
+                          <input type='submit' value='Continue to JS'/> without saving anything.<br/>This leaves the text editor unchanged.<p/>
+                          <input type='submit' value='Replace All'/> the text editor content of:<br/>` +
+                           old_content_to_show + `<p/>` +
+                           replace_sel_or_insert_html + `<p/>` +
+                          `<input type='submit' value='Make new buffer'/> for the HCA content.
+                          </div>
+                         `,
+                callback: "HCAObjDef.save_handler"
+            }
+        )
+    }
+
+    static make_file_checkboxes_html(){
+        let result = ""
+        for(let file of ipg_to_json.loaded_files){
+            let checked = ""
+            if(file.endsWith("built_in") ||
+               file.endsWith("CorLib.ipg")) { //the default selected files
+               checked = ""
+            }
+            else { checked = " checked "}
+            result += '<input type="checkbox" ' +
+                        checked +
+                        ' value="' + "file:" + file + '" ' +
+                       ' >' + file + '</input><br/>'
         }
-        else {
-            let old_content_to_show = ((old_js.length > 50) ? (old_js.substring(0, 50) + "...") : old_js)
-            old_content_to_show = old_content_to_show.replaceAll("\n", "<br/>")
-            let sel_text = Editor.get_text_editor_content(true).trim()//get selection or empty string
-            let sel_text_to_show = ((sel_text.length > 50) ? (sel_text.substring(0, 50) + "...") : sel_text)
-            sel_text_to_show = sel_text_to_show.replaceAll("\n" + "<br/>")
-            let replace_sel_or_insert_html = ((sel_text.length > 0) ?
-                                   ( "<input type='submit' value='Replace Selection'/> of:<br/>" +
-                                   sel_text_to_show) :
-                                   "<input type='submit' value='Insert'/> at cursor position " + Editor.selection_start() + " of " + old_js_full.length + ".")
-            show_window({title: "Save current Object Definition to Text Editor",
-                    x: 200, y: 100, width: 450, height: 300,
-                    content: `<br/>
-                              <input type='submit' value='Cancel'/> the save.<p/>
-                              <input type='submit' value='Continue to JS'/> without saving anything.<br/>This leaves the text editor unchanged.<p/>
-                              <input type='submit' value='Replace All'/> the text editor content of:<br/>` +
-                               old_content_to_show + `<p/>` +
-                               replace_sel_or_insert_html + `<p/>` +
-                              `<input type='submit' value='Make new buffer'/> for the HCA content.
-                             `,
-                    callback: "HCAObjDef.save_handler"
-                }
-            )
-        }
+        return result
     }
 
     static save_handler(vals){
         if      (vals.clicked_button_value === "Cancel") {
             code_view_kind_id.value = "HCA"
+            return
         }
         else if (vals.clicked_button_value === "Continue to JS") {
             html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
             Editor.view = "JS"
             Editor.myCodeMirror.focus()
         }
-        else if (vals.clicked_button_value === "Replace All") {
-            let new_json_str = HCAObjDef.json_string_of_defs_in_obj_def()
+        else {
+            let save_all_objects_in_selected_files = vals.save_all
+            let selected_files = [] //this ends up being just a file list of the files to include object defs from
+            let save_all_obj_defs = vals.save_obj_restriction === "save_all"
+            for (let key in vals) {
+                if (key.startsWith("file:")) {
+                    if (vals[key]) {
+                        selected_files.push(key.substring(5))
+                    }
+                }
+            }
+            let new_json_str
+            if (save_all_obj_defs) {
+                new_json_str = HCAObjDef.json_string_of_defs_in_files(selected_files)
+            }
+            else {
+                new_json_str = HCAObjDef.json_string_of_defs_in_obj_def(undefined, selected_files)
+            }
             new_json_str = js_beautify(new_json_str)
-            html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
-            Editor.set_javascript(new_json_str)
-            Editor.view = "JS"
-            Editor.myCodeMirror.focus()
-        }
-        else if ((vals.clicked_button_value === "Replace Selection") ||
-                 (vals.clicked_button_value === "Insert")){
-            let new_json_str = HCAObjDef.json_string_of_defs_in_obj_def()
-            new_json_str = js_beautify(new_json_str)
-            setTimeout(function() {
+
+            if (vals.clicked_button_value === "Inspect") {
+                let json_obj = JSON.parse(new_json_str)
+                inspect(json_obj)
+            } else if (vals.clicked_button_value === "Replace All") {
                 html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
-                Editor.replace_selection(new_json_str)
-                Editor.view = "JS"
-                Editor.myCodeMirror.focus()
-            }, 200)
-        }
-        else if (vals.clicked_button_value === "Make new buffer") {
-            let new_json_str = HCAObjDef.json_string_of_defs_in_obj_def()
-            new_json_str = js_beautify(new_json_str)
-            setTimeout(function() {
-                html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
-                Editor.edit_new_file()
                 Editor.set_javascript(new_json_str)
                 Editor.view = "JS"
                 Editor.myCodeMirror.focus()
-            }, 200)
+            } else if ((vals.clicked_button_value === "Replace Selection") ||
+                (vals.clicked_button_value === "Insert")) {
+                setTimeout(function () {
+                    html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
+                    Editor.replace_selection(new_json_str)
+                    Editor.view = "JS"
+                    Editor.myCodeMirror.focus()
+                }, 200)
+            } else if (vals.clicked_button_value === "Make new buffer") {
+                setTimeout(function () {
+                    html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
+                    Editor.edit_new_file()
+                    Editor.set_javascript(new_json_str)
+                    Editor.view = "JS"
+                    Editor.myCodeMirror.focus()
+                }, 200)
+            }
         }
     }
 
-    static json_string_of_defs_in_obj_def(obj_def=HCAObjDef.current_obj_def, top_level_tree_group_names_to_ignore=["BuiltIn"]){
-        let json_obj = this.json_obj_of_defs_in_obj_def(obj_def, top_level_tree_group_names_to_ignore)
+    static json_string_of_defs_in_obj_def(obj_def=HCAObjDef.current_obj_def, files_array=ipg_to_json.loaded_files){
+        let json_obj = this.json_obj_of_defs_in_obj_def(obj_def, files_array)
         return Editor.pretty_print(JSON.stringify(json_obj))
     }
 
-    static json_obj_of_defs_in_obj_def(obj_def, top_level_tree_group_names_to_ignore){
-        let found_obj_defs = this.obj_defs_in_obj_def(obj_def, [], top_level_tree_group_names_to_ignore)
-        let result = {top_level_obj_defs: found_obj_defs,
+    static json_obj_of_defs_in_obj_def(obj_def, files_array=ipg_to_json.loaded_files){
+        let found_obj_defs = this.obj_defs_in_obj_def(obj_def, files_array)
+        let result = {object_definitions: found_obj_defs,
                       project_name: obj_def.objectName,
-                      project_date: Utils.date_or_number_to_ymdhms(Date.now())
+                      project_date: Utils.date_or_number_to_ymdhms(Date.now()),
+                      content_connected_to_object_definition: obj_def.objectName,
+                      content_from_files: files_array
                      }
         return result
     }
@@ -295,7 +326,7 @@ globalThis.HCAObjDef = class HCAObjDef {
     //the arg can really be any obj_def.
     //walk the prototypes to collect all the obj_defs including passed in obj_def
     //and all the obj_defs of its obj_calls recursively on down.
-    static obj_defs_in_obj_def(obj_def, result_obj_defs=[], top_level_tree_group_names_to_ignore=[]){
+    /*static obj_defs_in_obj_def(obj_def, result_obj_defs=[], top_level_tree_group_names_to_ignore=[]){
         let top_level_tree_group_name = obj_def.TreeGroup[0]
         if(top_level_tree_group_names_to_ignore.includes(top_level_tree_group_name)) {}
         else {
@@ -314,7 +345,26 @@ globalThis.HCAObjDef = class HCAObjDef {
           }
         }
         return result_obj_defs
+    }*/
+
+    static obj_defs_in_obj_def(obj_def, files_array=ipg_to_json.loaded_files, result_obj_defs=[]){
+        if(result_obj_defs.includes(obj_def))               {} //already got this obj_def so don't add it again!
+        else if(!files_array.includes(obj_def.source_path)) {} //exclude obj_def
+        else {
+            result_obj_defs.push(obj_def)                  //include obj_def and maybe obj_defs it calls
+            for(let obj_call of obj_def.prototypes){
+                let a_obj_def = this.obj_call_to_obj_def(obj_call)
+                if(!a_obj_def){
+                    warning("obj_defs_in_obj_def found obj_call that has no definition: " + obj_call.objectName)
+                }
+                else {
+                    this.obj_defs_in_obj_def(a_obj_def, files_array, result_obj_defs)
+                }
+            }
+        }
+        return result_obj_defs
     }
+
 
     static top_level_treegroup_names(){
         let result = []
@@ -324,14 +374,10 @@ globalThis.HCAObjDef = class HCAObjDef {
         return result
     }
 
-    static obj_call_to_obj_def(obj_call, top_level_tree_group_names_to_ignore=[] ){
-        let all_top_tree_names = this.top_level_treegroup_names()
-        let useful_tree_names  = Utils.difference(all_top_tree_names, top_level_tree_group_names_to_ignore)
+    static obj_call_to_obj_def(obj_call){
         for(let tree_node of this.obj_def_tree.subfolders){
-            if(useful_tree_names.includes(tree_node.folder_name)){
-                let found_obj_def = this.obj_call_to_obj_def_in_tree_name(obj_call, tree_node)
-                if(found_obj_def) { return found_obj_def}
-            }
+            let found_obj_def = this.obj_call_to_obj_def_in_tree_name(obj_call, tree_node)
+            if(found_obj_def) { return found_obj_def}
         }
         return null
     }
@@ -373,6 +419,39 @@ globalThis.HCAObjDef = class HCAObjDef {
         }
         else { return false}
     }
+//________saving all obj_defs in files
+    //Walk the whole tree, grabbing all obj_defs that have their source_path in the files array.
+    static json_string_of_defs_in_files(files_array=ipg_to_json.loaded_files){
+        let json_obj = this.json_obj_of_defs_in_files(files_array)
+        return Editor.pretty_print(JSON.stringify(json_obj))
+    }
+
+    static json_obj_of_defs_in_files(files_array=ipg_to_json.loaded_files) {
+        let found_obj_defs = this.obj_defs_in_files_in_treegroup(files_array, HCAObjDef.obj_def_tree)
+        let result = {object_definitions: found_obj_defs,
+            project_name: files_array.join("&"),
+            project_date: Utils.date_or_number_to_ymdhms(Date.now()),
+            content_connected_to_object_definition: "all object definitons in the files are included",
+            content_from_files: files_array
+        }
+        return result
+    }
+
+    static obj_defs_in_files_in_treegroup(files_array, treegroup_fold=HCAObjDef.obj_def_tree, result=[]){
+        for(let obj_def of treegroup_fold.obj_defs){
+            if(files_array.includes(obj_def.source_path) &&
+               !result.includes(obj_def)) {
+                result.push(obj_def)
+            }
+        }
+        for(let subfolder of treegroup_fold.subfolders){
+            this.obj_defs_in_files_in_treegroup(files_array, subfolder, result)
+        }
+        return result
+    }
+
+
+
 //_______END OF SAVING____________
 
     //questionable because it means only one obj def per obj_name regardless of different arg types.
@@ -387,8 +466,8 @@ globalThis.HCAObjDef = class HCAObjDef {
                 return obj_def
             }
         }
-        for(let subfold of tree_folder.subfolders){
-            let result = this.obj_name_to_obj_def(obj_name, subfold)
+        for(let subfolder of tree_folder.subfolders){
+            let result = this.obj_name_to_obj_def(obj_name, subfolder)
             if (result) {
                 return result
             }
@@ -439,8 +518,8 @@ globalThis.HCAObjDef = class HCAObjDef {
                 }
             }
         }
-        for(let subfold of tree_folder.subfolders){
-            this.find_obj_defs(search_string, subfold, def_match, included_in_name, def_calls_match)
+        for(let subfolder of tree_folder.subfolders){
+            this.find_obj_defs(search_string, subfolder, def_match, included_in_name, def_calls_match)
         }
         return [def_match,included_in_name, def_calls_match ]
     }
@@ -471,9 +550,9 @@ globalThis.HCAObjDef = class HCAObjDef {
             shouldnt("HCA_objdef.path_to_obj_def could not find obj")
         }
         else { //not on last path elt
-            for(let subfold of look_in.subfolders){
-                if(subfold.folder_name === cur_path_part) {
-                    return this.path_to_obj_def(path, path_index + 1, subfold)
+            for(let subfolder of look_in.subfolders){
+                if(subfolder.folder_name === cur_path_part) {
+                    return this.path_to_obj_def(path, path_index + 1, subfolder)
                 }
             }
         }

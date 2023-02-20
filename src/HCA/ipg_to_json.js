@@ -34,6 +34,11 @@ globalThis.ipg_to_json = class ipg_to_json{
     static file_path_to_parse_obj_map = {}
     static loaded_files = [] //in chronological order, first to last loaded.
 
+    static init(){
+        this.file_path_to_parse_obj_map = {}
+        this.loaded_files = []
+    }
+
     static async parse(source_path=null, ipg, callback=HCAObjDef.insert_obj_defs_into_tree){
         if(!ipg) {
             if(!source_path) { shouldnt("ipg_to_json.parse passed no source_path or ipg.")}
@@ -52,7 +57,7 @@ globalThis.ipg_to_json = class ipg_to_json{
         ipg = Utils.replace_substrings(ipg, "\u0001", " ", false)
         ipg = Utils.replace_substrings(ipg, "\u0002", " ", false)
 
-        let result = {}
+        let result = {object_definitions: [], datasets: {}}
         let lines = ipg.split("\n")
         //return last(lines)
         //lines = lines.slice(-3)
@@ -108,11 +113,8 @@ globalThis.ipg_to_json = class ipg_to_json{
                 result.DynamicSystemFile = name
             }
             else if(line.startsWith("DataSet ")) {
-                if(!result.datasets) {
-                    //console.log("DATASETS")
-                    result.datasets = {}
-                }
                 let dataset_obj = this.parse_dataset(line)
+                dataset_obj.source_path = source_path
                 result.datasets[dataset_obj.name] = dataset_obj
             }
 
@@ -153,7 +155,6 @@ globalThis.ipg_to_json = class ipg_to_json{
             }
 
             else if(line.startsWith("Object ")) { //making a new top level object
-                if(!result.top_level_obj_defs) { result.top_level_obj_defs = [] }
                 for(let i = line_index; i < lines.length; i++){
                     if(i === line_index) { continue } //on first line.
                     else if(i === lines.length) { break; } //won't happen. let the line as is be the full valid object, though this probably won't happen
@@ -173,7 +174,7 @@ globalThis.ipg_to_json = class ipg_to_json{
                     //so shouldn't need to be passed line_index & lines
                 top_level_obj.line        = line        //for debugging, not in VIVA
                 top_level_obj.source_path = source_path //not in VIVA
-                result.top_level_obj_defs.push(top_level_obj)
+                result.object_definitions.push(top_level_obj)
             }
             else if (line.startsWith(" Object ")) { //making a new sub object/prototype/ref/fn call
                 if(!top_level_obj.prototypes) {

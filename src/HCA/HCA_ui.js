@@ -204,6 +204,7 @@ globalThis.HCA = class HCA {
 
     //source is a string of json describing a new style HCA app.
     static async init(source_path, source=""){ //json_string can also be a json object or null
+        ipg_to_json.init()
         globalThis.HCA_dom_elt = HCA.make_HCA_dom_elt()
         let the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
         html_db.replace_dom_elt(the_codemirror_elt, HCA_dom_elt)
@@ -251,12 +252,13 @@ globalThis.HCA = class HCA {
         if(source.length === 0) {}
         else {
             try {
-                let json_obj = this.string_to_json_obj(source_path, source,
+                setTimeout(function(){
+                let json_obj = HCA.string_to_json_obj(source_path, source,
                     "Initializing HCA UI expects the editor buffer to contain<br/>" +
                     "JSON of a valid HCA graph, but it didn't.")
-                setTimeout(function(){
+
                     HCAObjDef.insert_obj_defs_into_tree(source_path, json_obj)
-                }, 300)
+                }, 1300) //should be AFTER CorLib is loaded
             }
             catch (err) {
                 warning("The text in the editor did not represent a valid HCA application<br/> so starting a new one.")
@@ -893,7 +895,7 @@ globalThis.HCA = class HCA {
 
     //obsolete?
     /* static edit_idl_file_cb(big_obj){
-        for(let obj_def of big_obj.top_level_obj_defs){
+        for(let obj_def of big_obj.object_definitions){
             if(obj_def.CurrentSheet) {
                 HCAObjDef.sheets.unshift(obj_def)  //put on front of list
                 HCAObjDef.current_sheet = obj_def
