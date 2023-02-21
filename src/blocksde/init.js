@@ -38,7 +38,7 @@ function blocks_init(){
                   "background-color": "#93dfff",
                   "vertical-align":"50%",
                   onchange:"change_code_view_kind(event)"},
-                  "<option value='JS'>JS</option><option value='Blocks'>Blocks</option><option value='DefEng'>DefEng</option><option value='HCA'>HCA</option>"
+        "<option value='JS'>JS</option><option value='HCA'>HCA</option>" //"<option value='JS'>JS</option><option value='Blocks'>Blocks</option><option value='DefEng'>DefEng</option><option value='HCA'>HCA</option>"
                   )
    )
     blocks_category_init()

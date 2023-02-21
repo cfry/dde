@@ -1808,6 +1808,7 @@ window_modify_id.onclick=function(){Editor.insert(
           set_top_left_panel_height(DDE_DB.persistent_get("top_left_panel_height"))
           set_top_right_panel_height(DDE_DB.persistent_get("top_right_panel_height"))
 
+          blocks_init() //makes the Editor pane view menu
           DDEFile.read_file_async( "dde/doc/HCA_doc.html",
                 function(err, html){
                    DocCode.insert_html_into_doc_pane(html, "User Guide", "beforeend")

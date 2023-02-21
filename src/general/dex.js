@@ -20,7 +20,6 @@ class Dex {
         src = Dex.transform_source_to_async(src)
         src = "(" + src + ")()"
         out("evaling: " + src)
-        //src = (step? "debugger; ": "") + src  //todo would like to make step work from run button some day
         eval_js_part2(src)
         //eval(src) //errors due to "strict mode".
     }

@@ -633,6 +633,7 @@ class Socket{
                 instruction_array_copy[Instruction.INSTRUCTION_ARG3] /= 3600
                 instruction_array_copy[Instruction.INSTRUCTION_ARG4] /= 1000000
                 instruction_array_copy[Instruction.INSTRUCTION_ARG4] /= 3600
+                return instruction_array_copy
             }
             else { return instruction_array }
         }

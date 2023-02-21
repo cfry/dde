@@ -205,7 +205,7 @@ globalThis.HCAObjDef = class HCAObjDef {
                                sel_text_to_show) :
                                "<input type='submit' value='Insert'/> at cursor position " + Editor.selection_start() + " of " + old_js_full.length + ".")
         show_window({title: "Save HCA Program to Text Editor",
-                x: 200, y: 100, width: 640, height: 330,
+                x: 200, y: 100, width: 750, height: 330,
                 content: `<fieldset style="display: inline-block;vertical-align:top;">
                              <input type="radio" value="save_all"         name="save_obj_restriction"> Save ALL objects in the selected files.</input><br/>
                              <input type="radio" value="save_cur_obj_def" name="save_obj_restriction" checked>
@@ -400,9 +400,6 @@ globalThis.HCAObjDef = class HCAObjDef {
     static obj_call_matches_obj_def(obj_call, obj_def){
         let def_name_from_call = this.call_name_to_def_name(obj_call.objectName)
         if(def_name_from_call === obj_def.objectName){
-            if(obj_call.objectName === "$Select") {
-                debugger;
-            }
             return this.inputs_match_inputs(obj_call.inputs, obj_def.inputs)
         }
         else { return false }

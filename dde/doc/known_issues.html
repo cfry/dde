@@ -4,9 +4,11 @@
 with this DDE release. All of them are on our "do list".
 <p></p>
 <ul>
-  <li>Sometimes, on Windows 10 computers, the editor pane won't accept typed in characters.
-      Workaround: Shrink and expand the DDE window or click outside the DDE window
-      then click back in it.</li>
+   <li>The HCA User Interface for programming Dexter's FPGA is not ready for practical
+        use yet.</li>
+  <li>Speech Recognition is not documented.</li>
+  <li>OpenCV in DDE4 not yet working well.</li>
+  <li>About 20 failures in the Test Suite due to DDE3 to 4 conversion</li>
   <li> <code>Plot.show(...)</code> shows a bunch of icons in the upper right of a plot window.
        Most of these don't work (at least well).</li>
    <li> The simulator <b>both</b> setting basically works but real and sim are not in
@@ -23,19 +25,10 @@ with this DDE release. All of them are on our "do list".
        to display the video and starting over will work.
        This intermittent problem also occurs when calling Picture.take_picture
        which needs webcam output.</li>
-    <!-- not sure this is really needed with the new timeout<li>Do not attempt to run a Job while Dexter is in the process of booting.
-        Wait for its "dance" to be over. </li> -->
-    <li>Speech Recognition is busted.</li>
     <li>The new subsystems in DDE of ezTeach to_source_code, OpenCV, and
         Drawing with DXF are works in progress. They need better support,
         and their API may change.</li>
     <li>Dexter Kinematics article in doc pane is incomplete.</li>
-    <li>None of the apps for the 3 platforms are "signed", thus you get warnings
-        when installing them about being "untrusted". You might have
-        to turn off virus protection, or click right on the
-        <code>dexter_dev_env</code> file to launch it.
-    </li>
-    <li>Linux release poorly tested.</li>
     <li>Dexter.run_gcode needs many extensions.</li>
 </ul>
 </div>

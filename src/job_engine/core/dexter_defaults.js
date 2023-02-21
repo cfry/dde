@@ -59,6 +59,9 @@ Dexter.prototype.defaults_read = function(callback = null){
                     "<br/>so Dexter." + the_dex_inst.name +
                     ".defaults has been set to a copy of Dexter.defaults."
                 )
+                if (callback) {
+                    callback.call(the_dex_inst, null)
+                }
             }
         }
     })

@@ -11,8 +11,10 @@ class DDE_DB{
        "dde_window_y":        50,
        "dde_window_width":  1000,
        "dde_window_height":  700,
+
        "default_dexter_simulate": true,
        "default_out_code": false,
+       "dexter_default_ip_address": "192.168.1.142",
        "dexter0_ip_address": "auto",
        "dont_show_splash_screen_on_launch": false,
        "editor_font_size": 17,

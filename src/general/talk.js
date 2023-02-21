@@ -1610,7 +1610,6 @@ class Talk {
             } else {
                 out("bottom of move_incrementally, out of reach: " + new_xyz)
                 let mess = "Moving to xyz: <br/>" + to_source_code(new_xyz) + "<br/>is out of Dexter's reach."
-                debugger;
                 Talk.stop_aux(mess)
                 return Control.break()
             }

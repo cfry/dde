@@ -157,7 +157,7 @@ globalThis.HCA = class HCA {
                 </canvas>
             </div>`
         let header_html = `<div  style="padding:5px;">    
-                           TreeGroup:  <input id="tree_path_id" value="Misc"/>
+                           <span title="Where in the tree hierarchy this object definition lives.">TreeGroup:</span> <input id="tree_path_id" value="Misc"/>
                            ObjectName: <input id="current_obj_def_name_id" onchange="HCA.current_object_name_onchange()"/>
                            <select id="current_obj_def_select_id" onchange="HCA.obj_def_select_onchange(event)" title="Choose a name to edit its object definition." style="width:20px;height:20px;"></select> &nbsp;
                            <select id="sheet_kind_id" title="Sheet status of the edited object definition.">
@@ -686,7 +686,7 @@ globalThis.HCA = class HCA {
     static async populate_palette(){
         HCA_palette_id.innerHTML =
           "<button onclick='HCA.toggle_stop_run(event)' title='Toggle HCA simulation between stopped and running.' style='background-color:#ff7d8e;'>stopped</button><br/>" +
-          `<div style='white-space:nowrap;' title='Specify the connection "line-drawing" between nodes.'>Wires ` +
+          `<div style='white-space:nowrap;' title='Specify the shape of the wire transporting data from an output to an input of blocks.'>Wires ` +
            "<input type='radio' checked name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 2; HCA.lgraphcanvas.dirty_bgcanvas = true;'>~</input>"   + //LiteGraph.SPLINE_LINK
            "<input type='radio'         name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 0; HCA.lgraphcanvas.dirty_bgcanvas = true;'>-_</input>"  + //LiteGraph.STRAIGHT_LINK'
            "<input type='radio'         name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 1; HCA.lgraphcanvas.dirty_bgcanvas = true;'>/&nbsp;&nbsp;</input>"   + //LiteGraph.LINEAR_LINK' //need the nbsp to give the div a width that will acomodate longest folder name for Object defs.
@@ -716,7 +716,7 @@ globalThis.HCA = class HCA {
                                "Inspect HCA internal data structures for debugging."
                              )
         //HCA_palette_id.append(make_dom_elt("div", {}, "&nbsp;HCA Objects"))
-        HCA_palette_id.insertAdjacentHTML("beforeend", "<details title='Click on an underlined name\nto create an object of that type.\nShift-click to edit its definition.'><summary style='font-weight:bold;'>Make Objects</summary>\n" +
+        HCA_palette_id.insertAdjacentHTML("beforeend", "<details title='Click on an underlined name\nto create an object of that type.\nShift-click to edit its definition.'><summary style='font-weight:bold;'>Object Tree</summary>\n" +
                                            "<div  id='HCA_palette_make_objects_id'>" +
                                            "</div></details>")
         setTimeout( function() {

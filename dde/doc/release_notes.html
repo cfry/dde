@@ -1,6 +1,88 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
 
+<details class="doc_details"><summary>v 4.0.5, Feb  21, 2023</summary>
+ Highlights: DDE4 uses a very different deployment strategy than DDE3. DDE4 is served
+    from an HTTP server running on Dexter. You connect your computer to Dexter and
+    use a browser (Chrome is the most tested) to browse: "192.168.1.142"
+    and you'll get a page that contains
+    different applications that can be served included DDE4 and the Job Engine.
+    <p></p>
+    Clicking on DDE4 gives you an IDE very much like DDE3.
+    CLicking on the Job Engine gives you a web page that is the Job Engine user interface.
+    <p></p>
+    Below are just *some* of the changes since DDE4. This quite incomplete.
+    Also, the base source code of DDE4 split off from DDE3 in 2021.
+    The improvements to DDE3 done since then that are relevant to DDE4 were incorporated
+    into DDE4, but no release notes were made for those improvements in DDE4's release notes,
+    just because there were so many moving parts.
+    <ul>
+        <li>DDE4 is using a new speech recognition engine: Speechly. This is not yet documented.</li>
+        <li>In the node server fixed: <code>compute_dde_apps_folder()</code> by removing slash on end of returned path.</li>
+        <li>Previously <code>Dexter.dexter0</code> was not the same as  <code>Dexter.default</code>  on start_up. Now it is.
+            Also <code>Dexter.dexter0</code> always has an ip address at startup.</li>
+        <li>Fixed bug in <code>to_source_code</code> in the argument when calling to_source_code_lit_obj.</li>
+        <li>In job.js, in <code>to_source_code</code>, removed the clause that removes the last do_list instr if its a "g".
+            This is no longer automatically added.</li>
+        <li>Fixed/extended <code>to_source_code</code> for the instructions in instructions_dexter.js</li>
+        <li>Fixes to <code>to_source_code</code> for jobs and arrays.</li>
+        <li>If <code>Job.job_id_to_job_instance</code> is passed a string,
+            it is converted to an integer before using it.</li>
+        <li>Fix to <code>Instruction.to_string</code> to work for undefined and
+            null instructions.</li>
+        <li><code>Convert.deep_copy</code> fixed to handle null and undefined.</li>
+        <li>Kin.js replaced <code>Dexter.Link1</code> thru 5,  with <code>Dexter.defaults.LinkLength</code>
+            and commented out  robot.js <code>Dexter.prototype.set_link_lengths_from_file_content</code>
+            which is no longer being called but used Dexter.Link1 thru 5.</li>
+        <li><code>Job.next_do_list_item</code> fixed calling of <code>if_instruction_error</code> by placing
+            it directly on do_list and fixing test suite item to place
+            <code>Control.stop_job</code> rather than <code>Control.stop_job()</code> as the value of
+            <code>if_instruction_error</code> in the Job's parameters.</li>
+        <li>Fixed bug in <code>get_file_async</code> that was on the server.
+            Note that dde4 <code>DDEFile.get_file_async</code> takes a callback function
+            that takes just 2 args, err and content whereas dde3 get_file_async's
+            callback took 3 args, err, response_obj, content.
+            The dde4 file system functions callbacks all follow the convention of
+            taking 2 args, err, and content.</li>
+        <li>HCA_UI: fixed remaining 2 bugs in parsing .idl files.</li>
+        <li>dxf fixed  <code>extrusionDirection = parsePoint();</code> to
+            <code>entity.extrusionDirection = parsePoint();</code></li>
+        <li>In txt.js, fixed <code>return points = [ ...]</code></li>
+        <li>Fix for <code>Dexter.prototype.defaults_high_level_to_defaults_lines_ServoSetup_line</code>
+            about duplicate <code>RebootServo</code> written out to
+            <code>defaults.make_ins</code>.</li>
+        <li>In <code>Editor.save_current_file</code>, if there is no current_file, then don't attempt to save it,
+               which would cause a bug.</li>
+        <li>Changed <code>Websockets port</code> for connecting to Dexter from 50000 to 3000,
+            both ide and job engine.</li>
+        <li>New Utils set functions:
+            <code>difference</code>, <code>symmetric_difference</code>, <code>union</code>,
+            <code>de_duplicate</code>.
+                Already existing: <code>insersection</code>.</li>
+        <li>New Utils method: <code>subarray</code> to have a working <code>splice</code> functionality.</li>
+        <li>Extended <button>Eval</button> button to not error when passed a valid
+             <code>JSON</code> object starting with <code>{</code>
+            but instead does <code>JSON.parse</code> on it and inspects the result.</li>
+        <li>Added the npm package <code>compromise</code> under the <code>globalThis.nlp</code> for
+            natural language processing utilities.</li>
+        <li>Added <code>job_process on error</code> handler to robustify the server in httpd.mjs.</li>
+        <li>In <code>Dexter.prototype.defaults_read</code> in the callback it defines,
+            in its CATCH clause, after the warning call, added the call to<br/>
+            <code>if (callback) { callback.call(the_dex_inst, null)} </code><br/>
+           so that it will "continue on" even when we have to default the parsing of
+            <code>Defaults.makeins</code>.</li>
+        <li>Added to <code>DDE_DB.persistent_values_initial_object</code>
+            <code>"dexter_default_ip_address": "192.168.1.142"</code>.</li>
+        <li>Fixed <code>Socket.instruction_array_arcseconds_to_degrees_maybe</code>
+            for the <code>JointDH</code> clause to return
+            <code>instruction_array_copy</code> instead of undefined.</li>
+        <li>Editor pane header now includes a "view menu" containing JS and HCA.
+           HCA is a new in-DDE blocks and wires editor for creating FPGA applications.
+           It is not ready for actual use yet, but can be played with to help us
+           make this into a useful tool.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.8.0, Jul 23, 2021</summary>
 Highlights: Recording Jobs more reliable, simpler UI.<br/>
     Simulator improvements, including "both" option working.<br/>
