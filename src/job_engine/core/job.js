@@ -34,7 +34,7 @@ import {serial_disconnect_all} from "./serial.js"
 
 class Job{
     constructor({name="",
-                 robot=Robot.dexter0,
+                 robot=Dexter.dexter0,
                  do_list=[],
                  keep_history=true,
                  show_instructions=true,

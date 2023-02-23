@@ -33,7 +33,7 @@ class Socket{
             warning(job_instance.name + " Attempt to Socket.init with inactive status: " + job_instance.status_code)
             return
         }
-        let rob = Robot[robot_name]
+        let rob = Dexter[robot_name]
         const sim_actual = Robot.get_simulate_actual(rob.simulate) //true, false, or "both"
         if (sim_actual === true){ //when we are ONLY simulating
             DexterSim.create_or_just_init(robot_name, sim_actual)
@@ -518,6 +518,7 @@ class Socket{
                     Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000000)
                 instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
                     Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 3600)
+                return instruction_array_copy
             }
             else { return instruction_array }
         }

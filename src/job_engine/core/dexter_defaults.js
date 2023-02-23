@@ -928,6 +928,11 @@ Dexter.prototype.defaults_line_to_high_level = function(line, line_number="unkno
                 obj[high_key] = parsed_line.high_value_array
                 obj.orig_line = line_number
                 this.defaults.ServoSetup.push(obj)
+            } else if (low_key === "CmdXor") {//Added by Noah, 2/1/2023
+                    if (!this.defaults[parsed_line.key]){
+                        this.defaults[low_key] = []
+                    }
+                    this.defaults[low_key] = parsed_line.value_array;
             } else if (Dexter.defaults_is_j_key(low_key)) {
                 let [high_key, joint_number] = Dexter.defaults_j_key_to_high_key(low_key)
                 if (!this.defaults[high_key]) {
@@ -1148,6 +1153,14 @@ Dexter.prototype.defaults_high_level_to_defaults_lines = function(){
             else if (["RebootServo", "ServoSetX", "ServoSet2X"].includes(low_key)){  //no units conversion
                 let new_lines = this.defaults_high_level_to_defaults_lines_ServoSetup_line(line_number)
                 for(let new_line of new_lines) { result_lines.push(new_line) }
+            }
+            else if (low_key === "CmdXor") {//Added by Noah, 2/1/2023
+                let high_key = low_key
+                let new_line = "S" + Dexter.defaults_arg_sep + high_key
+                    + Dexter.defaults_arg_sep +  this.defaults[high_key].join() +
+                    ";" + parsed_line.comment
+                out(new_line)
+                result_lines.push(new_line)
             }
             else if(Dexter.defaults_low_level_2nd_arg_is_joint_number(low_key)) {//S, BW params no units conversion
                 let high_key = low_key
@@ -1451,6 +1464,7 @@ Dexter.prototype.defaults_high_level_to_defaults_lines_new_high_level = function
             }
             delete this.defaults[high_key]
         }
+        else if(high_key === "CmdXor"){} //already in the result so don't stick it in a 2nd time
         else { //low_key is non j_key so same as high key
             let low_key = high_key
             let ins_arr = []
