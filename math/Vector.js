@@ -899,7 +899,8 @@ class Vector{
             	}else{
                 	term_1 = Vector.multiply(cosd(theta), short_vector)
             		term_2 = Vector.multiply(sind(theta), Vector.cross(Vector.shorten(plane), short_vector))
-                	result[i] = Vector.add(Vector.multiply(Vector.magnitude(short_vector),  Vector.normalize(Vector.add(term_1, term_2))), point)
+			term_3 = Vector.multiply(plane, Vector.dot(plane, short_vector), (1-cosd(theta)))
+                	result[i] = Vector.add(Vector.multiply(Vector.magnitude(short_vector),  Vector.normalize(Vector.add(term_1, term_2, term_3))), point)
                 }
             }
         }else{
@@ -909,7 +910,8 @@ class Vector{
             }
             term_1 = Vector.multiply(cosd(theta), short_vector)
             term_2 = Vector.multiply(sind(theta), Vector.cross(Vector.shorten(plane), short_vector))
-            result = Vector.add(Vector.multiply(Vector.magnitude(short_vector),  Vector.normalize(Vector.add(term_1, term_2))), point)
+	    term_3 = Vector.multiply(plane, Vector.dot(plane, short_vector), (1-cosd(theta)))
+            result = Vector.add(Vector.multiply(Vector.magnitude(short_vector),  Vector.normalize(Vector.add(term_1, term_2, term_3))), point)
         }
         return result
     }
