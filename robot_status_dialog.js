@@ -13,6 +13,9 @@ var RobotStatusDialog = class RobotStatusDialog{
         else {
             if(!(robot instanceof Dexter)) {
                 robot = (Job.last_job? Job.last_job.robot : Dexter.dexter0)
+                if(!(robot instanceof Dexter)) { //can happen if Job.last_job.robot is a Brain or some non-dexter
+                    robot = Dexter.dexter0
+                }
             }
             let content = RobotStatusDialog.make_html_table(robot)
             let cal = robot.is_calibrated()

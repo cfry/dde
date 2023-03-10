@@ -926,6 +926,12 @@ Dexter.prototype.defaults_line_to_high_level = function(line, line_number="unkno
                 obj[high_key] = parsed_line.high_value_array
                 obj.orig_line = line_number
                 this.defaults.ServoSetup.push(obj)
+
+            } else if (low_key === "CmdXor") {//Added by Noah, 2/1/2023
+                    if (!this.defaults[parsed_line.key]){
+                        this.defaults[low_key] = []
+                    }
+                    this.defaults[low_key] = parsed_line.value_array;
             } else if (Dexter.defaults_is_j_key(low_key)) {
                 let [high_key, joint_number] = Dexter.defaults_j_key_to_high_key(low_key)
                 if (!this.defaults[high_key]) {
@@ -1147,6 +1153,14 @@ Dexter.prototype.defaults_high_level_to_defaults_lines = function(){
                 let new_lines = this.defaults_high_level_to_defaults_lines_ServoSetup_line(line_number)
                 for(let new_line of new_lines) { result_lines.push(new_line) }
             }
+            else if (low_key === "CmdXor") {//Added by Noah, 2/1/2023
+                let high_key = low_key
+                let new_line = "S" + Dexter.defaults_arg_sep + high_key
+                    + Dexter.defaults_arg_sep +  this.defaults[high_key].join() +
+                    ";" + parsed_line.comment
+                out(new_line)
+                result_lines.push(new_line)
+            }
             else if(Dexter.defaults_low_level_2nd_arg_is_joint_number(low_key)) {//S, BW params no units conversion
                 let high_key = low_key
                 let joint_number = parsed_line.value_array[1]
@@ -1288,6 +1302,7 @@ Dexter.defaults_high_key_of_SS_obj = function(obj){
 //when doing the "new" instructions pass,
 //IF we pass an invalid line number, ie null,
 //then this fn gets the rest of the items in the ServoSetup array
+//below includes bug fix by Noah Jan 25, 2023
 Dexter.prototype.defaults_high_level_to_defaults_lines_ServoSetup_line = function(line_number = null){
     let new_lines = []
     let servo_setup_orig_length = this.defaults.ServoSetup.length
@@ -1332,13 +1347,13 @@ Dexter.prototype.defaults_high_level_to_defaults_lines_ServoSetup_line = functio
                 if(Array.isArray(high_val)) {
                     ins_arr = ins_arr.concat(high_val)
                     let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this)
-                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0)
+                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1)
                     val_str = low_val.join(Dexter.defaults_arg_sep)
                 }
                 else {
                     ins_arr.push(high_val)
                     let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this)
-                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0)
+                    let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1)
                     val_str = low_val.join(Dexter.defaults_arg_sep)
                 }
             }
@@ -1448,6 +1463,7 @@ Dexter.prototype.defaults_high_level_to_defaults_lines_new_high_level = function
             }
             delete this.defaults[high_key]
         }
+        else if(high_key === "CmdXor"){} //already in the result so don't stick it in a 2nd time
         else { //low_key is non j_key so same as high key
             let low_key = high_key
             let ins_arr = []
