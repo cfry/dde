@@ -4,6 +4,8 @@ globalThis.HCAObjDef = class HCAObjDef {
     static current_sheet   = null
     static current_obj_def = null
     static core_lib_top_level_tree_names = "not_inited"
+    static object_name_to_defs_map = {}
+    static object_name_plus_in_types_to_def_map = {}
 
     static init() {
         this.obj_def_tree = {folder_name: "root", //always a single path part string. no slashes
@@ -14,12 +16,7 @@ globalThis.HCAObjDef = class HCAObjDef {
     constructor(json_obj){
         for(let key of Object.keys(json_obj)){
             let val = json_obj[key]
-            ///if(key === "TreeGroup") {
-            //    this.TreeGroup = val.split("/") //obsolete. now done in parser
-            //}
-            //else {
-                this[key] = val
-            //}
+            this[key] = val
         }
         if(!this.objectName){
             DDE.error("Attempt to create an HCA object definition without an objectName.<br/>" +
@@ -27,7 +24,7 @@ globalThis.HCAObjDef = class HCAObjDef {
         }
         if(!this.TreeGroup) {//hits for the obj named "CoreLib".
             if(this.Primitive){
-                this.TreeGroup = ["Primitives"]
+                this.TreeGroup = ["Primitive"]
             }
             else {
                 this.TreeGroup = ["Misc"] //[this.objectName]
@@ -49,15 +46,45 @@ globalThis.HCAObjDef = class HCAObjDef {
         if(!this.line){
             this.line = JSON.stringify(json_obj)
         }
+        this.obj_id = this.make_obj_id()
         //console.log("just made HCAObjDef " + this.objectName)
+
+        HCAObjDef.object_name_plus_in_types_to_def_map[this.obj_id] = this //add or replaces if already exists
+        this.add_or_replace_in_object_name_to_defs_map()
         this.insert_obj_def_into_tree(HCAObjDef.obj_def_tree, this.TreeGroup)
         this.insert_obj_def_into_sheets_menu_maybe()
         HCA.insert_obj_def_into_pallette(this)
+        HCA.register_with_litegraph(this)
+    }
+
+    make_obj_id(){
+        let result = this.objectName
+        for(let input of this.inputs){
+            result += "," + input.type
+        }
+        return result
+    }
+
+    add_or_replace_in_object_name_to_defs_map(){
+        let arr_of_defs = HCAObjDef.object_name_to_defs_map[this.objectName]
+        if(!arr_of_defs){ //first obj_def of this name
+            HCAObjDef.object_name_to_defs_map[this.objectName] = [this]
+            return
+        }
+        for(let i = 0; i < arr_of_defs.length; i++){
+            let a_def = arr_of_defs[i]
+            if(a_def.obj_id === this.obj_id){
+                arr_of_defs[i] = this //replace old
+                return
+            }
+        }
+        arr_of_defs.push(this) //their is already at least one def for this objectName, but
+            //none of them are THIS, so add it.
     }
 
     //"this" is the obj_def that we're inserting into the tree, based on its
     //TreeGroup prop which is originally the TreeGroupArr arg.
-    insert_obj_def_into_tree(look_in_folder=HCAObjDef.obj_def_tree, TreeGroupArr, pallette_dom_elt){
+    insert_obj_def_into_tree(look_in_folder=HCAObjDef.obj_def_tree, TreeGroupArr){
         if(TreeGroupArr.length === 0){
             look_in_folder.obj_defs.push(this)
         }
@@ -81,6 +108,14 @@ globalThis.HCAObjDef = class HCAObjDef {
             }
         }
         return null
+    }
+
+    static insert_obj_and_dataset_defs_into_tree(source_path, proj_file_json_obj){
+        HCAObjDef.insert_obj_defs_into_tree(source_path, proj_file_json_obj.object_definitions)
+        Dataset.insert_dataset_defs_into_tree(source_path, proj_file_json_obj.datasets)
+        if(proj_file_json_obj.fpga_type){
+            FPGAType.set_current_fpga_type(proj_file_json_obj.fpga_type)
+        }
     }
 
     //the default callback to parse()
@@ -144,17 +179,6 @@ globalThis.HCAObjDef = class HCAObjDef {
     }
 
     insert_obj_def_into_sheets_menu_maybe(){
-        /*if(globalThis.sheets_id) {
-            let name = this.objectName
-            if (this.CurrentSheet) {
-                HCAObjDef.current_sheet = this
-            }
-            if (this.WipSheet || this.CurrentSheet) {
-                let the_html = "<option>" + name + "</option>"
-                globalThis.sheets_id.insertAdjacentHTML("beforeend", the_html)
-                HCAObjDef.sheets.push(this)
-            }
-        }*/
         if(globalThis.current_obj_def_select_id){
             if(this.CurrentSheet){
                 HCAObjDef.current_sheet = this
@@ -314,11 +338,14 @@ globalThis.HCAObjDef = class HCAObjDef {
 
     static json_obj_of_defs_in_obj_def(obj_def, files_array=ipg_to_json.loaded_files){
         let found_obj_defs = this.obj_defs_in_obj_def(obj_def, files_array)
-        let result = {object_definitions: found_obj_defs,
-                      project_name: obj_def.objectName,
+        let datasets = Dataset.datasets_in_files(files_array)
+        let result = {project_name: obj_def.objectName,
                       project_date: Utils.date_or_number_to_ymdhms(Date.now()),
                       content_connected_to_object_definition: obj_def.objectName,
-                      content_from_files: files_array
+                      content_from_files: files_array,
+                      fpga_type: FPGAType.current_fpga_type,
+                      object_definitions: found_obj_defs,
+                      datasets: datasets,
                      }
         return result
     }
@@ -353,9 +380,12 @@ globalThis.HCAObjDef = class HCAObjDef {
         else {
             result_obj_defs.push(obj_def)                  //include obj_def and maybe obj_defs it calls
             for(let obj_call of obj_def.prototypes){
+                if(obj_call.objectName.startsWith("Output")) {
+                    debugger;
+                }
                 let a_obj_def = this.obj_call_to_obj_def(obj_call)
                 if(!a_obj_def){
-                    warning("obj_defs_in_obj_def found obj_call that has no definition: " + obj_call.objectName)
+                    warning("HCAObjDef.obj_defs_in_obj_def found obj_call that has no definition: " + obj_call.objectName)
                 }
                 else {
                     this.obj_defs_in_obj_def(a_obj_def, files_array, result_obj_defs)
@@ -410,7 +440,13 @@ globalThis.HCAObjDef = class HCAObjDef {
             for(let i = 0; i < insA.length; i++){
                 let inA = insA[i]
                 let inB = insB[i]
-                if(inA.type !== inB.type) { return false}
+                if(inA.type === inB.type)  {} //ok match
+                if(inB.type === "Variant") {} //ok match
+                    //maybe I should allsow intA.type === "Variant" but
+                    //in my normal use case, insA is from the CALL and
+                    //inB is the ObjDef that we're trying to match the call with
+                    //so inB.type === "Variant" covers that case.
+                else { return false }
             }
             return true
         }
@@ -425,11 +461,15 @@ globalThis.HCAObjDef = class HCAObjDef {
 
     static json_obj_of_defs_in_files(files_array=ipg_to_json.loaded_files) {
         let found_obj_defs = this.obj_defs_in_files_in_treegroup(files_array, HCAObjDef.obj_def_tree)
-        let result = {object_definitions: found_obj_defs,
-            project_name: files_array.join("&"),
-            project_date: Utils.date_or_number_to_ymdhms(Date.now()),
-            content_connected_to_object_definition: "all object definitons in the files are included",
-            content_from_files: files_array
+        let datasets = Dataset.datasets_in_files(files_array)
+        let result =   {project_name: files_array.join("&"),
+                        project_date: Utils.date_or_number_to_ymdhms(Date.now()),
+                        content_connected_to_object_definition: "all object definitions in the files are included",
+                        content_from_files: files_array,
+                        fpga_type: FPGAType.current_fpga_type,
+                        object_definitions: found_obj_defs,
+                        datasets: datasets,
+
         }
         return result
     }
@@ -640,9 +680,6 @@ globalThis.HCAObjDef = class HCAObjDef {
         }
         ]
         HCAObjDef.insert_obj_defs_into_tree("built_in", json_obj_defs)
-        //for(let json_obj_def of json_obj_defs){
-        //    new HCAObjDef(json_obj_def)
-        //}
     }
 }
 HCAObjDef.init()

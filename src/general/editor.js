@@ -2972,12 +2972,12 @@ Editor.context_help_for_make_ins_oplet = function(full_src, cursor_pos, identifi
                 warning("The selection is an empty array meaning it would have no effect.")
             }
             else if ((sel.length <= 3) && (typeof(sel[0]) == "number")){
-                Robot.dexter0.move_to_fn(sel)
+                Dexter.dexter0.move_to_fn(sel)
             }
             else if ((sel.length <= 7) && (typeof(sel[0]) == "number")){
-                Robot.dexter0.move_all_joints_fn(sel)
+                Dexter.dexter0.move_all_joints_fn(sel)
             }
-            else { Robot.dexter0.run_instruction_fn(sel) }
+            else { Dexter.dexter0.run_instruction_fn(sel) }
         }
         else if ((sel === undefined) ||
                  (sel === null) ||
@@ -2985,7 +2985,7 @@ Editor.context_help_for_make_ins_oplet = function(full_src, cursor_pos, identifi
             warning("The selection evals to undefined, null, or a boolean,<br/>" +
                 "neither of which are valid Job instructions.")
         }
-        else { Robot.dexter0.run_instruction_fn(sel) }
+        else { Dexter.dexter0.run_instruction_fn(sel) }
     }
 
 //return an array of arrays of ["a_job_name", 22, 105] ie start of job def src and end of job_def_src.

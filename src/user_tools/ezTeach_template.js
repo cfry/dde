@@ -157,4 +157,4 @@ function ez_stop_run(info){
 }
 
 // Defines the Jobs 
-ezTeach_init("choose_file", Robot.dexter0)
+ezTeach_init("choose_file", Dexter.dexter0)

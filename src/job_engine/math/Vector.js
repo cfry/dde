@@ -892,33 +892,35 @@ class Vector{
     //Public
     //rotates a vector in 3D space on a plane by angle theta
     //will also rotate a point about a line by substituting the line's vector in plane and its point in point
-    static rotate(vector, plane, theta, point = [0, 0, 0]){
-    	plane =  Vector.normalize(Vector.shorten(plane))
-        let dim = Vector.matrix_dimensions(vector)
-        let result, short_vector, term_1, term_2, term_3
-        if (dim[1] == 3 && dim[0] != 1){
-        	result = Vector.make_matrix(dim[0], 1)
-            for(var i = 0; i < vector.length; i++){
-            	short_vector = Vector.subtract(vector[i], point)
-                if(Vector.is_equal(short_vector, point)){
-            		result[i] = short_vector
-            	}else{
-                	term_1 = Vector.multiply(cosd(theta), short_vector)
-            		term_2 = Vector.multiply(sind(theta), Vector.cross(Vector.shorten(plane), short_vector))
-                	result[i] = Vector.add(Vector.multiply(Vector.magnitude(short_vector),  Vector.normalize(Vector.add(term_1, term_2))), point)
-                }
-            }
-        }else{
-        	short_vector = Vector.subtract(Vector.shorten(vector), point)
-            if(Vector.magnitude(Vector.cross(short_vector, plane)) < 1e-10){
-            	return short_vector
-            }
-            term_1 = Vector.multiply(cosd(theta), short_vector)
-            term_2 = Vector.multiply(sind(theta), Vector.cross(Vector.shorten(plane), short_vector))
-            result = Vector.add(Vector.multiply(Vector.magnitude(short_vector),  Vector.normalize(Vector.add(term_1, term_2))), point)
-        }
-        return result
-    }
+	static rotate(vector, plane, theta, point = [0, 0, 0]){
+		plane =  Vector.normalize(Vector.shorten(plane))
+		let dim = Vector.matrix_dimensions(vector)
+		let result, short_vector, term_1, term_2, term_3
+		if (dim[1] == 3 && dim[0] != 1){
+			result = Vector.make_matrix(dim[0], 1)
+			for(var i = 0; i < vector.length; i++){
+				short_vector = Vector.subtract(vector[i], point)
+				if(Vector.is_equal(short_vector, point)){
+					result[i] = short_vector
+				}else{
+					term_1 = Vector.multiply(cosd(theta), short_vector)
+					term_2 = Vector.multiply(sind(theta), Vector.cross(Vector.shorten(plane), short_vector))
+					term_3 = Vector.multiply(plane, Vector.dot(plane, short_vector), (1-cosd(theta)))
+					result[i] = Vector.add(Vector.multiply(Vector.magnitude(short_vector),  Vector.normalize(Vector.add(term_1, term_2, term_3))), point)
+				}
+			}
+		}else{
+			short_vector = Vector.subtract(Vector.shorten(vector), point)
+			if(Vector.magnitude(Vector.cross(short_vector, plane)) < 1e-10){
+				return short_vector
+			}
+			term_1 = Vector.multiply(cosd(theta), short_vector)
+			term_2 = Vector.multiply(sind(theta), Vector.cross(Vector.shorten(plane), short_vector))
+			term_3 = Vector.multiply(plane, Vector.dot(plane, short_vector), (1-cosd(theta)))
+			result = Vector.add(Vector.multiply(Vector.magnitude(short_vector),  Vector.normalize(Vector.add(term_1, term_2, term_3))), point)
+		}
+		return result
+	}
 
 
     static three_points_to_transformation(point_list, pointA = [0, 0, 0], pointB = [1, 0, 0], pointC = [0, 1, 0], U4){

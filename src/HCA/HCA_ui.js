@@ -253,11 +253,14 @@ globalThis.HCA = class HCA {
         else {
             try {
                 setTimeout(function(){
-                let json_obj = HCA.string_to_json_obj(source_path, source,
-                    "Initializing HCA UI expects the editor buffer to contain<br/>" +
-                    "JSON of a valid HCA graph, but it didn't.")
-
-                    HCAObjDef.insert_obj_defs_into_tree(source_path, json_obj)
+                    let json_obj = HCA.string_to_json_obj(source_path, source,
+                        "When launching the HCA UI,<br/>" +
+                                     "if the editor had contained a valid HCA program,<br/>" +
+                                     "you would have been given the opportunity to load it.")
+                    if(Array.isArray(json_obj) && (json_obj.length === 0)) {} //json_obj is empty so nothing to load
+                    else if (confirm("The editor probably contains a valid HCA program.\nLoad it into HCA UI?")) {
+                            HCAObjDef.insert_obj_and_dataset_defs_into_tree(source_path, json_obj)
+                    }
                 }, 1300) //should be AFTER CorLib is loaded
             }
             catch (err) {
@@ -289,11 +292,12 @@ globalThis.HCA = class HCA {
                         return json_obj
                     }
                     else {
-                        dde_error("HCA.string_to_json_obj passed path: " + source_path + " that isn't valid HCA JSON. " + error_message)
+                        dde_error("HCA.string_to_json_obj passed source:<br/><code>" + source.substring(0, 60) + "...<code><br/> that isn't valid HCA JSON. " + error_message)
                     }
                 }
                 catch(err){
-                    dde_error("HCA.string_to_json_obj passed path: " + source_path + " that isn't valid JSON. " + error_message)
+                    warning("HCA.string_to_json_obj passed source:<br/><code>" + source.substring(0, 60) + "...</code><br/>that isn't valid JSON.<br/>" + error_message)
+                    return []
                 }
             }
             else {
@@ -301,14 +305,14 @@ globalThis.HCA = class HCA {
             }
         }
         else {
-            dde_error("HCA.string_to_json_obj passed path: " + source_path  + " that isn't a string.")
+            dde_error("HCA.string_to_json_obj passed source: " + source  + " that isn't a string.")
         }
     }
 
     //source_path is to a file containing JSON HCA source.
     static async edit_file(source_path){
         let json_obj = await HCA.file_path_to_json_obj(source_path) //errors if path is invalid
-        HCAObjDef.insert_obj_defs_into_tree(source_path, json_obj)
+        HCAObjDef.insert_obj_and_dataset_defs_into_tree(source_path, json_obj)
     }
     /* obsolete
     //return a json obj (name-value pair that has a "node" prop) or
@@ -419,6 +423,7 @@ globalThis.HCA = class HCA {
                           lgraph:                     HCA.lgraph.serialize(),
                           current_sheet:              HCAObjDef.current_sheet,
                           sheets:                     HCAObjDef.sheets,
+                          dataset_tree:               Dataset.dataset_def_tree,
                           obj_def_tree:               HCAObjDef.obj_def_tree,
                           file_path_to_parse_obj_map: ipg_to_json.file_path_to_parse_obj_map,
                           loaded_files:               ipg_to_json.loaded_files
@@ -449,12 +454,18 @@ globalThis.HCA = class HCA {
             selected_call_object:       call_obj,
             selected_litegraph_node:    sel_node,
             current_obj_def:            HCAObjDef.current_obj_def,
-            lgraph:                     HCA.lgraph.serialize(),
             current_sheet:              HCAObjDef.current_sheet,
             sheets:                     HCAObjDef.sheets,
+            dataset_tree:               Dataset.dataset_def_tree,
+            object_name_to_defs_map:    HCAObjDef.object_name_to_defs_map,
+            object_name_plus_in_types_to_def_map: HCAObjDef.object_name_plus_in_types_to_def_map,
             obj_def_tree:               HCAObjDef.obj_def_tree,
             file_path_to_parse_obj_map: ipg_to_json.file_path_to_parse_obj_map,
-            loaded_files:               ipg_to_json.loaded_files
+            file_path_to_datasets_map:  ipg_to_json.file_path_to_datasets_map,
+            loaded_files:               ipg_to_json.loaded_files,
+            lgraph:                     HCA.lgraph.serialize(),
+            LiteGraph:                  LiteGraph,
+            "LiteGraph.registered_node_types" : LiteGraph.registered_node_types
         })
     }
 
@@ -685,7 +696,7 @@ globalThis.HCA = class HCA {
     //don't use "this" inside this method since its called with a timeout. Use HCA instead.
     static async populate_palette(){
         HCA_palette_id.innerHTML =
-          "<button onclick='HCA.toggle_stop_run(event)' title='Toggle HCA simulation between stopped and running.' style='background-color:#ff7d8e;'>stopped</button><br/>" +
+          "Simulator <button onclick='HCA.toggle_stop_run(event)' title='Toggle HCA simulation between stopped and running.' style='background-color:#ff7d8e;'>stopped</button><br/>" +
           `<div style='white-space:nowrap;' title='Specify the shape of the wire transporting data from an output to an input of blocks.'>Wires ` +
            "<input type='radio' checked name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 2; HCA.lgraphcanvas.dirty_bgcanvas = true;'>~</input>"   + //LiteGraph.SPLINE_LINK
            "<input type='radio'         name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 0; HCA.lgraphcanvas.dirty_bgcanvas = true;'>-_</input>"  + //LiteGraph.STRAIGHT_LINK'
@@ -710,17 +721,21 @@ globalThis.HCA = class HCA {
             true //add_newline
         )*/
         HCA.make_node_button(null,
-                              "inspect data",
+                              "Inspect Info",
                               function() { HCA.inspect_data() },
                                false,
                                "Inspect HCA internal data structures for debugging."
                              )
-        //HCA_palette_id.append(make_dom_elt("div", {}, "&nbsp;HCA Objects"))
+        HCA_palette_id.insertAdjacentHTML("beforeend", "<br/>" + FPGAType.pallette_html())
+        HCA_palette_id.insertAdjacentHTML("beforeend", "<details title='Click on an underlined name\nto edit that dataset.'><summary style='font-weight:bold;'>Dataset Tree</summary>\n" +
+                                            "<div  id='HCA_palette_datasets_id'>" +
+                                            "</div></details>")
         HCA_palette_id.insertAdjacentHTML("beforeend", "<details title='Click on an underlined name\nto create an object of that type.\nShift-click to edit its definition.'><summary style='font-weight:bold;'>Object Tree</summary>\n" +
                                            "<div  id='HCA_palette_make_objects_id'>" +
                                            "</div></details>")
         setTimeout( function() {
             HCAObjDef.define_built_ins()
+            Dataset.define_built_ins()
             ipg_to_json.parse("dde/third_party/CorLib.ipg")
         }, 200)
         //await ipg_to_json.parse("dde/third_party/CorLib.ipg")
@@ -746,7 +761,7 @@ globalThis.HCA = class HCA {
             let obj_path_arr = obj_def.TreeGroup.slice()
             obj_path_arr.push(obj_def.objectName)
             let obj_path = obj_path_arr.join("/")
-            this.register_with_litegraph(obj_path, obj_def)
+            this.register_with_litegraph(obj_def)
             let action_src = 'HCA.make_and_add_block("' + obj_path + '")'
             ht +="<div class='hca_obj_def' onclick='" + action_src + "'>" + obj_def.objectName + "</div>\n"
             |* //now done during new HCAObjDef
@@ -769,21 +784,28 @@ globalThis.HCA = class HCA {
         return ht
     }*/
 
-    static tree_folder_name_to_dom_id(folder_name){
-        return "tree_" + folder_name + "_id"
+    //static tree_folder_name_to_dom_id(folder_name){
+    //    return "tree_" + folder_name + "_id"
+    //}
+
+    static tree_folder_name_to_dom_id(obj_def, tree_arr_index_of_next_folder){
+        let tree_arr_up_to_next_fold = Utils.subarray(obj_def.TreeGroup, 0,tree_arr_index_of_next_folder + 1)
+        let tree_path_str = tree_arr_up_to_next_fold.join("/")
+        return "tree_" + tree_path_str + "_id"
     }
 
     static make_object_id(obj_def){
-        return "make_obj_" + obj_def.objectName + "_id"
+        let path = obj_def.TreeGroup.join("/") + "/" + obj_def.objectName
+        return "make_obj_" + path + "_id"
     }
 
     static pending_rendering_dom_id = null //or string id of a folder pallette dom elt
 
     //creates tree path all the way down, then inserts the new link to make an obj_call of the obj_def
-    static insert_obj_def_into_pallette(obj_def, folder_dom_elt=HCA_palette_make_objects_id, tree_path_arr){
+    static insert_obj_def_into_pallette(obj_def, folder_dom_elt=HCA_palette_make_objects_id, tree_arr_index_of_next_folder=0){
         if(HCA.pending_rendering_dom_id && !window[HCA.pending_rendering_dom_id]) { //take a lap waiting for
             setTimeout(function(){
-                HCA.insert_obj_def_into_pallette(obj_def, folder_dom_elt, tree_path_arr)
+                HCA.insert_obj_def_into_pallette(obj_def, folder_dom_elt, tree_arr_index_of_next_folder)
             }, 200)
             return
         }
@@ -791,7 +813,7 @@ globalThis.HCA = class HCA {
             folder_dom_elt = window[folder_dom_elt]
             if(!folder_dom_elt) { //take a lap to let folder_dom_elt get rendered
                 setTimeout(function(){
-                    HCA.insert_obj_def_into_pallette(obj_def, folder_dom_elt, tree_path_arr)
+                    HCA.insert_obj_def_into_pallette(obj_def, folder_dom_elt, tree_arr_index_of_next_folder)
                 }, 200)
                 return
             }
@@ -802,39 +824,35 @@ globalThis.HCA = class HCA {
         //folder_dom_elt is a rendered dom_elt to stick the next item in the pallette, be it a
         //subfolder or and actual obj_def link
         HCA.pending_rendering_dom_id = null
-        if(!tree_path_arr) { tree_path_arr = obj_def.TreeGroup }
-        if(tree_path_arr.length === 0) { //done walking tree, so insert the actual link and we're done
+        if(tree_arr_index_of_next_folder === obj_def.TreeGroup.length) { //done walking tree, so insert the actual link and we're done
             let dom_id = this.make_object_id(obj_def)
             let tree_path = obj_def.TreeGroup.join("/")
             let tree_path_and_obj_name = tree_path + "/" + obj_def.objectName
-            this.register_with_litegraph(tree_path_and_obj_name)
+            this.register_with_litegraph(obj_def)
             let html_to_insert = `<div class="hca_obj_def"  id="` + dom_id + `" onclick="HCA.make_and_add_block('` + tree_path_and_obj_name + `', event)">` + obj_def.objectName + "</div>"
             folder_dom_elt.insertAdjacentHTML("beforeend", html_to_insert) //no need to wait for leaves of tree to render
         }
         else { //more tree walking to do
-            let next_folder_name = tree_path_arr[0]
-            let next_folder_name_dom_elt_id = this.tree_folder_name_to_dom_id(next_folder_name)
+            let next_folder_name_dom_elt_id = this.tree_folder_name_to_dom_id(obj_def, tree_arr_index_of_next_folder)
             let next_folder_dom_elt = window[next_folder_name_dom_elt_id]
-            let new_tree_path = Utils.subarray(tree_path_arr, 1) //((tree_path_arr.length === 1) ? [] : tree_path_arr.slice[1]) //JS slice doesn't work so I wrote my own.
-                //above var is closed over by setTimeout below as well as directly used
             if(next_folder_dom_elt) {
                 setTimeout(function () { //needed just because call stack size exceeded without it
-                    HCA.insert_obj_def_into_pallette(obj_def, next_folder_dom_elt, new_tree_path) //whether or not the folder is rendered, we can still recurse and it will get caught at top of this fn.
+                    HCA.insert_obj_def_into_pallette(obj_def, next_folder_dom_elt, tree_arr_index_of_next_folder + 1) //whether or not the folder is rendered, we can still recurse and it will get caught at top of this fn.
                 }, 1)
             }
             else  { //no next_folder_dom_elt so we need to create it
+                let next_folder_name = obj_def.TreeGroup[tree_arr_index_of_next_folder]
                 let html = "<details class='hca_folder' " + "id='" + next_folder_name_dom_elt_id + "'><summary class='hca_folder_summary'>" + next_folder_name + "</summary>\n</details>"
                 folder_dom_elt.insertAdjacentHTML("beforeend", html)
                 HCA.pending_rendering_dom_id = next_folder_name_dom_elt_id
                 HCA.insert_obj_def_into_pallette(obj_def,
                                                  next_folder_name_dom_elt_id, //we pass the id str because next_folder_dom_elt is undedfined as it doesnt exist yet
-                                                 new_tree_path)
+                    tree_arr_index_of_next_folder + 1)
             }
         }
     }
 
-    static register_with_litegraph(obj_path){
-         let obj_def = HCAObjDef.path_to_obj_def(obj_path)
+    static register_with_litegraph(obj_def){
          let fn = function(){
              for(let input of obj_def.inputs) {
                  this.addInput(input.name, input.type)
@@ -846,6 +864,8 @@ globalThis.HCA = class HCA {
              this.properties = { precision: 1 };
          }
          fn.title = obj_def.objectName; //name to show
+         let obj_path = "basic/" + //obj_def.TreeGroup + "/" +
+                         obj_def.objectName
          LiteGraph.registerNodeType(obj_path, fn); //register in the system
     }
 
@@ -1195,7 +1215,7 @@ globalThis.HCA = class HCA {
         if ((included_in_name.length > 0) || (def_calls_match.length > 0))  {
             inspect({"Definition name matches":  def_match,
                           "Definition name includes": included_in_name,
-                          "Definiton calls match":    def_calls_match},
+                          "Definition calls match":   def_calls_match},
                     undefined,
                 'HCA defs containing: "' + search_string + '"')
         }

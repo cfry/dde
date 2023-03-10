@@ -212,7 +212,7 @@ globalThis.Persistent = class Persistent{
             if(!Brain.brain0) {
                 add_to_dde_init_js += '\nnew Brain({name: "brain0"})\n'
             }
-            if(!Robot.dexter0){
+            if(!Dexter.dexter0){
                 add_to_dde_init_js += '\nnew Dexter({name: "dexter0"}) //dexter0 must be defined.\n'
             } //note, in the weird case that the user has defined the ip_address and/or port
               //but not dexter0, then dexter0 gets at the front of the init file, not

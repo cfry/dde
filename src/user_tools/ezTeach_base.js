@@ -59,7 +59,7 @@ function ez_get_path_string(object, name_stop = "Root"){
 
 
 
-function ezTeach_init(points_filepath = "choose_file", robot = Robot.dexter0){
+function ezTeach_init(points_filepath = "choose_file", robot = Dexter.dexter0){
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

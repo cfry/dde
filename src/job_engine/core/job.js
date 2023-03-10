@@ -140,9 +140,9 @@ class Job{
                    Job.when_stopped_conditions_property_names)
     }
     if (!(robot instanceof Robot)){
-        if (!Robot.dexter0){
+        if (!Dexter.dexter0){
             dde_error("Attempt to create Job." + name + " with no valid robot instance.<br/>" +
-                " Note that Robot.dexter0 is not defined<br/> " +
+                " Note that Dexter.dexter0 is not defined<br/> " +
                 " but should be in your file: Documents/dde_apps/dde_init.js <br/>" +
                 " after setting the default ip_address and port.<br/> " +
                 " To generate the default dde_init.js file,<br/>" +
@@ -225,7 +225,7 @@ class Job{
     static class_init(){ //inits the Job class as a whole. called by ready
         this.job_default_params =
                {name: null,
-                robot: Robot.dexter0,
+                robot: Dexter.dexter0,
                 do_list: [],
                 keep_history: true,
                 show_instructions: true,
@@ -3298,7 +3298,7 @@ Job.prototype.to_source_code = function(args={}){
     if(!args.indent) { args.indent = "" }
     let props_indent = args.indent + "         "
     let result = 'new Job({name: "' + this.name + '",\n'
-    if (this.robot !== Robot.dexter0){
+    if (this.robot !== Dexter.dexter0){
         result += props_indent + 'robot: '  + this.robot.to_path() + ',\n'
     }
     let prop_names = [ //name, robot  handled above

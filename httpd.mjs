@@ -515,7 +515,8 @@ function serve_file(q, req, res){
     let cur_dir = process.cwd()
     console.log("top of serve_file filename: " + filename + " cur_dir: " + cur_dir)
     if(running_on_dexter()) {
-       filename = WWW_FOLDER + "/" + q.pathname  //this is in orig dexter file, but replaced for  dde4 with server laptop by the below clause
+        let maybe_slash = (q.pathname.startsWith("/") ? "" : "/")
+        filename = WWW_FOLDER + maybe_slash + q.pathname  //this is in orig dexter file, but replaced for  dde4 with server laptop by the below clause
     }
     //dde4 works except for editing a file
     else { //dde4 not running on dexter
@@ -523,7 +524,7 @@ function serve_file(q, req, res){
         let maybe_slash = (q.pathname.startsWith("/") ? "" : "/")
         //console.log("serve_file got cur_dir: " + cur_dir)
         //filename = cur_dir + maybe_slash +  q.pathname
-        filename = SHARE_FOLDER + "/" + q.pathname
+        filename = SHARE_FOLDER + maybe_slash + q.pathname
     }
     /*else { //dde4 not running on dexter
         filename = q.pathname

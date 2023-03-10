@@ -145,10 +145,13 @@ import "./gamepad.js"       //defined global class GamePad
 
 import "./lesson.js" //defines global Lesson
 
-import "../HCA/HCA_ui.js" //defines global HCA
+import "../HCA/HCA_ui.js"        //defines global HCA class
 //import "../HCA/HCA_objects.js" //obsoleted by ipg_to_json..js
-import "../HCA/ipg_to_json.js"   //defines global ipg_to_json
-import "../HCA/HCA_objdef.js"    //defines global HCAObjDef
+import "../HCA/ipg_to_json.js"   //defines global ipg_to_json class
+import "../HCA/HCA_objdef.js"    //defines global HCAObjDef class
+import "../HCA/dataset.js"       //defines global Dataset class
+import "../HCA/fpga_type.js" //defines global SystemDescription class
+
 import "../HCA/litegraph_patches.js"
 
 import "../blocksde/init.js" //needed for making the menu of differnt "views" of DDE's editor, including HCA
@@ -1444,9 +1447,9 @@ window_modify_id.onclick=function(){Editor.insert(
       insert_job_example14_id.onclick = function(){Editor.insert(job_examples[14])}
 
           //RUN INSTRUCTION
-      move_to_home_id.onclick    = function(){ Robot.dexter0.move_all_joints_fn() }
-      move_to_neutral_id.onclick = function(){ Robot.dexter0.move_all_joints_fn(Dexter.NEUTRAL_ANGLES) }
-      //move_to_parked_id.onclick  = function(){ Robot.dexter0.move_all_joints_fn(Dexter.PARKED_ANGLES) }  //not useful, sometimes Dexter runs into itself
+      move_to_home_id.onclick    = function(){ Dexter.dexter0.move_all_joints_fn() }
+      move_to_neutral_id.onclick = function(){ Dexter.dexter0.move_all_joints_fn(Dexter.NEUTRAL_ANGLES) }
+      //move_to_parked_id.onclick  = function(){ Dexter.dexter0.move_all_joints_fn(Dexter.PARKED_ANGLES) }  //not useful, sometimes Dexter runs into itself
       move_to_selection_id.onclick = Editor.move_to_instruction
 
       Editor.set_menu_string(move_to_selection_id, "selection", "r")

@@ -3643,7 +3643,7 @@ It's core part is a do_list of instructions that it feeds, one at a time,
 to a robot, to tell it how to perform a step to make something.
 The syntax of defining a simple job is:
 <pre><code>new Job({name: "my_job",
-         robot: Robot.dexter0,
+         robot: Dexter.dexter0,
          do_list: [ Dexter.move_to([0, 0.5, 0.075]),
                     Control.wait_until(2)
                     //more instructions here
@@ -4110,14 +4110,14 @@ is a valid job to define and run, though it will give a warning message:<br/>
     You can customize a job with the parameters:
     <ol><li id="job_param_name_doc_id"><b>name</b> Default's to an unused name of the format: <code>"job_1"</code>, <code>"job_2"</code>, <code>"job_3"</code>, etc.
          You can use <code title="unEVALable code fragment"> Job.a_job_name</code> to get the instance programmatically.</li>
-        <li id="job_param_robot_doc_id"><b>robot</b> Default: <code>Robot.dexter0</code> An instance of one of the subclasses of <code>Robot</code>, such as
+        <li id="job_param_robot_doc_id"><b>robot</b> Default: <code>Dexter.dexter0</code> An instance of one of the subclasses of <code>Robot</code>, such as
             <code>Dexter</code>. This is the <i>default</i> robot to send the job's instructions to if
             the instruction itself doesn't designate a robot. The default for a Job's default robot is
-            <code>Robot.dexter0</code>. For example, if we have:
+            <code>Dexter.dexter0</code>. For example, if we have:
          <pre><code title="unEVALable">new Job({do_list: [Dexter.move_all_joints([0, 10, 20, 30, 40]),
                    Robot.dexter1.move_all_joints([0, 10, 20, 30, 40]) ]})
              </code></pre>
-            The 1st instruction will be sent to <code>Robot.dexter0</code> (the default),
+            The 1st instruction will be sent to <code>Dexter.dexter0</code> (the default),
             and the 2nd to <code  title="unEVALable">Robot.dexter1</code>.
             You can also use a Serial robot instance as the subject of a "string_instruction"
             instruction so that you can have one job that feeds instructions to
@@ -5658,7 +5658,7 @@ new Job({name: "job2",
 })    </code></pre>
     job2 starts job1 and waits for job1 to complete before continuing,
     because the last arg to start_job is <code>true</code>.
-    job2 can start job1 even though they both are using the default <code>Robot.dexter0</code>
+    job2 can start job1 even though they both are using the default <code>Dexter.dexter0</code>
     because job2's 2nd argument explicitly allows this.<br/>
     <span style="color:red">Caution</span>: 2 jobs sending instructions to one Dexter means
     neither can rely on the Dexter being where they last told it to go.
@@ -6034,7 +6034,7 @@ Example:<code>Control.wait_until(2)</code><br/>
         <code>IO.grab_robot_status("my_zero_data", Serial.DATA0) </code><br/>
         grab_robot_status can be called with a subject of a job instance in place
         of <code>Robot</code> like so:<br/>
-        <code> Robot.dexter0.grab_robot_status("my_user_data_var")</code>
+        <code> Dexter.dexter0.grab_robot_status("my_user_data_var")</code>
         <p></p>
         See Jobs menu/Insert Example/Serial Port for an extended example.
     </details> <!-- end grab_robot_status -->
@@ -6221,7 +6221,7 @@ to make sure such jobs don't screw each other up. You may not have more than one
 active robot with the same name or ip_address.-->
 It is recommended that each job have their own robot.
 <p></p>
-The default robot is <code>Robot.dexter0</code>. This is created in your dde_apps/dde_init.js file.
+The default robot is <code>Dexter.dexter0</code>. This is created in your dde_apps/dde_init.js file.
 Set dexter0's <code title="unEVALable code fragment"> ip_address</code> and
 <code title="unEVALable code fragment"> port</code> in that file.
 We recommend allowing dexter0's simulate param to default to <code>null</code> so that
@@ -6274,7 +6274,7 @@ The parameters used to define an instance of Dexter are:
 </details> <!-- end new Dexter parameters -->
 
 <details class="doc_details"><summary>Dexter Instructions</summary>
-All of the Dexter instructions can take a Dexter instance i.e. <code>Robot.dexter0</code>
+All of the Dexter instructions can take a Dexter instance i.e. <code>Dexter.dexter0</code>
 as a subject to the call. That will direct the instruction to that Dexter.
 The subject in an instruction call can also be the Dexter class, i.e. <code>Dexter</code>
 in which case the instruction will go to the robot of the job. This is the
@@ -6284,7 +6284,7 @@ one job to just use one <i>default</i> robot as is most common.<br/>
 <i>Examples</i> of instructions in a Job's do_list:
 <pre><code>
   Dexter.move_all_joints([30, 40])
-  Robot.dexter0.move_all_joints([30, 40])
+  Dexter.dexter0.move_all_joints([30, 40])
 </code></pre>
 
 <details id="data_array_doc_id" class="doc_details"><summary>Data Array</summary>
@@ -7039,7 +7039,7 @@ the instructions created are <code>Dexter.move_to</code> instructions.
                   position_units: _mm})
           </code></pre>
     run_gcode can also take a robot instance as its subject like so:
-    <pre><code>Robot.dexter0.run_gcode({gcode: "G1 X0 Y5 Z8",
+    <pre><code>Dexter.dexter0.run_gcode({gcode: "G1 X0 Y5 Z8",
                   position_units: _mm})
           </code></pre>
     <code>Dexter.run_gcode</code> is similar to <code>Dexter.draw_dxf</code>.
@@ -7424,9 +7424,9 @@ instruction will not be modified.
 <p></p>
 The possibly modified instruction will be returned.<br/>
 <i>Example:</i>
-<code>Instruction.add_robot_to_instruction(Dexter.move_all_joints([30, 40]), Robot.dexter0)</code><br/>
+<code>Instruction.add_robot_to_instruction(Dexter.move_all_joints([30, 40]), Dexter.dexter0)</code><br/>
 Note that a simpler way to accomplish the above is:<br/>
-<code>Robot.dexter0.move_all_joints([30, 40])</code><br/>
+<code>Dexter.dexter0.move_all_joints([30, 40])</code><br/>
 This function is primarily used to implement <code>Instruction.add_robot_to_instructions</code>
 </details>
 
@@ -7440,7 +7440,7 @@ that a job can accept can be passed.<br/>
 each passed in instruction, if it accepts one. If robot is <code>undefined</code>, the
 instruction will not be modified.<br/>
 <i>Example:</i>
-<code>Instruction.add_robot_to_instructions([Dexter.move_all_joints([30, 40])], Robot.dexter0)</code>
+<code>Instruction.add_robot_to_instructions([Dexter.move_all_joints([30, 40])], Dexter.dexter0)</code>
 <p></p>
 See <a href="#" onclick="DocCode.open_doc('Instruction.add_robot_to_instruction_id', event)">Instruction.add_robot_to_instruction</a>
 for details.
@@ -7463,30 +7463,30 @@ Uncalibrated robots will not accurately position themselves.
 </details>
 
 
-<details id="Robot.dexter0.joint_angle_doc_id" class="doc_details"><summary>joint_angle</summary>
+<details id="Dexter.dexter0.joint_angle_doc_id" class="doc_details"><summary>joint_angle</summary>
 Returns the present angle of the joint indicated in the argument in arc_seconds.
-Example:<br/><code title="unEVALable code fragment"> Robot.dexter0.joint_angle(2)</code> => some_arc_seconds.
+Example:<br/><code title="unEVALable code fragment"> Dexter.dexter0.joint_angle(2)</code> => some_arc_seconds.
 The argument defaults to 1, ie the base joint.
 </details>
 
-<details id="Robot.dexter0.joint_angles_doc_id" class="doc_details"><summary>joint_angles</summary>
+<details id="Dexter.dexter0.joint_angles_doc_id" class="doc_details"><summary>joint_angles</summary>
 Takes no arguments. Returns an array of the angles of the 5 joints in arc_seconds.
-Example:<br/><code title="unEVALable code fragment"> Robot.dexter0.joint_angles()</code> => <br/>
+Example:<br/><code title="unEVALable code fragment"> Dexter.dexter0.joint_angles()</code> => <br/>
 [j1_arc_seconds, j2_arc_seconds, j3_arc_seconds, j4_arc_seconds, j5_arc_seconds]
 </details>
 
-<details id="Robot.dexter0.joint_xyz_doc_id" class="doc_details"><summary>joint_xyz</summary>
+<details id="Dexter.dexter0.joint_xyz_doc_id" class="doc_details"><summary>joint_xyz</summary>
 Takes one argument, an integer from 1 to 5 indicating a joint.
 Returns the present angle of the indicated joint in arc_seconds.
-Example:<br/><code title="unEVALable code fragment"> Robot.dexter0.joint_xyz(2)</code> => some number in microns.
+Example:<br/><code title="unEVALable code fragment"> Dexter.dexter0.joint_xyz(2)</code> => some number in microns.
 The argument defaults to 5, ie the end effector.
 </details>
 
-<details id="Robot.dexter0.joint_xyzs_doc_id" class="doc_details"><summary>joint_xyzs</summary>
+<details id="Dexter.dexter0.joint_xyzs_doc_id" class="doc_details"><summary>joint_xyzs</summary>
 Takes no arguments. Returns an array of the xyzs of the 5 joints with
 the base position prepended on the beginning of the returned array.
 Positions are in microns.
-Example:<br/><code title="unEVALable code fragment"> Robot.dexter0.joint_xyzs()</code> => <pre><samp>
+Example:<br/><code title="unEVALable code fragment"> Dexter.dexter0.joint_xyzs()</code> => <pre><samp>
 [
 [0, 0, 0],
 [0, 0, 165100],
@@ -7509,12 +7509,12 @@ Show the given joint angles in the simulator pane.<br/>
 </details>
 
 <!--
-<details id="Robot.dexter0.prop_doc_id" class="doc_details"><summary>prop</summary>
+<details id="Dexter.dexter0.prop_doc_id" class="doc_details"><summary>prop</summary>
 <b>prop</b> is a Dexter instance method that takes a string
 naming a property and returns its value.
 Most of the values are numbers.<br/>
 <i>Example</i>:<br/>
-<code>Robot.dexter0.prop("LINK1")</code> => <samp>0.1651</samp><p></p>
+<code>Dexter.dexter0.prop("LINK1")</code> => <samp>0.1651</samp><p></p>
 <i>Parameters</i>:<br/>
 <b>prop</b> A string naming the property whose value will be returned.<br/>
 <b>get_from_dexter</b> If <code>true</code>, the value will be retrieved from the
@@ -7537,13 +7537,13 @@ then that value is returned.<br/>
 Otherwise, <code>undefined</code> is returned.
 <p></p>
 You may add a property to a dexter instance like so:<br/>
-<code title="unEVALable code fragment"> Robot.dexter0.my_val = 123</code><br/>
+<code title="unEVALable code fragment"> Dexter.dexter0.my_val = 123</code><br/>
 and you can access that via <br/>
-<code>Robot.dexter0.my_val</code> or <br/>
-<code>Robot.dexter0.prop("my_val")</code><br/>
+<code>Dexter.dexter0.my_val</code> or <br/>
+<code>Dexter.dexter0.prop("my_val")</code><br/>
 If you want this value to persist accross DDE launches,
 just stick<br/>
-<code title="unEVALable code fragment"> Robot.dexter0.my_val = 123</code><br/>
+<code title="unEVALable code fragment"> Dexter.dexter0.my_val = 123</code><br/>
 in the file "dde_apps/dde_init.js"
 </details>  end Dexter prop-->
 </details> <!-- end Dexter Utilities -->
@@ -8311,7 +8311,7 @@ new Serial({name: "S1", simulate: null,
             parse_items: true}
 )
 new Job({name: "j10b",
-         robot: new Brain(), //not used, but prevents the default Robot.dexter0 from being used
+         robot: new Brain(), //not used, but prevents the default Dexter.dexter0 from being used
          do_list: [Robot.S1.string_instruction("y"),
                    Robot.S1.grab_robot_status("yes_result"),
                    Control.wait_until(2),

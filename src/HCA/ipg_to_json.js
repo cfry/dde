@@ -33,13 +33,14 @@ Implement: do capture that 2nd line, perhaps as:
 globalThis.ipg_to_json = class ipg_to_json{
     static file_path_to_parse_obj_map = {}
     static loaded_files = [] //in chronological order, first to last loaded.
+    static file_path_to_datasets_map = {}
 
     static init(){
         this.file_path_to_parse_obj_map = {}
         this.loaded_files = []
     }
 
-    static async parse(source_path=null, ipg, callback=HCAObjDef.insert_obj_defs_into_tree){
+    static async parse(source_path=null, ipg, callback=HCAObjDef.insert_obj_and_dataset_defs_into_tree){
         if(!ipg) {
             if(!source_path) { shouldnt("ipg_to_json.parse passed no source_path or ipg.")}
             else { ipg = await DDEFile.read_file_async(source_path) }
@@ -57,7 +58,7 @@ globalThis.ipg_to_json = class ipg_to_json{
         ipg = Utils.replace_substrings(ipg, "\u0001", " ", false)
         ipg = Utils.replace_substrings(ipg, "\u0002", " ", false)
 
-        let result = {object_definitions: [], datasets: {}}
+        let result = {object_definitions: [], datasets: []}
         let lines = ipg.split("\n")
         //return last(lines)
         //lines = lines.slice(-3)
@@ -113,9 +114,8 @@ globalThis.ipg_to_json = class ipg_to_json{
                 result.DynamicSystemFile = name
             }
             else if(line.startsWith("DataSet ")) {
-                let dataset_obj = this.parse_dataset(line)
-                dataset_obj.source_path = source_path
-                result.datasets[dataset_obj.name] = dataset_obj
+                let ds_obj = Dataset.parse_dataset(source_path, line)
+                result.datasets.push(ds_obj)
             }
 
             //System Description happens at the bottom of a "main" file. Rodney is Ignoring this for now so I will too.
@@ -154,7 +154,7 @@ globalThis.ipg_to_json = class ipg_to_json{
                 top_level_obj.netList.push(bt_obj)
             }
 
-            else if(line.startsWith("Object ")) { //making a new top level object
+            else if(line.startsWith("Object ")) { //making a new object definition
                 for(let i = line_index; i < lines.length; i++){
                     if(i === line_index) { continue } //on first line.
                     else if(i === lines.length) { break; } //won't happen. let the line as is be the full valid object, though this probably won't happen
@@ -223,6 +223,7 @@ globalThis.ipg_to_json = class ipg_to_json{
                 warning("HCA.parse got a line " + line_index + " of:<br/><code>" + line + "</code><br/>which is unexpected and thus ignored.")
             }
         } //end big for loop
+        this.file_path_to_datasets_map[source_path] = result.datasets
         return result //end parse
     }
 
@@ -236,31 +237,7 @@ globalThis.ipg_to_json = class ipg_to_json{
         result.project_date = date
     }
 
-    static parse_dataset(line){
-        let split_line = line.split(" ")
-        let name = split_line[1]
-        let open_pos = line.indexOf("(")
-        let close_pos = line.indexOf(")")
-        let types_str = line.substring(open_pos + 1, close_pos).trim()
-        let types_split = types_str.split(",")
-        let types_array = []
-        for(let type of types_split) {
-            types_array.push(type.trim())
-        }
-        let comment_start = line.indexOf("//")
-        let comment = line.substring(comment_start + 15).trim()
-        let comment_split = comment.split(",")
-        let context_type = parseInt(comment_split[0].trim())
-        let color_int  = parseInt(comment_split[1].trim())
-        let tree_group = (comment_split[2] ? comment_split[2] : "")
 
-        let dataset = {name: name,
-            types: types_array,
-            contextType: context_type,
-            color: color_int,
-            TreeGroup: tree_group.split("/'")}
-        return dataset
-    }
 
     /* Called for both top level objects and sub_objects.
       first char is either a space or "O"

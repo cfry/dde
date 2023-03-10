@@ -341,7 +341,7 @@ export function eval_and_start(){
          }
          else if (Instruction.is_do_list_item(val)){
              inspect(val, sel_text)
-             Robot.dexter0.run_instruction_fn(val)
+             Dexter.dexter0.run_instruction_fn(val)
          }
          else {
              warning("The result of evaling: " + sel_text +
