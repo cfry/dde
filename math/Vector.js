@@ -3,6 +3,9 @@
 //James Wigglesworth
 //Started: 6_18_16
 //Updated: 2_28_23
+
+//Example edit of this file
+
 var mathjs = require(DDE_NPM.folder + "mathjs") // needed for Vector.plane_fit(), 'mathjs' avoids confusion of 'Math' vs 'math'
 
 var dde_github_issues = "https://github.com/cfry/dde/issues"
