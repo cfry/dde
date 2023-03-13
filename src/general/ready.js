@@ -575,14 +575,14 @@ export function on_ready() {
      const path = Editor.files_menu_path_to_path(inner_path)
      if (globalThis.HCA && (Editor.view === "HCA")){
          try{
-             HCA.edit_file(path)
+             HCA.edit_idl_or_json_file(path)
          }
          catch(err){
              Editor.add_path_to_files_menu(orig_path)
              dde_error(path + " doesn't contain vaild HCA object(s).<br/>" + err.message)
          }
      }
-     else { //presume JS
+     else { //presume JS, but if its .idl, that's ok we jhst edit the idl in the text editor
          Editor.edit_file(path)
      }
  }

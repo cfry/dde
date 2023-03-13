@@ -22,15 +22,19 @@ globalThis.Dataset = class Dataset{
         if(!this.line){
             this.line = JSON.stringify(json_obj)
         }
-        this.insert_dataset_def_into_tree(Dataset.dataset_def_tree, this.TreeGroup)
-        Dataset.insert_dataset_into_pallette(this)
+        Dataset.name_to_dataset_object_map[this.name] = this
+        this.insert_dataset_def_into_tree()
+        this.insert_dataset_into_pallette()
         let collector = this.make_collector() //causes new collector to be inserted into obj def tree and obj def pallette
         let exposer   = this.make_exposer()   //causes new exposer   to be inserted into obj def tree and obj def pallette
     }
 
     //"this" is the dataset_def that we're inserting into the tree, based on its
     //TreeGroup prop which is originally the TreeGroupArr arg.
-    insert_dataset_def_into_tree(look_in_folder=Dataset.dataset_def_tree, TreeGroupArr, pallette_dom_elt){
+    insert_dataset_def_into_tree(look_in_folder=Dataset.dataset_def_tree, TreeGroupArr){
+        if(!TreeGroupArr) {
+            TreeGroupArr = this.TreeGroup
+        }
         if(TreeGroupArr.length === 0){
             //if there's already a same-named ds, in this folder, replace it with THIS, else
             //add THIS to the look_in_folder folder
@@ -52,6 +56,33 @@ globalThis.Dataset = class Dataset{
                 let new_fold = {folder_name: TreeGroupArr[0], subfolders: [], datasets: []}
                 look_in_folder.subfolders.push(new_fold)
                 return this.insert_dataset_def_into_tree(new_fold, TreeGroupArr.slice(1)) //slice(1) cuts off the first elt of the array and makes a copy of the rest.
+            }
+        }
+    }
+
+    delete_dataset_def_from_tree(look_in_folder=Dataset.dataset_def_tree, TreeGroupArr){
+        if(!TreeGroupArr) {
+            TreeGroupArr = this.TreeGroup
+        }
+        if(TreeGroupArr.length === 0){
+            for(let a_ds_index = 0; a_ds_index < look_in_folder.datasets.length; a_ds_index++){
+                let a_ds = look_in_folder.datasets[a_ds_index]
+                if(a_ds.name === this.name) {
+                    look_in_folder.datasets.splice(a_ds_index, 1) //delete 1 item starting at index a_ds_index
+                    return
+                }
+            }
+            //if we get to here, no item found so just presume it gone.
+        }
+        else {
+            let sub_folder = Dataset.get_subfolder_named(look_in_folder,  TreeGroupArr[0])
+            if(sub_folder){
+                return this.delete_dataset_def_from_tree(sub_folder, TreeGroupArr.slice(1))
+            }
+            else {
+                let new_fold = {folder_name: TreeGroupArr[0], subfolders: [], datasets: []}
+                look_in_folder.subfolders.push(new_fold)
+                return this.delete_dataset_def_from_tree(new_fold, TreeGroupArr.slice(1)) //slice(1) cuts off the first elt of the array and makes a copy of the rest.
             }
         }
     }
@@ -149,7 +180,6 @@ globalThis.Dataset = class Dataset{
             line: line,
             source_path: source_path
         }
-        this.name_to_dataset_object_map[dataset_obj.name] = dataset_obj
         return dataset_obj
     }
 
@@ -158,17 +188,24 @@ globalThis.Dataset = class Dataset{
     }
 
     //______pallette making. Similar to obj_def insert_obj_def_into_pallette
-    static make_object_id(dataset_def){
-        return "make_dataset_" + dataset_def.name + "_id"
+    static make_dom_id(dataset_obj_or_dataset_name){
+        if(dataset_obj_or_dataset_name instanceof Dataset){
+            dataset_obj_or_dataset_name =  dataset_obj_or_dataset_name.name
+        }
+        return "make_dataset_" + dataset_obj_or_dataset_name + "_id"
     }
 
     static pending_rendering_dom_id = null //or string id of a folder pallette dom elt
 
     //creates tree path all the way down, then inserts the new link to make an obj_call of the obj_def
-    static insert_dataset_into_pallette(dataset_obj, folder_dom_elt=HCA_palette_datasets_id, tree_path_arr){
+    insert_dataset_into_pallette(folder_dom_elt=HCA_palette_datasets_id, tree_path_arr){
+        let dataset_obj = this
+        if(!tree_path_arr){
+            tree_path_arr = dataset_obj.TreeGroup
+        }
         if(this.pending_rendering_dom_id && !window[this.pending_rendering_dom_id]) { //take a lap waiting for
             setTimeout(function(){
-                Dataset.insert_dataset_into_pallette(dataset_obj, folder_dom_elt, tree_path_arr)
+                dataset_obj.insert_dataset_into_pallette(folder_dom_elt, tree_path_arr)
             }, 200)
             return
         }
@@ -177,7 +214,7 @@ globalThis.Dataset = class Dataset{
         }
         if(!folder_dom_elt) { //take a lap to let folder_dom_elt get rendered
             setTimeout(function(){
-                this.insert_dataset_into_pallette(dataset_obj, folder_dom_elt, tree_path_arr)
+                Dataset.insert_dataset_into_pallette(folder_dom_elt, tree_path_arr)
             }, 200)
             return
         }
@@ -185,63 +222,227 @@ globalThis.Dataset = class Dataset{
         //so there are no renderings to be completed, and
         //folder_dom_elt is a rendered dom_elt to stick the next item in the pallette, be it a
         //subfolder or and actual obj_def link
-        this.pending_rendering_dom_id = null
+        Dataset.pending_rendering_dom_id = null
         if(!tree_path_arr) { tree_path_arr = dataset_obj.TreeGroup }
         if(tree_path_arr.length === 0) { //done walking tree, so insert the actual link and we're done
-            let dom_id = this.make_object_id(dataset_obj)
+            let dom_id = Dataset.make_dom_id(dataset_obj)
             let tree_path = dataset_obj.TreeGroup.join("/")
             let tree_path_and_obj_name = tree_path + "/" + dataset_obj.name
-            let html_to_insert = `<div class="hca_obj_def"  id="` + dom_id + `" onclick="Dataset.show_dataset_dialog('` + tree_path_and_obj_name + `', event)">` + dataset_obj.name + "</div>"
+            let html_to_insert = `<div class="hca_obj_def"  id="` + dom_id + `" onclick="Dataset.show_dataset_dialog(event)">` + dataset_obj.name + "</div>"
             folder_dom_elt.insertAdjacentHTML("beforeend", html_to_insert) //no need to wait for leaves of tree to render
         }
         else { //more tree walking to do
             let next_folder_name = tree_path_arr[0]
-            let next_folder_name_dom_elt_id = this.tree_folder_name_to_dom_id(next_folder_name)
+            let next_folder_name_dom_elt_id = Dataset.tree_folder_name_to_dom_id(next_folder_name)
             let next_folder_dom_elt = window[next_folder_name_dom_elt_id]
             let new_tree_path = Utils.subarray(tree_path_arr, 1) //((tree_path_arr.length === 1) ? [] : tree_path_arr.slice[1]) //JS slice doesn't work so I wrote my own.
             //above var is closed over by setTimeout below as well as directly used
             if(next_folder_dom_elt) {
                 setTimeout(function () { //needed just because call stack size exceeded without it
-                    Dataset.insert_dataset_into_pallette(dataset_obj, next_folder_dom_elt, new_tree_path) //whether or not the folder is rendered, we can still recurse and it will get caught at top of this fn.
+                    dataset_obj.insert_dataset_into_pallette(next_folder_dom_elt, new_tree_path) //whether or not the folder is rendered, we can still recurse and it will get caught at top of this fn.
                 }, 1)
             }
             else { //no next_folder_dom_elt so we need to create it
                 let html = "<details class='hca_folder' " + "id='" + next_folder_name_dom_elt_id + "'><summary class='hca_folder_summary'>" + next_folder_name + "</summary>\n</details>"
                 folder_dom_elt.insertAdjacentHTML("beforeend", html)
                 this.pending_rendering_dom_id = next_folder_name_dom_elt_id
-                this.insert_dataset_into_pallette(dataset_obj,
+                dataset_obj.insert_dataset_into_pallette(
                     next_folder_name_dom_elt_id, //we pass the id str because next_folder_dom_elt is undedfined as it doesnt exist yet
                     new_tree_path)
             }
         }
     }
 
-    static show_dataset_dialog(tree_path_and_obj_name, event){
-        let ds_obj = Dataset.tree_path_to_dataset_obj(Dataset.dataset_def_tree, tree_path_and_obj_name)
-        let dataset_name = ds_obj.name
+    static show_dataset_dialog(event){
+        let dataset_name = event.target.innerText
+        let ds_obj = Dataset.name_to_dataset_object_map[dataset_name]
         inspect(ds_obj)
         show_window({
                      title: "Choose Dataset Operation",
-                     x:200, y:100, width:300, height:200,
+                     x:200, y:100, width:300, height:220,
                      content: `for: ` + ds_obj.name + `<br/>
                                <input type="hidden" name="dataset_name" value="` + dataset_name + `"/>` +
-                              `<input type="button" value="Edit Definition"   style="margin:5px;"/><br/>
+                              `<input type="button" value="Edit Definition"       style="margin:5px;"/><br/>
                                <input type="button" value="Make Collector Block"  style="margin:5px;"/><br/>
-                               <input type="button" value="Make Exposer Block" style="margin:5px;"/>`,
-                     callback: "Dataset.show_dataset_dialog_cb"
+                               <input type="button" value="Make Exposer Block"    style="margin:5px;"/><br/>
+                               <input type="button" value="Delete"                style="margin:5px;"/><br/>
+                               <input type="button" value="Find"                  style="margin:5px;"/>`,
+
+            callback: "Dataset.show_dataset_dialog_cb"
                      })
     }
 
     static show_dataset_dialog_cb(vals){
         let dataset_name = vals.dataset_name
-        if(vals.clicked_button_value === "Make Collector Block"){
+        let dataset_obj = Dataset.name_to_dataset_object_map[dataset_name]
+        if(vals.clicked_button_value === "Edit Definition"){
+            Dataset.show_edit_dialog(dataset_name)
+        }
+        else if(vals.clicked_button_value === "Make Collector Block"){
             Dataset.make_collector_block(dataset_name)
         }
         else if(vals.clicked_button_value === "Make Exposer Block"){
             Dataset.make_exposer_block(dataset_name)
         }
+        else if(vals.clicked_button_value === "Delete"){
+            dataset_obj.remove()
+            SW.close_window(vals.window_index) //do this becuse after you've deleted the object, the rest of the ops in the dialog won't work
+        }
+        else if(vals.clicked_button_value === "Find"){
+            find_doc_input_id.value = dataset_name
+            find_doc_button_id.click()
+        }
+        else if(vals.clicked_button_value === "close_button"){
+            SW.close_window(vals.window_index)
+        }
+        else {
+            shouldnt("In show_dataset_dialog_cb got invalid clicked_button_value: " +
+                      vals.clicked_button_value)
+        }
+    }
+    //The int is a 24 bit integer. The least significant 8 bits are red, the middle 8 bits are green, and the most significant 8 bits are blue.
+    static integer_to_hex_color(int){
 
     }
+    static show_edit_dialog(dataset_name){
+        let dataset_obj = this.name_to_dataset_object_map[dataset_name]
+        let built_in_warning = ""
+        let disabled_prop = ""
+        if(dataset_obj.TreeGroup[0] === "BuiltIn"){
+            built_in_warning = `<span style="color:red;">BuiltIn Datasets can't be edited.</span><br/>`
+            disabled_prop = " disabled "
+        }
+        let componentTypes_val = dataset_obj.componentTypes.join("\n")
+        let cur_contextTypeInt = ((dataset_obj.contextType === undefined) ? 1 : dataset_obj.contextType) //use 1 as the default
+        let cur_contextTypeStr = "not applicable (0)"
+        if     (cur_contextTypeInt === 0)  {cur_contextTypeStr = "undefined (0)" }
+        else if(cur_contextTypeInt === 1)  {cur_contextTypeStr = "unsigned (1)" }
+        else if(cur_contextTypeInt === 2)  {cur_contextTypeStr = "signed (2)" }
+        else if(cur_contextTypeInt === 4)  {cur_contextTypeStr = "fixed point (4)" }
+        else if(cur_contextTypeInt === 8)  {cur_contextTypeStr = "floating point (8)" }
+        else if(cur_contextTypeInt === 16) {cur_contextTypeStr = "complex (16)" }
+        else {shouldnt("Dataset.show_edit_dialog got invalid cur_contextTypeInt: " + cur_contextTypeInt +
+                       "<br/>Valid values are 0, 1, 2, 4, 8, 16")}
+        let hex_color_str = "#" + dataset_obj.color.toString(16)
+        let contextTypeHTML = `contextType: <select name="contextType" value="` + cur_contextTypeStr + `" ` + disabled_prop + `>` +
+                               `<option>undefined (0)</option>
+                                <option>unsigned (1)</option>
+                                <option>signed (2)</option>
+                                <option>fixed point (4)</option>
+                                <option>floating point (8)</option>
+                                <option>complex (16)</option>
+                               </select>`
+        show_window({title: "Edit Dataset",
+                     x:200, y:100, width:320, height:320,
+                     content: built_in_warning +
+                              `<input type="hidden" name="orig_name"    value="` + dataset_name + `"/>` +
+                              `name:        <input style="margin:5px;"  value="` + dataset_name + `" name="name"` + disabled_prop + `/><br/>` +
+                              `TreeGroup:   <input style="margin:5px;"  value="` + dataset_obj.TreeGroup.join("/") + `" name="TreeGroup"` + disabled_prop + `/><br/>` +
+                              `source_path: <input style="margin:5px;width:200px"  value="` + dataset_obj.source_path + `" name="source_path"` + disabled_prop + `/><br/>` +
+                              `componentTypes: (one per row)<br/>` +
+                              `<textarea           style="margin:5px;"  name="componentTypes" rows="3" cols="30"` + disabled_prop + `>` + componentTypes_val + `</textarea><br/>` +
+                               contextTypeHTML + `<br/>` +
+                              `color:       <input style="margin:5px;"  value="` + hex_color_str + `" name="color" type="color"` + disabled_prop + ` /><br/>` +
+                              `<input              style="margin:10px;" value="Update Dataset" type="button"` + disabled_prop + `/>`,
+                     callback: "Dataset.edit_dialog_cb"
+        })
+    }
+
+    static edit_dialog_cb(vals){
+        if(vals.clicked_button_value === "Update Dataset") {
+            let dataset_obj = Dataset.name_to_dataset_object_map[vals.orig_name]
+            let componentTypes      = vals.componentTypes.split("\n")
+            let ct_arr = []
+            for(let ct of componentTypes) {
+                ct = ct.trim()
+                if(!Dataset.name_to_dataset_object_map[ct]){
+                    warning("For componentTypes: " + ct + " is not a valid Dataset type.")
+                    if(["Byte", "Word"].includes(ct)) { //exceptions since Word isn't defined ... err but should be. See Byte* and Word* email to Rodney
+                    }
+                    else { return }
+                }
+                else {
+                    ct_arr.push(ct)
+                }
+            }
+            dataset_obj.componentTypes = ct_arr
+
+            dataset_obj.source_path = vals.source_path
+            let open_index = vals.contextType.indexOf("(")
+            let str = vals.contextType.substring(open_index + 1, vals.contextType.length - 1)
+            let context_type_int    = parseInt(str)
+            dataset_obj.contextType = context_type_int
+            dataset_obj.color       = parseInt(vals.color.substring(1), 16) //store as 24 bit int, low 8 bits are red
+
+            if(vals.name !== vals.orig_name){
+                let orig_dom_elt_id = Dataset.make_dom_id(vals.orig_name) //do with dataset_obj having orig name
+                let orig_dom_elt = globalThis[orig_dom_elt_id]
+                orig_dom_elt.innerText = vals.name //set to new name
+                dataset_obj.name = vals.name
+                let new_dom_elt_id = Dataset.make_dom_id(vals.name) //do with dataset_obj having new name
+                orig_dom_elt.setAttribute("id", new_dom_elt_id)
+                delete Dataset.name_to_dataset_object_map[vals.orig_name]
+                Dataset.name_to_dataset_object_map[vals.name] = dataset_obj
+
+                for(let a_ds_name in Dataset.name_to_dataset_object_map){
+                    let a_ds = Dataset.name_to_dataset_object_map[a_ds_name]
+                    for(let i = 0; i < a_ds.componentTypes.length; i++){
+                        let comp_type = a_ds.componentTypes[i]
+                        if(comp_type === vals.orig_name) {
+                            a_ds.componentTypes[i] = vals.name
+                        }
+                    }
+
+                }
+                for(let a_object_name_plus_in_types in HCAObjDef.object_name_plus_in_types_to_def_map){
+                    let a_obj_def = HCAObjDef.object_name_plus_in_types_to_def_map[a_object_name_plus_in_types]
+                    for(let i = 0; i < a_obj_def.inputs; i++){
+                        if(a_obj_def.inputs[i].type === vals.orig_name){
+                            a_obj_def.inputs[i].type = vals.name
+                        }
+                    }
+                    for(let i = 0; i < a_obj_def.outputs; i++){
+                        if(a_obj_def.outputs[i].type === vals.orig_name){
+                            a_obj_def.outputs[i].type = vals.name
+                        }
+                    }
+                }
+            }
+            let new_treegroup_arr = vals.TreeGroup.split("/'")
+            if(!Utils.similar(new_treegroup_arr, dataset_obj.TreeGroup)){
+                dataset_obj.change_treegroup(new_treegroup_arr)
+            }
+            SW.close_window(vals.window_index)
+        }
+        else if(vals.clicked_button_value === "close_button"){
+            SW.close_window(vals.window_index)
+        }
+    }
+
+    change_treegroup(new_treegroup_arr){
+        this.remove()
+        this.set_treegroup(new_treegroup_arr)
+        Dataset.name_to_dataset_object_map[this.name] = this //needed because this.remove() removes this from the map
+    }
+
+    remove(){
+        this.delete_dataset_def_from_tree()
+        delete Dataset.name_to_dataset_object_map[this.name]
+        this.remove_from_pallette()
+    }
+
+    remove_from_pallette(){
+        let dom_id = Dataset.make_dom_id(this)
+        let dom_elt = globalThis[dom_id]
+        dom_elt.remove()
+    }
+
+    set_treegroup(new_treegroup_arr){
+        this.TreeGroup = new_treegroup_arr
+        this.insert_dataset_def_into_tree()
+        this.insert_dataset_into_pallette()
+    }
+
 
     //similer to HCA.make_and_add_block
     static make_collector_block(dataset_name){
@@ -375,6 +576,30 @@ globalThis.Dataset = class Dataset{
         }
         json_obj.line = JSON.stringify(json_obj) //must be out of line or get recursive bug
         new HCAObjDef(json_obj)
+    }
+    static find_datasets(search_string){
+        let def_match=[], included_in_name=[], has_component=[]
+        search_string = search_string.toLowerCase()
+        for(let a_name in this.name_to_dataset_object_map) {
+            let a_dataset_obj = this.name_to_dataset_object_map[a_name]
+            let a_name_lc = a_name.toLowerCase()
+            if(a_name_lc === search_string) {
+                def_match.push(a_dataset_obj)
+            }
+            if(a_name_lc.includes(search_string)){
+                included_in_name.push(a_dataset_obj)
+            }
+            for(let a_type of a_dataset_obj.componentTypes){
+                if(a_type.toLowerCase() === search_string) {
+                    has_component.push(a_dataset_obj)
+                }
+            }
+        }
+        return {
+            "Dataset name matches":      def_match,
+            "Dataset name includes":     included_in_name,
+            "Dataset has componentType": has_component
+        }
     }
 }
 

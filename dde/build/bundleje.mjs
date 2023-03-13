@@ -60685,33 +60685,35 @@ class Vector$1{
     //Public
     //rotates a vector in 3D space on a plane by angle theta
     //will also rotate a point about a line by substituting the line's vector in plane and its point in point
-    static rotate(vector, plane, theta, point = [0, 0, 0]){
-    	plane =  Vector$1.normalize(Vector$1.shorten(plane));
-        let dim = Vector$1.matrix_dimensions(vector);
-        let result, short_vector, term_1, term_2;
-        if (dim[1] == 3 && dim[0] != 1){
-        	result = Vector$1.make_matrix(dim[0], 1);
-            for(var i = 0; i < vector.length; i++){
-            	short_vector = Vector$1.subtract(vector[i], point);
-                if(Vector$1.is_equal(short_vector, point)){
-            		result[i] = short_vector;
-            	}else {
-                	term_1 = Vector$1.multiply(cosd(theta), short_vector);
-            		term_2 = Vector$1.multiply(sind(theta), Vector$1.cross(Vector$1.shorten(plane), short_vector));
-                	result[i] = Vector$1.add(Vector$1.multiply(Vector$1.magnitude(short_vector),  Vector$1.normalize(Vector$1.add(term_1, term_2))), point);
-                }
-            }
-        }else {
-        	short_vector = Vector$1.subtract(Vector$1.shorten(vector), point);
-            if(Vector$1.magnitude(Vector$1.cross(short_vector, plane)) < 1e-10){
-            	return short_vector
-            }
-            term_1 = Vector$1.multiply(cosd(theta), short_vector);
-            term_2 = Vector$1.multiply(sind(theta), Vector$1.cross(Vector$1.shorten(plane), short_vector));
-            result = Vector$1.add(Vector$1.multiply(Vector$1.magnitude(short_vector),  Vector$1.normalize(Vector$1.add(term_1, term_2))), point);
-        }
-        return result
-    }
+	static rotate(vector, plane, theta, point = [0, 0, 0]){
+		plane =  Vector$1.normalize(Vector$1.shorten(plane));
+		let dim = Vector$1.matrix_dimensions(vector);
+		let result, short_vector, term_1, term_2, term_3;
+		if (dim[1] == 3 && dim[0] != 1){
+			result = Vector$1.make_matrix(dim[0], 1);
+			for(var i = 0; i < vector.length; i++){
+				short_vector = Vector$1.subtract(vector[i], point);
+				if(Vector$1.is_equal(short_vector, point)){
+					result[i] = short_vector;
+				}else {
+					term_1 = Vector$1.multiply(cosd(theta), short_vector);
+					term_2 = Vector$1.multiply(sind(theta), Vector$1.cross(Vector$1.shorten(plane), short_vector));
+					term_3 = Vector$1.multiply(plane, Vector$1.dot(plane, short_vector), (1-cosd(theta)));
+					result[i] = Vector$1.add(Vector$1.multiply(Vector$1.magnitude(short_vector),  Vector$1.normalize(Vector$1.add(term_1, term_2, term_3))), point);
+				}
+			}
+		}else {
+			short_vector = Vector$1.subtract(Vector$1.shorten(vector), point);
+			if(Vector$1.magnitude(Vector$1.cross(short_vector, plane)) < 1e-10){
+				return short_vector
+			}
+			term_1 = Vector$1.multiply(cosd(theta), short_vector);
+			term_2 = Vector$1.multiply(sind(theta), Vector$1.cross(Vector$1.shorten(plane), short_vector));
+			term_3 = Vector$1.multiply(plane, Vector$1.dot(plane, short_vector), (1-cosd(theta)));
+			result = Vector$1.add(Vector$1.multiply(Vector$1.magnitude(short_vector),  Vector$1.normalize(Vector$1.add(term_1, term_2, term_3))), point);
+		}
+		return result
+	}
 
 
     static three_points_to_transformation(point_list, pointA = [0, 0, 0], pointB = [1, 0, 0], pointC = [0, 1, 0], U4){
@@ -72414,7 +72416,7 @@ function serial_disconnect_all(){
 
 class Job$1{
     constructor({name="",
-                 robot=Robot.dexter0,
+                 robot=Dexter.dexter0,
                  do_list=[],
                  keep_history=true,
                  show_instructions=true,
@@ -72520,9 +72522,9 @@ class Job$1{
                    Job$1.when_stopped_conditions_property_names);
     }
     if (!(robot instanceof Robot)){
-        if (!Robot.dexter0){
+        if (!Dexter.dexter0){
             dde_error("Attempt to create Job." + name + " with no valid robot instance.<br/>" +
-                " Note that Robot.dexter0 is not defined<br/> " +
+                " Note that Dexter.dexter0 is not defined<br/> " +
                 " but should be in your file: Documents/dde_apps/dde_init.js <br/>" +
                 " after setting the default ip_address and port.<br/> " +
                 " To generate the default dde_init.js file,<br/>" +
@@ -72605,7 +72607,7 @@ class Job$1{
     static class_init(){ //inits the Job class as a whole. called by ready
         this.job_default_params =
                {name: null,
-                robot: Robot.dexter0,
+                robot: Dexter.dexter0,
                 do_list: [],
                 keep_history: true,
                 show_instructions: true,
@@ -75666,7 +75668,7 @@ Job$1.prototype.to_source_code = function(args={}){
     if(!args.indent) { args.indent = ""; }
     let props_indent = args.indent + "         ";
     let result = 'new Job({name: "' + this.name + '",\n';
-    if (this.robot !== Robot.dexter0){
+    if (this.robot !== Dexter.dexter0){
         result += props_indent + 'robot: '  + this.robot.to_path() + ',\n';
     }
     let prop_names = [ //name, robot  handled above
@@ -85477,6 +85479,11 @@ Dexter.prototype.defaults_line_to_high_level = function(line, line_number="unkno
                 obj[high_key] = parsed_line.high_value_array;
                 obj.orig_line = line_number;
                 this.defaults.ServoSetup.push(obj);
+            } else if (low_key === "CmdXor") {//Added by Noah, 2/1/2023
+                    if (!this.defaults[parsed_line.key]){
+                        this.defaults[low_key] = [];
+                    }
+                    this.defaults[low_key] = parsed_line.value_array;
             } else if (Dexter.defaults_is_j_key(low_key)) {
                 let [high_key, joint_number] = Dexter.defaults_j_key_to_high_key(low_key);
                 if (!this.defaults[high_key]) {
@@ -85696,6 +85703,14 @@ Dexter.prototype.defaults_high_level_to_defaults_lines = function(){
             else if (["RebootServo", "ServoSetX", "ServoSet2X"].includes(low_key)){  //no units conversion
                 let new_lines = this.defaults_high_level_to_defaults_lines_ServoSetup_line(line_number);
                 for(let new_line of new_lines) { result_lines.push(new_line); }
+            }
+            else if (low_key === "CmdXor") {//Added by Noah, 2/1/2023
+                let high_key = low_key;
+                let new_line = "S" + Dexter.defaults_arg_sep + high_key
+                    + Dexter.defaults_arg_sep +  this.defaults[high_key].join() +
+                    ";" + parsed_line.comment;
+                out(new_line);
+                result_lines.push(new_line);
             }
             else if(Dexter.defaults_low_level_2nd_arg_is_joint_number(low_key)) {//S, BW params no units conversion
                 let high_key = low_key;
@@ -85997,6 +86012,7 @@ Dexter.prototype.defaults_high_level_to_defaults_lines_new_high_level = function
             }
             delete this.defaults[high_key];
         }
+        else if(high_key === "CmdXor"); //already in the result so don't stick it in a 2nd time
         else { //low_key is non j_key so same as high key
             let low_key = high_key;
             let ins_arr = [];
@@ -86109,7 +86125,7 @@ class Socket$1{
             warning(job_instance.name + " Attempt to Socket.init with inactive status: " + job_instance.status_code);
             return
         }
-        let rob = Robot[robot_name];
+        let rob = Dexter[robot_name];
         const sim_actual = Robot.get_simulate_actual(rob.simulate); //true, false, or "both"
         if (sim_actual === true){ //when we are ONLY simulating
             DexterSim.create_or_just_init(robot_name, sim_actual);
@@ -86582,6 +86598,7 @@ class Socket$1{
                     Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000000);
                 instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
                     Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 3600);
+                return instruction_array_copy
             }
             else { return instruction_array }
         }

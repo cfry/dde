@@ -259,7 +259,7 @@ globalThis.HCA = class HCA {
                                      "you would have been given the opportunity to load it.")
                     if(Array.isArray(json_obj) && (json_obj.length === 0)) {} //json_obj is empty so nothing to load
                     else if (confirm("The editor probably contains a valid HCA program.\nLoad it into HCA UI?")) {
-                            HCAObjDef.insert_obj_and_dataset_defs_into_tree(source_path, json_obj)
+                            ipg_to_json.parse(source_path, source)
                     }
                 }, 1300) //should be AFTER CorLib is loaded
             }
@@ -271,13 +271,6 @@ globalThis.HCA = class HCA {
 
     static clear(){
         this.lgraph.clear()
-    }
-
-    //returns a json_obj with a "node" property, or errors.
-    static async file_path_to_json_obj(source_path){
-        let source = await DDEFile.read_file_async(path)
-        let json_obj = this.string_to_json_obj(source_path, source)
-        return json_obj
     }
 
     static string_to_json_obj(source_path,
@@ -309,11 +302,7 @@ globalThis.HCA = class HCA {
         }
     }
 
-    //source_path is to a file containing JSON HCA source.
-    static async edit_file(source_path){
-        let json_obj = await HCA.file_path_to_json_obj(source_path) //errors if path is invalid
-        HCAObjDef.insert_obj_and_dataset_defs_into_tree(source_path, json_obj)
-    }
+
     /* obsolete
     //return a json obj (name-value pair that has a "node" prop) or
     //errors. path is
@@ -456,6 +445,7 @@ globalThis.HCA = class HCA {
             current_obj_def:            HCAObjDef.current_obj_def,
             current_sheet:              HCAObjDef.current_sheet,
             sheets:                     HCAObjDef.sheets,
+            name_to_dataset_object_map: Dataset.name_to_dataset_object_map,
             dataset_tree:               Dataset.dataset_def_tree,
             object_name_to_defs_map:    HCAObjDef.object_name_to_defs_map,
             object_name_plus_in_types_to_def_map: HCAObjDef.object_name_plus_in_types_to_def_map,
@@ -560,13 +550,15 @@ globalThis.HCA = class HCA {
 
     static make_and_add_block(object_path, event){ //click action from pallette, dde4.
         let last_slash = object_path.lastIndexOf("/")
-        let button_name = object_path.substring(last_slash + 1)
+        let obj_name = object_path.substring(last_slash + 1)
+        let obj_defs = HCAObjDef.object_name_to_defs_map[obj_name]
+        inspect(obj_defs)
         if(event.shiftKey){ //edit the definition of the object
-            HCA.display_obj_def(button_name)
+            HCA.display_obj_def(obj_name)
         }
         else { //make and add a block to canvas
 
-            let node = LiteGraph.createNode(object_path, button_name)
+            let node = LiteGraph.createNode(object_path, obj_name)
             this.lgraph.add(node);
             this.node_add_usual_actions(node)
             return node
@@ -882,6 +874,7 @@ globalThis.HCA = class HCA {
         HCA_palette_id.innerHTML = "<br/>P<br/>u<br/>t<br/><br/>m<br/>o<br/>u<br/>s<br/>e<br/><br/>h<br/>e<br/>r<br/>e."
     }*/
 
+    //only called when HCA is up
     static choose_and_edit_file() {
         DDEFile.choose_file(
             {
@@ -895,22 +888,18 @@ globalThis.HCA = class HCA {
         SW.close_window(val.window_index)
         let path = val.clicked_button_value
         if (path) {
-            if (path.endsWith(".idl")) {
-                HCA.edit_idl_file(path)
-            } else {
-                try {
-                    HCA.edit_file(path)
-                } catch (err) {
-                    dde_error(path + " doesn't contain vaild HCA object(s).<br/>" + err.message)
-                }
+            try {
+                HCA.edit_idl_or_json_file(path)
+            } catch (err) {
+                dde_error(path + " doesn't contain vaild HCA object(s).<br/>" + err.message)
+            }
                 //Editor.add_path_to_files_menu(path) //now down in edit_file because edit_file is called
                 //from more places than ready.
-            }
         }
     }
 
-    static async edit_idl_file(path_or_content){
-        await ipg_to_json.parse(path_or_content)
+    static async edit_idl_or_json_file(path){
+        await ipg_to_json.parse(path)
     }
 
     //obsolete?
@@ -1211,11 +1200,13 @@ globalThis.HCA = class HCA {
     }
 
     static find(search_string){
+        let dataset_matches = Dataset.find_datasets(search_string)
         let [def_match, included_in_name, def_calls_match] = HCAObjDef.find_obj_defs(search_string)
         if ((included_in_name.length > 0) || (def_calls_match.length > 0))  {
             inspect({"Definition name matches":  def_match,
                           "Definition name includes": included_in_name,
-                          "Definition calls match":   def_calls_match},
+                          "Definition calls match":   def_calls_match,
+                          ...dataset_matches},
                     undefined,
                 'HCA defs containing: "' + search_string + '"')
         }

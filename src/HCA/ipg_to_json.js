@@ -40,191 +40,207 @@ globalThis.ipg_to_json = class ipg_to_json{
         this.loaded_files = []
     }
 
-    static async parse(source_path=null, ipg, callback=HCAObjDef.insert_obj_and_dataset_defs_into_tree){
-        if(!ipg) {
+    static async parse(source_path=null, source, callback=HCAObjDef.insert_obj_and_dataset_defs_into_tree){
+        if(!source) {
             if(!source_path) { shouldnt("ipg_to_json.parse passed no source_path or ipg.")}
-            else { ipg = await DDEFile.read_file_async(source_path) }
+            else { source = await DDEFile.read_file_async(source_path) }
         }
-        let json_obj = this.parse_string(source_path, ipg)
+        let json_obj = this.parse_string(source_path, source)
         if(callback){
             callback(source_path, json_obj)
         }
     }
 
     //ipg must be a string of the contents of an .ipg or .idl file
-    static parse_string(source_path, ipg){
-        ipg = Utils.replace_substrings(ipg, "\\\\", "/", false)
-        ipg = Utils.replace_substrings(ipg, "\\", "/", false)
-        ipg = Utils.replace_substrings(ipg, "\u0001", " ", false)
-        ipg = Utils.replace_substrings(ipg, "\u0002", " ", false)
+    static parse_string(source_path, source){
+        source = source.trim()
+        if(source.startsWith("{")) {
+           let json_obj = JSON.parse(source)
+           return json
+        }
+        else {
+            let ipg = source
+            ipg = Utils.replace_substrings(ipg, "\\\\", "/", false)
+            ipg = Utils.replace_substrings(ipg, "\\", "/", false)
+            ipg = Utils.replace_substrings(ipg, "\u0001", " ", false)
+            ipg = Utils.replace_substrings(ipg, "\u0002", " ", false)
 
-        let result = {object_definitions: [], datasets: []}
-        let lines = ipg.split("\n")
-        //return last(lines)
-        //lines = lines.slice(-3)
-        let top_level_obj = null //initialized and filled in during a loop that starts with
-                                 //Object, but also used by subsequent lines
-        let sub_obj = null
-        let section = null
-        for(let line_index = 0; line_index < lines.length; line_index++){
-            let line = lines[line_index]
-            //console.log("line index: " + line_index + ":" + line)
-            //initial meta-data
-            if(line.startsWith("VIVA ")) {
-                let split_line = line.split(" ")
-                result.VIVA_version = split_line[1]
-            }
-            else if (line.startsWith("// Project ")) {
-                this.parse_project_line(line, result)
-            }
-            // remMinNumberOfObjects=10000000
-            else if (line.startsWith("// remMinNumberOfObjects")) {
-                let num_str = line.trim().split("=")[1]
-                let num = parseInt(num_str)
-                result.remMinNumberOfObjects = num
-            }
-            else if(line.startsWith("// Sheet ")) {
-                result.sheet_date = line.substring(9).trim()
-            }
-
-            //example:  ComLibrary "$(DirName:Viva)SYSTEMDESCRIPTIONS\DIGILENT\NEXYS3\LIB\ADEPTUSB.DLL"
-            else if(line.startsWith("ComLibrary")){
-                let name = line.trim().split(" ")[1]
-                name = name.substring(1, name.length - 1) //trim off the double quotes
-                if(!result.ComLibraries) { result.ComLibraries = []}
-                result.ComLibraries.push(name)
-            }
-            else if(line.startsWith("ComObject")){
-                let items = line.trim().split(" ")
-                let name = items[1] + " " + items[1]
-                if(!result.ComObjects) { result.ComObjects = []}
-                result.ComObjects.push(name)
-            }
-            else if(line.startsWith("Library")){
-                let items = line.trim().split(" ")
-                let name = items[1]
-                name = name.substring(1, name.length - 1) //trim off the double quotes
-                if(!result.Libraries) { result.Libraries = []}
-                result.Libraries.push(name)
-            }
-            else if(line.startsWith("DynamicSystemFile")) {
-                let items = line.trim().split(" ")
-                let name = items[1]
-                name = name.substring(1, name.length - 1) //trim off the double quotes
-                result.DynamicSystemFile = name
-            }
-            else if(line.startsWith("DataSet ")) {
-                let ds_obj = Dataset.parse_dataset(source_path, line)
-                result.datasets.push(ds_obj)
-            }
-
-            //System Description happens at the bottom of a "main" file. Rodney is Ignoring this for now so I will too.
-            else if (line.startsWith("System ")) { break; }
-
-            else if (line.startsWith("{")) { section = "sub_objects"} //in a top level object, just before top level doc.
-                                              //no content after the first char of such lines.
-            else if (Utils.is_whitespace(line))  {} //ignore
-            else if(line.includes("revision") || line.includes("Revision")){ //must be before handling lines that start with " // "
-                if(!top_level_obj.revisions) {
-                    top_level_obj.revisions = []
+            let result = {object_definitions: [], datasets: []}
+            let lines = ipg.split("\n")
+            //return last(lines)
+            //lines = lines.slice(-3)
+            let top_level_obj = null //initialized and filled in during a loop that starts with
+                                     //Object, but also used by subsequent lines
+            let sub_obj = null
+            let section = null
+            for (let line_index = 0; line_index < lines.length; line_index++) {
+                let line = lines[line_index]
+                //console.log("line index: " + line_index + ":" + line)
+                //initial meta-data
+                if (line.startsWith("VIVA ")) {
+                    let split_line = line.split(" ")
+                    result.VIVA_version = split_line[1]
+                } else if (line.startsWith("// Project ")) {
+                    this.parse_project_line(line, result)
                 }
-                top_level_obj.revisions.push(line.substring(4))
-            }
-            else if (line.startsWith(" // ")){ //top level doc
-                if (!top_level_obj.doc) { top_level_obj.doc = "" }
-                top_level_obj.doc += line.substring(4) + "\n"
-            }
-            else if (line.trim() == "//")  {} //ignore, empty comment. place AFTER " // " test. probably has some newline char(s) after the //
+                // remMinNumberOfObjects=10000000
+                else if (line.startsWith("// remMinNumberOfObjects")) {
+                    let num_str = line.trim().split("=")[1]
+                    let num = parseInt(num_str)
+                    result.remMinNumberOfObjects = num
+                } else if (line.startsWith("// Sheet ")) {
+                    result.sheet_date = line.substring(9).trim()
+                }
 
-            else if (line.startsWith(" //_ Object Prototypes")) {} //sub objects to follow
-
-            //Behavior Topology (net_list)
-            else if (line.startsWith(" //_ Behavior Topology")){
-                section = "netList"
-                top_level_obj.netList = []
-            }
-
-            else if (line.startsWith("}")){ //ends a top level object. No content after the close curley.
-                section = null
-                top_level_obj = null
-                sub_obj = null
-            }
-            else if (section === "netList"){
-                let bt_obj = this.parse_behavior_topology(line, top_level_obj)
-                top_level_obj.netList.push(bt_obj)
-            }
-
-            else if(line.startsWith("Object ")) { //making a new object definition
-                for(let i = line_index; i < lines.length; i++){
-                    if(i === line_index) { continue } //on first line.
-                    else if(i === lines.length) { break; } //won't happen. let the line as is be the full valid object, though this probably won't happen
-                    //else if (line.includes(";")) { break; }
-                    else {
-                       let next_line = lines[i]
-                       if (next_line.startsWith("//_"))     { break; } //proper end of top level object header
-                       else if  (next_line.startsWith("{")) { break; }
-                       else { //loop around looking for another line
-                           line += next_line
-                           line_index = i
-                       }
+                //example:  ComLibrary "$(DirName:Viva)SYSTEMDESCRIPTIONS\DIGILENT\NEXYS3\LIB\ADEPTUSB.DLL"
+                else if (line.startsWith("ComLibrary")) {
+                    let name = line.trim().split(" ")[1]
+                    name = name.substring(1, name.length - 1) //trim off the double quotes
+                    if (!result.ComLibraries) {
+                        result.ComLibraries = []
                     }
+                    result.ComLibraries.push(name)
+                } else if (line.startsWith("ComObject")) {
+                    let items = line.trim().split(" ")
+                    let name = items[1] + " " + items[1]
+                    if (!result.ComObjects) {
+                        result.ComObjects = []
+                    }
+                    result.ComObjects.push(name)
+                } else if (line.startsWith("Library")) {
+                    let items = line.trim().split(" ")
+                    let name = items[1]
+                    name = name.substring(1, name.length - 1) //trim off the double quotes
+                    if (!result.Libraries) {
+                        result.Libraries = []
+                    }
+                    result.Libraries.push(name)
+                } else if (line.startsWith("DynamicSystemFile")) {
+                    let items = line.trim().split(" ")
+                    let name = items[1]
+                    name = name.substring(1, name.length - 1) //trim off the double quotes
+                    result.DynamicSystemFile = name
+                } else if (line.startsWith("DataSet ")) {
+                    let ds_obj = Dataset.parse_dataset(source_path, line)
+                    result.datasets.push(ds_obj)
                 }
-                top_level_obj = this.parse_object(line, true) //note don't make this "let top_level_obj" as we use it outside this scope.
+
+                //System Description happens at the bottom of a "main" file. Rodney is Ignoring this for now so I will too.
+                else if (line.startsWith("System ")) {
+                    break;
+                } else if (line.startsWith("{")) {
+                    section = "sub_objects"
+                } //in a top level object, just before top level doc.
+                //no content after the first char of such lines.
+                else if (Utils.is_whitespace(line)) {
+                } //ignore
+                else if (line.includes("revision") || line.includes("Revision")) { //must be before handling lines that start with " // "
+                    if (!top_level_obj.revisions) {
+                        top_level_obj.revisions = []
+                    }
+                    top_level_obj.revisions.push(line.substring(4))
+                } else if (line.startsWith(" // ")) { //top level doc
+                    if (!top_level_obj.doc) {
+                        top_level_obj.doc = ""
+                    }
+                    top_level_obj.doc += line.substring(4) + "\n"
+                } else if (line.trim() == "//") {
+                } //ignore, empty comment. place AFTER " // " test. probably has some newline char(s) after the //
+
+                else if (line.startsWith(" //_ Object Prototypes")) {
+                } //sub objects to follow
+
+                //Behavior Topology (net_list)
+                else if (line.startsWith(" //_ Behavior Topology")) {
+                    section = "netList"
+                    top_level_obj.netList = []
+                } else if (line.startsWith("}")) { //ends a top level object. No content after the close curley.
+                    section = null
+                    top_level_obj = null
+                    sub_obj = null
+                } else if (section === "netList") {
+                    let bt_obj = this.parse_behavior_topology(line, top_level_obj)
+                    top_level_obj.netList.push(bt_obj)
+                } else if (line.startsWith("Object ")) { //making a new object definition
+                    for (let i = line_index; i < lines.length; i++) {
+                        if (i === line_index) {
+                            continue
+                        } //on first line.
+                        else if (i === lines.length) {
+                            break;
+                        } //won't happen. let the line as is be the full valid object, though this probably won't happen
+                        //else if (line.includes(";")) { break; }
+                        else {
+                            let next_line = lines[i]
+                            if (next_line.startsWith("//_")) {
+                                break;
+                            } //proper end of top level object header
+                            else if (next_line.startsWith("{")) {
+                                break;
+                            } else { //loop around looking for another line
+                                line += next_line
+                                line_index = i
+                            }
+                        }
+                    }
+                    top_level_obj = this.parse_object(line, true) //note don't make this "let top_level_obj" as we use it outside this scope.
                     //note: top level objects look like they never have a 2nd line of header info,
                     //so shouldn't need to be passed line_index & lines
-                top_level_obj.line        = line        //for debugging, not in VIVA
-                top_level_obj.source_path = source_path //not in VIVA
-                result.object_definitions.push(top_level_obj)
-            }
-            else if (line.startsWith(" Object ")) { //making a new sub object/prototype/ref/fn call
-                if(!top_level_obj.prototypes) {
-                    top_level_obj.prototypes = []
+                    top_level_obj.line = line        //for debugging, not in VIVA
+                    top_level_obj.source_path = source_path //not in VIVA
+                    result.object_definitions.push(top_level_obj)
+                } else if (line.startsWith(" Object ")) { //making a new sub object/prototype/ref/fn call
+                    if (!top_level_obj.prototypes) {
+                        top_level_obj.prototypes = []
+                    }
+                    line = ""
+                    for (let i = line_index; i < lines.length; i++) {
+                        let next_line = lines[i]
+                        line += next_line
+                        line_index = i
+                        if (next_line.includes(";")) {
+                            break;
+                        }
+                        //else loop around
+                    }
+                    sub_obj = this.parse_object(line, false) // do not do "let sub_obj ..." as sub_obj is declared further up, by design
+                    sub_obj.line = line //for debugging
+                    top_level_obj.prototypes.push(sub_obj)
+                } else if (line.startsWith("//_ Attributes ")) { //top level object Attributes
+                    let next_line = ((line_index === (lines.length - 1)) ? null : lines[line_index + 1])
+                    if (next_line.startsWith(" ") && next_line.trim().startsWith(",")) {
+                    } //its a true 2nd line of attributes
+                    else {
+                        next_line = null
+                    }
+                    //to handle kludgy syntax where a top level attribute line might have a 2nd line of attributes.
+                    //if(line.includes("(")){ out("line: " + line_index + " of: " + line)}
+                    //if(next_line && !next_line.startsWith("{")){ d//ebugger;}
+                    let attr_obj = this.parse_front_of_line_attributes(line, next_line)
+                    for (let key of Object.keys(attr_obj)) {
+                        top_level_obj[key] = attr_obj[key]
+                    }
+                    section = "top_level_object_attributes" //there *might be another line of
+                    //attributes that starts with spaces, then a comma then the attributes then the close paran
                 }
-                line = ""
-                for(let i = line_index; i < lines.length; i++){
-                    let next_line = lines[i]
-                    line += next_line
-                    line_index = i
-                    if (next_line.includes(";")) { break; }
-                    //else loop around
+                //the following clause should be after the clause: (line.startsWith("{"))
+                else if ((section === "top_level_object_attributes") &&
+                    line.startsWith(" ") &&
+                    line.trim().startsWith(",")) { //we have a 2nd line of top level obj attributes
+                    //which is ignored because the clause line.startsWith("//_ Attributes ") handles it.
+                } else if (line.startsWith(" //_ Attributes ")) { //sub_obj Attributes, doesn't have a 2nd line of attributes in az.idl, but allow for it
+                    let next_line = ((line_index === (lines.length - 1)) ? null : lines[line_index + 1])
+                    let attr_obj = this.parse_front_of_line_attributes(line, next_line)
+                    for (let key of Object.keys(attr_obj)) {
+                        sub_obj[key] = attr_obj[key]
+                    }
+                } else {
+                    warning("HCA.parse got a line " + line_index + " of:<br/><code>" + line + "</code><br/>which is unexpected and thus ignored.")
                 }
-                sub_obj = this.parse_object(line, false) // do not do "let sub_obj ..." as sub_obj is declared further up, by design
-                sub_obj.line = line //for debugging
-                top_level_obj.prototypes.push(sub_obj)
-            }
-            else if(line.startsWith("//_ Attributes ")) { //top level object Attributes
-                let next_line = ((line_index === (lines.length - 1)) ? null : lines[line_index + 1])
-                if(next_line.startsWith(" ") && next_line.trim().startsWith(",")) {} //its a true 2nd line of attributes
-                else { next_line = null}
-                //to handle kludgy syntax where a top level attribute line might have a 2nd line of attributes.
-                //if(line.includes("(")){ out("line: " + line_index + " of: " + line)}
-                //if(next_line && !next_line.startsWith("{")){ d//ebugger;}
-                let attr_obj = this.parse_front_of_line_attributes(line, next_line)
-                for(let key of Object.keys(attr_obj)) {
-                    top_level_obj[key] = attr_obj[key]
-                }
-                section = "top_level_object_attributes" //there *might be another line of
-                  //attributes that starts with spaces, then a comma then the attributes then the close paran
-            }
-            //the following clause should be after the clause: (line.startsWith("{"))
-            else if ((section === "top_level_object_attributes") &&
-                     line.startsWith(" ") &&
-                     line.trim().startsWith(",")) { //we have a 2nd line of top level obj attributes
-                //which is ignored because the clause line.startsWith("//_ Attributes ") handles it.
-            }
-            else if(line.startsWith(" //_ Attributes ")) { //sub_obj Attributes, doesn't have a 2nd line of attributes in az.idl, but allow for it
-                let next_line = ((line_index === (lines.length - 1)) ? null : lines[line_index + 1])
-                let attr_obj = this.parse_front_of_line_attributes(line, next_line)
-                for(let key of Object.keys(attr_obj)) {
-                    sub_obj[key] = attr_obj[key]
-                }
-            }
-            else {
-                warning("HCA.parse got a line " + line_index + " of:<br/><code>" + line + "</code><br/>which is unexpected and thus ignored.")
-            }
-        } //end big for loop
-        this.file_path_to_datasets_map[source_path] = result.datasets
-        return result //end parse
+            } //end big for loop
+            this.file_path_to_datasets_map[source_path] = result.datasets
+            return result //end parse
+        }
     }
 
     //example: // Project  AXI_TO_AZIDO 7/24/2021 11:09:07 PM
@@ -266,7 +282,9 @@ globalThis.ipg_to_json = class ipg_to_json{
      could start with //_ Attributes meaning no inputs, end of top level object header.
 
     */
-    static parse_object(line, is_top_level, line_index, lines){
+    static parse_object(line,
+                        is_obj_def, //true if we are parsing an obj_def, false if we are parsing an obj call
+                        line_index, lines){
         let new_obj   = {}
         //new_obj.line = line //for debugging only.
         let [before_comment, comment] = line.split("//")
@@ -323,8 +341,10 @@ globalThis.ipg_to_json = class ipg_to_json{
         //if(name.startsWith('"')) { name = name.substring(1, name.length - 1) } //cut off double quotes in name that are *sometimes* present
         let [type, name_ext] = name.split(":") //name_ext is included in name, we don't use it separately
         //console.log("objectName: " + name)
-        new_obj.objectName = name
-        new_obj.objectType = type //the part of the name that's before the colon
+        new_obj.objectName = name  //for obj_def, looks like "foo" but for a call that has > 1 such call in a obj_def, it will look like "foo:A" or foo:B etc.
+        if(!is_obj_def) { //ie we have a obj call
+            new_obj.objectType = type //the part of the name that's before the colon
+        }
 
         //grab inputs
         let [in_array_result, in_end_pos] = this.grab_io(before_comment, name_end_pos)

@@ -110,6 +110,7 @@ globalThis.HCAObjDef = class HCAObjDef {
         return null
     }
 
+    //the default callback to ipg_to_json.parse()
     static insert_obj_and_dataset_defs_into_tree(source_path, proj_file_json_obj){
         HCAObjDef.insert_obj_defs_into_tree(source_path, proj_file_json_obj.object_definitions)
         Dataset.insert_dataset_defs_into_tree(source_path, proj_file_json_obj.datasets)
@@ -118,7 +119,7 @@ globalThis.HCAObjDef = class HCAObjDef {
         }
     }
 
-    //the default callback to parse()
+
     static insert_obj_defs_into_tree(source_path, json_obj_defs=null){
         if(json_obj_defs.object_definitions){
             json_obj_defs = json_obj_defs.object_definitions
