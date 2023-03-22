@@ -260,7 +260,7 @@ globalThis.Dataset = class Dataset{
         show_window({
                      title: "Choose Dataset Operation",
                      x:200, y:100, width:300, height:220,
-                     content: `for: ` + ds_obj.name + `<br/>
+                     content: `for:  <b>` + ds_obj.name + ` </b><br/>
                                <input type="hidden" name="dataset_name" value="` + dataset_name + `"/>` +
                               `<input type="button" value="Edit Definition"       style="margin:5px;"/><br/>
                                <input type="button" value="Make Collector Block"  style="margin:5px;"/><br/>
@@ -476,8 +476,7 @@ globalThis.Dataset = class Dataset{
 
     static define_built_ins() {
         let json_dataset_defs = [
-            {
-                TreeGroup: ["BuiltIn"],
+            {   TreeGroup: ["BuiltIn"],
                 name: "Bit",
                 componentTypes: ["Bit"], //primitiaves have no components
                 contextType: 0, //what's this? I just made one up. They are small non-neg integers
@@ -485,8 +484,7 @@ globalThis.Dataset = class Dataset{
                 line: "DataSet Bit = ( Bit )",
                 source_path: "built_in"
             },
-            {
-                TreeGroup: ["BuiltIn"],
+            {   TreeGroup: ["BuiltIn"],
                 name: "NULL",
                 componentTypes: ["NULL"], //primitiaves have no components
                 contextType: 0, //what's this? I just made one up. They are small non-neg integers
@@ -494,8 +492,7 @@ globalThis.Dataset = class Dataset{
                 line: "DataSet NULL = ( NULL )",
                 source_path: "built_in"
             },
-            {
-                TreeGroup: ["BuiltIn"],
+            {   TreeGroup: ["BuiltIn"],
                 name: "Variant",
                 componentTypes: ["Variant", "Variant"], //primitiaves have no components
                 contextType: 0, //what's this? I just made one up. They are small non-neg integers
@@ -503,15 +500,172 @@ globalThis.Dataset = class Dataset{
                 line: "DataSet Variant = ( Variant, Variant )",
                 source_path: "built_in"
             },
-            {
-                TreeGroup: ["BuiltIn"],
+            {   TreeGroup: ["BuiltIn"],
                 name: "List",
                 componentTypes: ["Variant", "Variant"], //primitiaves have no components
                 contextType: 0, //what's this? I just made one up. They are small non-neg integers
                 color: 12632256, //I just pulled this from an example. Should be adjusted once I figure out color
                 line: "DataSet List = ( Variant, Variant ))",
                 source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "Dbit",
+                componentTypes: ["Bit", "Bit"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet DBit = ( Bit, Bit );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "Nibble",
+                componentTypes: ["DBit", "DBit"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet Nibble = ( DBit, DBit );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "Byte",
+                componentTypes: ["Nibble", "Nibble"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet Byte = ( Nibble, Nibble );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "Word",
+                componentTypes: ["Byte", "Byte"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet Word = ( Byte, Byte );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "DWord",
+                componentTypes: ["Word", "Word"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet DWord = ( Word, Word );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "QWord",
+                componentTypes: ["DWord", "DWord"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet QWord = ( DWord, DWord );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "Int",
+                componentTypes: ["Byte", "Byte"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet Int = ( Byte, Byte );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "DInt",
+                componentTypes: ["Word", "Word"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet Dint = ( Word, Word );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "Fix16",
+                componentTypes: ["Byte", "Byte"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet Fix16 = ( Byte, Byte );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "Fix32",
+                componentTypes: ["Word", "Word"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet Fix32 = ( Word, Word );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "Qint",
+                componentTypes: ["DWord", "DWord"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet Qint = ( DWord, DWord );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "Float",
+                componentTypes: ["MSB023", "MSB009"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet Float = ( MSB023, MSB009 );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "Double",
+                componentTypes: ["MSB052", "MSB052"],
+                contextType: 0,
+                color: 12632256,
+                line: "Double = ( MSB052, MSB012 );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "MSB002",
+                componentTypes: ["Bit", "Bit"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet MSB002 = ( Bit, Bit );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "LSB002",
+                componentTypes: ["Bit", "Bit"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet LSB002 = ( Bit, Bit );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "BIN002",
+                componentTypes: ["Bit", "Bit"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet BIN002 = ( Bit, Bit );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "MSB003",
+                componentTypes: ["MSB002", "Bit"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet MSB003 = ( MSB002, Bit );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "LSB003",
+                componentTypes: ["Bit", "LSB002"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet LSB003 = ( Bit, LSB002 );",
+                source_path: "built_in"
+            },
+            {   TreeGroup: ["BuiltIn"],
+                name: "BIN003",
+                componentTypes: ["BIN002", "Bit"],
+                contextType: 0,
+                color: 12632256,
+                line: "DataSet BIN003 = ( BIN002, Bit));",
+                source_path: "built_in"
             }
+
+
+            //todo, algorithm to generate more, but probably do that on the fly as
+            ///user edits into existence a new dataset with name of MSB017 or
+            //edits a dataset with a component of MSB017
+
         ]
         Dataset.insert_dataset_defs_into_tree("built_in", json_dataset_defs)
     }

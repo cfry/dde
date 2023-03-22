@@ -138,35 +138,39 @@ globalThis.HCA = class HCA {
        //f let can_holder = make_dom_elt("div"//, {style: { display:"inline-block"}}
        //f )
        //f big_div.append(can_holder)
-        let canvas_wrapper_html = /*`<div id='HCA_canvas_wrapper_id' style=' overflow:scroll;  display:inline-block;'>
-                                        <canvas id='HCA_canvas_id' style='width:1024px; height:720px;'> </canvas>
-                                     </div>`
-                                    `<div id='HCA_canvas_wrapper_id' style='flex-grow: 1;'>
-                                         <canvas id='HCA_canvas_id' style='width:1024px; height:720px;'> </canvas>
-                                     </div>`
-
-                                     `<div id='HCA_canvas_wrapper_id' style='vertical-align:top; overflow:scroll;  display:inline-block; width:calc(100% - 150px); height:100%; border:2px solid blue;''>
-                                         <canvas id='HCA_canvas_id' width='720' height='1024' <!--backing store in pixels -->
-                                            style='vertical-align:top; width:100%; height:100%; border:2px solid green;'> <!-- display size -->
-                                         </canvas>
-                                     </div>`
-                                     */
+        let canvas_wrapper_html =
             `<div id='HCA_canvas_wrapper_id' style='vertical-align:top; overflow:scroll;  display:inline-block; width:calc(100% - 190px); height:100%; border:1px solid blue;'>
                 <canvas id='HCA_canvas_id' width='720px' height='1024px' <!--backing store in pixels -->
                     style='vertical-align:top; width:100%; height:100%;'> <!-- display size -->
                 </canvas>
             </div>`
-        let header_html = `<div  style="padding:5px;">    
-                           <span title="Where in the tree hierarchy this object definition lives.">TreeGroup:</span> <input id="tree_path_id" value="Misc"/>
-                           ObjectName: <input id="current_obj_def_name_id" onchange="HCA.current_object_name_onchange()"/>
-                           <select id="current_obj_def_select_id" onchange="HCA.obj_def_select_onchange(event)" title="Choose a name to edit its object definition." style="width:20px;height:20px;"></select> &nbsp;
-                           <select id="sheet_kind_id" title="Sheet status of the edited object definition.">
-                                <option value="not a sheet">not a sheet</option>
-                                <option value="WipSheet">WipSheet</option>
-                                <option value="CurrentSheet">CurrentSheet</option>
-                           </select> 
-                           Spread: <button onclick="HCA.spread()"    title="Decrease the distance between object calls.">less</button> 
-                                   <button onclick="HCA.spread(1.5)" title="Increase the distance between object calls.">more</button>
+        let header_html = `<div style="padding:5px;"> 
+                              <div style="display:inline-block">
+                                 <div title="Where in the tree hierarchy this object definition lives."><b>TreeGroup:</b></div> 
+                                 <input id="tree_path_id" value="Misc"/>
+                              </div>
+                              <div style="display:inline-block">
+                                 <div title="The file path where this definition lives."><b>File:</b></div> 
+                                 <input id="source_path_id" value=""/>
+                              </div>
+                              <div style="display:inline-block">
+                                 <div><b>ObjectName:</b></div>
+                                 <input id="current_obj_def_name_id" onchange="HCA.current_object_name_onchange()"/>
+                                 <select id="current_obj_def_select_id" onchange="HCA.obj_def_select_onchange(event)" title="Choose a previously edited object definition to edit." style="width:20px;height:20px;"></select>
+                              </div>
+                              <div style="display:inline-block">
+                                 <div><b>Sheet?:</b></div>
+                                 <select id="sheet_kind_id" title="Sheet status of the edited object definition.">
+                                    <option value="not a sheet">not a sheet</option>
+                                    <option value="WipSheet">WipSheet</option>
+                                    <option value="CurrentSheet">CurrentSheet</option>
+                                 </select> 
+                              </div>
+                              <div style="display:inline-block">
+                                 <div><b>Spread:</b></div> 
+                                 <button onclick="HCA.spread()"    title="Decrease the distance between object calls.">less</button> 
+                                 <button onclick="HCA.spread(1.5)" title="Increase the distance between object calls.">more</button>
+                              </div>
                            </div>`
         big_div.insertAdjacentHTML("afterbegin", header_html)
         big_div.insertAdjacentHTML("beforeend", canvas_wrapper_html)
@@ -205,6 +209,7 @@ globalThis.HCA = class HCA {
     //source is a string of json describing a new style HCA app.
     static async init(source_path, source=""){ //json_string can also be a json object or null
         ipg_to_json.init()
+        HCAObjDef.init()
         globalThis.HCA_dom_elt = HCA.make_HCA_dom_elt()
         let the_codemirror_elt = document.getElementsByClassName("CodeMirror")[0]
         html_db.replace_dom_elt(the_codemirror_elt, HCA_dom_elt)
@@ -565,6 +570,37 @@ globalThis.HCA = class HCA {
         }
     }
 
+    //this is the obj def to add the call to,
+    //obj_def_to_call is use to get the name and inputs of the call
+    //does not cause display
+    static make_and_add_call_to_definition(obj_def_to_add_call_to, obj_def_to_call){
+        let json_call = {
+            objectName: obj_def_to_call.objectName,
+            inputs: [],
+            outputs: []
+        }
+        this.prototypes.push(json_call)
+    }
+
+    static display_obj_call(obj_def_or_obj_id){
+        let obj_def
+        if(typeof(obj_def_or_obj_id) === "string") {
+            obj_def = HCAObjDef.object_name_plus_in_types_to_def_map(obj_def_or_obj_id)
+        }
+        else {obj_def =  obj_def_or_obj_id}
+        let object_path = "basic/" + obj_def.obj_id
+        let node = LiteGraph.createNode(object_path, obj_def.objectName)
+        if(!node){
+            shouldnt("Attempt to call LiteGraph.createNode with object_path: " + object_path +
+                     "<br/>but that hasn't had HCA.register_with_litegraph() called on it.")
+        }
+        else {
+            this.lgraph.add(node);
+            this.node_add_usual_actions(node)
+            return node
+        }
+    }
+
     /*obsoluted with dde4 pallet items from CorLib
     static make_and_add_node(type, button_name){
         out("making node of type: " + type)
@@ -596,9 +632,10 @@ globalThis.HCA = class HCA {
          }*/
         if(!node.onDblClick){
             node.onDblClick = function(event){
-                let obj_name = node.title
-                out("got double click for node: " + node.title)
-                HCA.display_obj_def(obj_name)
+                let [litegraph_category, obj_id] = node.type.split("/")
+                out("got double click for node: " + node.type)
+                let obj_def = HCAObjDef.object_name_plus_in_types_to_def_map[obj_id]
+                HCA.display_obj_def(obj_def)
             }
         }
         if(!node.title){
@@ -786,6 +823,8 @@ globalThis.HCA = class HCA {
         return "tree_" + tree_path_str + "_id"
     }
 
+    //just has the name, not the input types
+    //this is returjs the dom_id for the objectNAME in the pallette
     static make_object_id(obj_def){
         let path = obj_def.TreeGroup.join("/") + "/" + obj_def.objectName
         return "make_obj_" + path + "_id"
@@ -794,6 +833,7 @@ globalThis.HCA = class HCA {
     static pending_rendering_dom_id = null //or string id of a folder pallette dom elt
 
     //creates tree path all the way down, then inserts the new link to make an obj_call of the obj_def
+    //but only if this treegroup&objName are not already in the pallette
     static insert_obj_def_into_pallette(obj_def, folder_dom_elt=HCA_palette_make_objects_id, tree_arr_index_of_next_folder=0){
         if(HCA.pending_rendering_dom_id && !window[HCA.pending_rendering_dom_id]) { //take a lap waiting for
             setTimeout(function(){
@@ -801,7 +841,11 @@ globalThis.HCA = class HCA {
             }, 200)
             return
         }
-        else if(typeof(folder_dom_elt) === "string"){
+        let dom_id = this.make_object_id(obj_def)
+        if(globalThis[dom_id]) { //we already have this treegroup & object name in the pallette
+            return
+        }
+        if(typeof(folder_dom_elt) === "string"){
             folder_dom_elt = window[folder_dom_elt]
             if(!folder_dom_elt) { //take a lap to let folder_dom_elt get rendered
                 setTimeout(function(){
@@ -817,11 +861,14 @@ globalThis.HCA = class HCA {
         //subfolder or and actual obj_def link
         HCA.pending_rendering_dom_id = null
         if(tree_arr_index_of_next_folder === obj_def.TreeGroup.length) { //done walking tree, so insert the actual link and we're done
-            let dom_id = this.make_object_id(obj_def)
             let tree_path = obj_def.TreeGroup.join("/")
             let tree_path_and_obj_name = tree_path + "/" + obj_def.objectName
+            if(obj_def.objectName === "Output") {
+                 //debugger
+                 let junk = "junk" //for debugging only
+            }
             this.register_with_litegraph(obj_def)
-            let html_to_insert = `<div class="hca_obj_def"  id="` + dom_id + `" onclick="HCA.make_and_add_block('` + tree_path_and_obj_name + `', event)">` + obj_def.objectName + "</div>"
+            let html_to_insert = `<div class="hca_obj_def"  id="` + dom_id + `" onclick="HCAObjDef.show_obj_def_dialog(event)">` +  obj_def.objectName + `</div>`   //"HCA.make_and_add_block('` + tree_path_and_obj_name + `', event)">` + obj_def.objectName + "</div>"
             folder_dom_elt.insertAdjacentHTML("beforeend", html_to_insert) //no need to wait for leaves of tree to render
         }
         else { //more tree walking to do
@@ -857,7 +904,7 @@ globalThis.HCA = class HCA {
          }
          fn.title = obj_def.objectName; //name to show
          let obj_path = "basic/" + //obj_def.TreeGroup + "/" +
-                         obj_def.objectName
+                         obj_def.obj_id
          LiteGraph.registerNodeType(obj_path, fn); //register in the system
     }
 
@@ -953,22 +1000,25 @@ globalThis.HCA = class HCA {
     }
 
     static obj_def_select_onchange(event){
-        let label    = event.target.value
-        let obj_name = this.menu_label_to_obj_name(label)
-        this.display_obj_def(obj_name)
+        let obj_id    = event.target.value
+        let colon_index = obj_id.indexOf(":")
+        if(colon_index >= 0){ //remove the "Cursheet:" or "WipSheet:" prefix
+            obj_id = obj_id.substring(colon_index + 1)
+        }
+        this.display_obj_def(obj_id)
     }
 
-    static display_obj_def(obj_name_or_def){
+    static display_obj_def(obj_def_or_obj_id){
         let obj_def
-        if(typeof(obj_name_or_def)  === "string"){
-            obj_def = HCAObjDef.obj_name_to_obj_def(obj_name_or_def)
+        if(typeof(obj_def_or_obj_id)  === "string"){
+            obj_def = HCAObjDef.object_name_plus_in_types_to_def_map[obj_def_or_obj_id]
             if(!obj_def) {
-                warning("Attempt to edit an object definition named: " + obj_name_or_def +
+                warning("Attempt to edit an object definition named: " + obj_def_or_obj_id +
                     " but couldn't find it.")
                 return
             }
         }
-        else { obj_def = obj_name_or_def }
+        else { obj_def = obj_def_or_obj_id }
         //let sheet_obj = HCAObjDef.object_name_to_sheet(obj_name)
         HCAObjDef.current_obj_def = obj_def
         if(obj_def.CurrentSheet) {
@@ -988,12 +1038,13 @@ globalThis.HCA = class HCA {
         current_obj_def_name_id.value = obj_def.objectName
         let tree_path = HCAObjDef.current_obj_def.TreeGroup.join("/")
         tree_path_id.value = tree_path
+        source_path_id.value = obj_def.source_path
         this.redraw_obj_def()
         inspect(HCAObjDef.current_obj_def)
     }
 
     static add_to_obj_def_menu_maybe(obj_def){
-        let label = obj_def.objectName
+        let label = obj_def.obj_id
         let is_sheet = false
         if     (obj_def.CurrentSheet) { label = "CurSheet:" + label; is_sheet = true}
         else if(obj_def.WipSheet)     { label = "WipSheet:" + label; is_sheet = true}
@@ -1003,6 +1054,17 @@ globalThis.HCA = class HCA {
         let the_html = "<option>" + label + "</option>"
         let pos = (is_sheet ? "afterbegin" : "beforeend")
         current_obj_def_select_id.insertAdjacentHTML(pos, the_html)
+        if(obj_def === HCAObjDef.current_obj_def) { //then select the correct item in the menu so it will be checked if the user pulls down the menu
+            let menu_item_label
+            if (obj_def.CurrentSheet) {
+                menu_item_label = "CurSheet:" + obj_def.obj_id
+            } else if (obj_def.WipSheet) {
+                menu_item_label = "WipSheet:" + obj_def.obj_id
+            } else {
+                menu_item_label = obj_def.obj_id
+            }
+            current_obj_def_select_id.value = menu_item_label
+        }
     }
 
     static redraw_obj_def(obj_def=HCAObjDef.current_obj_def) {

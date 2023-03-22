@@ -31,13 +31,15 @@ Implement: do capture that 2nd line, perhaps as:
 */
 
 globalThis.ipg_to_json = class ipg_to_json{
-    static file_path_to_parse_obj_map = {}
-    static loaded_files = [] //in chronological order, first to last loaded.
-    static file_path_to_datasets_map = {}
+    static file_path_to_parse_obj_map
+    static loaded_files //in chronological order, first to last loaded.
+    static file_path_to_datasets_map
 
     static init(){
+        console.log("top of ipg_to_json.init")
         this.file_path_to_parse_obj_map = {}
         this.loaded_files = []
+        this.file_path_to_datasets_map = {}
     }
 
     static async parse(source_path=null, source, callback=HCAObjDef.insert_obj_and_dataset_defs_into_tree){

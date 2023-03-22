@@ -1,68 +1,106 @@
 globalThis.HCAObjDef = class HCAObjDef {
     static obj_def_tree //will be a json obj of fields: folder_name, subfolders, obj_defs
-    static sheets = []
-    static current_sheet   = null
-    static current_obj_def = null
-    static core_lib_top_level_tree_names = "not_inited"
-    static object_name_to_defs_map = {}
-    static object_name_plus_in_types_to_def_map = {}
+    static sheets
+    static current_sheet
+    static current_obj_def
+    static core_lib_top_level_tree_names
+    static object_name_to_defs_map
+    static object_name_plus_in_types_to_def_map
 
     static init() {
-        this.obj_def_tree = {folder_name: "root", //always a single path part string. no slashes
-                             subfolders: [], //each is an obj with fields of folder_name, subfolders, obj_defs
-                             obj_defs: [] //each of which will have a TreeGroup prop that is an array of strings, each a path part, that last one being the name of the folder that obj_def is in
-                             }
+        console.log("top of HCAObjDef.init")
+        this.obj_def_tree = {
+            folder_name: "root", //always a single path part string. no slashes
+            subfolders: [], //each is an obj with fields of folder_name, subfolders, obj_defs
+            obj_defs: [] //each of which will have a TreeGroup prop that is an array of strings, each a path part, that last one being the name of the folder that obj_def is in
+        }
+        this.sheets = []
+        this.current_sheet   = null
+        this.current_obj_def = null
+        this.core_lib_top_level_tree_names = "not_inited"
+        this.object_name_to_defs_map = {}
+        this.object_name_plus_in_types_to_def_map = {}
     }
+
     constructor(json_obj){
+        if(!json_obj.objectName){
+            DDE.error("Attempt to create an HCA object definition without an objectName.<br/>" +
+                "Other Attributes: " + JSON.stringify(json_obj))
+        }
+        let obj_id = HCAObjDef.make_obj_id(json_obj)
+        let the_obj_def = HCAObjDef.object_name_plus_in_types_to_def_map[obj_id]
+        //if there is aready an obj-def_overload for this obj_id, use it, else
+        //use the new obj in "this".
+        //This way we avoid making duplicates as some files redefine
+        let making_new_obj = false
+        if(!the_obj_def) {
+            the_obj_def = this
+            making_new_obj = true
+        }
+        let TreeGroup_changed = false
         for(let key of Object.keys(json_obj)){
             let val = json_obj[key]
-            this[key] = val
+            if((key === "TreeGroup") &&
+                !making_new_obj &&
+                (val !== the_obj_def.TreeGroup)){
+                TreeGroup_changed = true
+            }
+            the_obj_def[key] = val
         }
-        if(!this.objectName){
-            DDE.error("Attempt to create an HCA object definition without an objectName.<br/>" +
-                      "Other Attributes: " + JSON.stringify(json_obj))
-        }
-        if(!this.TreeGroup) {//hits for the obj named "CoreLib".
-            if(this.Primitive){
-                this.TreeGroup = ["Primitive"]
+        if(!the_obj_def.TreeGroup) {//hits for the obj named "CoreLib".
+            //beware, if the obg_def already existed, but
+            //our josn_obj had a DIFFERENT TreeGroup, then
+            //we SHOOULD switch the treegroup of the_obj_def, but
+            //for now I presume the TreeGroup didn't change and so I don't
+            //remove the
+            if(the_obj_def.Primitive){
+                the_obj_def.TreeGroup = ["Primitive"]
             }
             else {
-                this.TreeGroup = ["Misc"] //[this.objectName]
+                the_obj_def.TreeGroup = ["Misc"] //[this.objectName]
             } //fry added this because some objects didin't have a TreeGroup, such as the obj with objectName: "CoreLib". So I gave it one
         }
-        if(!this.objectType) {
-            this.objectType = this.objectName
+        if(!the_obj_def.objectType) {
+            the_obj_def.objectType = this.objectName
         }
-        if(!this.inputs)  { this.inputs  = [] } //CoreLib doesn't have an outputs field.
-        if(!this.outputs) {
-            this.outputs = []
+        if(!the_obj_def.inputs)  { this.inputs  = [] } //CoreLib doesn't have an outputs field.
+        if(!the_obj_def.outputs) {
+            the_obj_def.outputs = []
         } //CoreLib doesn't have an outputs field.
-        if(!this.prototypes) {
-            this.prototypes = []
+        if(!the_obj_def.prototypes) {
+            the_obj_def.prototypes = []
         }
-        if(!this.netList){
-            this.netList = []
+        if(!the_obj_def.netList){
+            the_obj_def.netList = []
         }
-        if(!this.line){
-            this.line = JSON.stringify(json_obj)
+        if(!the_obj_def.line){
+            the_obj_def.line = JSON.stringify(json_obj)
         }
-        this.obj_id = this.make_obj_id()
-        //console.log("just made HCAObjDef " + this.objectName)
-
-        HCAObjDef.object_name_plus_in_types_to_def_map[this.obj_id] = this //add or replaces if already exists
-        this.add_or_replace_in_object_name_to_defs_map()
-        this.insert_obj_def_into_tree(HCAObjDef.obj_def_tree, this.TreeGroup)
-        this.insert_obj_def_into_sheets_menu_maybe()
-        HCA.insert_obj_def_into_pallette(this)
-        HCA.register_with_litegraph(this)
+        if(making_new_obj) {
+            the_obj_def.obj_id = obj_id
+            HCAObjDef.object_name_plus_in_types_to_def_map[obj_id] = the_obj_def //add or replaces if already exists
+            the_obj_def.add_or_replace_in_object_name_to_defs_map()
+            the_obj_def.insert_obj_def_into_tree(HCAObjDef.obj_def_tree, this.TreeGroup)
+            the_obj_def.insert_obj_def_into_sheets_menu_maybe()
+            HCA.insert_obj_def_into_pallette(the_obj_def) //but only if no already in
+            HCA.register_with_litegraph(the_obj_def)
+        }
+        else if(TreeGroup_changed){
+            //remove_from old treegroup //todo
+            //add to new treegroup
+        }
     }
 
-    make_obj_id(){
-        let result = this.objectName
-        for(let input of this.inputs){
+    static make_obj_id(json_or_obj_def){
+        let result = json_or_obj_def.objectName
+        for(let input of json_or_obj_def.inputs){
             result += "," + input.type
         }
         return result
+    }
+
+    make_obj_id(){
+        return HCAObjdef.make_obj_id(this)
     }
 
     add_or_replace_in_object_name_to_defs_map(){
@@ -85,6 +123,9 @@ globalThis.HCAObjDef = class HCAObjDef {
     //"this" is the obj_def that we're inserting into the tree, based on its
     //TreeGroup prop which is originally the TreeGroupArr arg.
     insert_obj_def_into_tree(look_in_folder=HCAObjDef.obj_def_tree, TreeGroupArr){
+        if (!TreeGroupArr){
+            TreeGroupArr = this.TreeGroup
+        }
         if(TreeGroupArr.length === 0){
             look_in_folder.obj_defs.push(this)
         }
@@ -682,5 +723,175 @@ globalThis.HCAObjDef = class HCAObjDef {
         ]
         HCAObjDef.insert_obj_defs_into_tree("built_in", json_obj_defs)
     }
+
+    static show_obj_def_dialog(event){
+        let the_objectName = event.target.innerHTML
+        let obj_defs = HCAObjDef.object_name_to_defs_map[the_objectName]
+        inspect(obj_defs)
+        let obj_defs_select_html = `<select id="obj_def_overload_id" style="margin:5px;">`
+        for(let obj_def of obj_defs){
+            obj_defs_select_html += "<option value='" + obj_def.obj_id + "'>" + obj_def.obj_id + "</option>"
+        }
+        obj_defs_select_html += "</select><br/>"
+        show_window({
+            title: "Choose Object Definition Operation",
+            x:200, y:100, width:360, height:260,
+            content: `for: <b>` + the_objectName + `</b><br/>
+                     <input type="hidden" name="the_objectName" value="` + the_objectName + `"/>
+                     First, choose an overloaded object definition<br/>
+                     with input types (after commas):<br/>` +
+                     obj_defs_select_html +
+                    `<input type="submit" value="Edit Definition"  style="margin:5px;"/><br/>
+                     <input type="submit" value="Make Call"        style="margin:5px;"/><br/>
+                     <input type="submit" value="Delete"           style="margin:5px;"/><br/>
+                     <input type="submit" value="Find"             style="margin:5px;"/>`,
+
+            callback: "HCAObjDef.show_obj_def_dialog_cb"
+        })
+
+    }
+
+    static show_obj_def_dialog_cb(vals){
+        let the_objectName = vals.the_objectName
+        let overload_obj_id = vals.obj_def_overload_id
+        let overload_obj_def = HCAObjDef.object_name_plus_in_types_to_def_map[overload_obj_id]
+        if(vals.clicked_button_value === "Make Call"){
+            //HCA.make_and_add_block('` + tree_path_and_obj_name + `', event)">` + obj_def.objectName + "</div>
+            //make_and_add_call_to_definition(HCA.current_obj_def, obj_def_to_call) //todo incomplete def now in HCA_ui.js
+            HCA.display_obj_call(overload_obj_def)
+        }
+        else if(vals.clicked_button_value === "Edit Definition"){
+            //HCAObjDef.show_edit_dialog(overload_obj_def)
+            HCA.display_obj_def(overload_obj_def)
+        }
+        else if(vals.clicked_button_value === "Delete"){
+            //dataset_obj/overload_obj_def.remove() //todo
+            warning("Delete of an object definition not yet implemented.")
+        }
+        else if(vals.clicked_button_value === "Find"){
+            find_doc_input_id.value = the_objectName
+            find_doc_button_id.click()
+        }
+        else if(vals.clicked_button_value === "close_button"){
+            SW.close_window(vals.window_index)
+        }
+        else {
+            shouldnt("In show_dataset_dialog_cb got invalid clicked_button_value: " +
+                vals.clicked_button_value)
+        }
+
+
+    }
+
+    static show_edit_dialog(overload_obj_def){
+        let built_in_warning = ""
+        let disabled_prop = ""
+        if(overload_obj_def.TreeGroup[0] === "BuiltIn"){
+            built_in_warning = `<span style="color:red;">BuiltIn object definitions can't be edited.</span><br/>`
+            disabled_prop = " disabled "
+        }
+        let inputs_html = ""
+        for(let a_in of overload_obj_def.inputs){
+            inputs_html  += a_in.name  + " " + a_in.type  + "\n"
+        }
+        inputs_html.trim() //take off final newline
+        let outputs_html = ""
+        for(let a_out of overload_obj_def.inputs){
+            outputs_html += a_out.name + " " + a_out.type + "\n"
+        }
+        outputs_html.trim() //take off final newline
+        show_window({title: "Edit Object Definition",
+            x:200, y:100, width:350, height:350,
+            content: built_in_warning +
+                `<input type="hidden"                               value="` + overload_obj_def.objectName + `" name="orig_name"/>` +
+                `<input type="hidden"                               value="` + overload_obj_def.obj_id     + `" name="obj_def_overload_id" />` +
+                `name:        <input style="margin:5px;"            value="` + overload_obj_def.objectName             + `" name="name"`        + disabled_prop + `/><br/>` +
+                `TreeGroup:   <input style="margin:5px;"            value="` + overload_obj_def.TreeGroup.join("/")    + `" name="TreeGroup"`   + disabled_prop + `/><br/>` +
+                `source_path: <input style="margin:5px;width:200px" value="` + overload_obj_def.source_path            + `" name="source_path"` + disabled_prop + `/><br/>` +
+                `<div style="margin:5px 5px 0px 60px;">Name Type</div>` +
+                `<div><span style="vertical-align:top;margin-top:20px;"> Inputs:</span> <textarea style="margin:5px 5px 5px 10px;" name="inputs"  rows="3" cols="30"` + disabled_prop + `>` + inputs_html + `</textarea></div>` +
+                `<div><span style="vertical-align:top;margin-top:20px">Outputs:</span>  <textarea style="margin:5px 5px 5px 0px;"  name="outputs" rows="3" cols="30"` + disabled_prop + `>` + outputs_html + `</textarea></div>` +
+                `<input              style="margin:10px;" value="Update Object Definition" type="button"` + disabled_prop + `/>`,
+            callback: "HCAObjDef.edit_dialog_cb"
+        })
+    }
+
+    static edit_dialog_cb(vals){
+        if(vals.clicked_button_value === "Update Object Definition") {
+            let obj_def_overload_id = vals.obj_def_overload_id
+            let obj_def = HCAObjDef.object_name_plus_in_types_to_def_map[obj_def_overload_id]
+            obj_def.source_path = vals.source_path
+
+            if(vals.name !== vals.orig_name) {
+                let orig_dom_elt_id = HCA.make_object_id(obj_def) //do with dataset_obj having orig name
+                let orig_dom_elt = globalThis[orig_dom_elt_id]
+                orig_dom_elt.innerText = vals.name //set to new name
+                obj_def.name = vals.name //set to new name
+                let new_dom_elt_id = HCA.make_object_id(obj_def) //do with dataset_obj having new name
+                orig_dom_elt.setAttribute("id", new_dom_elt_id)
+                delete HCAObjDef.object_name_plus_in_types_to_def_map[obj_def.obj_id]
+                obj_def.obj_id = new_dom_elt_id
+                HCAObjDef.object_name_plus_in_types_to_def_map[new_dom_elt_id] = obj_def
+            }
+
+            let new_ins_objs = {}
+            let in_lines = vals.inputs.trim().split("\n")
+            for(let line of in_lines) {
+                line = line.trim()
+                let [name, type] = split(line, " ")
+                new_ins_objs.push({name: name, type: type})
+            }
+            if(!Utils.similar(new_ins_objs, obj_def.inputs)) {
+                delete HCAObjDef.object_name_plus_in_types_to_def_map[obj_def.obj_id]
+                obj_def.inputs = new_ins_objs
+                let new_new_obj_id = HCA.make_object_id(obj_def)
+                obj_def.obj_id = new_new_obj_id
+                HCAObjDef.object_name_plus_in_types_to_def_map[new_new_obj_id] = obj_def
+            }
+
+            let new_outs_objs = {}
+            let out_lines = vals.outputs.trim().split("\n")
+            for(let line of vals.outputs) {
+                line = line.trim()
+                let [name, type] = split(line, " ")
+                new_outs_objs.push({name: name, type: type})
+            }
+            if(!Utils.similar(new_outs_objs, obj_def.outputs)) {
+                obj_def.outputs = new_outs_objs
+            }
+
+            let new_treegroup_arr = vals.TreeGroup.split("/'")
+            if(!Utils.similar(new_treegroup_arr, dataset_obj.TreeGroup)){
+                obj_def.change_treegroup(new_treegroup_arr)
+            }
+            SW.close_window(vals.window_index)
+        }
+        else if(vals.clicked_button_value === "close_button"){
+            SW.close_window(vals.window_index)
+        }
+    }
+    change_treegroup(new_treegroup_arr){
+        this.remove()
+        this.set_treegroup(new_treegroup_arr)
+    }
+
+    remove(){
+        this.delete_obj_def_from_tree()
+        delete HCAObjDef.object_name_plus_in_types_to_def_map[this.obj_id]
+        let index = HCAObjDef.object_name_to_defs_map[this.objectName].indexof(this)
+        HCAObjDef.object_name_to_defs_map.splice(index, 1) //remove it
+        this.remove_from_pallette()
+    }
+
+    remove_from_pallette(){
+        let dom_id = HCAObjDef.make_dom_id(this)
+        let dom_elt = globalThis[dom_id]
+        dom_elt.remove()
+    }
+
+    set_treegroup(new_treegroup_arr){
+        this.TreeGroup = new_treegroup_arr
+        this.insert_obj_def_into_tree()
+        HCA.insert_obj_def_into_pallette(this)
+    }
 }
-HCAObjDef.init()

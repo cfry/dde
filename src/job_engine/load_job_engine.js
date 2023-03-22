@@ -26,6 +26,15 @@ import js_beautify from "js-beautify"
 globalThis.js_beautify = js_beautify
 // js_beautify(JSON.stringify({a: 1, b:2})  //example of use. returns string nicely formatted.
 
+//import mathjs from "mathjs" fails, see https://mathjs.org/docs/getting_started.html
+//globalThis.mathjs = mathjs
+
+import { create, all } from 'mathjs'
+const config = { }
+globalThis.mathjs = create(all, config)
+
+
+
 //import cv from "opencv.js"
 //globalThis.cv = cv
 
