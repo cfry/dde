@@ -1441,6 +1441,16 @@ Dexter = class Dexter extends Robot {
         else if((error_code !== 0) && (oplet !== "r")){ //we've got an error
                 //job_instance.stop_for_reason("errored", "Robot status got error: " + error_code)
             job_instance.wait_until_instruction_id_has_run = null //but don't increment PC
+            let busy_job_array_copy = rob.busy_job_array.slice()
+            rob.clear_busy_job_array() //so that the other jobs that I call set_up_next_do, won't hang up because they are busy,
+            //because they no longer should be busy, because we got back our ack from Dexter that was keeping them busy,
+            for(let busy_job of busy_job_array_copy){
+                if(busy_job === job_instance) {} //let this pass through to the below as the passed in robot_status is from this instrr and this job_instance
+                else {
+                    busy_job.set_up_next_do(0) //now execute the instr at the PC in an OTHER job, without advancing it.
+                    return
+                }
+            }
             let instruction_to_run_when_error = job_instance.if_robot_status_error //.call(job_instance, robot_status)
             if(instruction_to_run_when_error){
                 //note instruction_to_run_when_error can be a single instruction or an array
@@ -1522,7 +1532,7 @@ Dexter = class Dexter extends Robot {
     clean_up_busy_job_array(){
        let result = []
        for(let a_job of this.busy_job_array){
-            if(a_job.is_active()) { //remove inactive jobs from busy_job_array by preserviong the still active ones
+            if(a_job.is_active()) { //remove inactive jobs from busy_job_array by preserving the still active ones
                 if(!result.includes(a_job)) { //remove duplicates
                     result.push(a_job)
                 }

@@ -1848,6 +1848,8 @@ var {FPGA} = require("./core/fpga.js")
 var {Simqueue} = require("./core/simqueue.js")
 require('./core/dexter_defaults.js')
 
+var mathjs = require(/*DDE_NPM.folder + */ "mathjs")
+
 
 
 //packages for package sake.

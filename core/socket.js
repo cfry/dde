@@ -633,6 +633,11 @@ var Socket = class Socket{
         let job_id = robot_status[Dexter.JOB_ID]
         let job_instance = Job.job_id_to_job_instance(job_id)
         //out(job_instance.name + " " + rob.name + " bottom of Socket.on_receive with: " + robot_status)
+
+        if(oplet === "M"){ //todo just temporary for testing. remove.
+            robot_status[Dexter.ERROR_CODE] = 9
+        }
+
         dexter_instance.robot_done_with_instruction(robot_status) //robot_status ERROR_CODE *might* be 1
     }
 

@@ -6,6 +6,25 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.8.14, Mar 24, 2023</summary>
+Highlights mathjs installed, fixes and extensions for class Vector that uses mathjs.
+    Fix and extension for Defaults.make_ins processing.
+<ul>
+    <li>Fixed bug in Jobs menu Show Robot Status whereby,
+        if the last job run had a robot that was not a Dexter,
+        it would not display the dialog box.</li>
+    <li>Fixed bug in <code>to_source_code</code> in the argument when calling to_source_code_lit_obj.</li>
+    <li>Fix for <code>Dexter.prototype.defaults_high_level_to_defaults_lines_ServoSetup_line</code>
+        about duplicate RebootServo written out to defaults.make_ins</li>
+    <li>Extended <code>Defaults.make_ins</code> parsing and writing back out to accomadate <code>CmdXor</code> processing.</li>
+    <li><code>Vector.rotate</code> fixed for "term3"</li>
+    <li>Fixed doc eval_after_changing_dde-init</li>
+    <li><code>mathjs</code> is now installed in DDE3. To use it: for example, <code>mathjs.eigs(...)</code></li>
+    <li>Vector.js new methods on <code>Vector</code> class: <code>circle_fit_3D</code>,
+       <code>circle_fit_2D</code>, <code>plane_fit</code>. plane_fit calls <code>mathjs.eigs</code></li>
+    <li><code>Dexter.robot_done_with_instruction</code> extended to better handle errors.</li>
+</ul>
+</details>
 <details class="doc_details"><summary>v 3.8.13, Nov 24, 2022</summary>
 Highlights: Big fixes to Dexter.defaults, zip file support
 <ul>

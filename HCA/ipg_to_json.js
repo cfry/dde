@@ -373,7 +373,7 @@ grab_io('(myt "myn ame", myt2 myn2)')
 grab_io(str)
 */
     static grab_io(str, start_index=0) {
-        if(str.includes("MSB008 MSB008)")) { debugger; }
+        if(str.includes("MSB008 MSB008)")) {  }
         let cur_term = ""
         let cur_pair
         let pair_array = [] //the main result
