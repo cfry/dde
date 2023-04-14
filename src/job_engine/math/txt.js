@@ -5,7 +5,7 @@
 
 
 /*
-debugger
+
 var my_string = 
 `BAYMF`
 
@@ -14,7 +14,7 @@ Vector.max(txt.a())[0]
 var dd = txt.a_max()
 points[1]
 
-debugger
+
 Vector.add(txt.a(), [3, 0, 100])
 
 

@@ -2691,6 +2691,176 @@ class Vector{
 	}
 	//Vector.is_valid_triangle(3, 4, 5) //true
     //Vector.is_valid_triangle(0.339092, 0.3075, 0.0265968) //false
+
+	static circle_fit_3D(points){
+		let plane = Vector.plane_fit(points)
+		let points_local = []
+		for(let i = 0; i < points.length; i++){
+			points_local.push([...points[i], 1])
+		}
+		points_local = Vector.transpose(Vector.matrix_multiply(Vector.inverse(plane.pose), Vector.transpose(points_local)))
+
+		let circle_local = Vector.circle_fit_2D(points_local)
+		let center_local = [[...circle_local.center, 0, 1]]
+		let center_global = Vector.transpose(Vector.matrix_multiply(plane.pose, Vector.transpose(center_local))).slice(0, 3)
+		let pose = Vector.make_pose(center_global, plane.basis)
+
+		return {
+			center: center_global,
+			normal: plane.normal,
+			radius: circle_local.radius,
+			pose
+		}
+	}
+	/*
+    var points = [
+        [0, -1, 3],
+        [1, 0, 3],
+        [0, 1, 3],
+    ]
+    inspect(Vector.circle_fit_3D(points))
+    //should return:
+    {
+        center: [1.6653345369377348e-16, 0, 3],
+        normal: [0, 0, 1],
+        radius: 1
+    }
+    */
+
+	static circle_fit_2D(points, IterMax = 100){
+		//--------------------------------------------------------------------------
+		//
+		//     Circle fit by Pratt
+		//      V. Pratt, "Direct least-squares fitting of algebraic surfaces",
+		//      Computer Graphics, Vol. 21, pages 145-152 (1987)
+		//
+		//     Input:  XY(n,2) is the array of coordinates of n points x(i)=XY(i,1), y(i)=XY(i,2)
+		//
+		//     Output: Par = [a b R] is the fitting circle:
+		//                           center (a,b) and radius R
+		//
+		//     Note: this fit does not use built-in matrix functions (except "mean"),
+		//           so it can be easily programmed in any programming language
+		//
+		//--------------------------------------------------------------------------
+
+		let n = points.length
+		let centroid = Vector.average(...points)
+		let Mxx=0, Myy=0, Mxy=0, Mxz=0, Myz=0, Mzz=0
+
+		for(let i = 0; i < n; i++){
+			let Xi = points[i][0] - centroid[0]
+			let Yi = points[i][1] - centroid[1]
+			let Zi = Xi*Xi + Yi*Yi
+			Mxy += Xi*Yi
+			Mxx += Xi*Xi
+			Myy += Yi*Yi
+			Mxz += Xi*Zi
+			Myz += Yi*Zi
+			Mzz += Zi*Zi
+		}
+
+		Mxx = Mxx/n
+		Myy = Myy/n
+		Mxy = Mxy/n
+		Mxz = Mxz/n
+		Myz = Myz/n
+		Mzz = Mzz/n
+
+		let Mz = Mxx + Myy
+		let Cov_xy = Mxx*Myy - Mxy*Mxy
+		let Mxz2 = Mxz*Mxz
+		let Myz2 = Myz*Myz
+
+		let A2 = 4*Cov_xy - 3*Mz*Mz - Mzz
+		let A1 = Mzz*Mz + 4*Cov_xy*Mz - Mxz2 - Myz2 - Mz*Mz*Mz
+		let A0 = Mxz2*Myy + Myz2*Mxx - Mzz*Cov_xy - 2*Mxz*Myz*Mxy + Mz*Mz*Cov_xy
+		let A22 = A2 + A2
+
+		let epsilon = 1e-12
+		let ynew = Infinity
+		let xnew = 0
+		let yold, xold
+
+		for(let iter = 0; iter < IterMax; iter++){
+			yold = ynew
+			ynew = A0 + xnew*(A1 + xnew*(A2 + 4.*xnew*xnew))
+			if(Math.abs(ynew) > Math.abs(yold)){
+				xnew = 0
+				break
+			}
+			let Dy = A1 + xnew*(A22 + 16*xnew*xnew)
+			xold = xnew
+			xnew = xold - ynew/Dy
+			if(Math.abs((xnew-xold)/xnew) < epsilon){break}
+			if(iter >= IterMax){
+				out('Newton-Pratt will not converge')
+				xnew = 0
+			}
+			if(xnew < 0.){
+				xnew = 0;
+			}
+		}
+
+		let DET = xnew*xnew - xnew*Mz + Cov_xy
+		let center = [(Mxz*(Myy-xnew)-Myz*Mxy)/DET/2, (Myz*(Mxx-xnew)-Mxz*Mxy)/DET/2]
+		let radius = Math.sqrt(Vector.matrix_multiply(center, Vector.transpose(center))[0][0] + Mz + 2*xnew)
+		return {
+			center: Vector.add(center, centroid.slice(0, 2)),
+			radius: radius
+		}
+	}
+	/*
+    //Example:
+    var points = [
+        [0, -2, 3],
+        [2, 0, 3],
+        [0, 2, 3],
+    ]
+    inspect(Vector.circle_fit_2D(points))
+    //should return {x: 0, y: 0, r: 2}
+
+    */
+
+	static plane_fit(points){
+		let point = Vector.average(...points)
+		let R = []
+		for(let i = 0; i < points.length; i++){
+			R.push(Vector.subtract(points[i], point))
+		}
+		let A = Vector.matrix_multiply(Vector.transpose(R), R)
+		let eigen_vectors = mathjs.eigs(A).vectors
+		let normal = [eigen_vectors[0][0], eigen_vectors[1][0], eigen_vectors[2][0]]
+		let rot_mat = [
+			[0, 0, 1],
+			[0, 1, 0],
+			[1, 0, 0]
+		]
+		let basis = Vector.matrix_multiply(eigen_vectors, rot_mat) //I like Z-up / Z being the normal of the plane
+		let pose = Vector.make_pose(point, basis)
+
+		let plane = {
+			point: point,
+			normal: normal,
+			basis: basis,
+			pose: pose
+		}
+		return plane
+	}
+	/*
+    Example:
+    var points = [
+        [0, -1, 3],
+        [1, 0, 3],
+        [0, 1, 3],
+    ]
+    inspect(Vector.plane_fit(points))
+    //should return
+    {
+        normal: [0, 0, 1],
+        point: [0.3333333333333333, 0, 3]
+    }
+    */
 } //end class
 
 globalThis.Vector = Vector

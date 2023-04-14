@@ -260,8 +260,12 @@ class DocCode {
     }
 
     static output_pane_showing(){
-        return !$('#left_splitter_id').jqxSplitter('panels')[1].collapsed
+        if(globalThis.left_splitter_id) {
+            return !$('#left_splitter_id').jqxSplitter('panels')[1].collapsed
+        }
+        else { return false } //hits if user replaced the whole ui (body_id)
     }
+
 
     static misc_pane_showing(){
         return !$('#right_splitter_id').jqxSplitter('panels')[1].collapsed

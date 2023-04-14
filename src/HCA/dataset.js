@@ -394,8 +394,8 @@ globalThis.Dataset = class Dataset{
                     }
 
                 }
-                for(let a_object_name_plus_in_types in HCAObjDef.object_name_plus_in_types_to_def_map){
-                    let a_obj_def = HCAObjDef.object_name_plus_in_types_to_def_map[a_object_name_plus_in_types]
+                for(let a_object_name_plus_in_types in HCAObjDef.obj_id_to_obj_def_map){
+                    let a_obj_def = HCAObjDef.obj_id_to_obj_def_map[a_object_name_plus_in_types]
                     for(let i = 0; i < a_obj_def.inputs; i++){
                         if(a_obj_def.inputs[i].type === vals.orig_name){
                             a_obj_def.inputs[i].type = vals.name
@@ -449,7 +449,7 @@ globalThis.Dataset = class Dataset{
             let collector_name = dataset_name + "Out"
             let node = LiteGraph.createNode("basic/" + collector_name, collector_name)
             HCA.lgraph.add(node);
-            HCA.node_add_usual_actions(node)
+            HCACall.node_add_usual_actions(node)
             return node
     }
 
@@ -457,7 +457,7 @@ globalThis.Dataset = class Dataset{
         let collector_name = dataset_name + "In"
         let node = LiteGraph.createNode("basic/" + collector_name, collector_name)
         HCA.lgraph.add(node);
-        HCA.node_add_usual_actions(node)
+        HCACall.node_add_usual_actions(node)
         return node
     }
 
@@ -691,7 +691,6 @@ globalThis.Dataset = class Dataset{
         let outs = [{type: this.name, name: this.name + "Out0"}]
         let json_obj = {
             objectName: this.name + "Out",
-            objectType: this.name + "Out",
             TreeGroup:  new_tree_group_arr,
             inputs:     ins,
             outputs:    outs,
@@ -720,7 +719,6 @@ globalThis.Dataset = class Dataset{
         }
         let json_obj = {
             objectName: this.name + "In",
-            objectType: this.name + "In",
             TreeGroup:  new_tree_group_arr,
             inputs:     ins,
             outputs:    outs,

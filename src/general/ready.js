@@ -149,8 +149,10 @@ import "../HCA/HCA_ui.js"        //defines global HCA class
 //import "../HCA/HCA_objects.js" //obsoleted by ipg_to_json..js
 import "../HCA/ipg_to_json.js"   //defines global ipg_to_json class
 import "../HCA/HCA_objdef.js"    //defines global HCAObjDef class
+import "../HCA/HCACall.js"    //defines global HCACall class
+
 import "../HCA/dataset.js"       //defines global Dataset class
-import "../HCA/fpga_type.js" //defines global SystemDescription class
+import "../HCA/fpga_type.js"     //defines global SystemDescription class
 
 import "../HCA/litegraph_patches.js"
 

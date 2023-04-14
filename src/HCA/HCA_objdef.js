@@ -5,7 +5,7 @@ globalThis.HCAObjDef = class HCAObjDef {
     static current_obj_def
     static core_lib_top_level_tree_names
     static object_name_to_defs_map
-    static object_name_plus_in_types_to_def_map
+    static obj_id_to_obj_def_map
 
     static init() {
         console.log("top of HCAObjDef.init")
@@ -19,7 +19,7 @@ globalThis.HCAObjDef = class HCAObjDef {
         this.current_obj_def = null
         this.core_lib_top_level_tree_names = "not_inited"
         this.object_name_to_defs_map = {}
-        this.object_name_plus_in_types_to_def_map = {}
+        this.obj_id_to_obj_def_map = {}
     }
 
     constructor(json_obj){
@@ -27,8 +27,11 @@ globalThis.HCAObjDef = class HCAObjDef {
             DDE.error("Attempt to create an HCA object definition without an objectName.<br/>" +
                 "Other Attributes: " + JSON.stringify(json_obj))
         }
-        let obj_id = HCAObjDef.make_obj_id(json_obj)
-        let the_obj_def = HCAObjDef.object_name_plus_in_types_to_def_map[obj_id]
+        if(!json_obj.inputs)  { json_obj.inputs  = [] }
+        //must do the above for the below call to make_obj_id to work
+        if(!json_obj.outputs) { json_obj.outputs = [] }
+        let obj_id = (json_obj.obj_id ? json_obj.obj_id : HCAObjDef.make_obj_id(json_obj) )
+        let the_obj_def = HCAObjDef.obj_id_to_obj_def_map[obj_id]
         //if there is aready an obj-def_overload for this obj_id, use it, else
         //use the new obj in "this".
         //This way we avoid making duplicates as some files redefine
@@ -60,15 +63,26 @@ globalThis.HCAObjDef = class HCAObjDef {
                 the_obj_def.TreeGroup = ["Misc"] //[this.objectName]
             } //fry added this because some objects didin't have a TreeGroup, such as the obj with objectName: "CoreLib". So I gave it one
         }
-        if(!the_obj_def.objectType) {
-            the_obj_def.objectType = this.objectName
-        }
         if(!the_obj_def.inputs)  { this.inputs  = [] } //CoreLib doesn't have an outputs field.
         if(!the_obj_def.outputs) {
             the_obj_def.outputs = []
         } //CoreLib doesn't have an outputs field.
         if(!the_obj_def.prototypes) {
             the_obj_def.prototypes = []
+        }
+        for(let i = 0; i <  the_obj_def.prototypes.length; i++){
+            let pt = the_obj_def.prototypes[i]
+            if(!(pt instanceof HCACall)){
+                pt.containing_obj_id = obj_id
+                let a_HCACall = new HCACall(pt) //with no containing def_obj passed in as 2nd arg,
+                //don't attempt to uniquify call_names.
+                // this allows for loading up all the prototypes before checkign against them all
+                //to find a potentially needed unique call name.
+                the_obj_def.prototypes[i] = a_HCACall
+            }
+            else {
+                pt.containing_obj_id = obj_id //make sure our call obj knows what obj_def its inside of.
+            }
         }
         if(!the_obj_def.netList){
             the_obj_def.netList = []
@@ -78,11 +92,14 @@ globalThis.HCAObjDef = class HCAObjDef {
         }
         if(making_new_obj) {
             the_obj_def.obj_id = obj_id
-            HCAObjDef.object_name_plus_in_types_to_def_map[obj_id] = the_obj_def //add or replaces if already exists
+            HCAObjDef.obj_id_to_obj_def_map[obj_id] = the_obj_def //add or replaces if already exists
+            for(let call_obj of this.prototypes) {
+               call_obj.make_call_name_unique_maybe(this) //wait until now to do this because we want tis fn to be able to see all the call_objs in THIS.
+            }
             the_obj_def.add_or_replace_in_object_name_to_defs_map()
             the_obj_def.insert_obj_def_into_tree(HCAObjDef.obj_def_tree, this.TreeGroup)
             the_obj_def.insert_obj_def_into_sheets_menu_maybe()
-            HCA.insert_obj_def_into_pallette(the_obj_def) //but only if no already in
+            HCA.insert_obj_def_into_pallette(the_obj_def) //but only if not already in
             HCA.register_with_litegraph(the_obj_def)
         }
         else if(TreeGroup_changed){
@@ -199,18 +216,18 @@ globalThis.HCAObjDef = class HCAObjDef {
             }
             else{ //all done loading obj_defs, so display an obj_def
                 if(HCAObjDef.current_sheet && HCAObjDef.current_sheet.source_path === source_path){
-                    HCA.display_obj_def(HCAObjDef.current_sheet)
+                    HCAObjDef.display_obj_def(HCAObjDef.current_sheet)
                 }
                 else {
                     for(let sheet of HCAObjDef.sheets){
                         if(sheet.source_path === source_path){
-                            HCA.display_obj_def(sheet)
+                            HCAObjDef.display_obj_def(sheet)
                             return
                         }
                     }
                     let an_obj_def = this.first_obj_def_with_source_path(source_path)
                     if(an_obj_def){
-                        HCA.display_obj_def(an_obj_def)
+                        HCAObjDef.display_obj_def(an_obj_def)
                     }
                     else {
                         warning("There are no object definitions in: " + source_path)
@@ -230,148 +247,11 @@ globalThis.HCAObjDef = class HCAObjDef {
                 HCAObjDef.sheets.push(this)
                 HCA.add_to_obj_def_menu_maybe(this)
             }
-            //see HCA.display_obj_def for other insertion into the menu.
+            //see HCAObjDef.display_obj_def for other insertion into the menu.
             //but the sheets at the top, and the non-sheets at the bottom
         }
     }
 
-    static js_to_HCA(){
-        if( Editor.current_buffer_needs_saving &&
-           (Editor.get_javascript().trim().length > 0)){
-            warning("The editor has unsaved changes.<br/>" +
-                    "Please save it or delete all the content before switching the view to HCA.")
-            code_view_kind_id.value = "JS"
-            return
-        }
-        let source = Editor.get_javascript().trim()
-        try {
-            HCA.init(Editor.current_file_path, source) //for error messages only
-            globalThis.HCA_dom_elt.focus()
-        }
-        catch(err){
-            code_view_kind_id.value = "JS"
-            Editor.view = "JS"
-            Editor.myCodeMirror.focus()
-            warning("Sorry, could not convert the JavaScript in the Editor buffer into a valid JSON object for HCA.<br/>" +
-                "If you want to start a new HCA program, please create an empty editor buffer first.")
-        }
-    }
-
-//_______SAVING____________
-    static hca_to_js(){
-        let old_js_full = Editor.get_text_editor_content(false) //get text regardles of view, if there's a selection, use it.
-        let old_js = old_js_full.trim()
-        let old_content_to_show = ((old_js.length > 50) ? (old_js.substring(0, 50) + "...") : old_js)
-        old_content_to_show = old_content_to_show.replaceAll("\n", "<br/>")
-        let sel_text = Editor.get_text_editor_content(true).trim()//get selection or empty string
-        let sel_text_to_show = ((sel_text.length > 50) ? (sel_text.substring(0, 50) + "...") : sel_text)
-        sel_text_to_show = sel_text_to_show.replaceAll("\n" + "<br/>")
-        let replace_sel_or_insert_html = ((sel_text.length > 0) ?
-                               ( "<input type='submit' value='Replace Selection'/> of:<br/>" +
-                               sel_text_to_show) :
-                               "<input type='submit' value='Insert'/> at cursor position " + Editor.selection_start() + " of " + old_js_full.length + ".")
-        show_window({title: "Save HCA Program to Text Editor",
-                x: 200, y: 100, width: 750, height: 330,
-                content: `<fieldset style="display: inline-block;vertical-align:top;">
-                             <input type="radio" value="save_all"         name="save_obj_restriction"> Save ALL objects in the selected files.</input><br/>
-                             <input type="radio" value="save_cur_obj_def" name="save_obj_restriction" checked>
-                                  Save only objects that are connected to</input><br/> 
-                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the current object definition<br/>
-                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AND in the selected files.                                                                 <br/>
-                             <hr/>
-                             <b>Loaded Files:</b><br/>` +
-                             this.make_file_checkboxes_html() +
-                           `</fieldset>
-                          <div style="display: inline-block;">
-                          <input type='submit' value='Cancel'/> the save.<p/>
-                          <input type='button' value='Inspect'/> what would be saved but<br/>
-                          don't actually save it. Keeps this dialog up.<p/>
-                          <input type='submit' value='Continue to JS'/> without saving anything.<br/>This leaves the text editor unchanged.<p/>
-                          <input type='submit' value='Replace All'/> the text editor content of:<br/>` +
-                           old_content_to_show + `<p/>` +
-                           replace_sel_or_insert_html + `<p/>` +
-                          `<input type='submit' value='Make new buffer'/> for the HCA content.
-                          </div>
-                         `,
-                callback: "HCAObjDef.save_handler"
-            }
-        )
-    }
-
-    static make_file_checkboxes_html(){
-        let result = ""
-        for(let file of ipg_to_json.loaded_files){
-            let checked = ""
-            if(file.endsWith("built_in") ||
-               file.endsWith("CorLib.ipg")) { //the default selected files
-               checked = ""
-            }
-            else { checked = " checked "}
-            result += '<input type="checkbox" ' +
-                        checked +
-                        ' value="' + "file:" + file + '" ' +
-                       ' >' + file + '</input><br/>'
-        }
-        return result
-    }
-
-    static save_handler(vals){
-        if      (vals.clicked_button_value === "Cancel") {
-            code_view_kind_id.value = "HCA"
-            return
-        }
-        else if (vals.clicked_button_value === "Continue to JS") {
-            html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
-            Editor.view = "JS"
-            Editor.myCodeMirror.focus()
-        }
-        else {
-            let save_all_objects_in_selected_files = vals.save_all
-            let selected_files = [] //this ends up being just a file list of the files to include object defs from
-            let save_all_obj_defs = vals.save_obj_restriction === "save_all"
-            for (let key in vals) {
-                if (key.startsWith("file:")) {
-                    if (vals[key]) {
-                        selected_files.push(key.substring(5))
-                    }
-                }
-            }
-            let new_json_str
-            if (save_all_obj_defs) {
-                new_json_str = HCAObjDef.json_string_of_defs_in_files(selected_files)
-            }
-            else {
-                new_json_str = HCAObjDef.json_string_of_defs_in_obj_def(undefined, selected_files)
-            }
-            new_json_str = js_beautify(new_json_str)
-
-            if (vals.clicked_button_value === "Inspect") {
-                let json_obj = JSON.parse(new_json_str)
-                inspect(json_obj)
-            } else if (vals.clicked_button_value === "Replace All") {
-                html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
-                Editor.set_javascript(new_json_str)
-                Editor.view = "JS"
-                Editor.myCodeMirror.focus()
-            } else if ((vals.clicked_button_value === "Replace Selection") ||
-                (vals.clicked_button_value === "Insert")) {
-                setTimeout(function () {
-                    html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
-                    Editor.replace_selection(new_json_str)
-                    Editor.view = "JS"
-                    Editor.myCodeMirror.focus()
-                }, 200)
-            } else if (vals.clicked_button_value === "Make new buffer") {
-                setTimeout(function () {
-                    html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
-                    Editor.edit_new_file()
-                    Editor.set_javascript(new_json_str)
-                    Editor.view = "JS"
-                    Editor.myCodeMirror.focus()
-                }, 200)
-            }
-        }
-    }
 
     static json_string_of_defs_in_obj_def(obj_def=HCAObjDef.current_obj_def, files_array=ipg_to_json.loaded_files){
         let json_obj = this.json_obj_of_defs_in_obj_def(obj_def, files_array)
@@ -379,7 +259,7 @@ globalThis.HCAObjDef = class HCAObjDef {
     }
 
     static json_obj_of_defs_in_obj_def(obj_def, files_array=ipg_to_json.loaded_files){
-        let found_obj_defs = this.obj_defs_in_obj_def(obj_def, files_array)
+        let found_obj_defs = this.obj_defs_called_by_obj_def(obj_def, files_array)
         let datasets = Dataset.datasets_in_files(files_array)
         let result = {project_name: obj_def.objectName,
                       project_date: Utils.date_or_number_to_ymdhms(Date.now()),
@@ -395,42 +275,18 @@ globalThis.HCAObjDef = class HCAObjDef {
     //the arg can really be any obj_def.
     //walk the prototypes to collect all the obj_defs including passed in obj_def
     //and all the obj_defs of its obj_calls recursively on down.
-    /*static obj_defs_in_obj_def(obj_def, result_obj_defs=[], top_level_tree_group_names_to_ignore=[]){
-        let top_level_tree_group_name = obj_def.TreeGroup[0]
-        if(top_level_tree_group_names_to_ignore.includes(top_level_tree_group_name)) {}
-        else {
-          if(result_obj_defs.includes(obj_def)) {} //already got this obj_def so don't add it again!
-          else {
-              result_obj_defs.push(obj_def)
-              for(let obj_call of obj_def.prototypes){
-                  let a_obj_def = this.obj_call_to_obj_def(obj_call, top_level_tree_group_names_to_ignore)
-                  if(!a_obj_def){
-                      warning("obj_defs_in_obj_def found obj_call that has no definition: " + obj_call.objectName)
-                  }
-                  else {
-                      this.obj_defs_in_obj_def(a_obj_def, result_obj_defs, top_level_tree_group_names_to_ignore)
-                  }
-              }
-          }
-        }
-        return result_obj_defs
-    }*/
-
-    static obj_defs_in_obj_def(obj_def, files_array=ipg_to_json.loaded_files, result_obj_defs=[]){
+    static obj_defs_called_by_obj_def(obj_def, files_array=ipg_to_json.loaded_files, result_obj_defs=[]){
         if(result_obj_defs.includes(obj_def))               {} //already got this obj_def so don't add it again!
         else if(!files_array.includes(obj_def.source_path)) {} //exclude obj_def
         else {
             result_obj_defs.push(obj_def)                  //include obj_def and maybe obj_defs it calls
             for(let obj_call of obj_def.prototypes){
-                if(obj_call.objectName.startsWith("Output")) {
-                    debugger;
-                }
                 let a_obj_def = this.obj_call_to_obj_def(obj_call)
                 if(!a_obj_def){
-                    warning("HCAObjDef.obj_defs_in_obj_def found obj_call that has no definition: " + obj_call.objectName)
+                    warning("HCAObjDef.obj_defs_called_by_obj_def found obj_call that has no definition: " + obj_call.objectName)
                 }
                 else {
-                    this.obj_defs_in_obj_def(a_obj_def, files_array, result_obj_defs)
+                    this.obj_defs_called_by_obj_def(a_obj_def, files_array, result_obj_defs)
                 }
             }
         }
@@ -657,63 +513,72 @@ globalThis.HCAObjDef = class HCAObjDef {
     */
     static define_built_ins(){
         let json_obj_defs = [
-        {TreeGroup: ["BuiltIn"], objectName: 'INVERT', objectType: 'INVERT',
+        {TreeGroup: ["BuiltIn"],
+            objectName: 'INVERT',
             inputs: [{type: 'Bit', name: 'In1'}],
             outputs:[{type: 'Bit', name: "Out1"}],
             netList:[],
             prototypes:[],
             line: "Object ( Bit Out1) INVERT( Bit In1)"
          },
-        {TreeGroup: ["BuiltIn"], objectName: 'AND', objectType: 'AND',
+        {TreeGroup: ["BuiltIn"],
+            objectName: 'AND',
             inputs: [{type: 'Bit', name: 'In1'}, {type: 'Bit', name: 'In2'}],
             outputs:[{type: 'Bit', name: "Out"}],
             netList:[],
             prototypes:[],
             line: "Object ( Bit Out) AND( Bit In1, Bit In2)"
         },
-        {TreeGroup: ["BuiltIn"], objectName: 'OR', objectType: 'OR',
+        {TreeGroup: ["BuiltIn"],
+            objectName: 'OR',
             inputs: [{type: 'Bit', name: 'In1'}, {type: 'Bit', name: 'In2'}],
             outputs:[{type: 'Bit', name: "Out"}],
             netList:[],
             prototypes:[],
             line: "Object ( Bit OUT) OR( Bit In1, Bit In2)"
         },
-        {TreeGroup: ["BuiltIn"], objectName: 'Input', objectType: 'Input',
+        {TreeGroup: ["BuiltIn"],
+            objectName: 'Input',
             inputs: [],
             outputs:[{type: 'Variant', name: 'In1'}],
             netList:[],
             prototypes:[],
             line: "Object ( Variant In1) Input"
         },
-        {TreeGroup: ["BuiltIn"], objectName: 'Output', objectType: 'Output',
+        {TreeGroup: ["BuiltIn"],
+            objectName: 'Output',
             inputs: [{type: 'Variant', name: 'Out1'}],
             outputs:[],
             netList:[],
             prototypes:[],
             line: "Object Output( Variant Out1)"
         },
-        {TreeGroup: ["BuiltIn"], objectName: 'Junction', objectType: 'Junction',
+        {TreeGroup: ["BuiltIn"],
+            objectName: 'Junction',
             inputs: [{type: 'Variant', name: 'In0'}],
             outputs:[{type: 'Variant', name: 'Out1'}, {type: 'Variant', name: 'Out2'}, {type: 'Variant', name: 'Out3'}],
             netList:[],
             prototypes:[],
             line: "Object ( Variant Out1, Variant Out2, Variant Out3) Junction( Variant In0)"
         },
-        {TreeGroup: ["BuiltIn"], objectName: '$Select', objectType: '$Select',
+        {TreeGroup: ["BuiltIn"],
+            objectName: '$Select',
             inputs: [{type: 'Variant', name: '#0'}, {type: 'Variant', name: '#1'}, {type: 'Bit', name: 'S'}],
             outputs:[{type: 'Variant', name: 'Out'}],
             netList:[],
             prototypes:[],
             line: "Object ( Variant Out) $Select( Variant '#0', Variant '#1', Bit S)"
         },
-        {TreeGroup: ["BuiltIn"], objectName: '$Cast', objectType: '$Cast',
+        {TreeGroup: ["BuiltIn"],
+            objectName: '$Cast',
             inputs: [{type: 'Variant', name: 'Data'}, {type: 'Variant', name: 'Type'}],
             outputs:[{type: 'Variant', name: 'Out'}],
             netList:[],
             prototypes:[],
             line: "Object ( Variant Out) $Cast( Variant Data, Variant Type)"
         },
-        {TreeGroup: ["BuiltIn"], objectName: 'Text', objectType: 'Text',
+        {TreeGroup: ["BuiltIn"],
+            objectName: 'Text',
             inputs: [],
             outputs:[],
             netList:[],
@@ -724,8 +589,130 @@ globalThis.HCAObjDef = class HCAObjDef {
         HCAObjDef.insert_obj_defs_into_tree("built_in", json_obj_defs)
     }
 
+    static display_obj_def(obj_def_or_obj_id){
+        let obj_def
+        if(typeof(obj_def_or_obj_id)  === "string"){
+            obj_def = HCAObjDef.obj_id_to_obj_def_map[obj_def_or_obj_id]
+            if(!obj_def) {
+                warning("Attempt to edit an object definition named: " + obj_def_or_obj_id +
+                    " but couldn't find it.")
+                return
+            }
+        }
+        else { obj_def = obj_def_or_obj_id }
+        //let sheet_obj = HCAObjDef.object_name_to_sheet(obj_name)
+        HCAObjDef.current_obj_def = obj_def
+        if(obj_def.CurrentSheet) {
+            HCAObjDef.current_sheet = obj_def
+            sheet_kind_id.value = "CurrentSheet"
+        }
+        else if(obj_def.WipSheet){
+            HCAObjDef.current_sheet = obj_def
+            sheet_kind_id.value = "WipSheet"
+        }
+        else {
+            //should I set HCAObjDef.current_sheet to null??? We might still have a "working sheet".
+            sheet_kind_id.value = "not a sheet"
+            HCA.add_to_obj_def_menu_maybe(obj_def)
+            //see HCAObjDef
+        }
+        current_obj_def_name_id.value = obj_def.objectName
+        HCA.update_obj_def_select_dom_elt(obj_def.obj_id)
+        let tree_path = HCAObjDef.current_obj_def.TreeGroup.join("/")
+        tree_path_id.value = tree_path
+        source_path_id.value = obj_def.source_path
+        HCAObjDef.redraw_obj_def()
+        inspect(HCAObjDef.current_obj_def)
+    }
+
+    static redraw_obj_def(obj_def=HCAObjDef.current_obj_def) {
+        HCA.lgraph.clear() //remove all existing graphical nodes
+        if(!obj_def.prototypes) { return } //no prototypes to display in canvas
+        let lgraph_config_json = { "last_node_id": obj_def.prototypes.length - 1,
+            //"last_link_id" //set below
+            "nodes":  [], //filled in below
+            "links":  [],//filled in below, example of elt: //[1, 2, 0, 1, 0, "Variant"]
+            "groups": [],
+            "config": {},
+            "extra":  {},
+            "version": 0.4
+        }
+        let min_x = null
+        let min_y = null
+        let call_names_array = [] //array indices are lgraph node ids. arr elts are call_names
+
+        //make the lgraph node json obj and compute the min_x and min_y position for all the nodes
+        for(let i = 0; i <  obj_def.prototypes.length; i++){
+            let call_obj = obj_def.prototypes[i]
+            call_names_array[i] = call_obj.call_name
+            let a_node = HCACall.call_obj_to_node(call_obj, i)
+            let x = a_node.pos[0]
+            if((min_x === null) || (min_x > x)) { min_x = x}
+            let y = a_node.pos[1]
+            if((min_y === null) || (min_y > y)) { min_y = y}
+            lgraph_config_json.nodes.push(a_node)
+        }
+
+        //shift the nodes such that the min-x is up against left side of the canvas and
+        //min_y is up against the top of the canvas.
+        for(let node of lgraph_config_json.nodes){
+            node.pos[0] -= min_x
+            node.pos[1] -= min_y
+            node.pos[1] += 25 //because there's some error in where the Y pos in a node is.
+                              //with this offset, the top of the topmost block comes to
+                              // the top of the display area, not above it.
+        }
+
+        let netList = obj_def.netList //an array of objs, one per link.
+        //each of these link objs has 2 props: "sink" and "source"
+        //the sink obj as 2 props: call_name and outputNumber (a non-neg int)
+        //the source obj as 2 props: call_name and inputNumber (a non-neg int)
+        let lgraph_links = []
+        for(let connection_index = 0;  connection_index < netList.length; connection_index++){
+            let connection          = netList[connection_index]
+            let source_call_name     = connection.source.call_name
+            let source_outputNumber = connection.source.outputNumber
+            let sink_call_name       = connection.sink.call_name
+            let sink_inputNumber    = connection.sink.inputNumber
+
+            let source_node =  HCACall.call_name_to_node(source_call_name, lgraph_config_json.nodes)
+            let sink_node   =  HCACall.call_name_to_node(sink_call_name,   lgraph_config_json.nodes)
+
+            let type
+            try {
+                type = source_node.outputs[source_outputNumber].type
+                //let obj_def = HCAObjDef.obj_name_to_obj_def(sink_objectName)
+                //type = obj_def.outputs[sink_outputNumber].type
+                //let source_obj_call = connection.source //obj_def.prototypes[i]
+                //type = source_obj_call.outputs[source_outputNumber].type //todo cant work. no type info in call
+            }
+            catch(err) { type = "Varient"} //todo this is a hack, need to fix.
+            let source_node_id = call_names_array.indexOf(source_call_name)
+            let sink_node_id   = call_names_array.indexOf(sink_call_name)
+            let links_elt  = [connection_index, //LLink.id
+                source_node_id,  //LLink.origin_id,
+                source_outputNumber,  //LLink.origin_slot,
+                sink_node_id,  //LLink.target_id,
+                sink_inputNumber,  ///LLink.target_slot,
+                type  //LLink.type
+            ]
+            lgraph_links.push(links_elt)
+            source_node.outputs[source_outputNumber].links.push(connection_index)
+            sink_node.inputs[sink_inputNumber].link = connection_index
+            console.log("connected lgraph nodes")
+        }
+        lgraph_config_json.links        = lgraph_links
+        lgraph_config_json.last_link_id = lgraph_links.length - 1
+
+        //actually render the nodes.
+        HCA.lgraph.configure(lgraph_config_json) //ok if json_obj is undefined, which it will be if json_string defaults to "", or we launch HCA_UI from an empty editor buffer.
+        for(let node of HCA.lgraph._nodes){ //if json_string === "", lgraph._nodes will be []
+            HCACall.node_add_usual_actions(node)
+        }
+    }
+
     static show_obj_def_dialog(event){
-        let the_objectName = event.target.innerHTML
+        let the_objectName = event.target.innerText
         let obj_defs = HCAObjDef.object_name_to_defs_map[the_objectName]
         inspect(obj_defs)
         let obj_defs_select_html = `<select id="obj_def_overload_id" style="margin:5px;">`
@@ -735,13 +722,14 @@ globalThis.HCAObjDef = class HCAObjDef {
         obj_defs_select_html += "</select><br/>"
         show_window({
             title: "Choose Object Definition Operation",
-            x:200, y:100, width:360, height:260,
+            x:200, y:100, width:360, height:270,
             content: `for: <b>` + the_objectName + `</b><br/>
                      <input type="hidden" name="the_objectName" value="` + the_objectName + `"/>
                      First, choose an overloaded object definition<br/>
                      with input types (after commas):<br/>` +
                      obj_defs_select_html +
                     `<input type="submit" value="Edit Definition"  style="margin:5px;"/><br/>
+                     <input type="submit" value="Edit Attributes"  style="margin:5px;"/><br/> 
                      <input type="submit" value="Make Call"        style="margin:5px;"/><br/>
                      <input type="submit" value="Delete"           style="margin:5px;"/><br/>
                      <input type="submit" value="Find"             style="margin:5px;"/>`,
@@ -753,19 +741,23 @@ globalThis.HCAObjDef = class HCAObjDef {
 
     static show_obj_def_dialog_cb(vals){
         let the_objectName = vals.the_objectName
-        let overload_obj_id = vals.obj_def_overload_id
-        let overload_obj_def = HCAObjDef.object_name_plus_in_types_to_def_map[overload_obj_id]
+        let obj_id = vals.obj_def_overload_id
+        let obj_def = HCAObjDef.obj_id_to_obj_def_map[obj_id]
         if(vals.clicked_button_value === "Make Call"){
             //HCA.make_and_add_block('` + tree_path_and_obj_name + `', event)">` + obj_def.objectName + "</div>
-            //make_and_add_call_to_definition(HCA.current_obj_def, obj_def_to_call) //todo incomplete def now in HCA_ui.js
-            HCA.display_obj_call(overload_obj_def)
+            let call_obj = HCACall.make_and_add_call_to_definition(obj_def, HCAObjDef.current_obj_def)
+            HCACall.display_call_obj(call_obj)
         }
         else if(vals.clicked_button_value === "Edit Definition"){
-            //HCAObjDef.show_edit_dialog(overload_obj_def)
-            HCA.display_obj_def(overload_obj_def)
+            //HCAObjDef.show_edit_dialog(obj_def)
+            HCAObjDef.update_current_obj_def_from_nodes()
+            HCAObjDef.display_obj_def(obj_def)
+        }
+        else if(vals.clicked_button_value === "Edit Attributes"){
+            HCAObjDef.show_edit_attribute_dialog(obj_def)
         }
         else if(vals.clicked_button_value === "Delete"){
-            //dataset_obj/overload_obj_def.remove() //todo
+            //dataset_obj/obj_def.remove() //todo
             warning("Delete of an object definition not yet implemented.")
         }
         else if(vals.clicked_button_value === "Find"){
@@ -779,90 +771,99 @@ globalThis.HCAObjDef = class HCAObjDef {
             shouldnt("In show_dataset_dialog_cb got invalid clicked_button_value: " +
                 vals.clicked_button_value)
         }
-
-
     }
 
-    static show_edit_dialog(overload_obj_def){
+    static non_attribute_names = ["TreeGroup", "inputs", "line", "netList",
+                                  "obj_id", "objectName", "outputs", "prototypes",
+                                  "revisions", "source_path"]
+
+    static attribute_names_in_obj_def(obj_def){
+        let result = []
+        for(let key of Object.keys(obj_def)){
+           if(!this.non_attribute_names.includes(key)) {
+               result.push(key)
+           }
+        }
+        return result
+    }
+
+
+    static show_edit_attribute_dialog(obj_def){
         let built_in_warning = ""
         let disabled_prop = ""
-        if(overload_obj_def.TreeGroup[0] === "BuiltIn"){
-            built_in_warning = `<span style="color:red;">BuiltIn object definitions can't be edited.</span><br/>`
+        if(obj_def.TreeGroup[0] === "BuiltIn"){
+            built_in_warning = `<div style="color:red;">BuiltIn object definitions can't be edited.</div>`
             disabled_prop = " disabled "
         }
-        let inputs_html = ""
-        for(let a_in of overload_obj_def.inputs){
-            inputs_html  += a_in.name  + " " + a_in.type  + "\n"
+        let names_and_values = ""
+        let description_value = ""
+        let attr_count = 0
+        for(let key of this.attribute_names_in_obj_def(obj_def)){
+            let val =  obj_def[key]
+            if(typeof(val) === "string") { //val might be a number
+                val = val.trim()
+            }
+            if(key === "description"){
+                description_value = val
+            }
+            else {
+                names_and_values += key + ": " + val + "\n"
+                attr_count += 1
+            }
         }
-        inputs_html.trim() //take off final newline
-        let outputs_html = ""
-        for(let a_out of overload_obj_def.inputs){
-            outputs_html += a_out.name + " " + a_out.type + "\n"
-        }
-        outputs_html.trim() //take off final newline
-        show_window({title: "Edit Object Definition",
-            x:200, y:100, width:350, height:350,
-            content: built_in_warning +
-                `<input type="hidden"                               value="` + overload_obj_def.objectName + `" name="orig_name"/>` +
-                `<input type="hidden"                               value="` + overload_obj_def.obj_id     + `" name="obj_def_overload_id" />` +
-                `name:        <input style="margin:5px;"            value="` + overload_obj_def.objectName             + `" name="name"`        + disabled_prop + `/><br/>` +
-                `TreeGroup:   <input style="margin:5px;"            value="` + overload_obj_def.TreeGroup.join("/")    + `" name="TreeGroup"`   + disabled_prop + `/><br/>` +
-                `source_path: <input style="margin:5px;width:200px" value="` + overload_obj_def.source_path            + `" name="source_path"` + disabled_prop + `/><br/>` +
-                `<div style="margin:5px 5px 0px 60px;">Name Type</div>` +
-                `<div><span style="vertical-align:top;margin-top:20px;"> Inputs:</span> <textarea style="margin:5px 5px 5px 10px;" name="inputs"  rows="3" cols="30"` + disabled_prop + `>` + inputs_html + `</textarea></div>` +
-                `<div><span style="vertical-align:top;margin-top:20px">Outputs:</span>  <textarea style="margin:5px 5px 5px 0px;"  name="outputs" rows="3" cols="30"` + disabled_prop + `>` + outputs_html + `</textarea></div>` +
-                `<input              style="margin:10px;" value="Update Object Definition" type="button"` + disabled_prop + `/>`,
-            callback: "HCAObjDef.edit_dialog_cb"
+        let plural = ((attr_count === 1) ? "" : "s")
+        let count_comment = "<i>&nbsp;&nbsp;" + attr_count +  " existing attribute" + plural + ", one per row.</i>"
+        show_window(
+           {title: "Edit Attributes",
+            x:200, y:100, width:450, height:350,
+            content: `of Object Definition: <b>` + obj_def.obj_id + `</b>` +
+                built_in_warning +
+                `<input type="hidden"                               value="` + obj_def.objectName + `" name="object_name"/>` +
+                `<input type="hidden"                               value="` + obj_def.obj_id     + `" name="obj_def_id" />` +
+                `<div style="margin:5px;"><b><i>Name: Value</i></b> ` + count_comment + `</div>` +
+                `<textarea id="hca_attributes_id" rows="5" cols="50" style="margin:5px;">` + names_and_values + `</textarea><br/>` +
+                `<b><i>Description:</i></b><br/>` +
+                `<textarea id="hca_description_id" rows="5" cols="50" style="margin:5px;">` + description_value + `</textarea><br/>` +
+                `<input type="button"          style="margin:10px;" value="Update Object Definition" ` + disabled_prop + `/>`,
+            callback: "HCAObjDef.edit_attribute_dialog_cb"
         })
     }
 
-    static edit_dialog_cb(vals){
+    static edit_attribute_dialog_cb(vals){
         if(vals.clicked_button_value === "Update Object Definition") {
-            let obj_def_overload_id = vals.obj_def_overload_id
-            let obj_def = HCAObjDef.object_name_plus_in_types_to_def_map[obj_def_overload_id]
-            obj_def.source_path = vals.source_path
-
-            if(vals.name !== vals.orig_name) {
-                let orig_dom_elt_id = HCA.make_object_id(obj_def) //do with dataset_obj having orig name
-                let orig_dom_elt = globalThis[orig_dom_elt_id]
-                orig_dom_elt.innerText = vals.name //set to new name
-                obj_def.name = vals.name //set to new name
-                let new_dom_elt_id = HCA.make_object_id(obj_def) //do with dataset_obj having new name
-                orig_dom_elt.setAttribute("id", new_dom_elt_id)
-                delete HCAObjDef.object_name_plus_in_types_to_def_map[obj_def.obj_id]
-                obj_def.obj_id = new_dom_elt_id
-                HCAObjDef.object_name_plus_in_types_to_def_map[new_dom_elt_id] = obj_def
+            let obj_def_id = vals.obj_def_id
+            let obj_def = HCAObjDef.obj_id_to_obj_def_map[obj_def_id]
+            let attribute_names_in_dialog = []
+            for (let row of hca_attributes_id.value.split("\n")){
+                row = row.trim()
+                if(row.length > 0) {
+                    let attr_name_delimiter_pos = row.indexOf(": ")
+                    if(attr_name_delimiter_pos === -1) {
+                        warning("While parsing attribute row, there's no colon-space so no attribute name for:<br/><code>" +
+                            row + `</code><br/>Please add a colon-space after attribute name or delete this row.`)
+                        return //don't close window, let the user fix the problem first.
+                    }
+                    else {
+                        let attr_name = row.substring(0, attr_name_delimiter_pos)
+                        let attr_value = row.substring(attr_name_delimiter_pos + 2).trim()
+                        obj_def[attr_name] = attr_value
+                        attribute_names_in_dialog.push(attr_name)
+                    }
+                }
             }
-
-            let new_ins_objs = {}
-            let in_lines = vals.inputs.trim().split("\n")
-            for(let line of in_lines) {
-                line = line.trim()
-                let [name, type] = split(line, " ")
-                new_ins_objs.push({name: name, type: type})
+            //Deleting attributes
+            let att_names_in_obj_def = HCAObjDef.attribute_names_in_obj_def(obj_def)
+            let att_names_to_delete  = Utils.symmetric_difference(att_names_in_obj_def, attribute_names_in_dialog)
+            for(let att_name_to_delete of att_names_to_delete){
+                if(att_name_to_delete === "description") {} //handle below
+                delete obj_def[att_name_to_delete]
             }
-            if(!Utils.similar(new_ins_objs, obj_def.inputs)) {
-                delete HCAObjDef.object_name_plus_in_types_to_def_map[obj_def.obj_id]
-                obj_def.inputs = new_ins_objs
-                let new_new_obj_id = HCA.make_object_id(obj_def)
-                obj_def.obj_id = new_new_obj_id
-                HCAObjDef.object_name_plus_in_types_to_def_map[new_new_obj_id] = obj_def
+            let des_val = hca_description_id.value.trim()
+            if(des_val.length > 0) {
+                obj_def.description = des_val
             }
-
-            let new_outs_objs = {}
-            let out_lines = vals.outputs.trim().split("\n")
-            for(let line of vals.outputs) {
-                line = line.trim()
-                let [name, type] = split(line, " ")
-                new_outs_objs.push({name: name, type: type})
-            }
-            if(!Utils.similar(new_outs_objs, obj_def.outputs)) {
-                obj_def.outputs = new_outs_objs
-            }
-
-            let new_treegroup_arr = vals.TreeGroup.split("/'")
-            if(!Utils.similar(new_treegroup_arr, dataset_obj.TreeGroup)){
-                obj_def.change_treegroup(new_treegroup_arr)
+            else {
+                delete obj_def.description
             }
             SW.close_window(vals.window_index)
         }
@@ -870,14 +871,16 @@ globalThis.HCAObjDef = class HCAObjDef {
             SW.close_window(vals.window_index)
         }
     }
+
     change_treegroup(new_treegroup_arr){
         this.remove()
         this.set_treegroup(new_treegroup_arr)
     }
 
     remove(){
+        HCA.unregister_with_litegraph(this)
         this.delete_obj_def_from_tree()
-        delete HCAObjDef.object_name_plus_in_types_to_def_map[this.obj_id]
+        delete HCAObjDef.obj_id_to_obj_def_map[this.obj_id]
         let index = HCAObjDef.object_name_to_defs_map[this.objectName].indexof(this)
         HCAObjDef.object_name_to_defs_map.splice(index, 1) //remove it
         this.remove_from_pallette()
@@ -893,5 +896,51 @@ globalThis.HCAObjDef = class HCAObjDef {
         this.TreeGroup = new_treegroup_arr
         this.insert_obj_def_into_tree()
         HCA.insert_obj_def_into_pallette(this)
+    }
+
+    static rename_obj_def(current_obj_def, new_obj_name){
+        current_obj_def.remove()
+        current_obj_def.remove_from_pallette
+        current_obj_def.objectName = new_obj_name
+        HCAObjDef.obj_id_to_obj_def_map[this.obj_id] = current_obj_def
+        HCAObjDef.object_name_to_defs_map[current_obj_def.objectName].push(current_obj_def)
+        current_obj_def.insert_obj_def_into_tree(HCAObjDef.obj_def_tree, this.TreeGroup)
+        current_obj_def.insert_obj_def_into_sheets_menu_maybe()
+        HCA.insert_obj_def_into_pallette(current_obj_def) //but only if not already in
+        HCA.register_with_litegraph(current_obj_def)
+
+    }
+
+    static update_current_obj_def_from_nodes(){
+        let cur_obj_def = HCAObjDef.current_obj_def
+        if(cur_obj_def) { //usually, if not always, hits
+            let nodes = HCA.lgraph._nodes //remake cur_obj_def.prototypes from this
+            let new_HCACalls = []
+            for (let node of nodes) {
+                let new_HCACall = HCACall.node_to_HCACall(node)
+                new_HCACall.containing_obj_id = cur_obj_def.obj_id
+                new_HCACalls.push(new_HCACall)
+            }
+            cur_obj_def.prototypes = new_HCACalls
+            let new_connections = []
+            let links = HCA.lgraph.links  //remake cur_obj_def.netList from this.
+            for (let link of links) {
+                if(link) { //warning: after we've deleted a node, sometimes link is undefined. if so, don't do the below
+                    let new_connection = {
+                        source: {
+                            call_name: HCACall.node_id_to_HCACall(link.origin_id, new_HCACalls).call_name,
+                            outputNumber: link.origin_slot
+                        },
+                        sink: {
+                            call_name: HCACall.node_id_to_HCACall(link.target_id, new_HCACalls).call_name,
+                            inputNumber: link.target_slot
+                        }
+                    }
+                    //link.type //"Variant"
+                    new_connections.push(new_connection)
+                }
+            }
+            cur_obj_def.netList = new_connections
+        }
     }
 }

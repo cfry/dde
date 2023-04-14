@@ -58,7 +58,7 @@ globalThis.ipg_to_json = class ipg_to_json{
         source = source.trim()
         if(source.startsWith("{")) {
            let json_obj = JSON.parse(source)
-           return json
+           return json_obj
         }
         else {
             let ipg = source
@@ -73,7 +73,7 @@ globalThis.ipg_to_json = class ipg_to_json{
             //lines = lines.slice(-3)
             let top_level_obj = null //initialized and filled in during a loop that starts with
                                      //Object, but also used by subsequent lines
-            let sub_obj = null
+            let call_obj_json = null
             let section = null
             for (let line_index = 0; line_index < lines.length; line_index++) {
                 let line = lines[line_index]
@@ -131,7 +131,7 @@ globalThis.ipg_to_json = class ipg_to_json{
                 else if (line.startsWith("System ")) {
                     break;
                 } else if (line.startsWith("{")) {
-                    section = "sub_objects"
+                    section = "calls"
                 } //in a top level object, just before top level doc.
                 //no content after the first char of such lines.
                 else if (Utils.is_whitespace(line)) {
@@ -142,10 +142,10 @@ globalThis.ipg_to_json = class ipg_to_json{
                     }
                     top_level_obj.revisions.push(line.substring(4))
                 } else if (line.startsWith(" // ")) { //top level doc
-                    if (!top_level_obj.doc) {
-                        top_level_obj.doc = ""
+                    if (!top_level_obj.description) {
+                        top_level_obj.description = ""
                     }
-                    top_level_obj.doc += line.substring(4) + "\n"
+                    top_level_obj.description += line.substring(4) + "\n"
                 } else if (line.trim() == "//") {
                 } //ignore, empty comment. place AFTER " // " test. probably has some newline char(s) after the //
 
@@ -159,7 +159,7 @@ globalThis.ipg_to_json = class ipg_to_json{
                 } else if (line.startsWith("}")) { //ends a top level object. No content after the close curley.
                     section = null
                     top_level_obj = null
-                    sub_obj = null
+                    call_obj_json = null
                 } else if (section === "netList") {
                     let bt_obj = this.parse_behavior_topology(line, top_level_obj)
                     top_level_obj.netList.push(bt_obj)
@@ -190,8 +190,9 @@ globalThis.ipg_to_json = class ipg_to_json{
                     //so shouldn't need to be passed line_index & lines
                     top_level_obj.line = line        //for debugging, not in VIVA
                     top_level_obj.source_path = source_path //not in VIVA
+                    top_level_obj.obj_id = HCAObjDef.make_obj_id(top_level_obj)
                     result.object_definitions.push(top_level_obj)
-                } else if (line.startsWith(" Object ")) { //making a new sub object/prototype/ref/fn call
+                } else if (line.startsWith(" Object ")) { //making a new call
                     if (!top_level_obj.prototypes) {
                         top_level_obj.prototypes = []
                     }
@@ -205,9 +206,9 @@ globalThis.ipg_to_json = class ipg_to_json{
                         }
                         //else loop around
                     }
-                    sub_obj = this.parse_object(line, false) // do not do "let sub_obj ..." as sub_obj is declared further up, by design
-                    sub_obj.line = line //for debugging
-                    top_level_obj.prototypes.push(sub_obj)
+                    call_obj_json = this.parse_object(line, false) // do not do "let call_obj_json ..." as call_obj_json is declared further up, by design
+                    call_obj_json.line = line //for debugging
+                    top_level_obj.prototypes.push(call_obj_json)
                 } else if (line.startsWith("//_ Attributes ")) { //top level object Attributes
                     let next_line = ((line_index === (lines.length - 1)) ? null : lines[line_index + 1])
                     if (next_line.startsWith(" ") && next_line.trim().startsWith(",")) {
@@ -230,11 +231,11 @@ globalThis.ipg_to_json = class ipg_to_json{
                     line.startsWith(" ") &&
                     line.trim().startsWith(",")) { //we have a 2nd line of top level obj attributes
                     //which is ignored because the clause line.startsWith("//_ Attributes ") handles it.
-                } else if (line.startsWith(" //_ Attributes ")) { //sub_obj Attributes, doesn't have a 2nd line of attributes in az.idl, but allow for it
+                } else if (line.startsWith(" //_ Attributes ")) { //call_obj_json Attributes, doesn't have a 2nd line of attributes in az.idl, but allow for it
                     let next_line = ((line_index === (lines.length - 1)) ? null : lines[line_index + 1])
                     let attr_obj = this.parse_front_of_line_attributes(line, next_line)
                     for (let key of Object.keys(attr_obj)) {
-                        sub_obj[key] = attr_obj[key]
+                        call_obj_json[key] = attr_obj[key]
                     }
                 } else {
                     warning("HCA.parse got a line " + line_index + " of:<br/><code>" + line + "</code><br/>which is unexpected and thus ignored.")
@@ -341,13 +342,27 @@ globalThis.ipg_to_json = class ipg_to_json{
         */
         let [name, name_end_pos] = this.grab_name(before_comment, name_start_pos) //before_comment.substring(name_start_pos, name_end_pos).trim()
         //if(name.startsWith('"')) { name = name.substring(1, name.length - 1) } //cut off double quotes in name that are *sometimes* present
-        let [type, name_ext] = name.split(":") //name_ext is included in name, we don't use it separately
-        //console.log("objectName: " + name)
-        new_obj.objectName = name  //for obj_def, looks like "foo" but for a call that has > 1 such call in a obj_def, it will look like "foo:A" or foo:B etc.
-        if(!is_obj_def) { //ie we have a obj call
-            new_obj.objectType = type //the part of the name that's before the colon
+        if(is_obj_def){
+            new_obj.objectName = name
         }
-
+        else { //object call
+            let colon_pos = name.indexOf(":")
+            if(colon_pos != -1) {
+                new_obj.call_name = name
+                new_obj.objectName = name.substring(0, colon_pos)
+            }
+            else {
+                new_obj.objectName = name
+                //This is tricky.
+                // Don't set call_name here, leave it non-existent.
+                //Then HCACall.constructor can fill it in with either
+                //same as objectName OR a unique objectName:A accross the
+                //calls that already have call names.
+                //we presume that any objectName:A syntax call names are
+                //unique and good. There can only be one call name
+                //for a given objectName that has no suffix.
+            }
+        }
         //grab inputs
         let [in_array_result, in_end_pos] = this.grab_io(before_comment, name_end_pos)
         /*new_obj.inputs = []
@@ -365,7 +380,7 @@ globalThis.ipg_to_json = class ipg_to_json{
         new_obj.outputs = out_array_result  //stick this here so that the order of props in the JSON obj
         //will be name, type, inputs, outputs, x, y, font ...
         //parse comment
-        if(comment) { //only happens for sub_objects
+        if(comment) { //only happens for calls
             //console.log("grabbing comments: " + comment)
             if(comment.startsWith("_GUI ")){
                 let comment_start = 5
@@ -373,7 +388,6 @@ globalThis.ipg_to_json = class ipg_to_json{
                 let first_comma  = comment.indexOf(",")
                 let end_of_y = comment.indexOf(",", first_comma + 1)
                 if(end_of_y === -1) { end_of_y = comment.length }
-                let x, y, doc
                 new_obj.x = parseInt(comment.substring(0, first_comma))
                 new_obj.y = parseInt(comment.substring(first_comma + 1, end_of_y))
                 if(end_of_y !== comment.length) { //there's more
@@ -387,10 +401,10 @@ globalThis.ipg_to_json = class ipg_to_json{
                         new_obj.fontSize = parseInt(comment.substring(font_size_start_pos, font_size_end_pos))
                     }
                     if(font_name_start_pos === -1) {
-                        new_obj.doc = comment.substring(end_of_y + 1, comment.length)
+                        new_obj.description = comment.substring(end_of_y + 1, comment.length)
                     }
                     else {
-                        new_obj.doc = comment.substring(end_of_y + 1, font_name_start_pos)
+                        new_obj.description = comment.substring(end_of_y + 1, font_name_start_pos)
                         if(font_size_end_pos !== -1) {
                             let junk = comment.substring(font_size_end_pos + 1).trim()
                             if(junk.length > 0){
@@ -401,7 +415,7 @@ globalThis.ipg_to_json = class ipg_to_json{
                                 if(font_mystery_int &&
                                    (font_mystery_int.length > 0) &&
                                    (typeof(font_mystery_int) === "string")) {
-                                       new_obj.fontMysteryInt = parseInt(font_mystery_int.trim())
+                                       new_obj.fontBold = parseInt(font_mystery_int.trim()) //values of: 0 for false (not bold), 1 for bold.
                                 }
                             }
                         }
@@ -569,7 +583,7 @@ grab_io(str)
         return [cur_term, str.length + extra_chars_length] //top level objects that have no inputs or comments
     }
 
-    //line starts with "//_ Attributes" (top level) or " //_ Attributes" (sub_obj)
+    //line starts with "//_ Attributes" (top level) or " //_ Attributes" (calls )
     static parse_front_of_line_attributes(line, next_line = null){
         line = line.trim()
         if(line.startsWith("Attributes")) { line = line.substring(14) }
@@ -628,22 +642,22 @@ grab_io(str)
         let [sink, src] = line.split("=") //bad design: sink comes before source.
         src = src.trim()
         let src_split = src.split(".")
-        let obj_name  = src_split[0]
-        if(obj_name.startsWith('"') && obj_name.endsWith('"')){ //happens when name is "Serial->Parallel_Clr" (including the double quotes, which need to be stripped off
-            obj_name = obj_name.substring(1, obj_name.length - 1)
+        let call_name  = src_split[0]
+        if(call_name.startsWith('"') && call_name.endsWith('"')){ //happens when name is "Serial->Parallel_Clr" (including the double quotes, which need to be stripped off
+            call_name = call_name.substring(1, call_name.length - 1)
         }
-        let src_obj = {objectName: obj_name, // src_split[0],
+        let src_obj = {call_name: call_name, // src_split[0],
                        outputNumber: parseInt(src_split[1])
         }
 
         sink = sink.trim()
         let sink_split = sink.split(".")
-        obj_name = sink_split[0]
+        call_name = sink_split[0]
         let sink_in = parseInt(sink_split[1])
-        if(obj_name.startsWith('"') && obj_name.endsWith('"')){ //happens when name is "Serial->Parallel_Clr" (including the double quotes, which need to be stripped off
-            obj_name = obj_name.substring(1, obj_name.length - 1)
+        if(call_name.startsWith('"') && call_name.endsWith('"')){ //happens when name is "Serial->Parallel_Clr" (including the double quotes, which need to be stripped off
+            call_name = call_name.substring(1, call_name.length - 1)
         }
-        let sink_obj = {objectName: obj_name, // sink_split[0],
+        let sink_obj = {call_name: call_name, // sink_split[0],
                         inputNumber: sink_in
         }
         let bt_obj = {source: src_obj, sink: sink_obj}

@@ -878,8 +878,8 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
                 dde_error("close_window called with invalid window_title_index_or_elt: " + window_title_index_or_elt)
             }
         }
-        catch(err) { warning("DDE unable to close the window specified in: " + window_title_index_or_elt +
-            "<br/>Perhaps its already closed.")
+        catch(err) { out("DDE unable to close the window specified in: " + window_title_index_or_elt +
+            "Perhaps it is already closed.")
         }
     }
 

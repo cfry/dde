@@ -142,11 +142,11 @@ function js_to_blocks(){
 }
 
 function js_to_HCA(){
-    HCAObjDef.js_to_HCA()
+    HCA.js_to_HCA()
 }
 
 function HCA_to_js(){
-    HCAObjDef.hca_to_js()
+    HCA.hca_to_js()
 }
 
 function HCA_to_blocks(){

@@ -19,7 +19,7 @@ var LGraphCanvas_prototype_processKey = function(e) { //used in init
         return;
     }
 
-    if (e.type === "keydown") { //fry: this event not triggered in dde on mac so must use keyup
+    /*if (e.type === "keydown") { //fry: this event not triggered in dde on mac so must use keyup
         if (e.keyCode === 32) {
             //esc
             this.dragging_canvas = true;
@@ -27,12 +27,12 @@ var LGraphCanvas_prototype_processKey = function(e) { //used in init
         }
 
         //select all Control A
-        if (e.keyCode === 65 && e.ctrlKey) {
+        if ((e.keyCode === 65) && e.ctrlKey) {
             this.selectNodes();
             block_default = true;
         }
 
-        if (e.code === "KeyC" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
+        if ((e.code === "KeyC") && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
             //copy
             if (this.selected_nodes) {
                 this.copyToClipboard();
@@ -40,13 +40,13 @@ var LGraphCanvas_prototype_processKey = function(e) { //used in init
             }
         }
 
-        if (e.code === "KeyV" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
+        if ((e.code === "KeyV") && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
             //paste
             this.pasteFromClipboard();
         }
 
         //delete or backspace
-        if (e.keyCode === 46 || e.keyCode === 8) {
+        if ((e.keyCode === 46) || e.keyCode === 8) {
             if (
                 e.target.localName !== "input" &&
                 e.target.localName !== "textarea"
@@ -67,33 +67,69 @@ var LGraphCanvas_prototype_processKey = function(e) { //used in init
                 }
             }
         }
-    } else if (e.type === "keyup") {
+    } */
+    if (e.type === "keyup") {
         if (e.keyCode === 32) {
             this.dragging_canvas = false;
         }
         //begin fry extension:
-        else if (e.key === "a" && e.ctrlKey) { //select all
-            this.selectNodes();
+        else if ((e.key === "a") && e.ctrlKey) { //select all
+            this.selectNodes(); //passing no nodes means select them all
+            this.drawFrontCanvas() //without this, it doesn't highlight the selected nodes
             block_default = true;
         }
-
-        else if (e.key === "x" && (e.metaKey || e.ctrlKey) && !e.shiftKey) { //cut note: metaKey is supposed to be mac cloverleaf but it fails, so just use cntrl key on mac, just like window.
+        //On mac, when you hold down command key and press x, the e.metaKey is NOT true.
+        //after hours of internet search, I cannot detect a cmd-x or cmd-anything.
+        //so just leave it as you have to use ctrl-x, ctrl-c etc on mac just like on windows. grrrr.
+        else if ((e.key === "x") && (e.metaKey || e.ctrlKey) && !e.shiftKey) { //cut note: metaKey is supposed to be mac cloverleaf but it fails, so just use cntrl key on mac, just like window.
             if (this.selected_nodes) {
                 this.copyToClipboard();
                 this.deleteSelectedNodes();
+                setTimeout(function() {HCAObjDef.update_current_obj_def_from_nodes()},
+                           200)
                 block_default = true;
             }
         }
 
-        else if (e.key === "c" && (e.metaKey || e.ctrlKey) && !e.shiftKey) { //copy
+        else if ((e.key === "c") && (e.metaKey || e.ctrlKey) && !e.shiftKey) { //copy
             if (this.selected_nodes) {
                 this.copyToClipboard();
                 block_default = true;
             }
         }
 
-        else if (e.key === "v" && (e.metaKey || e.ctrlKey) && !e.shiftKey) { //paste
-            this.pasteFromClipboard();
+        else if ((e.key === "v") && (e.metaKey || e.ctrlKey) && !e.shiftKey) { //paste
+            if(this.selected_nodes) {
+                this.pasteFromClipboard() //counterintuitively, this has to happen before we uniquify the node_title (with a call_name a la foo:A)
+                //because the clipboard is found in the localStorage of the browserm not actually in this.selected_nodes
+                //The end of pasteFromClipboard updates this.selected_nodes with the actually pasted nodes,
+                //so only THEN can I uniqufy the call_name (node title) and it works. Don't have to redisplay
+                for (let i in this.selected_nodes) { //example in https://github.com/jagenjo/litegraph.js/blob/master/src/litegraph.js line 6477
+                    // i is a string of a small non-neg integer
+                    let a_node = this.selected_nodes[i]
+                    let obj_name = a_node.title
+                    let colon_pos = obj_name.indexOf(":")
+                    if (colon_pos !== -1) {
+                        obj_name = obj_name.substring(0, colon_pos) //strip off the :A suffixes
+                    }
+                    a_node.title = HCACall.first_free_call_name_aux(HCAObjDef.current_obj_def, obj_name)
+                    HCAObjDef.update_current_obj_def_from_nodes()
+                }
+
+                //setTimeout(function () {
+                //        HCAObjDef.update_current_obj_def_from_nodes()
+                //    },
+                //    200)
+            }
+        }
+        else if ((e.keyCode === 46) || e.keyCode === 8) { //todo needs work
+            if (
+                e.target.localName !== "input" &&
+                e.target.localName !== "textarea"
+            ) {
+                this.deleteSelectedNodes();
+                block_default = true;
+            }
         }
 
         //end fry extension
@@ -156,10 +192,12 @@ globalThis.HCA = class HCA {
                               <div style="display:inline-block">
                                  <div><b>ObjectName:</b></div>
                                  <input id="current_obj_def_name_id" onchange="HCA.current_object_name_onchange()"/>
-                                 <select id="current_obj_def_select_id" onchange="HCA.obj_def_select_onchange(event)" title="Choose a previously edited object definition to edit." style="width:20px;height:20px;"></select>
+                                 <select id="current_obj_def_select_id" onchange="HCA.obj_def_select_onchange(event)" title="Choose a previously edited object definition to edit." style="width:20px;height:20px;">
+                                 <option>__select an option__</option>
+                                 </select>
                               </div>
                               <div style="display:inline-block">
-                                 <div><b>Sheet?:</b></div>
+                                 <div><b>Sheet Status:</b></div>
                                  <select id="sheet_kind_id" title="Sheet status of the edited object definition.">
                                     <option value="not a sheet">not a sheet</option>
                                     <option value="WipSheet">WipSheet</option>
@@ -171,6 +209,7 @@ globalThis.HCA = class HCA {
                                  <button onclick="HCA.spread()"    title="Decrease the distance between object calls.">less</button> 
                                  <button onclick="HCA.spread(1.5)" title="Increase the distance between object calls.">more</button>
                               </div>
+                              <!-- <button title="Set zoom and pan to initial values." onclick="HCA.home()">Home</button> -->
                            </div>`
         big_div.insertAdjacentHTML("afterbegin", header_html)
         big_div.insertAdjacentHTML("beforeend", canvas_wrapper_html)
@@ -220,6 +259,9 @@ globalThis.HCA = class HCA {
         this.lgraph = new LiteGraph.LGraph();
         this.lgraphcanvas = new LiteGraph.LGraphCanvas("#HCA_canvas_id", this.lgraph);
         this.lgraphcanvas.background_image = null //get rid of dark grid and make it just white background
+        //this.lgraphcanvas.canvas.addEventListener("drop", function(event) {// does nothing
+        //    inspect("got drop")
+       // })
         // fails  this.lgraphcanvas.processKey = LGraphCanvas_prototype_processKey
         /*let can = HCA_canvas_id
         let context = can.getContext('2d');
@@ -239,12 +281,6 @@ globalThis.HCA = class HCA {
         inspect(this.lgraph.serialize())*/
 
         this.lgraph.configure()
-        //the below is unneeded.
-        //this.lgraph.configure((json_obj ? json_obj : undefined)) //ok if json_obj is undefined, which it will be if json_string defaults to "", or we launch HCA_UI from an empty editor buffer.
-        //for(let node of this.lgraph._nodes){ //if json_string === "", lgraph._nodes will be []
-        //    this.node_add_usual_actions(node)
-        //}
-
 
 
         //this.lgraph.start(100) //let user do this. //arg is number of milliseconds between steps, default 1. don't need this for pure graphics
@@ -272,6 +308,9 @@ globalThis.HCA = class HCA {
                 warning("The text in the editor did not represent a valid HCA application<br/> so starting a new one.")
             }
         }
+        //HCA_canvas_id.addEventListener("drop", function(event) {// doesn't work for dropping a block
+        //        inspect("got drop")
+        //    })
     }
 
     static clear(){
@@ -392,6 +431,149 @@ globalThis.HCA = class HCA {
         }
     }
 
+    static js_to_HCA(){
+        if( Editor.current_buffer_needs_saving &&
+            (Editor.get_javascript().trim().length > 0)){
+            warning("The editor has unsaved changes.<br/>" +
+                "Please save it or delete all the content before switching the view to HCA.")
+            code_view_kind_id.value = "JS"
+            return
+        }
+        let source = Editor.get_javascript().trim()
+        try {
+            HCA.init(Editor.current_file_path, source) //for error messages only
+            globalThis.HCA_dom_elt.focus()
+        }
+        catch(err){
+            code_view_kind_id.value = "JS"
+            Editor.view = "JS"
+            Editor.myCodeMirror.focus()
+            warning("Sorry, could not convert the JavaScript in the Editor buffer into a valid JSON object for HCA.<br/>" +
+                "If you want to start a new HCA program, please create an empty editor buffer first.")
+        }
+    }
+
+//_______SAVING____________
+    static hca_to_js(){
+        let old_js_full = Editor.get_text_editor_content(false) //get text regardless of view, if there's a selection, use it.
+        let old_js = old_js_full.trim()
+        let old_content_to_show = ((old_js.length > 50) ? (old_js.substring(0, 50) + "...") : old_js)
+        old_content_to_show = old_content_to_show.replaceAll("\n", "<br/>")
+        let sel_text = Editor.get_text_editor_content(true).trim()//get selection or empty string
+        let sel_text_to_show = ((sel_text.length > 50) ? (sel_text.substring(0, 50) + "...") : sel_text)
+        sel_text_to_show = sel_text_to_show.replaceAll("\n" + "<br/>")
+        let replace_sel_or_insert_html = ((sel_text.length > 0) ?
+            ( "<input type='submit' value='Replace Selection'/> of:<br/>" +
+                sel_text_to_show) :
+            "<input type='submit' value='Insert'/> at cursor position " + Editor.selection_start() + " of " + old_js_full.length + ".")
+        let replace_all_innerHTML = ((old_js === "") ? " The text editor is now empty." :
+                                                      (` the text editor content of:<br/>` +
+                                                        old_content_to_show + `<p/>` +
+                                                        replace_sel_or_insert_html)
+        )
+
+        show_window({title: "Save HCA Program to Text Editor",
+                x: 200, y: 100, width: 750, height: 330,
+                content: `<fieldset style="display: inline-block;vertical-align:top;">
+                             <input type="radio" value="save_all"         name="save_obj_restriction"> Save ALL objects in the selected files.</input><br/>
+                             <input type="radio" value="save_cur_obj_def" name="save_obj_restriction" checked>
+                                  Save only objects that are connected to</input><br/> 
+                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the current object definition<br/>
+                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AND in the selected files.                                                                 <br/>
+                             <hr/>
+                             <b>Loaded Files:</b><br/>` +
+                    this.make_file_checkboxes_html() +
+                    `</fieldset>
+                          <div style="display: inline-block;">
+                          <input type='submit' value='Cancel'/> the save.<p/>
+                          <input type='button' value='Inspect'/> what would be saved but<br/>
+                          don't actually save it. Keeps this dialog up.<p/>
+                          <input type='submit' value='Continue to JS'/> without saving anything.<br/>This leaves the text editor unchanged.<p/>
+                          <input type='submit' value='Replace All'/>`  + replace_all_innerHTML +
+                          `<p/>` +
+                          `<input type='submit' value='Make new buffer'/> for the HCA content.
+                          </div>
+                         `,
+                callback: "HCA.save_handler"
+            }
+        )
+    }
+
+    static make_file_checkboxes_html(){
+        let result = ""
+        for(let file of ipg_to_json.loaded_files){
+            let checked = ""
+            if(file.endsWith("built_in") ||
+                file.endsWith("CorLib.ipg")) { //the default selected files
+                checked = ""
+            }
+            else { checked = " checked "}
+            result += '<input type="checkbox" ' +
+                checked +
+                ' value="' + "file:" + file + '" ' +
+                ' >' + file + '</input><br/>'
+        }
+        return result
+    }
+
+    static save_handler(vals){
+        if      (vals.clicked_button_value === "Cancel") {
+            code_view_kind_id.value = "HCA"
+            return
+        }
+        else if (vals.clicked_button_value === "Continue to JS") {
+            html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
+            Editor.view = "JS"
+            Editor.myCodeMirror.focus()
+        }
+        else {
+            let save_all_objects_in_selected_files = vals.save_all
+            let selected_files = [] //this ends up being just a file list of the files to include object defs from
+            let save_all_obj_defs = vals.save_obj_restriction === "save_all"
+            for (let key in vals) {
+                if (key.startsWith("file:")) {
+                    if (vals[key]) {
+                        selected_files.push(key.substring(5))
+                    }
+                }
+            }
+            let new_json_str
+            if (save_all_obj_defs) {
+                new_json_str = HCAObjDef.json_string_of_defs_in_files(selected_files)
+            }
+            else {
+                new_json_str = HCAObjDef.json_string_of_defs_in_obj_def(undefined, selected_files)
+            }
+            new_json_str = js_beautify(new_json_str)
+
+            if (vals.clicked_button_value === "Inspect") {
+                let json_obj = JSON.parse(new_json_str)
+                inspect(json_obj)
+            } else if (vals.clicked_button_value === "Replace All") {
+                html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
+                Editor.set_javascript(new_json_str)
+                Editor.view = "JS"
+                Editor.myCodeMirror.focus()
+            } else if ((vals.clicked_button_value === "Replace Selection") ||
+                (vals.clicked_button_value === "Insert")) {
+                setTimeout(function () {
+                    html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
+                    Editor.replace_selection(new_json_str)
+                    Editor.view = "JS"
+                    Editor.myCodeMirror.focus()
+                }, 200)
+            } else if (vals.clicked_button_value === "Make new buffer") {
+                setTimeout(function () {
+                    html_db.replace_dom_elt(globalThis.HCA_dom_elt, Editor.the_CodeMirror_elt)
+                    Editor.edit_new_file()
+                    Editor.set_javascript(new_json_str)
+                    Editor.view = "JS"
+                    Editor.myCodeMirror.focus()
+                }, 200)
+            }
+        }
+    }
+
     //called by Edit menu/pretty print
     static pretty_print(){
         HCA.lgraph.arrange()
@@ -409,7 +591,7 @@ globalThis.HCA = class HCA {
         else if(sel_nodes.length === 1){
             let sel_node = sel_nodes[0]
             let call_name = sel_node.title
-            let call_obj = this.call_name_to_call_obj(call_name)
+            let call_obj = HCACall.call_name_to_call_obj(call_name)
             inspect({
                           selected_call_object:    call_obj,
                           selected_litegraph_node: sel_node,
@@ -443,7 +625,7 @@ globalThis.HCA = class HCA {
         let sel_nodes = HCA.selected_nodes()
         let sel_node = ((sel_nodes.length > 0) ? sel_nodes[0] : "no selected node")
         let call_name = ((sel_nodes.length > 0) ? sel_node.title : null)
-        let call_obj = (call_name ? this.call_name_to_call_obj(call_name) : "no selected call object")
+        let call_obj = (call_name ? HCACall.call_name_to_call_obj(call_name) : "no selected call object")
         inspect({
             selected_call_object:       call_obj,
             selected_litegraph_node:    sel_node,
@@ -453,7 +635,7 @@ globalThis.HCA = class HCA {
             name_to_dataset_object_map: Dataset.name_to_dataset_object_map,
             dataset_tree:               Dataset.dataset_def_tree,
             object_name_to_defs_map:    HCAObjDef.object_name_to_defs_map,
-            object_name_plus_in_types_to_def_map: HCAObjDef.object_name_plus_in_types_to_def_map,
+            obj_id_to_obj_def_map: HCAObjDef.obj_id_to_obj_def_map,
             obj_def_tree:               HCAObjDef.obj_def_tree,
             file_path_to_parse_obj_map: ipg_to_json.file_path_to_parse_obj_map,
             file_path_to_datasets_map:  ipg_to_json.file_path_to_datasets_map,
@@ -527,10 +709,9 @@ globalThis.HCA = class HCA {
         HCA.save_palette() //save the changes
     }
 
-    static clipboard = null
-
     //we only get keyup events from the keyboard, not keydown events.
     /*
+    static clipboard = null
       Obsolete. now done more reliably by LGraphCanvas_prototype_processKey
      static node_keyup_action(event, node){
 
@@ -553,54 +734,6 @@ globalThis.HCA = class HCA {
         }
     }*/
 
-    static make_and_add_block(object_path, event){ //click action from pallette, dde4.
-        let last_slash = object_path.lastIndexOf("/")
-        let obj_name = object_path.substring(last_slash + 1)
-        let obj_defs = HCAObjDef.object_name_to_defs_map[obj_name]
-        inspect(obj_defs)
-        if(event.shiftKey){ //edit the definition of the object
-            HCA.display_obj_def(obj_name)
-        }
-        else { //make and add a block to canvas
-
-            let node = LiteGraph.createNode(object_path, obj_name)
-            this.lgraph.add(node);
-            this.node_add_usual_actions(node)
-            return node
-        }
-    }
-
-    //this is the obj def to add the call to,
-    //obj_def_to_call is use to get the name and inputs of the call
-    //does not cause display
-    static make_and_add_call_to_definition(obj_def_to_add_call_to, obj_def_to_call){
-        let json_call = {
-            objectName: obj_def_to_call.objectName,
-            inputs: [],
-            outputs: []
-        }
-        this.prototypes.push(json_call)
-    }
-
-    static display_obj_call(obj_def_or_obj_id){
-        let obj_def
-        if(typeof(obj_def_or_obj_id) === "string") {
-            obj_def = HCAObjDef.object_name_plus_in_types_to_def_map(obj_def_or_obj_id)
-        }
-        else {obj_def =  obj_def_or_obj_id}
-        let object_path = "basic/" + obj_def.obj_id
-        let node = LiteGraph.createNode(object_path, obj_def.objectName)
-        if(!node){
-            shouldnt("Attempt to call LiteGraph.createNode with object_path: " + object_path +
-                     "<br/>but that hasn't had HCA.register_with_litegraph() called on it.")
-        }
-        else {
-            this.lgraph.add(node);
-            this.node_add_usual_actions(node)
-            return node
-        }
-    }
-
     /*obsoluted with dde4 pallet items from CorLib
     static make_and_add_node(type, button_name){
         out("making node of type: " + type)
@@ -622,29 +755,6 @@ globalThis.HCA = class HCA {
         this.node_add_usual_actions(node)
         return node
     }*/
-
-    static node_add_usual_actions(node){
-         /*causes intermittent problems. Let  LGraphCanvas_prototype_processKey handle cut,copy,paste.
-           if(!node.onKeyUp){
-             node.onKeyUp = function(event) {
-                 HCA.node_keyup_action.call(HCA, event, node)
-             }
-         }*/
-        if(!node.onDblClick){
-            node.onDblClick = function(event){
-                let [litegraph_category, obj_id] = node.type.split("/")
-                out("got double click for node: " + node.type)
-                let obj_def = HCAObjDef.object_name_plus_in_types_to_def_map[obj_id]
-                HCA.display_obj_def(obj_def)
-            }
-        }
-        if(!node.title){
-             warning("A node is used but not defined. Define it via:<br/>" +
-                     "File menu/Load... and choose: " + node.properties.composite_node_src_path +
-                     "<br/>Then re-edit the file via:<br/>" +
-                     "File menu/Open ... and choose: " + Editor.current_file_path)
-        }
-    }
 
     static make_group_cb(group_name){
         if(group_name) {
@@ -677,30 +787,51 @@ globalThis.HCA = class HCA {
 
     //called by File menu/new and other places
     static new_object(){
+         HCAObjDef.update_current_obj_def_from_nodes()
          HCA.lgraph.clear()
          HCAObjDef.current_sheet = null
          HCAObjDef.current_obj_def = null
          current_obj_def_name_id.value = ""
-         sheet_kind_id.value = "not a sheet"
-         sheets_id.value = "None"
-         out("Enter a new object name and<br/>optionally edit its tree path and sheet status<br/>to define a new object.",
+         //current_obj_def_select_id.value = "" //this is a html select menu. todo I want this to leave no item checked, but this doesn't work,
+                                              //it just makes the seleted item be the first item.
+                                              //maybe I should have the first item be "" or
+                                              //be "new Object Definition" and have that be the
+                                              //same functionality as the File menu "New" for HCA???
+        //current_obj_def_select_id.selectedIndex = -1; //from stack overflow, but fails
+        current_obj_def_select_id.value = "__select an option__"
+
+        sheet_kind_id.value = "not a sheet"
+         out("<i>To define a new object:</i><br/>" +
+                  "- Enter a new <b>objectName</b>.<br/>" +
+                  "- Optionally edit its <b>TreeGroup</b>.<br/>" +
+                  "- Optionally choose its <b>Sheet Status</b>.<br/>" +
+                  "- To add a call, in the pallette under <b>Object Tree</b>, click on an object<br/>" +
+                  " &nbsp; and choose <b>Make Call</b>.",
               "green")
          current_obj_def_name_id.focus()
     }
 
     static current_object_name_onchange(){
         let new_obj_name = current_obj_def_name_id.value
-        if (HCAObjDef.current_obj_def){
-            HCAObjDef.rename_obj_def(HCAObjDef.current_obj_def, new_obj_name)
+        if (HCAObjDef.current_obj_def) {
+            if((HCAObjDef.current_obj_def.objectName !== new_obj_name)) {
+                HCAObjDef.rename_obj_def(HCAObjDef.current_obj_def, new_obj_name)
+            }
+            //else {} do nothing. actually this clause should never hit
         }
-        else {
+        else { //no current_obj_def so we must be creating a new object.
             let tree_path = tree_path_id.value.trim()
             let tree_path_arr = tree_path
             let new_obj_def = new HCAObjDef(
                 {objectName: new_obj_name,
-                 TreeGroup:  tree_path_arr}
+                 TreeGroup:  tree_path_arr.TreeGroup,
+                 source_path: source_path_id.value
+                }
             )
-            out("A new HCA Object definition for " + new_obj_name + " has been created.")
+            HCAObjDef.current_obj_def = new_obj_def
+            HCA.add_to_obj_def_menu_maybe(new_obj_def)
+
+            out("A new HCA Object definition for <b>" + new_obj_name + "</b> has been created.")
         }
     }
 
@@ -864,7 +995,6 @@ globalThis.HCA = class HCA {
             let tree_path = obj_def.TreeGroup.join("/")
             let tree_path_and_obj_name = tree_path + "/" + obj_def.objectName
             if(obj_def.objectName === "Output") {
-                 //debugger
                  let junk = "junk" //for debugging only
             }
             this.register_with_litegraph(obj_def)
@@ -903,9 +1033,13 @@ globalThis.HCA = class HCA {
              this.properties = { precision: 1 };
          }
          fn.title = obj_def.objectName; //name to show
-         let obj_path = "basic/" + //obj_def.TreeGroup + "/" +
-                         obj_def.obj_id
+         let obj_path = "basic/" + obj_def.obj_id
          LiteGraph.registerNodeType(obj_path, fn); //register in the system
+    }
+
+    static unregister_with_litegraph(obj_def){
+        let obj_path = "basic/" + obj_def.obj_id
+        LiteGraph.unregisterNodeType(obj_path); //register in the system
     }
 
     static save_palette(){
@@ -990,7 +1124,14 @@ globalThis.HCA = class HCA {
             obj_call.x *= factor
             obj_call.y *= factor
         }
-        this.redraw_obj_def()
+        HCAObjDef.redraw_obj_def()
+    }
+
+    static home(){
+        this.lgraphcanvas.scale = 1
+        this.lgraphcanvas.offset = [0,0]
+        this.lgraphcanvas.drawFrontCanvas()
+        //HCA_canvas_id.top = 0 doesn't work by itself
     }
 
     static menu_label_to_obj_name(label){
@@ -999,48 +1140,22 @@ globalThis.HCA = class HCA {
         else { return label }
     }
 
-    static obj_def_select_onchange(event){
-        let obj_id    = event.target.value
-        let colon_index = obj_id.indexOf(":")
-        if(colon_index >= 0){ //remove the "Cursheet:" or "WipSheet:" prefix
-            obj_id = obj_id.substring(colon_index + 1)
-        }
-        this.display_obj_def(obj_id)
+    static update_obj_def_select_dom_elt(new_label){
+        current_obj_def_select_id.value = new_label
     }
 
-    static display_obj_def(obj_def_or_obj_id){
-        let obj_def
-        if(typeof(obj_def_or_obj_id)  === "string"){
-            obj_def = HCAObjDef.object_name_plus_in_types_to_def_map[obj_def_or_obj_id]
-            if(!obj_def) {
-                warning("Attempt to edit an object definition named: " + obj_def_or_obj_id +
-                    " but couldn't find it.")
-                return
-            }
-        }
-        else { obj_def = obj_def_or_obj_id }
-        //let sheet_obj = HCAObjDef.object_name_to_sheet(obj_name)
-        HCAObjDef.current_obj_def = obj_def
-        if(obj_def.CurrentSheet) {
-            HCAObjDef.current_sheet = obj_def
-            sheet_kind_id.value = "CurrentSheet"
-        }
-        else if(obj_def.WipSheet){
-            HCAObjDef.current_sheet = obj_def
-            sheet_kind_id.value = "WipSheet"
-        }
+    static obj_def_select_onchange(event){
+        let obj_id    = event.target.value
+        if(obj_id === "__select an option__") {}
         else {
-            //should I set HCAObjDef.current_sheet to null??? We might still have a "working sheet".
-            sheet_kind_id.value = "not a sheet"
-            HCA.add_to_obj_def_menu_maybe(obj_def)
-            //see HCAObjDef
+            HCAObjDef.update_current_obj_def_from_nodes()
+
+            let colon_index = obj_id.indexOf(":")
+            if (colon_index >= 0) { //remove the "Cursheet:" or "WipSheet:" prefix
+                obj_id = obj_id.substring(colon_index + 1)
+            }
+            HCAObjDef.display_obj_def(obj_id)
         }
-        current_obj_def_name_id.value = obj_def.objectName
-        let tree_path = HCAObjDef.current_obj_def.TreeGroup.join("/")
-        tree_path_id.value = tree_path
-        source_path_id.value = obj_def.source_path
-        this.redraw_obj_def()
-        inspect(HCAObjDef.current_obj_def)
     }
 
     static add_to_obj_def_menu_maybe(obj_def){
@@ -1065,200 +1180,6 @@ globalThis.HCA = class HCA {
             }
             current_obj_def_select_id.value = menu_item_label
         }
-    }
-
-    static redraw_obj_def(obj_def=HCAObjDef.current_obj_def) {
-        HCA.lgraph.clear() //remove all existing graphical nodes
-        if(!obj_def.prototypes) { return } //no prototypes to display in canvas
-        let lgraph_config_json = { "last_node_id": obj_def.prototypes.length - 1,
-                                    //"last_link_id" //set below
-                                    "nodes":  [], //filled in below
-                                    "links":  [],//filled in below, example of elt: //[1, 2, 0, 1, 0, "Variant"]
-                                    "groups": [],
-                                    "config": {},
-                                    "extra":  {},
-                                    "version": 0.4
-                                 }
-        let min_x = null
-        let min_y = null
-        let objectNames_array = [] //array indices are lgraph node ids. arr elts are objectNames
-
-        //make the lgraph node json obj and compute the min_x and min_y position for all the nodes
-        for(let i = 0; i <  obj_def.prototypes.length; i++){
-            let obj_call = obj_def.prototypes[i]
-            objectNames_array[i] = obj_call.objectName
-            let a_node = this.make_lgraph_node_json(obj_call, i)
-            let x = a_node.pos[0]
-            if((min_x === null) || (min_x > x)) { min_x = x}
-            let y = a_node.pos[1]
-            if((min_y === null) || (min_y > y)) { min_y = y}
-            lgraph_config_json.nodes.push(a_node)
-        }
-
-        //shift the nodes such that the min-x is up against left side of the canvas and
-        //min_y is up against the top of the canvas.
-        for(let node of lgraph_config_json.nodes){
-            node.pos[0] -= min_x
-            node.pos[1] -= min_y
-        }
-
-        let netList = obj_def.netList //an array of objs, one per link.
-                                        //each of these link objs has 2 props: "sink" and "source"
-                                        //the sink obj as 2 props: objectName and outputNumber (a non-neg int)
-                                        //the source obj as 2 props: objectName and inputNumber (a non-neg int)
-        let lgraph_links = []
-        for(let connection_index = 0;  connection_index < netList.length; connection_index++){
-            let connection          = netList[connection_index]
-            let source_objectName   = connection.source.objectName
-            let source_outputNumber = connection.source.outputNumber
-            let sink_objectName     = connection.sink.objectName
-            let sink_inputNumber    = connection.sink.inputNumber
-
-            let source_node =  this.objectName_to_node(lgraph_config_json.nodes, source_objectName) //this.node_id_to_node(lgraph_config_json.nodes, source_node_id)
-            let sink_node   =  this.objectName_to_node(lgraph_config_json.nodes, sink_objectName) //this.node_id_to_node(lgraph_config_json.nodes, sink_node_id)
-
-            let type
-            try {
-                type = source_node.outputs[source_outputNumber].type
-                //let obj_def = HCAObjDef.obj_name_to_obj_def(sink_objectName)
-                //type = obj_def.outputs[sink_outputNumber].type
-                //let source_obj_call = connection.source //obj_def.prototypes[i]
-                //type = source_obj_call.outputs[source_outputNumber].type //todo cant work. no type info in call
-            }
-            catch(err) { type = "Varient"} //todo this is a hack, need to fix.
-            let source_node_id = this.objectName_to_node_id(objectNames_array, source_objectName)
-            let sink_node_id   = this.objectName_to_node_id(objectNames_array, sink_objectName)
-            let links_elt  = [connection_index, //LLink.id
-                              source_node_id,  //LLink.origin_id,
-                              source_outputNumber,  //LLink.origin_slot,
-                              sink_node_id,  //LLink.target_id,
-                              sink_inputNumber,  ///LLink.target_slot,
-                              type  //LLink.type
-                             ]
-            lgraph_links.push(links_elt)
-            source_node.outputs[source_outputNumber].links.push(connection_index)
-            sink_node.inputs[sink_inputNumber].link = connection_index
-            console.log("connected lgraph nodes")
-        }
-        lgraph_config_json.links        = lgraph_links
-        lgraph_config_json.last_link_id = lgraph_links.length - 1
-
-        //actually render the nodes.
-        this.lgraph.configure(lgraph_config_json) //ok if json_obj is undefined, which it will be if json_string defaults to "", or we launch HCA_UI from an empty editor buffer.
-        for(let node of this.lgraph._nodes){ //if json_string === "", lgraph._nodes will be []
-            this.node_add_usual_actions(node)
-        }
-    }
-
-    static node_id_to_node(nodes, id){
-        for(let node of nodes) {
-            if(node.id === id) {
-                return node
-            }
-        }
-        return null
-    }
-
-    static call_name_to_call_obj(call_name, obj_def = HCAObjDef.current_obj_def){
-        for(let call_obj of obj_def.prototypes){
-            if(call_obj.objectName === call_name){
-                return call_obj
-            }
-        }
-        return null
-    }
-
-    static objectName_to_node_id(objectNames_array, objectName){
-        for(let i = 0; i < objectNames_array.length; i++) {
-            if(objectNames_array[i] === objectName) {
-                return i
-            }
-        }
-        return null
-    }
-
-    static objectName_to_node(nodes, objectName){
-        for(let node of nodes){
-            if(node.title === objectName){
-                return node
-            }
-        }
-    }
-
-    static compute_block_width(obj_call){
-        let max_in_letters = 0
-        let max_out_letters = 0
-        if(obj_call.inputs) {
-            for (let a_in of obj_call.inputs) {
-                max_in_letters = Math.max(max_in_letters, a_in.name.length)
-            }
-        }
-        if(obj_call.outputs) {
-            for (let a_out of obj_call.outputs) {
-                max_out_letters = Math.max(max_out_letters, a_out.name.length)
-            }
-        }
-        let io_letters_length = max_in_letters + max_out_letters
-        if((max_in_letters > 0) && (max_out_letters > 0)) {
-            io_letters_length += 2 //space between input and output labels
-        }
-        if(max_in_letters)  {max_in_letters  += 2 }//for the bullet point
-        if(max_out_letters) {max_out_letters += 2 }//for the bullet point
-
-        let title_letters_length = obj_call.objectName.length
-        let title_pix      = (title_letters_length * 9) + 24 //24 is pixels of title's bullet point width title font wider than io names font
-        let io_letters_pix = io_letters_length     * 7
-        let block_width = Math.max(title_pix, io_letters_pix)
-        return block_width
-    }
-
-    static compute_block_height(obj_call){
-        let ins_count  = (obj_call.inputs  ? obj_call.inputs.length  : 0)
-        let outs_count = (obj_call.outputs ? obj_call.outputs.length : 0)
-        let vert_sections = 1 + //the title
-            Math.max(ins_count, outs_count)
-        return vert_sections * 18 //32   LiteGraph.NODE_TITLE_HEIGHT
-    }
-
-    static make_lgraph_node_json(obj_call, id){
-        let ins = []
-        //make json of format:
-        // "inputs": [{ "name": "In1", "type": "Variant", "link": null_or_pos_int }]
-        let hca_call_ins = (obj_call.inputs? obj_call.inputs : [])
-        for(let an_in of hca_call_ins){
-            let a_graph_in = {name: an_in.name, type: an_in.type, link: null}
-            ins.push(a_graph_in)
-        }
-        let outs = []
-        //make json of format:
-        // "outputs": [{ "name": "In1", "type": "Variant", "link": null_or_pos_int }]
-        let hca_call_outs = (obj_call.outputs? obj_call.outputs : [])
-
-        for(let an_out of hca_call_outs){
-            let a_graph_out = {name: an_out.name, type: an_out.type, links: []} //links can be null if none
-            outs.push(a_graph_out)
-        }
-        let width  = this.compute_block_width(obj_call)
-        let height = this.compute_block_height(obj_call)
-        let result = {
-            "id": id,
-            "type": HCAObjDef.call_name_to_def_name(obj_call.objectName),
-            "title": obj_call.objectName,
-            "pos": [obj_call.x * 40, obj_call.y * 40],
-            "size": {
-                "0": width, //140
-                "1": height //26
-            },
-            "flags": {},
-            "order": 1,
-            "mode": 0,
-            "inputs": ins,
-            "outputs": outs,
-            "properties": {
-                "precision": 1
-            }
-        }
-        return result
     }
 
     static find(search_string){

@@ -375,7 +375,7 @@ class Socket{
     }
 
     static string_to_array_buffer(str){
-        var arr_buff = Buffer.alloc(128) //dexter code expecting fixed length buf of 128
+        var arr_buff = Buffer.alloc(256) //was 128 but no reason not to have it 256
         //var view1    = new Uint8Array(arr_buff)
         for(var i = 0; i < str.length; i++){
             let char = str[i]

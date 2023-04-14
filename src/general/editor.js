@@ -246,8 +246,10 @@ class Editor {
     static eval_button_action_aux (step){
         eval_js_part1(step)
         //if (Editor.view == "Blocks") {
-        eval_id.blur()
-        //} //to get rid of the Eval button being "selected" when we're evaling in blocks view
+        if(globalThis.eval_id) { //in case user replaces all of dde ui, eval_id won't be defined,
+            //then that bug stops dde from quiting, so with this trick, it quits ok.
+            eval_id.blur() //to get rid of the Eval button being "selected" when we're evaling in blocks view
+        }
     }
 
     static pretty_print (js){

@@ -1,6 +1,37 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
-
+<details class="doc_details"><summary>v 4.0.6, Apr 14, 2023</summary>
+    Highlights: HCA_UI much more complete
+<ul>
+    <li>Extended Defaults.make_ins parsing and writing back out to accomodate <code>CmdXor</code> processing.</li>
+    <li>Fixed Socket.instruction_array_degrees_to_arcseconds_maybe to properly handle JointDH.
+        Note prev released fixed Socket.instruction_array_arcseconds_to_degrees_maybe.
+        The fix was very similar.</li>
+    <li>Deprecated <code>Robot.dexter0</code> in favor of <code>Dexter.dexter0</code></li>
+    <li>Changed <code>Robot.dexter</code> to  <code>Dexter.dexter0</code> in <code>class Job{ constructor()}</code>
+    <li>In socket.js init, changed <code>let rob = Robot [robot_name]</code> to
+        <code>let rob = Dexter[robot_name]</code></li>
+    <li>>In user guide, fixed port number from 50000 to 3000</li>
+    <li> <code>Vector.rotate</code> added fix for "term3"</li>
+    <li>Installed <code>mathjs</code> as a global variable  so <code>mathjs.eigs</code> now works.</li>
+    <li>Vector.js new methods on Vector class: <code>circle_fit_3D</code>,
+        <code>circle_fit_2D</code>, <code>plane_fit</code>.
+        plane_fit calls <code>mathjs.eigs</code></li>
+    <li><code>Dexter.robot_done_with_instruction</code> extended to better handle errors.</li>
+    <li>In ready.js (eval_id) and in doc_code.js (output_pane_showing)
+        tweaked to make it possible to close the dde window if you've replace the whole ui
+        (<code>body_id</code>)</li>
+    <li>Socket.js increased packet size from <code>128</code> to <code>256</code>
+        for sending instructions to Dexter.</li>
+    <li><span style="color:red;">Warning message: "DDE unable to close the window..." </span>
+        changed to a simple, black font. It is not cause for alarm.</li>
+    <li>HCA_UI now has auto generation for call block unique suffixes,
+        dialogs for editing Object def and Object call attributes.
+        cut, copy and paste working (using ctrl x,c,v, even on mac.
+        And other features making it much more complete.
+    </li>
+</ul>
+</details>
 <details class="doc_details"><summary>v 4.0.5, Feb  21, 2023</summary>
  Highlights: DDE4 uses a very different deployment strategy than DDE3. DDE4 is served
     from an HTTP server running on Dexter. You connect your computer to Dexter and
