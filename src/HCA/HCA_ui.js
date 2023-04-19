@@ -177,7 +177,7 @@ globalThis.HCA = class HCA {
         let canvas_wrapper_html =
             `<div id='HCA_canvas_wrapper_id' style='vertical-align:top; overflow:scroll;  display:inline-block; width:calc(100% - 190px); height:100%; border:1px solid blue;'>
                 <canvas id='HCA_canvas_id' width='720px' height='1024px' <!--backing store in pixels -->
-                    style='vertical-align:top; width:100%; height:100%;'> <!-- display size -->
+                    style='vertical-align:top; width:100%; height:100%; background-color:white;'> <!-- display size -->
                 </canvas>
             </div>`
         let header_html = `<div style="padding:5px;"> 
@@ -209,7 +209,7 @@ globalThis.HCA = class HCA {
                                  <button onclick="HCA.spread()"    title="Decrease the distance between object calls.">less</button> 
                                  <button onclick="HCA.spread(1.5)" title="Increase the distance between object calls.">more</button>
                               </div>
-                              <!-- <button title="Set zoom and pan to initial values." onclick="HCA.home()">Home</button> -->
+                              <button title="Set zoom, pan and spread to initial values." onclick="HCA.home()">Home</button>
                            </div>`
         big_div.insertAdjacentHTML("afterbegin", header_html)
         big_div.insertAdjacentHTML("beforeend", canvas_wrapper_html)
@@ -856,7 +856,7 @@ globalThis.HCA = class HCA {
     //don't use "this" inside this method since its called with a timeout. Use HCA instead.
     static async populate_palette(){
         HCA_palette_id.innerHTML =
-          "Simulator <button onclick='HCA.toggle_stop_run(event)' title='Toggle HCA simulation between stopped and running.' style='background-color:#ff7d8e;'>stopped</button><br/>" +
+          "Simulator <button onclick='HCA.toggle_stop_run(event)' title='Toggle HCA simulation between stopped and running.\bNote: the simulator is not yet operational.' style='background-color:#ff7d8e;'>stopped</button><br/>" +
           `<div style='white-space:nowrap;' title='Specify the shape of the wire transporting data from an output to an input of blocks.'>Wires ` +
            "<input type='radio' checked name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 2; HCA.lgraphcanvas.dirty_bgcanvas = true;'>~</input>"   + //LiteGraph.SPLINE_LINK
            "<input type='radio'         name='link_type' onclick='HCA.lgraphcanvas.links_render_mode = 0; HCA.lgraphcanvas.dirty_bgcanvas = true;'>-_</input>"  + //LiteGraph.STRAIGHT_LINK'
@@ -887,10 +887,10 @@ globalThis.HCA = class HCA {
                                "Inspect HCA internal data structures for debugging."
                              )
         HCA_palette_id.insertAdjacentHTML("beforeend", "<br/>" + FPGAType.pallette_html())
-        HCA_palette_id.insertAdjacentHTML("beforeend", "<details title='Click on an underlined name\nto edit that dataset.'><summary style='font-weight:bold;'>Dataset Tree</summary>\n" +
+        HCA_palette_id.insertAdjacentHTML("beforeend", "<details title='Click on an underlined name\nto show a dialog box with options.'><summary style='font-weight:bold;'>Dataset Tree</summary>\n" +
                                             "<div  id='HCA_palette_datasets_id'>" +
                                             "</div></details>")
-        HCA_palette_id.insertAdjacentHTML("beforeend", "<details title='Click on an underlined name\nto create an object of that type.\nShift-click to edit its definition.'><summary style='font-weight:bold;'>Object Tree</summary>\n" +
+        HCA_palette_id.insertAdjacentHTML("beforeend", "<details title='Click on an underlined name\nto show a dialog box with options.'><summary style='font-weight:bold;'>Object Tree</summary>\n" +
                                            "<div  id='HCA_palette_make_objects_id'>" +
                                            "</div></details>")
         setTimeout( function() {
@@ -1119,19 +1119,25 @@ globalThis.HCA = class HCA {
         this.spread(factor)
     }*/
 
+    static spread_factor = 1
+
     static spread(factor=1/1.5){
         for(let obj_call of HCAObjDef.current_obj_def.prototypes){
             obj_call.x *= factor
             obj_call.y *= factor
         }
         HCAObjDef.redraw_obj_def()
+        this.spread_factor *= factor
     }
 
     static home(){
-        this.lgraphcanvas.scale = 1
-        this.lgraphcanvas.offset = [0,0]
-        this.lgraphcanvas.drawFrontCanvas()
+        //this.lgraphcanvas.scale = 1
+        //this.lgraphcanvas.offset = [0,0]
+        //this.lgraphcanvas.drawFrontCanvas()
         //HCA_canvas_id.top = 0 doesn't work by itself
+        this.lgraphcanvas.ds.reset()
+        this.spread(1 / this.spread_factor)
+        this.lgraphcanvas.drawFrontCanvas()
     }
 
     static menu_label_to_obj_name(label){
@@ -1184,18 +1190,14 @@ globalThis.HCA = class HCA {
 
     static find(search_string){
         let dataset_matches = Dataset.find_datasets(search_string)
-        let [def_match, included_in_name, def_calls_match] = HCAObjDef.find_obj_defs(search_string)
-        if ((included_in_name.length > 0) || (def_calls_match.length > 0))  {
-            inspect({"Definition name matches":  def_match,
-                          "Definition name includes": included_in_name,
-                          "Definition calls match":   def_calls_match,
-                          ...dataset_matches},
-                    undefined,
-                'HCA defs containing: "' + search_string + '"')
-        }
-        else {
-            warning("No HCA object definitions found for: " + search_string)
-        }
+        let [def_name_match, included_in_def_name, def_contains_matching_calls, matching_calls] = HCAObjDef.find_obj_defs(search_string)
+        inspect({"Definition name matches":  def_name_match,
+                      "Definition name includes": included_in_def_name,
+                      "Definition contains matching calls": def_contains_matching_calls,
+                      "Matching calls": matching_calls,
+                      ...dataset_matches},
+                undefined,
+            'HCA defs containing: "' + search_string + '"')
     }
 
 } //end HCA class

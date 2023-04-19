@@ -177,6 +177,7 @@ class Inspect{
             let title = ""
             let array_type = Utils.typed_array_name(item) //"Array", "Int8Array" ... or null
             let checkbox_2d_html_maybe = ""
+            let hca_buttom_html_maybe = ""
             let plot_button_html_maybe = this.make_plot_button_html_maybe(stack_number, in_stack_position) //returns non-empty string for certain arrays, and all Job instances
             let div_id = this.make_inspector_id_string(stack_number, in_stack_position)
             let max_display_factor = (increase_max_display_length ? 4 : 1)
@@ -233,13 +234,27 @@ class Inspect{
                 result = "{"
                 //https://developer.mozilla.org/en-US/docs/Web/API/NamedNodeMap
                 let attrs = item.attributes
-                for(let i = 0; i <attrs.length; i++){
+                for(let i = 0; i < attrs.length; i++){
                     let attr = attrs[i]
-                    let prefix = "&nbsp;"
-                    if (i == 0) { prefix = "" }
+
+
                     let prop_name = attr.name
-                    let prop_val  = attr.value
-                    //like array elements above:
+                    if(!["<!--backing", "store", "in", "pixels", "--"].includes(prop_name)) {
+                        let prefix = "&nbsp;"
+                        if (i == 0) {
+                            prefix = ""
+                        }
+                        let prop_val = attr.value
+                        //like array elements above:
+                        let prop_val_string = this.inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
+                        prop_val_string = this.inspect_prop_val_string_exceptions(item, prop_name, prop_val, prop_val_string)
+                        result += prefix + "<i>" + prop_name + "</i>: " + prop_val_string + "<br/>\n"
+                    }
+                }
+                if(item.style) {
+                    let prefix = "&nbsp;"
+                    let prop_name = "style"
+                    let prop_val  = item.style
                     let prop_val_string = this.inspect_one_liner(prop_val, stack_number, in_stack_position, prop_name)
                     prop_val_string = this.inspect_prop_val_string_exceptions(item, prop_name, prop_val, prop_val_string)
                     result += prefix + "<i>" + prop_name + "</i>: " + prop_val_string + "<br/>\n"
@@ -299,7 +314,20 @@ class Inspect{
             else { //not an array, not a fn
                 result = "{"
                 let prefix = ""
+
                 if (Object.isNewObject(item)) { title = "A newObject named: " + item.name }
+                else if (item instanceof HCAObjDef){
+                    if(Editor.view === "HCA") {
+                        hca_buttom_html_maybe =
+                            `<button onclick="HCAObjDef.display_obj_def('` + item.obj_id +`')">Edit HCAObjDef instance</button>`
+                    }
+                }
+                else if (item instanceof HCACall){
+                    if(Editor.view === "HCA") {
+                        hca_buttom_html_maybe =
+                            `<button onclick="HCACall.display_call_from_inspector('` + item.containing_obj_id + `', '` + item.call_name + `')">Edit ObjDef containing call ` + item.call_name + `</button>`
+                    }
+                }
                 else {
                     let class_name = Utils.get_class_name(item)
                     if (class_name) { title = "A Class named: " + class_name }
@@ -411,7 +439,7 @@ class Inspect{
                 "&nbsp;&nbsp;&nbsp;<span id='" + next_id + "' title='Inspect next value.'     style='cursor:pointer;color:blue;font-weight:900; font-size:20px; opacity:"  + next_opacity + ";'>&gt;</span>\n" +
                 //"<span id='" + refresh_id + "' style='cursor:pointer;padding-left:30px;font-size:20px;' title='refresh' >" + "&#10227;</span>\n" +
                 "<button id='" + refresh_id + "' style='cursor:pointer;font-size:12px;padding:1px;height:20px;' title='refresh the data being inspected.' >Refresh</button>\n" +
-                "<b style='padding-left:10px;'>INSPECTing<i> &nbsp;" + title + "</i></b> " + checkbox_2d_html_maybe + plot_button_html_maybe + "<br/>\n"  +
+                "<b style='padding-left:10px;'>INSPECTing<i> &nbsp;" + title + "</i></b> " + checkbox_2d_html_maybe + plot_button_html_maybe + hca_buttom_html_maybe + "<br/>\n"  +
                 result + "</div>"
             this.inspect_set_prev_onclick(   stack_number, in_stack_position, prev_id)
             this.inspect_set_next_onclick(   stack_number, in_stack_position, next_id)

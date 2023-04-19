@@ -12,9 +12,10 @@ class DDE_DB{
        "dde_window_width":  1000,
        "dde_window_height":  700,
 
+       "default_dexter_port": 3000,
        "default_dexter_simulate": true,
        "default_out_code": false,
-       "dexter_default_ip_address": "192.168.1.142",
+       "default_dexter_ip_address": "192.168.1.142",  // was dexter_default_ip_address bad change to default_dexter_ip_address
        "dexter0_ip_address": "auto",
        "dont_show_splash_screen_on_launch": false,
        "editor_font_size": 17,
@@ -74,13 +75,19 @@ class DDE_DB{
            }
            const dos_request = objectStore.get("persistent_values")
            dos_request.onsuccess = () => {
-               let data = dos_request.result
-               //just in case new version of dde adds some persistent_values...
                let is_modified = false
-               for(let key in DDE_DB.persistent_values_initial_object){
-                   if(data[key] === undefined){
-                       data[key] = DDE_DB.persistent_values_initial_object[key]
-                       is_modified = true
+               let data = dos_request.result
+               if(!data){ //happens the first time DDE is used
+                   data = DDE_DB.persistent_values_initial_object
+                   is_modified = true
+               }
+               else {
+                   //just in case new version of dde adds some persistent_values...
+                   for (let key in DDE_DB.persistent_values_initial_object) {
+                       if (data[key] === undefined) {
+                           data[key] = DDE_DB.persistent_values_initial_object[key]
+                           is_modified = true
+                       }
                    }
                }
                DDE_DB.persistent_values = data

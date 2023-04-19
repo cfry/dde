@@ -28,8 +28,9 @@ globalThis.FPGAType = class FPGAType {
     }
 
     static pallette_html() {
-        let result_html = '<b style="margin-top:5px;" title="The type of FPGA chip to compile for.">FPGA Type:</b> ' +
-                          '<select id="current_fpga_type_id" value="' + FPGAType.current_fpga_type + '" onchange="FPGAType.onchange(event)">'
+        let result_html = '<span title="The type of FPGA chip to compile for." <b style="margin-top:5px;">FPGA Type:</b> ' +
+                          '<select id="current_fpga_type_id" value="' + FPGAType.current_fpga_type + '" onchange="FPGAType.onchange(event)">' +
+                          '</span>'
         for (let opt of this.possible_fpga_types){
             result_html += '<option>' + opt + '</option>'
         }

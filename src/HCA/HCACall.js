@@ -159,6 +159,45 @@ globalThis.HCACall = class HCACall{
         }
     }
 
+    //1. switches to editing the displayed containing obj def.
+    //2. positions the call to 300 pixels to the left and
+    //3. 150 pixes down from the top (a cheap kind of "centering" of the call in the canvas)
+    //4. changes zoom back to 1 (orig)
+    //5. selects the call/node.
+    //does not change the spread.
+    //HTML canvas 0,0 is in upper left.
+    static display_call_from_inspector(containing_obj_id, call_name){
+        HCAObjDef.display_obj_def(containing_obj_id)
+        //HCA.lgraphcanvas.drawFrontCanvas()
+        let node = this.call_name_to_node(call_name)
+        this.center_on_node(node) //HCA.lgraphcanvas.centerOnNode(node) lgraphcanvas.centerOnNode doesn't seem to work, so I wrote my own, simplier one.
+        HCA.lgraphcanvas.selectNodes([node])
+        //HCA.lgraphcanvas.graph.afterChange();
+        //HCA.lgraphcanvas.drawFrontCanvas()
+    }
+
+    //patthered after LGraphCanvas.prototype.centerOnNode
+    //but changed canvas.width and canvas.height to the actual shown
+    //width and height, not the full canvas width and height
+    static center_on_node(node){
+        /* copied from litegraph source code, but doesn't work.
+          HCA.lgraphcanvas.ds.offset[0] =
+            -node.pos[0] -
+            node.size[0] * 0.5 +
+            (HCA_canvas_wrapper_id.width //this.canvas.width
+                * 0.5) / HCA.lgraphcanvas.ds.scale;
+        HCA.lgraphcanvas.ds.offset[1] =
+            -node.pos[1] -
+            node.size[1] * 0.5 +
+            (HCA_canvas_wrapper_id.height
+                * 0.5) / HCA.lgraphcanvas.ds.scale;
+        HCA.lgraphcanvas.setDirty(true, true);
+         */
+        HCA.lgraphcanvas.ds.reset() //unzooms to orig scale. Also offsets to 0, but that part shouldn't matter.
+        HCA.lgraphcanvas.ds.offset[0] = 300 - node.pos[0]  //x pos
+        HCA.lgraphcanvas.ds.offset[1] = 150 - node.pos[1]  //y pos
+    }
+
     static node_id_to_HCACall(node_id, call_objs_array){
         for(let call_obj of call_objs_array){
             if(call_obj.node_id === node_id){

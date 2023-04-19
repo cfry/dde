@@ -437,26 +437,27 @@ globalThis.HCAObjDef = class HCAObjDef {
     // included_in_name: search_string is in their name (case insensitive
     // def_calls_match: inside the def has calls who's names match the search_string, case_insensitive
     // Note: included_in_name is a superset of def_match
-    static find_obj_defs(search_string, tree_folder=HCAObjDef.obj_def_tree, def_match=[], included_in_name=[], def_calls_match=[]){
+    static find_obj_defs(search_string, tree_folder=HCAObjDef.obj_def_tree, def_name_match=[], included_in_def_name=[], def_contains_matching_calls=[], matching_calls = []){
         search_string = search_string.toLowerCase()
         for(let obj_def of tree_folder.obj_defs){
             let obj_def_name_lc = obj_def.objectName.toLowerCase()
             if(obj_def_name_lc.toLowerCase().includes(search_string)){
-                included_in_name.push(obj_def)
+                included_in_def_name.push(obj_def)
                 if(obj_def_name_lc === search_string) {
-                    def_match.push(obj_def)
+                    def_name_match.push(obj_def)
                 }
             }
-            for(let obj_call of obj_def.prototypes){
-                if(obj_call.objectName.toLowerCase() === search_string){
-                    def_calls_match.push(obj_def)
+            for(let call_obj of obj_def.prototypes){
+                if(call_obj.objectName.toLowerCase() === search_string){
+                    def_contains_matching_calls.push(obj_def)
+                    matching_calls.push(call_obj)
                 }
             }
         }
         for(let subfolder of tree_folder.subfolders){
-            this.find_obj_defs(search_string, subfolder, def_match, included_in_name, def_calls_match)
+            this.find_obj_defs(search_string, subfolder, def_name_match, included_in_def_name, def_contains_matching_calls, matching_calls)
         }
-        return [def_match,included_in_name, def_calls_match ]
+        return [def_name_match, included_in_def_name, def_contains_matching_calls, matching_calls]
     }
 
 
@@ -590,6 +591,7 @@ globalThis.HCAObjDef = class HCAObjDef {
     }
 
     static display_obj_def(obj_def_or_obj_id){
+        HCAObjDef.update_current_obj_def_from_nodes()
         let obj_def
         if(typeof(obj_def_or_obj_id)  === "string"){
             obj_def = HCAObjDef.obj_id_to_obj_def_map[obj_def_or_obj_id]
@@ -750,7 +752,6 @@ globalThis.HCAObjDef = class HCAObjDef {
         }
         else if(vals.clicked_button_value === "Edit Definition"){
             //HCAObjDef.show_edit_dialog(obj_def)
-            HCAObjDef.update_current_obj_def_from_nodes()
             HCAObjDef.display_obj_def(obj_def)
         }
         else if(vals.clicked_button_value === "Edit Attributes"){
