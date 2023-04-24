@@ -206,8 +206,8 @@ globalThis.HCA = class HCA {
                               </div>
                               <div style="display:inline-block">
                                  <div><b>Spread:</b></div> 
-                                 <button onclick="HCA.spread()"    title="Decrease the distance between object calls.">less</button> 
-                                 <button onclick="HCA.spread(1.5)" title="Increase the distance between object calls.">more</button>
+                                 <button onclick="HCA.spread()"    title="Decrease the distance between blocks (object calls).">less</button> 
+                                 <button onclick="HCA.spread(1.5)" title="Increase the distance between blocks (object calls">more</button>
                               </div>
                               <button title="Set zoom, pan and spread to initial values." onclick="HCA.home()">Home</button>
                            </div>`
@@ -997,7 +997,7 @@ globalThis.HCA = class HCA {
             if(obj_def.objectName === "Output") {
                  let junk = "junk" //for debugging only
             }
-            this.register_with_litegraph(obj_def)
+            HCAObjDef.register_with_litegraph(obj_def)
             let html_to_insert = `<div class="hca_obj_def"  id="` + dom_id + `" onclick="HCAObjDef.show_obj_def_dialog(event)">` +  obj_def.objectName + `</div>`   //"HCA.make_and_add_block('` + tree_path_and_obj_name + `', event)">` + obj_def.objectName + "</div>"
             folder_dom_elt.insertAdjacentHTML("beforeend", html_to_insert) //no need to wait for leaves of tree to render
         }
@@ -1019,27 +1019,6 @@ globalThis.HCA = class HCA {
                     tree_arr_index_of_next_folder + 1)
             }
         }
-    }
-
-    static register_with_litegraph(obj_def){
-         let fn = function(){
-             for(let input of obj_def.inputs) {
-                 this.addInput(input.name, input.type)
-             }
-             for(let output of obj_def.outputs) {
-                 this.addOutput(output.name, output.type)
-             }
-             //this.size = [80, 40] //width and height  if not given, this is automatically computed
-             this.properties = { precision: 1 };
-         }
-         fn.title = obj_def.objectName; //name to show
-         let obj_path = "basic/" + obj_def.obj_id
-         LiteGraph.registerNodeType(obj_path, fn); //register in the system
-    }
-
-    static unregister_with_litegraph(obj_def){
-        let obj_path = "basic/" + obj_def.obj_id
-        LiteGraph.unregisterNodeType(obj_path); //register in the system
     }
 
     static save_palette(){

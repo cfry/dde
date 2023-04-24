@@ -88,7 +88,7 @@ globalThis.HCACall = class HCACall{
     static xy_call_to_node_pos_multiplier = 40
 
     //if call name already has a colon in it, leave it alone, else potentially make it unique
-    //with a :A suffix or greater suffix.
+    //with a no suffix OR a :A suffix or greater suffix.
     make_call_name_unique_maybe(containing_def_obj=HCAObjDef.current_obj_def){
         let obj_name
         if(this.call_name && (this.call_name.indexOf(":") > -1)) {} //already got a suffix in the call_name so presume its good as is
@@ -150,7 +150,7 @@ globalThis.HCACall = class HCACall{
         let node = LiteGraph.createNode(node_path, call_obj.call_name)
         if(!node){
             shouldnt("Attempt to call LiteGraph.createNode with node_path: " + node_path +
-                "<br/>but that hasn't had HCA.register_with_litegraph() called on it.")
+                "<br/>but that hasn't had HCAObjDef.register_with_litegraph() called on it.")
         }
         else {
             HCA.lgraph.add(node);
@@ -379,7 +379,7 @@ globalThis.HCACall = class HCACall{
         else if(vals.clicked_button_value === "Edit Called Definition"){
             //HCAObjDef.update_current_obj_def_from_nodes()
             SW.close_window(vals.window_index)
-            HCAObjDef.display_obj_def(obj_def)
+            HCAObjDef.display_obj_def(called_obj_def)
         }
         else if(vals.clicked_button_value === "Delete"){
             SW.close_window(vals.window_index)

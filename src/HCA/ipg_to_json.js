@@ -356,7 +356,7 @@ globalThis.ipg_to_json = class ipg_to_json{
                 //This is tricky.
                 // Don't set call_name here, leave it non-existent.
                 //Then HCACall.constructor can fill it in with either
-                //same as objectName OR a unique objectName:A accross the
+                //same as objectName OR a unique objectName:A across the
                 //calls that already have call names.
                 //we presume that any objectName:A syntax call names are
                 //unique and good. There can only be one call name

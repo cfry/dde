@@ -963,7 +963,12 @@ class Dexter extends Robot {
            dde_error("While construction a Dexter robot named: " + name +
                      "<br/>Sorry, you can't name a Dexter with a single upper case letter.")
         }
-        if(!ip_address) { ip_address = (globalThis.DDE_DB ? DDE_DB.persistent_get("default_dexter_ip_address") : globalThis.default_default_dexter_ip_address) }
+        //on the job engine, ip_address is always localhost.
+        //otherwise, its one ip number, even when node_server is localhost
+        if(!ip_address) {
+            ip_address = Dexter.compute_default_ip_address()
+        }
+        //ip_address = (globalThis.DDE_DB ? DDE_DB.persistent_get("default_dexter_ip_address") : globalThis.default_default_dexter_ip_address) }
         if(!port)       { port       = (globalThis.DDE_DB ? DDE_DB.persistent_get("default_dexter_port")       : globalThis.default_default_dexter_port) }
 
         let keyword_args = {name: name,
@@ -1023,6 +1028,26 @@ class Dexter extends Robot {
                 super(arguments[0])
                 return this.make_new_robot(keyword_args)
             }
+        }
+    }
+
+    //used by Dexter constructor, ready.js and ready_je.js,
+    // i.e. all the places that a Dexter's ip_address is defaulted.
+    static compute_default_ip_address(){
+        if (globalThis.platform === "node") {
+            return "localhost"
+        }
+        else if (globalThis.location && (globalThis.location.host === "localhost")) {
+            let ip_addr = DDE_DB.persistent_get("default_dexter_ip_address")
+            if (ip_addr) {
+                return ip_addr
+            }
+            else {
+                return "192.168.1.142"
+            }
+        }
+        else { //not in job engine but node server is on dexter
+            return globalThis.location.host
         }
     }
 

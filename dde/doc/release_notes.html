@@ -1,5 +1,34 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
+
+<details class="doc_details"><summary>v 4.0.8, Apr 24, 2023</summary>
+Highlights: HCA_UI more complete & less buggy,
+        inspector extended,
+        fixed bugs with defaulting Dexter's ip_address,
+        IndexDB local browser storage improved.
+<ul>
+    <li>Inspector now shows more dom element attributes including class and style.</li>
+    <li>Improved the initialization of the indexDB storage for persistent variables.</li>
+    <li>Removed the file general/perisitent.js as it isn't used.
+        Use <code>DDE_DB</code> instead.</li>
+    <li>Respelled dexter_default_ip_address to default_dexter_ip_address,
+       consistent with actual usage.
+       This fixed a bug in initialized <code>Dexter.dexter0.ip_address</code></li>
+    <li>New function <code>Dexter.compute_default_ip_address</code> consolidates all the places
+        Dexter's ip_address needs defaulting.
+        If running in job engine, <code>"localhost"</code>,<br/>
+        else if served by node_server on Dexter,<br/>
+        the ip address of the dexter, <br/>
+        else if there's a <code>DDE_DB.persistent_get("default_dexter_ip_address")</code> that's used, <br/>
+        else <code>"192.168.1.142"</code></li>
+    <li>HCA added <button>home</button> button to header to
+        reset zoom, pan, and spread to their initial positions.</li>
+    <li>Improved HCA UI <button>more</button> and <button>less</button> button tooltips.</li>
+    <li>Inspector now has buttons to edit HCA object definitions and calls.</li>
+    <li>HCA UI bug fixes including dataset collectors and exposers.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 4.0.7, Apr 14, 2023</summary>
     Highlights: HCA_UI much more complete
 <ul>
@@ -1817,3 +1846,4 @@ Highlights: New function for dynamically setting show_window elements: selector_
 Updated npm packages only to get Mac version to build.
 
 </details>
+</div>

@@ -169,14 +169,16 @@ async function on_ready_je(){
     await init_job_engine()
 
     //for DDE_ID equivalent see ready.js on_ready function
+    //In the job engine, dexter0's ip address always defaults to "localhost".
     if(!Dexter.dexter0){
         Dexter.dexter0 = new Dexter({name: "dexter0"})
     }
     if(!Dexter.dexter0.ip_address){
-        let addr = DDE_DB.get("dexter0_ip_address")
-        if(!addr || (addr === "auto")){
-            Dexter.dexter0.ip_address = globalThis.default_default_dexter_ip_address //but in DDE_IDE this is "192.168.1.142"
-        }
+        //let addr = DDE_DB.get("dexter0_ip_address")
+        //if(!addr || (addr === "auto")){
+        //    Dexter.dexter0.ip_address = globalThis.default_default_dexter_ip_address //but in DDE_IDE this is "192.168.1.142"
+        //}
+        Dexter.dexter0.ip_address = Dexter.compute_default_ip_address()
     }
     Dexter.default = Dexter.dexter0
 

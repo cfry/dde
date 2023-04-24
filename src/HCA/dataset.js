@@ -277,12 +277,15 @@ globalThis.Dataset = class Dataset{
         let dataset_obj = Dataset.name_to_dataset_object_map[dataset_name]
         if(vals.clicked_button_value === "Edit Definition"){
             Dataset.show_edit_dialog(dataset_name)
+            SW.close_window(vals.window_index)
         }
         else if(vals.clicked_button_value === "Make Collector Block"){
             Dataset.make_collector_block(dataset_name)
+            SW.close_window(vals.window_index)
         }
         else if(vals.clicked_button_value === "Make Exposer Block"){
             Dataset.make_exposer_block(dataset_name)
+            SW.close_window(vals.window_index)
         }
         else if(vals.clicked_button_value === "Delete"){
             dataset_obj.remove()
@@ -434,7 +437,17 @@ globalThis.Dataset = class Dataset{
     remove_from_pallette(){
         let dom_id = Dataset.make_dom_id(this)
         let dom_elt = globalThis[dom_id]
-        dom_elt.remove()
+        if(dom_elt instanceof HTMLCollection){
+            let first_dom_elt = dom_elt[0]
+            warning("There's " + dom_elt.length + " dom_elts with id: " + first_dom_elt.id +
+            "<br>Removing all of them.")
+            for (let a_dom_elt of dom_elt){
+                a_dom_elt.remove()
+            }
+        }
+        else {
+            dom_elt.remove()
+        }
     }
 
     set_treegroup(new_treegroup_arr){
@@ -443,21 +456,52 @@ globalThis.Dataset = class Dataset{
         this.insert_dataset_into_pallette()
     }
 
+    /*static register_with_litegraph(dataset_obj){
+        let fn = function(){
+            for(let input of obj_def.inputs) {
+                this.addInput(input.name, input.type)
+            }
+            for(let output of obj_def.outputs) {
+                this.addOutput(output.name, output.type)
+            }
+            //this.size = [80, 40] //width and height  if not given, this is automatically computed
+            this.properties = { precision: 1 };
+        }
+        fn.title = obj_def.objectName; //name to show
+        let obj_path = "basic/" + obj_def.obj_id
+        LiteGraph.registerNodeType(obj_path, fn); //register in the system
+    }
+
+    static unregister_with_litegraph(dataset_obj){
+        let obj_path = "basic/" + obj_def.obj_id
+        LiteGraph.unregisterNodeType(obj_path); //register in the system
+    }*/
+
 
     //similer to HCA.make_and_add_block
     static make_collector_block(dataset_name){
-            let collector_name = dataset_name + "Out"
-            let node = LiteGraph.createNode("basic/" + collector_name, collector_name)
-            HCA.lgraph.add(node);
-            HCACall.node_add_usual_actions(node)
-            return node
+        let dataset_obj = this.name_to_dataset_object_map[dataset_name]
+        let collector_name = dataset_name + "Out"
+        let obj_id = collector_name
+        for(let a_type of dataset_obj.componentTypes){
+            obj_id += "," + a_type
+        }
+        let collector_obj_def = HCAObjDef.obj_id_to_obj_def_map[obj_id]  //todo returns undefined evan though the map has a key in it for "Fix32Out,Word,Word"
+        let node = LiteGraph.createNode("basic/" + obj_id, collector_name)
+        HCA.lgraph.add(node);
+        HCACall.node_add_usual_actions(node)
+        HCAObjDef.update_current_obj_def_from_nodes()
+        return node
     }
 
     static make_exposer_block(dataset_name){
+        let dataset_obj = this.name_to_dataset_object_map[dataset_name]
         let collector_name = dataset_name + "In"
-        let node = LiteGraph.createNode("basic/" + collector_name, collector_name)
+        let obj_id = collector_name + "," + dataset_name  //just one input, of type dataset_name
+        let node = LiteGraph.createNode("basic/" + obj_id, collector_name)
         HCA.lgraph.add(node);
         HCACall.node_add_usual_actions(node)
+        HCAObjDef.update_current_obj_def_from_nodes()
         return node
     }
 
@@ -688,9 +732,14 @@ globalThis.Dataset = class Dataset{
                 )
             }
         }
+        let obj_id = this.name + "Out"
+        for(let a_in of ins){
+            obj_id += "," + a_in.type
+        }
         let outs = [{type: this.name, name: this.name + "Out0"}]
         let json_obj = {
             objectName: this.name + "Out",
+            obj_id: obj_id,
             TreeGroup:  new_tree_group_arr,
             inputs:     ins,
             outputs:    outs,
@@ -699,7 +748,7 @@ globalThis.Dataset = class Dataset{
             source_path: "auto_generated" //we never get this obj def from a file or save it to a file
         }
         json_obj.line = JSON.stringify(json_obj) //must be out of line or get recursive bug
-        new HCAObjDef(json_obj)
+        return new HCAObjDef(json_obj)
     }
 
     make_exposer(){
@@ -717,8 +766,10 @@ globalThis.Dataset = class Dataset{
                 }
             )
         }
+        let obj_id = this.name + "In" + "," + ins[0].type
         let json_obj = {
             objectName: this.name + "In",
+            obj_id: obj_id,
             TreeGroup:  new_tree_group_arr,
             inputs:     ins,
             outputs:    outs,
@@ -727,7 +778,7 @@ globalThis.Dataset = class Dataset{
             source_path: "auto_generated" //we never get this obj def from a file or save it to a file
         }
         json_obj.line = JSON.stringify(json_obj) //must be out of line or get recursive bug
-        new HCAObjDef(json_obj)
+        return new HCAObjDef(json_obj)
     }
     static find_datasets(search_string){
         let def_match=[], included_in_name=[], has_component=[]

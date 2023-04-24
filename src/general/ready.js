@@ -1736,10 +1736,7 @@ window_modify_id.onclick=function(){Editor.insert(
              Dexter.dexter0 = new Dexter({name: "dexter0"})
          }
          if(!Dexter.dexter0.ip_address){
-             let addr = DDE_DB.get("dexter0_ip_address")
-             if(!addr || (addr === "auto")){
-                 Dexter.dexter0.ip_address = "192.168.1.142"
-             }
+             Dexter.dexter0.ip_address = Dexter.compute_default_ip_address()
          }
          Dexter.default = Dexter.dexter0
          //initialize the checkbox state

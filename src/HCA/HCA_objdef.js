@@ -22,6 +22,27 @@ globalThis.HCAObjDef = class HCAObjDef {
         this.obj_id_to_obj_def_map = {}
     }
 
+    static register_with_litegraph(obj_def){
+        let fn = function(){
+            for(let input of obj_def.inputs) {
+                this.addInput(input.name, input.type)
+            }
+            for(let output of obj_def.outputs) {
+                this.addOutput(output.name, output.type)
+            }
+            //this.size = [80, 40] //width and height  if not given, this is automatically computed
+            this.properties = { precision: 1 };
+        }
+        fn.title = obj_def.objectName; //name to show
+        let obj_path = "basic/" + obj_def.obj_id
+        LiteGraph.registerNodeType(obj_path, fn); //register in the system
+    }
+
+    static unregister_with_litegraph(obj_def){
+        let obj_path = "basic/" + obj_def.obj_id
+        LiteGraph.unregisterNodeType(obj_path); //register in the system
+    }
+
     constructor(json_obj){
         if(!json_obj.objectName){
             DDE.error("Attempt to create an HCA object definition without an objectName.<br/>" +
@@ -31,12 +52,16 @@ globalThis.HCAObjDef = class HCAObjDef {
         //must do the above for the below call to make_obj_id to work
         if(!json_obj.outputs) { json_obj.outputs = [] }
         let obj_id = (json_obj.obj_id ? json_obj.obj_id : HCAObjDef.make_obj_id(json_obj) )
+        //if (obj_id === "ExposeMSB,Variant"){ debugger }
         let the_obj_def = HCAObjDef.obj_id_to_obj_def_map[obj_id]
-        //if there is aready an obj-def_overload for this obj_id, use it, else
+        //if there is already an obj-def_overload for this obj_id, use it, else
         //use the new obj in "this".
         //This way we avoid making duplicates as some files redefine
-        let making_new_obj = false
-        if(!the_obj_def) {
+        let making_new_obj
+        if(the_obj_def){
+            making_new_obj = false
+        }
+        else {
             the_obj_def = this
             making_new_obj = true
         }
@@ -76,7 +101,7 @@ globalThis.HCAObjDef = class HCAObjDef {
                 pt.containing_obj_id = obj_id
                 let a_HCACall = new HCACall(pt) //with no containing def_obj passed in as 2nd arg,
                 //don't attempt to uniquify call_names.
-                // this allows for loading up all the prototypes before checkign against them all
+                // this allows for loading up all the prototypes before checking against them all
                 //to find a potentially needed unique call name.
                 the_obj_def.prototypes[i] = a_HCACall
             }
@@ -93,16 +118,23 @@ globalThis.HCAObjDef = class HCAObjDef {
         if(making_new_obj) {
             the_obj_def.obj_id = obj_id
             HCAObjDef.obj_id_to_obj_def_map[obj_id] = the_obj_def //add or replaces if already exists
-            for(let call_obj of this.prototypes) {
-               call_obj.make_call_name_unique_maybe(this) //wait until now to do this because we want tis fn to be able to see all the call_objs in THIS.
-            }
             the_obj_def.add_or_replace_in_object_name_to_defs_map()
             the_obj_def.insert_obj_def_into_tree(HCAObjDef.obj_def_tree, this.TreeGroup)
             the_obj_def.insert_obj_def_into_sheets_menu_maybe()
             HCA.insert_obj_def_into_pallette(the_obj_def) //but only if not already in
-            HCA.register_with_litegraph(the_obj_def)
+            HCAObjDef.register_with_litegraph(the_obj_def)
         }
-        else if(TreeGroup_changed){
+        //needs to happen when making_new_obj and when there is an existing one,
+        //as not all existing ones properly have unique named calls.
+        //if the call_names in the prootypes aalready have :A (etc suffixes)
+        //they will be left alone. Otherwise with no call_name
+        //or with a no-suffix call name, they will get a uniue call_name,
+        //which, for one of them, will just be one with no-suffix like "Input'.
+
+        for(let call_obj of the_obj_def.prototypes) {
+            call_obj.make_call_name_unique_maybe(the_obj_def) //wait until now to do this because we want this fn to be able to see all the call_objs in THIS.
+        }
+        if(TreeGroup_changed){
             //remove_from old treegroup //todo
             //add to new treegroup
         }
@@ -879,7 +911,7 @@ globalThis.HCAObjDef = class HCAObjDef {
     }
 
     remove(){
-        HCA.unregister_with_litegraph(this)
+        HCAObjDef.unregister_with_litegraph(this)
         this.delete_obj_def_from_tree()
         delete HCAObjDef.obj_id_to_obj_def_map[this.obj_id]
         let index = HCAObjDef.object_name_to_defs_map[this.objectName].indexof(this)
@@ -890,7 +922,17 @@ globalThis.HCAObjDef = class HCAObjDef {
     remove_from_pallette(){
         let dom_id = HCAObjDef.make_dom_id(this)
         let dom_elt = globalThis[dom_id]
-        dom_elt.remove()
+        if(dom_elt instanceof HTMLCollection){
+            let first_dom_elt = dom_elt[0]
+            warning("There's " + dom_elt.length + " dom_elts with id: " + first_dom_elt.id +
+                "<br>Removing all of them.")
+            for (let a_dom_elt of dom_elt){
+                a_dom_elt.remove()
+            }
+        }
+        else {
+            dom_elt.remove()
+        }
     }
 
     set_treegroup(new_treegroup_arr){
@@ -908,7 +950,7 @@ globalThis.HCAObjDef = class HCAObjDef {
         current_obj_def.insert_obj_def_into_tree(HCAObjDef.obj_def_tree, this.TreeGroup)
         current_obj_def.insert_obj_def_into_sheets_menu_maybe()
         HCA.insert_obj_def_into_pallette(current_obj_def) //but only if not already in
-        HCA.register_with_litegraph(current_obj_def)
+        HCAObjDef.register_with_litegraph(current_obj_def)
 
     }
 
