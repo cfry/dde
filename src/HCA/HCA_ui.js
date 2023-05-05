@@ -473,7 +473,7 @@ globalThis.HCA = class HCA {
         )
 
         show_window({title: "Save HCA Program to Text Editor",
-                x: 200, y: 100, width: 750, height: 330,
+                x: 200, y: 100, width: 800, height: 330,
                 content: `<fieldset style="display: inline-block;vertical-align:top;">
                              <input type="radio" value="save_all"         name="save_obj_restriction"> Save ALL objects in the selected files.</input><br/>
                              <input type="radio" value="save_cur_obj_def" name="save_obj_restriction" checked>
@@ -635,8 +635,10 @@ globalThis.HCA = class HCA {
             name_to_dataset_object_map: Dataset.name_to_dataset_object_map,
             dataset_tree:               Dataset.dataset_def_tree,
             object_name_to_defs_map:    HCAObjDef.object_name_to_defs_map,
-            obj_id_to_obj_def_map: HCAObjDef.obj_id_to_obj_def_map,
+            obj_id_to_obj_def_map:      HCAObjDef.obj_id_to_obj_def_map,
             obj_def_tree:               HCAObjDef.obj_def_tree,
+            "System Description top level": SysDesc.sys_desc_tree,
+            "System Descriptions name map": SysDesc.name_to_sys_desc_object_map,
             file_path_to_parse_obj_map: ipg_to_json.file_path_to_parse_obj_map,
             file_path_to_datasets_map:  ipg_to_json.file_path_to_datasets_map,
             loaded_files:               ipg_to_json.loaded_files,
@@ -893,6 +895,7 @@ globalThis.HCA = class HCA {
         HCA_palette_id.insertAdjacentHTML("beforeend", "<details title='Click on an underlined name\nto show a dialog box with options.'><summary style='font-weight:bold;'>Object Tree</summary>\n" +
                                            "<div  id='HCA_palette_make_objects_id'>" +
                                            "</div></details>")
+        HCA_palette_id.insertAdjacentHTML("beforeend", "<details id='HCA_palette_sys_desc_id' title='Click on an underlined name\nto show a dialog box with options.'><summary onclick='SysDesc.show_no_sys_desc_tree_dialog_maybe(event)' style='font-weight:bold;'>System Desc Tree</summary>\n</details>")
         setTimeout( function() {
             HCAObjDef.define_built_ins()
             Dataset.define_built_ins()
@@ -1100,13 +1103,47 @@ globalThis.HCA = class HCA {
 
     static spread_factor = 1
 
-    static spread(factor=1/1.5){
+    //peform the spreed less or spreed more operation.
+    //spread less wehn factor is < 1, spread more hwen factor is > 1.
+    /*static spread(factor=1/1.5){
         for(let obj_call of HCAObjDef.current_obj_def.prototypes){
             obj_call.x *= factor
             obj_call.y *= factor
         }
+        //HCA.lgraphcanvas.ds.offset[0] =
+        //HCA.lgraphcanvas.ds.offset[1] *= (factor * -1)
         HCAObjDef.redraw_obj_def()
         this.spread_factor *= factor
+    }*/
+
+    static spread(factor=1/1.5){
+        let x_offset = HCA.lgraphcanvas.ds.offset[0]
+        let actual_displayed_canvas_width = HCA_canvas_wrapper_id.offsetWidth
+        let center_x = x_offset + (actual_displayed_canvas_width / 2)
+
+        let y_offset = HCA.lgraphcanvas.ds.offset[1]
+        let actual_displayed_canvas_height = HCA_canvas_wrapper_id.offsetHeight
+        let center_y = y_offset + (actual_displayed_canvas_height / 2)
+
+        let nodes = HCA.lgraph._nodes //remake cur_obj_def.prototypes from this
+        for (let node of nodes) {
+            let orig_x  = node.pos[0]
+            let new_x   = ((orig_x - center_x) * factor) + center_x
+            node.pos[0] = new_x
+
+            let orig_y  = node.pos[1]
+            let new_y   = ((orig_y - center_y) * factor) + center_y
+            node.pos[1] = new_y
+        }
+        HCAObjDef.update_current_obj_def_from_nodes()
+        //HCA.lgraphcanvas.dirty_canvas = true; //without this the new canvas block positions are not shown
+        HCAObjDef.redraw_obj_def()  //without doing this, the wires are not moved with their blocks
+    }
+
+    //not really the center but for a small display, it returns
+    // a center that is good, for a large displayed canvas
+    static center_point_in_call_coordinates() {
+        return [300, 100]
     }
 
     static home(){
@@ -1170,13 +1207,15 @@ globalThis.HCA = class HCA {
     static find(search_string){
         let dataset_matches = Dataset.find_datasets(search_string)
         let [def_name_match, included_in_def_name, def_contains_matching_calls, matching_calls] = HCAObjDef.find_obj_defs(search_string)
+        let sys_desc_matches = SysDesc.find_sys_descs(search_string)
         inspect({"Definition name matches":  def_name_match,
                       "Definition name includes": included_in_def_name,
                       "Definition contains matching calls": def_contains_matching_calls,
                       "Matching calls": matching_calls,
-                      ...dataset_matches},
+                      ...dataset_matches,
+                      ...sys_desc_matches},
                 undefined,
-            'HCA defs containing: "' + search_string + '"')
+            'HCA data containing: "' + search_string + '"')
     }
 
 } //end HCA class

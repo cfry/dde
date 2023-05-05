@@ -49,7 +49,12 @@ class Robot {
     //put the new item on the end, even if you have to remove it from the middle,
     //because we want the latest on the end for default_robot_name
     static set_robot_name(name, robot_instance){
-        Robot[name] = robot_instance
+        Robot[name] = robot_instance //for some reason I don't understand, doing this causes,
+        // for a dexter, Dexter.[name] = robot_instance to happen
+        //Attempting to step through the above assignment does nothing special
+        //Still this is so bizare, I set Dexter.[name] = robot_instance where
+        //just after set_robot_name is called, just to make sure.
+
         //ensure name is on end of all_names
         let i = Robot.all_names.indexOf(name)
         if (i != -1){ Robot.all_names.splice(i, 1) }
@@ -1107,6 +1112,7 @@ class Dexter extends Robot {
         //this.processing_flush = false //primarily used as a check. a_robot.send shouldn't get called while this var is true
         this.busy_job_array = []
         Robot.set_robot_name(this.name, this)
+        Dexter[this.name] = this //see comment in Robot.set_robot_name
          //ensures the last name on the list is the latest with no redundancy
         let i = Dexter.all_names.indexOf(this.name)
         if (i != -1) {  Dexter.all_names.splice(i, 1) }

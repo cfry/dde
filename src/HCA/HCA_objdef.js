@@ -43,6 +43,7 @@ globalThis.HCAObjDef = class HCAObjDef {
         LiteGraph.unregisterNodeType(obj_path); //register in the system
     }
 
+    //if there is already an objdef with this obj_id, replace it with this new one.
     constructor(json_obj){
         if(!json_obj.objectName){
             DDE.error("Attempt to create an HCA object definition without an objectName.<br/>" +
@@ -51,90 +52,78 @@ globalThis.HCAObjDef = class HCAObjDef {
         if(!json_obj.inputs)  { json_obj.inputs  = [] }
         //must do the above for the below call to make_obj_id to work
         if(!json_obj.outputs) { json_obj.outputs = [] }
-        let obj_id = (json_obj.obj_id ? json_obj.obj_id : HCAObjDef.make_obj_id(json_obj) )
-        //if (obj_id === "ExposeMSB,Variant"){ debugger }
-        let the_obj_def = HCAObjDef.obj_id_to_obj_def_map[obj_id]
-        //if there is already an obj-def_overload for this obj_id, use it, else
-        //use the new obj in "this".
-        //This way we avoid making duplicates as some files redefine
-        let making_new_obj
-        if(the_obj_def){
-            making_new_obj = false
-        }
-        else {
-            the_obj_def = this
-            making_new_obj = true
-        }
+        this.obj_id = (json_obj.obj_id ? json_obj.obj_id : HCAObjDef.make_obj_id(json_obj) )
+
+        let orig_obj_def = HCAObjDef.obj_id_to_obj_def_map[this.obj_id]
+
         let TreeGroup_changed = false
         for(let key of Object.keys(json_obj)){
             let val = json_obj[key]
             if((key === "TreeGroup") &&
-                !making_new_obj &&
-                (val !== the_obj_def.TreeGroup)){
+                orig_obj_def &&
+                (val !== orig_obj_def.TreeGroup)){
                 TreeGroup_changed = true
             }
-            the_obj_def[key] = val
+            this[key] = val
         }
-        if(!the_obj_def.TreeGroup) {//hits for the obj named "CoreLib".
+        if(!this.TreeGroup) {//hits for the obj named "CoreLib".
             //beware, if the obg_def already existed, but
             //our josn_obj had a DIFFERENT TreeGroup, then
             //we SHOOULD switch the treegroup of the_obj_def, but
             //for now I presume the TreeGroup didn't change and so I don't
             //remove the
-            if(the_obj_def.Primitive){
-                the_obj_def.TreeGroup = ["Primitive"]
+            if(this.Primitive){
+                this.TreeGroup = ["Primitive"]
             }
             else {
-                the_obj_def.TreeGroup = ["Misc"] //[this.objectName]
+                this.TreeGroup = ["Misc"] //[this.objectName]
             } //fry added this because some objects didin't have a TreeGroup, such as the obj with objectName: "CoreLib". So I gave it one
         }
-        if(!the_obj_def.inputs)  { this.inputs  = [] } //CoreLib doesn't have an outputs field.
-        if(!the_obj_def.outputs) {
-            the_obj_def.outputs = []
-        } //CoreLib doesn't have an outputs field.
-        if(!the_obj_def.prototypes) {
-            the_obj_def.prototypes = []
+        if(!this.prototypes) {
+            this.prototypes = []
         }
-        for(let i = 0; i <  the_obj_def.prototypes.length; i++){
-            let pt = the_obj_def.prototypes[i]
+        for(let i = 0; i <  this.prototypes.length; i++){
+            let pt = this.prototypes[i]
             if(!(pt instanceof HCACall)){
-                pt.containing_obj_id = obj_id
+                pt.containing_obj_id = this.obj_id
                 let a_HCACall = new HCACall(pt) //with no containing def_obj passed in as 2nd arg,
                 //don't attempt to uniquify call_names.
                 // this allows for loading up all the prototypes before checking against them all
                 //to find a potentially needed unique call name.
-                the_obj_def.prototypes[i] = a_HCACall
+                this.prototypes[i] = a_HCACall
             }
             else {
-                pt.containing_obj_id = obj_id //make sure our call obj knows what obj_def its inside of.
+                pt.containing_obj_id = this.obj_id //make sure our call obj knows what obj_def its inside of.
             }
         }
-        if(!the_obj_def.netList){
-            the_obj_def.netList = []
+        if(!this.netList){
+            this.netList = []
         }
-        if(!the_obj_def.line){
-            the_obj_def.line = JSON.stringify(json_obj)
+        if(!this.line){
+            this.line = JSON.stringify(json_obj)
         }
-        if(making_new_obj) {
-            the_obj_def.obj_id = obj_id
-            HCAObjDef.obj_id_to_obj_def_map[obj_id] = the_obj_def //add or replaces if already exists
-            the_obj_def.add_or_replace_in_object_name_to_defs_map()
-            the_obj_def.insert_obj_def_into_tree(HCAObjDef.obj_def_tree, this.TreeGroup)
-            the_obj_def.insert_obj_def_into_sheets_menu_maybe()
-            HCA.insert_obj_def_into_pallette(the_obj_def) //but only if not already in
-            HCAObjDef.register_with_litegraph(the_obj_def)
-        }
+        HCAObjDef.obj_id_to_obj_def_map[this.obj_id] = this //add or replaces if already exists
+        this.add_or_replace_in_object_name_to_defs_map()
+        this.insert_obj_def_into_tree(HCAObjDef.obj_def_tree, this.TreeGroup)
+        this.insert_obj_def_into_sheets_menu_maybe()
+        HCA.insert_obj_def_into_pallette(this) //but only if not already in
+        HCAObjDef.register_with_litegraph(this)
+
+
         //needs to happen when making_new_obj and when there is an existing one,
         //as not all existing ones properly have unique named calls.
         //if the call_names in the prootypes aalready have :A (etc suffixes)
         //they will be left alone. Otherwise with no call_name
         //or with a no-suffix call name, they will get a uniue call_name,
         //which, for one of them, will just be one with no-suffix like "Input'.
-
-        for(let call_obj of the_obj_def.prototypes) {
-            call_obj.make_call_name_unique_maybe(the_obj_def) //wait until now to do this because we want this fn to be able to see all the call_objs in THIS.
+        for(let call_obj of this.prototypes) {
+            call_obj.make_call_name_unique_maybe(this) //wait until now to do this because we want this fn to be able to see all the call_objs in THIS.
         }
         if(TreeGroup_changed){
+            warning("Object Definition: " + this.obj_id + " when being redefined, changed Treegroup<br/> " +
+                    "from: " + orig_obj_def.TreeGroup +
+                    "<br/>to: " + this.Treegroup +
+                    "<br/>but not yet updated to the new group on the palette.")
             //remove_from old treegroup //todo
             //add to new treegroup
         }
@@ -145,6 +134,8 @@ globalThis.HCAObjDef = class HCAObjDef {
         for(let input of json_or_obj_def.inputs){
             result += "," + input.type
         }
+        let output_count = json_or_obj_def.outputs.length
+        result += "," + output_count + "_outputs"
         return result
     }
 
@@ -204,11 +195,14 @@ globalThis.HCAObjDef = class HCAObjDef {
     static insert_obj_and_dataset_defs_into_tree(source_path, proj_file_json_obj){
         HCAObjDef.insert_obj_defs_into_tree(source_path, proj_file_json_obj.object_definitions)
         Dataset.insert_dataset_defs_into_tree(source_path, proj_file_json_obj.datasets)
-        if(proj_file_json_obj.fpga_type){
-            FPGAType.set_current_fpga_type(proj_file_json_obj.fpga_type)
+        //if(proj_file_json_obj.fpga_type){
+        //    FPGAType.set_current_fpga_type(proj_file_json_obj.fpga_type)
+        //}
+        if(proj_file_json_obj.top_level_sys_desc) {
+            SysDesc.init()
+            SysDesc.insert_sys_descs_into_tree(source_path, proj_file_json_obj.top_level_sys_desc)
         }
     }
-
 
     static insert_obj_defs_into_tree(source_path, json_obj_defs=null){
         if(json_obj_defs.object_definitions){
@@ -293,6 +287,7 @@ globalThis.HCAObjDef = class HCAObjDef {
     static json_obj_of_defs_in_obj_def(obj_def, files_array=ipg_to_json.loaded_files){
         let found_obj_defs = this.obj_defs_called_by_obj_def(obj_def, files_array)
         let datasets = Dataset.datasets_in_files(files_array)
+        let sys_descs = SysDesc.sys_descs_in_files(files_array)
         let result = {project_name: obj_def.objectName,
                       project_date: Utils.date_or_number_to_ymdhms(Date.now()),
                       content_connected_to_object_definition: obj_def.objectName,
@@ -300,6 +295,7 @@ globalThis.HCAObjDef = class HCAObjDef {
                       fpga_type: FPGAType.current_fpga_type,
                       object_definitions: found_obj_defs,
                       datasets: datasets,
+                      system_descriptions: sys_descs
                      }
         return result
     }
@@ -392,6 +388,7 @@ globalThis.HCAObjDef = class HCAObjDef {
     static json_obj_of_defs_in_files(files_array=ipg_to_json.loaded_files) {
         let found_obj_defs = this.obj_defs_in_files_in_treegroup(files_array, HCAObjDef.obj_def_tree)
         let datasets = Dataset.datasets_in_files(files_array)
+        let sys_descs = SysDesc.sys_descs_in_files(files_array)
         let result =   {project_name: files_array.join("&"),
                         project_date: Utils.date_or_number_to_ymdhms(Date.now()),
                         content_connected_to_object_definition: "all object definitions in the files are included",
@@ -399,6 +396,7 @@ globalThis.HCAObjDef = class HCAObjDef {
                         fpga_type: FPGAType.current_fpga_type,
                         object_definitions: found_obj_defs,
                         datasets: datasets,
+                        system_descriptions: sys_descs
 
         }
         return result
@@ -659,6 +657,7 @@ globalThis.HCAObjDef = class HCAObjDef {
         inspect(HCAObjDef.current_obj_def)
     }
 
+    // see also update_current_obj_def_from_nodes in this file
     static redraw_obj_def(obj_def=HCAObjDef.current_obj_def) {
         HCA.lgraph.clear() //remove all existing graphical nodes
         if(!obj_def.prototypes) { return } //no prototypes to display in canvas
@@ -954,6 +953,7 @@ globalThis.HCAObjDef = class HCAObjDef {
 
     }
 
+    //see also redraw_obj_def in this file
     static update_current_obj_def_from_nodes(){
         let cur_obj_def = HCAObjDef.current_obj_def
         if(cur_obj_def) { //usually, if not always, hits

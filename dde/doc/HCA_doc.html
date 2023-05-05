@@ -49,6 +49,32 @@ HCA stands for Heterogeneous Computing Architecture. HCA_UI is a user interface
         </ul>
     </details>
 
+    <details class="doc_details"><summary>HCA Palette (left column)</summary>
+        The top of the column has a <b>Simulator</b> control which is not yet operational.
+        <br/><br/>
+        The <b>Wires</b> control give you 3 options for how wires are drawn
+            between outputs and inputs of blocks. Changing this has no effect on
+            computation, but may improve understanding of your network depending
+            on its layout.
+        <br/><br/>
+        <button>Inspect Info</button> gives you comprehensive access to internal data
+                 structures. This <i>may</i> help in debugging, but more valuable is the
+                 less comprehensive, more targeted data Inspection shown when you click on
+                 Datasets and Object Definitions lower in the palette.
+        <br/><br/>
+        <b>FPGA Type</b> gives the HCA compiler a hint to optimize what it produces
+           for different FPGA chips. This does not affect the HCA user interface
+           in any other way.
+        <br/><br/>
+        <b>Dataset Tree</b> allows you to explore the numerous data types available.
+           Clicking on one gives you a dialog box of operations on the selected Dataset
+        <br/><br/>
+        <b>Object Tree</b> allows you to explore the numerous object definitions available.
+        Clicking on one gives you a dialog box of operations on the selected object.
+        The most useful operation is making a call to that definition.
+        The 2nd most useful operation is viewing (and editing) the definition itself.
+    </details>
+
     <details class="doc_details"><summary>HCA Editor Toolbar</summary>
         Left to right:
         <ul>
@@ -89,5 +115,7 @@ HCA stands for Heterogeneous Computing Architecture. HCA_UI is a user interface
         <li> <b>double-click</b> on a block to show a dialog of operations.</li>
         <li> <b>2 finger drag</b> (or similar operation) on the editor pane to zoom (expand or shrink) the view.</li>
     </ul>
+        Displayed Blocks that have a red background are calls to an object definition
+        that is not defined in the current HCA_UI environment.
     </details>
 </details>

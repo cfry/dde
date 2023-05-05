@@ -100,7 +100,7 @@ dui_tour.addSteps([
             }
         },
     },
-    {attachTo: {element: '.dui_dialog [name=direction_checkbox]', on: 'top'},
+    {attachTo: {element: '.dui_dialog [name=direction_checkbox_wrapper]', on: 'top'},
 
         text: `Often you want Dexter's end effector pointed down to work on the table surface.
                But for this tutorial, its easiest to not use that constraint.<br/>
@@ -291,7 +291,7 @@ dui_tour.addSteps([
     },
     {attachTo: { element: '#editor_pane_id', on: 'left'},
         text: `Get the Dexter UI dialog back by clicking
-          on the <b>Dexter</b> menu's <b>Dexter UI</b> item.`
+          on the <b>Editor</b> pane's <b>Dexter</b> menu's <b>Dexter UI</b> item.`
     },
     {attachTo: { element: '#doc_pane_id', on: 'left'},
         text: `Clicking the <b>Dexter</b> menu, <b>Dexter UI</b> item, automatically scrolls

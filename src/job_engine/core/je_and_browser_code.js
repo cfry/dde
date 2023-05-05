@@ -879,7 +879,7 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
             }
         }
         catch(err) { out("DDE unable to close the window specified in: " + window_title_index_or_elt +
-            "Perhaps it is already closed.")
+            ". Perhaps it is already closed.")
         }
     }
 

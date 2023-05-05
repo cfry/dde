@@ -19,6 +19,15 @@ globalThis.Dataset = class Dataset{
             DDE.error("Attempt to create a dataset definition without a name.<br/>" +
                       "Other Attributes: " + JSON.stringify(json_obj))
         }
+        let prev_def = Dataset.name_to_dataset_object_map[this.name]
+        if(Dataset.name_to_dataset_object_map[this.name]) { //Rodney advised this Apr 26, 2023
+            warning("Attempt to load another definition for Dataset: " + this.name +
+                    "<br/>This new definition:<br/>" +
+                    JSON.stringify(json_obj) +
+                    "<br/> is being ignored in favor of presering the first definition<br/>" +
+                    "which is from the file: " + prev_def.source_path)
+            return
+        }
         if(!this.line){
             this.line = JSON.stringify(json_obj)
         }
@@ -486,7 +495,8 @@ globalThis.Dataset = class Dataset{
         for(let a_type of dataset_obj.componentTypes){
             obj_id += "," + a_type
         }
-        let collector_obj_def = HCAObjDef.obj_id_to_obj_def_map[obj_id]  //todo returns undefined evan though the map has a key in it for "Fix32Out,Word,Word"
+        obj_id += ",1_outputs" //collectors always have exactly 1 output
+        let collector_obj_def = HCAObjDef.obj_id_to_obj_def_map[obj_id]  //todo returns undefined even though the map has a key in it for "Fix32Out,Word,Word"
         let node = LiteGraph.createNode("basic/" + obj_id, collector_name)
         HCA.lgraph.add(node);
         HCACall.node_add_usual_actions(node)
@@ -498,6 +508,8 @@ globalThis.Dataset = class Dataset{
         let dataset_obj = this.name_to_dataset_object_map[dataset_name]
         let collector_name = dataset_name + "In"
         let obj_id = collector_name + "," + dataset_name  //just one input, of type dataset_name
+        let output_count = dataset_obj.componentTypes.length
+        obj_id += "," + output_count + "_outputs"
         let node = LiteGraph.createNode("basic/" + obj_id, collector_name)
         HCA.lgraph.add(node);
         HCACall.node_add_usual_actions(node)
@@ -732,14 +744,10 @@ globalThis.Dataset = class Dataset{
                 )
             }
         }
-        let obj_id = this.name + "Out"
-        for(let a_in of ins){
-            obj_id += "," + a_in.type
-        }
         let outs = [{type: this.name, name: this.name + "Out0"}]
         let json_obj = {
             objectName: this.name + "Out",
-            obj_id: obj_id,
+            //obj_id: obj_id, //don't pass this in, let  new HCAObjDef(json_obj) construct it.
             TreeGroup:  new_tree_group_arr,
             inputs:     ins,
             outputs:    outs,
@@ -766,10 +774,9 @@ globalThis.Dataset = class Dataset{
                 }
             )
         }
-        let obj_id = this.name + "In" + "," + ins[0].type
         let json_obj = {
             objectName: this.name + "In",
-            obj_id: obj_id,
+            //obj_id: obj_id, //don't pass in, let new HCAObjDef(json_obj) construct it.
             TreeGroup:  new_tree_group_arr,
             inputs:     ins,
             outputs:    outs,

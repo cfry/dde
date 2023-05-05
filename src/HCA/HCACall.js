@@ -193,7 +193,16 @@ globalThis.HCACall = class HCACall{
                 * 0.5) / HCA.lgraphcanvas.ds.scale;
         HCA.lgraphcanvas.setDirty(true, true);
          */
-        HCA.lgraphcanvas.ds.reset() //unzooms to orig scale. Also offsets to 0, but that part shouldn't matter.
+        HCA.lgraphcanvas.ds.reset() //unzooms to orig scale.
+        //Also offsets to 0, but that part shouldn't matter.
+        //panning and zooming canvas does not change a calls x and y pos,
+        //but spreading does
+        //HCA.lgraphcanvas.ds.scale has the zoom factor. 1 means initial, no zoom.
+        //HCA.lgraphcanvas.ds.visible_area is an array of 4 floats,
+        //[neg_x_offset, neg_y_offset, width, height]
+        //width and height do not change with scrolling, panning, or
+        //resizing DDE splitter pane to show more canvas, but
+        //do change with zooming
         HCA.lgraphcanvas.ds.offset[0] = 300 - node.pos[0]  //x pos
         HCA.lgraphcanvas.ds.offset[1] = 150 - node.pos[1]  //y pos
     }
@@ -228,6 +237,8 @@ globalThis.HCACall = class HCACall{
         for(let new_in of new_inputs){
             call_obj_id += "," + new_in.type
         }
+        let output_count = node.outputs.length
+        call_obj_id += "," + output_count + "_outputs"
         return new HCACall({
             objectName:  objectName,
             call_name:    node.title, //foo:A

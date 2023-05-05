@@ -149,10 +149,10 @@ import "../HCA/HCA_ui.js"        //defines global HCA class
 //import "../HCA/HCA_objects.js" //obsoleted by ipg_to_json..js
 import "../HCA/ipg_to_json.js"   //defines global ipg_to_json class
 import "../HCA/HCA_objdef.js"    //defines global HCAObjDef class
-import "../HCA/HCACall.js"    //defines global HCACall class
-
+import "../HCA/HCACall.js"       //defines global HCACall class
 import "../HCA/dataset.js"       //defines global Dataset class
-import "../HCA/fpga_type.js"     //defines global SystemDescription class
+import "../HCA/fpga_type.js"     //defines global fpga class but its obsolete, just has the xyliks.Intel menu.
+import "../HCA/SysDesc.js"       //defined global SysDesc
 
 import "../HCA/litegraph_patches.js"
 
@@ -1689,7 +1689,8 @@ window_modify_id.onclick=function(){Editor.insert(
          //Metrics.init() //now performed by DDE_DB.init
 
 } //end of on_ready definition.
-   function on_ready_after_db_init(){
+
+   async function on_ready_after_db_init(){
          //set_dde_window_size_to_persistent_values() //todd dde4 (can work now) obsolete now that main.js does this
 
         let val = DDE_DB.persistent_get("save_on_eval")
@@ -1728,7 +1729,10 @@ window_modify_id.onclick=function(){Editor.insert(
          //PatchDDE.init()  //todo dde4 needs file system
 
 
-         DDE_DB.dde_init_dot_js_initialize()//must occcur after persistent_initialize
+         await DDE_DB.dde_init_dot_js_initialize()//must occcur after persistent_initialize
+         //use await because dde_init_dot_js_initialize has to await for getting the
+         //dde_init.js file which *might* contain a def for dexter0.
+         //if so, then Dexter.dexter0 will be defined and there won't be a redef of it below
 
          //for Job engine see similar code in ready_je.js,  on_ready_js function
          //this should be after DDE_DB.dde_init_dot_js_initialize

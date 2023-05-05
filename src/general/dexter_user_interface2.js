@@ -373,7 +373,7 @@ class dui2 {
         let result =  '<div>Direction: <span class="direction">' +
                        JSON.stringify(dir) +
                        '</span> ' +
-                       '<input type="checkbox"' + checked_val + 'name="direction_checkbox" data-onchange="true" style="margin-left:20px;"/> Point Down </div>' //checked by default
+                       '<span name="direction_checkbox_wrapper"> <input type="checkbox"' + checked_val + 'name="direction_checkbox" data-onchange="true" style="margin-left:20px;"/> Point Down </span></div>' //checked by default
         return result
     }
 

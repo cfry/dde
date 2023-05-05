@@ -67,7 +67,7 @@ globalThis.ipg_to_json = class ipg_to_json{
             ipg = Utils.replace_substrings(ipg, "\u0001", " ", false)
             ipg = Utils.replace_substrings(ipg, "\u0002", " ", false)
 
-            let result = {object_definitions: [], datasets: []}
+            let result = {object_definitions: [], datasets: [], top_level_sys_desc: undefined}
             let lines = ipg.split("\n")
             //return last(lines)
             //lines = lines.slice(-3)
@@ -75,10 +75,13 @@ globalThis.ipg_to_json = class ipg_to_json{
                                      //Object, but also used by subsequent lines
             let call_obj_json = null
             let section = null
+            let system_ancestors = [] //for nested system_descriptor processing
+            let top_level_sys_desc = null
             for (let line_index = 0; line_index < lines.length; line_index++) {
                 let line = lines[line_index]
                 //console.log("line index: " + line_index + ":" + line)
                 //initial meta-data
+                let trimmed_line = line.trim()
                 if (line.startsWith("VIVA ")) {
                     let split_line = line.split(" ")
                     result.VIVA_version = split_line[1]
@@ -127,10 +130,65 @@ globalThis.ipg_to_json = class ipg_to_json{
                     result.datasets.push(ds_obj)
                 }
 
-                //System Description happens at the bottom of a "main" file. Rodney is Ignoring this for now so I will too.
-                else if (line.startsWith("System ")) {
-                    break;
-                } else if (line.startsWith("{")) {
+                //System Description happens at the bottom of a ".sd" file.
+                else if (line.startsWith("System ")) { //this will be at most once in a file, and the top level sys desc.
+                    let new_sys_desc_obj = SysDesc.parse_sys_desc_line(source_path, trimmed_line)
+                    let pre_cur_sys_desc = Utils.last(system_ancestors)
+                    system_ancestors.push(new_sys_desc_obj)
+                    if(!pre_cur_sys_desc) {  //usually if not always hits
+                        result.top_level_sys_desc = new_sys_desc_obj
+                    }
+                    else {
+                        pre_cur_sys_desc.children.push(sys_desc_obj)
+                    }
+                }
+                else if (system_ancestors.length > 0){ //we are in the system section, and have read the one top level system desc first line.
+                    let cur_sys_def = Utils.last(system_ancestors)
+                    if (trimmed_line.startsWith("System ")) { //these lines are always indented
+                        let new_sys_desc_obj = SysDesc.parse_sys_desc_line(source_path, trimmed_line)
+                        let pre_cur_sys_desc = Utils.last(system_ancestors)
+                        pre_cur_sys_desc.children.push(new_sys_desc_obj)
+                        system_ancestors.push(new_sys_desc_obj)
+                        section = null
+                    }
+                    else if(trimmed_line.startsWith("//_")){  //first line of the attributes
+                        let [slashslash, Attr, content] = trimmed_line.split(" ")
+                        let [mystery_int, name_val] = content.split(",")
+                        let [name, val] = name_val.split("=")
+                        cur_sys_def.mystery_int = parseInt(mystery_int.trim())
+                        if(name && name.length > 0){
+                            cur_sys_def[name] = val
+                        }
+                        section = "sys_desc_collecting_attributes"
+                    }
+                    else if (trimmed_line.startsWith("//")) { //non first line of attributes
+                        if(section == "sys_desc_collecting_attributes") {
+                            let [slashslash, name_val] = trimmed_line.split(" ")
+                            let [name, val] = name_val.split("=")
+                            if (name && name.length > 0) {
+                                cur_sys_def[name] = val
+                            }
+                        }
+                        else { //appears only right after { for perhaps several contiguous lines starting with //
+                            cur_sys_def.description += trimmed_line + "\n"
+                        }
+                    }
+                    else if (trimmed_line === "{"){ //starting either sub SYSTEMS or the "// descriptionb lines
+                        section = "sys_desc_after_curley" //not now actually read.
+                    }
+                    else if (trimmed_line === "}"){ //done with sub_sys_descs
+                        section = null
+                        system_ancestors.pop()
+                    }
+                    else {
+                        shouldnt("in parse_string with line: " + line +
+                                 "<br/> and system_ancestors: " + system_ancestors +
+                                 "<br/> and section: " + section)
+                    }
+                }
+
+                //done with System Description parsing
+                else if (line.startsWith("{")) {
                     section = "calls"
                 } //in a top level object, just before top level doc.
                 //no content after the first char of such lines.
@@ -141,12 +199,14 @@ globalThis.ipg_to_json = class ipg_to_json{
                         top_level_obj.revisions = []
                     }
                     top_level_obj.revisions.push(line.substring(4))
-                } else if (line.startsWith(" // ")) { //top level doc
+                }
+                else if (line.startsWith(" // ")) { //top level doc
                     if (!top_level_obj.description) {
                         top_level_obj.description = ""
                     }
                     top_level_obj.description += line.substring(4) + "\n"
-                } else if (line.trim() == "//") {
+                }
+                else if (trimmed_line == "//") {
                 } //ignore, empty comment. place AFTER " // " test. probably has some newline char(s) after the //
 
                 else if (line.startsWith(" //_ Object Prototypes")) {
