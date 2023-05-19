@@ -55,6 +55,8 @@ import "./styles.css"
 
 import {w3} from "../third_party/w3.js"
 
+
+
 //import ping from "ping.js" //errors
 //globalThis.ping = ping
 
@@ -156,8 +158,9 @@ import "../HCA/SysDesc.js"       //defined global SysDesc
 
 import "../HCA/litegraph_patches.js"
 
-import "../blocksde/init.js" //needed for making the menu of differnt "views" of DDE's editor, including HCA
+import "../blocksde/init.js" //needed for making the menu of different "views" of DDE's editor, including HCA
 import "./talk.js"       //defines global Speechly
+import "./openai.js"    //defines globalThis.chatgpt
 
 
 
@@ -538,6 +541,8 @@ export function on_ready() {
        Dex.run_button_handler()
    }
 
+   OpenAI.init() //set's gpt button onclick
+
    wrap_instruction_id.onclick = function() {
        Dex.wrap_instruction_handler()
    }
@@ -603,6 +608,8 @@ export function on_ready() {
  }
 
  Editor.set_menu_string(open_id, "Open...", "o")
+
+ open_local_id.onclick = Editor.open_local_file
 
  //open_from_dexter_id.onclick = Editor.open_from_dexter_computer
 
@@ -701,6 +708,8 @@ export function on_ready() {
          Editor.save_as()
      }
  } //was: Editor.save_on_dde_computer //only for saving on dde computer
+
+ save_local_id.onclick = Editor.save_local_file
 
  //obsolete with dde4
  //save_to_dexter_as_id.onclick = Editor.save_to_dexter_as

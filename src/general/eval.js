@@ -43,12 +43,7 @@ function fix_code_to_be_evaled(src){
 //used in make_dde_status_report
 export var latest_eval_button_click_source = null
 
-//part 1 of 3.
-//Only called by eval_button_action
-//when this is called, there is no selection, so either we're evaling the whole editor buffer
-//or the whole cmd line.
-//beware, the code *might* be HTML or python at this point
-export function eval_js_part1(step=false){
+export function grab_text_for_eval_button(){
     //tricky: when button is clicked, Editor.get_any_selection() doesn't work,
     //I guess because the button itself is now in focus,
     //so we grab the selection on mousedown of the the Eval button.
@@ -66,15 +61,15 @@ export function eval_js_part1(step=false){
         src = DocCode.selected_text_when_eval_button_clicked
     }
     else if (DocCode.previous_active_element &&
-             DocCode.previous_active_element.tagName == "TEXTAREA"){
-         let start = DocCode.previous_active_element.selectionStart
-         let end  = DocCode.previous_active_element.selectionEnd
-         if (start != end) { src = DocCode.previous_active_element.value.substring(start, end) }
-         else              { src = DocCode.previous_active_element.value }
+        DocCode.previous_active_element.tagName == "TEXTAREA"){
+        let start = DocCode.previous_active_element.selectionStart
+        let end  = DocCode.previous_active_element.selectionEnd
+        if (start != end) { src = DocCode.previous_active_element.value.substring(start, end) }
+        else              { src = DocCode.previous_active_element.value }
     }
     else if (DocCode.previous_active_element &&
-             (DocCode.previous_active_element.tagName == "INPUT") &&
-             (DocCode.previous_active_element.type == "text")){
+        (DocCode.previous_active_element.tagName == "INPUT") &&
+        (DocCode.previous_active_element.type == "text")){
         let start = DocCode.previous_active_element.selectionStart
         let end  = DocCode.previous_active_element.selectionEnd
         if (start != end) { src = DocCode.previous_active_element.value.substring(start, end) }
@@ -84,8 +79,16 @@ export function eval_js_part1(step=false){
     else {
         src = Editor.get_javascript("auto")
     }
+    return [src, src_comes_from_editor]
+}
+
+//part 1 of 3.
+//Only called by eval_button_action
+//beware, the code *might* be HTML or python at this point
+export function eval_js_part1(step=false){
     //we do NOT want to pass to eval part 2 a trimmed string as getting its char
     //offsets into the editor buffer correct is important.
+    let [src, src_comes_from_editor] = grab_text_for_eval_button()
     latest_eval_button_click_source = src
     if (src.trim() == ""){
         DocCode.open_doc(learning_js_doc_id)

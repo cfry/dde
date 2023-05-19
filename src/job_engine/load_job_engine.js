@@ -19,6 +19,11 @@ globalThis.keep_alive_value = false //true
 import package_json from "../../package.json"
 export {package_json}
 
+import { LongBits } from 'longbits'
+globalThis.LongBits = LongBits //needed by Protobuf
+debugger;
+console.log("load_job_engine after loading longbits")
+
 import * as Espree from "espree";
 globalThis.Espree = Espree;
 

@@ -764,7 +764,7 @@ class Editor {
                             })
         }
     }
-
+    //______________
     static open_system_file (){
         let cont = "<fieldset><legend>on DDE Computer</legend>\n" +
                     "<input type='submit' value='edit dde_init.js'/><br/>" +
@@ -782,6 +782,92 @@ class Editor {
                      height: 450,
                      callback: handle_open_system_file
         })
+    }
+
+    static open_local_file(){
+        //does not have to hit a server.
+        show_window({title: "Open Local File",
+                    content: `<input id="open_local_file_id" type="file" size="30" onchange="Editor.handle_open_local_file(event)"/>`,
+                    width: 200, height: 100
+    })}
+
+    static handle_open_local_file(event) {
+        let files = event.target.files; // FileList object
+        // use the 1st file from the list
+        if(files.length > 0) {
+            let the_file = files[0];
+            let reader = new FileReader();
+            // Closure to capture the file information.
+            reader.onload = (function (theFile) {
+                return function (event) {
+                    let the_file_name = theFile.name
+                    let path = "/local/" + the_file_name
+                    let the_content = event.target.result
+                    Editor.edit_file(path, the_content)
+                };
+            })(the_file);
+            /*reader.onload = function(event) {
+                let the_content = event.target.result
+                let the_file_name = the_file //the_file is NOT bound (closed over) for some strange reason
+                out(the_content)
+            }*/
+                // Read in the image file as a data URL.
+            reader.readAsText(the_file);
+        }
+        else { //user canceled the dialog so no action
+
+        }
+        SW.close_window("Open Local File")
+    }
+
+    /*static save_local_file() {
+        //does not have to hit a server.
+        let file_path = Editor.current_file_path
+        let last_slash_pos = file_path.lastIndexOf("/")
+        let file_name = file_path.substring(last_slash_pos + 1)
+        let [unused, extension] = file_name.split(".")
+        let content = Editor.get_javascript(false)
+        var uri = "data:text/" + extension + ";charset=utf-8," + content;
+        var downloadLink = document.createElement("a");
+        downloadLink.href = uri;
+
+        downloadLink.download = file_name
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+    }*/
+
+    // see https://stackoverflow.com/questions/34870711/download-a-file-at-different-location-using-html5
+    static async get_handle() {
+        // set some options, like the suggested file name and the file type.
+        let file_path = Editor.current_file_path
+        let last_slash_pos = file_path.lastIndexOf("/")
+        let file_name = file_path.substring(last_slash_pos + 1)
+        const options = {
+            suggestedName: file_name,
+            types: [
+                {
+                    description: 'Text Files',
+                    accept: {'text/plain': ['.txt', '.js', '.dde'],},
+                },
+            ],
+        };
+        // prompt the user for the location to save the file.
+        const handle = await window.showSaveFilePicker(options);
+        return handle
+    }
+
+    static async save_local_file() {
+        let handle  = await Editor.get_handle()
+        let content = Editor.get_javascript(false)
+        // creates a writable, used to write data to the file.
+        const writable = await handle.createWritable();
+
+        // write a string to the writable.
+        await writable.write(content);
+
+        // close the writable and save all changes to disk. this will prompt the user for write permission to the file, if it's the first time.
+        await writable.close();
     }
 
     static remove (path_to_remove=Editor.current_file_path){

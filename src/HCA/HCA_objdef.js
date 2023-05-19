@@ -222,6 +222,9 @@ globalThis.HCAObjDef = class HCAObjDef {
     }
 
     static make_object_defs_slowly(source_path=null, json_obj_defs, next_index = 0){
+        if(HCA.pending_rendering_dom_id && window[HCA.pending_rendering_dom_id]){
+            HCA.pending_rendering_dom_id = null
+        }
         if(HCA.pending_rendering_dom_id && !window[HCA.pending_rendering_dom_id]) { //take a lap waiting for the pendeing folder elt to render
             setTimeout(function(){
                 HCAObjDef.make_object_defs_slowly(source_path, json_obj_defs, next_index)
@@ -238,7 +241,10 @@ globalThis.HCAObjDef = class HCAObjDef {
             //not just what might happen to be in the json string in the file for source_path
             new HCAObjDef(json_obj_def)
             if(next_index < (json_obj_defs.length - 1)) {
-                HCAObjDef.make_object_defs_slowly(source_path, json_obj_defs, next_index + 1)
+                setTimeout(function(){
+                    HCAObjDef.make_object_defs_slowly(source_path, json_obj_defs, next_index + 1)
+                }, 0)
+                //HCAObjDef.make_object_defs_slowly(source_path, json_obj_defs, next_index + 1)
             }
             else{ //all done loading obj_defs, so display an obj_def
                 if(HCAObjDef.current_sheet && HCAObjDef.current_sheet.source_path === source_path){
@@ -660,7 +666,10 @@ globalThis.HCAObjDef = class HCAObjDef {
     // see also update_current_obj_def_from_nodes in this file
     static redraw_obj_def(obj_def=HCAObjDef.current_obj_def) {
         HCA.lgraph.clear() //remove all existing graphical nodes
-        if(!obj_def.prototypes) { return } //no prototypes to display in canvas
+        if(!obj_def.prototypes) { //no prototypes to display in canvas
+            warning("There are no calls in: " +  obj_def.obj_id + " to display.")
+            return
+        }
         let lgraph_config_json = { "last_node_id": obj_def.prototypes.length - 1,
             //"last_link_id" //set below
             "nodes":  [], //filled in below
@@ -678,7 +687,8 @@ globalThis.HCAObjDef = class HCAObjDef {
         for(let i = 0; i <  obj_def.prototypes.length; i++){
             let call_obj = obj_def.prototypes[i]
             call_names_array[i] = call_obj.call_name
-            let a_node = HCACall.call_obj_to_node(call_obj, i)
+            let a_node = HCACall.call_obj_to_new_node(call_obj, i)
+            call_obj.node_id = a_node.id
             let x = a_node.pos[0]
             if((min_x === null) || (min_x > x)) { min_x = x}
             let y = a_node.pos[1]
@@ -689,8 +699,9 @@ globalThis.HCAObjDef = class HCAObjDef {
         //shift the nodes such that the min-x is up against left side of the canvas and
         //min_y is up against the top of the canvas.
         for(let node of lgraph_config_json.nodes){
-            node.pos[0] -= min_x
-            node.pos[1] -= min_y
+            let call_obj = HCACall.node_id_to_existing_HCACall(node)
+            node.pos[0] = (call_obj.x * HCACall.xy_call_to_node_pos_multiplier) - min_x
+            node.pos[1] = (call_obj.y * HCACall.xy_call_to_node_pos_multiplier) - min_y
             node.pos[1] += 25 //because there's some error in where the Y pos in a node is.
                               //with this offset, the top of the topmost block comes to
                               // the top of the display area, not above it.
@@ -960,7 +971,7 @@ globalThis.HCAObjDef = class HCAObjDef {
             let nodes = HCA.lgraph._nodes //remake cur_obj_def.prototypes from this
             let new_HCACalls = []
             for (let node of nodes) {
-                let new_HCACall = HCACall.node_to_HCACall(node)
+                let new_HCACall = HCACall.node_to_new_HCACall(node)
                 new_HCACall.containing_obj_id = cur_obj_def.obj_id
                 new_HCACalls.push(new_HCACall)
             }
@@ -971,11 +982,11 @@ globalThis.HCAObjDef = class HCAObjDef {
                 if(link) { //warning: after we've deleted a node, sometimes link is undefined. if so, don't do the below
                     let new_connection = {
                         source: {
-                            call_name: HCACall.node_id_to_HCACall(link.origin_id, new_HCACalls).call_name,
+                            call_name: HCACall.node_id_to_existing_HCACall(link.origin_id, new_HCACalls).call_name,
                             outputNumber: link.origin_slot
                         },
                         sink: {
-                            call_name: HCACall.node_id_to_HCACall(link.target_id, new_HCACalls).call_name,
+                            call_name: HCACall.node_id_to_existing_HCACall(link.target_id, new_HCACalls).call_name,
                             inputNumber: link.target_slot
                         }
                     }

@@ -207,7 +207,11 @@ globalThis.HCACall = class HCACall{
         HCA.lgraphcanvas.ds.offset[1] = 150 - node.pos[1]  //y pos
     }
 
-    static node_id_to_HCACall(node_id, call_objs_array){
+    //returns existing call
+    static node_id_to_existing_HCACall(node_or_node_id, call_objs_array = HCAObjDef.current_obj_def.prototypes){
+        let node_id
+        if(typeof(node_or_node_id) === "number") { node_id = node_or_node_id}
+        else { node_id = node_or_node_id.id}
         for(let call_obj of call_objs_array){
             if(call_obj.node_id === node_id){
                 return call_obj
@@ -217,7 +221,8 @@ globalThis.HCACall = class HCACall{
     }
 
     //called by update_current_obj_def_from_nodes
-    static node_to_HCACall(node){
+    //makes  a new HCAcall from the node input
+    static node_to_new_HCACall(node){
         let [objectName, postfix_letter] = node.title.split(":")
         let new_inputs = []
         for(let node_in of node.inputs){
@@ -307,7 +312,7 @@ globalThis.HCACall = class HCACall{
     }
 
     //was make_lgraph_node_json
-    static call_obj_to_node(obj_call, id){
+    static call_obj_to_new_node(obj_call, id){
         let ins = []
         //make json of format:
         // "inputs": [{ "name": "In1", "type": "Variant", "link": null_or_pos_int }]
@@ -415,8 +420,7 @@ globalThis.HCACall = class HCACall{
     }
 
     static non_attribute_names = ["call_name", "call_obj_id", "containing_obj_id",
-                                  "inputs", "line", "objectName", "outputs",
-                                  "x", "y"
+                                  "inputs", "line", "objectName", "outputs"
                                  ]
 
     static attribute_names_in_call_obj(call_obj){
@@ -479,6 +483,10 @@ globalThis.HCACall = class HCACall{
                     else {
                         let attr_name = row.substring(0, attr_name_delimiter_pos)
                         let attr_value = row.substring(attr_name_delimiter_pos + 2).trim()
+                        let num_maybe = parseFloat(attr_value)
+                        if(!Number.isNaN(num_maybe)){  //got a number so use it!
+                            attr_value = num_maybe
+                        }
                         call_obj[attr_name] = attr_value
                         attribute_names_in_dialog.push(attr_name)
                     }
@@ -499,6 +507,7 @@ globalThis.HCACall = class HCACall{
                 delete call_obj.description
             }
             SW.close_window(vals.window_index)
+            HCAObjDef.redraw_obj_def()
         }
         else if(vals.clicked_button_value === "close_button"){
             SW.close_window(vals.window_index)

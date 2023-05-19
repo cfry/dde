@@ -1138,6 +1138,7 @@ globalThis.HCA = class HCA {
         HCAObjDef.update_current_obj_def_from_nodes()
         //HCA.lgraphcanvas.dirty_canvas = true; //without this the new canvas block positions are not shown
         HCAObjDef.redraw_obj_def()  //without doing this, the wires are not moved with their blocks
+        this.spread_factor *= factor
     }
 
     //not really the center but for a small display, it returns

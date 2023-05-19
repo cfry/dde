@@ -405,7 +405,10 @@ MoreAttributes: here` //careful: "MoreAttributes" is used below
     }
 
     static sys_descs_in_files(files_array) {
-        if(files_array.includes(this.sys_desc_tree.source_path)){
+        if(!this.sys_desc_tree){
+            return null
+        }
+        else if(files_array.includes(this.sys_desc_tree.source_path)){
             return this.sys_desc_tree
         }
         else {
