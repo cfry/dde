@@ -541,8 +541,6 @@ export function on_ready() {
        Dex.run_button_handler()
    }
 
-   OpenAI.init() //set's gpt button onclick
-
    wrap_instruction_id.onclick = function() {
        Dex.wrap_instruction_handler()
    }
@@ -1831,6 +1829,9 @@ window_modify_id.onclick=function(){Editor.insert(
                        DocCode.open_doc(hca_ui_doc_id)
                    }, 200)
                })
+
+          OpenAI.init() //set's gpt button onclick and maybe the configuration, so needs
+          //to be after DDE_DB init
 
           help_system_id.onclick = function(){
              //DocCode.open_doc(help_system_doc_id)
