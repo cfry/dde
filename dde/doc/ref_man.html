@@ -12480,5 +12480,438 @@ Monitor.strips_solve({
        </details>
        </details> --> <!-- end DDE_NPM -->
        </details> <!-- ending Adding JavaScript -->
+     <details id="gpt_interface_doc_id" class="doc_details"><summary>GPT Interface</summary>
+         DDE's  GPT interface allows you to easily obtain a lot of useful information from the
+         web in a more concise and focused format than normal web browser searching.
+         DDE has both an interactive and a programmatic interface to ChatGPT.
+         You can learn more from:
+         <ul>
+             <li>The company that made it <a target="_blank" href="http://openai.com">openai.com</a></li>
+             <li>The below documentation</li>
+             <li>Just playing: click on <button>GPT</button> in the output pane. Read tooltips.</li>
+             <li>Asking ChatGPT about itself.</li>
+         </ul>
+         <details class="doc_details"><summary>GPT Configuration</summary>
+             The first time you click on <button>GPT</button>, it will redirect you
+             to the Configuration dialog box. You can also show the dialog by clicking
+             on the down arrow to the right of <button>GPT</button>
+             <p></p>
+             The top section of the dialog allows you to enter your organization and API Key,
+             which you can obtain at: <a target="_blank" href="http://openai.com">openai.com</a> .
+             Though this is a paid service, you get quite a bit of initial usage for free after you sign up.
+             Once you enter that information, you can
+             click <button>Update Configuration</button> and start using ChatGPT.
+             <p/>
+             The bottom section of the configuration dialog has settings that remain persistent even after you relaunch DDE
+             (just like the organization and API Key).
+             Those setting are used to modify what ChatGPT does for you. You can choose which
+             model to use, and the outout format to get information in, including images
+             using Dall-E that can be existing ones on the web or made on the fly according
+             to your request.
+         </details>
+         <details class="doc_details"><summary style="color:red;">Responsible Use</summary>
+             To get information from GPT you need to tell it what information you want.
+             What you tell GPT <i>could</i> be shared, so don't reveal any personal
+             or organizational information that shouldn't be public.
+             <p></p>
+             Information that comes back should also be used responsibly.
+             It may well be wrong and incomplete. Its source is hard to indentify
+             and there are no "confidence scores" that even tell you how much
+             ChatGPT believes what its telling you. Think of this information as
+             a starting point, (much like web search content) not as definitive.
+             <p></p>
+             DDE makes it especially easy to test JavaScript that is returned,
+             but don't think of this tool as relieving you of the need to beccome a programmer.
+             Its more like an assistent that can speed up your learning and coding.
+             <p></p>
+             This tool is brand new so legal issues surrounding its use have yet to
+             be <a target="_blank" href="https://www.lexology.com/library/detail.aspx?g=33bf4b4f-ffd9-4bf1-bfc1-7c790d86a22f">worked out.</a>
+         </details>
+         <details class="doc_details"><summary><button>GPT</button></summary>
+             The most important button in DDE is <button>Eval</button>. It takes
+             the selected text and feeds it to JavaScripts evaluator. The selection can
+             be from the text editor, the command input, the Doc pane or the Output pane.
+             If there is no seleted text, the whole editor content is used. The result
+             (or an error message) is printed in the Output pane.
+             <p></p>
+             The <button>GPT</button> button is similar to the <button>Eval</button> button
+             in many ways.
+             <ul>
+             <li>Its also in the Output pane header.</li>
+             <li>It gets its input (a prompt) from the same places.</li>
+             <li>It performs a computation on that input.</li>
+             <li>It prints a result in the Output pane.</li>
+             <li>It can create and display images.</li>
+             </ul>
+             But it differs in that:
+             <ul>
+                 <li>The performed computation is not the JavaScript evaluator but
+                 rather a complicated processing of the input text to find matching data
+                 from the web that is stitched together for the result.</li>
+                 <li>You must register for this service, and if you use enough of it, pay.</li>
+                 <li>The computation is done in the cloud. You must be connected to the Internet.</li>
+                 <li>The results are primarily intended for human interpretation, though see below
+                     for alternatives.</li>
+             </ul>
+             <button>Eval</button> and <button>GPT</button> are complimentary. Each help you get
+             work done. <i>The interaction between the two is synergistic.</i>
+         </details>
+         <details class="doc_details"><summary>Prompt Engineering</summary>
+             The way you tell GPT what you want is to give it some text. That text is called
+             a <b>prompt</b>. That text can be in
+             many natural languages as well as artificial ones (programming languages).
+             <p></p>
+             For the most part, if you enter something reasonable, you'll get a reasonable
+             response, formally called a <b>completion</b>. It is called a completion because
+             often you give it the beginning of a sentence or paragraph and that promot is
+             "completed" by information that ChatGPT has found on the web. As it turns out, there
+             are lots of syntaxes for prompts you can make. Constructing those prompts to
+             get back is called <b>prompt engineering</b>. Effectively you do a similar
+             kind of engineering when you're constructing a query to a search engine,
+             or writing some code. GPT prompts are more forgiving than web searches or code.
+             However, understanding various styles will help you get the most out of GPT.
+             But don't let lack of experience stop you from trying just about anything!
+             <p></p>
+             Below is are examples and descriptions of how to use different "languages" or at least "jargons"
+             in your prompts to ChatGPT. Taken in order, these examples form a kind of
+             tutorial on using GPT. The below are not cherry picked for good output.
+             They have not had extensive tweeking to make sure they give the best output.
+             You will probably discover both better and worse prompts.
+             You can select any text in DDE and click on the <button>GPT</button>
+             but the white-background text below characterizes styles that are known
+             to be (mostly) useful.
+             <details class="doc_details"><summary>English</summary>
+                 <code title="not in TestSuite">varient</code> <br>
+                 Corrects our spelling and gives us the definition too.
+                 <p></p>
+                 And for the really dyslexic:<br/>
+                 <code title="not in TestSuite">correct: Ill bee their for u</code>
+                 <p></p>
+                 Can't make dinner?<br/>
+                 <code title="not in TestSuite"> how to make eggplant parmisan </code></br>
+                 Observe that I've misspelled <b>parmesan</b> but GPT's response has the correct
+                 spelling along with the correct semantics.
+                 <p></p>
+                 <code title="not in TestSuite"> how to program in JavaScript </code><br/>
+                 If you've left te max_tokens at the default of 200 in the GPT Configuration dialog,
+                 the response is cut off to that limit. You can increase that 200, but it'll cost you:-(.<br/>
+                 If you use the exact same prompt, you usually get a somewhat different answer.
+                 This can be useful as a somewhat different perspective, but it often redundant
+                 with previous responses.
+                 <p></p>
+                 <code title="not in TestSuite"> How tu turn on mic in zoom call </code>
+                 This prompt comes from my very first demo of GPT Interface during a zoom call,
+                 when the usual Zoom bug occured and our hapless demo-watcher couldn't voice
+                 a comment. I typed this in on the spur of the moment, misspelling and all.
+             </details>
+             <details class="doc_details"><summary>Images</summary>
+                 Leave the Configuration dialog set to <b>text</b>
+                 and see GPT's output for:<br/>
+                 <code title="not in TestSuite">Haddington Dynamics Dexter Robot</code><br/>
+                 Because different requests (with the same prompt) result in different results,
+                 its hard to "pin down" GPT here. In one of my requests,
+                 it was vaguely correct on most of what it said but included:
+                 <samp>six degrees of freedom (DOF) arms and a six-axis wrist</samp>
+                 Dexter started out as 5 axis and jumped to 7. Never did we advertize 6 axis.
+                 6 axis robots are common, so you can imagine GPT "mixed in" information from
+                 other robots here. Plausible, but wrong. "arms" implies more than one
+                 but Dexter has always had just one. "and a six-axis wrist" so that's 12 axis'?
+                 Not many robots have that unless perhaps you count fingers. In any case.
+                 this one sentence has 3 mistakes.
+                 <p></p>
+                 These are the kind of errors you will encounter with GPT.
+                 It will <i>sound</i> authoritative and plausibly correct,
+                 and in fact <i>be</i> correct much of the time. Unfortunately its not possible for someone who
+                 doesn't understand the subject well <i>which</i> parts are wrong, so please beware.
+                 <p></p>
+                 <ol>
+                     <li>Click on the down triangle to the right of <button>GPT</button></li>
+                     <li>Click on the <b>image</b> radio button</li>
+                     <li>Click on <button>Update Configuration</button></li>
+                     <li>With the same prompt,<br/>
+                         <code title="not in TestSuite">Haddington Dynamics Dexter Robot</code><br/>
+                         click on <button>GPT</button>.</li>
+                 </ol>
+                 In several seconds, you should see a new tab in
+                 your browser open up with a picture in it.
+                 <p></p>
+                 I've never seen an actual Dexter in the picture, though I have seen images of both
+                 real and make-believe robots. Overall, I observe the images are less accurate than
+                 the text, though they still convey a general notion of the prompt.
+                 <p></p>
+                 Well if we can't rely on image accuracy, maybe we can at least have some fun.<br/>
+                 <code title="not in TestSuite">3 green and purple cars with blue flames</code>,<br/>
+                 This prompt is less definitive than a particular robot, so many images would match it.
+                 I've seen images that have a pretty good match here, vague though the match may be.
+                 Good art is in the eye of the beholder.
+             </details>
+             <details class="doc_details"><summary>Other Natural Languages</summary>
+                 Use the Configuration dialog to switch back to <b>text</b>.<br/>
+                 <code title="not in TestSuite"> Parlez-vous fran�ais?</code><br/>
+                 GPT answers back in French. Um, what does that mean?
+                 <p></p>
+                 <code title="not in TestSuite">Convert French to Spanish:
+                     Oui, je parle français.</code>
+                 <p></p>
+                 <code title="not in TestSuite">Convert Spanish to English:
+                     Sí, hablo francés.</code><br/>
+                  Note the non-ascii characters.
+             </details>
+              <details class="doc_details"><summary>Programming Languages</summary>
+                Use a line of incomplete and incorrect <b>JavaScript</b> as a prompt:<br/>
+                <code title="not in TestSuite">for(let i=0, i < 10; i++) {</code><br/>
+                We get back a description of the <i>corrected</i> code, what was corrected,
+                and how to complete it. Your own private JavaScript tutor!
+                <p></p>
+                  But how does it do on <b>C</b>?
+<pre><code title="not in TestSuite">
+int subtractNumbers(int a, int b)
+{
+    int result;
+    result = a+b;
+    return result;
+}</code></pre>
+                  The name of the function has "subtract" in it, but there's an "add" in
+                  the code. The name and code are inconsistent in a way that a C complier
+                  wouldn't care, but GPT knows this code is too confusing to be reasonable,
+                  so it complains and corrects. (It chooses the function name over the code.)
+                  <p></p>
+<pre><code title="not in TestSuite">
+Convert C to JavaScript:
+int addNumbers(int a, int b)
+{
+  int result;
+  result = a+b;
+  return result;
+}
+addNumbers(4, 5)</code></pre>
+                  This time our prompt is self-consistent.
+                  Notice the output JS is missing the type declarations, characteristic of JS.<br/>
+                  Select the JavaScript in the output pane and click <button>Eval</button><br/>
+                  DDE makes it easy to verify that GPT translated C to JS correctly.
+<pre><code title="not in TestSuite">
+Convert JavaScript to C:
+function foo(x=3, y=4){
+  return Math.hypot(x, y)
+}
+foo(1, 1)</code></pre>
+                  Going in the other direction, notice that C doesn't have default values for
+                  args, but GPT "fakes it" with extra C code in the body. Nice.
+                  <p></p>
+                  C also doesn't make it easy to have top level function calls.
+                  GPT's JS to C conversion "fakes it" with a definition of "main".
+                  <p></p>
+                <b>C#</b> is half way between C and JavaScript.
+<pre><code title="not in TestSuite">
+Convert JavaScript to C#:
+function foo(x=3, y=4){
+  return Math.hypot(x, y)
+}
+foo(1, 1)</code></pre>
+                  <b>Python</b>
+<pre><code title="not in TestSuite">
+Convert JavaScript to Python:
+function foo(x=3, y=4){
+  return Math.hypot(x, y)
+}
+foo(1, 1)</code></pre>
+               You can use DDE's <a href="#" onclick="DocCode.open_doc(python_user_interface_doc_id)">Python evaluator</a> to verify this code,
+                  though its not trivial.
+               <p></p>
+                  <b>BASH</b><br/>
+                  <code title="not in TestSuite">bash ls -l</code>
+                  <p></p>
+                  <code title="not in TestSuite">man page for ls</code>
+                  <p></p>
+                  <code title="not in TestSuite">Convert bash to JavaScript: ls -l</code><br/>
+                  Beware, file system operations will work in pure node.js (the Job Engine)
+                  but not in the Browser context of DDE4's IDE.
+                  <p></p>
+                  <b>HTML</b><br/>
+                  To see the examples of HTML text that GPT returns, check the <b>Code</b>
+                  checkbox in DDE's Output pane header before using the below prompts.<br/>
+                  <code title="not in TestSuite">HTML horizontal line</code>
+                  <p></p>
+                  <code title="not in TestSuite">HTML vertical line</code><br/>
+                  Uncheck the Output pane's <b>Code</b> checkbox before proceeding.
+                  <p></p>
+                  <b>English</b> isn't normally accused of being a programming language, but in at least a few cases ...<br/>
+                  <code title="not in TestSuite">write a JavaScript function to multiply three numbers then add 6.</code><br/>
+                  Select the new function definition in the Output pane and click <button>Eval</button><br/>
+                  GPT nicely created a test call to the new function also.<br/>
+                  Select it and click <button>Eval</button> to verify that GPT's code is correct.
+                  <p></p>
+                  Or <b>Spanish?</b>
+                  <code title="not in TestSuite">Convert Spanish to JavaScript:
+                  Escriba una funci�n de JavaScript para multiplicar tres n�meros y luego sumar 6.</code><br/>
+                  Select the new definition and click <button>Eval</button><br/>
+                  Now select just the function name and click <button>Eval</button><br/>
+                  This shows you the "binding" of that name to the function. Twist down
+                  the result to see the function body, just to be sure the full definition was captured.
+              </details>
+            <details class="doc_details"><summary>Math</summary>
+                Math is a language, despite the lack of recognition of this fact.
+                Its so undesigned that it doesn't even have a proper name for the language so
+                I call it <b>Math lang</b>. You can use a variant, <b>Math lang ascii</b>
+                for a somewhat more reasonable syntax for GPT prompts:<br/>
+                <code title="not in TestSuite">pi * 2</code>
+                But we don't have to stick with Math Lang's abysmal notation to perform math, we
+                can use an even worse language: English!<br/>
+                <code title="not in TestSuite">The square root of 3</code>
+                <p></p>
+                <code title="not in TestSuite">powers of 2</code>
+                <p></p>
+                <code title="not in TestSuite">the first 10 prime numbers</code>
+                <p></p>
+                <code title="not in TestSuite">Can pentagons tile a plane?</code>
+            </details>
+            <details class="doc_details"><summary>Science & Robotics</summary>
+                <code title="not in TestSuite">A 7 axis Dexter robot from Haddington Dynamics</code>
+                <p></p>
+                <code title="not in TestSuite">cycloidal drive</code>
+                <p></p>
+                <code title="not in TestSuite">dh parameters</code>
+                <p></p>
+                <code title="not in TestSuite">Is titanium stronger than carbon fiber?</code>
+                <p></p>
+                <code title="not in TestSuite">single word: what is the 5th element in the periodic table?</code>
+                <p></p>
+                <code title="not in TestSuite">What proteins are in blood?</code><br/>
+                For any of these you can select just <i>part</i> of the proposed prompts.
+                For example: <code title="not in TestSuite">proteins</code><br/>
+                You can ALSO select any text in the Output pane and use that as a prompt.
+                For example: select the name of one of the proteins printed and click
+                <button>GPT</button> for details on that protein.
+            </details>
+            <details class="doc_details"><summary>Geography</summary>
+                 <code title="not in TestSuite">Where is Mali?</code>
+                 <p></p>
+                 <code title="not in TestSuite">Comma separated cities between SF and LA</code>
+            </details>
+            <details class="doc_details"><summary>AI</summary>
+                GPT has a lot to do with a branch of AI called "Natual Language Processing".
+                This intersects with another branch of AI called "Common Sense Reasoning".
+                GPT provides us with easy access to some tools these AI branches use.
+                <p></p>
+                <code title="not in TestSuite">opposite of white</code>
+                <p></p>
+                <code title="not in TestSuite">part of speech: upon</code>
+                <p></p>
+                <code title="not in TestSuite">nouns in: This is the dawning of the age of Aquarius</code>
+                <p></p>
+                <code title="not in TestSuite">4 random words as an array</code>
+                <p></p>
+                <b>Entity Recognition</b> means extracting named entities from text.
+                There's a strong intersection of proper nouns and named enitities.
+                Named entities are valuable for answering many questions.
+                <pre><code title="not in TestSuite">
+role:named entities from:
+Hi Joe Schmoe here in Witchita, Kansas on May 24, 2023
+at 1-800-123-4567 from Acme Corp, author of How To Win.
+Contact me at joe@schmoe.com or the New York Times.</code></pre>
 
-</div>
+             Determining <b>Similarity</b> is a base-level cognitive skill used
+             for reasoning. An intelligent human can find similarities between any two concepts.
+             GPT does a good job describing what similaries exist, but cannot quantify similarities.
+             The below prompts go from quite similar to quite dissimilar.
+             Remember that clicking <button>GPT</button> twice for the same prompt will
+             usually give you different results.
+            <p></p>
+            <code title="not in TestSuite">similarity of red and pink</code>
+            <p></p>
+            <code title="not in TestSuite">similarity of red and green</code>
+            <p></p>
+            <code title="not in TestSuite">similarity of cow and car</code>
+            <p></p>
+            <code title="not in TestSuite">similarity of moon and swim</code>
+            <p></p>
+             Humans use <b>Analogical Reasoning</b> for problem-solving and decision-making;
+             core skills of intelligence. Analogical Reasoning uses similarity to compute
+             results. GPT does a good job of defining the term.<br>
+             <code title="not in TestSuite">Analogical Reasoning</code>
+             <p></p>
+             Below are some prompts that show off GPT's Analogical Reasoning skills.
+             <p></p>
+             <code title="not in TestSuite">king is to prince as queen is to</code>
+             <p></p>
+             <code title="not in TestSuite">car is to driver as horse is to</code>
+             <p></p>
+             <code title="not in TestSuite">Teacher is to high school as professor is to</code>
+             <p></p>
+             <code title="not in TestSuite">10 is to 20 as 15 is to</code>
+             <p></p>
+              <code title="not in TestSuite">single word: 10 is to x as 15 is to 30</code>
+            </details>
+           </details> <!-- end  Prompt Engineering -->
+           <details><summary>Programmatic Interface</summary>
+               You can call GPT from Javscript, passing it a prompt
+               and a callback that takes 2 arguments: the prompt, and
+               the result of calling GPT with the prompt (both of them strings).
+               After selecting the below code, click <button>Eval</button>.
+<pre><code title="not in TestSuite">
+OpenAI.make_text("10 is to 20 as 15 is to",
+    function(prompt, result){
+        out("Given: " + prompt +
+            ", GPT returned:" + result,
+            "blue")
+})</code></pre>
+               We can even have our callback use the result it is passed
+               in another call to GPT. Here we are doing some "prompt engineering"
+               on the result of our first call to GPT and feeding this 2nd prompt
+               back to GPT. Then the second result is converted into an array,
+               which we pass to <code>inspect</code>. By converting text to definitive data structures,
+               we allow an automatic interface between GPT and JavaScript without
+               a human interpreter.<br/>
+               After selecting the below code, click <button>Eval</button>.
+               This will take longer than our other GPT calls because we are
+               calling GPT twice, one after the other.
+<pre><code title="not in TestSuite">
+OpenAI.make_text("powers of 2 as numbers",
+      function(prompt, result){
+        OpenAI.make_text("Extract numbers from: " + result,
+          function(prompt, result){
+            let arr = result.split(",")
+            for(let i = 0; i < arr.length; i++){
+               arr[i] = parseFloat(arr[i])
+            }
+            inspect(arr)
+          })
+          })</code></pre>
+        We have something profound in this example. Think of prompts as a
+        function call in a new language, <b>GPT_English</b>. We use
+        DDE's JavaScript function  <code>OpenAI.make_text</code> to
+        convert calls in GPT_English into JS calls. We convert
+        the returned text into data using JS parsing. This JS data can
+        then be passed to other JS functions. The above example is a program
+        written in two languages: JS (with DDE extensions) and GPT_English,
+        which intertwine with one another to get the best funtionality
+        of both languages.
+               <details id="OpenAI.text_to_data_id"><summary>OpenAI.text_to_data</summary>
+                   GPT returns <i>prose</i>. It is intended for humans to read.
+                   To its credit, its friendly, chatty text, similar to how a person would
+                   normally speak. But that's bad for computer consumption: ambiguous,
+                   verbose, not definitive data. <code>OpenAI.text_to_data</code>
+                   is a utility function that
+                   parses prose into a data structure that contains JavaScript data
+                   intended for further processing by JavaScript. <br/>
+                   <i>Parameter:</i><br/>
+                   <b>text</b> A string. Returns a data structure with lots of information
+                   extracted from the text in a format suitable for JavaScript.
+<pre><code>OpenAI.make_text("first 10 power of 2",
+   function(prompt, result){
+     out(result)
+     let data = OpenAI.text_to_data(result)
+     inspect(data)
+     Plot.show(null, data.numbers)
+   })</code></pre>
+                 Our call to <code>OpenAI.make_text</code> passes English to GPT. The callback is passed the result
+                 which we print to the Output pane, then create data out of with
+                 the call to <code>OpenAI.text_to_data</code>.
+                 We <code>inspect</code> that data, then pass the numbers from it
+                 to <code>Plot.show</code> for a graphical representation of the numbers array.
+               </details>
+           </details> <!-- end Programmatic Interface -->
+     </details> <!-- end GPT Interface -->
+
+
+ </div>

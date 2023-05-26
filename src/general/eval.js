@@ -121,10 +121,16 @@ export function eval_js_part1(step=false){
         else if(Editor.current_file_path.endsWith(".py") && src_comes_from_editor){
             Py.eval_py_part2(src)
         }
-        else {
+        else { //regular JS eval
             let src_for_cmd_menu_maybe = src.trim()
             if(!src_for_cmd_menu_maybe.includes("\n")){ //its a one-liner
                 js_cmds_array.push(src_for_cmd_menu_maybe) //just leave the "index" into the array where-ever it is.
+            }
+            src = src.trimEnd() //don't take of whitespace from front as that can screw up parsing locations
+
+            if(src.endsWith(",")) {
+                src = src.substring(0, src.length - 1) //so that we can EVAL lines ending in comma, such as Job instructions, without error
+                out("Comma removed from end of line to allow evaluation.")
             }
             eval_js_part2((step? "debugger; ": "") + src) //LEAVE THIS IN RELEASED CODE
         }
