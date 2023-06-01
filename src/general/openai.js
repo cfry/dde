@@ -74,29 +74,43 @@ globalThis.OpenAI = class OpenAI{
         let max_tokens = DDE_DB.persistent_get("gpt_completion_max_tokens")
         if(!max_tokens || Number.isNaN(max_tokens)) { max_tokens = 200 }
         let result_text
-        if(model === "text-davinci-003") {
-            const completion = await this.openai.createCompletion({
-                model: "text-davinci-003", //"text-davinci-003", //"text-davinci-003" //gpt-3.5-turbo errors, maybe because I haven't paid, or because it streams the result
-                prompt: prompt,
-                max_tokens: max_tokens
-            })
-            let result_text = completion.data.choices[0].text
-            callback(prompt, result_text)
-            return result_text
+        try {
+            if (model === "text-davinci-003") {
+                const completion = await this.openai.createCompletion({
+                    model: "text-davinci-003", //"text-davinci-003", //"text-davinci-003" //gpt-3.5-turbo errors, maybe because I haven't paid, or because it streams the result
+                    prompt: prompt,
+                    max_tokens: max_tokens
+                })
+                let result_text = completion.data.choices[0].text
+                callback(prompt, result_text)
+                return result_text
+            } else if ((model === "gpt-3.5-turbo")) { //see https://platform.openai.com/docs/api-reference/chat/create
+                const completion = await this.openai.createChatCompletion({
+                    model: "gpt-3.5-turbo",
+                    messages: [{role: "user", content: prompt}],
+                    max_tokens: max_tokens
+                });
+                let result_text = completion.data.choices[0].message.content
+                callback(prompt, result_text)
+                return result_text
+            }
         }
-        else if ((model === "gpt-3.5-turbo")){ //see https://platform.openai.com/docs/api-reference/chat/create
-            const completion = await this.openai.createChatCompletion({
-                model: "gpt-3.5-turbo",
-                messages: [{role: "user", content: prompt}],
-                max_tokens: max_tokens
-            });
-            let result_text = completion.data.choices[0].message.content
-            callback(prompt, result_text)
-            return result_text
+        catch(err){
+            let mess_for_429 = ""
+            if(err.message.includes("429")){
+                mess_for_429 = "<br/> A 429 status code probably means you exceeded your allowed requests per minute."
+            }
+            dde_error("OpenAI could not complete your prompt:<br/><code>" + prompt +
+                      "</code><br/> due to: <b>" + err.message + "</b>" +
+                       mess_for_429 +
+                      "<br/>If you don't have a paid subscription, getting one will help" +
+                      "<br/>by giving you more completions per minute." +
+                      "<br/>Browse <a target='_blank' href='http://openai.com'>openai.com</a>"
+            )
         }
     }
 
-    static make_text_default_callback(promot, result_text){
+    static make_text_default_callback(prompt, result_text){
         let result_text_html = result_text //result_text.replaceAll("\n", "<br/>")
         //using white-space:pre-wrap; is perfect. lines don't go outside the bounding box of the out pane,
         // line breaks are preserved, as are intentions for hiearchy display
@@ -157,8 +171,9 @@ globalThis.OpenAI = class OpenAI{
                      "<fieldset style='margin-top:5px;'><legend><i>OpenAI Log In Requirements</i></legend>" +
                      "If you don't have a key, sign up for one at <a target='_blank' href='http://openai.com' title='You are given a lot of initial usage for free.'>openai.com</a>. " +
                      "&nbsp;&nbsp;<a target='_blank' href='http://platform.openai.com/account/usage' title='http://platform.openai.com/account/usage'>usage</a><br/>" +
-                     'organization: <input name="org" style="margin:5px;width:275px;" value="' + org + '"/><br>'  +
-                     'apiKey:       <input name="key" style="margin:5px;width:425px;" value="' + key + '"/><br/>' +
+                     'organization: <input id="gpt_config_org_id" type="password" style="margin:5px;width:275px;" value="' + org + '"/>' +
+                     '<input type="checkbox" name="show" data-onchange="true">Show</input><br/>' +
+                     'apiKey:       <input id="gpt_config_key_id" type="password" style="margin:5px;width:425px;" value="' + key + '"/><br/>' +
                      '</fieldset>' +
 
                      "<fieldset style='margin-top:10px;'><legend><i>Completion Parameters</i></legend>" +
@@ -187,22 +202,34 @@ globalThis.OpenAI = class OpenAI{
 
     static show_config_cb(vals){
         if(vals.clicked_button_value){
-            let org = vals.org.trim()
-            let key = vals.key.trim()
-            if((key.length > 0)  &&
-                (org.length > 0)){
-                OpenAI.make_configuration(org, key)
-                DDE_DB.persistent_set("gpt_org", org)
-                DDE_DB.persistent_set("gpt_key", key)
+            if(vals.clicked_button_value === "show"){
+                if(vals.show){
+                    gpt_config_org_id.setAttribute("type", "text")
+                    gpt_config_key_id.setAttribute("type", "text")
+                }
+                else {
+                    gpt_config_org_id.setAttribute("type", "password")
+                    gpt_config_key_id.setAttribute("type", "password")
+                }
             }
-            let response_media = vals.response_media
-            if(!response_media) {
-                response_media = "text"
+            else {
+                let org = vals.gpt_config_org_id.trim()
+                let key = vals.gpt_config_key_id.trim()
+                if ((key.length > 0) &&
+                    (org.length > 0)) {
+                    OpenAI.make_configuration(org, key)
+                    DDE_DB.persistent_set("gpt_org", org)
+                    DDE_DB.persistent_set("gpt_key", key)
+                }
+                let response_media = vals.response_media
+                if (!response_media) {
+                    response_media = "text"
+                }
+                DDE_DB.persistent_set("gpt_response_media", response_media)
+                DDE_DB.persistent_set("gpt_completion_max_tokens", parseInt(vals.max_tokens))
+                DDE_DB.persistent_set("gpt_model", vals.model)
+                DDE_DB.persistent_set("gpt_image_size", vals.image_size)
             }
-            DDE_DB.persistent_set("gpt_response_media", response_media)
-            DDE_DB.persistent_set("gpt_completion_max_tokens", parseInt(vals.max_tokens))
-            DDE_DB.persistent_set("gpt_model", vals.model)
-            DDE_DB.persistent_set("gpt_image_size", vals.image_size)
         }
     }
 
@@ -294,7 +321,7 @@ globalThis.OpenAI = class OpenAI{
             text = text.substring(0, text.length - 1)
         }
 
-        if      (["yes", "ok", "true"].includes(text))   { return true }
+        if      (["yes", "ok", "true", "that is correct"].includes(text))   { return true }
         else if (["no", "nope", "false"].includes(text)) { return false }
         else if (["null", "none"].includes(text))        { return null }
         else { //maybe its a number
@@ -316,4 +343,172 @@ globalThis.OpenAI = class OpenAI{
             else { return text }
         }
     } //end of text_to_boolean_or_number
+
+    //RECURSIVE
+    //if pattern has no ?, just return it.
+    // "?" is a shortcut for "?0" filling in with the last elt of results
+    // "?1" fills in with the 2nd to last elt of results, etc. works thru "?9"
+    static recursive_fill_in_pattern(pattern, results){
+        for(let i = 0; i < 10; i++){
+            let pat = "?" + i
+            let index_into_results = results.length - 1 - i
+            pattern = pattern.replaceAll(pat, results[index_into_results])
+        }
+        let default_filler = Utils.last(results)
+        pattern = pattern.replaceAll("?", default_filler)
+        return pattern
+    }
+
+    static recursive_default_clean_up_result(result){
+        if(result.endsWith(".")){
+            result = result.substring(0, result.length - 1)
+        }
+        return result
+    }
+
+    static recursive_number_clean_up_result(result){
+        let data = OpenAI.text_to_data(result)
+        return data.numbers[0]
+    }
+
+    static recursive(pattern="single_word: ? is caused by",
+                     results=["fire"],
+                     times=3,
+                     callback=OpenAI.recursive_default_callback,
+                     clean_up_result_callback = OpenAI.recursive_default_clean_up_result,
+                     filled_in_prompts=[]){ //for the initial call, this is always [].
+        if(times === 0){
+            callback(filled_in_prompts, results)
+        }
+        else {
+            let new_prompt = this.recursive_fill_in_pattern(pattern, results)
+            this.make_text(new_prompt,
+                   function(prompt, result){
+                        result = clean_up_result_callback(result)
+                        results.push(result)
+                        let completed_prompt = prompt + " " + result + "."
+                        filled_in_prompts.push(completed_prompt)
+                        times = times -1
+                        OpenAI.recursive(pattern, results, times, callback, clean_up_result_callback, filled_in_prompts)
+                   }
+                )
+        }
+    }
+
+    static recursive_default_callback(filled_in_prompts, results){
+        inspect({filled_in_prompts: filled_in_prompts, results: results})
+    }
+
+    //_____SIMILAR____
+
+    //text can be a string, or array of strings
+    // see: https://platform.openai.com/docs/guides/embeddings/use-cases
+    // but better: https://platform.openai.com/docs/api-reference/embeddings/create
+    static async create_embedding(text, callback=null) {
+        let model = "text-embedding-ada-002" // can't use gtp 3.5 for embeddings DDE_DB.persistent_get("gpt_model") ,causes request status code of 403 (error)
+        try {
+            const response = await this.openai.createEmbedding({
+                model: model,
+                input: text,
+            })
+            if (callback) {
+                callback(response)
+            }
+            return response
+        }
+        catch(err){
+            let mess_for_429 = ""
+            if(err.message.includes("429")){
+                mess_for_429 = "<br/> A 429 status code probably means you exceeded your allowed requests per minute."
+            }
+            dde_error("OpenAI could not create an embedding for:<br/><code>" + text +
+                "</code><br/> due to: <b>" + err.message + "</b>" +
+                mess_for_429 +
+                "<br/>If you don't have a paid subscription, getting one will help" +
+                "<br/>by giving you more completions per minute." +
+                "<br/>Browse <a target='_blank' href='http://openai.com'>openai.com</a>"
+            )
+        }
+    }
+
+    static cosine_similarity(vector1, vector2) {
+        const dotProduct = vector1.reduce((acc, val, i) => acc + val * vector2[i], 0);
+        const magnitude1 = Math.sqrt(vector1.reduce((acc, val) => acc + val ** 2, 0));
+        const magnitude2 = Math.sqrt(vector2.reduce((acc, val) => acc + val ** 2, 0));
+        return dotProduct / (magnitude1 * magnitude2);
+    }
+
+    static similar_default_callback(text0, text1, score){
+        inspect({text0: text0, text1: text1, score: score})
+    }
+
+    static async similar(text0, text1, callback=OpenAI.similar_default_callback){
+        const response = await this.create_embedding([text0, text1])
+        if(response.status === 200) {
+            let text0_embedding = response.data.data[0].embedding
+            let text1_embedding = response.data.data[1].embedding
+            let score = this.cosine_similarity(text0_embedding, text1_embedding)
+            if(callback) {
+                callback(text0, text1, score)
+            }
+            return score
+        }
+        else {
+            dde_error("OpenAI.similar got error: " + response.status + "for: <br/>" +
+                        text0 + "<br/>" + text1)
+        }
+    }
+
+    //another possible callback for similar that shows the score in a gauge
+    static plot_similar_score(text0, text1, score, min=-1, max=1){
+        let data  = [
+            { value: score,
+                title: text0.substring(0, 12) + ", " + text1.substring(0, 12),
+                type:  "indicator",
+                mode:  "gauge+number", //bar+number
+                gauge: { axis:  { range: [min, max] },
+                    shape: "angular", //also: "bullet"
+                    bar:   { color: rgb(100, 30, 200)}
+                }
+            }
+        ]
+        Plot.show( undefined,
+            data,
+            {height: 250, //layout
+                width: 300,
+                margin: {l:40, r:20, t:0, b:0},
+            },
+            null, //config
+            {title: "Similarity of:", x: 20, y: 40, width: 310, height: 300} //show_window attributes
+        )
+    }
+
+    static move_dexter_joints(prompt="multiples of fifteen") {
+        new Job({name: "my_job",
+            do_list: [
+                function(){
+                    OpenAI.make_text(prompt,
+                        function(prompt, result){
+                            let data = OpenAI.text_to_data(result)
+                            let angles = data.numbers.slice(0, 5)
+                            out("Computed angles: " + angles)
+                            Job.my_job.user_data.angles = angles
+                        }
+                    )},
+                Control.wait_until(function(){
+                    return this.user_data.angles
+                }),
+                function(){
+                    let angles = this.user_data.angles
+                    if(Utils.is_array_of_numbers(angles, null, 0, 90)){
+                        return Dexter.move_all_joints(angles)
+                    }
+                    else { warning("Sorry, couldn't compute angles 0 thru 90. Got instead:<br/>" +
+                        angles)}
+                },
+                Dexter.move_all_joints(0,0,0,0,0)
+            ]
+        }).start()
+    }
+
 } //end of class OpenAI

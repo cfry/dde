@@ -12527,7 +12527,7 @@ Monitor.strips_solve({
              This tool is brand new so legal issues surrounding its use have yet to
              be <a target="_blank" href="https://www.lexology.com/library/detail.aspx?g=33bf4b4f-ffd9-4bf1-bfc1-7c790d86a22f">worked out.</a>
          </details>
-         <details class="doc_details"><summary><button>GPT</button></summary>
+         <details class="doc_details"><summary>The <button>GPT</button> button</summary>
              The most important button in DDE is <button>Eval</button>. It takes
              the selected text and feeds it to JavaScripts evaluator. The selection can
              be from the text editor, the command input, the Doc pane or the Output pane.
@@ -12718,7 +12718,10 @@ foo(1, 1)</code></pre>
                You can use DDE's <a href="#" onclick="DocCode.open_doc(python_user_interface_doc_id)">Python evaluator</a> to verify this code,
                   though its not trivial.
                <p></p>
-                  <b>BASH</b><br/>
+                  <b>BASH</b> is a "shell scripting" language made popular on Unix systems.
+                  It also works in Mac terminals and Windows WLS. Bash is quite
+                  different than the above languages. None the less, GPT can still
+                  help us understand it.<br/>
                   <code title="not in TestSuite">bash ls -l</code>
                   <p></p>
                   <code title="not in TestSuite">man page for ls</code>
@@ -12789,19 +12792,23 @@ foo(1, 1)</code></pre>
                  <code title="not in TestSuite">Comma separated cities between SF and LA</code>
             </details>
             <details class="doc_details"><summary>AI</summary>
-                GPT has a lot to do with a branch of AI called "Natual Language Processing".
-                This intersects with another branch of AI called "Common Sense Reasoning".
-                GPT provides us with easy access to some tools these AI branches use.
-                <p></p>
-                <code title="not in TestSuite">opposite of white</code>
-                <p></p>
-                <code title="not in TestSuite">part of speech: upon</code>
-                <p></p>
-                <code title="not in TestSuite">nouns in: This is the dawning of the age of Aquarius</code>
-                <p></p>
-                <code title="not in TestSuite">4 random words as an array</code>
-                <p></p>
-                <b>Entity Recognition</b> means extracting named entities from text.
+                <details class="doc_details"><summary>Natural Language Processing</summary>
+                    GPT has a lot to do with a branch of AI called "Natual Language Processing" (NLP).
+                    This intersects with another branch of AI called "Common Sense Reasoning".
+                    GPT provides us with easy access to some tools these AI branches use.
+                    <p></p>
+                    <code title="not in TestSuite">opposite of: white</code>
+                    <p></p>
+                    <code title="not in TestSuite">part of speech: upon</code>
+                    <p></p>
+                    <code title="not in TestSuite">nouns in: This is the dawning of the age of Aquarius</code>
+                    <p></p>
+                    <code title="not in TestSuite">synomyms of: work</code>
+                    <p></p>
+                    <code title="not in TestSuite">4 random words as an array</code>
+                </details>
+                <details class="doc_details"><summary>Entity Recognition</summary>
+                Entity Recognition means extracting named entities from text.
                 There's a strong intersection of proper nouns and named enitities.
                 Named entities are valuable for answering many questions.
                 <pre><code title="not in TestSuite">
@@ -12809,8 +12816,9 @@ role:named entities from:
 Hi Joe Schmoe here in Witchita, Kansas on May 24, 2023
 at 1-800-123-4567 from Acme Corp, author of How To Win.
 Contact me at joe@schmoe.com or the New York Times.</code></pre>
-
-             Determining <b>Similarity</b> is a base-level cognitive skill used
+             </details>
+             <details class="doc_details"><summary>Similarity</summary>
+             Determining Similarity is a base-level cognitive skill used
              for reasoning. An intelligent human can find similarities between any two concepts.
              GPT does a good job describing what similaries exist, but cannot quantify similarities.
              The below prompts go from quite similar to quite dissimilar.
@@ -12825,38 +12833,136 @@ Contact me at joe@schmoe.com or the New York Times.</code></pre>
             <p></p>
             <code title="not in TestSuite">similarity of moon and swim</code>
             <p></p>
-             Humans use <b>Analogical Reasoning</b> for problem-solving and decision-making;
-             core skills of intelligence. Analogical Reasoning uses similarity to compute
-             results. GPT does a good job of defining the term.<br>
-             <code title="not in TestSuite">Analogical Reasoning</code>
-             <p></p>
-             Below are some prompts that show off GPT's Analogical Reasoning skills.
-             <p></p>
-             <code title="not in TestSuite">king is to prince as queen is to</code>
-             <p></p>
-             <code title="not in TestSuite">car is to driver as horse is to</code>
-             <p></p>
-             <code title="not in TestSuite">Teacher is to high school as professor is to</code>
-             <p></p>
-             <code title="not in TestSuite">10 is to 20 as 15 is to</code>
-             <p></p>
-              <code title="not in TestSuite">single word: 10 is to x as 15 is to 30</code>
+                 See also <b>Similar</b> under <b>Programmatic Interfaces</b> below.
             </details>
+            <details class="doc_details"><summary>Analogical Reasoning</summary>
+                 Humans use Analogical Reasoning for problem-solving and decision-making;
+                 core skills of intelligence. Analogical Reasoning uses similarity to compute
+                 results. GPT does a good job of defining the term.<br>
+                 <code title="not in TestSuite">Analogical Reasoning</code>
+                 <p></p>
+                 Below are some prompts that show off GPT's Analogical Reasoning skills.
+                 <p></p>
+                 <code title="not in TestSuite">king is to prince as queen is to</code>
+                 <p></p>
+                 <code title="not in TestSuite">car is to driver as horse is to</code>
+                 <p></p>
+                 <code title="not in TestSuite">Teacher is to high school as professor is to</code>
+                 <p></p>
+                 <code title="not in TestSuite">10 is to 20 as 15 is to</code>
+                 <p></p>
+                  <code title="not in TestSuite">single word: 10 is to x as 15 is to 30</code>
+             </details> <!-- end Analogical Reasoning -->
+             <details class="doc_details "id="Knowledge Representation"><summary>Knowledge Representation</summary>
+                    Knowledge Representation is a branch of AI that encodes information in a structured
+                    way for use in certain reasoning tasks, including <i>Common Sense Reasoning</i>.
+                    OpenAI represents knowledge in English prose. Since English is ambiguous
+                    and complex, it is a non-trivial task to extract definitive knowledge from it
+                    for use in computation. DDE's <code title="not in TestSuite">OpenAi.text_to_data</code> is a help,
+                    but with some prompt engineering, we can do more.
+                    <p/>
+                    For the below examples, select them and click <button>GPT</button> to
+                    see the result, unless otherwise noted.<br/>
+                    Knowledge can be represented by <i>assertions</i> An assertion is a sentence
+                    of two concepts (usually nouns) with a designated relationship between them.
+                    The most important relaionship in reasoning is "is a". (Knowledge representation
+                    pros use the word <b>isa</b> to refer to this concept as its more convenient
+                    to have one word refer to one concept.
+                    <p/>
+                    Some examples:<br/>
+                    <code title="not in TestSuite">cat isa mammal</code>
+                    <p></p>
+                    <code title="not in TestSuite">cat is a mammal</code><br/>
+                    We can think of the above examples as "hypotheses" that can be validated
+                    (or not) by GPT. GPT <i>sometimes</i> does a great job here.<br/>
+                    When the result starts with <b>yes</b> as in:
+                    <samp>Yes, that's correct. A cat is a mammal.</samp>,
+                    We've got something to work with.
+
+                    Programmatically, (use <button>Eval</button>)
+                    <pre><code title="not in TestSuite">OpenAI.make_text("single word: cat is a mammal",
+  function(prompt, result){
+    let data = OpenAI.text_to_data(result)
+    out(data.first_word_data)
+})</code></pre>
+                    The first word of the result, processed into data, is what's printed in the Output pane.
+                    If that first word happens to be "Yes" or something similar,
+                    <code title="not in Textsuite">data.first_word_data</code> will be <samp>true</samp>.
+                    If the first word is "no" or something similar,
+                    <code title="not in Textsuite">data.first_word_data</code> will be <samp>false</samp>.
+                    Otherwise, its not easy to extract a boolean from the result, so just the string of
+                    the first word in the result will be the value of
+                    <code title="not in Textsuite">data.first_word_data</code>.<br/>
+                    Using the above code as a template, you can replace <code>out</code> with a function of
+                    your choice.
+                    <p/>
+                    <code title="gpt">single word: cat is a</code><br/>
+                    We are asking GPT to complete the sentence, hopefully with something like: <i>mammal</i>.
+                    <p/>
+                    The second most useful relation is <i>part_of</i>.<br/>
+                    <code title="gpt">single word: engine is part of a</code><br/>
+                    Examples of using some of the most common relationships in Common Sense Reasoning are:<br/>
+                    <code title="gpt">single word: fire is caused by</code>
+                    <p></p>
+                    <code title="gpt">single word: fire causes</code>
+                    <p></p>
+                    <code title="gpt">single word: fire is used for</code>
+                    <p></p>
+                    <code title="gpt">single word: fire uses</code>
+                    <p></p>
+                    <code title="gpt">single word: purchase comes after</code>
+                    <p></p>
+                    <code title="gpt">single word: purchase comes before</code>
+                    <p></p>
+                    <code title="gpt">single word: England is in region</code>
+                    <p></p>
+                    The most general (and ambigous) relation:<br/>
+                    <code title="gpt">single word: house is related to</code>
+                </details> <!-- end Knowledge Representation -->
+                <details class="doc_details"><summary>Explainable AI</summary>
+                  Creating and using software is all about managing complexity.
+                  Complex systems are inheriently difficult to understand, debug
+                  and use appropriatly for a given situation. AI has these challenging
+                  characteristics like no other field, not just because of its complexity,
+                  but because many of its techiniques have emgergent behaviors hidden
+                  in a virtual "black box". We need AI to explain itself!
+                  <p/>
+                  Select the below and click <button>GPT</button>:<br/>
+                  <code title="gpt">Explainable AI</code><br/>
+                  In the response, select a technical term and
+                  click <button>GPT</button> again.
+                  <p/>
+                  We need the user interface to Explainable AI to be just
+                  as easy as it is in Dexter Development Environment!
+                </details>
+
+                </details> <!-- end of AI -->
            </details> <!-- end  Prompt Engineering -->
-           <details><summary>Programmatic Interface</summary>
-               You can call GPT from Javscript, passing it a prompt
-               and a callback that takes 2 arguments: the prompt, and
-               the result of calling GPT with the prompt (both of them strings).
-               After selecting the below code, click <button>Eval</button>.
+           <details class="doc_details"><summary>Programmatic Interface</summary>
+           <details class="doc_details" id="OpenAI.make_text_doc_id"><summary>OpenAI.make_text</summary>
+               You can call GPT from JavaScript giving us a way to invoke GPT progammatically
+               and process GPT's results.<br>
+               <code>OpenAI.make_text</code><br/>
+               <i>Parameters:</i><br/>
+               <b>prompt</b> A string. Required. The same kind of text you pass to GPT interactively.<br/>
+               <b>callback</b> Default: <code>OpenAI.make_text_default_callback</code><br/>
+               The callback is called with 2 arguments:<br/>
+               <i>prompt</i> (The same prompt passed to <code>OpenAI.make_text</code>)<br/>
+               <i>result</i> A string of the text returned by GPT.<br/>
+               The default callback calls <code>inspect</code> with the data structure
+               returned by OpenAI, which includes the meaningful text wrapped in some meta-data.
+               <p/>
+               <i>Examples</i><br/>
+               (After selecting the below code, click <button>Eval</button>.)
 <pre><code title="not in TestSuite">
 OpenAI.make_text("10 is to 20 as 15 is to",
     function(prompt, result){
-        out("Given: " + prompt +
-            ", GPT returned:" + result,
+        out("Prompt: " + prompt +
+            ", returned:" + result,
             "blue")
 })</code></pre>
                We can even have our callback use the result it is passed
-               in another call to GPT. Here we are doing some "prompt engineering"
+               in another call to GPT. Below we are doing some <i>prompt engineering</i>
                on the result of our first call to GPT and feeding this 2nd prompt
                back to GPT. Then the second result is converted into an array,
                which we pass to <code>inspect</code>. By converting text to definitive data structures,
@@ -12884,34 +12990,274 @@ OpenAI.make_text("powers of 2 as numbers",
         the returned text into data using JS parsing. This JS data can
         then be passed to other JS functions. The above example is a program
         written in two languages: JS (with DDE extensions) and GPT_English,
-        which intertwine with one another to get the best funtionality
+        which can interoperate with one another to get the best funtionality
         of both languages.
-               <details id="OpenAI.text_to_data_id"><summary>OpenAI.text_to_data</summary>
+        </details> <!-- end make_text -->
+        <details class="doc_details" id="OpenAI.text_to_data_doc_id"><summary>OpenAI.text_to_data</summary>
                    GPT returns <i>prose</i>. It is intended for humans to read.
                    To its credit, its friendly, chatty text, similar to how a person would
                    normally speak. But that's bad for computer consumption: ambiguous,
                    verbose, not definitive data. <code>OpenAI.text_to_data</code>
                    is a utility function that
                    parses prose into a data structure that contains JavaScript data
-                   intended for further processing by JavaScript. <br/>
+                   intended for further processing by JavaScript.
+                   <p/>
                    <i>Parameter:</i><br/>
                    <b>text</b> A string. Returns a data structure with lots of information
-                   extracted from the text in a format suitable for JavaScript.
-<pre><code>OpenAI.make_text("first 10 power of 2",
+                   extracted from the text, in a format suitable for JavaScript.
+<pre><code title="not in TestSuite">OpenAI.make_text("first 10 power of 2",
    function(prompt, result){
      out(result)
      let data = OpenAI.text_to_data(result)
      inspect(data)
      Plot.show(null, data.numbers)
    })</code></pre>
-                 Our call to <code>OpenAI.make_text</code> passes English to GPT. The callback is passed the result
+                 Our call to <code>OpenAI.make_text</code> passes English to GPT. The callback is passed the result,
                  which we print to the Output pane, then create data out of with
                  the call to <code>OpenAI.text_to_data</code>.
                  We <code>inspect</code> that data, then pass the numbers from it
                  to <code>Plot.show</code> for a graphical representation of the numbers array.
-               </details>
-           </details> <!-- end Programmatic Interface -->
+                 Take a close look at the inspected data to understand what data <code>OpenAI.text_to_data</code> gives you
+                   easy access to.
+         </details>
+
+
+     <details class="doc_details" id="OpenAI.recursive_doc_id"><summary>OpenAI.recursive</summary>
+     The above knowledge representation examples become more powerful when we
+     can call them programmatically and feed the results of one into the prompt
+     of another to build a chain of reasoning.
+     This is what <code>OpenAI.recursive</code> facilitates.
+     <p/>
+     <i>Parameters:</i><br>
+     <b>pattern</b> A string. Default: <code>"single_word: ? is caused by"</code><br/>
+         The pattern can contain question marks in it. These question marks are
+         replaced by results to previous recursive calls to <code>OpenAI.recursive</code>
+         within the same top level call. A "filled in" pattern becomes the prompt for
+         the next call to <code>OpenAI.recursive</code>.
+         <p/>
+         "?" is a shortcut for "?0", which will be replace by the latest result from GPT.
+         You can use "?1" to get the 2nd latest result, all the way through "?9"
+         to build up the prompt that is sent to GPT. A pattern containing such question marks (with digits)
+         can have any number in any order.
+         For instance, you can have two "?1"'s in a given pattern if you like.<br/>
+     <b>results</b> An array of strings. Default: <code>["fire"]</code><br/>
+         As the recursive calls to <code>OpenAI.recursive</code> get made,
+         each result is appended to the results array.
+         If a pattern contains just "?" or "?0", you must initialize the results
+         array to have at least 1 string in it. If your highest "?" is "?2",
+         you must initialize the results
+         array to have at least 2 strings in it, etc all the way up to 9.<br/>
+     <b>times</b> A non negative integer. Default: <code>3</code>.<br/>
+         The number of times GPT will be called with the filled in patterns as prompts.<br/>
+     <b>callback</b> A function of 2 arguments:
+         The array of filled-in prompts (strings).
+         The array of corresponding results of calling GPT, usually strings.
+         This user-supplied callback is called after the last recursive call
+         returns a result.
+         <p/>
+         The default callback is: <code>OpenAI.recursive_default_callback</code>.
+         It calls <code>inspect</code> on an object containing the filled_in prompts and the
+         results.<br/>
+     <b>clean_up_result_callback</b> A function of one argument, a result (string).
+         Default: <code>OpenAI.recursive_default_clean_up_result</code>
+         This function allows a user to tweak the result that GPT returns into
+         something more meaningful for the user's application.
+         The default returns a <i>result</i> that has a period (if any) removed
+         from the input <i>result</i>. Usually this callback will return a
+         string, but it can return a number or any data type.
+         By cleaning up the result on each recursion, the resulting results array
+         passed to the <b>callback</b> can be in a better format for
+         further processing by the callback.
+     <p/>
+     <i>Examples:</i><br/>
+         <code title="not in testSuite">OpenAI.recursive()</code><br>
+         uses all the defaults so it is the same as:
+<pre><code title="not in testSuite">OpenAI.recursive("single_word: ? is caused by", //pattern
+         ["fire"], //results
+         3,        //times to recursively call GPT
+         OpenAI.recursive_default_callback
+         )</code></pre>
+         Above, the first filled in prompt will be:<br/>
+         <code>"single_word: fire is caused by"</code>
+         <p/>
+         <code title="not in testSuite">OpenAI.recursive("single_word: ? causes", ["fire"], 3)</code>
+         <p/>
+         <code title="not in testSuite">OpenAI.recursive("single word: a ? is part of a", ["carborator"])</code>
+         <p/>
+         <code title="not in testSuite">OpenAI.recursive("single word: ? comes before", ["morning"])</code>
+         <p/>
+         <code title="not in testSuite">OpenAI.recursive("single word: ? comes after", ["marriage"])</code>
+         <p/>
+         <code title="not in testSuite">OpenAI.recursive("single word: ? is used for", ["bolt"])</code>
+         <p/>
+         <code title="not in testSuite">OpenAI.recursive("single word: ? is related to", ["expoxy"])</code>
+         <p/>
+         <code title="not in testSuite">OpenAI.recursive("single word: ? is in region of", ["England"])</code>
+         <p/>
+         <code title="not in testSuite">OpenAI.recursive("single word: what comes after ?2, ?1, ?0, ", ["0", "1", "2"])</code>
+         <p/>
+         <code title="not in testSuite">OpenAI.recursive("single word: what comes after ?2, ?1, ?0, ", ["9", "11", "13"])</code>
+         <p/>
+         <code title="not in testSuite">OpenAI.recursive("single word: what comes after ?2, ?1, ?0, ", ["2", "3", "5"])</code><p/>
+         <p/>
+         <code title="not in testSuite">OpenAI.recursive("single word: what comes after ?2, ?1, ?0, ", ["11", "13", "17"])</code>
+<pre><code title="not in testSuite">OpenAI.recursive("single word: what comes after ?2, ?1, ?0, ",
+        [3, 1, 4],
+        undefined, //use default times of 3
+        undefined, //use default callback
+        OpenAI.recursive_number_clean_up_result)</code></pre>
+         Each of the above construct an array of results. It represents a "list" of some things
+         that are in the GPT model in some fashion or another. The trick is to get
+         those items out of indifinitive prose and into a data structure we can compute with.
+         <p/>
+         The last example makes an initial prompt of the first 3 digits of Pi and goes on to
+         find the next three. Our function for cleaning up each result,
+         <code>OpenAI.recursive_number_clean_up_result</code> is built in to DDE,
+         but you can write your own. It extracts the text for a number returned by GPT
+         and converts it into an integer. The array of results is passed to the default
+         callback, which calls <code>inspect</code> on that array, along with the filled in prompts that
+         specified each element of the results array.
+     </details> <!-- end OpenAi.recursive_doc_id -->
+     <details class="doc_details" id="OpenAI.create_embedding_doc_id"><summary>OpenAI.create_embedding</summary>
+         Embeddings are a way to encode the semantics of text with an array of numbers.
+         You can encode a single word or thousands of them with one array.
+         Each of OpenAI's embeddings are an array of slightly more than 1.5K floating point numbers.
+         The numbers are between -1 and 1.
+         <p/>Embeddings are a low level data structure used for similarity between
+             text blocks. Probably most users of DDE won't use them directly.
+         <p/>
+         DDE's <code>OpenAI.create_embedding</code>
+         is a thin wrapper around OpenAI's createEmbedding method.<br/>
+         <i>Parameters:</i><br/>
+         <b>text</b> A string or an array of strings of text to be encoded.<br/>
+         <b>callback</b> A function. Default: <code>null</code>
+         The default means that no callback will be called.
+         Since <code>OpenAI.create_embedding</code> is an async method,
+         you can use JavaScript's <b>await</b> with it. It returns OpenAI's
+         response to createEmbedding which contains the array (or arrays) of floats
+         corresponding to the text parameter.
+         <p/>
+         If supplied, the callback takes one argument, the OpenAI response.
+         The response data structure contains the array (or arrays) of floats
+         corresponding to the text parameter. If you want to examine this
+         data struture, give your call to <code>OpenAI.create_embedding</code> a callback
+         of <code>inspect</code>
+         <p/>
+         <i>Example:</i><br/>
+         <code title="not in TestSuite">OpenAI.create_embedding("hello world", inspect)</code>
+     </details>
+     <details class="doc_details" id="OpenAI.similar_doc_id"><summary>OpenAI.similar</summary>
+         This method takes two strings and asynchronously returns a float
+         indicating how similar the inputs are to each other.
+         It calls OpenAI.create_embedding to get the embeddings of each string,
+         then compares the two embeddings using OpenAI.cosine_similarity,
+         which returns a float between -1 and 1.
+         <p/>
+         <i>Parameters:</i><br/>
+         <b>text0</b> A string. Required.<br/>
+         <b>text1</b> The other string. Required.<br/>
+         <b>callback</b> A function. Default: <code>OpenAI.similar_default_callback</code>.
+         The callback is passed: text0, text1, and the score of their similarity.
+         <p/>
+         <i>Examples:</i><br/>
+         <code title="not in testsuite">OpenAI.similar("hello world", "hello word")</code>
+         <p/>
+         <code title="not in testsuite">OpenAI.similar("hello world", "931", OpenAI.plot_similar_score)</code>
+         <p/>
+         <code>OpenAI.plot_similar_score</code> is a utility function that shows a
+         graphical representation of the similar score. It takes text0, text1 and the similarity
+         score as arguments.
+     </details>
+     <details class="doc_details" id="OpenAI.make_image_doc_id"><summary>OpenAI.make_image</summary>
+     <i>Parameter:</i><br>
+         <b>prompt</b> A string.<br/>
+     The string is passed to OpenAI's "DALL-E" to find or create an image that depicts the
+     prompt. The image will appear in a new tab in the browser.
+     Images tend to be less "accurate" a representation of the prompt, but can still
+         give you a general idea of what the prompt <i>might</i> look like.<br/>
+      <i>Example:</i><br/>
+      <code title="not in TestSuite">OpenAI.make_image("a Dexter robot")</code> usually finds something
+         that looks like some kind of robot, real, or toy, but not an actual Dexter.
+         Consider this more "broadly educational" than programmatically useful.
+     </details> <!-- end make_image -->
+
+     <details class="doc_details" id="OpenAI.move_dexter_joints_doc_id"><summary>OpenAI.move_dexter_joints</summary>
+         Because DDE can call GPT from JavaScript, parse its output, and feed the data
+         back into JS function calls, we have a lot of flexibility.
+         <p/>
+         As a demonstration of that flexibility,
+         <code>OpenAI.move_dexter_joints</code> gives us a way to command
+         Dexter to move from a prompt. This function is written in pure JS.
+         You can use its source code as a pattern to modify and extend,
+         or just call it.
+         <p/>
+         <i>Parameter:</i><br/>
+         <b>prompt</b> A string. Default: <code>"multiples of fifteen"</code>
+         The prompt should return a response that has numbers in it.
+         The first 5 of which should be between 0 and 90 inclusive.
+         They can be integers or floats. <code>OpenAI.move_dexter_joints</code>
+         will pass these numbers (or fewer) to a Dexter.move_all_joints
+         instruction. That instruction is placed in a Job that handles
+         the asyncrhonous nature of GPT. The job is automatically started.
+         If the numbers are out of range, the Dexter will not move but
+         rather prints a warning message.
+         <p/>
+         It is recommended that you try this using the simulator first.
+         Even though the numbers are restricted to be between 0 and 90 inclusinve,
+         that can still cause Dexter to hit the table or other obstructions,
+         so please be prepared for that.
+         <p/>
+         What this method does:
+         <ol>
+             <li>Defines a DDE Job and starts it.</li>
+             <li>The Job button will appear in the Output pane header as usual.
+                 You can click it at any time to stop the Job, as usual.</li>
+             <li>The first instruction in the Job sends the prompt to OpenAI.
+                 While the Job is waiting for the response, its button will turn
+                 yellow. Round trip will take 10 seconds or so.</li>
+             <li>When the response comes back, it will be processed into
+                 an array of angles and shoved into Job.my_job.user_data.angles.<br/>
+                 The computed angles will be printed in the Output pane.
+             </li>
+             <li>the <code>Control.wait_until</code> instruction will notice that
+                 data and stop waiting. The Job button will flash to green momentarily.</li>
+             <li>A proper <code>Dexter.move_all_joints</code> instruction will
+                 automatically be created and shoved onto the do_list<br/>
+                 <b>OR</b><br/>
+                 the joint angles will be recognized as invalid and a warning
+                 message will be printed.
+             </li>
+             <li><code>Dexter.move_all_joints</code> will be run, causing the
+                 robot to move.</li>
+             <li><code>Dexter.move_all_joints(0, 0, 0, 0, 0)</code> will be run
+                 causing Dexter to move straight up.</li>
+             <li>The Job will stop. Its button will turn purple if the Job doesn't
+                 error.</li>
+         </ol>
+         <br/>
+         <i>Examples:</i><br/>
+         <code title="not in Testsuite">OpenAI.move_dexter_joints()</code><br/>
+         is the same as:<br/>
+         <code title="not in Testsuite">OpenAI.move_dexter_joints("multiples of fifteen")</code>
+         <p/>
+         <code title="not in Testsuite">OpenAI.move_dexter_joints("multiples of five")</code><br/>
+         will move much less.
+         <p/>
+         <code title="not in Testsuite">OpenAI.move_dexter_joints("multiples of thirty")</code><br/>
+         will give a warning that the numbers are out of range.
+         <p/>
+         <code title="not in Testsuite">OpenAI.move_dexter_joints("prime numbers starting at 17")</code><br/>
+         is a bit silly, but included here to give you a sense of what's possible.
+         <p/>
+         <code>inspect(OpenAI.move_dexter_joints)</code><br/>
+             to see the source
+             code of the method. You can copy it into the editor and extend it
+             if you like.
+         <p/>
+         <code>inspect(Job.my_job)</code><br/> to look at the guts of the Job.
+             Pay special attention to <b>do_list</b> and <b>user_data</b>
+             to understand what happened.
+     </details>
+     </details> <!-- end programmatic interface -->
      </details> <!-- end GPT Interface -->
-
-
- </div>
+ </div> <!-- end of ref man -->

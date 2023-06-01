@@ -6,11 +6,8 @@ const formidable = pkg;
 
 import fs        from 'fs'; //file system
 import net       from 'net'; //network
-// debugger;
 //import ws from 'ws';
-// debugger;
 //const {WebSocket, WebSocketServer} = ws;
-//debugger;
 //import {WebSocket, WebSocketServer} from 'ws'; //websocket //dde4 added curlies around ws to fix bug_in_import
 //debugger;
 //import WebSocket from 'ws';

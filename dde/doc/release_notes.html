@@ -1,5 +1,30 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
+ <details class="doc_details"><summary>v 4.0.11, May 31, 2023</summary>
+Highlights: GPT extensions for doc, programmatic interface, AI examples.
+<ul>
+     <li>When clicking eval button, a spurious ending comma is removed.
+         This helps with evaling Job instructions and other intermediate
+         snippets of code. A message is printed in the console to
+         let you know this has been done. If it is NOT done, you'd get an error.</li>
+    <li>GPT configuration dialog box: improved links and tooltips.</li>
+    <li>GPT: new user callable <code>OpenAI.make_text</code> function.</li>
+    <li>GPT: lots more programmatic interface extensions including
+        <code>OpenAI.move_dexter_joints</code> to connext GPT to Jobs.</li>
+    <li>GPT: Extensive doc including a new AI section on how to use GPT
+        for knowledge representation, entity recognition,
+        NLP, similarity, analogical reasoning.</li>
+    <li>GPT implemented <code>OpenAI.create_embedding(text)</code>
+        for making an embedding from a string programmatically.</li>
+    <li><code>GPT OpenAI.similar()</code> returns a number
+        between -1 and 1 for two strings.</li>
+    <li>GPT config dialog box: now has show/hide for the org and API key
+        for "password protection".</li>
+    <li><code>Utils.is_array_of_numbers</code> extended to take new args:
+        length, min, max <i>and</i> consider that <code>Number.NaN</code>
+        is NOT a number.</li>
+</ul>
+</details>
 <details class="doc_details"><summary>v 4.0.10, May 22, 2023</summary>
     <ul>
          <li>Improvements to HCU UI

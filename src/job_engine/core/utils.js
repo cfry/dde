@@ -544,16 +544,28 @@ static flatten(arr, result=[]){
     return result
 }
 
-static is_array_of_numbers(a_array){
+//if length is null, a_array can be any length.
+// but if it is an integer, the array must
+//be of that length to return true
+static is_array_of_numbers(a_array, length=null, min=null, max=null){
     if(!Array.isArray(a_array)) { return false }
-    else {
-        for(let num of a_array){
-            if(typeof(num) != "number") {
-                return false
-            }
+    if((typeof(length) === "number") &&
+       (a_array.length !== length)) { return false }
+    for(let num of a_array){
+        if((typeof(num) !== "number") ||
+            Number.isNaN(num)){
+            return false
         }
-        return true
+        else if ((typeof(min) === "number") &&
+                 (num < min)){
+                return false
+        }
+        else if ((typeof(min) === "number") &&
+            (num > max)){
+            return false
+        }
     }
+    return true
 }
 
 static is_2D_array_of_numbers(a_array){
