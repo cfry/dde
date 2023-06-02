@@ -789,7 +789,12 @@ class Editor {
         show_window({title: "Open Local File",
                     content: `<input id="open_local_file_id" type="file" size="30" onchange="Editor.handle_open_local_file(event)"/>`,
                     width: 200, height: 100
-    })}
+    })
+        setTimeout(function() {
+                     open_local_file_id.click()
+                   },
+                   100)
+    }
 
     static handle_open_local_file(event) {
         let files = event.target.files; // FileList object

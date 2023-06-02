@@ -35,6 +35,19 @@ new TestSuite("Utils.is_string_base64",
     // ['Utils.is_string_base64("abc=\n", true)', "true"]
 )
 
+new TestSuite("Utils.is_array_of_numbers",
+    ["Utils.is_array_of_numbers([4, 5])", "true"],
+    ["Utils.is_array_of_numbers([4, 5, Number.NaN])", "false"],
+    ['Utils.is_array_of_numbers([4, 5, "x"])', "false"],
+    ["Utils.is_array_of_numbers([4, 5], 2)", "true"],
+    ["Utils.is_array_of_numbers([4, 5], 3)", "false"],
+    ["Utils.is_array_of_numbers([4, 5], 0)", "false"],
+    ["Utils.is_array_of_numbers([], 0)", "true"],
+    ["Utils.is_array_of_numbers([10, 20], null, 0, 30)", "true"],
+    ["Utils.is_array_of_numbers([10, 20], null, 0, 5)", "false"],
+    ["Utils.is_array_of_numbers([10, 20], null, 15, 30)", "false"]
+)
+
 
 
 
