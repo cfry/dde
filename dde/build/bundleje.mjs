@@ -14,8 +14,8 @@ import require$$0 from 'domain';
 import path from 'path';
 
 var name = "dde4";
-var version = "4.0.11";
-var release_date = "May 31, 2023";
+var version = "4.1.0";
+var release_date = "Jun 5, 2023";
 var description = "test rollup";
 var author = "Fry";
 var license = "GPL-3.0";

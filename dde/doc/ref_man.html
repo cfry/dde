@@ -12816,6 +12816,17 @@ role:named entities from:
 Hi Joe Schmoe here in Witchita, Kansas on May 24, 2023
 at 1-800-123-4567 from Acme Corp, author of How To Win.
 Contact me at joe@schmoe.com or the New York Times.</code></pre>
+                By using OpenAI.text_to_data, you can get entities as JavaScript data like so:
+ <pre><code title="not in TestSuite">
+OpenAI.make_text(`role:named entities from:
+    Hi Joe Schmoe here in Witchita, Kansas on May 24, 2023
+    at 1-800-123-4567 from Acme Corp, author of How To Win.
+    Contact me at joe@schmoe.com or the New York Times.`,
+     function(prompt, result){
+         inspect(OpenAI.text_to_data(result))
+     })</code></pre>
+     The entities are the value of the property: <code>name_value_pairs</code>,
+     but beware, this isn't reliable accross different kinds of entities.
              </details>
              <details class="doc_details"><summary>Similarity</summary>
              Determining Similarity is a base-level cognitive skill used
@@ -12949,8 +12960,8 @@ Contact me at joe@schmoe.com or the New York Times.</code></pre>
                The callback is called with 2 arguments:<br/>
                <i>prompt</i> (The same prompt passed to <code>OpenAI.make_text</code>)<br/>
                <i>result</i> A string of the text returned by GPT.<br/>
-               The default callback calls <code>inspect</code> with the data structure
-               returned by OpenAI, which includes the meaningful text wrapped in some meta-data.
+               The default callback prints the result arg passed to it on a
+               on a green background in the Output pane.
                <p/>
                <i>Examples</i><br/>
                (After selecting the below code, click <button>Eval</button>.)
@@ -12992,6 +13003,9 @@ OpenAI.make_text("powers of 2 as numbers",
         written in two languages: JS (with DDE extensions) and GPT_English,
         which can interoperate with one another to get the best funtionality
         of both languages.
+        <p></p>
+         For an even easier way to extract date from GPT results, see:<br/>
+         <code>OpenAI.text_to_data</code>
         </details> <!-- end make_text -->
         <details class="doc_details" id="OpenAI.text_to_data_doc_id"><summary>OpenAI.text_to_data</summary>
                    GPT returns <i>prose</i>. It is intended for humans to read.
@@ -13002,13 +13016,20 @@ OpenAI.make_text("powers of 2 as numbers",
                    parses prose into a data structure that contains JavaScript data
                    intended for further processing by JavaScript.
                    <p/>
-                   <i>Parameter:</i><br/>
-                   <b>text</b> A string. Returns a data structure with lots of information
+                   <i>Parameters:</i><br/>
+                   <b>text</b> A string. Typically the result of a request to GPT.<br/>
+                   <b>prompt</b> Default value: null. Typically a string, the prompt that generated the text.
+                   prompt simply becomes a key in the returned data structure with
+                   the value of the prompt. It is unnecessary to pass in teh prompt,
+                   but is convenient to get the prompt along with the rest of the data
+                   for potential further processing.
+                   <br/>
+                   Returns a data structure with lots of information
                    extracted from the text, in a format suitable for JavaScript.
 <pre><code title="not in TestSuite">OpenAI.make_text("first 10 power of 2",
    function(prompt, result){
      out(result)
-     let data = OpenAI.text_to_data(result)
+     let data = OpenAI.text_to_data(result, prompt)
      inspect(data)
      Plot.show(null, data.numbers)
    })</code></pre>
@@ -13181,6 +13202,23 @@ OpenAI.make_text("powers of 2 as numbers",
          Consider this more "broadly educational" than programmatically useful.
      </details> <!-- end make_image -->
 
+    <details class="doc_details" id="OpenAI.make_plot_numbers_doc_id"><summary>OpenAI.make_plot_numbers</summary>
+        Shows the numbers in a GPT response in a simple 2D line graph.<br/>
+        <i>Parameter:</i><br/>
+        <b>prompt</b> A string. Required.
+        <p/>
+        The response from GPT has all the numbers pulled from it and made into a plot.
+        The X axis is the integers from 0 through number count - 1.
+        The Y axis is the value of those numbers.<br/>
+        Like all calls requesting a response from GPT, these will take several
+        seconds.
+        <p/>
+        <i>Examples:</i><br/>
+        <code>OpenAI.make_plot_numbers("powers of 2")</code><br/>
+        <p/>
+        <code>OpenAI.make_plot_numbers("prime numbers")</code>
+    </details>
+
      <details class="doc_details" id="OpenAI.move_dexter_joints_doc_id"><summary>OpenAI.move_dexter_joints</summary>
          Because DDE can call GPT from JavaScript, parse its output, and feed the data
          back into JS function calls, we have a lot of flexibility.
@@ -13244,7 +13282,7 @@ OpenAI.make_text("powers of 2 as numbers",
          will move much less.
          <p/>
          <code title="not in Testsuite">OpenAI.move_dexter_joints("multiples of thirty")</code><br/>
-         will give a warning that the numbers are out of range.
+         will probably give a warning that the numbers are out of range.
          <p/>
          <code title="not in Testsuite">OpenAI.move_dexter_joints("prime numbers starting at 17")</code><br/>
          is a bit silly, but included here to give you a sense of what's possible.

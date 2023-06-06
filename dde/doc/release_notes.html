@@ -1,5 +1,25 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
+<details class="doc_details"><summary>v 4.1.0, Jun 5, 2023</summary>
+ Highlights: Job Engine in DDE4 showstopper bug fixed.
+    Can now use later than node 17.
+    GPT: gpt-4 model now supported plus more extensions.
+    <ul>
+        <li>For File menu, local save, got rid of the need for the
+         user to click an extra "choose" button.</li>
+        <li>Fixed Job Engine launch bug of "LongBits"
+            error printed in output pane.</li>
+        <li>Now able to run with latest node version: now tested with node v20.2.0</li>
+        <li>GPT <code>OpenAI.text_to_data</code>'s result now contains word_count, first_setentence, prompt, result</li>
+        <li>GPT new function: <code>OpenAI.make_plot_numbers</code></li>
+        <li>GPT new function: <code>OpenAI.move_dexter_joints</code></li>
+        <li>GPT 4 now supported as a model</li>
+        <li>GPT's Configuration dialog box is much more interactive now because clicking on a media type,
+            image size, or updating max_tokens
+            causes it to show without a new OpenAI request (if possible).</li>
+        <li>GPT new response medias: plot_numbers, inspect_text_to_data</li>
+     </ul>
+     </details>
  <details class="doc_details"><summary>v 4.0.11, May 31, 2023</summary>
 Highlights: GPT extensions for doc, programmatic interface, AI examples.
 <ul>
