@@ -12825,7 +12825,7 @@ OpenAI.make_text(`role:named entities from:
      function(prompt, result){
          inspect(OpenAI.text_to_data(result))
      })</code></pre>
-     The entities are the value of the property: <code>name_value_pairs</code>,
+     The entities are the value of the property: <code title="not in TestSuite">name_value_pairs</code>,
      but beware, this isn't reliable accross different kinds of entities.
              </details>
              <details class="doc_details"><summary>Similarity</summary>
@@ -13050,8 +13050,33 @@ OpenAI.make_text("powers of 2 as numbers",
      This is what <code>OpenAI.recursive</code> facilitates.
      <p/>
      <i>Parameters:</i><br>
-     <b>pattern</b> A string. Default: <code>"single_word: ? is caused by"</code><br/>
-         The pattern can contain question marks in it. These question marks are
+     <b>pattern</b> A string. Default: <code>"[fire] is caused by"</code><br/>
+         Pattern has two quite different syntaxes. For simple cases (perhaps most)
+         use the first syntax, which is that of the default value.
+         <p/>
+         Surround a term with square brackets. That term will be used as the prompt in the
+         first (top level) call to <code>OpenAI.recursive</code>.
+         In the second call, the square brackets & term will be replaced by
+         the result of the first call. Similarly the third call and recursively until
+         <i>times</i> number of calls have been completed.
+         This syntax can not have question marks in it.
+         <p/>
+         <i>Examples:</i><br/>
+         <code>OpenAI.recursive()</code><br>
+         is the same as:<br/>
+         <code>OpenAI.recursive("[fire] is caused by")</code>
+         <p/>
+         <code>OpenAI.recursive("[Covid 19] causes")</code>
+         <p/>
+         <code>OpenAI.recursive("[Covid 19] is caused by")</code><br/>
+         Note that you should construct a pattern where the information
+         you're looking for is a <i>continuation</i> of the pattern
+         in a normal sentence.<br/>
+         The number of words in the answer is <i>encouraged</i> to be the
+         number of words in the result.
+         <p/>
+         For second, more complex pattern,
+         the pattern should contain question marks in it. These question marks are
          replaced by results to previous recursive calls to <code>OpenAI.recursive</code>
          within the same top level call. A "filled in" pattern becomes the prompt for
          the next call to <code>OpenAI.recursive</code>.
@@ -13071,8 +13096,8 @@ OpenAI.make_text("powers of 2 as numbers",
      <b>times</b> A non negative integer. Default: <code>3</code>.<br/>
          The number of times GPT will be called with the filled in patterns as prompts.<br/>
      <b>callback</b> A function of 2 arguments:
-         The array of filled-in prompts (strings).
-         The array of corresponding results of calling GPT, usually strings.
+         1. The array of filled-in prompts called "assertions" (strings).<br/>
+         2. The array of corresponding results of calling GPT, usually strings.<br/>
          This user-supplied callback is called after the last recursive call
          returns a result.
          <p/>
@@ -13090,7 +13115,7 @@ OpenAI.make_text("powers of 2 as numbers",
          passed to the <b>callback</b> can be in a better format for
          further processing by the callback.
      <p/>
-     <i>Examples:</i><br/>
+     <i>Examples for the 2nd syntax of pattern:</i><br/>
          <code title="not in testSuite">OpenAI.recursive()</code><br>
          uses all the defaults so it is the same as:
 <pre><code title="not in testSuite">OpenAI.recursive("single_word: ? is caused by", //pattern
@@ -13138,6 +13163,12 @@ OpenAI.make_text("powers of 2 as numbers",
          and converts it into an integer. The array of results is passed to the default
          callback, which calls <code>inspect</code> on that array, along with the filled in prompts that
          specified each element of the results array.
+         <p/>
+         <span style="color:red">Beware</span>, this method often returns information of questionable quality.
+         One of the characteristics is that it will often use a term more than
+         you think it should. It sometimes comes up with a "cause" that is also an "effect".
+         But note, in real life, sometimes a cause is also an effect of the same thing.
+         Typicaly, as the number of iterations increases, the quality of the results decreases.
      </details> <!-- end OpenAi.recursive_doc_id -->
      <details class="doc_details" id="OpenAI.create_embedding_doc_id"><summary>OpenAI.create_embedding</summary>
          Embeddings are a way to encode the semantics of text with an array of numbers.
@@ -13214,9 +13245,9 @@ OpenAI.make_text("powers of 2 as numbers",
         seconds.
         <p/>
         <i>Examples:</i><br/>
-        <code>OpenAI.make_plot_numbers("powers of 2")</code><br/>
+        <code title="not in TestSuite">OpenAI.make_plot_numbers("powers of 2")</code><br/>
         <p/>
-        <code>OpenAI.make_plot_numbers("prime numbers")</code>
+        <code title="not in TestSuite">OpenAI.make_plot_numbers("prime numbers")</code>
     </details>
 
      <details class="doc_details" id="OpenAI.move_dexter_joints_doc_id"><summary>OpenAI.move_dexter_joints</summary>
@@ -13267,7 +13298,7 @@ OpenAI.make_text("powers of 2 as numbers",
              </li>
              <li><code>Dexter.move_all_joints</code> will be run, causing the
                  robot to move.</li>
-             <li><code>Dexter.move_all_joints(0, 0, 0, 0, 0)</code> will be run
+             <li><code title="not in TestSuite">Dexter.move_all_joints(0, 0, 0, 0, 0)</code> will be run
                  causing Dexter to move straight up.</li>
              <li>The Job will stop. Its button will turn purple if the Job doesn't
                  error.</li>
@@ -13287,12 +13318,12 @@ OpenAI.make_text("powers of 2 as numbers",
          <code title="not in Testsuite">OpenAI.move_dexter_joints("prime numbers starting at 17")</code><br/>
          is a bit silly, but included here to give you a sense of what's possible.
          <p/>
-         <code>inspect(OpenAI.move_dexter_joints)</code><br/>
+         <code title="not in TestSuite">inspect(OpenAI.move_dexter_joints)</code><br/>
              to see the source
              code of the method. You can copy it into the editor and extend it
              if you like.
          <p/>
-         <code>inspect(Job.my_job)</code><br/> to look at the guts of the Job.
+         <code title="not in TestSuite" title="not in TestSuite">inspect(Job.my_job)</code><br/> to look at the guts of the Job.
              Pay special attention to <b>do_list</b> and <b>user_data</b>
              to understand what happened.
      </details>

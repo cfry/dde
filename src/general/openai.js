@@ -15,6 +15,9 @@ globalThis.OpenAI = class OpenAI{
         }
         gpt_config_id.onclick = this.show_config
 
+        let media = DDE_DB.persistent_get("gpt_response_media")
+        if(!media) { DDE_DB.persistent_set("gpt_response_media", "text")}
+
         //the below is so that, if you've already entered an org and a key once,
         //you won't have to do it again, even in a new dde session
         let org = DDE_DB.persistent_get("gpt_org") //if this has never been set, the result is undefined
@@ -47,6 +50,15 @@ globalThis.OpenAI = class OpenAI{
         }
     }
 
+    static show_prompt(prompt){
+        prompt = prompt.trim()
+        let summary_prompt
+        if (prompt.length > 50) { summary_prompt = prompt.substring(0, 47) + "..." }
+        else { summary_prompt = prompt }
+        let prompt_for_title = prompt.replaceAll("'", "\\'")
+        out("<div style='background:#bcfbe0;' title='" + prompt_for_title + "'><i>OpenAI passed prompt: </i> " + summary_prompt + "</div>")
+    }
+
 
     //https://platform.openai.com/docs/api-reference/authentication
     //but better: https://www.npmjs.com/package/openai
@@ -61,11 +73,7 @@ globalThis.OpenAI = class OpenAI{
         if (prompt !== OpenAI.previous_prompt){ //means the "previous cache for clicking on radio buttons in the config dialog box is no longer valid, so get rid of them
             this.init_previous_cache()
         }
-        let summary_prompt
-        if (prompt.length > 50) { summary_prompt = prompt.substring(0, 47) + "..." }
-        else { summary_prompt = prompt }
-        let prompt_for_title = prompt.replaceAll("'", "\\'")
-        out("<div style='background:#bcfbe0;' title='" + prompt_for_title + "'><i>OpenAI passed prompt: </i> " + summary_prompt + "</div>")
+        this.show_prompt(prompt)
         let media = DDE_DB.persistent_get("gpt_response_media")
         if     (media === "text")             { let [env, text] = await this.make_text(prompt)
                                                 this.previous_prompt = prompt
@@ -114,6 +122,27 @@ globalThis.OpenAI = class OpenAI{
         this.previous_response_url = null
     }
 
+    static special_error_message(err){
+        if(err.message.includes("401")){
+            return "<br/> A 401 status code means your organization or API key are not valid.<br/>" +
+                "Please check DDE's GPT configuration settings for these keys.<br/>" +
+                "To see GPT configurations, click the down arrow next to DDE's <button>GPT</button> button."
+        }
+        else if(err.message.includes("429")){
+            return "<br/> A 429 status code probably means you exceeded your allowed requests per minute." +
+                "<br/>If you don't have a paid subscription, getting one will help" +
+                "<br/>by giving you more completions per minute.<br>" +
+                "<br/>Browse <a target='_blank' href='http://openai.com'>openai.com</a>"
+
+        }
+        else if (err.message.includes("500")){
+            return "<br/> A 500 status code means the OpenAI server errored.<br/>Please try again later."
+        }
+        else {
+            return ""
+        }
+    }
+
     //see: https://www.makeuseof.com/chatgpt-api-complete-guide/ for 3.5 and 4 api's.
     static async make_text(prompt, callback=OpenAI.make_text_default_callback){
         let model = DDE_DB.persistent_get("gpt_model")
@@ -125,7 +154,7 @@ globalThis.OpenAI = class OpenAI{
             let result_text
             if (model === "text-davinci-003") {
                 completion = await this.openai.createCompletion({
-                    model: model, //"text-davinci-003", //"text-davinci-003" //gpt-3.5-turbo errors, maybe because I haven't paid, or because it streams the result
+                    model: model,
                     prompt: prompt,
                     max_tokens: max_tokens
                 })
@@ -144,16 +173,9 @@ globalThis.OpenAI = class OpenAI{
             return [completion, result_text]
         }
         catch(err){
-            let mess_for_429 = ""
-            if(err.message.includes("429")){
-                mess_for_429 = "<br/> A 429 status code probably means you exceeded your allowed requests per minute."
-            }
             dde_error("OpenAI could not complete your prompt:<br/><code>" + prompt +
                       "</code><br/> due to: <b>" + err.message + "</b>" +
-                       mess_for_429 +
-                      "<br/>If you don't have a paid subscription, getting one will help" +
-                      "<br/>by giving you more completions per minute." +
-                      "<br/>Browse <a target='_blank' href='http://openai.com'>openai.com</a>"
+                       OpenAI.special_error_message(err)
             )
         }
     }
@@ -207,16 +229,9 @@ globalThis.OpenAI = class OpenAI{
             }
         }
         catch(err){
-            let mess_for_429 = ""
-            if(err.message.includes("429")){
-                mess_for_429 = "<br/> A 429 status code probably means you exceeded your allowed requests per minute."
-            }
             dde_error("OpenAI could not complete your prompt:<br/><code>" + prompt +
                 "</code><br/> due to: <b>" + err.message + "</b>" +
-                mess_for_429 +
-                "<br/>If you don't have a paid subscription, getting one will help" +
-                "<br/>by giving you more completions per minute." +
-                "<br/>Browse <a target='_blank' href='http://openai.com'>openai.com</a>"
+                OpenAI.special_error_message(err)
             )
         }
         inspect(completion)
@@ -352,6 +367,7 @@ globalThis.OpenAI = class OpenAI{
             else if(vals.clicked_button_value === "model"){
                 let model = vals.model
                 DDE_DB.persistent_set("gpt_model", model)
+                OpenAI.openai_request(OpenAI.previous_prompt)
             }
             else if (vals.clicked_button_value === "response_media"){
                 let media = vals.response_media
@@ -599,6 +615,67 @@ globalThis.OpenAI = class OpenAI{
     } //end of text_to_boolean_or_number
 
     //RECURSIVE
+    //if results is empty,
+    //prompt of "what causes sickness?" is returned as "what causes ?",
+    // and result becomes ["sickness"]
+    /*static modify_pattern_maybe(pattern, results){
+        if(results.length > 0){}
+        else if(pattern.includes("?")) {}
+        else if(pattern.includes("[") && pattern.includes("]")) {
+            let words = pattern.split(/\s/)
+            for(let i = 0; i < words.length; i++){
+                let word = words[i]
+                if(word.startsWith("[") && word.endsWith("]")){
+                    let word_no_brackets = word.substring(1, word.length - 1)
+                     //"[fire] is caused by"
+                    results.push(word_no_brackets) //push sickness
+                    pattern = pattern.replace(word, "?") //now pattern is "? is caused by"
+                    if (!pattern.startsWith("single word: ")) {
+                        pattern = "single word: " + pattern
+                    }
+                    return pattern
+                }
+            }
+        }
+        return pattern
+    }*/
+
+    static modify_pattern_maybe(pattern, results){
+        if(results.length > 0){}
+        else if(pattern.includes("?")) {}
+        else if(pattern.includes("[") && pattern.includes("]")) {
+            //let words = pattern.split(/\s/)
+            let collecting_bracket_word = false
+            let bracket_word = ""
+            let new_pattern = ""
+            let bracket_word_count
+            for(let i = 0; i < pattern.length; i++) {
+                let char = pattern[i]
+                if (char === "[") {
+                    collecting_bracket_word = true
+                } else if (char === "]") {
+                    collecting_bracket_word = false
+                    bracket_word = bracket_word.trim()
+                    let bracket_words = bracket_word.split(" ")
+                    bracket_word_count = bracket_words.length
+                    results.push(bracket_word)
+                    new_pattern += "?"
+                } else if (collecting_bracket_word) {
+                    bracket_word += char
+                } else {
+                    new_pattern += char
+                }
+            }
+            if(!new_pattern.includes(":")) {
+                new_pattern = bracket_word_count + " word: " + new_pattern
+            }
+            return new_pattern
+        }
+        return pattern
+    }
+
+
+
     //if pattern has no ?, just return it.
     // "?" is a shortcut for "?0" filling in with the last elt of results
     // "?1" fills in with the 2nd to last elt of results, etc. works thru "?9"
@@ -620,37 +697,51 @@ globalThis.OpenAI = class OpenAI{
         return result
     }
 
-    static recursive_number_clean_up_result(result){
-        let data = OpenAI.text_to_data(result)
-        return data.numbers[0]
+    static recursive_make_assertion(prompt, result){
+        let colon_index = prompt.indexOf(":")
+        if(colon_index >= 0){
+            prompt = prompt.substring(colon_index + 1).trim()
+        }
+        let assertion = prompt + " " + result + "."
+        return assertion
     }
 
-    static recursive(pattern="single_word: ? is caused by",
-                     results=["fire"],
+    //not now used
+    //static recursive_number_clean_up_result(result){
+    //     let data = OpenAI.text_to_data(result)
+    //    return data.numbers[0]
+    //}
+
+    static recursive(pattern="[fire] is caused by",
+                     results=[], //but ultimately defaults to ["fire"]
                      times=3,
                      callback=OpenAI.recursive_default_callback,
                      clean_up_result_callback = OpenAI.recursive_default_clean_up_result,
-                     filled_in_prompts=[]){ //for the initial call, this is always [].
+                     assertions=[]){ //for the initial call, this is always [].
         if(times === 0){
-            callback(filled_in_prompts, results)
+            callback(assertions, results)
         }
         else {
-            let new_prompt = this.recursive_fill_in_pattern(pattern, results)
-            this.make_text(new_prompt,
+            pattern = this.modify_pattern_maybe(pattern, results) //returns possibly modified pattern and possibly psuhes onto results
+            //if (results.length === 0) { results.push("fire")} //default first result but don't do before calling modify_pattern ...
+            prompt = this.recursive_fill_in_pattern(pattern, results)
+            this.show_prompt(prompt)
+            this.make_text(prompt,
                    function(prompt, result){
                         result = clean_up_result_callback(result)
                         results.push(result)
-                        let completed_prompt = prompt + " " + result + "."
-                        filled_in_prompts.push(completed_prompt)
+                        let assertion = OpenAI.recursive_make_assertion(prompt, result)
+                        assertions.push(assertion)
                         times = times -1
-                        OpenAI.recursive(pattern, results, times, callback, clean_up_result_callback, filled_in_prompts)
+                        OpenAI.recursive(pattern, results, times, callback, clean_up_result_callback, assertions)
                    }
                 )
         }
+        return "dont_print" //so that the 3 show_prompts will come out together.
     }
 
-    static recursive_default_callback(filled_in_prompts, results){
-        inspect({filled_in_prompts: filled_in_prompts, results: results})
+    static recursive_default_callback(assertions, results){
+        inspect({assertions: assertions, results: results})
     }
 
     //_____SIMILAR____
@@ -671,15 +762,9 @@ globalThis.OpenAI = class OpenAI{
             return response
         }
         catch(err){
-            let mess_for_429 = ""
-            if(err.message.includes("429")){
-                mess_for_429 = "<br/> A 429 status code probably means you exceeded your allowed requests per minute."
-            }
-            dde_error("OpenAI could not create an embedding for:<br/><code>" + text +
-                "</code><br/> due to: <b>" + err.message + "</b>" +
-                mess_for_429 +
-                "<br/>If you don't have a paid subscription, getting one will help" +
-                "<br/>by giving you more completions per minute." +
+            dde_error("OpenAI could not process create an embedding for:<br/><code>" + text +
+                "</code><br/><b>" + err.message + "</b>" +
+                OpenAI.special_error_message(err) +
                 "<br/>Browse <a target='_blank' href='http://openai.com'>openai.com</a>"
             )
         }
@@ -738,11 +823,7 @@ globalThis.OpenAI = class OpenAI{
     }
 
     static move_dexter_joints(prompt="multiples of fifteen") {
-        let summary_prompt
-        if (prompt.length > 50) { summary_prompt = prompt.substring(0, 47) + "..." }
-        else { summary_prompt = prompt }
-        let prompt_for_title = prompt.replaceAll("'", "\\'")
-        out("<div style='background:#bcfbe0;' title='" + prompt_for_title + "'><i>OpenAI passed prompt: </i> " + summary_prompt + "</div>")
+        this.show_prompt(prompt)
         new Job({name: "my_job",
             do_list: [
                 function(){
