@@ -32,7 +32,7 @@
     "@grpc/grpc-js": "^1.6.7",
     "@grpc/proto-loader": "^0.6.12",
     "@rollup/plugin-json": "^4.1.0",
-    "@speechly/browser-client": "^2.6.1",
+    "@speechly/browser-client": "^2.6.5",
     "acorn": "^8.4.1",
     "adm-zip": "^0.5.5",
     "asap": "^2.0.6",
