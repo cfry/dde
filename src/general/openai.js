@@ -1,3 +1,5 @@
+// https://platform.openai.com/docs/guides/gpt  describes "functions" interface.
+
 import { Configuration, OpenAIApi } from "openai";
 import {grab_text_for_eval_button} from "./eval.js"
 
@@ -7,6 +9,7 @@ globalThis.Configuration = Configuration
 globalThis.OpenAI = class OpenAI{
     static configuration
     static openai
+    static previous_envelope = null //will get set after first gpt call and remain set until dde relaunched
     static init(){
         gpt_id.onclick = OpenAI.gpt_button_action
         gpt_id.onmousedown = function() {
@@ -22,11 +25,9 @@ globalThis.OpenAI = class OpenAI{
         //you won't have to do it again, even in a new dde session
         let org = DDE_DB.persistent_get("gpt_org") //if this has never been set, the result is undefined
         let key = DDE_DB.persistent_get("gpt_key") //if this has never been set, the result is undefined
-        out("OpenAI.init got key: " + key)
         if(org && key){
            this.make_configuration(org, key)
         }
-        this.init_previous_cache()
     }
 
     static make_configuration(org, key){
@@ -36,6 +37,10 @@ globalThis.OpenAI = class OpenAI{
             organization: org,
             apiKey: key //process.env.OPENAI_API_KEY,
         })
+        //to get rid of the console error: Refused to set unsafe header "User-Agent"
+        //see this solution in https://github.com/openai/openai-node/issues/6
+        delete this.configuration.baseOptions.headers['User-Agent'];
+
         this.openai = new OpenAIApi(this.configuration);
     }
 
@@ -46,7 +51,7 @@ globalThis.OpenAI = class OpenAI{
         }
         else {
             let [src, src_comes_from_editor] = grab_text_for_eval_button()
-            OpenAI.openai_request(src)
+            OpenAI.request(src)
         }
     }
 
@@ -56,70 +61,49 @@ globalThis.OpenAI = class OpenAI{
         if (prompt.length > 50) { summary_prompt = prompt.substring(0, 47) + "..." }
         else { summary_prompt = prompt }
         let prompt_for_title = prompt.replaceAll("'", "\\'")
-        out("<div style='background:#bcfbe0;' title='" + prompt_for_title + "'><i>OpenAI passed prompt: </i> " + summary_prompt + "</div>")
+        out("<div class='gpt' title='" + prompt_for_title + "'><i>OpenAI passed prompt: </i> " + summary_prompt + "</div>")
     }
-
 
     //https://platform.openai.com/docs/api-reference/authentication
     //but better: https://www.npmjs.com/package/openai
     //to use gpt-3.5-turbo, see:
     // https://stackoverflow.com/questions/72326140/openai-api-refused-to-set-unsafe-header-user-agent
-    static async openai_request(prompt="hello world"){
+    static async request(prompt= OpenAI.previous_prompt()){
+        if(typeof(prompt) !== "string") {
+            prompt = this.envelope_to_prompt(this.previous_envelope)
+        }
         //let response = await openai.listEngines();#bcfbe0  #6afbbc too dark green
         if(Editor.current_buffer_needs_saving) {
             Editor.save_current_file()
         }
         prompt = prompt.trim()
-        if (prompt !== OpenAI.previous_prompt){ //means the "previous cache for clicking on radio buttons in the config dialog box is no longer valid, so get rid of them
-            this.init_previous_cache()
-        }
         this.show_prompt(prompt)
         let media = DDE_DB.persistent_get("gpt_response_media")
-        if     (media === "text")             { let [env, text] = await this.make_text(prompt)
-                                                this.previous_prompt = prompt
-                                                this.previous_response_envelope = env
-                                                this.previous_response_text = text
-                                                return text
-                                              }
-        else if(media === "inspect_text_to_data") { let [env, text] = await this.make_inspect_text_to_data(prompt)
-                                                    this.previous_prompt = prompt
-                                                    this.previous_response_envelope = env
-                                                    this.previous_response_text = text
-                                                    return text
+        if(media === "inspect_envelope") {  this.previous_envelope = await this.make_inspect_envelope(prompt)
+                                            return this.previous_envelope
         }
-        else if(media === "inspect_envelope") { let [env, text] = await this.make_inspect_envelope(prompt)
-                                                this.previous_prompt = prompt
-                                                this.previous_response_envelope = env
-                                                this.previous_response_text = text
-                                                return text
+        else if     (media === "text")       { this.previous_envelope = await this.make_text(prompt)
+                                                return this.previous_envelope
                                               }
-        else if(media === "plot_numbers") { let [env, text] = await this.make_plot_numbers(prompt)
-                                                this.previous_prompt = prompt
-                                                this.previous_response_envelope = env
-                                                this.previous_response_text = text
-                                                return text
+        else if(media === "inspect_text_to_data") { this.previous_envelope = await this.make_inspect_text_to_data(prompt)
+                                                    return this.previous_envelope
         }
 
-        else if(media === "image")            { let [env, text] = await this.make_image(prompt)
-                                                this.previous_prompt = prompt
-                                                this.previous_response_envelope = env
-                                                this.previous_response_url = text //don't set text as user might
-                                                //want to go back to a previous text
-                                                return text
-                                              }
-        else { shouldnt("In openai_request with invalid response media of: " + media)}
-    }
+        else if(media === "code_only")         { this.previous_envelope = await this.make_code_only(prompt)
+                                                return this.previous_envelope
+        }
+        else if(media === "whole_response")   { this.previous_envelope = await this.make_whole_response(prompt)
+                                                return this.previous_envelope
+        }
 
-    static previous_prompt
-    static previous_response_envelope
-    static previous_response_text
-    static previous_response_url
+        else if(media === "plot_numbers")    { this.previous_envelope = await this.make_plot_numbers(prompt)
+                                                return this.previous_envelope
+        }
 
-    static init_previous_cache() {
-        this.previous_prompt = null
-        this.previous_response_envelope = null
-        this.previous_response_text = null
-        this.previous_response_url = null
+        else if(media === "image")            { this.previous_envelope  = await this.make_image(prompt)
+                                                return this.previous_envelope
+        }
+        else { shouldnt("In OpenAI.request with invalid response media of: " + media)}
     }
 
     static special_error_message(err){
@@ -131,7 +115,7 @@ globalThis.OpenAI = class OpenAI{
         else if(err.message.includes("429")){
             return "<br/> A 429 status code probably means you exceeded your allowed requests per minute." +
                 "<br/>If you don't have a paid subscription, getting one will help" +
-                "<br/>by giving you more completions per minute.<br>" +
+                "<br/>by giving you more responses per minute.<br>" +
                 "<br/>Browse <a target='_blank' href='http://openai.com'>openai.com</a>"
 
         }
@@ -143,34 +127,151 @@ globalThis.OpenAI = class OpenAI{
         }
     }
 
+    static envelope_to_model(envelope){
+        if(envelope.data) { //good for most models
+            let model = envelope.data.model
+            if(model) {
+                if (model.startsWith("gpt-4")) {
+                    return "gpt-4"
+                } else if (model.startsWith("gpt-3.5-turbo")) {
+                    return "gpt-3.5-turbo"
+                } else if (model.startsWith("text-davinci-003")) {
+                    return "text-davinci-003"
+                } else {
+                    shouldnt("OpenAI.envelope_to_model got invalid model: " + model)
+                }
+            }
+        }
+        if(envelope.config){ //might be an image
+            let config_url = envelope.config.url
+            if(typeof(config_url) === "string"){
+                if (config_url.includes("/images/")){
+                    return "image"
+                }
+            }
+        }
+        shouldnt("OpenAI.envelope_to_model passed envelope that didn't have the model in a recognized place.")
+    }
+
+    static envelope_to_prompt(envelope){
+        let model = this.envelope_to_model(envelope)
+        let data_str = envelope.config.data
+        let data = JSON.parse(data_str)
+        let prompt
+        if(model === "text-davinci-003"){
+            return data.prompt
+        }
+        if(model === "image") {
+            return data.prompt
+        }
+        else {
+            return data.messages[0].content
+        }
+    }
+
+    static previous_prompt(){
+        if(this.previous_envelope) {
+            return this.envelope_to_prompt(this.previous_envelope)
+        }
+        else { return "hello world"}
+    }
+
+    static envelope_to_response(envelope) {
+        let model = this.envelope_to_model(envelope)
+        if(model === "text-davinci-003") {
+               return envelope.data.choices[0].text }
+        else if (model === "image") {
+               return this.envelope_to_url(envelope)
+        }
+        else { return envelope.data.choices[0].message.content}
+    }
+
+    //only used for envelope's for image
+    static envelope_to_url(envelope) {
+        let model = this.envelope_to_model(envelope)
+        if(model === "image") {
+            return envelope.data.data[0].url
+        }
+        else { return null } //envelope is not an image
+    }
+
     //see: https://www.makeuseof.com/chatgpt-api-complete-guide/ for 3.5 and 4 api's.
-    static async make_text(prompt, callback=OpenAI.make_text_default_callback){
+    //very similar to make_text
+    static async make_inspect_envelope(prompt, callback=OpenAI.make_inspect_envelope_cb){
         let model = DDE_DB.persistent_get("gpt_model")
         let max_tokens = DDE_DB.persistent_get("gpt_completion_max_tokens")
         if(!max_tokens || Number.isNaN(max_tokens)) { max_tokens = 200 }
-        let result_text
+        let envelope
         try {
-            let completion
-            let result_text
             if (model === "text-davinci-003") {
-                completion = await this.openai.createCompletion({
-                    model: model,
+                envelope = await this.openai.createCompletion({
+                    model: model, //"text-davinci-003", //"text-davinci-003" //gpt-3.5-turbo errors, maybe because I haven't paid, or because it streams the response
                     prompt: prompt,
                     max_tokens: max_tokens
                 })
-                result_text = completion.data.choices[0].text
 
             }
             else if (["gpt-4", "gpt-3.5-turbo"].includes(model)) { //see https://platform.openai.com/docs/api-reference/chat/create
-                completion = await this.openai.createChatCompletion({
+                envelope = await this.openai.createChatCompletion({
                     model: model,
                     messages: [{role: "user", content: prompt}],
                     max_tokens: max_tokens
                 });
-                result_text = completion.data.choices[0].message.content
             }
-            callback(prompt, result_text)
-            return [completion, result_text]
+        }
+        catch(err){
+            dde_error("OpenAI could not complete your prompt:<br/><code>" + prompt +
+                "</code><br/> due to: <b>" + err.message + "</b>" +
+                OpenAI.special_error_message(err)
+            )
+        }
+        callback(envelope)
+        return envelope
+    }
+
+    static make_inspect_envelope_cb(envelope){
+        inspect(envelope)
+        return envelope
+    }
+
+    static async make_text(prompt, callback=OpenAI.make_text_cb) {
+        return this.make_inspect_envelope(prompt, OpenAI.make_text_cb)
+    }
+
+    static make_text_cb(envelope){
+        let response = OpenAI.envelope_to_response(envelope)
+        let response_with_tags = OpenAI.wrap_a_tags_around_urls(response)
+        out("<div class='gpt' style='white-space:pre-wrap;'>" + response_with_tags + "</div>")
+        return envelope
+    }
+
+    /*    static async make_text(prompt, callback=OpenAI.make_text_cb){
+        let model = DDE_DB.persistent_get("gpt_model")
+        let max_tokens = DDE_DB.persistent_get("gpt_completion_max_tokens")
+        if(!max_tokens || Number.isNaN(max_tokens)) { max_tokens = 200 }
+        let response_text
+        try {
+            let envelope
+            let response_text
+            if (model === "text-davinci-003") {
+                envelope = await this.openai.createCompletion({
+                    model: model,
+                    prompt: prompt,
+                    max_tokens: max_tokens
+                })
+                response_text = envelope.data.choices[0].text
+
+            }
+            else if (["gpt-4", "gpt-3.5-turbo"].includes(model)) { //see https://platform.openai.com/docs/api-reference/chat/create
+                envelope = await this.openai.createChatCompletion({
+                    model: model,
+                    messages: [{role: "user", content: prompt}],
+                    max_tokens: max_tokens
+                });
+                response_text = envelope.data.choices[0].message.content
+            }
+            callback(prompt, response_text)
+            return [envelope, response_text]
         }
         catch(err){
             dde_error("OpenAI could not complete your prompt:<br/><code>" + prompt +
@@ -180,77 +281,74 @@ globalThis.OpenAI = class OpenAI{
         }
     }
 
-
-    static make_text_default_callback(prompt, result_text){
-        let result_text_html = result_text //result_text.replaceAll("\n", "<br/>")
+    static make_text_cb(prompt, response_text){
+        let response_text_html = response_text //response_text.replaceAll("\n", "<br/>")
         //using white-space:pre-wrap; is perfect. lines don't go outside the bounding box of the out pane,
         // line breaks are preserved, as are intentions for hiearchy display
-        out("<div style='background:#bcfbe0; white-space:pre-wrap;'>" + result_text_html + "</div>")
-        return result_text
-    }
+        out("<div class='gpt' style='white-space:pre-wrap;'>" + response_text_html + "</div>")
+        return response_text
+    }*/
 
-    static async make_inspect_text_to_data(prompt){
-       let env_and_text = await this.make_text(prompt, OpenAI.inspect_text_to_data_cb)
-       return env_and_text
+    static async make_inspect_text_to_data(prompt, callback=OpenAI.make_inspect_text_to_data_cb){
+       return await this.make_inspect_envelope(prompt, callback)
     }
 
     //callback for make_text
     //called from more than 1 place
-    static inspect_text_to_data_cb(prompt, result){
-        let data = OpenAI.text_to_data(result, prompt)
+    static make_inspect_text_to_data_cb(envelope){
+        let prompt = OpenAI.envelope_to_prompt(envelope)
+        let response = OpenAI.envelope_to_response(envelope)
+        let data = OpenAI.text_to_data(prompt, response)
         inspect(data)
+        return envelope
     }
 
-    //very similar to make_text
-    static async make_inspect_envelope(prompt){
-        let model = DDE_DB.persistent_get("gpt_model")
-        let max_tokens = DDE_DB.persistent_get("gpt_completion_max_tokens")
-        if(!max_tokens || Number.isNaN(max_tokens)) { max_tokens = 200 }
-        let result_text
-        let completion
-        try {
-            let result_text
-            if (model === "text-davinci-003") {
-                completion = await this.openai.createCompletion({
-                    model: model, //"text-davinci-003", //"text-davinci-003" //gpt-3.5-turbo errors, maybe because I haven't paid, or because it streams the result
-                    prompt: prompt,
-                    max_tokens: max_tokens
-                })
-                result_text = completion.data.choices[0].text
 
-            }
-            else if (["gpt-4", "gpt-3.5-turbo"].includes(model)) { //see https://platform.openai.com/docs/api-reference/chat/create
-                completion = await this.openai.createChatCompletion({
-                    model: model,
-                    messages: [{role: "user", content: prompt}],
-                    max_tokens: max_tokens
-                });
-                result_text = completion.data.choices[0].message.content
-            }
-        }
-        catch(err){
-            dde_error("OpenAI could not complete your prompt:<br/><code>" + prompt +
-                "</code><br/> due to: <b>" + err.message + "</b>" +
-                OpenAI.special_error_message(err)
-            )
-        }
-        inspect(completion)
-        let choice_zero = completion.data.choices[0]
-        let text = (choice_zero.text ? choice_zero.text : choice_zero.message.content) // if(completion.data.choices[0].message.content
-            //choice_zero.text works for model: text-davinci-003
-            //choice_zero.message.content works for models: gpt-3.5-turbo, gpt-4 models.
-        return [completion, text]
-    }
-
-    static async make_plot_numbers(prompt){
-        let env_and_text = await this.make_text(prompt, OpenAI.make_plot_numbers_cb)
-        return env_and_text
+    static async make_code_only(prompt, callback=OpenAI.make_code_only_cb){
+        return await this.make_inspect_envelope(prompt, callback)
     }
 
     //callback for make_text
     //called from more than 1 place
-    static make_plot_numbers_cb(prompt, result){
-        let data = OpenAI.text_to_data(result, prompt)
+    static make_code_only_cb(envelope){
+        let prompt   = OpenAI.envelope_to_prompt(envelope)
+        let response = OpenAI.envelope_to_response(envelope)
+        let data = OpenAI.text_to_data(prompt, response)
+        let code = OpenAI.data_to_code(data)
+        if ((code.length === 0) && data.numbers.length > 0){
+            if(data.numbers.length === 1) { code = "" + data.numbers[0]}
+            else { code = "[" + data.numbers.join(", ") + "]" }
+        }
+        if(code.length === 0){
+            warning("There is no code in the previous response to insert.")
+        }
+        else {
+            Editor.insert(code + "\n", "selection_end", true)
+        }
+        return envelope
+    }
+
+    static async make_whole_response(prompt, callback=OpenAI.make_whole_response_cb){
+        return await this.make_inspect_envelope(prompt, callback)
+    }
+
+    //callback for make_text
+    //called from more than 1 place
+    static make_whole_response_cb(envelope){
+        let response = OpenAI.envelope_to_response(envelope)
+        Editor.insert("/*" + response + "*/", "selection_end", true)
+    }
+
+    static async make_plot_numbers(prompt, callback=OpenAI.make_plot_numbers_cb){
+        return await this.make_inspect_envelope(prompt, OpenAI.make_plot_numbers_cb)
+    }
+
+    //callback for make_text
+    //called from more than 1 place
+    static make_plot_numbers_cb(envelope){
+        let prompt   = OpenAI.envelope_to_prompt(envelope)
+        let response = OpenAI.envelope_to_response(envelope)
+        let data = OpenAI.text_to_data(prompt, response)
         if(data.numbers.length === 0){
             warning("Sorry, no there are numbers in the response to plot.")
         }
@@ -259,24 +357,28 @@ globalThis.OpenAI = class OpenAI{
         }
     }
 
-    static async make_image(prompt="a blue dog"){
-        out("<div style='background:#bcfbe0;'> An image will be shown in a new browser tab in a few seconds.</div>")
+    static async make_image(prompt="a blue dog", callback=OpenAI.make_image_cb){
+        out("<div class='gpt'> An image will be shown in a new browser tab in a few seconds.</div>")
         let image_size = DDE_DB.persistent_get("gpt_image_size")
-        let completion = await OpenAI.openai.createImage({
+        let envelope = await OpenAI.openai.createImage({
             prompt: prompt,
             n: 1,
             size: image_size,
         })
-        let url = completion.data.data[0].url
+        callback(envelope)
+        return envelope
+    }
+
+    static make_image_cb(envelope){
+        let url = OpenAI.envelope_to_url(envelope)
         window.open(url, "_blank")
-        return [completion, url]
     }
 
     static show_config(){
         DocCode.open_doc(gpt_interface_doc_id)
-        let org = DDE_DB.persistent_get("gpt_org") //if this has never been set, the result is undefined
+        let org = DDE_DB.persistent_get("gpt_org") //if this has never been set, the response is undefined
         if(!org) { org = "" }
-        let key = DDE_DB.persistent_get("gpt_key") //if this has never been set, the result is undefined
+        let key = DDE_DB.persistent_get("gpt_key") //if this has never been set, the response is undefined
         if(!key) { key = "" }
 
         let response_media = DDE_DB.persistent_get("gpt_response_media")
@@ -285,6 +387,8 @@ globalThis.OpenAI = class OpenAI{
         let image_checked                = ((response_media === "image")   ? " checked" : "")
         let inspect_envelope_checked     = ((response_media === "inspect_envelope") ? " checked" : "")
         let inspect_text_to_data_checked = ((response_media === "inspect_text_to_data") ? " checked" : "")
+        let code_only_checked            = ((response_media === "code_only") ? " checked" : "")
+        let whole_response_checked       = ((response_media === "whole_response") ? " checked" : "")
         let plot_numbers_checked         = ((response_media === "plot_numbers") ? " checked" : "")
 
         let model = DDE_DB.persistent_get("gpt_model")
@@ -320,23 +424,33 @@ globalThis.OpenAI = class OpenAI{
                      '</fieldset>' +
                      '<fieldset style="margin-top:10px;"><legend><i>Media to display the response in</i> </legend>' +
                          '<span title="Produce text in the output pane."><input type="radio" name="response_media" value="text" '    + text_checked       + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>text</span> &nbsp;&nbsp;' +
-                         '<span title="max_tokens is roughly equivlent to the number of words in the completion result.&#13;Default: 200">max_tokens: <input name="max_tokens" value="' + max_tokens + '" type="number" min="1" style="width:50px; margin:5px 5px 5px 5px;"/></span>' +
+                         '<span title="max_tokens is roughly equivlent to the number of words in the response.&#13;Default: 200">max_tokens: <input name="max_tokens" value="' + max_tokens + '" type="number" min="1" style="width:50px; margin:5px 5px 5px 5px;"/></span>' +
                           '<input type="button" value="Update max_tokens" style="margin:10px;"/>' +
-                         '<br/>' +
-                         '<span title="Inspect the high level parsing of the response, good for JavaScript-compatible data."><input type="radio" name="response_media" value="inspect_text_to_data" ' + inspect_text_to_data_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>inspect_text_to_data </span>&nbsp;&nbsp;<br/>' +
-                         '<span title="Inspect the low level transfer data from OpenAI."><input type="radio" name="response_media" value="inspect_envelope" ' + inspect_envelope_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>inspect_envelope </span>&nbsp;&nbsp;<br/>' +
+
+                         '<br/><span style="margin-left:20px;">Inspect: </span>' +
+                         '<span title="Inspect the high level parsing of the response, good for JavaScript-compatible data."><input type="radio" name="response_media" value="inspect_text_to_data" ' + inspect_text_to_data_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>text_to_data</span>&nbsp;&nbsp;&nbsp;' +
+                         '<span title="Inspect the low level transfer data from OpenAI."><input type="radio" name="response_media" value="inspect_envelope" ' + inspect_envelope_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>envelope</span><br/>' +
+
+                         '<span style="margin-left:20px;">Insert into editor: </span>' +
+                         '&nbsp;&nbsp;&nbsp;<span title="Insert only the code from the previous response&#13;into the Editor&#13;at the end of selection or cursor."><input type="radio" name="response_media" value="code_only" '      + code_only_checked      + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>code_only</span>' +
+                         '&nbsp;&nbsp;&nbsp;<span title="Insert the whole previous response&#13;into the editor&#13;at the end of selection or cursor.&#13;The response is wrapped in a comment.">             <input type="radio" name="response_media" value="whole_response" ' + whole_response_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>whole_response</span><br/>' +
+
+
                          '<span title="Show the numbers in the response, if any."><input type="radio" name="response_media" value="plot_numbers" ' + plot_numbers_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>plot_numbers </span>&nbsp;&nbsp;<br/>' +
-                         '<span title="Show an image of the result in a new tab."><input type="radio" name="response_media" value="image" '   + image_checked   + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>image</span> ' +
+                         '<span title="Show an image of the response in a new tab."><input type="radio" name="response_media" value="image" '   + image_checked   + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>image</span> ' +
                          ' &nbsp;&nbsp;&nbsp;size: <select name="image_size" data-onchange="true">' +
                                          '<option value="256x256" '   + selected_256  + '>256x256</option>'   +
                                          '<option value="512x512" '   + selected_512  + '>512x512</option>'   +
                                          '<option value="1024x1024" ' + selected_1024 + '>1024x1024</option>' +
                           '</select>\n' +
-                      '</fieldset>',
+                      '</fieldset>' +
+                      '<input type="button" name="regenerate" value="regenerate" style="margin: 7px;" ' +
+                      'title="Call GPT again with the same prompt and settings.&#13;Often you will get a different response."/>'
+                      ,
                       x: 700,
                       y: 0,
                       width:  550,
-                      height: 450,
+                      height: 480,
                       callback: "OpenAI.show_config_cb"
         }
         )
@@ -344,7 +458,7 @@ globalThis.OpenAI = class OpenAI{
 
     static show_config_cb(vals){
         if(vals.clicked_button_value){
-            if(vals.clicked_button_value === "show"){
+            if(vals.clicked_button_value === "show"){ //show the  org and API key
                 if(vals.show){
                     gpt_config_org_id.setAttribute("type", "text")
                     gpt_config_key_id.setAttribute("type", "text")
@@ -367,7 +481,7 @@ globalThis.OpenAI = class OpenAI{
             else if(vals.clicked_button_value === "model"){
                 let model = vals.model
                 DDE_DB.persistent_set("gpt_model", model)
-                OpenAI.openai_request(OpenAI.previous_prompt)
+                OpenAI.request()
             }
             else if (vals.clicked_button_value === "response_media"){
                 let media = vals.response_media
@@ -375,68 +489,60 @@ globalThis.OpenAI = class OpenAI{
                 DDE_DB.persistent_set("gpt_completion_max_tokens", parseInt(vals.max_tokens))
                 DDE_DB.persistent_set("gpt_model", vals.model)
                 DDE_DB.persistent_set("gpt_image_size", vals.image_size)
-                if(media === "text") {
-                    if(OpenAI.previous_response_text) {
-                        OpenAI.make_text_default_callback(OpenAI.previous_prompt, OpenAI.previous_response_text)
-                    }
-                    else if(OpenAI.previous_prompt){ //probably started out with an image, now we need to compute the text.
-                        OpenAI.openai_request(OpenAI.previous_prompt)
-                    }
-                    else return //probably no previous activity so do nothing, wait for user to click GPT button and give it a prompt
+
+                if(!OpenAI.previous_envelope){
+                    OpenAI.request() //uses "hello world" for the prompt
+                    return
+                }
+                let prev_model = OpenAI.envelope_to_model(OpenAI.previous_envelope)
+                if ((media === "image") && (prev_model !== "image")){
+                    OpenAI.request() //uses previous prompt but must make a new request
+                    return
+                }
+                if ((media !== "image") && (prev_model === "image")){
+                    OpenAI.request() //uses previous prompt but must make a new request
+                    return
+                }
+                //below here we are gaurenteed to have a previous response and one that is
+                //compatible with previous_response, so no request calls the below media section
+                if     (media === "text") {
+                    OpenAI.make_text_cb(OpenAI.previous_envelope)
                 }
                 else if(media === "inspect_text_to_data") {
-                    if(OpenAI.previous_response_text) {
-                        inspect(OpenAI.text_to_data(OpenAI.previous_response_text, OpenAI.previous_prompt))
-                    }
-                    else if(OpenAI.previous_prompt){ //probably started out with an image, now we need to compute the text.
-                        OpenAI.openai_request(OpenAI.previous_prompt)
-                    }
-                    else return //probably no previous activity so do nothing, wait for user to click GPT button and give it a prompt
+                   OpenAI.make_inspect_text_to_data_cb(OpenAI.previous_envelope)
                 }
                 else if(media === "inspect_envelope") {
-                    if(OpenAI.previous_response_text) {
-                        inspect(OpenAI.previous_response_envelope)
-                    }
-                    else if(OpenAI.previous_prompt){ //probably started out with an image, now we need to compute the text.
-                        OpenAI.openai_request(OpenAI.previous_prompt)
-                    }
-                    else return //probably no previous activity so do nothing, wait for user to click GPT button and give it a prompt
+                    OpenAI.make_inspect_envelope_cb(OpenAI.previous_envelope)
+                }
+                else if (media === "code_only") {
+                     OpenAI.make_code_only_cb(OpenAI.previous_envelope)
+                }
+                else if (media === "whole_response") {
+                    OpenAI.make_whole_response_cb(OpenAI.previous_envelope)
                 }
                 else if(media === "plot_numbers") {
-                    if(OpenAI.previous_response_text) {
-                        OpenAI.make_plot_numbers_cb(OpenAI.previous_prompt, OpenAI.previous_response_text)
-                    }
-                    else if(OpenAI.previous_prompt){ //probably started out with an image, now we need to compute the text.
-                        OpenAI.openai_request(OpenAI.previous_prompt)
-                    }
-                    else return //probably no previous activity so do nothing, wait for user to click GPT button and give it a prompt
+                    OpenAI.make_plot_numbers_cb(OpenAI.previous_envelope)
                 }
-                else if(media === "image") {
-                    if(OpenAI.previous_response_url){ //note: has been set to null, if openai_request was last called with different prompt
-                        window.open(OpenAI.previous_response_url, "_blank")
-                    }
-                    else if(OpenAI.previous_prompt){ //probably started out with an image, now we need to compute the text.
-                        OpenAI.openai_request(OpenAI.previous_prompt)
-                    }
-                    else return //probably no previous activity so do nothing, wait for user to click GPT button and give it a prompt
+                else if (media === "image"){
+                    OpenAI.make_image_cb(OpenAI.previous_envelope)
                 }
+                else { shouldnt("In OpenAI.request with invalid media of: " + media)}
             }
             else if (vals.clicked_button_value === "Update max_tokens"){
                 DDE_DB.persistent_set("gpt_completion_max_tokens", parseInt(vals.max_tokens))
                 let media = DDE_DB.persistent_get("gpt_response_media")
-                if(["text", "inspect_text_to_data", "inspect_envelope", "plot_numbers"].includes(media)){
-                    if(OpenAI.previous_prompt){
-                        OpenAI.openai_request(OpenAI.previous_prompt)
-                     }
-                }
+                //if(["text", "inspect_text_to_data", "inspect_envelope", "code_only", "whole_response", "plot_numbers"].includes(media)){
+                    OpenAI.request()
+                //}
             }
             else if (vals.clicked_button_value === "image_size"){
                 DDE_DB.persistent_set("gpt_image_size", vals.image_size) //ie "256x256", "512x512", or "1024x1024"
                 if(DDE_DB.persistent_get("gpt_response_media") == "image"){
-                    if(OpenAI.previous_prompt){
-                        OpenAI.openai_request(OpenAI.previous_prompt)
-                    }
+                    OpenAI.request()
                 }
+            }
+            else if  (vals.clicked_button_value === "regenerate"){
+                OpenAI.request()
             }
             else if (vals.clicked_button_value === "close_button"){}
             else {
@@ -445,10 +551,10 @@ globalThis.OpenAI = class OpenAI{
         }
     }
 
-    static text_to_data(text, prompt=null){
-        text = text.trim()
+    static text_to_data(prompt = null, response){
+        response = response.trim()
         let result = {prompt: prompt,
-                      text: text,
+                      response: response,
 
                       email_addresses: [], //chatGPT generaly filters email addresses out of results as a privacy issue, but you might find some
                       phone_numbers: [],
@@ -468,17 +574,21 @@ globalThis.OpenAI = class OpenAI{
 
                       numbered_bullet_points: [], //starts with "1.", "2." etc
                       bullet_points: [], // start with "- "
-                      name_value_pairs: {} //values are always arrays as there might be > value per name in named entities.
+                      name_value_pairs: {}, // property values are always arrays as there might be > value per name in named entities.
+                      code: []
         }
-        let words = text.split(/\s/) //spit on whitespace
+        let words = response.split(/\s/) //spit on whitespace
         result.word_count = words.length
-        result.first_sentence = this.first_sentence(text)
+        result.first_sentence = this.first_sentence(response)
         if(words.length > 0) {
             result.first_word_data = this.text_to_boolean_or_number(words[0])
             result.last_word_data  = this.text_to_boolean_or_number(words[words.length - 1])
         }
         for (let word of words) {
-            if ((".,?!;:)]}|/\"'+>=&*^").includes(Utils.last(word))) {
+            if(".,?!;:([{|\"'+>=&*/^".includes(word[0])){ //trim off first char
+               word = word.substring(1)
+            }
+            if (",?!;:)]}|/\"'+>=&*^".includes(Utils.last(word))) { //trim off last char. Don't trim off . because .23 is parseed by parseFloat in 0.23
                 word = word.substring(0, word.length - 1) //trim off last char if its punctuation
             }
             let num_maybe = this.text_to_boolean_or_number(word)
@@ -503,7 +613,7 @@ globalThis.OpenAI = class OpenAI{
                 result.zip_codes.push(word)
             }
         }
-        let lines = text.split("\n")
+        let lines = response.split("\n")
         let bullet_points = []
         for (let line of lines) { //grab bullet point if any
             if (line.startsWith("-")) { // unnumbered bullet_point
@@ -556,6 +666,7 @@ globalThis.OpenAI = class OpenAI{
                 }
             }
         }
+        result.code = this.text_to_code(response) //returns [] if none
         return result
     }
 
@@ -579,7 +690,71 @@ globalThis.OpenAI = class OpenAI{
     }
 
     static is_url(text){
-        return (/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/.test(text))
+        //return (/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/.test(text))
+        return Utils.starts_with_one_of(text, ["http://", "https://"])
+    }
+
+    static wrap_a_tags_around_urls(text){
+        let result = ''
+        let start_pos = 0
+        for(let i = 0; i < 100; i++){
+            //I tried using text.search(rexex) but that only matches the first pos and can't give it a starting pos.
+           let url_start_pos1 = text.indexOf("http://", start_pos)
+           let url_start_pos2 = text.indexOf("https://", start_pos)
+           let url_start_pos
+           if(url_start_pos1 === -1)       { url_start_pos = url_start_pos2 }
+           else if(url_start_pos2 === -1)  { url_start_pos = url_start_pos1 }
+           //neither are -1
+           else { url_start_pos = Math.min(url_start_pos1, url_start_pos2)}
+
+           if(url_start_pos == -1) { //both are -1
+               result = result + text.substring(start_pos)
+               break;
+           }
+           else {
+             result = result + text.substring(start_pos, url_start_pos)
+             let url_end_pos1 = text.indexOf(" ",  url_start_pos)
+             let url_end_pos2 = text.indexOf("\n", url_start_pos)
+             let url_end_pos3 = text.indexOf("'",  url_start_pos) //must do this to catch urls in A tags like below
+             let url_end_pos4 = text.indexOf('"',  url_start_pos) //must do this to catch urls in A tags like below
+
+             let url_end_pos = text.length
+             if(url_end_pos1 !== -1) { url_end_pos = Math.min(url_end_pos, url_end_pos1)}
+             if(url_end_pos2 !== -1) { url_end_pos = Math.min(url_end_pos, url_end_pos2)}
+             if(url_end_pos3 !== -1) { url_end_pos = Math.min(url_end_pos, url_end_pos3)}
+             if(url_end_pos4 !== -1) { url_end_pos = Math.min(url_end_pos, url_end_pos4)}
+
+             let url = text.substring(url_start_pos, url_end_pos)
+             let tag = '<a target="_blank" href="' + url + '">' + url + '</a>'
+             result += tag
+             start_pos = url_end_pos
+           }
+        }
+        return result
+    }
+
+    static wrap_a_tags_around_urls(text){
+        let result = ''
+        let start_pos = 0
+        for(let i = 0; i < 100; i++){
+            //I tried using text.search(rexex) but that only matches the first pos and can't give it a starting pos.
+            let [matching_str, url_start_pos] = Utils.index_of_first_one_of(text, ["http://", "https://"], start_pos)
+            if(url_start_pos == -1) { //both are -1
+                result = result + text.substring(start_pos)
+                break;
+            }
+            else {
+                result = result + text.substring(start_pos, url_start_pos)
+                let [matching_delim, url_end_pos] =
+                      Utils.index_of_first_one_of(text, [" ", "\n", "'", '"', "\t", "\r"], url_start_pos)
+                if(url_end_pos === -1) { url_end_pos = text.length }
+                let url = text.substring(url_start_pos, url_end_pos)
+                let tag = '<a target="_blank" href="' + url + '">' + url + '</a>'
+                result += tag
+                start_pos = url_end_pos
+            }
+        }
+        return result
     }
 
     static is_zip_code(text){
@@ -614,6 +789,90 @@ globalThis.OpenAI = class OpenAI{
         }
     } //end of text_to_boolean_or_number
 
+    //returns [] if none
+    /*example:
+      [javascript, [`function foo(){return "hi"}`, `var bar = 22`],
+      [html, [`<b>bold</b>`]],
+      [javascript, [`baz = 42`]]
+     ]
+     Note that this representation
+     - preserves the order of the code
+     - allows more more than one language,
+     - allows for more than one snipit in each lang.
+
+     text may include:
+     ```javascript
+     foo = 2
+     ```
+     ```html
+     <b>hi</b>
+     ```
+     languages are usually lower cased, but in any case,
+     text_to_code lower cases the lang names.
+     The end of the code is either ```  on a line by itself,
+     or the end of the text.
+     */
+    static text_to_code(text){
+        let result = []
+        let code_demarker = "```"
+        let start_pos = 0
+        for (let i = 0; i < 100; i++) {
+          start_pos = text.indexOf(code_demarker, start_pos)
+          if(start_pos === -1) { return result }
+          else {
+              let code_lang_name_end_pos = text.indexOf("\n", start_pos)
+              if(code_lang_name_end_pos === -1) { //not expected, but don't error
+                  return result
+              }
+              else {
+                  let code_lang_name_start_pos = start_pos + 3
+                  let lang_name = text.substring(code_lang_name_start_pos, code_lang_name_end_pos).trim()
+                  lang_name = lang_name.toLowerCase()
+                  let code_end_pos = text.indexOf(code_demarker, code_lang_name_end_pos + 1)
+                  if(code_end_pos === -1) {
+                      code_end_pos = text.length
+                  }
+                  let code = text.substring(code_lang_name_end_pos, code_end_pos).trim()
+                  result.push([lang_name, code])
+                  if(code_end_pos === text.length) { return result }
+                  else {
+                      start_pos =  code_end_pos + 3 //code_end_pos is the beginning of the ``` delimiting the end of the code section
+                  }
+              }
+          }
+        }
+        return result
+    }
+
+    // data is the name-value pair obj retured by text_to_data
+    // OR the array that is normally in data.code
+    //Returned is a string of all its code stippets strung together
+    //with newline separators, provided they match the "lang" arg.
+    static data_to_code(data, lang="all"){
+        let result = ""
+        let lang_code_arrays = (Array.isArray(data) ? data : data.code)
+        for(let lang_code_array of lang_code_arrays){
+            let lang_in_data = lang_code_array[0]
+            if((lang === "all") || (lang_in_data === lang)){
+                result += lang_code_array[1] + "\n"
+            }
+        }
+        return result.trim()
+    }
+
+    //result is an array
+    /*static add_code_to_result(result, lang_name, code){
+        for(let arr of result){
+            if(arr[0] === lang_name){
+                arr.push(code)
+                return result
+            }
+        }
+        //no existing array in result for lang_name, so make one.
+        result.push([lang_name, code])
+        return result
+    }*/
+
     //RECURSIVE
     //if results is empty,
     //prompt of "what causes sickness?" is returned as "what causes ?",
@@ -640,8 +899,8 @@ globalThis.OpenAI = class OpenAI{
         return pattern
     }*/
 
-    static modify_pattern_maybe(pattern, results){
-        if(results.length > 0){}
+    static modify_pattern_maybe(pattern, responses){
+        if(responses.length > 0){}
         else if(pattern.includes("?")) {}
         else if(pattern.includes("[") && pattern.includes("]")) {
             //let words = pattern.split(/\s/)
@@ -658,7 +917,7 @@ globalThis.OpenAI = class OpenAI{
                     bracket_word = bracket_word.trim()
                     let bracket_words = bracket_word.split(" ")
                     bracket_word_count = bracket_words.length
-                    results.push(bracket_word)
+                    responses.push(bracket_word)
                     new_pattern += "?"
                 } else if (collecting_bracket_word) {
                     bracket_word += char
@@ -677,71 +936,71 @@ globalThis.OpenAI = class OpenAI{
 
 
     //if pattern has no ?, just return it.
-    // "?" is a shortcut for "?0" filling in with the last elt of results
-    // "?1" fills in with the 2nd to last elt of results, etc. works thru "?9"
-    static recursive_fill_in_pattern(pattern, results){
+    // "?" is a shortcut for "?0" filling in with the last elt of responses
+    // "?1" fills in with the 2nd to last elt of responses, etc. works thru "?9"
+    static recursive_fill_in_pattern(pattern, responses){
         for(let i = 0; i < 10; i++){
             let pat = "?" + i
-            let index_into_results = results.length - 1 - i
-            pattern = pattern.replaceAll(pat, results[index_into_results])
+            let index_into_responses = responses.length - 1 - i
+            pattern = pattern.replaceAll(pat, responses[index_into_responses])
         }
-        let default_filler = Utils.last(results)
+        let default_filler = Utils.last(responses)
         pattern = pattern.replaceAll("?", default_filler)
         return pattern
     }
 
-    static recursive_default_clean_up_result(result){
-        if(result.endsWith(".")){
-            result = result.substring(0, result.length - 1)
+    static recursive_default_clean_up_response(response){
+        if(response.endsWith(".")){
+            response = response.substring(0, response.length - 1)
         }
-        return result
+        return response
     }
 
-    static recursive_make_assertion(prompt, result){
+    static recursive_make_assertion(prompt, response){
         let colon_index = prompt.indexOf(":")
         if(colon_index >= 0){
             prompt = prompt.substring(colon_index + 1).trim()
         }
-        let assertion = prompt + " " + result + "."
+        let assertion = prompt + " " + response + "."
         return assertion
     }
 
     //not now used
-    //static recursive_number_clean_up_result(result){
-    //     let data = OpenAI.text_to_data(result)
+    //static recursive_number_clean_up_response(response){
+    //     let data = OpenAI.text_to_data(response)
     //    return data.numbers[0]
     //}
 
     static recursive(pattern="[fire] is caused by",
-                     results=[], //but ultimately defaults to ["fire"]
+                     responses=[], //but ultimately defaults to ["fire"]
                      times=3,
                      callback=OpenAI.recursive_default_callback,
-                     clean_up_result_callback = OpenAI.recursive_default_clean_up_result,
+                     clean_up_response_callback = OpenAI.recursive_default_clean_up_response,
                      assertions=[]){ //for the initial call, this is always [].
         if(times === 0){
-            callback(assertions, results)
+            callback(assertions, responses)
         }
         else {
-            pattern = this.modify_pattern_maybe(pattern, results) //returns possibly modified pattern and possibly psuhes onto results
-            //if (results.length === 0) { results.push("fire")} //default first result but don't do before calling modify_pattern ...
-            prompt = this.recursive_fill_in_pattern(pattern, results)
+            pattern = this.modify_pattern_maybe(pattern, responses) //returns possibly modified pattern and possibly psuhes onto responses
+            //if (responses.length === 0) { responses.push("fire")} //default first response but don't do before calling modify_pattern ...
+            prompt = this.recursive_fill_in_pattern(pattern, responses)
             this.show_prompt(prompt)
             this.make_text(prompt,
-                   function(prompt, result){
-                        result = clean_up_result_callback(result)
-                        results.push(result)
-                        let assertion = OpenAI.recursive_make_assertion(prompt, result)
+                   function(prompt, response){
+                        response = clean_up_response_callback(response)
+                        responses.push(response)
+                        let assertion = OpenAI.recursive_make_assertion(prompt, response)
                         assertions.push(assertion)
                         times = times -1
-                        OpenAI.recursive(pattern, results, times, callback, clean_up_result_callback, assertions)
+                        OpenAI.recursive(pattern, responses, times, callback, clean_up_response_callback, assertions)
                    }
                 )
         }
         return "dont_print" //so that the 3 show_prompts will come out together.
     }
 
-    static recursive_default_callback(assertions, results){
-        inspect({assertions: assertions, results: results})
+    static recursive_default_callback(assertions, responses){
+        inspect({assertions: assertions, responses: responses})
     }
 
     //_____SIMILAR____
@@ -828,8 +1087,8 @@ globalThis.OpenAI = class OpenAI{
             do_list: [
                 function(){
                     OpenAI.make_text(prompt,
-                        function(prompt, result){
-                            let data = OpenAI.text_to_data(result)
+                        function(prompt, response){
+                            let data = OpenAI.text_to_data(prompt, response)
                             let angles = data.numbers.slice(0, 5)
                             out("Computed angles: " + angles)
                             Job.my_job.user_data.angles = angles

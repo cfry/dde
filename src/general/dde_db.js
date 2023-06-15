@@ -331,7 +331,7 @@ globalThis.persistent_set = function(key, value){
     else {
         DDE_DB.persistent_set(key, value)
         warning('You have attempted to call: persistent_set with a key of: ' + key + '<br/>' +
-                'That functionality is now handled by: DDE_DB.persitent_set' + key + " = " + value + "<br/>" +
+                'That functionality is now handled by: DDE_DB.persistent_set ' + key + " = " + value + "<br/>" +
                 'which has automatically been done for you.')
     }
 }
