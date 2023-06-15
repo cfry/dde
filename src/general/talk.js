@@ -1,4 +1,7 @@
 /*
+How to Use OpenAI Whisper for speech reco on MacOS in Node:
+https://medium.com/codingthesmartway-com-blog/speech-to-text-use-node-js-and-openais-whisper-api-to-record-transcribe-in-one-step-c9a1fd441765
+Needs OpenAI APIkey
 //todo
    new cmds:
         grab, release //close, open  (j7)// uses the value incremented by more, less.
@@ -104,6 +107,24 @@ _____end obsolete Commands
 Talk Chicago contact:
 Collin Borns collin@speechly.com +1 650-535-0146
 
+Fixing the 1011 error June 9, 2023:
+To Reproduce by using talk app:
+- from DDE Dexter menu, choose the talk item.
+- click to turn on mic,
+- say something.
+See error with code 1011 in the chrome dev tools console.
+To fix:
+Browse https://api.speechly.com/dashboard
+click on my app "voice app"
+click on "voice_app" tile (my speechly app supporting my "talk" app.
+click on "training data"
+click in the text editor pain
+make a trivial change like adding a new line
+now the "deploy" button in the upper right lights up
+click it
+wait 6 minutes for it to compile and say its done.
+Now use talk app
+______
 Bug report to Talk:
 sent Dec 11 to us@speechly.com
 

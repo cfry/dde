@@ -1159,10 +1159,13 @@ class TestSuite{
                     //but below we will still EVAL the job so that we can at least test
                     //that the job gets defined without error.
                 }
-                if (!code_elt.title || (code_elt.title.startsWith("unstartable"))){
+                if ((!code_elt.title ||
+                     code_elt.title.startsWith("unstartable")) &&
+                    (code_elt.className !== "gpt")  //since user might not be connected to internet, or might not have an OPenAI account, or we jst don't wnat to make the testsuite take so much longer, and clling gpt doesn't error anyway, don't include gpt prompts in the TestSuite
+                    ){
                     //because we now have to use innerHTML to get the code out of code_elt,
                     //and if that has any less than signs in it, they will automagically
-                    //get converted to &lt; which wil break if its evaled.
+                    //get converted to &lt; which will break if its evaled.
                     //so I have to CONVERT them back to <.
                     //Note we should never have a test case in the doc that has < or > in it
                     //that is allowed to be evaled (according to the CODE's title attribute.

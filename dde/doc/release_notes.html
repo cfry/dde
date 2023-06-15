@@ -1,5 +1,43 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
+<details class="doc_details"><summary>v 4.1.1, Jun 14, 2023</summary>
+    Highlights: GPT extensions esp. for aiding programming. 2 Python fixes.
+<ul>
+    <li>Talk: fixed the communications bug.</li>
+    <li>Python: choosing the command line language of Python now automatically initializes Python.</li>
+    <li>Python: command line language of "Python" fixed to print out the result of evaling typed in Python code.</li>
+    <li>TestSuite, Ref Man, GPT: Several "code" examples for GPT prompts were not excluded from the TestSuite but should have been. Now they are.</li>
+    <li>GPT: before your first use, if you didn't change the response media, you will get an error. Now fixed. Defaults to "text".</li>
+    <li>GPT: extension of <code>OpenAI.recursive</code> to take an additional simpler syntax and give better output, especially for two word responses.</li>
+    <li>GPT configuration dialog. Now when you click on a different model, it will automatically rerun the previous prompt in that new model.
+    <li>Output pane header check box "code" now converts the last output to code or not code.
+         Works with GPT output as well. Very useful for HTML.</li>
+    <li>GPT: configuration dialog has a new button, <input type="button" value="regenerate"/></li>
+    <li>GPT: configuration dialog as 2 new "response media":<br/>
+        <b>Insert into Editor:</b> "code_only" and "whole-response".
+        If "code_only" doesn't find any code, but does find a number, it inserts it.
+        If it finds more than one number, it inserts an array of them.</li>
+    <li>GPT: improved doc, esp. for Programming Languages. SVG and ASCII Art examples added.</li>
+    <li>GPT: HTML/CSS class "gpt" added for the background color light green in Ref Man examples.
+        The same color used for GPT prompt and response in Output pane.
+         This class is also looked at when running all testsuites to NOT run GPT examples, in
+         case user doesn't have OpenAI account or is not Internet connected.</li>
+    <li>GPT: new command line language: "GPT". Select it in the Output pane header, type in text
+        in the command line, hit ENTER and its a GPT request.</li>
+    <li>GPT: new simplified architecture for switching between various response media.</li>
+    <li>GPT: a couple of examples in the Doc now have "with URLs" as a suffix.
+        The response comes back with URLs that are now wrapped in A tags so you can click on them to browse them.
+        Now its easier to verify (or not) that the prose is correct.
+        But many of the URLs are "not found",
+        and some are not exactly relevant to the precise topic.
+        At least its easy to determine by looking at the URL's page's title and abstract.</li>
+    <li>GPT: Before your first use, if you didn't change the response media,
+        you would get an error. Now fixed. Defaults to "text".</li>
+    <li>GPT: configuration dialog. Now when you click on a different model,
+        it will automatically rerun the previous prompt in that new model.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 4.1.0, Jun 5, 2023</summary>
  Highlights: Job Engine in DDE4 showstopper bug fixed.
     Can now use later than node 17.

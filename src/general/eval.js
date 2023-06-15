@@ -1,4 +1,4 @@
-import {out_eval_result} from "../job_engine/core/out.js"
+//import {out_eval_result} from "../job_engine/core/out.js"
 //import {Robot, Brain, Dexter, Human, Serial} from '../job_engine/core/robot.js' //now all globals
 
 var prefix_to_evaled_src = "try{" //referenced in eval code AND in error handler way below
@@ -130,7 +130,7 @@ export function eval_js_part1(step=false){
 
             if(src.endsWith(",")) {
                 src = src.substring(0, src.length - 1) //so that we can EVAL lines ending in comma, such as Job instructions, without error
-                out("Comma removed from end of line to allow evaluation.")
+                out("Comma removed from end of line to allow evaluation.", undefined, true)
             }
             eval_js_part2((step? "debugger; ": "") + src) //LEAVE THIS IN RELEASED CODE
         }

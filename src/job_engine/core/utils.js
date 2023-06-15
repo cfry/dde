@@ -497,6 +497,29 @@ static starts_with_one_of(a_string, possible_starting_strings){
     return false
 }
 
+//returns array of one of the strs in possible_matching_strings
+// and its starting index within a_string
+// if no matches, returns [null, -1]
+static index_of_first_one_of(a_string, possible_matching_strings, starting_pos=0){
+    let a_string_length_limit = 100000000 //100 million. we're not expecting a_string to be longerr than that!
+    if(a_string >= a_string_length_limit){
+        dde_error("Utils.index_of_first_one_of passed string of length >= " +
+                   a_string_length_limit +
+                   " which is too long to handle.")
+    }
+    let matching_string = null
+    let matching_index  = a_string_length_limit
+    for(let possible_maching_string of possible_matching_strings){
+        let index = a_string.indexOf(possible_maching_string, starting_pos)
+        if((index !== -1) && (index < matching_index)){
+            matching_string = possible_maching_string
+            matching_index = index
+        }
+    }
+    if (matching_index === a_string_length_limit) { matching_index = -1 }
+    return [matching_string, matching_index]
+}
+
 static ends_with_one_of(a_string, possible_ending_strings){
     for (let str of possible_ending_strings){
         if (a_string.endsWith(str)) return true

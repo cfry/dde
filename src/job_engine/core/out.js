@@ -30,11 +30,26 @@ globalThis.format_text_for_code = format_text_for_code
  out_aux = function(text, color){
  */
 
+//for use when clicking the "code" checkbox to "redo" the last output
+globalThis.prev_out_val   = ""
+globalThis.prev_out_color = "black"
+globalThis.prev_out_src   = null
+globalThis.prev_src_label = ""
+
+//globalThis.prev_out_temp = false //don't capture temp outputs to redisplay.
+
+
 //text is a string that represents a result from eval.
 // It has been trimmed, and stringified, with <code> </code> wrapped around it probably.
 //never passed 'dont_print, always prints <hr/> at end whereas regular output never does
 //ui only
-export function out_eval_result(text, color="#000000", src, src_label="The result of evaling JS"){
+globalThis.out_eval_result = function (text, color="#000000", src, src_label="The result of evaling JS"){
+    //if(!temp && (val !== undefined) && (val !== "")) {
+        globalThis.prev_out_val   = text
+        globalThis.prev_out_color = color
+        globalThis.prev_out_src   = src
+        globalThis.prev_src_label = src_label
+    //}
     if (text != '"dont_print"'){
         //var existing_temp = $("#temp")
         //if (existing_temp.length > 0){

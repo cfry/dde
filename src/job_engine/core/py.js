@@ -34,7 +34,9 @@ globalThis.Py = class Py {
             }
         }
         else {
-            dde_error("Py.eval can't work unless Python is loaded. It is: " + Py.status)
+            dde_error("Py.eval can't work unless Python is initialized.<br/>" +
+            "It is: " +  Py.status + "<br/>" +
+            "To initialize Python, eval: <code>Py.init()</code>")
         }
     }
 

@@ -2,10 +2,15 @@
 //copied from utils.js so that we don't have to have any requires in this file
 
 function out(val="", color="black", temp=false, code=null){
+
     let text = val
     if (typeof(text) != "string"){ //if its not a string, its some data structure so make it fixed width to demonstrate code. Plus the json pretty printing doesn't work unless if its not fixed width.
         if(globalThis["stringify_value"]) { text = Utils.stringify_value(text) }
         else { text = Utils.stringify_value_cheap(val) } //hits in browser
+    }
+    if(text.includes("class='gpt'") || text.includes('class="gpt"')){
+        globalThis.prev_out_val   = val
+        globalThis.prev_out_color = color
     }
     if(globalThis.platform == "node") { //console.log(val)
         let out_obj = {kind: "out_call", val: text, color: color, temp: temp, code: code} //code isn't actually used in the browser

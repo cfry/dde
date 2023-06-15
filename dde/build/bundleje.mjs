@@ -14,8 +14,8 @@ import require$$0 from 'domain';
 import path from 'path';
 
 var name = "dde4";
-var version = "4.1.0";
-var release_date = "Jun 5, 2023";
+var version = "4.1.1";
+var release_date = "Jun 14, 2023";
 var description = "test rollup";
 var author = "Fry";
 var license = "GPL-3.0";
@@ -46,7 +46,7 @@ var dependencies = {
 	"@grpc/grpc-js": "^1.6.7",
 	"@grpc/proto-loader": "^0.6.12",
 	"@rollup/plugin-json": "^4.1.0",
-	"@speechly/browser-client": "^2.6.1",
+	"@speechly/browser-client": "^2.6.5",
 	acorn: "^8.4.1",
 	"adm-zip": "^0.5.5",
 	asap: "^2.0.6",
@@ -596,6 +596,29 @@ static starts_with_one_of(a_string, possible_starting_strings){
         if (a_string.startsWith(str)) { return true }
     }
     return false
+}
+
+//returns array of one of the strs in possible_matching_strings
+// and its starting index within a_string
+// if no matches, returns [null, -1]
+static index_of_first_one_of(a_string, possible_matching_strings, starting_pos=0){
+    let a_string_length_limit = 100000000; //100 million. we're not expecting a_string to be longerr than that!
+    if(a_string >= a_string_length_limit){
+        dde_error("Utils.index_of_first_one_of passed string of length >= " +
+                   a_string_length_limit +
+                   " which is too long to handle.");
+    }
+    let matching_string = null;
+    let matching_index  = a_string_length_limit;
+    for(let possible_maching_string of possible_matching_strings){
+        let index = a_string.indexOf(possible_maching_string, starting_pos);
+        if((index !== -1) && (index < matching_index)){
+            matching_string = possible_maching_string;
+            matching_index = index;
+        }
+    }
+    if (matching_index === a_string_length_limit) { matching_index = -1; }
+    return [matching_string, matching_index]
 }
 
 static ends_with_one_of(a_string, possible_ending_strings){
@@ -2165,10 +2188,15 @@ globalThis.value_of_path = Utils$1.value_of_path;
 //copied from utils.js so that we don't have to have any requires in this file
 
 function out$1(val="", color="black", temp=false, code=null){
+
     let text = val;
     if (typeof(text) != "string"){ //if its not a string, its some data structure so make it fixed width to demonstrate code. Plus the json pretty printing doesn't work unless if its not fixed width.
         if(globalThis["stringify_value"]) { text = Utils.stringify_value(text); }
         else { text = Utils.stringify_value_cheap(val); } //hits in browser
+    }
+    if(text.includes("class='gpt'") || text.includes('class="gpt"')){
+        globalThis.prev_out_val   = val;
+        globalThis.prev_out_color = color;
     }
     if(globalThis.platform == "node") { //console.log(val)
         let out_obj = {kind: "out_call", val: text, color: color, temp: temp, code: code}; //code isn't actually used in the browser
@@ -16299,6 +16327,87 @@ function format_text_for_code$1(text, code=null){
 }
 
 globalThis.format_text_for_code = format_text_for_code$1;
+
+/*
+ StackTrace.get(function(sf){
+ return sf.functionName == show_output
+ })then(function(sf){
+ var lineno = sf.lineNumber
+ var colno  = sf.columnNumber
+ }catch("errorcb")
+ out_aux = function(text, color){
+ */
+
+//for use when clicking the "code" checkbox to "redo" the last output
+globalThis.prev_out_val   = "";
+globalThis.prev_out_color = "black";
+globalThis.prev_out_src   = null;
+globalThis.prev_src_label = "";
+
+//globalThis.prev_out_temp = false //don't capture temp outputs to redisplay.
+
+
+//text is a string that represents a result from eval.
+// It has been trimmed, and stringified, with <code> </code> wrapped around it probably.
+//never passed 'dont_print, always prints <hr/> at end whereas regular output never does
+//ui only
+globalThis.out_eval_result = function (text, color="#000000", src, src_label="The result of evaling JS"){
+    //if(!temp && (val !== undefined) && (val !== "")) {
+        globalThis.prev_out_val   = text;
+        globalThis.prev_out_color = color;
+        globalThis.prev_out_src   = src;
+        globalThis.prev_src_label = src_label;
+    //}
+    if (text != '"dont_print"'){
+        //var existing_temp = $("#temp")
+        //if (existing_temp.length > 0){
+        //    existing_temp.remove()
+        //}
+        let existing_temp_elts = [];
+        if(globalThis["document"]){
+            existing_temp_elts = document.querySelectorAll("#temp");
+        }
+        for(let temp_elt of existing_temp_elts){ temp_elt.remove(); }
+
+        if (Utils.starts_with_one_of(text, ['"<svg ', '"<circle ', '"<ellipse ', '"<foreignObject ', '"<line ', '"<polygon ', '"<polyline ', '"<rect ', '"<text '])) {
+            text = text.replace(/\</g, "&lt;"); //so I can debug calls to svg_svg, svg_cirle etc
+        }
+        if (color && (color != "#000000")){
+            text = "<span style='color:" + color + ";'>" + text + "</span>";
+        }
+        text = format_text_for_code$1(text);
+        let src_formatted = "";
+        let src_formatted_suffix = ""; //but could be "..."
+        if(src) {
+            src_formatted = src.trim();
+            let src_first_newline = src_formatted.indexOf("\n");
+            if (src_first_newline != -1) {
+                src_formatted = src_formatted.substring(0, src_first_newline);
+                src_formatted_suffix = "...";
+            }
+            if (src_formatted.length > 55) {
+                src_formatted = src_formatted.substring(0, 55);
+                src_formatted_suffix = "...";
+            }
+            src_formatted = Utils.replace_substrings(src_formatted, "<", "&lt;");
+            src = Utils.replace_substrings(src, "'", "&apos;");
+            src_formatted = " <code title='" + src + "'>&nbsp;" + src_formatted + src_formatted_suffix + "&nbsp;</code>";
+        }
+        //if (src_formatted == "") { console.log("_____out_eval_result passed src: " + src + " with empty string for src_formatted and text: " + text)}
+        let the_html = "<fieldset><legend><i>" + src_label  + " </i>" + src_formatted + " <i>is...</i></legend>" +  text + "</fieldset>";
+        SW.append_to_output(the_html);
+    }
+    //$('#js_textarea_id').focus() fails silently
+    if(globalThis["document"]){
+        let orig_focus_elt = document.activeElement;
+        if(orig_focus_elt.tagName != "BUTTON"){ //if user clicks eval button, it will be BUTTON
+           //calling focus on a button draws a rect around it, not good.
+           //if user hits return in cmd line, it will be INPUT,
+           //Its not clear that this is worth doing at all.
+            orig_focus_elt.focus();
+        }
+    }
+};
 
 function get_output(){ //rather uncommon op, used only in SW.append_to_output
     return output_div_id.innerHTML
@@ -34546,7 +34655,7 @@ class DDEFile$1 {
                                              body: formData,
                                              mode: 'no-cors'});
         if(res.ok) {
-            out("DDEFile.write_file_async wrote file to: " + full_url);
+            out("DDEFile.write_file_async wrote file to: " + full_url, undefined, true); //make it temp.
             return this.callback_or_return(callback, orig_content)
         }
         else {
@@ -34600,7 +34709,7 @@ class DDEFile$1 {
                                                     body: formData,
                                                     mode: 'no-cors'});
         if(res.ok) {
-            out("DDEFile.append_to_file to: " + this.add_default_file_prefix_maybe(path));
+            out("DDEFile.append_to_file to: " + this.add_default_file_prefix_maybe(path), undefined, true);
             return this.callback_or_return(callback, orig_content)
         }
         else {
@@ -34627,7 +34736,7 @@ class DDEFile$1 {
         let res = await fetch(url_sans_query, {method: 'DELETE',
                                                     body: formData});
         if(res.ok) {
-            out("DDEFile.delete deleted: " + defaulted_path);
+            out("DDEFile.delete deleted: " + defaulted_path, undefined, true);
             return this.callback_or_return(callback, true)
         }
         else {
@@ -34638,7 +34747,7 @@ class DDEFile$1 {
     static async make_folder(path, callback){
         let exists = await this.file_exists(path);
         if(exists) {
-            out("DDEFile.make_folder tried to create: " + path + " but it already exists.");
+            out("DDEFile.make_folder tried to create: " + path + " but it already exists.", undefined, true);
         }
         else {
             let sep = ((Utils.last(path) === "/") ? "" : "/'");
@@ -34705,21 +34814,21 @@ class DDEFile$1 {
         //think that this url is a root url for some strange reason.
         //see httpd.mjs, serve_file()
         console.log("load_file passed path: " + path);
-        out("load_file passed path: " + path);
+        //out("load_file passed path: " + path)
         let defaulted_path = this.add_default_file_prefix_maybe(path);
         let full_url = this.make_url(defaulted_path, "/edit?edit=");
         console.log("load_file made url: " + full_url);
-        out("load_file made url: " + full_url);
+        //out("load_file made url: " + full_url)
         //console.log("about to call fetch that has value: " + fetch)
         let file_info_response = await fetch(full_url);
         console.log("load_file after 1st fetch with response: " + file_info_response.ok);
-        out("load_file after 1st fetch with response: " + file_info_response.ok);
+        //out("load_file after 1st fetch with response: " + file_info_response.ok)
         if(file_info_response.ok) {
             console.log("load_file got response that is OK");
-            out("load_file got response that is OK");
+            //out("load_file got response that is OK")
             let content = await file_info_response.text();
             console.log("load_file got content: " + content);
-            out("load_file got content: " + content);
+            //out("load_file got content: " + content)
             let result;
             try {
                 this.loading_file = defaulted_path;
@@ -37085,7 +37194,9 @@ globalThis.Py = class Py {
             }
         }
         else {
-            dde_error("Py.eval can't work unless Python is loaded. It is: " + Py.status);
+            dde_error("Py.eval can't work unless Python is initialized.<br/>" +
+            "It is: " +  Py.status + "<br/>" +
+            "To initialize Python, eval: <code>Py.init()</code>");
         }
     }
 

@@ -383,7 +383,7 @@ class DDEFile {
                                              body: formData,
                                              mode: 'no-cors'})
         if(res.ok) {
-            out("DDEFile.write_file_async wrote file to: " + full_url)
+            out("DDEFile.write_file_async wrote file to: " + full_url, undefined, true) //make it temp.
             return this.callback_or_return(callback, orig_content)
         }
         else {
@@ -437,7 +437,7 @@ class DDEFile {
                                                     body: formData,
                                                     mode: 'no-cors'})
         if(res.ok) {
-            out("DDEFile.append_to_file to: " + this.add_default_file_prefix_maybe(path))
+            out("DDEFile.append_to_file to: " + this.add_default_file_prefix_maybe(path), undefined, true)
             return this.callback_or_return(callback, orig_content)
         }
         else {
@@ -464,7 +464,7 @@ class DDEFile {
         let res = await fetch(url_sans_query, {method: 'DELETE',
                                                     body: formData})
         if(res.ok) {
-            out("DDEFile.delete deleted: " + defaulted_path)
+            out("DDEFile.delete deleted: " + defaulted_path, undefined, true)
             return this.callback_or_return(callback, true)
         }
         else {
@@ -475,7 +475,7 @@ class DDEFile {
     static async make_folder(path, callback){
         let exists = await this.file_exists(path)
         if(exists) {
-            out("DDEFile.make_folder tried to create: " + path + " but it already exists.")
+            out("DDEFile.make_folder tried to create: " + path + " but it already exists.", undefined, true)
         }
         else {
             let sep = ((Utils.last(path) === "/") ? "" : "/'")
@@ -542,21 +542,21 @@ class DDEFile {
         //think that this url is a root url for some strange reason.
         //see httpd.mjs, serve_file()
         console.log("load_file passed path: " + path)
-        out("load_file passed path: " + path)
+        //out("load_file passed path: " + path)
         let defaulted_path = this.add_default_file_prefix_maybe(path)
         let full_url = this.make_url(defaulted_path, "/edit?edit=")
         console.log("load_file made url: " + full_url)
-        out("load_file made url: " + full_url)
+        //out("load_file made url: " + full_url)
         //console.log("about to call fetch that has value: " + fetch)
         let file_info_response = await fetch(full_url)
         console.log("load_file after 1st fetch with response: " + file_info_response.ok)
-        out("load_file after 1st fetch with response: " + file_info_response.ok)
+        //out("load_file after 1st fetch with response: " + file_info_response.ok)
         if(file_info_response.ok) {
             console.log("load_file got response that is OK")
-            out("load_file got response that is OK")
+            //out("load_file got response that is OK")
             let content = await file_info_response.text()
             console.log("load_file got content: " + content)
-            out("load_file got content: " + content)
+            //out("load_file got content: " + content)
             let result
             try {
                 this.loading_file = defaulted_path

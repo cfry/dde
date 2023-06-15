@@ -328,13 +328,17 @@ export function on_ready() {
                 eval_js_part2(src)
             }
             else if(cmd_lang_id.value == "Python"){
-                Py.eval(src)
+                //Py.eval(src)
+                Py.eval_py_part2(src)
             }
             else if (cmd_lang_id.value == "SSH"){
                 cmd_input_id.placeholder = "Type in a shell 'bash' command & hit the Enter key to run."
                 //but the above probably never get's seen because the src of the actual default cmd gets shown instead
                 SSH.run_command({command: src})  //use defaults which makes formatted dir listing
                 //call_cmd_service_custom(src) /ROS selected
+            }
+            else if((cmd_lang_id.value == "GPT")){
+                OpenAI.request(src)
             }
             //else if (cmd_lang_id.value == "ROS"){
             //    /call_cmd_service_custom(src) /ROS selected
@@ -420,6 +424,9 @@ export function on_ready() {
                         out(`<a href='#' onclick='browse_page("https://docs.python.org/3/reference/index.html")' >Python doc</a>`,
                             undefined, true)
                     }
+                    else if(cmd_lang_id.value == "GPT"){
+                        DocCode.onclick_for_click_help(event)
+                    }
                     else {
                         shouldnt("cmd_input_id got menu item: " + cmd_lang_id.value +
                                  " that has no help.")
@@ -445,6 +452,7 @@ export function on_ready() {
             }
             else if(cmd_lang_id.value === "Python"){
                 DocCode.open_doc(python_doc_id)
+                Py.init()
                 cmd_input_id.placeholder = "Type in Python3 & hit the Enter key to eval"
             }
             else if(cmd_lang_id.value === "SSH"){
@@ -454,6 +462,13 @@ export function on_ready() {
                 //cmd_menu_id.style.display = "inline-block"
                 //cmd_input_id.value = SSH.show_dir_cmd
                 //SSH.init_maybe_and_write("cd /srv/samba/share;" + SSH.show_dir_cmd, false)
+            }
+            else if(cmd_lang_id.value === "GPT"){
+                cmd_input_id.placeholder = "Type in a GPT prompt."
+                DocCode.open_doc(gpt_interface_doc_id)
+            }
+            else {
+                shouldnt("In cmd_lang_id.onchange, got invalid language: " + cmd_lang_id.value)
             }
     }
 
@@ -1075,7 +1090,7 @@ window_modify_id.onclick=function(){Editor.insert(
     }
 
     show_window({title: "Modify Window",
-                 x:300, y:20, width:300, height:200,
+                 x:300, y:50, width:300, height:200,
                  callback: modify_window_cb,
                  content: '<input type="button" name="the_in" value="click to colorize"/>'
       })
@@ -1725,9 +1740,12 @@ window_modify_id.onclick=function(){Editor.insert(
          if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
              format_as_code_id.setAttribute("checked", val)
          }
-         format_as_code_id.onclick = function(event) {
-                                         let val = format_as_code_id.checked
-                                         DDE_DB.persistent_set("default_out_code", val)
+         format_as_code_id.onclick =
+             function(event) {
+                 let val = format_as_code_id.checked
+                 DDE_DB.persistent_set("default_out_code", val)
+                 //automatically re-render the last output
+                 out_eval_result(globalThis.prev_out_val, globalThis.prev_out_color, globalThis.prev_src, globalThis.prev_src_label)
          }
 
          //this must be before dde_init_dot_js_initialize() so that when a robot is defined, it can go on the menu

@@ -1,6 +1,6 @@
 /** Created by Fry on 8/12/17*/
 
-import {out_eval_result} from "../job_engine/core/out.js"
+//import {out_eval_result} from "../job_engine/core/out.js"
 
 
 class Inspect{
