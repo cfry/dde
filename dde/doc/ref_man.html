@@ -12805,7 +12805,18 @@ foo(1, 1)</code></pre>
                   Select the new function definition in the Output pane and click <button>Eval</button><br/>
                   Sometimes GPT even creates a test call to the new function.<br/>
                   Select the code and click <button>Eval</button> to verify that GPT's code is correct.
-                </details>
+                  <p/>
+                  Using the GPT configuration option of <b>code_only</b>, you can have the code in the response inserted
+                  into the editor. Select the below and click <button>GPT</button>:<br/>
+                  <code class="gpt">write a javascript function named my_fun to average numbers</code><br/>
+                  The inserted code will be selected. Click <button>Eval</button> to define the function.
+                  Sometimes a call to the function is also in the response. If result of the call
+                  is passed to <code>console.log</code>, DDE will insert a call to <code>out</code>
+                  after the call to <code>console.log</code> so that you can see it in the Output pane.
+                  <p/>
+                  Ironically, writing a prompt that reliably makes only a call to a
+                  function is an unsolved problem.
+              </details>
                  <details class="doc_details"><summary>Spanish</summary>
                   <code class="gpt">Convert Spanish to JavaScript:
                   Escriba una funci�n de JavaScript para multiplicar tres n�meros y luego sumar 6.</code><br/>

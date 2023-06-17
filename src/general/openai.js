@@ -405,16 +405,16 @@ globalThis.OpenAI = class OpenAI{
         let selected_512 =  ((image_size === "512x512")   ? " selected " : "")
         let selected_1024 = ((image_size === "1024x1024") ? " selected " : "")
         show_window({title: "GPT Configuration",
-            content: "<span title='Do not give info you do not want to share.&#13;Be careful how you use the responses.'> " +
+            content: "<span title='Do not give info in prompts you do not want to share.&#13;Rresponses are often inaccurate.'> " +
                      "<span style='font-weight:bold; color:red;'>Warning:</span> " +
                      "<a target='_blank' href='https://www.lexology.com/library/detail.aspx?g=33bf4b4f-ffd9-4bf1-bfc1-7c790d86a22f'>Please read this.</a> " +
                      "</span>" +
                      "<fieldset style='margin-top:5px;'><legend><i>OpenAI Log In Requirements</i> </legend>" +
-                         "If you don't have a key, sign up for one at <a target='_blank' href='http://openai.com' title='You are given a lot of initial usage for free.'>openai.com</a>. " +
-                         "&nbsp;&nbsp;<a target='_blank' href='http://platform.openai.com/account/usage' title='http://platform.openai.com/account/usage'>usage</a><br/>" +
-                         'organization: <input id="gpt_config_org_id" type="password" style="margin:5px;width:275px;" value="' + org + '"/>' +
+                         "If you don't have a key, sign up at <a target='_blank' href='http://openai.com' title='You are given a lot of initial usage for free.'>openai.com</a>. " +
+                         "&nbsp;&nbsp;<a target='_blank' href='http://platform.openai.com/account/usage' title='How much you are spending at OpenAI.com'>usage</a><br/>" +
+                         'organization: <input id="gpt_config_org_id" type="password" style="margin:5px;width:235px;" value="' + org + '"/>' +
                          '<input type="checkbox" name="show" data-onchange="true">Show</input><br/>' +
-                         'apiKey:       <input id="gpt_config_key_id" type="password" style="margin:5px;width:425px;" value="' + key + '"/><br/>' +
+                         'apiKey:      <input id="gpt_config_key_id" type="password" style="margin:5px;width:380px;" value="' + key + '"/><br/>' +
                         '<input type="submit" value="Update Organization and API keys" style="margin:10px;"></input>' +
                      '</fieldset>' +
                      "<fieldset style='margin-top:10px;'><legend><i>Model used to compute the response</i> </legend>" +
@@ -422,18 +422,19 @@ globalThis.OpenAI = class OpenAI{
                          '<span title="Cheaper and faster.&#13;The default.">                 <input type="radio" name="model" value="gpt-3.5-turbo" '    + gpt_3_5_checked + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>gpt-3.5-turbo</span>   &nbsp;&nbsp;' +
                          '<span title="Good for specialized cases.">                          <input type="radio" name="model" value="text-davinci-003" ' + davinci_checked + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>text-davinci-003</span> &nbsp;&nbsp; <br/>' + //a tag fails when you click on it but I don't know why <a target="_blank" href="https://scale.com/blog/chatgpt-vs-davinci">How to choose</a><br/>' +
                      '</fieldset>' +
-                     '<fieldset style="margin-top:10px;"><legend><i>Media to display the response in</i> </legend>' +
+                     '<fieldset style="margin-top:10px;"><legend><i>How and where to display the response</i> </legend>' +
                          '<span title="Produce text in the output pane."><input type="radio" name="response_media" value="text" '    + text_checked       + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>text</span> &nbsp;&nbsp;' +
                          '<span title="max_tokens is roughly equivlent to the number of words in the response.&#13;Default: 200">max_tokens: <input name="max_tokens" value="' + max_tokens + '" type="number" min="1" style="width:50px; margin:5px 5px 5px 5px;"/></span>' +
                           '<input type="button" value="Update max_tokens" style="margin:10px;"/>' +
 
                          '<br/><span style="margin-left:20px;">Inspect: </span>' +
-                         '<span title="Inspect the high level parsing of the response, good for JavaScript-compatible data."><input type="radio" name="response_media" value="inspect_text_to_data" ' + inspect_text_to_data_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>text_to_data</span>&nbsp;&nbsp;&nbsp;' +
-                         '<span title="Inspect the low level transfer data from OpenAI."><input type="radio" name="response_media" value="inspect_envelope" ' + inspect_envelope_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>envelope</span><br/>' +
+                         '<span title="Inspect the high level parsing of the response.&#13;Good for JavaScript-compatible data."><input type="radio" name="response_media" value="inspect_text_to_data" ' + inspect_text_to_data_checked + ' style="margin:5px 3px 5px 10px;" data-onchange="true"/>text_to_data</span>&nbsp;&nbsp;&nbsp;' +
+                         '<span title="Inspect the low level transfer data from OpenAI."><input type="radio" name="response_media" value="inspect_envelope" ' + inspect_envelope_checked + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>envelope</span><br/>' +
 
                          '<span style="margin-left:20px;">Insert into editor: </span>' +
-                         '&nbsp;&nbsp;&nbsp;<span title="Insert only the code from the previous response&#13;into the Editor&#13;at the end of selection or cursor."><input type="radio" name="response_media" value="code_only" '      + code_only_checked      + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>code_only</span>' +
-                         '&nbsp;&nbsp;&nbsp;<span title="Insert the whole previous response&#13;into the editor&#13;at the end of selection or cursor.&#13;The response is wrapped in a comment.">             <input type="radio" name="response_media" value="whole_response" ' + whole_response_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>whole_response</span><br/>' +
+                         '&nbsp;<span title="Insert only the code from the previous response&#13;into the Editor&#13;at the end of the selection or cursor.">' +
+                         '<input type="radio" name="response_media" value="code_only" '      + code_only_checked      + ' style="margin:5px 3px 5px 10px;" data-onchange="true"/>code_only</span>' +
+                         '&nbsp;<span title="Insert the whole previous response&#13;into the editor&#13;at the end of the selection or cursor.&#13;The response is wrapped in a comment.">             <input type="radio" name="response_media" value="whole_response" ' + whole_response_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>whole_response</span><br/>' +
 
 
                          '<span title="Show the numbers in the response, if any."><input type="radio" name="response_media" value="plot_numbers" ' + plot_numbers_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>plot_numbers </span>&nbsp;&nbsp;<br/>' +
@@ -449,7 +450,7 @@ globalThis.OpenAI = class OpenAI{
                       ,
                       x: 700,
                       y: 0,
-                      width:  550,
+                      width:  485,
                       height: 480,
                       callback: "OpenAI.show_config_cb"
         }
@@ -833,6 +834,8 @@ globalThis.OpenAI = class OpenAI{
                       code_end_pos = text.length
                   }
                   let code = text.substring(code_lang_name_end_pos, code_end_pos).trim()
+                  //probably only counts for JavaScript code, but *maybe* there's some in HTML or others???
+                  code = Utils.insert_outs_after_logs(code)
                   result.push([lang_name, code])
                   if(code_end_pos === text.length) { return result }
                   else {

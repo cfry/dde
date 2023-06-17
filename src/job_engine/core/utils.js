@@ -859,6 +859,55 @@ static reverse_string(s) {
     return o;
 }
 
+static insert_string(base_string, insert_string, position=0){
+    if(position > base_string.length) {
+        position = base_string.length
+    }
+    return base_string.substring(0, position) +
+        insert_string +
+        base_string.substring(position)
+}
+/*
+insert_string("abc", "def")
+insert_string("abc", "def", 100)
+insert_string("abc", "def", 1)
+*/
+    //used by OpenAI text_to_data for "code"
+static insert_outs_after_logs(base_string){
+    let result = base_string
+    let log_end_pos = 0
+    for(let i = 0; i < 1000; i++){
+        let log_start_pos = result.indexOf("console.log(", log_end_pos)
+        if(log_start_pos === -1) { return result } //no more calls to console.log
+        let open_paren_pos  = log_start_pos + 11
+        let close_paren_pos = Editor.find_matching_close(result, open_paren_pos)
+        if(close_paren_pos === null) {  //couldn't find the end of this console.log so pretend the code is just bad and return the result we've got so far. No more insertions.
+            return result
+        }
+        if((close_paren_pos < result.length) &&
+            (result[close_paren_pos + 1] === ";")){
+            log_end_pos = close_paren_pos + 1
+        }
+        else {
+            log_end_pos = close_paren_pos
+        }
+        let args = result.substring(open_paren_pos + 1, close_paren_pos)
+        let out_str = "\nout(" + args + ")\n"
+        result = Utils.insert_string(result, out_str, log_end_pos + 1)
+    }
+    dde_error("insert_outs_after_logs passed base_string with over 1 Million 'console.logs(' in it.")
+}
+/*
+insert_outs_after_logs("")
+insert_outs_after_logs("abc")
+insert_outs_after_logs("console.log(222)")
+insert_outs_after_logs("console.log(222);")
+insert_outs_after_logs("abc console.log(222); def")
+insert_outs_after_logs("abc console.log(junk(4, 5)); def")
+
+insert_outs_after_logs("abc console.log(222); def console.log(333)")
+*/
+
 //returns an array of width an height of a_string with the given font_size
 //font size is either a number or a string with a px suffix
 static compute_string_size(a_string, font_size=12, extra_width = 0){

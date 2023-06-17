@@ -1,6 +1,6 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
-<details class="doc_details"><summary>v 4.1.1, Jun 14, 2023</summary>
+<details class="doc_details"><summary>v 4.1.1, Jun 16, 2023</summary>
     Highlights: GPT extensions esp. for aiding programming. 2 Python fixes.
 <ul>
     <li>Talk: fixed the communications bug.</li>
@@ -35,6 +35,10 @@
         you would get an error. Now fixed. Defaults to "text".</li>
     <li>GPT: configuration dialog. Now when you click on a different model,
         it will automatically rerun the previous prompt in that new model.</li>
+    <li>GPT text_to_data now extends "code" found with a new call to "out" after
+        every call to console.log, passing it the same argument.
+        This makes testing evaluated code using "code_only" insertion
+        into editor easier than looking in the Chrome console.</li>
 </ul>
 </details>
 
