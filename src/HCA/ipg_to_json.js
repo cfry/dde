@@ -71,12 +71,12 @@ globalThis.ipg_to_json = class ipg_to_json{
             let lines = ipg.split("\n")
             //return last(lines)
             //lines = lines.slice(-3)
-            let top_level_obj = null //initialized and filled in during a loop that starts with
-                                     //Object, but also used by subsequent lines
+            let cur_obj_def = null //initialized and filled in during a loop that starts with
+                                   //Object, but also used by subsequent lines
+                                   //Will also have a value of a sys_desc if that's the cur_obj_def being parsed
             let call_obj_json = null
             let section = null
-            let system_ancestors = [] //for nested system_descriptor processing
-            let top_level_sys_desc = null
+            let system_ancestors = [] //for nested system_descriptor processing. If non-empty, it means the current line is in a sys desc.
             for (let line_index = 0; line_index < lines.length; line_index++) {
                 let line = lines[line_index]
                 //console.log("line index: " + line_index + ":" + line)
@@ -85,15 +85,17 @@ globalThis.ipg_to_json = class ipg_to_json{
                 if (line.startsWith("VIVA ")) {
                     let split_line = line.split(" ")
                     result.VIVA_version = split_line[1]
-                } else if (line.startsWith("// Project ")) {
+                }
+                else if (line.startsWith("// Project ")) {
                     this.parse_project_line(line, result)
                 }
                 // remMinNumberOfObjects=10000000
-                else if (line.startsWith("// remMinNumberOfObjects")) {
+                else if (line.startsWith("// remMinNumberOfObjects")) { //precede by a line of "//_ Attributes"
                     let num_str = line.trim().split("=")[1]
                     let num = parseInt(num_str)
                     result.remMinNumberOfObjects = num
-                } else if (line.startsWith("// Sheet ")) {
+                }
+                else if (line.startsWith("// Sheet ")) {
                     result.sheet_date = line.substring(9).trim()
                 }
 
@@ -105,14 +107,16 @@ globalThis.ipg_to_json = class ipg_to_json{
                         result.ComLibraries = []
                     }
                     result.ComLibraries.push(name)
-                } else if (line.startsWith("ComObject")) {
+                }
+                else if (line.startsWith("ComObject")) {
                     let items = line.trim().split(" ")
                     let name = items[1] + " " + items[1]
                     if (!result.ComObjects) {
                         result.ComObjects = []
                     }
                     result.ComObjects.push(name)
-                } else if (line.startsWith("Library")) {
+                }
+                else if (line.startsWith("Library")) {
                     let items = line.trim().split(" ")
                     let name = items[1]
                     name = name.substring(1, name.length - 1) //trim off the double quotes
@@ -120,31 +124,21 @@ globalThis.ipg_to_json = class ipg_to_json{
                         result.Libraries = []
                     }
                     result.Libraries.push(name)
-                } else if (line.startsWith("DynamicSystemFile")) {
+                }
+                else if (line.startsWith("DynamicSystemFile")) {
                     let items = line.trim().split(" ")
                     let name = items[1]
                     name = name.substring(1, name.length - 1) //trim off the double quotes
                     result.DynamicSystemFile = name
-                } else if (line.startsWith("DataSet ")) {
+                }
+                else if (line.startsWith("DataSet ")) {
                     let ds_obj = Dataset.parse_dataset(source_path, line)
                     result.datasets.push(ds_obj)
                 }
-
-                //System Description happens at the bottom of a ".sd" file.
-                else if (line.startsWith("System ")) { //this will be at most once in a file, and the top level sys desc.
-                    let new_sys_desc_obj = SysDesc.parse_sys_desc_line(source_path, trimmed_line)
-                    let pre_cur_sys_desc = Utils.last(system_ancestors)
-                    system_ancestors.push(new_sys_desc_obj)
-                    if(!pre_cur_sys_desc) {  //usually if not always hits
-                        result.top_level_sys_desc = new_sys_desc_obj
-                    }
-                    else {
-                        pre_cur_sys_desc.children.push(sys_desc_obj)
-                    }
-                }
+                /* obsoleted by below handling of "System" and " System "
                 else if (system_ancestors.length > 0){ //we are in the system section, and have read the one top level system desc first line.
                     let cur_sys_def = Utils.last(system_ancestors)
-                    if (trimmed_line.startsWith("System ")) { //these lines are always indented
+                    if (trimmed_line.startsWith("System ")) { //these lines are always indented, so are NOT the top_level_sys_desc
                         let new_sys_desc_obj = SysDesc.parse_sys_desc_line(source_path, trimmed_line)
                         let pre_cur_sys_desc = Utils.last(system_ancestors)
                         pre_cur_sys_desc.children.push(new_sys_desc_obj)
@@ -173,7 +167,7 @@ globalThis.ipg_to_json = class ipg_to_json{
                             cur_sys_def.description += trimmed_line + "\n"
                         }
                     }
-                    else if (trimmed_line === "{"){ //starting either sub SYSTEMS or the "// descriptionb lines
+                    else if (trimmed_line === "{"){ //starting either sub SYSTEMS or the "// description lines
                         section = "sys_desc_after_curley" //not now actually read.
                     }
                     else if (trimmed_line === "}"){ //done with sub_sys_descs
@@ -185,77 +179,84 @@ globalThis.ipg_to_json = class ipg_to_json{
                                  "<br/> and system_ancestors: " + system_ancestors +
                                  "<br/> and section: " + section)
                     }
-                }
+                } //end of old sys desc parsing
+                */
 
                 //done with System Description parsing
                 else if (line.startsWith("{")) {
-                    section = "calls"
+                    section = "calls" //a.k.a. prototypes
                 } //in a top level object, just before top level doc.
                 //no content after the first char of such lines.
                 else if (Utils.is_whitespace(line)) {
                 } //ignore
                 else if (line.includes("revision") || line.includes("Revision")) { //must be before handling lines that start with " // "
-                    if (!top_level_obj.revisions) {
-                        top_level_obj.revisions = []
-                    }
-                    top_level_obj.revisions.push(line.substring(4))
+                    cur_obj_def.revisions.push(line.substring(4))
                 }
                 else if (line.startsWith(" // ")) { //top level doc
-                    if (!top_level_obj.description) {
-                        top_level_obj.description = ""
-                    }
-                    top_level_obj.description += line.substring(4) + "\n"
+                    cur_obj_def.description += line.substring(4) + "\n"
+                }
+                else if (line.startsWith("// ")) { //happens in top top level System Desc.
+                    cur_obj_def.description += line.substring(3) + "\n"
                 }
                 else if (trimmed_line == "//") {
                 } //ignore, empty comment. place AFTER " // " test. probably has some newline char(s) after the //
 
-                else if (line.startsWith(" //_ Object Prototypes")) {
-                } //sub objects to follow
+                else if (line.startsWith(" ") && trimmed_line.startsWith("//_ Object Prototypes")) {
+                } //sub objects to follow, but the lines all start with space, the "Object" so don't need to set a special mode
 
                 //Behavior Topology (net_list)
-                else if (line.startsWith(" //_ Behavior Topology")) {
+                else if (line.startsWith(" ") && trimmed_line.startsWith("//_ Behavior Topology")) {
                     section = "netList"
-                    top_level_obj.netList = []
-                } else if (line.startsWith("}")) { //ends a top level object. No content after the close curley.
+                    cur_obj_def.netList = [] //redundant as the obj will be initialized to empty array, but OK to leave this here
+                }
+                else if (trimmed_line === "}") { //ends a top level object or a Sys desc. No content after the close curley for cur_obj_def
                     section = null
-                    top_level_obj = null
                     call_obj_json = null
-                } else if (section === "netList") {
-                    let bt_obj = this.parse_behavior_topology(line, top_level_obj)
-                    top_level_obj.netList.push(bt_obj)
-                } else if (line.startsWith("Object ")) { //making a new object definition
-                    for (let i = line_index; i < lines.length; i++) {
-                        if (i === line_index) {
-                            continue
-                        } //on first line.
-                        else if (i === lines.length) {
-                            break;
-                        } //won't happen. let the line as is be the full valid object, though this probably won't happen
-                        //else if (line.includes(";")) { break; }
-                        else {
-                            let next_line = lines[i]
-                            if (next_line.startsWith("//_")) {
-                                break;
-                            } //proper end of top level object header
-                            else if (next_line.startsWith("{")) {
-                                break;
-                            } else { //loop around looking for another line
-                                line += next_line
-                                line_index = i
-                            }
-                        }
+                    if(system_ancestors.length === 0) {
+                        cur_obj_def = null
                     }
-                    top_level_obj = this.parse_object(line, true) //note don't make this "let top_level_obj" as we use it outside this scope.
-                    //note: top level objects look like they never have a 2nd line of header info,
-                    //so shouldn't need to be passed line_index & lines
-                    top_level_obj.line = line        //for debugging, not in VIVA
-                    top_level_obj.source_path = source_path //not in VIVA
-                    top_level_obj.obj_id = HCAObjDef.make_obj_id(top_level_obj)
-                    result.object_definitions.push(top_level_obj)
-                } else if (line.startsWith(" Object ")) { //making a new call
-                    if (!top_level_obj.prototypes) {
-                        top_level_obj.prototypes = []
+                    else if (system_ancestors.length === 1) {
+                        result.top_level_sys_desc.children.push(system_ancestors.pop())
                     }
+                    else { //system_ancestors.length > 1
+                        let just_completed_sys = system_ancestors.pop()
+                        cur_obj_def = Utils.last(system_ancestors)
+                        cur_obj_def.children.push(just_completed_sys)
+                    }
+                }
+                else if (section === "netList") {
+                    if(system_ancestors.length > 0){
+                        debugger;
+                    }
+                    let bt_obj = this.parse_behavior_topology(trimmed_line, cur_obj_def)
+                    cur_obj_def.netList.push(bt_obj)
+                }
+                else if (line.startsWith("Object ")) { //making a new object definition
+                    [cur_obj_def, line_index] = this.parse_object_def(lines, line, line_index, source_path)
+                    result.object_definitions.push(cur_obj_def)
+                }
+                //System Description happens at the bottom of a ".sd" file.
+                else if (line.startsWith("System ")) { //this will be at most once in a file, and the top level sys desc.
+                    /*let new_sys_desc_obj = SysDesc.parse_sys_desc_line(source_path, trimmed_line)
+                    let pre_cur_sys_desc = Utils.last(system_ancestors)
+                    system_ancestors.push(new_sys_desc_obj)
+                    cur_obj_def = new_sys_desc_obj
+                    if(!pre_cur_sys_desc) {  //usually if not always hits
+                        result.top_level_sys_desc = new_sys_desc_obj
+                    }
+                    else {
+                        pre_cur_sys_desc.children.push(sys_desc_obj)
+                    }*/
+                    [cur_obj_def, line_index] = this.parse_object_def(lines, line, line_index, source_path)
+                    cur_obj_def.children = []
+                    result.top_level_sys_desc = cur_obj_def
+                }
+                else if (trimmed_line.startsWith("System ")) { //we're making a subsystem, which is more like a Obj Def than it is a obj call
+                    [cur_obj_def, line_index] = this.parse_object_def(lines, line, line_index, source_path)
+                    cur_obj_def.children = []
+                    system_ancestors.push(cur_obj_def) //system_ancestors does NOT include too_level_sys_desc, just its descendents stright line to cur_obj_def
+                }
+                else if ((line.startsWith(" ") && trimmed_line.startsWith("Object "))) { //making a new call. note that calls under a sys desc have one OR MORE spaces before "Object"
                     line = ""
                     for (let i = line_index; i < lines.length; i++) {
                         let next_line = lines[i]
@@ -268,8 +269,11 @@ globalThis.ipg_to_json = class ipg_to_json{
                     }
                     call_obj_json = this.parse_object(line, false) // do not do "let call_obj_json ..." as call_obj_json is declared further up, by design
                     call_obj_json.line = line //for debugging
-                    top_level_obj.prototypes.push(call_obj_json)
-                } else if (line.startsWith("//_ Attributes ")) { //top level object Attributes
+                    cur_obj_def.prototypes.push(call_obj_json)
+                }
+                else if (line.startsWith("//_ Attributes ") ||  //top level object Attributes
+                    ((system_ancestors.length > 0) && (line.trim().startsWith("//_ Attributes "))) || //working on sub sys desc
+                    ((cur_obj_def === result.top_level_sys_desc) && (line.trim().startsWith("//_ Attributes ")))) { //working on top level sys desc
                     let next_line = ((line_index === (lines.length - 1)) ? null : lines[line_index + 1])
                     if (next_line.startsWith(" ") && next_line.trim().startsWith(",")) {
                     } //its a true 2nd line of attributes
@@ -281,23 +285,25 @@ globalThis.ipg_to_json = class ipg_to_json{
                     //if(next_line && !next_line.startsWith("{")){ d//ebugger;}
                     let attr_obj = this.parse_front_of_line_attributes(line, next_line)
                     for (let key of Object.keys(attr_obj)) {
-                        top_level_obj[key] = attr_obj[key]
+                        cur_obj_def[key] = attr_obj[key]
                     }
-                    section = "top_level_object_attributes" //there *might be another line of
+                    section = "cur_ob_def_attributes" //there *might be another line of
                     //attributes that starts with spaces, then a comma then the attributes then the close paran
                 }
                 //the following clause should be after the clause: (line.startsWith("{"))
-                else if ((section === "top_level_object_attributes") &&
+                else if ((section === "cur_ob_def_attributes") &&
                     line.startsWith(" ") &&
                     line.trim().startsWith(",")) { //we have a 2nd line of top level obj attributes
                     //which is ignored because the clause line.startsWith("//_ Attributes ") handles it.
-                } else if (line.startsWith(" //_ Attributes ")) { //call_obj_json Attributes, doesn't have a 2nd line of attributes in az.idl, but allow for it
+                }
+                else if (line.startsWith(" //_ Attributes ")) { //call_obj_json Attributes, doesn't have a 2nd line of attributes in az.idl, but allow for it
                     let next_line = ((line_index === (lines.length - 1)) ? null : lines[line_index + 1])
                     let attr_obj = this.parse_front_of_line_attributes(line, next_line)
                     for (let key of Object.keys(attr_obj)) {
                         call_obj_json[key] = attr_obj[key]
                     }
-                } else {
+                }
+                else {
                     warning("HCA.parse got a line " + line_index + " of:<br/><code>" + line + "</code><br/>which is unexpected and thus ignored.")
                 }
             } //end big for loop
@@ -345,10 +351,52 @@ globalThis.ipg_to_json = class ipg_to_json{
      could start with //_ Attributes meaning no inputs, end of top level object header.
 
     */
+
+    static parse_object_def(lines, line, line_index, source_path) { //also parses top level system defs
+        //first extend "line" with all the sub-lines that semantically make up the key line for the def
+        for (let i = line_index; i < lines.length; i++) {
+            if (i === line_index) {  //on first line.
+                continue
+            }
+            else if (i === lines.length) {
+                break;
+            } //won't happen. let the line as is be the full valid object, though this probably won't happen
+            //else if (line.includes(";")) { break; }
+            else {
+                let next_line = lines[i]
+                if (next_line.trim().startsWith("//_")) {
+                    break;
+                } //proper end of top level object header
+                else if (next_line.trim().startsWith("{")) {
+                    break;
+                }
+                else if (next_line.trim().startsWith("}")) {
+                    break;
+                }
+                else { //loop around looking for another line
+                    line += next_line
+                    line_index = i
+                }
+            }
+        }
+        let cur_obj_def = this.parse_object(line, true)
+        //note: top level objects look like they never have a 2nd line of header info,
+        //so shouldn't need to be passed line_index & lines
+        cur_obj_def.line = line        //for debugging, not in VIVA
+        cur_obj_def.source_path = source_path //not in VIVA
+        cur_obj_def.obj_id = HCAObjDef.make_obj_id(cur_obj_def)
+        //result.object_definitions.push(cur_obj_def)
+        return [cur_obj_def, line_index]
+    }
+
     static parse_object(line,
                         is_obj_def, //true if we are parsing an obj_def, false if we are parsing an obj call
                         line_index, lines){
-        let new_obj   = {}
+        let new_obj   = {description: "", //may be set below
+                         prototypes: [],
+                         netList:    [],
+                         revisions:  []
+                        }
         //new_obj.line = line //for debugging only.
         let [before_comment, comment] = line.split("//")
         let out_array_result
@@ -610,6 +658,10 @@ grab_io(str)
     }
 
     static grab_name(str, start_index=0) {
+        if(str.trim().startsWith("System ")){ //when parsing a sys desc
+            let sys_start_pos = str.indexOf("System")
+            start_index = sys_start_pos + 7
+        }
         let cur_term = ""
         let state = "before"
         let extra_chars_length = 0
@@ -668,7 +720,13 @@ grab_io(str)
                 line = line.substring(0, index_of_copyof_attr)
             }
             let pairs = line.split(",")
-
+            if(pairs.length > 0) {
+               let mystery_int = parseInt(pairs[0]) //shows up in Sys descs
+                if(!Number.isNaN(mystery_int)){
+                    attr_obj.mystery_int =  mystery_int
+                    pairs.shift() //remove the mystery_int from pairs
+                }
+            }
             for (let pair of pairs) {
                 let [key, val] = pair.split("=")
                 key = key.trim()
@@ -696,10 +754,9 @@ grab_io(str)
     }
 
     //the netList
-    static parse_behavior_topology(line, top_level_obj_for_debugging_only){
-        line = line.trim()
-        line = line.substring(0, line.length - 1) //cut off trailing semicomon
-        let [sink, src] = line.split("=") //bad design: sink comes before source.
+    static parse_behavior_topology(trimmed_line, cur_obj_def_for_debugging_only){
+        trimmed_line = trimmed_line.substring(0, trimmed_line.length - 1) //cut off trailing semicomon
+        let [sink, src] = trimmed_line.split("=") //bad design: sink comes before source.
         src = src.trim()
         let src_split = src.split(".")
         let call_name  = src_split[0]

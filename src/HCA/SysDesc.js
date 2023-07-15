@@ -14,20 +14,23 @@ globalThis.SysDesc = class SysDesc {
             }
         }
         this.children = []
-        SysDesc.name_to_sys_desc_object_map[this.name] = this
+        SysDesc.name_to_sys_desc_object_map[this.objectName] = this
     }
-
+     /* obsolete after upgrade of sys_desc parser
     static parse_sys_desc_line(source_path, trimmed_line){
         let [sys_word_unused, name] = trimmed_line.split(" ")
         let sys_desc_obj = {
             name: name,
             line: trimmed_line,
             source_path: source_path,
-            children: [],
+            prototypes: [],
+            netList:    [],
+            revisions:  [],
+            children:   [],
             description: ""
         }
         return sys_desc_obj
-    }
+    }*/
 
     static insert_sys_descs_into_tree(source_path, sys_desc_json_obj){
         let new_sys_desc_inst = new SysDesc(sys_desc_json_obj)
@@ -38,7 +41,6 @@ globalThis.SysDesc = class SysDesc {
             let child_sys_desc_inst = this.insert_sys_descs_into_tree(source_path, child_sys_desc_json_obj)
             new_sys_desc_inst.children.push(child_sys_desc_inst)
         }
-        //this.name_to_sys_desc_object_map[new_sys_desc_inst.name] = new_sys_desc_inst
         if(new_sys_desc_inst === this.sys_desc_tree) {  //new_sys_desc_inst is top level
             this.refresh_palette()
         }
@@ -61,10 +63,11 @@ globalThis.SysDesc = class SysDesc {
         let children = sd_inst.children
         let result
         if(children.length === 0){
-            result = "<div onclick='SysDesc.show_sys_desc_dialog(event)' style='text-decoration:underline blue;margin-left:15px;'>" + sd_inst.name + "\n"
+            result = "<div onclick='SysDesc.show_sys_desc_dialog(event)' style='text-decoration:underline blue;margin-left:15px; white-space:nowrap;'>" + sd_inst.objectName + "\n"
         }
         else {
-            result = "<details class='hca_folder'> <summary onclick='SysDesc.show_sys_desc_dialog(event)' style='text-decoration:underline blue;'>" + sd_inst.name + "</summary>\n"
+            result = "<details class='hca_folder'> <summary style='text-decoration:underline blue; white-space:nowrap;'>" +
+                     "<a href='#' onclick='SysDesc.show_sys_desc_dialog(event)'> " + sd_inst.objectName + "</a></summary>\n"
         }
         for(let child_sys_desc_inst of sd_inst.children) {
             let child_html = this.make_palette_html(child_sys_desc_inst)
@@ -80,8 +83,8 @@ globalThis.SysDesc = class SysDesc {
     }
 
     static show_sys_desc_dialog(event){
-        let name = event.target.innerText
-        let sys_desc_inst = SysDesc.name_to_sys_desc_object_map[name]
+        let the_objectName = event.target.innerText
+        let sys_desc_inst = SysDesc.name_to_sys_desc_object_map[the_objectName]
         if((sys_desc_inst.children.length > 0) && (event.offsetX <= 12)) {  } //user click on the triangle, so don't open the dialog box.
         else {
             event.preventDefault() //stop twist down from happening
@@ -90,8 +93,9 @@ globalThis.SysDesc = class SysDesc {
             show_window({
                 title: "Choose System Description Operation",
                 x: 200, y: 100, width: 400, height: 200,
-                content: `for: <b>` + name + `</b><br/>
-                     <input type="hidden" name="name" value="` + name + `"/>
+                content: `for: <b>` + the_objectName + `</b><br/>
+                     <input type="hidden" name="the_objectName" value="` + the_objectName + `"/>
+                     <input type="submit" value="Edit Definition"  style="margin:5px;"/><br/>
                      <input type="submit" value="Edit Attributes"  style="margin:5px;"/><br/> 
                      <input type="submit" value="Make New Child System Description" style="margin:5px;"/><br/>
                      <input type="submit" value="Delete"           style="margin:5px;"/><br/>
@@ -109,12 +113,12 @@ globalThis.SysDesc = class SysDesc {
                       "(You can reload their original file but changes will be lost.)"
         }
         else {
-            message = "OK to delete System Description " + this.name
+            message = "OK to delete System Description " + this.objectName
             if (this.children.length > 0) {
                 message += "\nand all descendents, including\n"
                 let on_first_iteration = true
                 for (let child of this.children) {
-                    message += (on_first_iteration ? "" : ", ") + child.name
+                    message += (on_first_iteration ? "" : ", ") + child.objectName
                     on_first_iteration = false
                 }
             }
@@ -143,15 +147,19 @@ globalThis.SysDesc = class SysDesc {
                 } //even if we already removed the one declared to be removed, we still have to remove its descendents from the map
             }
             if(remove_from_map){
-               delete SysDesc.name_to_sys_desc_object_map[possible_parent.name]
+               delete SysDesc.name_to_sys_desc_object_map[possible_parent.objectName]
             }
         }
     }
 
     static show_sys_desc_dialog_cb(vals){
-        let name = vals.name
-        let sys_desc_inst = SysDesc.name_to_sys_desc_object_map[name]
-        if(vals.clicked_button_value === "Edit Attributes"){
+        let the_objectName = vals.the_objectName
+        let sys_desc_inst = SysDesc.name_to_sys_desc_object_map[the_objectName]
+        if(vals.clicked_button_value === "Edit Definition"){
+            //HCAObjDef.show_edit_dialog(obj_def)
+            HCAObjDef.display_obj_def(sys_desc_inst)
+        }
+        else if(vals.clicked_button_value === "Edit Attributes"){
             SysDesc.show_edit_attribute_dialog(sys_desc_inst)
         }
         else if(vals.clicked_button_value === "Make New Child System Description"){
@@ -162,7 +170,7 @@ globalThis.SysDesc = class SysDesc {
             SysDesc.refresh_palette()
         }
         else if(vals.clicked_button_value === "Find"){
-            find_doc_input_id.value = name
+            find_doc_input_id.value = the_objectName
             find_doc_button_id.click()
         }
         else if(vals.clicked_button_value === "close_button"){
@@ -206,8 +214,8 @@ globalThis.SysDesc = class SysDesc {
         show_window(
             {title: "Edit Attributes",
                 x:200, y:100, width:450, height:400,
-                content: `of System Description: <b>` + sys_desc_inst.name + `</b>` +
-                    `<input type="hidden"                               value="` + sys_desc_inst.name + `" name="name"/>` +
+                content: `of System Description: <b>` + sys_desc_inst.objectName + `</b>` +
+                    `<input type="hidden"                               value="` + sys_desc_inst.objectName + `" name="the_objectName"/>` +
                     `<div style="margin:5px;"><b><i>Name: Value</i></b> ` + count_comment + `</div>` +
                     `<textarea id="hca_attributes_id" rows="8" cols="50" style="margin:5px; white-space:pre; overflow-wrap:normal; overflow-x:scroll;">` +
                      names_and_values + `</textarea><br/>` +
@@ -221,8 +229,8 @@ globalThis.SysDesc = class SysDesc {
     static edit_attribute_dialog_cb(vals){
         if(vals.clicked_button_value === "Update System Definition") {
             let is_renaming = false
-            let orig_name = vals.name
-            let sys_desc_inst = SysDesc.name_to_sys_desc_object_map[orig_name]
+            let orig_objectName = vals.the_objectName
+            let sys_desc_inst = SysDesc.name_to_sys_desc_object_map[orig_objectName]
             let attribute_names_in_dialog = []
             for (let row of hca_attributes_id.value.split("\n")){
                 row = row.trim()
@@ -258,15 +266,15 @@ globalThis.SysDesc = class SysDesc {
             else {
                 delete sys_desc_inst.description
             }
-            if(!sys_desc_inst.name){
+            if(!sys_desc_inst.objectName){
                 warning('You have deleted the "name:" row. please add it back.')
                 return
             }
 
             SW.close_window(vals.window_index)
             if(is_renaming){
-                delete SysDesc.name_to_sys_desc_object_map[orig_name]
-                SysDesc.name_to_sys_desc_object_map[sys_desc_inst.name] = sys_desc_inst
+                delete SysDesc.name_to_sys_desc_object_map[orig_objectName]
+                SysDesc.name_to_sys_desc_object_map[sys_desc_inst.objectName] = sys_desc_inst
                 SysDesc.refresh_palette()
             }
         }
@@ -295,8 +303,8 @@ MoreAttributes: here` //careful: "MoreAttributes" is used below
         let first_line
         let parent_name
         if(parent_sys_desc_inst){
-            first_line = "Make new child of: <b>" + parent_sys_desc_inst.name + "</b>"
-            parent_name = parent_sys_desc_inst.name
+            first_line = "Make new child of: <b>" + parent_sys_desc_inst.objectName + "</b>"
+            parent_name = parent_sys_desc_inst.objectName
         }
         else {
             first_line = "Make a new top level System Description."
@@ -340,11 +348,11 @@ MoreAttributes: here` //careful: "MoreAttributes" is used below
                     }
                 }
             }
-            if(!new_json_obj.name){
+            if(!new_json_obj.objectName){
                 warning("The new System Description must have a name.")
                 return
             }
-            else if(SysDesc.name_to_sys_desc_object_map[new_json_obj.name]){
+            else if(SysDesc.name_to_sys_desc_object_map[new_json_obj.objectName]){
                 warning("The name you're using is already defined.\n" +
                          "Use a different one or edit the original System Description.")
                 return
@@ -392,7 +400,7 @@ MoreAttributes: here` //careful: "MoreAttributes" is used below
                 included_in_name.push(a_sys_desc)
             }
             for(let child of a_sys_desc.children){
-                if(child.name.toLowerCase() === search_string) {
+                if(child.objectName.toLowerCase() === search_string) {
                     children.push(a_sys_desc)
                 }
             }

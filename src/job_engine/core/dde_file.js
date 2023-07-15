@@ -23,7 +23,15 @@ class DDEFile {
     static add_default_file_prefix_maybe(path){
         path = DDEFile.convert_backslashes_to_slashes(path)
         if (this.is_root_path(path))     { return path }
-        else if (this.is_dde_path(path)) { return path } // the node server will prepend to such paths
+        else if (this.is_dde_path(path)) { //starts with "dde/"
+            let file_prefix = ""
+            if(dde_running_in_cloud()){
+                //example: path is:  "dde/third_party/Corlib.ipg"
+                //we want to return: "cfry.github.io/dde4/dde/third_party/CorLib.ipg"
+                file_prefix = globalThis.location.host + "/dde4/"
+            }
+            return file_prefix + path
+        } // the node server will prepend to such paths
         else if ((path === "dde_apps") || path.startsWith("dde_apps/")) { return path }
         else if (path == "new buffer") { return path } //needed by Editor.edit_file
         else { return "dde_apps/" + path }
@@ -63,27 +71,27 @@ class DDEFile {
                 }
                 let ip_address = dex.ip_address
                 extracted_path = this.add_default_file_prefix_maybe(extracted_path)
-                url = "http://" + ip_address + query + extracted_path
+                url = "https://" + ip_address + query + extracted_path
             }
         }
         else if(path.startsWith("host:")){
             let [full_dex_name, extracted_path] = path.split(":")
             let ip_address = this.host() //might return "localhost"
             extracted_path = this.add_default_file_prefix_maybe(extracted_path)
-            url = "http://" + ip_address + query + extracted_path
+            url = "https://" + ip_address + query + extracted_path
         }
         else if (path.includes(":")) {
             if(query !== "") {
                 let [protocol, host, extracted_path] = path.split(":")
                 if((protocol === "http") || (protocol === "https")){
                     extracted_path = this.add_default_file_prefix_maybe(extracted_path)
-                    url = protocol + ":" + host + query + path //todo cut out host, just go with extracted path here???
+                    url = "https" + ":" + host + query + path //todo cut out host, just go with extracted path here???
                 }
                 else { //only 1 colon, assume its NOT the suffix to host but the separator before port
                     extracted_path = host
                     host = protocol
                     extracted_path = this.add_default_file_prefix_maybe(extracted_path)
-                    url = "http" + "://" + host + //":" +  //don't insert this colon. causes fetch to break
+                    url = "https" + "://" + host + //":" +  //don't insert this colon. causes fetch to break
                         query + extracted_path
                 }
             }
@@ -91,8 +99,13 @@ class DDEFile {
         }
         else {
             path = this.add_default_file_prefix_maybe(path)
-            url = "http://" + this.host() + //":" +
-                   query + path
+            if(dde_running_in_cloud()){
+                url = "https://" + path  //cloud can't handle any query strings
+            }
+            else {
+                url = "https://" + this.host() + //":" +
+                    query + path
+            }
         }
         return url
     }
@@ -151,9 +164,9 @@ class DDEFile {
         else { return str }
     }
 
-    static callback_or_error(callback, error_message="got error"){
+    static callback_or_error(callback, error_message="got error", path){
         if (callback) {
-            callback(error_message)
+            callback(error_message, path)
         }
         else {
             dde_error(error_message)
@@ -161,9 +174,9 @@ class DDEFile {
     }
 
     //value might legitimately pass in undefined, so leave it that way
-    static callback_or_return(callback, value){
+    static callback_or_return(callback, value, path){
         if (callback) {
-            callback(null, value)
+            callback(null, value, path)
         }
         else {
             return value
@@ -173,23 +186,13 @@ class DDEFile {
     //______end Utilites______
     //Core file manipulation methods
 
-    /*static async file_exists(path, callback){
-        //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
-        //path = this.add_default_file_prefix_maybe(path)
-        let full_url =  this.make_url(path, "/edit?info=") //was "/edit?edit=" which works for files but not folders
-        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
-        //think that this url is a root url for some strange reason.
-        //see httpd.mjs, serve_file()
-        let file_info_response = await fetch(full_url)
-        return this.callback_or_return(callback, file_info_response.ok)
-    }*/
     static async file_exists(path, callback){
         let info = await this.path_info(path, callback)
         if(info){
-            return this.callback_or_return(callback, true)
+            return this.callback_or_return(callback, true, path)
         }
         else {
-            return this.callback_or_return(callback, false)
+            return this.callback_or_return(callback, false, path)
         }
     }
 
@@ -217,19 +220,32 @@ class DDEFile {
             return this.callback_or_error(callback, err)
         }
     }*/
-    static async get_page_async(url_or_options, callback){
+
+    //see https://stackoverflow.com/questions/43262121/trying-to-use-fetch-and-pass-in-mode-no-cors
+    ///both my server (gitup.io and the requested url's server need to
+    //send back the proper header: ("res" stands for response)
+    //  res.setHeader('Access-Control-Allow-Origin', '*');
+    // to allow you to get the url.
+    static async get_page_async(url, callback){
         //https://www.npmjs.com/package/request documents request
-        let full_url = "http://" + this.host() + "/get_page?path=" + url_or_options
-        let response = await fetch(full_url)
-        if(response.ok){
-            let content = await response.text()
-            return this.callback_or_return(callback, content)
+        let full_url = (dde_running_in_cloud() ? url :
+                   "http://" + this.host() + "/get_page?path=" + url)
+        try {
+            let response = await fetch(full_url) //will error due to CORS if the host serving full_url doesn't pave a response header allowing CORS
+            if (response.ok) {
+                let content = await response.text()
+                return this.callback_or_return(callback, content, path)
+            } else {
+                let err_mess =  "get_page_async for: " + url + " failed.<br/>" + err.message
+                return this.callback_or_error(callback, err_mess, path)
+            }
         }
-        else {
-            let err = ("get_page_async didn't work.")
-            return this.callback_or_error(callback, err)
+        catch(err){
+          let err_mess =  "get_page_async for: " + url + " failed.<br/>" + err.message
+          return this.callback_or_error(callback, err, url)
         }
     }
+
 
     //from https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests
     //scynchronous, bypasses htttpd server. Often fails due to CORS, but
@@ -262,29 +278,29 @@ class DDEFile {
         if(file_info_response.ok) {
             let content = await file_info_response.text()
             if(content === "null") {
-                return this.callback_or_return(callback, null)
+                return this.callback_or_return(callback, null, path)
             }
             else {
                 let json_obj = JSON.parse(content)
                 let is_dir = json_obj.kind === "folder"
                 let perm_str = Utils.permissions_integer_string_to_letter_string(json_obj.permissions, is_dir)
                 json_obj.permissions_letters = perm_str
-                return this.callback_or_return(callback, json_obj)
+                return this.callback_or_return(callback, json_obj, path)
             }
         }
         else {
-            this.callback_or_error(callback, "DDEFile.path_info for: " + path + " got error: " + file_info_response.status)
+            this.callback_or_error(callback, "DDEFile.path_info for: " + path + " got error: " + file_info_response.status, path)
         }
     }
 
     static async is_folder(path, callback){
         let info_obj = await this.path_info(path)
         if(info_obj === null) {
-            return this.callback_or_return(callback, false)
+            return this.callback_or_return(callback, false, path)
         }
         else {
             let is_fold = info_obj.kind === "folder"
-            return this.callback_or_return(callback, is_fold)
+            return this.callback_or_return(callback, is_fold, path)
         }
     }
 
@@ -297,27 +313,27 @@ class DDEFile {
     static async read_file_async(path, callback){
         if (path === undefined) {
             if (Editor.current_file_path == "new buffer"){
-                this.callback_or_error(callback, "Attempt to read_file_async but no path given.")
+                this.callback_or_error(callback, "Attempt to read_file_async but no path given.", path)
             }
             else { path = Editor.current_file_path }
         }
         let full_url = this.make_url(path, "/edit?edit=")
         //path = this.add_default_file_prefix_maybe(path)
         //let full_url = this.protocol_and_host() +  "/edit?edit=" + path
-        let file_info_response = await fetch(full_url,  {mode: 'no-cors'}) // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
+        let file_info_response = await fetch(full_url) //,  {mode: 'no-cors'}) // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
         if(file_info_response.ok) {
             let content = await file_info_response.text()
-            return this.callback_or_return(callback, content)
+            return this.callback_or_return(callback, content, path)
         }
         else {
-            this.callback_or_error(callback, "DDEFile.read_file_async of: " + path + " got error: " + file_info_response.status)
+            this.callback_or_error(callback, "DDEFile.read_file_async of: " + path + " got error: " + file_info_response.status, path)
         }
     }
 
     static async read_file_part(path, start=0, length=80, callback){
         if (path === undefined) {
             if (Editor.current_file_path == "new buffer"){
-                this.callback_or_error(callback, "Attempt to read_file_async but no path given.")
+                this.callback_or_error(callback, "Attempt to read_file_async but no path given.", path)
             }
             else { path = Editor.current_file_path }
         }
@@ -326,13 +342,14 @@ class DDEFile {
                                     "&length=" + length + "&read_part=")
         //path = this.add_default_file_prefix_maybe(path)
         //let full_url = this.protocol_and_host() +  "/edit?edit=" + path
-        let file_info_response = await fetch(full_url) // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
+        let file_info_response = await fetch(full_url,
+                                             {mode: 'no-cors'} ) // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
         if(file_info_response.ok) {
             let content = await file_info_response.text()
-            return this.callback_or_return(callback, content)
+            return this.callback_or_return(callback, content, path)
         }
         else {
-            this.callback_or_error(callback, "DDEFile.read_file_part of: " + path + " got error: " + file_info_response.status)
+            this.callback_or_error(callback, "DDEFile.read_file_part of: " + path + " got error: " + file_info_response.status, path)
         }
     }
 
@@ -341,7 +358,7 @@ class DDEFile {
     static async write_file_async(path, content, encoding= null, callback){ //default was "utf8" in dde3
         if (path === undefined){
             if (Editor.current_file_path == "new buffer"){
-                this.callback_or_error(callback, "Attempt to write file but no filepath given.")
+                this.callback_or_error(callback, "Attempt to write file but no filepath given.", path)
             }
             else { path = Editor.current_file_path }
         }
@@ -384,17 +401,17 @@ class DDEFile {
                                              mode: 'no-cors'})
         if(res.ok) {
             out("DDEFile.write_file_async wrote file to: " + full_url, undefined, true) //make it temp.
-            return this.callback_or_return(callback, orig_content)
+            return this.callback_or_return(callback, orig_content, path)
         }
         else {
-            this.callback_or_error(callback, "DDEFile.write_file_async of: " + path + " got error: " + res.status)
+            this.callback_or_error(callback, "DDEFile.write_file_async of: " + path + " got error: " + res.status, path)
         }
     }
 
     static async append_to_file(path, content, encoding= null, callback){ //default was "utf8" in dde3
         if (path === undefined){
             if (Editor.current_file_path == "new buffer"){
-                this.callback_or_error(callback, "Attempt to write file but no filepath given.")
+                this.callback_or_error(callback, "Attempt to write file but no filepath given.", path)
             }
             else { path = Editor.current_file_path }
         }
@@ -438,19 +455,20 @@ class DDEFile {
                                                     mode: 'no-cors'})
         if(res.ok) {
             out("DDEFile.append_to_file to: " + this.add_default_file_prefix_maybe(path), undefined, true)
-            return this.callback_or_return(callback, orig_content)
+            return this.callback_or_return(callback, orig_content, path)
         }
         else {
             this.callback_or_error(callback,
                                    "DDEFile.append_to_file to: " +
-                                   this.add_default_file_prefix_maybe(path) + " got error: " + res.status)
+                                   this.add_default_file_prefix_maybe(path) + " got error: " + res.status,
+                                   path)
         }
     }
 
     static async delete(path, callback){
         if (path === undefined){
             if (Editor.current_file_path == "new buffer"){
-                this.callback_or_error(callback, "Attempt to write file but no filepath given.")
+                this.callback_or_error(callback, "Attempt to write file but no filepath given.", path)
             }
             else { path = Editor.current_file_path }
         }
@@ -465,10 +483,10 @@ class DDEFile {
                                                     body: formData})
         if(res.ok) {
             out("DDEFile.delete deleted: " + defaulted_path, undefined, true)
-            return this.callback_or_return(callback, true)
+            return this.callback_or_return(callback, true, path)
         }
         else {
-            this.callback_or_error(callback, "DDEFile.delete_file of: " + path + " got error: " + res.status)
+            this.callback_or_error(callback, "DDEFile.delete_file of: " + path + " got error: " + res.status, path)
         }
     }
 
@@ -486,7 +504,7 @@ class DDEFile {
                 this.delete(temp_file_path, callback)
             }
             else {
-                this.callback_or_error(callback, "Error calling DDEFile.make_folder(" + path + ")")
+                this.callback_or_error(callback, "Error calling DDEFile.make_folder(" + path + ")", path)
             }
         }
     }
@@ -503,10 +521,10 @@ class DDEFile {
         if(file_info_response.ok) {
             let content = await file_info_response.text()
             Editor.edit_file(path, content, dont_save_cur_buff_even_if_its_changed) //true means: dont_save_cur_buff_even_if_its_changed
-            this.callback_or_return(callback, content)
+            this.callback_or_return(callback, content, path)
         }
         else {
-            this.callback_or_error(callback, "DDEFile.edit_file of: " + path + " got error: " + file_info_response.status)
+            this.callback_or_error(callback, "DDEFile.edit_file of: " + path + " got error: " + file_info_response.status, path)
         }
     }
 
@@ -516,21 +534,21 @@ class DDEFile {
         if(file_info_response.ok) {
             let content = await file_info_response.text()
             Editor.insert(content)
-            this.callback_or_return(callback, content)
+            this.callback_or_return(callback, content, path)
         }
         else {
-            this.callback_or_error(callback, "DDEFile.insert_file_content of: " + path + " got error: " + file_info_response.status)
+            this.callback_or_error(callback, "DDEFile.insert_file_content of: " + path + " got error: " + file_info_response.status, path)
         }
     }
 
     static loading_file
 
-    static load_file_callback_default(err, result){
+    static load_file_callback_default(err, result, path){
         if(err) {
-            dde_error("DDEFile.load_file errored with: " + err.message)
+            dde_error("DDEFile.load_file of: " + path + " errored with: " + err.message)
         }
         else {
-            out("DDEFile.load_file result: " + result)
+            out("DDEFile.load_file of: " + path + " returned result of: " + result)
         }
     }
 
@@ -570,7 +588,7 @@ class DDEFile {
                     result = Py.eval(content)
                     console.log("load_file got result: " + result)
                     this.loading_file = undefined
-                    this.callback_or_return(callback, result)
+                    this.callback_or_return(callback, result, path)
                     return
                 }
                 else if(globalThis.eval_js_part2) { //we're in IDE
@@ -578,7 +596,7 @@ class DDEFile {
                     let result_obj = globalThis.eval_js_part2(content)
                     if(result_obj.err){
                         this.loading_file = undefined
-                        this.callback_or_error(callback, err)
+                        this.callback_or_error(callback, err, path)
                         return
                     }
                     else {
@@ -592,16 +610,18 @@ class DDEFile {
                 }
                 console.log("load_file got result: " + result)
                 this.loading_file = undefined
-                this.callback_or_return(callback, result)
+                this.callback_or_return(callback, result, path)
             }
             catch(err){
                 this.loading_file = undefined
-                this.callback_or_error(callback, err)
+                this.callback_or_error(callback, err, path)
             }
         }
         else {
             this.loading_file = undefined
-            this.callback_or_error(callback,"DDEFile.load_file of: " + defaulted_path + " got error: " + file_info_response.status)
+            this.callback_or_error(callback,
+                                   "DDEFile.load_file of: " + defaulted_path + " got error: " + file_info_response.status,
+                                   path)
         }
     }
 
@@ -617,10 +637,10 @@ class DDEFile {
         if(fold_info.ok) {
             let content = await fold_info.text()
             let obj = JSON.parse(content)
-            return this.callback_or_return(callback, obj)
+            return this.callback_or_return(callback, obj, path)
         }
         else {
-            this.callback_or_error(callback, "DDEFile.folder_listing for: " + path + " got error: " + fold_info.status)
+            this.callback_or_error(callback, "DDEFile.folder_listing for: " + path + " got error: " + fold_info.status, path)
         }
     }
 
@@ -697,10 +717,10 @@ class DDEFile {
             let file_name = path.substring(last_slash + 1)
             this.download(url, file_name);  // Download file
             URL.revokeObjectURL(url) // Release the object URL
-            return this.callback_or_return(callback, true)
+            return this.callback_or_return(callback, true, path)
             }
         else {
-            this.callback_or_error(callback,"DDEFile.download_file of: " + path + " got error: " + file_info_response.status)
+            this.callback_or_error(callback,"DDEFile.download_file of: " + path + " got error: " + file_info_response.status, path)
         }
     }
 

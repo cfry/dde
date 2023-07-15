@@ -65,7 +65,7 @@ export function define_learn_js_tour() {
     <code>&nbsp;b.length</code>).
     All this is quite useful in testing & debugging code.`,
                 '#output_div_id'],
-            [`In your code, type an <code>&nbsp;x&nbsp;</code> after the word
+            [`In your code, type an <code>&nbsp;x&nbsp;</code> as a new final letter on the word 
      <code>&nbsp;function&nbsp;</code> .
      <br/><br/>
      Notice that a red dot appears in the left hand margin.
@@ -76,23 +76,36 @@ export function define_learn_js_tour() {
      <p/>
      Delete the <code>&nbsp;x&nbsp;</code> to get rid of the red dot.`,
                 '#editor_pane_id'],
-            [`The red dot syntax warnings and print statements help, but to
-      really understand your code, use the Chrome stepper.<br/>
-      First, select<br/><code>foo("hello", [7, 10, 20, -3.2])</code>.`,
+      [`The red dot syntax warnings and print statements help, but to
+      really understand your code, use the Chrome stepper.
+      <p></p>
+      <i>Read the below before acting.</i> <br/>
+      Click right in the Editor pane, and select <b>Inspect</b>
+      from the menu that pops up. This is NOT DDE's inspector but rather
+      opens a window to the Chrome Developer's Tools where you'll be
+      <i>stepping</i> through your code.
+      <p/>
+      After the Dev Tools window comes up, click back into the DDE window.<br/>
+      <i>Now proceed.</i>`,
                 '#editor_pane_id'],
-            [`<i>Please read this whole instruction before acting.</i><br/>
-       When you click the <b>Step</b> button, an
-      additional window (Developer Tools) will appear on the screen.
+      [`Second, select<br/><code>foo("hello", [7, 10, 20, -3.2])</code><br/>
+                in the Editor pane.`,
+                '#editor_pane_id'],
+       [`<i>Please read this whole instruction before acting.</i><br/>
+       When you click the <b>Step</b> button, the
+      Developer Tools window will appear.
       <ul>
       <li>Use its stepper buttons <img src="doc/coor_images/stepper_buttons.png" width="100"/>
-      to evaluate its highlighted code.</li>
+      to evaluate its highlighted code. Start with the curved "over" arrow,
+      then the "down" arrow, then the "over" arrow through your code, 
+      click the blue "run to end" arrow and finally click back in the DDE window.</li>
       <li>See the tooltips on each button for how much
       code is evaled by each button.</li>
       <li>Hover the mouse over variables to see their values.</li>
       </ul>
       While you are stepping, you won't be able to use the DDE window, including
-      this tutorial. Control will return to DDE when you close the Dev Tools window.<br/>
-      <i>NOW</i> click the <b>step</b> button.`,
+      this tutorial.<br/>
+      <i>NOW click the <b>step</b> button.</i>`,
                 '#step_button_id'
             ],
             [`While using the stepper, often you will overstep some code relevant to a bug.

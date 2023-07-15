@@ -39,59 +39,54 @@ class Socket{
             DexterSim.create_or_just_init(robot_name, sim_actual)
             //out("socket for Robot." + robot_name + ". is_connected? " + Robot[robot_name].is_connected)
             Socket.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect)
+            return
         }
         else if ((sim_actual === false) || (sim_actual == "both")) {
-            if(sim_actual == "both"){
-                DexterSim.create_or_just_init(robot_name, sim_actual) //harmless if done a 2nd time. returns without callbaack
+            if(sim_actual === "both"){
+                DexterSim.create_or_just_init(robot_name, sim_actual) //harmless if done a 2nd time. returns without callback
             }
             let net_soc_inst = Socket.robot_name_to_soc_instance_map[robot_name]
             if(net_soc_inst && (net_soc_inst.readyState === WebSocket.CLOSED)) {//WebSocket.CLOSED == 3 //"closed")) { //we need to init all the "on" event handlers
                 this.close(robot_name, true)
                 net_soc_inst = null
             }
-            let st_inst = null //setTimeout instance, used for clearing.
-            if(!net_soc_inst){
+            if(net_soc_inst) { //net_soc_inst already existed and is open
+                Socket.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect)
+                return
+            }
+            else { //make a new WebSocket
                 //out(job_instance.name + " Socket.init net_soc_inst for " + robot_name + " doesn't yet exist or is closed.")
                 try {
                     //net_soc_inst = new net.Socket()
                     //net_soc_inst.setKeepAlive(true)
-                    let ws_url = "ws://" + rob.ip_address + ":" + rob.port
-                    net_soc_inst  = new WebSocket(ws_url);
-
-                    //out(job_instance.name + " Just after created, net_soc_inst.readyState: " + net_soc_inst.readyState)
-                    /* on error *could* be called, but its duration from a no-connection is
-                       highly variable so I have below a setTimeout to kill the connection
-                       after a second. But then both on error and the setTimeout method
-                       *could* get called so I take pains to kill off the setTimeout
-                       so that only one will get called.
-
-                    */
+                    let ws_url = "wss://" + rob.ip_address //was "ws://" + rob.ip_address + ":" + rob.port
+                    net_soc_inst = new WebSocket(ws_url); // see https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
+                    if (!(net_soc_inst instanceof WebSocket)) {
+                        dde_error("In Socket.init, could not create WebSocket for url: " + ws_url)
+                    }
                 }
                 catch(err){
-                    console.log(job_instance.name + " Socket.init catch clause with err: " + err.message)
-                    dde_error("Error attempting to create socket to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + err.message)
-                    this.close(robot_name, true)
+                        console.log(job_instance.name + " Socket.init catch clause with err: " + err.message)
+                        this.close(robot_name, true)
+                        dde_error("Error attempting to create socket to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + err.message)
                 }
-                // I must define the below just once (on actual new socket init, because  calling
-                // net_soc_inst.on("data", function(data) {...} actually gives the socket 2 versions of the callback
-                // and so each will be called once, giving us a duplication that causes a difficult to find bug.
-                //net_soc_inst.on("data", function(data) { //dde3
-                //    Socket.on_receive(data, undefined, rob)
-                //})
-                net_soc_inst.onmessage = function(event) {
-                    let msg = event.data
-                    Socket.on_receive(msg, undefined, rob)
-                }
+                //WebSocket creating succeeded
                 net_soc_inst.onopen = function(event){
-                    //out(job_instance.name + " Succeeded connection to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port, "green")
-                    //clearTimeout(st_inst)
                     Socket.robot_name_to_soc_instance_map[robot_name] = net_soc_inst
                     //the 3 below closed over vars are just used in the one call to when this on connect happens.
                     Socket.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect)
                 }
+                net_soc_inst.onmessage = function(event) {
+                    let msg = event.data
+                    console.log("Socket.js onmessage got msg: " + msg)
+                    Socket.on_receive(msg, undefined, rob)
+                }
+                net_soc_inst.onclose = function(close_event){
+                    console.log("net socket closed.")
+                }
                 net_soc_inst.onerror = function(err){
                     console.log("Probably while running " + job_instance.name + " Socket.init on error while waiting for ack from instruction: " + instruction_to_send_on_connect  +
-                        " with err: " + err.message)
+                        " with err: " + err.toString())
                     //clearTimeout(st_inst)
                     let rob_name = Socket.net_soc_inst_to_robot_name(net_soc_inst)
                     if (rob_name == null) { rob_name = "unknown" } //should be rare if at all.
@@ -129,45 +124,8 @@ class Socket{
                         }, timeout_dur)
                     }
                 } //end of on("error"
-                net_soc_inst.onclose = function(err){
-                    console.log("net socket closed.")
-
-                }
-                setTimeout(function() {
-                    if(!net_soc_inst) { } //presume the job completed and so nothing to do
-                    else if (job_instance.is_done()) {} //presume the job completed and so nothing to do
-                    else if(net_soc_inst.readyState === WebSocket.OPEN) {} // WebSocket.OPEN == 1 //"open") {} //connection worked, leave it alone
-                    else { //connection failed
-                        job_instance.stop_for_reason("errored_from_dexter_connect", "Connection to Dexter." + robot_name +
-                                                     "\n failed after 2 seconds.")
-                    }
-                }, 2000)
-               // net_soc_inst.connect(rob.port, rob.ip_address) //not needed in dde4
-            } //ending the case where we need to make a new net_soc_inst
-
-            /*out(job_instance.name + "Socket.init before connect, net_soc_inst.readyState: " + net_soc_inst.readyState)
-            if (net_soc_inst.readyState === "closed") {
-                 st_inst = setTimeout(function(){
-                    out(job_instance.name + " in Socket.init, setTimout of st_inst")
-                    if(net_soc_inst.readyState !== "open") { //still trying to connect after 1 sec, so presume it never will. kill it
-                        Socket.close(robot_name, true)
-                        rob.resend_count = 0
-                        if(!job_instance.is_done()){
-                            job_instance.stop_for_reason("errored_from_dexter", " socket timeout while connecting to Dexter." + rob.name)
-                        }
-                    }
-                    else {
-                        Socket.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect)
-                    }
-                }, Socket.connect_timeout_seconds * 5000)
-                out(job_instance.name + " Now attempting to connect to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + " ...", "brown")
-                net_soc_inst.connect(rob.port, rob.ip_address) //the one call to .connect()
-            } */
-            else { //net_soc_inst already existed and is open
-                Socket.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect)
-            }
+            } //ending the case where we need to make a new net_soc_inst/WebSocket
         }
-        //out(job_instance.name + " Socket.init, very bottom")
     }
 
     //this code lifted from dde3 socket.js using raw sockets and called when running on node/job_engine
@@ -191,7 +149,7 @@ class Socket{
                 DexterSim.create_or_just_init(robot_name, sim_actual) //harmless if done a 2nd time. returns without callbaack
             }
             let net_soc_inst = Socket.robot_name_to_soc_instance_map[robot_name]
-            if(net_soc_inst && (net_soc_inst.readyState === "closed")) { //we need to init all the "on" event handlers
+            if(net_soc_inst && !this.readyState_is_open(net_soc_inst)) { //we need to init all the "on" event handlers
                 this.close(robot_name, true)
                 net_soc_inst = null
             }
@@ -315,7 +273,8 @@ class Socket{
             return net_soc_inst.readyState === "open"
         }
         else {
-            return net_soc_inst.readyState === WebSocket.OPEN
+            console.log("in Socket.js readyState_is_open, readyState is: " + net_soc_inst.readyState)
+            return net_soc_inst.readyState === WebSocket.OPEN //WebSocket.OPEN is 1
         }
     }
 
@@ -324,8 +283,9 @@ class Socket{
             const arr_buff = Socket.string_to_array_buffer(str)
             net_soc_inst.write(arr_buff) //dde3
         }
-        else {
-            net_soc_inst.send(str)
+        else { //net_soc_inst should be a WebSocket
+            console.log("send_low_level to WebSocket sending str of: " + str)
+            net_soc_inst.send(str) //was: str // WebSocket send cab take a JS string as its arg.
         }
     }
 
@@ -333,18 +293,22 @@ class Socket{
     //called from both above socket code and from dexsim
     static new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect){
         Dexter.set_a_robot_instance_socket_id(robot_name)
-        let rob = Robot[robot_name]
         if(instruction_to_send_on_connect) { //usually this clause hits. happens for initial g oplet for a job
               //and when connection is dropped and we need to resetablish connection and resend.
               //ok to call this even if we were already connected.
-            let inst_id = instruction_to_send_on_connect[1]
-            if((inst_id === undefined) || (inst_id === -1)) { //we have the initial "g" instr for a job, that has yet to get filled out by Job.prototype.send
-                //out("new_socket_callback with initial g instruction.")
-                job_instance.send(instruction_to_send_on_connect, rob)
+            /*if(instruction_to_send_on_connect[Dexter.INSTRUCTION_ID] === undefined){
+                instruction_to_send_on_connect[Dexter.INSTRUCTION_ID]  = -1
             }
-            else {
-                rob.send(instruction_to_send_on_connect)
+            if(instruction_to_send_on_connect[Dexter.JOB_ID] === undefined) {
+                instruction_to_send_on_connect[Dexter.JOB_ID] = job_instance.job_id
             }
+            if(instruction_to_send_on_connect[Dexter.START_TIME] === undefined) {
+                instruction_to_send_on_connect[Dexter.START_TIME] = Date.now()
+            }
+            this.send(robot_name, instruction_to_send_on_connect)
+             */
+            let rob = Robot[robot_name]
+            job_instance.send(instruction_to_send_on_connect, rob)
         }
         else {
             warning("In new_socket_callback without instruction to send.")
@@ -596,9 +560,9 @@ class Socket{
             //dynamixel conversion
             else if (name == "EERoll"){ //J6 no actual conversion here, but this is a convenient place
                 //to put the setting of robot.angles and is also the same fn where we convert
-                // the degrees to dynamixel units of 0.20 degrees
+                //the degrees to dynamixel units of 0.20 degrees
                 //val is in dynamixel units
-              //don't do in this fn  rob.angles[5] = this.dexter_units_to_degrees(first_arg, 6) //convert dynamixel units to degrees then shove that into rob.angles for use by subsequent relative move instructions
+                //don't do in this fn  rob.angles[5] = this.dexter_units_to_degrees(first_arg, 6) //convert dynamixel units to degrees then shove that into rob.angles for use by subsequent relative move instructions
                 return instruction_array
             }
             else if (name == "EESpan") { //J7
@@ -660,7 +624,7 @@ class Socket{
         }
         else { return instruction_array }
     }
-
+    //Socket
     static send(robot_name, oplet_array_or_string){ //can't name a class method and instance method the same thing
         let is_reboot_inst = Dexter.is_reboot_instruction(oplet_array_or_string)
         let rob = Robot[robot_name]
@@ -674,11 +638,12 @@ class Socket{
         }
         //out(job_instance.name + " " + robot_name + " Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
 
-        let oplet = oplet_array_or_string[Instruction.INSTRUCTION_TYPE]
+        //let oplet = oplet_array_or_string[Instruction.INSTRUCTION_TYPE]
         //out("In Socket.send for Job." + job_instance.name +
         //    " Dexter." + rob.name +
         //    " oplet: " + oplet +
         //    " instr: " + oplet_array_or_string)
+        /*
         let instr_id = oplet_array_or_string[Instruction.INSTRUCTION_ID]
         let got_first_non_monitor_instr = false
 
@@ -689,7 +654,7 @@ class Socket{
         else if ((job_instance !== "monitor_job") && (oplet !== "g") && got_first_non_monitor_instr){
             //out("in Socket.send for job: " + job_instance.name)
         }
-
+        */
         const str =  Socket.oplet_array_or_string_to_string(oplet_array_or_string_du)
         if(Instruction.is_F_instruction_string(str)) {
             rob.waiting_for_flush_ack = true
@@ -757,8 +722,8 @@ class Socket{
                     }
                 }
             }
-            else { //maybe never hits. it only hits if there is no net_soc_inst in Socket.robot_name_to_soc_instance_map
-                this.close(robot_name, true) //both are send args
+            else { //This only hits if there is no net_soc_inst in Socket.robot_name_to_soc_instance_map or if its not open
+                this.close(robot_name, true)
                 setTimeout(function(){
                     Socket.init(robot_name, job_instance, oplet_array_or_string)
                 }, 100)
@@ -789,6 +754,8 @@ class Socket{
         //out("Socket.on_receive passed data: " + data +
         //                             " payload_string_maybe: " + payload_string_maybe +
         //                             " dexter_instance: " + dexter_instance)
+        console.log("on_receive passed data:")
+        console.log(data)
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
             let robot_status = data
             let oplet = robot_status[Dexter.INSTRUCTION_TYPE]
@@ -805,25 +772,38 @@ class Socket{
             let oplet  = String.fromCharCode(opcode)
             this.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance)
         }
+        else if(typeof(data) === "string"){
+            console.log("Socket.on_receive got data of a string: " + data)
+        }
         else if (data instanceof Blob) {//dde4 what comes back from  websocket
             //from https://javascript.info/blob
             // get arrayBuffer from blob
-            console.log("on_receive got blob")
+            console.log("on_receive got blob of size: " + data.size)
+            if(data.size === 0) { return } //just ignore this. maybe artifact of WebSockets
             let fileReader = new FileReader();
-            fileReader.readAsArrayBuffer(data);
             fileReader.onload = function(event) {
-                let arrayBuffer = fileReader.result;
-                let view1 = new Int32Array(arrayBuffer)
-                let robot_status = []
-                for(var i = 0; i < view1.length; i++){
-                    var elt_int32 = view1[i]
-                    robot_status.push(elt_int32)
+                let arrayBuffer = event.target.result; //should be the same as fileReader.result
+                if(arrayBuffer.byteLength < 240){
+                    dde_error("Socket.on_receive filereader onload got arraybuffer.byteLength: " + arrayBuffer.byteLength +
+                        "<br/>which is too short.")
                 }
-                let oplet = robot_status[Dexter.INSTRUCTION_TYPE]
-                oplet = String.fromCharCode(oplet)
-                console.log("on_receive onload cb made rs: " + robot_status + " and got oplet; " + oplet)
-                Socket.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance)
-            };
+                else {
+                    let view1 = new Int32Array(arrayBuffer)
+                    let robot_status = []
+                    for (var i = 0; i < view1.length; i++) {
+                        var elt_int32 = view1[i]
+                        robot_status.push(elt_int32)
+                    }
+                    let oplet = robot_status[Dexter.INSTRUCTION_TYPE]
+                    oplet = String.fromCharCode(oplet)
+                    console.log("on_receive onload cb made rs: " + robot_status + " and got oplet; " + oplet)
+                    Socket.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance)
+                }
+                };
+            fileReader.onerror = function(err) {
+                console.log("in Socket.on_receive, fileReader.onerror called with: " + err.message)
+            }
+            fileReader.readAsArrayBuffer(data);
         }
         else {
             shouldnt("In Socket.on_receive, got unexpected data type.")
@@ -835,8 +815,8 @@ class Socket{
         //the simulator automatically does this so we have to do it here in non-simulation
         //out("on_receive got back oplet of " + oplet)
         robot_status[Dexter.INSTRUCTION_TYPE] = oplet
-        let job_id = robot_status[Dexter.JOB_ID]
-        let job_instance = Job.job_id_to_job_instance(job_id)
+        //let job_id = robot_status[Dexter.JOB_ID]
+        //let job_instance = Job.job_id_to_job_instance(job_id)
         //out("In on_receive_aux for Job." + job_instance.name +
         //    " Dexter." + dexter_instance.name +
         //    " oplet: " + oplet +
@@ -1109,7 +1089,7 @@ class Socket{
 
 ////Socket.resend_count = null
 
-    static robot_name_to_soc_instance_map = {}
+    static robot_name_to_soc_instance_map = {} //can contain both raw sockets and WebSockets.
     static DEGREES_PER_DYNAMIXEL_320_UNIT = 0.29   //range of motion sent is 0 to 1023
     static DEGREES_PER_DYNAMIXEL_430_UNIT = 360 / 4096
     static J6_OFFSET_SERVO_UNITS = 512

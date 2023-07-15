@@ -80,7 +80,7 @@ class Editor {
         Editor.set_menu_string(find_next_id, "Find Next", "g")
         find_prev_id.onclick   = function(){CodeMirror.commands.findPrev(Editor.myCodeMirror)}
         Editor.set_menu_string(find_prev_id, "Find Prev   shift", "g")
-        Editor.set_menu_string(save_as_id,   "Save As...  shift", "s")
+        Editor.set_menu_string(save_local_as_id,   "Save As...  shift", "s")
         replace_id.onclick     = function(){CodeMirror.commands.replace(Editor.myCodeMirror)} //allows user to also replace all.
         fold_all_id.onclick    = function(){CodeMirror.commands.foldAll(Editor.myCodeMirror)}
         unfold_all_id.onclick  = function(){CodeMirror.commands.unfoldAll(Editor.myCodeMirror)}
@@ -175,6 +175,7 @@ class Editor {
             }
         })
         Editor.the_CodeMirror_elt = document.getElementsByClassName("CodeMirror")[0]
+        globalThis.init_eslint_in_dde4()
     }
 
     static handle_codemirror_mouse_click(mouse_event){
@@ -365,6 +366,14 @@ class Editor {
         }
     }
 
+    static rename_files_menu_selected_file(filename){ //filename excludes folder
+        let [folder, orig_filename] = this.path_to_folder_and_name(this.current_file_path)
+        let new_file_path = folder + filename
+        this.current_file_path = new_file_path
+        let new_menu_item_text = this.make_files_menu_path(folder, filename)
+        file_name_id.options[file_name_id.selectedIndex].text = new_menu_item_text
+    }
+
 //adds to files menu AND updates persistent files_menu_paths
     static add_path_to_files_menu (path){
         let existing_index = Editor.index_of_path_in_file_menu(path)
@@ -420,6 +429,7 @@ class Editor {
         else { return false }
     }
 
+    //can't work in github_io deployment
     static async restore_files_menu_paths_and_last_file (){ //called by on ready
             const paths =  DDE_DB.persistent_get("files_menu_paths")
             let existing_paths = []
@@ -783,17 +793,17 @@ class Editor {
                      callback: handle_open_system_file
         })
     }
-
+    /*
     static open_local_file(){
         //does not have to hit a server.
         show_window({title: "Open Local File",
                     content: `<input id="open_local_file_id" type="file" size="30" onchange="Editor.handle_open_local_file(event)"/>`,
-                    width: 200, height: 100
+                    width: 200, height: 20
     })
         setTimeout(function() {
                      open_local_file_id.click()
                    },
-                   100)
+                   50)
     }
 
     static handle_open_local_file(event) {
@@ -807,15 +817,20 @@ class Editor {
                 return function (event) {
                     let the_file_name = theFile.name
                     let path = "/local/" + the_file_name
-                    let the_content = event.target.result
-                    Editor.edit_file(path, the_content)
+                    let content = event.target.result
+                    if(globalThis.HCA && (Editor.view === "HCA")){
+                        ipg_to_json.parse(path, content)
+                    }
+                    else {
+                        Editor.edit_file(path, content)
+                    }
                 };
             })(the_file);
-            /*reader.onload = function(event) {
-                let the_content = event.target.result
-                let the_file_name = the_file //the_file is NOT bound (closed over) for some strange reason
-                out(the_content)
-            }*/
+            //reader.onload = function(event) {
+            //    let the_content = event.target.result
+            //    let the_file_name = the_file //the_file is NOT bound (closed over) for some strange reason
+            //    out(the_content)
+            //}
                 // Read in the image file as a data URL.
             reader.readAsText(the_file);
         }
@@ -824,6 +839,78 @@ class Editor {
         }
         SW.close_window("Open Local File")
     }
+    */
+
+    static is_local_path(path) {
+        return path.startsWith("/local/")
+    }
+
+    //returns file name and extension in path
+    static path_to_file_name(path){
+        let last_slash_pos = path.lastIndexOf("/")
+        if(last_slash_pos === -1){
+            return path
+        }
+        else {
+            return path.substring(last_slash_pos + 1)
+        }
+    }
+
+    static local_path_to_open_file_handle = {}
+
+    static async open_local_file(path = null) {
+        let options = ((typeof(path) === "string") ? {suggestedName: Editor.path_to_file_name(path)} : undefined)
+        let [fileHandle] = await window.showOpenFilePicker(options)
+        let local_path = "/local/" + fileHandle.name
+        Editor.local_path_to_open_file_handle[local_path] = fileHandle
+        await Editor.open_local_file_at_path(local_path)
+    }
+
+    //doesn't require user to click a dialog box. Expects path to already
+    //have a file handle, and if not. errors.
+    static async open_local_file_at_path(path){
+        let fileHandle = this.local_path_to_open_file_handle[path]
+        if(!fileHandle){
+            shouldnt("open_local_file_at_path passed path: " + path + " that isn't in Editor.local_path_to_open_file_handle")
+        }
+        const file = await fileHandle.getFile();  // file is an object that knows about the file
+           //why do we need both a fileHandle and a file object? Bad design as far as I can tell.
+        const content = await file.text()
+        if(globalThis.HCA && (Editor.view === "HCA")){
+            ipg_to_json.parse(path, content)
+        }
+        else {
+            Editor.edit_file(path, content)
+        }
+    }
+
+    //VERY similar to open_local_file
+    static async load_local_file() {
+        let [fileHandle] = await window.showOpenFilePicker()
+        let path = "/local/" + fileHandle.name
+        Editor.local_path_to_open_file_handle[path] = fileHandle
+        await Editor.load_local_file_at_path_aux(path)
+    }
+
+    //doesn't require user to click a dialog box.
+    static async load_local_file_at_path_aux(path){
+        let fileHandle = this.local_path_to_open_file_handle[path]
+        if(!fileHandle){
+            shouldnt("open_local_file_at_path passed path: " + path + " that isn't in Editor.local_path_to_open_file_handle")
+        }
+        const file = await fileHandle.getFile();  // file is an object that knows about the file
+        //why do we need both a fileHandle and a file object? Bad design as far as I can tell.
+        out("file: " + file)
+        const content = await file.text()
+        /*if(globalThis.HCA && (Editor.view === "HCA")){
+            ipg_to_json.parse(path, content)
+        }
+        else {
+            Editor.edit_file(path, content)
+        }*/
+        globalThis.eval_js_part2(content) //calls eval_js_part3
+    }
+
 
     /*static save_local_file() {
         //does not have to hit a server.
@@ -843,11 +930,15 @@ class Editor {
     }*/
 
     // see https://stackoverflow.com/questions/34870711/download-a-file-at-different-location-using-html5
+    //for saving files
     static async get_handle() {
         // set some options, like the suggested file name and the file type.
-        let file_path = Editor.current_file_path
-        let last_slash_pos = file_path.lastIndexOf("/")
-        let file_name = file_path.substring(last_slash_pos + 1)
+        let file_name
+        if(Editor.current_file_path) {
+            let last_slash_pos = Editor.current_file_path.lastIndexOf("/")
+            file_name = Editor.current_file_path.substring(last_slash_pos + 1)
+        }
+        else { file_name = "rename_me.dde" }
         const options = {
             suggestedName: file_name,
             types: [
@@ -862,17 +953,88 @@ class Editor {
         return handle
     }
 
-    static async save_local_file() {
-        let handle  = await Editor.get_handle()
+    static local_path_to_save_file_handle = {} //must be distinct from local_path_to_open_file_handle as they have different permissions
+
+    //tries to save file without a dialog box, but if it can't it brings up a dialog box
+    //called from menu item "save local" and maybe elsewhere
+    static async save_local_file(path = Editor.current_file_path) {
+        let handle = Editor.local_path_to_save_file_handle[path]
+        if (handle) { //user might have canceled in the file picker
+            Editor.save_local_file_handle(handle)
+        }
+        else if(window.showSaveFilePicker) {
+            handle = await Editor.get_handle() //calls showSaveFilePicker
+            if(handle){ //path is not in local_path_to_file_handle
+                Editor.local_path_to_save_file_handle[path] = handle
+                Editor.save_local_file_handle(handle)
+            }
+        }
+    }
+
+    static async save_local_file_as(path= Editor.current_file_path){
+        let handle = await Editor.get_handle() //calls showSaveFilePicker
+        if (handle) { //user might have canceled in the file picker
+            Editor.save_local_file_handle(handle)
+        }
+    }
+
+    static async save_local_file_handle(handle){
         let content = Editor.get_javascript(false)
         // creates a writable, used to write data to the file.
         const writable = await handle.createWritable();
-
         // write a string to the writable.
         await writable.write(content);
 
         // close the writable and save all changes to disk. this will prompt the user for write permission to the file, if it's the first time.
         await writable.close();
+        let path = "/local/" + handle.name  //can't get the directory, only the name
+        Editor.after_successful_save_as(path)
+        out("Saved: " + path, "green")
+    }
+
+    //still gives user a way to edit file name and choose folder
+    static save_local_file_without_showSaveFilePicker(){
+        let file_path = Editor.current_file_path
+        let last_slash_pos = file_path.lastIndexOf("/")
+        let orig_file_name = file_path.substring(last_slash_pos + 1)
+        let prompt_instructions = "If you want to change the file's name, do so in the first dialog, not the second."
+        let file_name = prompt(prompt_instructions, orig_file_name)
+        if (file_name) {
+            let content = Editor.get_javascript(false)
+            this.download(file_name, content)
+            if(file_name  !== orig_file_name) {
+                //change name in editor filename dropdown, just in case the user changed it
+                let options_dom_elt = file_name_id.options[file_name_id.selectedIndex]
+                options_dom_elt.innerHTML = file_name //we lose the directory, but
+                //maybe better than nothing. ///hmm, changes vidual name but not
+                //the file name we get when we choose save local
+            }
+            this.rename_files_menu_selected_file(file_name)
+       }
+        //else user canceled from the above call to prompt
+    }
+
+    // from https://www.geeksforgeeks.org/how-to-trigger-a-file-download-when-clicking-an-html-button-or-javascript/
+    //file is just the file name, can't have a folder and no picker,
+    //always goes to the download folder
+    static download(file, text) {
+        //creating an invisible element
+        let element = document.createElement('a');
+        element.setAttribute('href',
+            'data:text/plain;charset=utf-8, '
+            + encodeURIComponent(text));
+        element.setAttribute('download', file);
+
+        // Above code is equivalent to
+        // <a href="path of file" download="file name">
+
+        document.body.appendChild(element);
+
+        //onClick property
+        let click_result = element.click(); //apparently, returned val is always undefined
+        //if user cancels from the dialog box, the below will not be called.
+        out("click_result: " + click_result)
+        document.body.removeChild(element);
     }
 
     static remove (path_to_remove=Editor.current_file_path){
@@ -1050,7 +1212,12 @@ Clear its content?
                             Editor.edit_file_aux(new_path, new_content)
                         }
                     })*/
-                    DDEFile.edit_file(new_path, false)
+                    if(Editor.is_local_path(new_path)){
+                        Editor.open_local_file(new_path)
+                    }
+                    else{
+                        DDEFile.edit_file(new_path, false)
+                    }
                 }
             }
             //cur is new buffer, but it needs saving, we're trying to edit a new file.
@@ -1060,7 +1227,7 @@ Clear its content?
                     "Click OK to save it before editing the other file.\n" +
                     "Click Cancel to not save it before editing the other file.")
                 if(save_it) {
-                    Editor.save_as()
+                    Editor.save_local_file()
                     /*let file_to_save_buffer_to = choose_save_file()
                     if(file_to_save_buffer_to) {
                         DDEFile.write_file_async(file_to_save_buffer_to, cur_content) //since this is async, we must already have the path and content to save as the 'cur' may have changed.
@@ -1099,7 +1266,8 @@ Clear its content?
                                     "Click Cancel to not save it before editing the other file.")
             }
             if(save_it) {
-                DDEFile.write_file_async(cur_path, cur_content) //since this is async, we must already have the path and content to save as the 'cur' may have changed.
+                //DDEFile.write_file_async(cur_path, cur_content) //since this is async, we must already have the path and content to save as the 'cur' may have changed.
+                Editor.save_local_file()
                 out(cur_path + " saved.")
             }
             //cur buffer has been delt with, now on to the new
@@ -1134,20 +1302,17 @@ Clear its content?
     //path
     static edit_file_aux (path, content){
         Editor.set_javascript(content)
-        Editor.current_file_path = path
+        Editor.after_successful_open(path)
         file_name_id.title = path
-        Editor.myCodeMirror.focus()
         if(path.endsWith(".py")) {
             set_css_properties('.CodeMirror { background:#FAFFFA;}')
         }
         else {
             set_css_properties('.CodeMirror { background:#FFFFFF;}')
         }
-        Editor.add_path_to_files_menu(path) //doesn't add it if already in, Doesn't add "new buffer", does update persistent
         if(path !== "new buffer"){
             Editor.restore_selection_from_map()
         }
-        Editor.unmark_as_changed()
     }
 
 //if callback is not passed in, then no callback will be called.
@@ -1163,8 +1328,13 @@ Clear its content?
     static save_current_file(){
         //out("Saved: " + Editor.current_file_path)
         if(Editor.current_file_path) {
-            DDEFile.write_file_async(Editor.current_file_path, Editor.get_javascript())
-            Editor.unmark_as_changed()
+            if(Editor.current_file_path.startsWith("/local/")){
+                Editor.save_local_file(Editor.current_file_path) //warning: will pop upa file picker the first time we save the file in a dde4 session
+            }
+            else {
+                DDEFile.write_file_async(Editor.current_file_path, Editor.get_javascript())
+                Editor.unmark_as_changed()
+            }
         }
         //else no current file to save, so do nothing.
     }
@@ -1231,11 +1401,15 @@ Clear its content?
             Editor.unmark_as_changed()
             */
     }
-    //called from DDEFile.
+
+    static after_successful_open(path){
+        this.after_successful_save_as(path)
+    }
+    //called from DDEFile.  works for opening a file too.
     static after_successful_save_as(path){
+        Editor.remove_new_buffer_from_files_menu()
         Editor.add_path_to_files_menu(path)
         Editor.current_file_path = path
-        Editor.remove("new buffer") //if any
         Editor.myCodeMirror.focus()
         Editor.unmark_as_changed()
     }
@@ -3058,27 +3232,33 @@ Editor.context_help_for_make_ins_oplet = function(full_src, cursor_pos, identifi
                 if (sel[sel.length - 1] !== "]") { sel = sel + "]" }
             }
         }
-        try{  sel = eval(sel) }
-        catch (err) { warning("The selection did not evaluate to an array.") }
-        if (Array.isArray(sel)){
-            if (sel.length == 0){
+        let instr_maybe
+        try{  instr_maybe = eval(sel) }
+        catch (err) { warning("The selection did not evaluate to an instruction. It errored instead.") }
+        if (Array.isArray(instr_maybe)){
+            if (instr_maybe.length == 0){
                 warning("The selection is an empty array meaning it would have no effect.")
             }
-            else if ((sel.length <= 3) && (typeof(sel[0]) == "number")){
-                Dexter.dexter0.move_to_fn(sel)
+            else if ((instr_maybe.length <= 3) && (typeof(instr_maybe[0]) == "number")){
+                Dexter.dexter0.move_to_fn(instr_maybe)
             }
-            else if ((sel.length <= 7) && (typeof(sel[0]) == "number")){
-                Dexter.dexter0.move_all_joints_fn(sel)
+            else if ((instr_maybe.length <= 7) && (typeof(instr_maybe[0]) == "number")){
+                Dexter.dexter0.move_all_joints_fn(instr_maybe)
             }
-            else { Dexter.dexter0.run_instruction_fn(sel) }
+            else { Dexter.dexter0.run_instruction_fn(instr_maybe) }
         }
-        else if ((sel === undefined) ||
-                 (sel === null) ||
-                 (typeof(sel) == "boolean")){
+        else if ((instr_maybe === undefined) ||
+                 (instr_maybe === null) ||
+                 (typeof(instr_maybe) == "boolean")){
             warning("The selection evals to undefined, null, or a boolean,<br/>" +
-                "neither of which are valid Job instructions.")
+                "neither of which would move Dexter.")
         }
-        else { Dexter.dexter0.run_instruction_fn(sel) }
+        else if (Instruction.is_do_list_item(instr_maybe)){
+            Dexter.dexter0.run_instruction_fn(instr_maybe)
+        }
+        else {
+            warning(sel + " did not eval to a valid instruction: " + instr_maybe)
+        }
     }
 
 //return an array of arrays of ["a_job_name", 22, 105] ie start of job def src and end of job_def_src.

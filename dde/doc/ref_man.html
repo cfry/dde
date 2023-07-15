@@ -8442,7 +8442,7 @@ For documentation, see
 
 </details> <!-- end Robots -->
 
-<details id="Dex" class="doc_details"><summary>Dex (Jobless instructions)</summary>
+<details id="Dex_doc_id" class="doc_details"><summary>Dex (Jobless instructions)</summary>
          <code>Dex</code> is a facility for making it easy to execute code to move
          Dexter without having to create a Job and stick instructions on it's do_list.<br/>
          <span style="color:red;">This is an experimental system so please don't expect it to be perfect.
@@ -12496,7 +12496,7 @@ Monitor.strips_solve({
          <ul>
              <li>The company that made it <a target="_blank" href="http://openai.com">openai.com</a></li>
              <li>The below documentation</li>
-             <li>Just playing: click on <button>GPT</button> in the output pane. Read tooltips.</li>
+             <li>Just playing: click on <button>GPT</button> in the Output pane's header. Read tooltips.</li>
              <li>Asking ChatGPT about itself.</li>
          </ul>
          <details class="doc_details"><summary>GPT Configuration</summary>
@@ -12578,7 +12578,23 @@ Monitor.strips_solve({
              Output pane. As with <button>Eval</button>, selected text in the
              Command Line will be used as the prompt when you click <button>GPT</button>.
          </details>
-         <details class="doc_details"><summary>Prompt Engineering</summary>
+         <details class="doc_details"><summary>Troubleshooting</summary>
+             <details id="gpt_image_not_showing_doc_id" class="doc_details"><summary>Image not showing</summary>
+                 When you've requested a response display of <i>image</i>
+                 and you don't see it after 15 seconds, something's wrong.
+                 It should appear in a new tab just to the right of the one that DDE is in.
+                 <ul>
+                 <li>Its possible that the new tab somehow didn't get made the current one.
+                     So click the tab to the right of the tab that DDE is in to see if its there.</li>
+                 <li>Sometimes the browser blocks a site from automatically opening a new tab.
+                     In chrome a small icon will show up in the right of the address (url) bar.
+                     If you see a new such icon, look at its tooltip and if it sounds like
+                     is disallowing content, click it and allow the image to be shown. </li>
+                 </ul>
+                 Images correspond less well to a prompt than text. Consider images "creative".
+             </details>
+         </details>
+             <details class="doc_details"><summary>Prompt Engineering</summary>
              The way you tell GPT what you want is to give it some text. That text is called
              a <b>prompt</b>. That text can be in
              many natural languages as well as artificial ones (programming languages).
@@ -13015,12 +13031,13 @@ OpenAI.make_text(`role:named entities from:
                   in a virtual "black box". We need AI to explain itself!
                   <p/>
                   Select the below and click <button>GPT</button>:<br/>
-                  <code class="gpt">Explainable AI with URLs</code><br/>
-                  In the response, select a technical term and
-                  click <button>GPT</button> again.
+                  <code class="gpt">Explainable AI with reference URLs</code><br/>
+                  In the response, you will see several links that
+                  you can click on. Sadly, many of these are non-existent or
+                  only partly relevant. Better is to select a technical term in the GPT
+                  output and click <button>GPT</button> again.
                   <p/>
-                  We need the user interface to Explainable AI to be just
-                  as easy as it is in Dexter Development Environment!
+
                 </details>
 
                 </details> <!-- end of AI -->

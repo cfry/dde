@@ -3,6 +3,8 @@ console.log("top of ready.js")
 //import os from 'os' //todo causes Failed to resolve module specifier "os". bug  //probably only useful in server code,  not browser code.
 //import $  from "jquery" //jqxwdigets tech suppport sez this is no longer necessary
 //and not having it still makes $ available.
+//import * as fs from 'fs'; //errors on launch of dde4
+//globalThis.fs = fs
 
 
 //These imports only for when running_in_browser
@@ -26,10 +28,16 @@ import "codemirror/addon/lint/lint.css"
 import "codemirror/addon/lint/lint.js"
 
 //see https://github.com/angelozerr/codemirror-lint-eslint/blob/master/index.html
-//import "./eslint-lint.js"  //todo errors even with module "fs" is installed
 //import eslint from "eslint"
 //which is required by eslint, which is required by eslint-lint
 //but with fs installed, it still errors. GRRRR.
+import * as eslint from "eslint-linter-browserify"; //from https://www.npmjs.com/package/eslint-linter-browserify, works to define eslint
+globalThis.eslint = eslint
+import "./eslint-lint.js"  //todo: causes error during build of
+// Error: Could not resolve '../../lib/codemirror' from ../../lib/codemirror?commonjs-external
+// before, when installing non-brwserfield version of eslint,, this
+// caused error of fs not availabel for browser
+
 // Define CodeMirror first.
 
 import "codemirror/addon/dialog/dialog.css"
@@ -106,7 +114,7 @@ import {insert_color}  from "./output.js" //todo sets lots of things in window. 
                                  //dde4: now globally defines set_css_properties
 
 import "../test_suite/test_suites.js"
-import "./picture1.js" //todo dde4, has problems loading opencv.js
+import "./picture1.js" //had problems loading opencv.js but now opencv.js loaded at the bottom of index.html
 
 import "../test_suite/math_testsuite.js" //imports test_suite.js which globally defines class TestSuite
 import "../test_suite/utils_testsuite.js"
@@ -125,7 +133,7 @@ import "../test_suite/when_stopped_testsuite.js"
 
 
 import "./robot_status_dialog.js" //defines class RobotStatusDialog as global
-import {run_instruction} from "./run_instruction.js"
+import "./run_instruction.js" //defines globalThis.RunInstruction
 import "./dexter_utils.js" //makes global var for class: DexterUtils
 import "./metrics.js" //globally defines class Metrics //todo can't really work until file save and read.
 
@@ -593,7 +601,7 @@ export function on_ready() {
      let orig_path = Editor.current_file_path
      const inner_path = e.target.value //could be "new buffer" or an actual file
      const path = Editor.files_menu_path_to_path(inner_path)
-     if (globalThis.HCA && (Editor.view === "HCA")){
+     /*if (globalThis.HCA && (Editor.view === "HCA")){
          try{
              HCA.edit_idl_or_json_file(path)
          }
@@ -602,25 +610,23 @@ export function on_ready() {
              dde_error(path + " doesn't contain vaild HCA object(s).<br/>" + err.message)
          }
      }
-     else { //presume JS, but if its .idl, that's ok we jhst edit the idl in the text editor
-         Editor.edit_file(path)
-     }
+     else { */ //presume JS, but if its .idl, that's ok we just edit the idl in the text editor
+         //Editor.edit_file(path)
+     Editor.open_local_file_at_path(path)
+     //}
  }
 
- open_id.onclick = function(){
+ /*not used now jul 6, 2023
+ open_server_id.onclick = function(){
      if (globalThis.HCA && (Editor.view === "HCA")){
          HCA.choose_and_edit_file()
      }
      else {
-         //Editor.open_on_dde_computer() //Editor.open
-         /*DDEFile.choose_file({folder:   undefined,
-                              title:    undefined,
-                              callback: "DDEFile.choose_file_to_edit_handler"})*/
          Editor.edit_file_no_path()
      }
- }
+ }*/
 
- Editor.set_menu_string(open_id, "Open...", "o")
+ Editor.set_menu_string(open_local_id, "Open...", "o")
 
  open_local_id.onclick = Editor.open_local_file
 
@@ -628,7 +634,8 @@ export function on_ready() {
 
  //open_system_file_id.onclick = Editor.open_system_file
 
- load_file_id.onclick=function(e) {
+/*not now used Jul 6, 2023
+ load_server_file_id.onclick=function(e) {
      //presume JS
          //const path = choose_file({title: "Choose a file to load"})
          //if (path){
@@ -642,6 +649,10 @@ export function on_ready() {
          //    }
          //}
 
+ }*/
+
+ load_local_file_id.onclick = function() {
+       Editor.load_local_file()
  }
 
  load_and_start_job_id.onclick = function(){
@@ -698,7 +709,8 @@ export function on_ready() {
                                   callback: "DDEFile.insert_file_path_into_cmd_handler" })
  }
 
- save_id.onclick = function() {
+ /*now not used jul 6, 2023
+ save_server_id.onclick = function() {
      if (globalThis.HCA && (Editor.view === "HCA")){
          if (Editor.current_file_path == "new buffer"){
              HCA.save_as()
@@ -710,10 +722,11 @@ export function on_ready() {
      else {
          Editor.save()
      }
- }
- Editor.set_menu_string(save_id, "Save", "s")
+ }*/
+ Editor.set_menu_string(save_local_id, "Save", "s")
 
- save_as_id.onclick = function(){
+/*now not used Jul 6, 2023
+ save_server_as_id.onclick = function(){
      if (globalThis.HCA && (Editor.view === "HCA")){
          HCA.save_as()
      }
@@ -721,10 +734,13 @@ export function on_ready() {
          Editor.save_as()
      }
  } //was: Editor.save_on_dde_computer //only for saving on dde computer
+*/
 
- save_local_id.onclick = Editor.save_local_file
+ save_local_id.onclick    = function(event) { Editor.save_local_file() }
+ save_local_as_id.onclick = function(event) { Editor.save_local_file_as() }
 
- //obsolete with dde4
+
+    //obsolete with dde4
  //save_to_dexter_as_id.onclick = Editor.save_to_dexter_as
 
  remove_id.onclick = function(){ Editor.remove() } //don't simply use Editor.remove as ther value  for onclick because we want to default its arg as the Editor.remove method does
@@ -1478,7 +1494,7 @@ window_modify_id.onclick=function(){Editor.insert(
 
       Editor.set_menu_string(move_to_selection_id, "selection", "r")
 
-      run_instruction_dialog_id.onclick = run_instruction
+      run_instruction_dialog_id.onclick = RunInstruction.show_run_instruction_dialog
 
       init_dxf_drawing_id.onclick = function(){
                           var content =
@@ -1528,7 +1544,9 @@ window_modify_id.onclick=function(){Editor.insert(
       talk_id.onclick = function() { Talk.initialize() }
 
       monitor_id.onclick           = function() { Monitor.show_dialog() }
-      ping_dexter_id.onclick       = function() { DexterUtils.ping_a_dexter(); DocCode.open_doc(ping_doc_id) }
+
+     //ping can't work in a browser jul 11, 2023
+     // ping_dexter_id.onclick       = function() { DexterUtils.ping_a_dexter(); DocCode.open_doc(ping_doc_id) }
 
       reboot_joints_id.onclick  = function(){
           DocCode.open_doc("Dexter.reboot_joints_doc_id")
@@ -1712,49 +1730,51 @@ window_modify_id.onclick=function(){Editor.insert(
 
 } //end of on_ready definition.
 
-   async function on_ready_after_db_init(){
-         //set_dde_window_size_to_persistent_values() //todd dde4 (can work now) obsolete now that main.js does this
+   async function on_ready_after_db_init() {
+       //set_dde_window_size_to_persistent_values() //todd dde4 (can work now) obsolete now that main.js does this
 
-        let val = DDE_DB.persistent_get("save_on_eval")
-        $("#save_on_eval_id").jqxCheckBox({ checked: val})
+       let val = DDE_DB.persistent_get("save_on_eval")
+       $("#save_on_eval_id").jqxCheckBox({checked: val})
 
-         //if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
-         //    save_on_eval_id.setAttribute("checked", val)
-         //}
-         //similar to animate ui
-         save_on_eval_id.onclick = function(event){ //todo dde4 broken because when you click, get error due to css and image file for checkbox
-             let val = $("#save_on_eval_id").val()
-             DDE_DB.persistent_set("save_on_eval", val)
-             event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
+       //if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
+       //    save_on_eval_id.setAttribute("checked", val)
+       //}
+       //similar to animate ui
+       save_on_eval_id.onclick = function (event) { //todo dde4 broken because when you click, get error due to css and image file for checkbox
+           let val = $("#save_on_eval_id").val()
+           DDE_DB.persistent_set("save_on_eval", val)
+           event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
+       }
+
+       save_on_eval_wrapper_id.onclick = function (event) {
+           let old_val = $("#save_on_eval_id").val()
+           let new_val = !old_val
+           $("#save_on_eval_id").val(new_val)
+           DDE_DB.persistent_set("save_on_eval", new_val)
+           event.stopPropagation()
+       }
+
+       val = DDE_DB.persistent_get("default_out_code")
+       if (val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
+           format_as_code_id.setAttribute("checked", val)
+       }
+       format_as_code_id.onclick =
+           function (event) {
+               let val = format_as_code_id.checked
+               DDE_DB.persistent_set("default_out_code", val)
+               //automatically re-render the last output
+               out_eval_result(globalThis.prev_out_val, globalThis.prev_out_color, globalThis.prev_src, globalThis.prev_src_label)
+           }
+
+       //this must be before dde_init_dot_js_initialize() so that when a robot is defined, it can go on the menu
+       default_robot_name_menu_container_id.innerHTML = DexterUtils.make_dexter_default_menu_html()
+
+       //PatchDDE.init()  //todo dde4 needs file system
+
+         //will error using gitub.io platform, so for now don't call it.
+         if (!globalThis.dde_running_in_cloud()) {
+            await DDE_DB.dde_init_dot_js_initialize()//must occcur after persistent_initialize
          }
-
-         save_on_eval_wrapper_id.onclick = function(event){
-             let old_val = $("#save_on_eval_id").val()
-             let new_val = !old_val
-             $("#save_on_eval_id").val(new_val)
-             DDE_DB.persistent_set("save_on_eval", new_val)
-             event.stopPropagation()
-         }
-
-         val = DDE_DB.persistent_get("default_out_code")
-         if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
-             format_as_code_id.setAttribute("checked", val)
-         }
-         format_as_code_id.onclick =
-             function(event) {
-                 let val = format_as_code_id.checked
-                 DDE_DB.persistent_set("default_out_code", val)
-                 //automatically re-render the last output
-                 out_eval_result(globalThis.prev_out_val, globalThis.prev_out_color, globalThis.prev_src, globalThis.prev_src_label)
-         }
-
-         //this must be before dde_init_dot_js_initialize() so that when a robot is defined, it can go on the menu
-         default_robot_name_menu_container_id.innerHTML = DexterUtils.make_dexter_default_menu_html()
-
-         //PatchDDE.init()  //todo dde4 needs file system
-
-
-         await DDE_DB.dde_init_dot_js_initialize()//must occcur after persistent_initialize
          //use await because dde_init_dot_js_initialize has to await for getting the
          //dde_init.js file which *might* contain a def for dexter0.
          //if so, then Dexter.dexter0 will be defined and there won't be a redef of it below
@@ -1817,8 +1837,11 @@ window_modify_id.onclick=function(){Editor.insert(
          //         init_ros_service_if_url_changed()
          //} //must occur after dde_init_doc_js_initialize  init_ros_service($("#dexter_url").val())
          // rde.ping() //rde.shell("date") //will show an error message
-         Editor.restore_files_menu_paths_and_last_file() //todo dde4 needs file system
-          //simulate_help_id.onclick=function(){ DocCode.open_doc(simulate_doc_id) }
+
+         if (!globalThis.dde_running_in_cloud()) {
+             Editor.restore_files_menu_paths_and_last_file() //todo dde4 needs file system
+         }
+         //simulate_help_id.onclick=function(){ DocCode.open_doc(simulate_doc_id) }
 
 
 
@@ -1840,13 +1863,23 @@ window_modify_id.onclick=function(){Editor.insert(
           set_top_right_panel_height(DDE_DB.persistent_get("top_right_panel_height"))
 
           blocks_init() //makes the Editor pane view menu
-          DDEFile.read_file_async( "dde/doc/HCA_doc.html",
+
+          /* post dde_running_in_cloud, the HCA doc is now embedded
+          in the file doc/user_guide so no need to dynamically load it,
+          which didn't work in cloud deployment anyway.
+
+          let hca_doc_path = (dde_running_in_cloud() ?
+                              "https://cfry.github.io/dde4/dde/doc/HCA_doc.html" //must use https or can't load it because  cfry.github.io is https
+                              : "dde/doc/HCA_doc.html")
+          DDEFile.read_file_async( hca_doc_path,
                 function(err, html){
                    DocCode.insert_html_into_doc_pane(html, "User Guide", "beforeend")
                    setTimeout(function() {
                        DocCode.open_doc(hca_ui_doc_id)
                    }, 200)
-               })
+          })
+          */
+
 
           OpenAI.init() //set's gpt button onclick and maybe the configuration, so needs
           //to be after DDE_DB init

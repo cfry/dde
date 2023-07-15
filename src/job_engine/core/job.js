@@ -1223,7 +1223,7 @@ class Job{
     static active_jobs_using_robot(robot){
         let result = []
         let active_jobs = this.active_jobs()
-        for(let job_instance of adctive_jobs){
+        for(let job_instance of active_jobs){
             if(job_instance.robot === robot) { result.push(job_instance) }
             else {
                 let instr = job_instance.do_list[job_instance.program_counter]
@@ -2560,18 +2560,23 @@ Job.prototype.send = function(oplet_array_or_string, robot){ //if remember is fa
     else{
         instruction_id = this.program_counter
     }
-    if(typeof(oplet_array_or_string) == "string") {
+    if(typeof(oplet_array_or_string) === "string") {
         let prefix = this.job_id + " " + instruction_id + " " + Date.now() + " undefined "
         oplet_array_or_string = prefix + oplet_array_or_string
         if(last(oplet_array_or_string) != ";") { oplet_array_or_string += ";" }
 
     }
     else {
-        oplet_array_or_string[Instruction.JOB_ID]         = this.job_id
-        oplet_array_or_string[Instruction.INSTRUCTION_ID] = instruction_id
-        oplet_array_or_string[Instruction.START_TIME]     = Date.now()
+        if(oplet_array_or_string[Instruction.JOB_ID] === undefined) {
+            oplet_array_or_string[Instruction.JOB_ID] = this.job_id
+        }
+        if(oplet_array_or_string[Instruction.INSTRUCTION_ID] === undefined) {
+            oplet_array_or_string[Instruction.INSTRUCTION_ID] = instruction_id
+        }
+        if(oplet_array_or_string[Instruction.START_TIME] === undefined) {
+            oplet_array_or_string[Instruction.START_TIME] = Date.now()
+        }
     }
-
     if (this.keep_history){
         this.sent_instructions.push(oplet_array_or_string) //for debugging mainly
     }

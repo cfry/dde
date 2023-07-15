@@ -53,6 +53,16 @@ dui_tour.addSteps([
           </ol>`,
         buttons: [{text: 'Next', action: dui_tour.next}],
     },
+    {classes: "shepherd_step_dui_wide",
+        text: `If you are running on a laptop-sized screen, please
+               maximize the size of the DDE window now.
+               <p></p>
+               In a browser, maximize the window by clicking on the maximize icon in
+               the window's title bar. 
+               <p></p>
+               You can also drag the lower right corner of the window
+               down and to the right to make the window bigger.`
+    },
 
     {attachTo: {element: '#simulate_radio_button_group', on: 'top'},
         text: `If you have not yet configured Dexter,
@@ -136,7 +146,7 @@ dui_tour.addSteps([
                </ol>
                The Dexter UI dialog box helps you understand the relationship between these
                two coordinate systems, an important concept called <i>Kinematics</i>.`,
-        buttons: [{text: 'Next', action: dui_tour.next}],
+        popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 20] } }]},
     },
 
     {attachTo: {element: '.dui_dialog [name=z_slider]', on: 'right'},
@@ -300,7 +310,8 @@ dui_tour.addSteps([
           There's more to it than this tutorial covers.`
     },
     {attachTo: { element: '#help_system_id', on: 'left'},
-        text: `Clicking the <b>Help</b> button will bring back the
+        text: `Clicking the <b>Help</b> button, in the Editor pane's
+               menu bar, will bring back the
                "Welcome to DDE" dialog box containing the tutorials menu.`
     },
     {classes: "shepherd_step_dui_wide",
@@ -316,7 +327,7 @@ dui_tour.addSteps([
                <li>Rest of DDE</li>
            </ul>`,
         buttons: [{text: 'Back', action: dui_tour.back},
-            {text: 'Exit', action: dui_tour.complete}]
+                  {text: 'Exit', action: dui_tour.complete}]
     }
 ])
 //dui_tour.start()

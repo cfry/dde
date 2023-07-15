@@ -626,6 +626,7 @@ globalThis.HCAObjDef = class HCAObjDef {
         HCAObjDef.insert_obj_defs_into_tree("built_in", json_obj_defs)
     }
 
+    //obj_def_or_obj_id can also be a sys_desc_inst
     static display_obj_def(obj_def_or_obj_id){
         HCAObjDef.update_current_obj_def_from_nodes()
         let obj_def
@@ -656,8 +657,10 @@ globalThis.HCAObjDef = class HCAObjDef {
         }
         current_obj_def_name_id.value = obj_def.objectName
         HCA.update_obj_def_select_dom_elt(obj_def.obj_id)
-        let tree_path = HCAObjDef.current_obj_def.TreeGroup.join("/")
-        tree_path_id.value = tree_path
+        if(HCAObjDef.current_obj_def.TreeGroup) { //does not hit for Sys descs
+            let tree_path = HCAObjDef.current_obj_def.TreeGroup.join("/")
+            tree_path_id.value = tree_path
+        }
         source_path_id.value = obj_def.source_path
         HCAObjDef.redraw_obj_def()
         inspect(HCAObjDef.current_obj_def)
@@ -978,20 +981,22 @@ globalThis.HCAObjDef = class HCAObjDef {
             cur_obj_def.prototypes = new_HCACalls
             let new_connections = []
             let links = HCA.lgraph.links  //remake cur_obj_def.netList from this.
-            for (let link of links) {
-                if(link) { //warning: after we've deleted a node, sometimes link is undefined. if so, don't do the below
-                    let new_connection = {
-                        source: {
-                            call_name: HCACall.node_id_to_existing_HCACall(link.origin_id, new_HCACalls).call_name,
-                            outputNumber: link.origin_slot
-                        },
-                        sink: {
-                            call_name: HCACall.node_id_to_existing_HCACall(link.target_id, new_HCACalls).call_name,
-                            inputNumber: link.target_slot
+            if(Array.isArray(links)) {
+                for (let link of links) {
+                    if (link) { //warning: after we've deleted a node, sometimes link is undefined. if so, don't do the below
+                        let new_connection = {
+                            source: {
+                                call_name: HCACall.node_id_to_existing_HCACall(link.origin_id, new_HCACalls).call_name,
+                                outputNumber: link.origin_slot
+                            },
+                            sink: {
+                                call_name: HCACall.node_id_to_existing_HCACall(link.target_id, new_HCACalls).call_name,
+                                inputNumber: link.target_slot
+                            }
                         }
+                        //link.type //"Variant"
+                        new_connections.push(new_connection)
                     }
-                    //link.type //"Variant"
-                    new_connections.push(new_connection)
                 }
             }
             cur_obj_def.netList = new_connections

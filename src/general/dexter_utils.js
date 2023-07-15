@@ -2,6 +2,10 @@
 //import ping from 'ping' //todo comment in. but when I do, errors when lanunch dde4 with "util" not found
 // (or some such) but the literal string "util" is not in DDE4
 
+
+//import ping from 'ping'; //causes error when launching DDE4
+//globalThis.ping = ping
+
 //in dde, the below code was not a class, it was just top level fns.
 //for dde4, I bound it into the class DexterUtils
 //and changed the file name from robot_utilities to dexter_utils.js
@@ -400,6 +404,7 @@ class DexterUtils {
                         if(index !== 0) { result_content += "\n" } //carefully done so that we won't build up extra newlines in the file
                         let name = "line_" + index
                         let should_be_checked_and_run = vals[name]
+                        let the_new_line
                         if      (line.trim() === "")      { the_new_line = line } //blank line. keep as is.
                         else if(line.startsWith("# "))    { the_new_line = line } //its just a comment. keep as is.
                         else if(line.startsWith("#")){

@@ -40,7 +40,7 @@ Dexter.prototype.defaults_read = function(callback = null){
     let normal_defaults_read_cb = (function(err, content){
         if(err) { dde_error("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
             the_url + "<br/>and error message: " +
-            err.message +
+            err.toString() +
             "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.")
         }
         else {

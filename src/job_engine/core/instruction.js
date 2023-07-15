@@ -791,6 +791,7 @@ Instruction.Get_page = class Get_page extends Instruction{
         if (this.sent == false){ //hits first time only
             job_instance.user_data[the_var_name] = undefined //must do in case there was some other
             //http_request for this var name, esp likely if its default is used.
+            let url_or_options = this.url_or_options //for closure
             DDEFile.get_page_async(this.url_or_options, //note I *could* simplify here and use get_page (syncrhonos), but this doesn't freeze up UI while getting the page so a little safer.
                 function(err, body) {
                     //console.log("gp top of cb with the_var_name: " + the_var_name)
@@ -798,9 +799,11 @@ Instruction.Get_page = class Get_page extends Instruction{
                     //console.log("ojb inst: "   + job_instance)
                     //console.log("response: "    + response)
                     if(err) { //bug err is not null when bad url
-                        console.log("gp in err: ")
-                        job_instance.user_data[the_var_name] = "Error: " + err
-                        console.log("gp after err: ")
+                        // be sure to prefix the err_mess with "Error:" so user can
+                        //distinguish it from valid content
+                        let err_mess = "Error: " + " Instruction IO.get_page with url: " + url_or_options + "<br/> had error: " + err.message
+                        job_instance.user_data[the_var_name] = err_mess
+                        warning(err_mess)
                     }
                     else {
                         //console.log("gp in good: ")

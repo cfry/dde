@@ -363,6 +363,7 @@ class Brain extends Robot { /*no associated hardware */
     }
     finish_job() {}
 
+    //Brain
     send(inst_array_with_inst_id) {
         let job_id = inst_array_with_inst_id[Instruction.JOB_ID]
         var job_instance = Job.job_id_to_job_instance(job_id)
@@ -418,6 +419,7 @@ class Human extends Brain { /*no associated hardware */
         job_instance.set_up_next_do(0)
     }
     finish_job() {}
+    //Human
     send(inst_array_with_inst_id) {
         let job_id = inst_array_with_inst_id[Instruction.JOB_ID]
         var job_instance = Job.job_id_to_job_instance(job_id)
@@ -736,7 +738,7 @@ class Serial extends Robot {
             }
         }
     }
-
+    //Serial
     send(ins_array){
         let sim_actual   = Robot.get_simulate_actual(this.simulate)
         let job_id       = ins_array[Serial.JOB_ID]
@@ -1042,6 +1044,9 @@ class Dexter extends Robot {
         if (globalThis.platform === "node") {
             return "localhost"
         }
+        else if (dde_running_in_cloud()) {
+            return "192.168.1.142"
+        }
         else if (globalThis.location && (globalThis.location.host === "localhost")) {
             let ip_addr = DDE_DB.persistent_get("default_dexter_ip_address")
             if (ip_addr) {
@@ -1221,7 +1226,10 @@ class Dexter extends Robot {
                  "The job: " + this_job.name + " could not connect to Dexter." + this_robot.name)
         }
         this_robot.connect_error_cb = connect_error_cb*/
-        let instruction_to_send_on_connect = Dexter.get_robot_status() //the inital g instr
+        let instruction_to_send_on_connect = Dexter.get_robot_status() //the initial g instr
+        instruction_to_send_on_connect[Instruction.JOB_ID]         = job_instance.job_id
+        instruction_to_send_on_connect[Instruction.INSTRUCTION_ID] = -1
+        instruction_to_send_on_connect[Instruction.START_TIME]     = Date.now()
         Socket.init(this.name, job_instance, instruction_to_send_on_connect)
     }
 
@@ -1417,7 +1425,7 @@ class Dexter extends Robot {
         Socket.empty_instruction_queue_now(this.name)
     }*/
 
-    //ins_array can be an oplet array or a raw string
+    //Dexter  ins_array can be an oplet array or a raw string
     send(oplet_array_or_string){
         //var is_heartbeat = ins_array[Instruction.INSTRUCTION_TYPE] == "h"
         //let oplet = Instruction.extract_instruction_type(oplet_array_or_string)
@@ -1436,7 +1444,7 @@ class Dexter extends Robot {
     stringify(){
         return "Dexter: <i>name</i>: "  + this.name           +
                ", <i>ip_address</i>: "  + this.ip_address     + ", <i>port</i>: "         + this.port         + ",<br/>" +
-               "<i>socket_id</i> "      + this.socket_id      + ", <i>is_connected</i>: " + this.is_connected + ", <i>waiting_for_heartbeat</i>: " + this.waiting_for_heartbeat +
+               "<i>connectivity</i> "   + ", <i>is_connected</i>: " + this.is_connected + ", <i>waiting_for_heartbeat</i>: " + this.waiting_for_heartbeat +
                Dexter.robot_status_to_html(this.robot_status, " on robot: " + this.name)
     }
 
@@ -1474,6 +1482,7 @@ class Dexter extends Robot {
                                  "Dexter.robot_done_with_instruction received a robot_status array: " +
                                   robot_status + " that is not an array.")
             job_instance.wait_until_instruction_id_has_run = null
+            this.remove_from_busy_job_array(job_instance)
             job_instance.set_up_next_do(0)
             return
         }
@@ -1533,7 +1542,7 @@ class Dexter extends Robot {
         rob.clear_busy_job_array() //so that the other jobs that I call set_up_next_do, won't hang up because they are busy,
          //because they no longer should be busy, because we got back our ack from Dexter that was keeping them busy,
         for(let busy_job of busy_job_array_copy){
-            if(busy_job === job_instance) {} //let this pass through to the below as the passed in robot_status is from this instrr and this job_instance
+            if(busy_job === job_instance) {} //let this pass through to the below as the passed in robot_status is from this instr and this job_instance
             else {
                busy_job.set_up_next_do(0) //now execute the instr at the PC in an OTHER job, without advancing it.
                return
@@ -1585,7 +1594,7 @@ class Dexter extends Robot {
             job_instance.stop_for_reason("interrupted", "Completed Dexter.empty_instruction_queue after user stopped the Job.")
             rob.perform_instruction_callback(job_instance)
         }
-        else if (ins_id == job_instance.program_counter) { //the normal case.
+        else if (ins_id === job_instance.program_counter) { //the normal case.
             rob.perform_instruction_callback(job_instance)// job_instance.set_up_next_do() //note before doing this, pc might be on last do_list item.
                     //but that's ok. increment pc and call do_next_item.
         }
@@ -1700,15 +1709,18 @@ class Dexter extends Robot {
         job_00.start()
     }
     run_instruction_fn(instr){
-        const job_00 = new Job({name: "job_00",
+        if(Job.run_instruction && Job.run_instruction.is_active()){
+            Job.run_instruction.stop_for_reason("interrupted", "run_instruction_fn is redefining this job.")
+        }
+        new Job({name: "run_instruction",
             robot: this,
             do_list: [instr]
         })
-        job_00.start()
+        Job.run_instruction.start()
     }
     /* The below is a smarter version of run_instruction_fn that just defines job_00 once,
        leaves it running and just adds the instruction to it the 2nd through nth times
-       its called. BUT this screws up if you are togglein between
+       its called. BUT this screws up if you are toggleing between
        running an instruction and running a regular job because the job_oo uses up the robot.
        So to avoid that interferance, I've gone back to just
        defining job_00 each time this fn is called and starting the job as above.

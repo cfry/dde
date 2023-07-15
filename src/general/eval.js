@@ -118,7 +118,9 @@ export function eval_js_part1(step=false){
         if(html_db.string_looks_like_html(src)){
             render_html(src)
         }
-        else if(Editor.current_file_path.endsWith(".py") && src_comes_from_editor){
+        else if(Editor.current_file_path &&
+                Editor.current_file_path.endsWith(".py") &&
+                src_comes_from_editor){
             Py.eval_py_part2(src)
         }
         else { //regular JS eval

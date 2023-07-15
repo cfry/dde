@@ -892,7 +892,7 @@ static insert_outs_after_logs(base_string){
             log_end_pos = close_paren_pos
         }
         let args = result.substring(open_paren_pos + 1, close_paren_pos)
-        let out_str = "\nout(" + args + ")\n"
+        let out_str = "\nout(Utils.args_to_string(" + args + "))\n"
         result = Utils.insert_string(result, out_str, log_end_pos + 1)
     }
     dde_error("insert_outs_after_logs passed base_string with over 1 Million 'console.logs(' in it.")
@@ -1788,13 +1788,36 @@ static stringify_value_sans_html(value){
 }
 
 static stringify_value_cheap(val){
-    if(typeof(value) == "string") { return val }
+    if(val === undefined) { return "undefined"}
+    else if(typeof(value) == "string") { return val }
+    //else if (Utils.is_class(val)) { return "Class:" + Utils.get_class_name}
+    //else if(typeof(value) === "function"){
+    //    return val.toString()
+    //}
     try { val = JSON.stringify(val)
         return val
     }
     catch(err) {
         return "" + val
     }
+}
+
+//makes a string for the args similar to console.log in that
+//the args output are separated by a space,
+//and there's a good attempt to have objects, funtions, classes,
+//to have a meaningful presention but not too long.
+//doesn't attempt to make source code, but
+//will often do what JSON.stringify does.
+//but outputs strings as its chars, without wrapping in double quotes.
+// used by Utils.insert_outs_after_logs
+static args_to_string(...args){
+    let result = ""
+    for(let index = 0; index < args.length; index++) {
+        let arg = args[index]
+        let str = ((typeof(arg) === "string") ? arg : Utils.stringify_value(arg))
+        result += (index === 0 ? "" : " ") + str  //console.log adds a space between args in printout
+    }
+    return result
 }
 
 //________CSV ________

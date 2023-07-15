@@ -259,8 +259,12 @@ class Simqueue{
         let dur_in_ms = ds_instance.predict_j6_plus_instruction_dur_in_ms(new_angle_in_dexter_units, joint_number)
         if(dur_in_ms === 0) {} //the joint is already at the commanded angle so nothing to do. This is a big optimization for a common case.
         else if (SimUtils.is_simulator_showing()){
-            let val_for_show = (this.show_degrees ? Socket.dexter_units_to_degrees(new_angle_in_dexter_units, joint_number) : new_angle_in_dexter_units)
-            val_for_show = (Number.isInteger(val_for_show) ? val_for_show : val_for_show.toFixed(3))
+            let val_for_show
+            if(Number.isNaN(new_angle_in_dexter_units)) { val_for_show = "NaN" }
+            else if(this.show_degrees) {
+                val_for_show = Socket.dexter_units_to_degrees(new_angle_in_dexter_units, joint_number)
+            }
+            else { val_for_show = new_angle_in_dexter_units }
             this.joint_number_to_j6_plus_status_map[joint_number] = "moving to " + val_for_show
             this.update_j6_plus_status_if_shown(joint_number)
             let robot_name = ds_instance.robot_name

@@ -69,6 +69,7 @@ class SplashScreen {
             callback: "SplashScreen.show_splash_screen_cb",
             content:
     `<div style="font-size:18px;margin-left:15px;">
+         <span style="font-size:12px;">Version: ` + dde_version + `</span>
          <div style="font-size:30px;">Tutorials</div> 
          Please start with the first tutorial.<br/>     
         <select id="splash_screen_which_tutorial_id" size="10" data-oninput="true" style="font-size:16px;">` +
@@ -176,7 +177,7 @@ class SplashScreen {
        // ["Test Suite examples",       "The DDE diagnostic system doubles as code exammples.",
        //                               "DocCode.open_doc(TestSuite_for_help_doc_id)"],
         ["Doc Pane",                  "DDE documentation is contained in the right-hand documentation pane.",
-                                      "DocCode.close_all_details()"],
+                                      "DocCode.open_doc(documentation_pane_doc_id)"],
         ["Find Button",               "Search the documentation.",
                                       "DocCode.open_doc(find_button_doc_id)"],
        // ["Click Help",                "Clicking anywhere in the editor shows help in the output pane.",

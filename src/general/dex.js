@@ -15,8 +15,11 @@ class Dex {
             Job.DexJob.start()
         }
     }
-    static run_button_handler(){
-        let src = Editor.get_javascript("auto").trim()
+    static run_button_handler(src=null){
+        DocCode.open_doc(Dex_doc_id)
+        if (!src) {
+            src = Editor.get_javascript("auto").trim()
+        }
         src = Dex.transform_source_to_async(src)
         src = "(" + src + ")()"
         out("evaling: " + src)

@@ -136,7 +136,10 @@ class DexterSim{
             if(i == Instruction.INSTRUCTION_TYPE) {
                 oplet = substr[0] //dde4: substr is someimes "g;" so get rid of the semicolon.
                 oplet_array.push(oplet)
-                if(substr.endsWith(";")) { break; }
+                if(substr.endsWith(";")) {
+                    substr = substr.substring(0, (substr.length - 1)) //cut off the trailing semicolon
+                    break;
+                }
                 else                     { continue; }
             }
             else if ((oplet == "W") && (i == Instruction.INSTRUCTION_ARG2)) { //this is the payload of Dexter.write_file
@@ -153,9 +156,18 @@ class DexterSim{
                 oplet_array.push(payload)
                 break;
             }
-            if(substr == "")               {} //ignore. this is having more than one whitespace together. Just throw out
-            else if(substr == "undefined") { oplet_array.push(undefined) }
-            else if (substr == "NaN")      { oplet_array.push(NaN) }
+            else if (substr == ";")         { break }
+            else if (substr == "")          {} //ignore. this is having more than one whitespace together. Just throw out
+            else if (substr == "undefined") { oplet_array.push(undefined) }
+            else if (substr == "undefined;") {
+                oplet_array.push(undefined)
+                break;
+            }
+            else if (substr == "NaN")       { oplet_array.push(NaN) }
+            else if (substr == "NaN;")      {
+                oplet_array.push(NaN)
+                break;
+            }
             else {
                 let num_maybe = parseFloat(substr) //most are ints but some are floats
                 if(Number.isNaN(num_maybe)) { oplet_array.push(substr) } //its a string

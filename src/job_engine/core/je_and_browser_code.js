@@ -5,8 +5,9 @@ function out(val="", color="black", temp=false, code=null){
 
     let text = val
     if (typeof(text) != "string"){ //if its not a string, its some data structure so make it fixed width to demonstrate code. Plus the json pretty printing doesn't work unless if its not fixed width.
-        if(globalThis["stringify_value"]) { text = Utils.stringify_value(text) }
-        else { text = Utils.stringify_value_cheap(val) } //hits in browser
+        //if(globalThis["stringify_value"]) { text = Utils.stringify_value(text) }
+        //else { text = Utils.stringify_value_cheap(val) } //hits in browser
+        text = Utils.stringify_value(val)
     }
     if(text.includes("class='gpt'") || text.includes('class="gpt"')){
         globalThis.prev_out_val   = val

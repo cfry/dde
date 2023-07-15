@@ -1,5 +1,8 @@
-//this file only used when Job Engie is used as part of DDE IDE
+//this file only used when Job Engine is used as part of DDE IDE
 
+globalThis.dde_running_in_cloud = function(){
+    return (globalThis.location && globalThis.location.host === "cfry.github.io")
+}
 //start of Job Engine imports
 
 globalThis.dde_version      = "not inited"

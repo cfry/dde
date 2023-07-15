@@ -110,7 +110,8 @@ class dui2 {
                             name: name,
                             robot: new Brain({name: "dui_brain"}),
                             when_do_list_done: "wait",
-                            do_list: [dui2.init,
+                            do_list: [the_dex.get_robot_status(), //necessary to init the robot_status on the_dex so that dui2.init can work
+                                      dui2.init,
                                       the_dex.empty_instruction_queue() //needed because the next instruction may need to look a the measured_angles, and we want them updated to where dexter is really at.
                                       ]
                         })
@@ -312,7 +313,9 @@ class dui2 {
             xy_loc_circle_html +
             '</svg>'
         let z_slider_html =
-            '<div style="border:4px solid ' + dui2.xy_background_color + '; display:inline-block; margin:0px; background-color:white; transform-origin:' + (xy_width_in_px / 2) + 'px; transform: translate(185px, -170px) rotate(-90deg);">' +
+            '<div style="border:4px solid ' + dui2.xy_background_color + '; display:inline-block; margin:0px; background-color:white; ' +
+            /* mozilla thinks this works in chrome but they're wrong jun 26, 2023 'appearance:slider-vertical;">' + */
+            'transform-origin:' + (xy_width_in_px / 2) + 'px; transform: translate(185px, -170px) rotate(-90deg);">' +
             '<input type="range" name="z_slider" step="0.01" value="0" min="0" max="' + max_z + '" data-oninput="true" ' +
             'style="width:' + xy_width_in_px + 'px; height:20px;margin:0px;' +
             '"/>' +

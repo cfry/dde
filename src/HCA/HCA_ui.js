@@ -247,6 +247,7 @@ globalThis.HCA = class HCA {
 
     //source is a string of json describing a new style HCA app.
     static async init(source_path, source=""){ //json_string can also be a json object or null
+        DocCode.open_doc(hca_ui_doc_id)
         ipg_to_json.init()
         HCAObjDef.init()
         globalThis.HCA_dom_elt = HCA.make_HCA_dom_elt()
@@ -1063,6 +1064,10 @@ globalThis.HCA = class HCA {
 
     static async edit_idl_or_json_file(path){
         await ipg_to_json.parse(path)
+    }
+
+    static choose_and_edit_local_file(){
+
     }
 
     //obsolete?

@@ -1,5 +1,9 @@
-///the ifle only used by Job Engine when it is running by itself
+///this file is only used by Job Engine when it is running by itself
 console.log("top of ready_je.js")
+
+globalThis.dde_running_in_cloud = function(){
+    return (globalThis.location && globalThis.location.host === "cfry.github.io")
+}
 
 globalThis.default_default_ROS_URL           = "localhost:9090"
 globalThis.default_default_dexter_ip_address = "192.168.1.142"

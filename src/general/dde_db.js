@@ -212,6 +212,8 @@ class DDE_DB{
         }
     }
 
+    //if dde_apps/dde_init.js exists, this loads it.
+    //if it doesn't exist, it creates it.
     static async dde_init_dot_js_initialize() {
         let does_dde_apps_folder_exist = await DDEFile.file_exists("")
         if(!does_dde_apps_folder_exist){
