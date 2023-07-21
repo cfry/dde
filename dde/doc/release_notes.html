@@ -1,10 +1,57 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
-<details class="doc_details"><summary>v 4.1.2, Jun 17, 2023</summary>
-    Highlights: Just fixes some build bugs.
+
+
+<details class="doc_details"><summary>v 4.1.3, Jul 20, 2023</summary>
+ Highlights: DDE4 now accessible from browsing  <a target="_blank" href="https://cfry.github.io"> cfry.github.io </a>, our new cloud server.
+    Numerous GPT Interface and File System Interface improvements.
+    Better coordination for multiple jobs having the same Dexter instance as their robot.
+  <ul>
+      <li><code>globalThis.dde_running_in_cloud()</code> defined. Returns true or false. </li>
+      <li>HCA_doc is now embedded in the user_guide which avoids the dynamic loading that didn't work for cloud deployment.</li>
+      <li>GPT: To fix a gpt init bug, we now initialize gpt_model, gpt_image_size, gpt_completion_max_tokens.</li>
+      <li>GPT: There is now a better url for explaining the dangers of ChatGPT.</li>
+      <li>GPT configuration dialog: now includes "temperature" to vary "creativity" of responses.</li>
+      <li>GPT: <code>OpenAI.move_dexter_joints</code> updated to work with the new "envelope" architecture.</li>
+      <li>Fixed Dexter.compute_default_ip_address for dde running in the cloud.</li>
+      <li>Tutorials: Fixed tutorials: LearnJS, Doc Pane.</li>
+      <li>Tutorials: Fixed tutorial: Dexter UI. Now has a back button that was missing
+          and a new frame to instruct you to make the window big enough to accomodate the steptorial.</li>
+      <li>Tutorials: Added "GPT Interface" to the tutorial's list in the Help dialog box.</li>
+      <li>Cloud version: Now that DDE4 is served from https (instead of http) for Dexter's node server,
+          <code>globalThis.showSaveFilePicker</code> (and
+          <code>globalThis.showSaveFilePicker</code> ) is defined.</li>
+      <li>Cloud version: fixes to open local file and save local file on the File menu.</li>
+      <li>HCA, Cloud version: special cased DDEFile.make_url and DDEFile.add_default_file_prefix_maybe to work for serving CorLib.ipg (and other files)</li>
+      <li>GPT config dialog now has "image not showing?" help link to documentation. </li>
+      <li>GPT config dialog box now has "search_google" option.</li>
+
+      <li>DDE3's JavaScript "linter" (the red dots in the editor next to syntactically bad code) now working in DDE4.</li>
+      <li>Cloud github discussion enabled and linked to in User Guide/Contacts.</li>
+      <li>File menu, removed the items for using the server's file system.
+          Renamed the "local" menu items to not have "local" in their name.
+          Now supported LOCAL operations are: open, load file, save, save as.
+          More work to be done on the file menu.</li>
+      <li>The recently viewed "files menu" now works in DDE4.</li>
+      <li>Ping can't work in a browser so this menu item on the Dexter menu has been removed.</li>
+      <li>Fixes to run_instruction dialog box and <code>Dexter.run_instruction_fn</code></li>
+      <li>Fix to simulator for J6 & J7 being <code>NaN</code> and fixes to
+          Simqueue</li>
+      <li>Transformed <code>run_instruction.js</code> into <code>class RunInstruction</code></li>
+      <li>File menu <b>Auto save</b> checkbox is now working.</code></li>
+      <li>New architecture for coordinating multiple jobs having the same Dexter instance as their robot.
+          Now you can run such Jobs simultaneously.</li>
+      <li>Removed "Update" from File menu. No longer applicable with cloud deployment.</li>
+      <li>The "view" menu in the Editor pane header is now a proper menu
+          with radio button items of JavaScript and HCA. See <button>View&#9660;</button></li>
+</ul>
 </details>
 
-         <details class="doc_details"><summary>v 4.1.1, Jun 16, 2023</summary>
+ <details class="doc_details"><summary>v 4.1.2, Jun 17, 2023</summary>
+     Highlights: Just fixes some build bugs.
+ </details>
+
+<details class="doc_details"><summary>v 4.1.1, Jun 16, 2023</summary>
     Highlights: GPT extensions esp. for aiding programming. 2 Python fixes.
 <ul>
     <li>Talk: fixed the communications bug.</li>

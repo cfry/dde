@@ -154,7 +154,9 @@ class DDEVideo {
                 //     '<b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
                 //     '<b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>' +
                 //     '<div id="sim_graphics_pane_id"></div>'
-                DocCode.open_doc(simulate_pane_doc_id)
+                setTimeout(function () { //I did this timeout because once I saw this break during init giving us an error and causing the simulator pane not to render.
+                    DocCode.open_doc(simulate_pane_doc_id)
+                }, 200)
                 Simulate.init_simulation()
                 //sim.renderer.render(sim.scene, sim.camera);
                 setTimeout(function() {
@@ -219,7 +221,7 @@ class DDEVideo {
                 sim_pane_content_id.innerHTML = '<div id="sim_graphics_pane_id"></div>'
 
                 //from: init_simulation()
-                the_scene = new THREE.Scene();
+                let the_scene = new THREE.Scene();
                 the_scene.name = "scene"
                 the_scene.background = new THREE.Color( 0x000000 ) // 0x000000black is the default
                     //from createRenderer

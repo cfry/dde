@@ -11,7 +11,7 @@ import js_beautify from 'js-beautify';
 import { create, all } from 'mathjs';
 import compareVersions from 'compare-versions';
 import require$$0 from 'domain';
-import path from 'path';
+import path$1 from 'path';
 
 var name = "dde4";
 var version = "4.1.2";
@@ -56,6 +56,7 @@ var dependencies = {
 	crypto: "^1.0.1",
 	dayjs: "^1.10.5",
 	eslint: "^7.32.0",
+	"eslint-linter-browserify": "^8.43.0",
 	espree: "^9.4.0",
 	formidable: "^2.0.1",
 	https: "^1.0.0",
@@ -993,7 +994,7 @@ static insert_outs_after_logs(base_string){
             log_end_pos = close_paren_pos;
         }
         let args = result.substring(open_paren_pos + 1, close_paren_pos);
-        let out_str = "\nout(" + args + ")\n";
+        let out_str = "\nout(Utils.args_to_string(" + args + "))\n";
         result = Utils$1.insert_string(result, out_str, log_end_pos + 1);
     }
     dde_error("insert_outs_after_logs passed base_string with over 1 Million 'console.logs(' in it.");
@@ -1889,13 +1890,36 @@ static stringify_value_sans_html(value){
 }
 
 static stringify_value_cheap(val){
-    if(typeof(value) == "string") { return val }
+    if(val === undefined) { return "undefined"}
+    else if(typeof(value) == "string") { return val }
+    //else if (Utils.is_class(val)) { return "Class:" + Utils.get_class_name}
+    //else if(typeof(value) === "function"){
+    //    return val.toString()
+    //}
     try { val = JSON.stringify(val);
         return val
     }
     catch(err) {
         return "" + val
     }
+}
+
+//makes a string for the args similar to console.log in that
+//the args output are separated by a space,
+//and there's a good attempt to have objects, funtions, classes,
+//to have a meaningful presention but not too long.
+//doesn't attempt to make source code, but
+//will often do what JSON.stringify does.
+//but outputs strings as its chars, without wrapping in double quotes.
+// used by Utils.insert_outs_after_logs
+static args_to_string(...args){
+    let result = "";
+    for(let index = 0; index < args.length; index++) {
+        let arg = args[index];
+        let str = ((typeof(arg) === "string") ? arg : Utils$1.stringify_value(arg));
+        result += (index === 0 ? "" : " ") + str;  //console.log adds a space between args in printout
+    }
+    return result
 }
 
 //________CSV ________
@@ -2240,8 +2264,9 @@ function out$1(val="", color="black", temp=false, code=null){
 
     let text = val;
     if (typeof(text) != "string"){ //if its not a string, its some data structure so make it fixed width to demonstrate code. Plus the json pretty printing doesn't work unless if its not fixed width.
-        if(globalThis["stringify_value"]) { text = Utils.stringify_value(text); }
-        else { text = Utils.stringify_value_cheap(val); } //hits in browser
+        //if(globalThis["stringify_value"]) { text = Utils.stringify_value(text) }
+        //else { text = Utils.stringify_value_cheap(val) } //hits in browser
+        text = Utils.stringify_value(val);
     }
     if(text.includes("class='gpt'") || text.includes('class="gpt"')){
         globalThis.prev_out_val   = val;
@@ -17450,16 +17475,17 @@ class Job$1{
     //Called by user to start the job and "reinitialize" a stopped job
     start(options={}){  //sent_from_job = null
         out("Top of Job." + this.name + ".start()");
-        let the_active_job_with_robot_maybe = Job$1.active_job_with_robot(this.robot); //could be null.
+        /* commented out due to new Waiting scheme
+        let the_active_job_with_robot_maybe = Job.active_job_with_robot(this.robot) //could be null.
             //must do this before setting status_code to "starting".
             //there can only be one Job trying to use a Dexter. (at least as the Job's main robot.)
         if((this.robot instanceof Dexter) && the_active_job_with_robot_maybe) {
             this.stop_for_reason("errored", "Dexter." + this.robot.name +
-                                 " already running Job." + the_active_job_with_robot_maybe.name);
+                                 " already running Job." + the_active_job_with_robot_maybe.name)
             dde_error("Attempt to start Job." + this.name + " with Dexter." + this.robot.name +
                       ",<br/>but Dexter." + this.robot.name + " is already the default robot in Job." + the_active_job_with_robot_maybe.name +
-                      ",<br/>so Job." + this.name + " was automatically stopped.");
-        }
+                      ",<br/>so Job." + this.name + " was automatically stopped.")
+        } */
         if(this.wait_until_this_prop_is_false) { this.wait_until_this_prop_is_false = false; } //just in case previous running errored before it could set this to false, used by start_objects
         if (["starting", "running", "stopping", "running_when_stopped", "suspended", "waiting"].includes(this.status_code)){
             //does not run when_stopped instruction.
@@ -17467,39 +17493,43 @@ class Job$1{
                       " but it has status code: " + this.status_code +
                       " which doesn't permit restarting.");
         }
-        else if (["not_started", "completed", "errored", "interrupted"].includes(this.status_code)){
-            this.orig_args.robot;
-            if(options.hasOwnProperty("robot")) { options.early_robot; }
+        /*else if (["not_started", "completed", "errored", "interrupted"].includes(this.status_code)){
+            //Waiting.done_with_job(this) //just makes sure we've cleaned up the Waiting state
+
+            let early_robot = this.orig_args.robot
+            if(options.hasOwnProperty("robot")) { early_robot = options.early_robot }
             //if(early_robot instanceof Dexter)   { early_robot.remove_from_busy_job_array(this) }
-            Dexter.remove_from_busy_job_arrays(this);
-        }
+            Dexter.remove_from_busy_job_arrays(this)
+        }*/
+        Waiting.clear_all_if_ok(); //just makes sure we've cleaned up the Waiting state
         //active jobs & is_busy checking
-        let early_start_if_robot_busy = this.orig_args.start_if_robot_busy;
-        if (options && options.hasOwnProperty("start_if_robot_busy")) { early_start_if_robot_busy = options.start_if_robot_busy; }
+        //let early_start_if_robot_busy = this.orig_args.start_if_robot_busy
+        //if (options && options.hasOwnProperty("start_if_robot_busy")) { early_start_if_robot_busy = options.start_if_robot_busy }
+        /* commented out due to new Waiting scheme
         if((this.robot instanceof Dexter) &&  //can 2 jobs use a Robot.Serial? I assume so for now.
            !early_start_if_robot_busy &&
            this.robot.is_busy()) {
-                let one_active_job = this.robot.busy_job_array[0];
-                let but_elt = globalThis[one_active_job.name + "_job_button_id"];
+                let one_active_job = this.robot.busy_job_array[0]
+                let but_elt = globalThis[one_active_job.name + "_job_button_id"]
                 this.stop_for_reason("errored", "Another job: " + one_active_job.name +
-                                      " is using robot: " + this.robot.name);
+                                      " is using robot: " + this.robot.name)
                 if(but_elt){
-                    let bg = but_elt.style["background-color"];
+                    let bg = but_elt.style["background-color"]
                     dde_error("Job." + this.name + " attempted to use: Dexter." + this.robot.name +
                         "<br/>but that robot is in use by Job." + one_active_job.name +
                         "<br/>Click the <span style='color:black; background-color:" + bg + ";'> &nbsp;" +
                         one_active_job.name + " </span>&nbsp; Job button to stop it, or<br/>" +
                         "create Job." + this.name + " with <code>start_if_robot_busy=true</code><br/>" +
-                        "to permit it to be started.");
+                        "to permit it to be started.")
                 }
                 else {
                     dde_error("Job." + this.name + " attempted to use: Dexter." + this.robot.name +
                         "<br/>but that robot is in use by Job." + one_active_job.name + "<br/>" +
                         "Create Job." + this.name + " with <code>start_if_robot_busy=true</code><br/>" +
-                        "to permit it to be started.");
+                        "to permit it to be started.")
                 }
                 return
-        }
+        } */
         //init from orig_args
             this.set_status_code("starting"); //before setting it here, it should be "not_started"
             this.wait_until_instruction_id_has_run = null; //needed the 2nd time we run this job, init it just in case it didn't get set to null from previous job run
@@ -17517,7 +17547,7 @@ class Job$1{
             this.initial_instruction     = this.orig_args.initial_instruction;
             this.data_array_transformer  = this.orig_args.data_array_transformer;
             this.get_dexter_defaults     = this.orig_args.get_dexter_defaults;
-            this.start_if_robot_busy     = this.orig_args.start_if_robot_busy;
+            //this.start_if_robot_busy     = this.orig_args.start_if_robot_busy
             this.if_robot_status_error   = this.orig_args.if_robot_status_error;
             this.if_instruction_error    = this.orig_args.if_instruction_error;
             this.if_dexter_connect_error = this.orig_args.if_dexter_connect_error;
@@ -18208,8 +18238,8 @@ class Job$1{
     //OR the job's PC is pointing at an instruction that is using "robot".
     static active_jobs_using_robot(robot){
         let result = [];
-        this.active_jobs();
-        for(let job_instance of adctive_jobs){
+        let active_jobs = this.active_jobs();
+        for(let job_instance of active_jobs){
             if(job_instance.robot === robot) { result.push(job_instance); }
             else {
                 let instr = job_instance.do_list[job_instance.program_counter];
@@ -18546,7 +18576,7 @@ Job$1.stop_all_jobs = function(){
 };
 
 Job$1.prototype.undefine_job = function(){
-    if(this.robot instanceof Dexter) { Dexter.remove_from_busy_job_arrays(this); }
+    //if(this.robot instanceof Dexter) { Dexter.remove_from_busy_job_arrays(this) }
     delete Job$1[this.name];
     Job$1.forget_job_name(this.name);
     this.remove_job_button();
@@ -18880,9 +18910,10 @@ Job$1.prototype.finish_job = function(){
           else if(this.final_status_code) { //happens when the status_code was set to "running_when_stopped "
               this.status_code = this.final_status_code;
           } //does not hit in the all defaults case
+          Waiting.done_with_job(this); //just makes sure we've cleaned up the Waiting state
           this.robot.finish_job();
           //if(this.robot instanceof Dexter) { this.robot.remove_from_busy_job_array(this)} //sometimes a job might be busy and the user clicks its stop button. Let's clean up after that!
-          Dexter.remove_from_busy_job_arrays(this); //remove from ALL Dexters' busy_job_arrays.
+          //Dexter.remove_from_busy_job_arrays(this) //remove from ALL Dexters' busy_job_arrays.
           this.color_job_button(); //possibly redundant but maybe not and just called on finishing job so leave it in
           this.show_progress_maybe();
           out("Done with Job." + this.name + ", for reason: " + this.stop_reason +
@@ -19116,28 +19147,41 @@ Job$1.prototype.do_next_item = function(){ //user calls this when they want the 
         this.finish_job();
         return
     }
+    else if (this.stop_reason && (this.status_code !== "running_when_stopped")){ //maybe never hits as one of the above status_codes is pobably set
+        this.finish_job();
+        return
+    }
+    else if(Waiting.job_waiting_for_dexter(this)){
+        let dexter_instance = Waiting.job_waiting_for_dexter(this);
+        if(!Waiting.dexter_now_performing(dexter_instance)){ //the job is waiting, but for no good reason since the dexter is now free, so go ahead
+            let instr = Waiting.instruction_to_run_on_job(this);
+            Waiting.clear_job_and_dexter(this, dexter_instance);
+            this.send(instr);
+            return
+        }
+        else { this.set_up_next_do(0); }
+    }
+    /*
     else if (this.wait_until_instruction_id_has_run || (this.wait_until_instruction_id_has_run === 0)){ //the ordering of this clause is important. Nothing below has to wait for instructions to complete
         //wait for the wait instruction id to be done
         //the waited for instruction coming back thru robot_done_with_instruction will call set_up_next_do(1)
         //so don't do it here. BUT still have this clause to block doing anything below if we're waiting.
         return
-    }
-    else if (this.stop_reason && (this.status_code !== "running_when_stopped")){ //maybe never hits as one of the above status_codes is pobably set
-         this.finish_job();
-        return
-    } //must be before the below since if we've
+    }*/
+
     //already got a stop reason, we don't want to keep waiting for another instruction.
     else if (this.wait_until_this_prop_is_false) {
         this.set_up_next_do(0);
         return
     }
+
     else if (this.instr_and_robot_to_send_when_robot_unbusy) {
         let [inst, robot] = this.instr_and_robot_to_send_when_robot_unbusy;
-        if(robot.is_busy()) ; //loop around again
-        else {
+        //if(robot.is_busy()) { } //loop around again
+        //else {
             this.robot_and_instr_to_send_when_robot_unbusy = null;
             this.send(inst, robot);
-        }
+        //}
         return
     }
     else if (this.hasOwnProperty("insert_last_instruction_index") &&
@@ -19164,23 +19208,7 @@ Job$1.prototype.do_next_item = function(){ //user calls this when they want the 
             this.stop_for_reason("completed", stop_reason);
             this.finish_job();
         }
-        /* adds final "g" instruction but this is superfluous.
-          else if ((this.robot instanceof Dexter) &&
-            ((this.do_list.length == 0) ||
-            (last(this.do_list)[Dexter.INSTRUCTION_TYPE] != "g"))){
-            //this.program_counter = this.do_list.length //probably already true, but just to make sure.
-            //this.do_list.splice(this.program_counter, 0, Dexter.get_robot_status()) //this final instruction naturally flushes dexter'is instruction queue so that the job will stay alive until the last insetruction is done.
-                //this.added_items_count(this.program_counter, 0, 0)
-            //this.added_items_count.splice(this.program_counter, 0, 0)
 
-            this.insert_single_instruction(Dexter.get_robot_status(), false, true) //2nd arg false says making this new instruction a top level (not sub) instruction
-            //3rd arg true says even if we're running a MakeInstruction job and disallowing insertions,
-            //allow the insertion anyway.
-            //this.added_items_count[this.program_counter] += 1 //hmm, the final g instr isn't reallyy "nested" under the last item, just a top level expr
-                //but its not an orig top level one either. so maybe nest it.
-                //jun 9, 2018: No consider the new g a top level cmd with 0 subinstructions
-            this.set_up_next_do(0)
-        }*/
         else if (!this.stop_reason){
             let reason = "Finished all " + this.do_list.length + " do_list items.";
             this.stop_for_reason("completed", reason);
@@ -19511,20 +19539,30 @@ Job$1.prototype.send = function(oplet_array_or_string, robot){ //if remember is 
             //Socket.find_dexter_instance_from_robot_status needs it. So make a COPY of the array,
             //removing that last elt of a robot, as the socket code doesn't want a robot on the end of the array.
         }
-        else if (!robot)                                  { robot = this.robot; } //use the job's default robot
+        else if (!robot)  { robot = this.robot; } //use the job's default robot
     }
     if(robot instanceof Dexter){
-        if (robot.is_busy()){
+        if(Waiting.dexter_now_performing(robot)){
+            Waiting.set_job(this, robot, oplet_array_or_string);
+            this.set_up_next_do(0);
+            return
+        }
+        else { //ok to run this instruction now, but hold up this job until dexter_instance.robot_done_with_instruction called
+            Waiting.set_job_and_dexter(this, robot, oplet_array_or_string);
+        }
+
+
+       /* if (robot.is_busy()){
         //    this.instr_and_robot_to_send_when_robot_unbusy = [oplet_array_or_string, robot]
         //    return
         //}
-         robot.add_to_busy_job_array(this); //the only place this is called (err besides 5 lines below)
+         robot.add_to_busy_job_array(this) //the only place this is called (err besides 5 lines below)
          return //we're not sending the instruction, leave the PC on the current instruction
                //Dexter.prototype.robot_done_with_instruction will call set_up to execute it.
         }
         else {
-           robot.add_to_busy_job_array(this);  //keep sending this one inst to the dexter.
-        }
+           robot.add_to_busy_job_array(this)  //keep sending this one inst to the dexter.
+        }*/
     }
     let instruction_id;
     const oplet = Instruction.extract_instruction_type(oplet_array_or_string);
@@ -19541,16 +19579,22 @@ Job$1.prototype.send = function(oplet_array_or_string, robot){ //if remember is 
     else {
         instruction_id = this.program_counter;
     }
-    if(typeof(oplet_array_or_string) == "string") {
+    if(typeof(oplet_array_or_string) === "string") {
         let prefix = this.job_id + " " + instruction_id + " " + Date.now() + " undefined ";
         oplet_array_or_string = prefix + oplet_array_or_string;
         if(last(oplet_array_or_string) != ";") { oplet_array_or_string += ";"; }
 
     }
     else {
-        oplet_array_or_string[Instruction.JOB_ID]         = this.job_id;
-        oplet_array_or_string[Instruction.INSTRUCTION_ID] = instruction_id;
-        oplet_array_or_string[Instruction.START_TIME]     = Date.now();
+        if(oplet_array_or_string[Instruction.JOB_ID] === undefined) {
+            oplet_array_or_string[Instruction.JOB_ID] = this.job_id;
+        }
+        if(oplet_array_or_string[Instruction.INSTRUCTION_ID] === undefined) {
+            oplet_array_or_string[Instruction.INSTRUCTION_ID] = instruction_id;
+        }
+        if(oplet_array_or_string[Instruction.START_TIME] === undefined) {
+            oplet_array_or_string[Instruction.START_TIME] = Date.now();
+        }
     }
 
     if (this.keep_history){
@@ -19561,9 +19605,10 @@ Job$1.prototype.send = function(oplet_array_or_string, robot){ //if remember is 
         //cur instruction is "z"
     }
     //if(oplet === "a") { out("snd J2: " + oplet_array_or_string[6]) } //debugging statement only
-    if(robot instanceof Dexter){
-        this.wait_until_instruction_id_has_run = instruction_id;
-    }
+
+    /*if(robot instanceof Dexter){
+        this.wait_until_instruction_id_has_run = instruction_id
+    }*/
     robot.send(oplet_array_or_string);
 };
 
@@ -20292,7 +20337,7 @@ Job$1.prototype.to_source_code = function(args={}){
                        "ending_program_counter",
                        "initial_instruction",
                        "data_array_transformer",
-                       "start_if_robot_busy",
+                       //"start_if_robot_busy",
                        "if_robot_status_error",
                        "if_instruction_error",
                        "if_dexter_connect_error",
@@ -21711,6 +21756,7 @@ Instruction$1.Get_page = class Get_page extends Instruction$1{
         if (this.sent == false){ //hits first time only
             job_instance.user_data[the_var_name] = undefined; //must do in case there was some other
             //http_request for this var name, esp likely if its default is used.
+            let url_or_options = this.url_or_options; //for closure
             DDEFile.get_page_async(this.url_or_options, //note I *could* simplify here and use get_page (syncrhonos), but this doesn't freeze up UI while getting the page so a little safer.
                 function(err, body) {
                     //console.log("gp top of cb with the_var_name: " + the_var_name)
@@ -21718,9 +21764,11 @@ Instruction$1.Get_page = class Get_page extends Instruction$1{
                     //console.log("ojb inst: "   + job_instance)
                     //console.log("response: "    + response)
                     if(err) { //bug err is not null when bad url
-                        console.log("gp in err: ");
-                        job_instance.user_data[the_var_name] = "Error: " + err;
-                        console.log("gp after err: ");
+                        // be sure to prefix the err_mess with "Error:" so user can
+                        //distinguish it from valid content
+                        let err_mess = "Error: " + " Instruction IO.get_page with url: " + url_or_options + "<br/> had error: " + err.message;
+                        job_instance.user_data[the_var_name] = err_mess;
+                        warning(err_mess);
                     }
                     else {
                         //console.log("gp in good: ")
@@ -25518,12 +25566,12 @@ class Robot$1 {
     }
 
     //this is shadowed by Dexter, but all other robots are never busy.
-    is_busy(){ return false }
+    /*is_busy(){ return false }
 
     add_to_busy_job_array(a_job){ } //no-op. shadowed by Dexter.
 
     remove_from_busy_job_array(a_job){} //no-op. shadowed by Dexter.
-
+    */
     is_initialized(){ return true }
 
     //pretty weak. Only will work as long as Robots don't overlap in oplets
@@ -25766,6 +25814,7 @@ class Brain$1 extends Robot$1 { /*no associated hardware */
     }
     finish_job() {}
 
+    //Brain
     send(inst_array_with_inst_id) {
         let job_id = inst_array_with_inst_id[Instruction.JOB_ID];
         var job_instance = Job.job_id_to_job_instance(job_id);
@@ -25821,6 +25870,7 @@ class Human$1 extends Brain$1 { /*no associated hardware */
         job_instance.set_up_next_do(0);
     }
     finish_job() {}
+    //Human
     send(inst_array_with_inst_id) {
         let job_id = inst_array_with_inst_id[Instruction.JOB_ID];
         var job_instance = Job.job_id_to_job_instance(job_id);
@@ -26139,7 +26189,7 @@ class Serial$1 extends Robot$1 {
             }
         }
     }
-
+    //Serial
     send(ins_array){
         Robot$1.get_simulate_actual(this.simulate);
         let job_id       = ins_array[Serial$1.JOB_ID];
@@ -26445,6 +26495,9 @@ class Dexter$1 extends Robot$1 {
         if (globalThis.platform === "node") {
             return "localhost"
         }
+        else if (dde_running_in_cloud()) {
+            return "192.168.1.142"
+        }
         else if (globalThis.location && (globalThis.location.host === "localhost")) {
             let ip_addr = DDE_DB.persistent_get("default_dexter_ip_address");
             if (ip_addr) {
@@ -26513,7 +26566,7 @@ class Dexter$1 extends Robot$1 {
         this.angles     = [0, 0, 0, 0, 0, 0, 0]; //used by move_to_relative, set by move_all_joints, move_to, and move_to_relative
         this.pid_angles = [0, 0, 0, 0, 0, 0, 0];
         //this.processing_flush = false //primarily used as a check. a_robot.send shouldn't get called while this var is true
-        this.busy_job_array = [];
+        //this.busy_job_array = []
         Robot$1.set_robot_name(this.name, this);
         Dexter$1[this.name] = this; //see comment in Robot.set_robot_name
          //ensures the last name on the list is the latest with no redundancy
@@ -26621,7 +26674,10 @@ class Dexter$1 extends Robot$1 {
                  "The job: " + this_job.name + " could not connect to Dexter." + this_robot.name)
         }
         this_robot.connect_error_cb = connect_error_cb*/
-        let instruction_to_send_on_connect = Dexter$1.get_robot_status(); //the inital g instr
+        let instruction_to_send_on_connect = Dexter$1.get_robot_status(); //the initial g instr
+        instruction_to_send_on_connect[Instruction.JOB_ID]         = job_instance.job_id;
+        instruction_to_send_on_connect[Instruction.INSTRUCTION_ID] = -1;
+        instruction_to_send_on_connect[Instruction.START_TIME]     = Date.now();
         Socket.init(this.name, job_instance, instruction_to_send_on_connect);
     }
 
@@ -26815,7 +26871,7 @@ class Dexter$1 extends Robot$1 {
         Socket.empty_instruction_queue_now(this.name)
     }*/
 
-    //ins_array can be an oplet array or a raw string
+    //Dexter  ins_array can be an oplet array or a raw string
     send(oplet_array_or_string){
         //var is_heartbeat = ins_array[Instruction.INSTRUCTION_TYPE] == "h"
         //let oplet = Instruction.extract_instruction_type(oplet_array_or_string)
@@ -26834,7 +26890,7 @@ class Dexter$1 extends Robot$1 {
     stringify(){
         return "Dexter: <i>name</i>: "  + this.name           +
                ", <i>ip_address</i>: "  + this.ip_address     + ", <i>port</i>: "         + this.port         + ",<br/>" +
-               "<i>socket_id</i> "      + this.socket_id      + ", <i>is_connected</i>: " + this.is_connected + ", <i>waiting_for_heartbeat</i>: " + this.waiting_for_heartbeat +
+               "<i>connectivity</i> "   + ", <i>is_connected</i>: " + this.is_connected + ", <i>waiting_for_heartbeat</i>: " + this.waiting_for_heartbeat +
                Dexter$1.robot_status_to_html(this.robot_status, " on robot: " + this.name)
     }
 
@@ -26872,6 +26928,7 @@ class Dexter$1 extends Robot$1 {
                                  "Dexter.robot_done_with_instruction received a robot_status array: " +
                                   robot_status + " that is not an array.");
             job_instance.wait_until_instruction_id_has_run = null;
+            //this.remove_from_busy_job_array(job_instance)
             job_instance.set_up_next_do(0);
             return
         }
@@ -26894,27 +26951,27 @@ class Dexter$1 extends Robot$1 {
             job_instance.set_up_next_do(0);
             return
         }
-        else if (job_instance.wait_until_instruction_id_has_run !== ins_id){
+        /*else if (job_instance.wait_until_instruction_id_has_run !== ins_id){
             job_instance.stop_for_reason("errored_from_dexter",
                 "Dexter.robot_done_with_instruction received a robot_status array with an instruction_id of: " + ins_id +
-                "<br/> but expected: " + job_instance.wait_until_instruction_id_has_run);
-            job_instance.wait_until_instruction_id_has_run = null;
-            job_instance.set_up_next_do(0);
+                "<br/> but expected: " + job_instance.wait_until_instruction_id_has_run)
+            job_instance.wait_until_instruction_id_has_run = null
+            job_instance.set_up_next_do(0)
             return
-        }
+        }*/
         else if((error_code !== 0) && (oplet !== "r")){ //we've got an error
                 //job_instance.stop_for_reason("errored", "Robot status got error: " + error_code)
             job_instance.wait_until_instruction_id_has_run = null; //but don't increment PC
-            let busy_job_array_copy = rob.busy_job_array.slice();
-            rob.clear_busy_job_array(); //so that the other jobs that I call set_up_next_do, won't hang up because they are busy,
+            //let busy_job_array_copy = rob.busy_job_array.slice()
+            //rob.clear_busy_job_array() //so that the other jobs that I call set_up_next_do, won't hang up because they are busy,
             //because they no longer should be busy, because we got back our ack from Dexter that was keeping them busy,
-            for(let busy_job of busy_job_array_copy){
-                if(busy_job === job_instance) ; //let this pass through to the below as the passed in robot_status is from this instrr and this job_instance
+            /*for(let busy_job of busy_job_array_copy){
+                if(busy_job === job_instance) {} //let this pass through to the below as the passed in robot_status is from this instrr and this job_instance
                 else {
-                    busy_job.set_up_next_do(0); //now execute the instr at the PC in an OTHER job, without advancing it.
+                    busy_job.set_up_next_do(0) //now execute the instr at the PC in an OTHER job, without advancing it.
                     return
                 }
-            }
+            }*/
             let instruction_to_run_when_error = job_instance.if_robot_status_error; //.call(job_instance, robot_status)
             if(instruction_to_run_when_error){
                 //note instruction_to_run_when_error can be a single instruction or an array
@@ -26926,17 +26983,26 @@ class Dexter$1 extends Robot$1 {
             return
         }
 
-        job_instance.wait_until_instruction_id_has_run = null;
-        let busy_job_array_copy = rob.busy_job_array.slice();
-        rob.clear_busy_job_array(); //so that the other jobs that I call set_up_next_do, won't hang up because they are busy,
+        if(Waiting.is_job_waiting_for_dexter(job_instance, this)){
+            Waiting.clear_job_and_dexter(job_instance, this);
+        }
+        else {
+            shouldnt("In Dexter.robot_done_with_instruction, recieved job: " +
+                      job_instance.name + " and robot: " + this.name + " and oplet: " + oplet +
+                      " that were unexpected.");
+        }
+        /*
+        job_instance.wait_until_instruction_id_has_run = null
+        let busy_job_array_copy = rob.busy_job_array.slice()
+        rob.clear_busy_job_array() //so that the other jobs that I call set_up_next_do, won't hang up because they are busy,
          //because they no longer should be busy, because we got back our ack from Dexter that was keeping them busy,
         for(let busy_job of busy_job_array_copy){
-            if(busy_job === job_instance) ; //let this pass through to the below as the passed in robot_status is from this instrr and this job_instance
+            if(busy_job === job_instance) {} //let this pass through to the below as the passed in robot_status is from this instr and this job_instance
             else {
-               busy_job.set_up_next_do(0); //now execute the instr at the PC in an OTHER job, without advancing it.
+               busy_job.set_up_next_do(0) //now execute the instr at the PC in an OTHER job, without advancing it.
                return
             }
-        }
+        }*/
         if ((error_code !== 0) && (oplet === "r")){ //we have an error but its "file not found" handled specially
              //Dexter.read_file errored, assuming its "file not found" so end the rfr loop and set the "content read" as null, meaning file not found
                 //the below setting of the user data already done by got_content_hunk
@@ -26983,7 +27049,7 @@ class Dexter$1 extends Robot$1 {
             job_instance.stop_for_reason("interrupted", "Completed Dexter.empty_instruction_queue after user stopped the Job.");
             rob.perform_instruction_callback(job_instance);
         }
-        else if (ins_id == job_instance.program_counter) { //the normal case.
+        else if (ins_id === job_instance.program_counter) { //the normal case.
             rob.perform_instruction_callback(job_instance);// job_instance.set_up_next_do() //note before doing this, pc might be on last do_list item.
                     //but that's ok. increment pc and call do_next_item.
         }
@@ -26996,33 +27062,33 @@ class Dexter$1 extends Robot$1 {
     }
 
     //Dexter busy
-    clean_up_busy_job_array(){
-       let result = [];
+    /*clean_up_busy_job_array(){
+       let result = []
        for(let a_job of this.busy_job_array){
             if(a_job.is_active()) { //remove inactive jobs from busy_job_array by preserviong the still active ones
                 if(!result.includes(a_job)) { //remove duplicates
-                    result.push(a_job);
+                    result.push(a_job)
                 }
             }
        }
-       this.busy_job_array = result;
+       this.busy_job_array = result
     }
 
     //returns true or false
     is_busy(){
-        this.clean_up_busy_job_array();
+        this.clean_up_busy_job_array()
         return (this.busy_job_array.length > 0)
     }
 
     add_to_busy_job_array(a_job){
         if(!this.busy_job_array.includes(a_job)){
-            this.busy_job_array.push(a_job);
+            this.busy_job_array.push(a_job)
         }
     }
 
     remove_from_busy_job_array(a_job){
-        let i = this.busy_job_array.indexOf(a_job);
-        if(i >= 0) { this.busy_job_array.splice(i, 1); }
+        let i = this.busy_job_array.indexOf(a_job)
+        if(i >= 0) { this.busy_job_array.splice(i, 1) }
     }
 
     //called when a job is finished. Note that we might have a
@@ -27030,15 +27096,15 @@ class Dexter$1 extends Robot$1 {
     //and Job.send still adds its Job to the busy_job_array of a Dexter,
     //so we better remove it from all Dexters' busy_job_array
     static remove_from_busy_job_arrays(a_job) {
-        for(let dex_name of Dexter$1.all_names){
-            let dex = Dexter$1[dex_name];
-            dex.remove_from_busy_job_array(a_job);
+        for(let dex_name of Dexter.all_names){
+            let dex = Dexter[dex_name]
+            dex.remove_from_busy_job_array(a_job)
         }
     }
 
     clear_busy_job_array(){
-        this.busy_job_array = [];
-    }
+        this.busy_job_array = []
+    }*/
     //end robot_busy
 
     //Robot status accessors (read only for users)
@@ -27098,15 +27164,18 @@ class Dexter$1 extends Robot$1 {
         job_00.start();
     }
     run_instruction_fn(instr){
-        const job_00 = new Job({name: "job_00",
+        if(Job.run_instruction && Job.run_instruction.is_active()){
+            Job.run_instruction.stop_for_reason("interrupted", "run_instruction_fn is redefining this job.");
+        }
+        new Job({name: "run_instruction",
             robot: this,
             do_list: [instr]
         });
-        job_00.start();
+        Job.run_instruction.start();
     }
     /* The below is a smarter version of run_instruction_fn that just defines job_00 once,
        leaves it running and just adds the instruction to it the 2nd through nth times
-       its called. BUT this screws up if you are togglein between
+       its called. BUT this screws up if you are toggleing between
        running an instruction and running a regular job because the job_oo uses up the robot.
        So to avoid that interferance, I've gone back to just
        defining job_00 each time this fn is called and starting the job as above.
@@ -29244,7 +29313,7 @@ Dexter.prototype.defaults_read = function(callback = null){
     let normal_defaults_read_cb = (function(err, content){
         if(err) { dde_error("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
             the_url + "<br/>and error message: " +
-            err.message +
+            err.toString() +
             "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.");
         }
         else {
@@ -30738,6 +30807,127 @@ Dexter.dexter0.defaults_high_level_to_defaults_lines()
 // Dexter.dexter0.defaults_write() //warning: not ready for prime time. make a backup first.
 */
 
+globalThis.Waiting = class Waiting {
+
+    //called by Job.do_next_item
+    //returns a dexter instance or null if Job is not waiting.
+    static job_waiting_for_dexter(job_instance){
+        if(job_instance.waiting_for_dexter_and_instruction) {
+            return job_instance.waiting_for_dexter_and_instruction[0]
+        }
+        else {
+            return null
+        }
+    }
+
+    static is_job_waiting_for_dexter(job_instance, dexter_instance){
+        let result =
+            (job_instance.waiting_for_dexter_and_instruction &&
+             job_instance.waiting_for_dexter_and_instruction[0] === dexter_instance);
+        return result
+    }
+
+    //returns null if dexter_instance is NOT now performing,
+    //else returns [job_instance, instruction] that dexter_instance is now performing
+    static dexter_now_performing(dexter_instance){
+        return dexter_instance.now_performing
+    }
+
+    /*called by Job.do_next_item just before getting the cur_instr.
+      if(Waiting.job_waiting_for_dexter(job_instance){
+
+         if(!Waiting.dexter_now_performing(Waiting.job_waiting_for_dexter(job_instance))){
+              Waiting.clear_job_and_dexter(job_instance, dexter_instance)
+              job_instance.send(Waiting.instruction_to_run_on_job(job_instance)
+              return
+         }
+         else { job_instance.set_up_next_do(0) }
+         }
+      }
+      // else just continue
+    */
+    static instruction_to_run_on_job(job_instance){
+        if(job_instance.waiting_for_dexter_and_instruction){
+            return job_instance.waiting_for_dexter_and_instruction[1]
+        }
+        else { return null}
+    }
+
+    /*called by Job.send if is_job_waiting_for_dexter
+     if(Waiting.dexter_now_performing(dexter_instance)){
+        Waiting.set_job(job_instance, dexter_instance, instruction)
+        job_instance.set_up_next_do(0)
+        return
+     }
+     else { //ok to run this instruction now, but hold up this job until dexter_instance.robot_done_with_instruction called
+        Waiting.set_job_and_dexter(job_instance, dexter_instance, instruction)
+     }
+    */
+    static set_job(job_instance, dexter_instance, instruction){
+        job_instance.waiting_for_dexter_and_instruction = [dexter_instance, instruction];
+    }
+
+    static set_job_and_dexter(job_instance, dexter_instance, instruction){
+        if(job_instance.waiting_for_dexter_and_instruction){
+            shouldnt("Waiting.set_job_and_dexter attempting to set " + Job.job_name +
+            " " + dexter_instance.name + "<br/>but Job already has set for: " +
+                job_instance.waiting_for_dexter_and_instruction[0].name
+            );
+        }
+        else {
+            job_instance.waiting_for_dexter_and_instruction = [dexter_instance, instruction];
+            dexter_instance.now_performing = [job_instance, instruction];
+        }
+    }
+
+    /* in dexter_instance.robot_done_with_instruction
+      if(Waiting.is_job_waiting_for_dexter(job_instance, dexter_instance) ){
+         Waiting.clear_job_and_dexter(job_instance, dexter_instance)
+      }
+      else { shouldnt() }
+     */
+    static clear_job_and_dexter(job_instance, dexter_instance){
+        job_instance.waiting_for_dexter_and_instruction = null;
+        dexter_instance.now_performing = null;
+    }
+
+    static clear_all(){
+        for (let a_job_name of Job.all_names){
+            let a_job = Job[a_job_name];
+            a_job.waiting_for_dexter_and_instruction = null;
+        }
+        for (let a_dexter_name of Dexter.all_names){
+            Dexter[a_dexter_name].now_performing = null;
+        }
+    }
+
+    //call when starting job and ending job
+    static clear_all_if_ok(){
+        if(this.ok_to_clear_all()){
+            this.clear_all();
+        }
+    }
+
+    //just used internally by
+    static ok_to_clear_all(){
+        return (Job.active_jobs().length === 0)
+    }
+
+    //called when a job ends. It *shouldn't* be necessary, but to catch jobs and
+    //dexters that slip through cracks, its good safety to init for the next Jobs.
+    static done_with_job(job_instance) {
+        let dexter_instance = Waiting.job_waiting_for_dexter(job_instance);
+        if(dexter_instance){
+            Waiting.clear_job_and_dexter(job_instance, dexter_instance);
+        }
+        if((Job.active_jobs().length === 0) ||
+            ((Job.active_jobs().length === 1) &&
+             (Job.active_jobs()[0] === job_instance))) {
+            Waiting.clear_all();
+        }
+    }
+};
+
 /* Created by Fry on 2/4/16. */
 //https://www.hacksparrow.com/tcp-socket-programming-in-node-js.html
 //import net from "net" //dde4 only needs net pkg on server, not on the browser side.
@@ -30779,58 +30969,54 @@ class Socket$1{
             DexterSim.create_or_just_init(robot_name, sim_actual);
             //out("socket for Robot." + robot_name + ". is_connected? " + Robot[robot_name].is_connected)
             Socket$1.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect);
+            return
         }
         else if ((sim_actual === false) || (sim_actual == "both")) {
-            if(sim_actual == "both"){
-                DexterSim.create_or_just_init(robot_name, sim_actual); //harmless if done a 2nd time. returns without callbaack
+            if(sim_actual === "both"){
+                DexterSim.create_or_just_init(robot_name, sim_actual); //harmless if done a 2nd time. returns without callback
             }
             let net_soc_inst = Socket$1.robot_name_to_soc_instance_map[robot_name];
             if(net_soc_inst && (net_soc_inst.readyState === WebSocket.CLOSED)) {//WebSocket.CLOSED == 3 //"closed")) { //we need to init all the "on" event handlers
                 this.close(robot_name, true);
                 net_soc_inst = null;
             }
-            if(!net_soc_inst){
+            if(net_soc_inst) { //net_soc_inst already existed and is open
+                Socket$1.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect);
+                return
+            }
+            else { //make a new WebSocket
                 //out(job_instance.name + " Socket.init net_soc_inst for " + robot_name + " doesn't yet exist or is closed.")
                 try {
                     //net_soc_inst = new net.Socket()
                     //net_soc_inst.setKeepAlive(true)
-                    let ws_url = "ws://" + rob.ip_address + ":" + rob.port;
-                    net_soc_inst  = new WebSocket(ws_url);
-
-                    //out(job_instance.name + " Just after created, net_soc_inst.readyState: " + net_soc_inst.readyState)
-                    /* on error *could* be called, but its duration from a no-connection is
-                       highly variable so I have below a setTimeout to kill the connection
-                       after a second. But then both on error and the setTimeout method
-                       *could* get called so I take pains to kill off the setTimeout
-                       so that only one will get called.
-
-                    */
+                    let ws_url = "wss://" + rob.ip_address; //was "ws://" + rob.ip_address + ":" + rob.port
+                    net_soc_inst = new WebSocket(ws_url); // see https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
+                    if (!(net_soc_inst instanceof WebSocket)) {
+                        dde_error("In Socket.init, could not create WebSocket for url: " + ws_url);
+                    }
                 }
                 catch(err){
-                    console.log(job_instance.name + " Socket.init catch clause with err: " + err.message);
-                    dde_error("Error attempting to create socket to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + err.message);
-                    this.close(robot_name, true);
+                        console.log(job_instance.name + " Socket.init catch clause with err: " + err.message);
+                        this.close(robot_name, true);
+                        dde_error("Error attempting to create socket to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + err.message);
                 }
-                // I must define the below just once (on actual new socket init, because  calling
-                // net_soc_inst.on("data", function(data) {...} actually gives the socket 2 versions of the callback
-                // and so each will be called once, giving us a duplication that causes a difficult to find bug.
-                //net_soc_inst.on("data", function(data) { //dde3
-                //    Socket.on_receive(data, undefined, rob)
-                //})
-                net_soc_inst.onmessage = function(event) {
-                    let msg = event.data;
-                    Socket$1.on_receive(msg, undefined, rob);
-                };
+                //WebSocket creating succeeded
                 net_soc_inst.onopen = function(event){
-                    //out(job_instance.name + " Succeeded connection to Dexter: " + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port, "green")
-                    //clearTimeout(st_inst)
                     Socket$1.robot_name_to_soc_instance_map[robot_name] = net_soc_inst;
                     //the 3 below closed over vars are just used in the one call to when this on connect happens.
                     Socket$1.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect);
                 };
+                net_soc_inst.onmessage = function(event) {
+                    let msg = event.data;
+                    console.log("Socket.js onmessage got msg: " + msg);
+                    Socket$1.on_receive(msg, undefined, rob);
+                };
+                net_soc_inst.onclose = function(close_event){
+                    console.log("net socket closed.");
+                };
                 net_soc_inst.onerror = function(err){
                     console.log("Probably while running " + job_instance.name + " Socket.init on error while waiting for ack from instruction: " + instruction_to_send_on_connect  +
-                        " with err: " + err.message);
+                        " with err: " + err.toString());
                     //clearTimeout(st_inst)
                     let rob_name = Socket$1.net_soc_inst_to_robot_name(net_soc_inst);
                     if (rob_name == null) { rob_name = "unknown"; } //should be rare if at all.
@@ -30867,45 +31053,8 @@ class Socket$1{
                         }, timeout_dur);
                     }
                 }; //end of on("error"
-                net_soc_inst.onclose = function(err){
-                    console.log("net socket closed.");
-
-                };
-                setTimeout(function() {
-                    if(!net_soc_inst) ; //presume the job completed and so nothing to do
-                    else if (job_instance.is_done()) ; //presume the job completed and so nothing to do
-                    else if(net_soc_inst.readyState === WebSocket.OPEN) ; // WebSocket.OPEN == 1 //"open") {} //connection worked, leave it alone
-                    else { //connection failed
-                        job_instance.stop_for_reason("errored_from_dexter_connect", "Connection to Dexter." + robot_name +
-                                                     "\n failed after 2 seconds.");
-                    }
-                }, 2000);
-               // net_soc_inst.connect(rob.port, rob.ip_address) //not needed in dde4
-            } //ending the case where we need to make a new net_soc_inst
-
-            /*out(job_instance.name + "Socket.init before connect, net_soc_inst.readyState: " + net_soc_inst.readyState)
-            if (net_soc_inst.readyState === "closed") {
-                 st_inst = setTimeout(function(){
-                    out(job_instance.name + " in Socket.init, setTimout of st_inst")
-                    if(net_soc_inst.readyState !== "open") { //still trying to connect after 1 sec, so presume it never will. kill it
-                        Socket.close(robot_name, true)
-                        rob.resend_count = 0
-                        if(!job_instance.is_done()){
-                            job_instance.stop_for_reason("errored_from_dexter", " socket timeout while connecting to Dexter." + rob.name)
-                        }
-                    }
-                    else {
-                        Socket.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect)
-                    }
-                }, Socket.connect_timeout_seconds * 5000)
-                out(job_instance.name + " Now attempting to connect to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + " ...", "brown")
-                net_soc_inst.connect(rob.port, rob.ip_address) //the one call to .connect()
-            } */
-            else { //net_soc_inst already existed and is open
-                Socket$1.new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect);
-            }
+            } //ending the case where we need to make a new net_soc_inst/WebSocket
         }
-        //out(job_instance.name + " Socket.init, very bottom")
     }
 
     //this code lifted from dde3 socket.js using raw sockets and called when running on node/job_engine
@@ -30929,7 +31078,7 @@ class Socket$1{
                 DexterSim.create_or_just_init(robot_name, sim_actual); //harmless if done a 2nd time. returns without callbaack
             }
             let net_soc_inst = Socket$1.robot_name_to_soc_instance_map[robot_name];
-            if(net_soc_inst && (net_soc_inst.readyState === "closed")) { //we need to init all the "on" event handlers
+            if(net_soc_inst && !this.readyState_is_open(net_soc_inst)) { //we need to init all the "on" event handlers
                 this.close(robot_name, true);
                 net_soc_inst = null;
             }
@@ -31051,7 +31200,8 @@ class Socket$1{
             return net_soc_inst.readyState === "open"
         }
         else {
-            return net_soc_inst.readyState === WebSocket.OPEN
+            console.log("in Socket.js readyState_is_open, readyState is: " + net_soc_inst.readyState);
+            return net_soc_inst.readyState === WebSocket.OPEN //WebSocket.OPEN is 1
         }
     }
 
@@ -31060,8 +31210,9 @@ class Socket$1{
             const arr_buff = Socket$1.string_to_array_buffer(str);
             net_soc_inst.write(arr_buff); //dde3
         }
-        else {
-            net_soc_inst.send(str);
+        else { //net_soc_inst should be a WebSocket
+            console.log("send_low_level to WebSocket sending str of: " + str);
+            net_soc_inst.send(str); //was: str // WebSocket send cab take a JS string as its arg.
         }
     }
 
@@ -31069,18 +31220,22 @@ class Socket$1{
     //called from both above socket code and from dexsim
     static new_socket_callback(robot_name, job_instance, instruction_to_send_on_connect){
         Dexter.set_a_robot_instance_socket_id(robot_name);
-        let rob = Robot[robot_name];
         if(instruction_to_send_on_connect) { //usually this clause hits. happens for initial g oplet for a job
               //and when connection is dropped and we need to resetablish connection and resend.
               //ok to call this even if we were already connected.
-            let inst_id = instruction_to_send_on_connect[1];
-            if((inst_id === undefined) || (inst_id === -1)) { //we have the initial "g" instr for a job, that has yet to get filled out by Job.prototype.send
-                //out("new_socket_callback with initial g instruction.")
-                job_instance.send(instruction_to_send_on_connect, rob);
+            /*if(instruction_to_send_on_connect[Dexter.INSTRUCTION_ID] === undefined){
+                instruction_to_send_on_connect[Dexter.INSTRUCTION_ID]  = -1
             }
-            else {
-                rob.send(instruction_to_send_on_connect);
+            if(instruction_to_send_on_connect[Dexter.JOB_ID] === undefined) {
+                instruction_to_send_on_connect[Dexter.JOB_ID] = job_instance.job_id
             }
+            if(instruction_to_send_on_connect[Dexter.START_TIME] === undefined) {
+                instruction_to_send_on_connect[Dexter.START_TIME] = Date.now()
+            }
+            this.send(robot_name, instruction_to_send_on_connect)
+             */
+            let rob = Robot[robot_name];
+            job_instance.send(instruction_to_send_on_connect, rob);
         }
         else {
             warning("In new_socket_callback without instruction to send.");
@@ -31324,9 +31479,9 @@ class Socket$1{
             //dynamixel conversion
             else if (name == "EERoll"){ //J6 no actual conversion here, but this is a convenient place
                 //to put the setting of robot.angles and is also the same fn where we convert
-                // the degrees to dynamixel units of 0.20 degrees
+                //the degrees to dynamixel units of 0.20 degrees
                 //val is in dynamixel units
-              //don't do in this fn  rob.angles[5] = this.dexter_units_to_degrees(first_arg, 6) //convert dynamixel units to degrees then shove that into rob.angles for use by subsequent relative move instructions
+                //don't do in this fn  rob.angles[5] = this.dexter_units_to_degrees(first_arg, 6) //convert dynamixel units to degrees then shove that into rob.angles for use by subsequent relative move instructions
                 return instruction_array
             }
             else if (name == "EESpan") { //J7
@@ -31380,7 +31535,7 @@ class Socket$1{
         }
         else { return instruction_array }
     }
-
+    //Socket
     static send(robot_name, oplet_array_or_string){ //can't name a class method and instance method the same thing
         let is_reboot_inst = Dexter.is_reboot_instruction(oplet_array_or_string);
         let rob = Robot[robot_name];
@@ -31394,13 +31549,23 @@ class Socket$1{
         }
         //out(job_instance.name + " " + robot_name + " Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
 
-        oplet_array_or_string[Instruction.INSTRUCTION_TYPE];
+        //let oplet = oplet_array_or_string[Instruction.INSTRUCTION_TYPE]
         //out("In Socket.send for Job." + job_instance.name +
         //    " Dexter." + rob.name +
         //    " oplet: " + oplet +
         //    " instr: " + oplet_array_or_string)
-        oplet_array_or_string[Instruction.INSTRUCTION_ID];
+        /*
+        let instr_id = oplet_array_or_string[Instruction.INSTRUCTION_ID]
+        let got_first_non_monitor_instr = false
 
+        if((oplet === "g") && (instr_id > 0)) {
+            got_first_non_monitor_instr = true
+            //out("in Socket.send for job: " + job_instance.name)
+        }
+        else if ((job_instance !== "monitor_job") && (oplet !== "g") && got_first_non_monitor_instr){
+            //out("in Socket.send for job: " + job_instance.name)
+        }
+        */
         const str =  Socket$1.oplet_array_or_string_to_string(oplet_array_or_string_du);
         if(Instruction.is_F_instruction_string(str)) {
             rob.waiting_for_flush_ack = true;
@@ -31468,8 +31633,8 @@ class Socket$1{
                     }
                 }
             }
-            else { //maybe never hits. it only hits if there is no net_soc_inst in Socket.robot_name_to_soc_instance_map
-                this.close(robot_name, true); //both are send args
+            else { //This only hits if there is no net_soc_inst in Socket.robot_name_to_soc_instance_map or if its not open
+                this.close(robot_name, true);
                 setTimeout(function(){
                     Socket$1.init(robot_name, job_instance, oplet_array_or_string);
                 }, 100);
@@ -31500,6 +31665,8 @@ class Socket$1{
         //out("Socket.on_receive passed data: " + data +
         //                             " payload_string_maybe: " + payload_string_maybe +
         //                             " dexter_instance: " + dexter_instance)
+        console.log("on_receive passed data:");
+        console.log(data);
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
             let robot_status = data;
             let oplet = robot_status[Dexter.INSTRUCTION_TYPE];
@@ -31516,25 +31683,38 @@ class Socket$1{
             let oplet  = String.fromCharCode(opcode);
             this.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance);
         }
+        else if(typeof(data) === "string"){
+            console.log("Socket.on_receive got data of a string: " + data);
+        }
         else if (data instanceof Blob) {//dde4 what comes back from  websocket
             //from https://javascript.info/blob
             // get arrayBuffer from blob
-            console.log("on_receive got blob");
+            console.log("on_receive got blob of size: " + data.size);
+            if(data.size === 0) { return } //just ignore this. maybe artifact of WebSockets
             let fileReader = new FileReader();
-            fileReader.readAsArrayBuffer(data);
             fileReader.onload = function(event) {
-                let arrayBuffer = fileReader.result;
-                let view1 = new Int32Array(arrayBuffer);
-                let robot_status = [];
-                for(var i = 0; i < view1.length; i++){
-                    var elt_int32 = view1[i];
-                    robot_status.push(elt_int32);
+                let arrayBuffer = event.target.result; //should be the same as fileReader.result
+                if(arrayBuffer.byteLength < 240){
+                    dde_error("Socket.on_receive filereader onload got arraybuffer.byteLength: " + arrayBuffer.byteLength +
+                        "<br/>which is too short.");
                 }
-                let oplet = robot_status[Dexter.INSTRUCTION_TYPE];
-                oplet = String.fromCharCode(oplet);
-                console.log("on_receive onload cb made rs: " + robot_status + " and got oplet; " + oplet);
-                Socket$1.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance);
+                else {
+                    let view1 = new Int32Array(arrayBuffer);
+                    let robot_status = [];
+                    for (var i = 0; i < view1.length; i++) {
+                        var elt_int32 = view1[i];
+                        robot_status.push(elt_int32);
+                    }
+                    let oplet = robot_status[Dexter.INSTRUCTION_TYPE];
+                    oplet = String.fromCharCode(oplet);
+                    console.log("on_receive onload cb made rs: " + robot_status + " and got oplet; " + oplet);
+                    Socket$1.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance);
+                }
+                };
+            fileReader.onerror = function(err) {
+                console.log("in Socket.on_receive, fileReader.onerror called with: " + err.message);
             };
+            fileReader.readAsArrayBuffer(data);
         }
         else {
             shouldnt("In Socket.on_receive, got unexpected data type.");
@@ -31546,8 +31726,8 @@ class Socket$1{
         //the simulator automatically does this so we have to do it here in non-simulation
         //out("on_receive got back oplet of " + oplet)
         robot_status[Dexter.INSTRUCTION_TYPE] = oplet;
-        let job_id = robot_status[Dexter.JOB_ID];
-        Job.job_id_to_job_instance(job_id);
+        //let job_id = robot_status[Dexter.JOB_ID]
+        //let job_instance = Job.job_id_to_job_instance(job_id)
         //out("In on_receive_aux for Job." + job_instance.name +
         //    " Dexter." + dexter_instance.name +
         //    " oplet: " + oplet +
@@ -31812,7 +31992,7 @@ class Socket$1{
 
 ////Socket.resend_count = null
 
-    static robot_name_to_soc_instance_map = {}
+    static robot_name_to_soc_instance_map = {} //can contain both raw sockets and WebSockets.
     static DEGREES_PER_DYNAMIXEL_320_UNIT = 0.29   //range of motion sent is 0 to 1023
     static DEGREES_PER_DYNAMIXEL_430_UNIT = 360 / 4096
     static J6_OFFSET_SERVO_UNITS = 512
@@ -31982,7 +32162,10 @@ class DexterSim$1{
             if(i == Instruction.INSTRUCTION_TYPE) {
                 oplet = substr[0]; //dde4: substr is someimes "g;" so get rid of the semicolon.
                 oplet_array.push(oplet);
-                if(substr.endsWith(";")) { break; }
+                if(substr.endsWith(";")) {
+                    substr = substr.substring(0, (substr.length - 1)); //cut off the trailing semicolon
+                    break;
+                }
                 else                     { continue; }
             }
             else if ((oplet == "W") && (i == Instruction.INSTRUCTION_ARG2)) { //this is the payload of Dexter.write_file
@@ -31999,9 +32182,18 @@ class DexterSim$1{
                 oplet_array.push(payload);
                 break;
             }
-            if(substr == "")               ; //ignore. this is having more than one whitespace together. Just throw out
-            else if(substr == "undefined") { oplet_array.push(undefined); }
-            else if (substr == "NaN")      { oplet_array.push(NaN); }
+            else if (substr == ";")         { break }
+            else if (substr == "")          ; //ignore. this is having more than one whitespace together. Just throw out
+            else if (substr == "undefined") { oplet_array.push(undefined); }
+            else if (substr == "undefined;") {
+                oplet_array.push(undefined);
+                break;
+            }
+            else if (substr == "NaN")       { oplet_array.push(NaN); }
+            else if (substr == "NaN;")      {
+                oplet_array.push(NaN);
+                break;
+            }
             else {
                 let num_maybe = parseFloat(substr); //most are ints but some are floats
                 if(Number.isNaN(num_maybe)) { oplet_array.push(substr); } //its a string
@@ -32750,8 +32942,12 @@ class Simqueue$1{
         let dur_in_ms = ds_instance.predict_j6_plus_instruction_dur_in_ms(new_angle_in_dexter_units, joint_number);
         if(dur_in_ms === 0) ; //the joint is already at the commanded angle so nothing to do. This is a big optimization for a common case.
         else if (SimUtils.is_simulator_showing()){
-            let val_for_show = (this.show_degrees ? Socket.dexter_units_to_degrees(new_angle_in_dexter_units, joint_number) : new_angle_in_dexter_units);
-            val_for_show = (Number.isInteger(val_for_show) ? val_for_show : val_for_show.toFixed(3));
+            let val_for_show;
+            if(Number.isNaN(new_angle_in_dexter_units)) { val_for_show = "NaN"; }
+            else if(this.show_degrees) {
+                val_for_show = Socket.dexter_units_to_degrees(new_angle_in_dexter_units, joint_number);
+            }
+            else { val_for_show = new_angle_in_dexter_units; }
             this.joint_number_to_j6_plus_status_map[joint_number] = "moving to " + val_for_show;
             this.update_j6_plus_status_if_shown(joint_number);
             let robot_name = ds_instance.robot_name;
@@ -34345,7 +34541,15 @@ class DDEFile$1 {
     static add_default_file_prefix_maybe(path){
         path = DDEFile$1.convert_backslashes_to_slashes(path);
         if (this.is_root_path(path))     { return path }
-        else if (this.is_dde_path(path)) { return path } // the node server will prepend to such paths
+        else if (this.is_dde_path(path)) { //starts with "dde/"
+            let file_prefix = "";
+            if(dde_running_in_cloud()){
+                //example: path is:  "dde/third_party/Corlib.ipg"
+                //we want to return: "cfry.github.io/dde4/dde/third_party/CorLib.ipg"
+                file_prefix = globalThis.location.host + "/dde4/";
+            }
+            return file_prefix + path
+        } // the node server will prepend to such paths
         else if ((path === "dde_apps") || path.startsWith("dde_apps/")) { return path }
         else if (path == "new buffer") { return path } //needed by Editor.edit_file
         else { return "dde_apps/" + path }
@@ -34384,27 +34588,27 @@ class DDEFile$1 {
                 }
                 let ip_address = dex.ip_address;
                 extracted_path = this.add_default_file_prefix_maybe(extracted_path);
-                url = "http://" + ip_address + query + extracted_path;
+                url = "https://" + ip_address + query + extracted_path;
             }
         }
         else if(path.startsWith("host:")){
             let [full_dex_name, extracted_path] = path.split(":");
             let ip_address = this.host(); //might return "localhost"
             extracted_path = this.add_default_file_prefix_maybe(extracted_path);
-            url = "http://" + ip_address + query + extracted_path;
+            url = "https://" + ip_address + query + extracted_path;
         }
         else if (path.includes(":")) {
             if(query !== "") {
                 let [protocol, host, extracted_path] = path.split(":");
                 if((protocol === "http") || (protocol === "https")){
                     extracted_path = this.add_default_file_prefix_maybe(extracted_path);
-                    url = protocol + ":" + host + query + path; //todo cut out host, just go with extracted path here???
+                    url = "https" + ":" + host + query + path; //todo cut out host, just go with extracted path here???
                 }
                 else { //only 1 colon, assume its NOT the suffix to host but the separator before port
                     extracted_path = host;
                     host = protocol;
                     extracted_path = this.add_default_file_prefix_maybe(extracted_path);
-                    url = "http" + "://" + host + //":" +  //don't insert this colon. causes fetch to break
+                    url = "https" + "://" + host + //":" +  //don't insert this colon. causes fetch to break
                         query + extracted_path;
                 }
             }
@@ -34412,8 +34616,13 @@ class DDEFile$1 {
         }
         else {
             path = this.add_default_file_prefix_maybe(path);
-            url = "http://" + this.host() + //":" +
-                   query + path;
+            if(dde_running_in_cloud()){
+                url = "https://" + path;  //cloud can't handle any query strings
+            }
+            else {
+                url = "https://" + this.host() + //":" +
+                    query + path;
+            }
         }
         return url
     }
@@ -34472,9 +34681,9 @@ class DDEFile$1 {
         else { return str }
     }
 
-    static callback_or_error(callback, error_message="got error"){
+    static callback_or_error(callback, error_message="got error", path){
         if (callback) {
-            callback(error_message);
+            callback(error_message, path);
         }
         else {
             dde_error(error_message);
@@ -34482,9 +34691,9 @@ class DDEFile$1 {
     }
 
     //value might legitimately pass in undefined, so leave it that way
-    static callback_or_return(callback, value){
+    static callback_or_return(callback, value, path){
         if (callback) {
-            callback(null, value);
+            callback(null, value, path);
         }
         else {
             return value
@@ -34494,23 +34703,13 @@ class DDEFile$1 {
     //______end Utilites______
     //Core file manipulation methods
 
-    /*static async file_exists(path, callback){
-        //if(!path.startsWith("/")) {path = dde_apps_folder + "/" + path}
-        //path = this.add_default_file_prefix_maybe(path)
-        let full_url =  this.make_url(path, "/edit?info=") //was "/edit?edit=" which works for files but not folders
-        //full_url = full_url.substring(1) //cut off the leading slash makes the server code
-        //think that this url is a root url for some strange reason.
-        //see httpd.mjs, serve_file()
-        let file_info_response = await fetch(full_url)
-        return this.callback_or_return(callback, file_info_response.ok)
-    }*/
     static async file_exists(path, callback){
         let info = await this.path_info(path, callback);
         if(info){
-            return this.callback_or_return(callback, true)
+            return this.callback_or_return(callback, true, path)
         }
         else {
-            return this.callback_or_return(callback, false)
+            return this.callback_or_return(callback, false, path)
         }
     }
 
@@ -34538,19 +34737,32 @@ class DDEFile$1 {
             return this.callback_or_error(callback, err)
         }
     }*/
-    static async get_page_async(url_or_options, callback){
+
+    //see https://stackoverflow.com/questions/43262121/trying-to-use-fetch-and-pass-in-mode-no-cors
+    ///both my server (gitup.io and the requested url's server need to
+    //send back the proper header: ("res" stands for response)
+    //  res.setHeader('Access-Control-Allow-Origin', '*');
+    // to allow you to get the url.
+    static async get_page_async(url, callback){
         //https://www.npmjs.com/package/request documents request
-        let full_url = "http://" + this.host() + "/get_page?path=" + url_or_options;
-        let response = await fetch(full_url);
-        if(response.ok){
-            let content = await response.text();
-            return this.callback_or_return(callback, content)
+        let full_url = (dde_running_in_cloud() ? url :
+                   "http://" + this.host() + "/get_page?path=" + url);
+        try {
+            let response = await fetch(full_url); //will error due to CORS if the host serving full_url doesn't pave a response header allowing CORS
+            if (response.ok) {
+                let content = await response.text();
+                return this.callback_or_return(callback, content, path)
+            } else {
+                let err_mess =  "get_page_async for: " + url + " failed.<br/>" + err.message;
+                return this.callback_or_error(callback, err_mess, path)
+            }
         }
-        else {
-            let err = ("get_page_async didn't work.");
-            return this.callback_or_error(callback, err)
+        catch(err){
+          "get_page_async for: " + url + " failed.<br/>" + err.message;
+          return this.callback_or_error(callback, err, url)
         }
     }
+
 
     //from https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests
     //scynchronous, bypasses htttpd server. Often fails due to CORS, but
@@ -34583,29 +34795,29 @@ class DDEFile$1 {
         if(file_info_response.ok) {
             let content = await file_info_response.text();
             if(content === "null") {
-                return this.callback_or_return(callback, null)
+                return this.callback_or_return(callback, null, path)
             }
             else {
                 let json_obj = JSON.parse(content);
                 let is_dir = json_obj.kind === "folder";
                 let perm_str = Utils.permissions_integer_string_to_letter_string(json_obj.permissions, is_dir);
                 json_obj.permissions_letters = perm_str;
-                return this.callback_or_return(callback, json_obj)
+                return this.callback_or_return(callback, json_obj, path)
             }
         }
         else {
-            this.callback_or_error(callback, "DDEFile.path_info for: " + path + " got error: " + file_info_response.status);
+            this.callback_or_error(callback, "DDEFile.path_info for: " + path + " got error: " + file_info_response.status, path);
         }
     }
 
     static async is_folder(path, callback){
         let info_obj = await this.path_info(path);
         if(info_obj === null) {
-            return this.callback_or_return(callback, false)
+            return this.callback_or_return(callback, false, path)
         }
         else {
             let is_fold = info_obj.kind === "folder";
-            return this.callback_or_return(callback, is_fold)
+            return this.callback_or_return(callback, is_fold, path)
         }
     }
 
@@ -34618,27 +34830,28 @@ class DDEFile$1 {
     static async read_file_async(path, callback){
         if (path === undefined) {
             if (Editor.current_file_path == "new buffer"){
-                this.callback_or_error(callback, "Attempt to read_file_async but no path given.");
+                this.callback_or_error(callback, "Attempt to read_file_async but no path given.", path);
             }
             else { path = Editor.current_file_path; }
         }
         let full_url = this.make_url(path, "/edit?edit=");
         //path = this.add_default_file_prefix_maybe(path)
         //let full_url = this.protocol_and_host() +  "/edit?edit=" + path
-        let file_info_response = await fetch(full_url,  {mode: 'no-cors'}); // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
+        console.log("read_file_async fetching: " + full_url);
+        let file_info_response = await fetch(full_url); //,  {mode: 'no-cors'}) // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
         if(file_info_response.ok) {
             let content = await file_info_response.text();
-            return this.callback_or_return(callback, content)
+            return this.callback_or_return(callback, content, path)
         }
         else {
-            this.callback_or_error(callback, "DDEFile.read_file_async of: " + path + " got error: " + file_info_response.status);
+            this.callback_or_error(callback, "DDEFile.read_file_async of: " + path + " got error: " + file_info_response.status, path);
         }
     }
 
     static async read_file_part(path, start=0, length=80, callback){
         if (path === undefined) {
             if (Editor.current_file_path == "new buffer"){
-                this.callback_or_error(callback, "Attempt to read_file_async but no path given.");
+                this.callback_or_error(callback, "Attempt to read_file_async but no path given.", path);
             }
             else { path = Editor.current_file_path; }
         }
@@ -34647,13 +34860,14 @@ class DDEFile$1 {
                                     "&length=" + length + "&read_part=");
         //path = this.add_default_file_prefix_maybe(path)
         //let full_url = this.protocol_and_host() +  "/edit?edit=" + path
-        let file_info_response = await fetch(full_url); // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
+        let file_info_response = await fetch(full_url,
+                                             {mode: 'no-cors'} ); // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
         if(file_info_response.ok) {
             let content = await file_info_response.text();
-            return this.callback_or_return(callback, content)
+            return this.callback_or_return(callback, content, path)
         }
         else {
-            this.callback_or_error(callback, "DDEFile.read_file_part of: " + path + " got error: " + file_info_response.status);
+            this.callback_or_error(callback, "DDEFile.read_file_part of: " + path + " got error: " + file_info_response.status, path);
         }
     }
 
@@ -34662,7 +34876,7 @@ class DDEFile$1 {
     static async write_file_async(path, content, encoding= null, callback){ //default was "utf8" in dde3
         if (path === undefined){
             if (Editor.current_file_path == "new buffer"){
-                this.callback_or_error(callback, "Attempt to write file but no filepath given.");
+                this.callback_or_error(callback, "Attempt to write file but no filepath given.", path);
             }
             else { path = Editor.current_file_path; }
         }
@@ -34705,17 +34919,17 @@ class DDEFile$1 {
                                              mode: 'no-cors'});
         if(res.ok) {
             out("DDEFile.write_file_async wrote file to: " + full_url, undefined, true); //make it temp.
-            return this.callback_or_return(callback, orig_content)
+            return this.callback_or_return(callback, orig_content, path)
         }
         else {
-            this.callback_or_error(callback, "DDEFile.write_file_async of: " + path + " got error: " + res.status);
+            this.callback_or_error(callback, "DDEFile.write_file_async of: " + path + " got error: " + res.status, path);
         }
     }
 
     static async append_to_file(path, content, encoding= null, callback){ //default was "utf8" in dde3
         if (path === undefined){
             if (Editor.current_file_path == "new buffer"){
-                this.callback_or_error(callback, "Attempt to write file but no filepath given.");
+                this.callback_or_error(callback, "Attempt to write file but no filepath given.", path);
             }
             else { path = Editor.current_file_path; }
         }
@@ -34759,19 +34973,20 @@ class DDEFile$1 {
                                                     mode: 'no-cors'});
         if(res.ok) {
             out("DDEFile.append_to_file to: " + this.add_default_file_prefix_maybe(path), undefined, true);
-            return this.callback_or_return(callback, orig_content)
+            return this.callback_or_return(callback, orig_content, path)
         }
         else {
             this.callback_or_error(callback,
                                    "DDEFile.append_to_file to: " +
-                                   this.add_default_file_prefix_maybe(path) + " got error: " + res.status);
+                                   this.add_default_file_prefix_maybe(path) + " got error: " + res.status,
+                                   path);
         }
     }
 
     static async delete(path, callback){
         if (path === undefined){
             if (Editor.current_file_path == "new buffer"){
-                this.callback_or_error(callback, "Attempt to write file but no filepath given.");
+                this.callback_or_error(callback, "Attempt to write file but no filepath given.", path);
             }
             else { path = Editor.current_file_path; }
         }
@@ -34786,10 +35001,10 @@ class DDEFile$1 {
                                                     body: formData});
         if(res.ok) {
             out("DDEFile.delete deleted: " + defaulted_path, undefined, true);
-            return this.callback_or_return(callback, true)
+            return this.callback_or_return(callback, true, path)
         }
         else {
-            this.callback_or_error(callback, "DDEFile.delete_file of: " + path + " got error: " + res.status);
+            this.callback_or_error(callback, "DDEFile.delete_file of: " + path + " got error: " + res.status, path);
         }
     }
 
@@ -34807,7 +35022,7 @@ class DDEFile$1 {
                 this.delete(temp_file_path, callback);
             }
             else {
-                this.callback_or_error(callback, "Error calling DDEFile.make_folder(" + path + ")");
+                this.callback_or_error(callback, "Error calling DDEFile.make_folder(" + path + ")", path);
             }
         }
     }
@@ -34824,10 +35039,10 @@ class DDEFile$1 {
         if(file_info_response.ok) {
             let content = await file_info_response.text();
             Editor.edit_file(path, content, dont_save_cur_buff_even_if_its_changed); //true means: dont_save_cur_buff_even_if_its_changed
-            this.callback_or_return(callback, content);
+            this.callback_or_return(callback, content, path);
         }
         else {
-            this.callback_or_error(callback, "DDEFile.edit_file of: " + path + " got error: " + file_info_response.status);
+            this.callback_or_error(callback, "DDEFile.edit_file of: " + path + " got error: " + file_info_response.status, path);
         }
     }
 
@@ -34837,21 +35052,21 @@ class DDEFile$1 {
         if(file_info_response.ok) {
             let content = await file_info_response.text();
             Editor.insert(content);
-            this.callback_or_return(callback, content);
+            this.callback_or_return(callback, content, path);
         }
         else {
-            this.callback_or_error(callback, "DDEFile.insert_file_content of: " + path + " got error: " + file_info_response.status);
+            this.callback_or_error(callback, "DDEFile.insert_file_content of: " + path + " got error: " + file_info_response.status, path);
         }
     }
 
     static loading_file
 
-    static load_file_callback_default(err, result){
+    static load_file_callback_default(err, result, path){
         if(err) {
-            dde_error("DDEFile.load_file errored with: " + err.message);
+            dde_error("DDEFile.load_file of: " + path + " errored with: " + err.message);
         }
         else {
-            out("DDEFile.load_file result: " + result);
+            out("DDEFile.load_file of: " + path + " returned result of: " + result);
         }
     }
 
@@ -34891,7 +35106,7 @@ class DDEFile$1 {
                     result = Py.eval(content);
                     console.log("load_file got result: " + result);
                     this.loading_file = undefined;
-                    this.callback_or_return(callback, result);
+                    this.callback_or_return(callback, result, path);
                     return
                 }
                 else if(globalThis.eval_js_part2) { //we're in IDE
@@ -34899,7 +35114,7 @@ class DDEFile$1 {
                     let result_obj = globalThis.eval_js_part2(content);
                     if(result_obj.err){
                         this.loading_file = undefined;
-                        this.callback_or_error(callback, err);
+                        this.callback_or_error(callback, err, path);
                         return
                     }
                     else {
@@ -34913,16 +35128,18 @@ class DDEFile$1 {
                 }
                 console.log("load_file got result: " + result);
                 this.loading_file = undefined;
-                this.callback_or_return(callback, result);
+                this.callback_or_return(callback, result, path);
             }
             catch(err){
                 this.loading_file = undefined;
-                this.callback_or_error(callback, err);
+                this.callback_or_error(callback, err, path);
             }
         }
         else {
             this.loading_file = undefined;
-            this.callback_or_error(callback,"DDEFile.load_file of: " + defaulted_path + " got error: " + file_info_response.status);
+            this.callback_or_error(callback,
+                                   "DDEFile.load_file of: " + defaulted_path + " got error: " + file_info_response.status,
+                                   path);
         }
     }
 
@@ -34938,10 +35155,10 @@ class DDEFile$1 {
         if(fold_info.ok) {
             let content = await fold_info.text();
             let obj = JSON.parse(content);
-            return this.callback_or_return(callback, obj)
+            return this.callback_or_return(callback, obj, path)
         }
         else {
-            this.callback_or_error(callback, "DDEFile.folder_listing for: " + path + " got error: " + fold_info.status);
+            this.callback_or_error(callback, "DDEFile.folder_listing for: " + path + " got error: " + fold_info.status, path);
         }
     }
 
@@ -35017,10 +35234,10 @@ class DDEFile$1 {
             let file_name = path.substring(last_slash + 1);
             this.download(url, file_name);  // Download file
             URL.revokeObjectURL(url); // Release the object URL
-            return this.callback_or_return(callback, true)
+            return this.callback_or_return(callback, true, path)
             }
         else {
-            this.callback_or_error(callback,"DDEFile.download_file of: " + path + " got error: " + file_info_response.status);
+            this.callback_or_error(callback,"DDEFile.download_file of: " + path + " got error: " + file_info_response.status, path);
         }
     }
 
@@ -38209,8 +38426,11 @@ globalThis.List = class List{
     }
 };
 
-//this file only used when Job Engie is used as part of DDE IDE
+//this file only used when Job Engine is used as part of DDE IDE
 
+globalThis.dde_running_in_cloud = function(){
+    return (globalThis.location && globalThis.location.host === "cfry.github.io")
+};
 //start of Job Engine imports
 
 globalThis.dde_version      = "not inited";
@@ -38570,7 +38790,7 @@ class GrpcServer {
         if(this.DDE4_PATH.endsWith("/dde/build")) {
             this.DDE4_PATH = this.DDE4_PATH.substring(0, this.DDE4_PATH.length - ("/dde/build".length));
         }
-        this.PROTO_PATH    = path.join(this.DDE4_PATH, "dde", "third_party", "helloworld.proto");
+        this.PROTO_PATH    = path$1.join(this.DDE4_PATH, "dde", "third_party", "helloworld.proto");
         console.log("DDE4_PATH: "  + this.DDE4_PATH);
         //console.log("DDE_PATH: "   + this.DDE_PATH)
         console.log("PROTO_PATH: " + this.PROTO_PATH);
@@ -38611,8 +38831,12 @@ globalThis.GrpcServer = GrpcServer;
 
 //GrpcServer.init();
 
-///the ifle only used by Job Engine when it is running by itself
+///this file is only used by Job Engine when it is running by itself
 console.log("top of ready_je.js");
+
+globalThis.dde_running_in_cloud = function(){
+    return (globalThis.location && globalThis.location.host === "cfry.github.io")
+};
 
 globalThis.default_default_ROS_URL           = "localhost:9090";
 globalThis.default_default_dexter_ip_address = "192.168.1.142";

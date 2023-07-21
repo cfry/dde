@@ -1,5 +1,5 @@
 import os from 'os'
-const {exec} = require('child_process') //todo //not an npm module.
+const {exec} = require('child_process')
 import pckg from "package"
 
 

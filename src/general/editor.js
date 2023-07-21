@@ -858,6 +858,28 @@ class Editor {
 
     static local_path_to_open_file_handle = {}
 
+    //the onclick handler for the pull down file select in DDE4
+    static async open_local_file_from_menu(event){
+        let menu_item_label       = event.target.value //could be "new buffer" or an actual file
+        let path = Editor.files_menu_path_to_path(menu_item_label)
+        //let file_name  = Editor.path_to_file_name(menu_item_label)
+        let fileHandle = Editor.local_path_to_open_file_handle[path]
+        if(!fileHandle){
+            Editor.open_local_file(path)
+        }
+        else {
+            const file = await fileHandle.getFile();  // file is an object that knows about the file
+            //why do we need both a fileHandle and a file object? Bad design as far as I can tell.
+            const content = await file.text()
+            if(globalThis.HCA && (Editor.view === "HCA")){
+                ipg_to_json.parse(path, content)
+            }
+            else {
+                Editor.edit_file(path, content)
+            }
+        }
+    }
+
     static async open_local_file(path = null) {
         let options = ((typeof(path) === "string") ? {suggestedName: Editor.path_to_file_name(path)} : undefined)
         let [fileHandle] = await window.showOpenFilePicker(options)

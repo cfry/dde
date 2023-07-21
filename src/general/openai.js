@@ -91,30 +91,14 @@ globalThis.OpenAI = class OpenAI{
         prompt = prompt.trim()
         this.show_prompt(prompt)
         let media = DDE_DB.persistent_get("gpt_response_media")
-        if     (media === "inspect_envelope")     {  this.previous_envelope = await this.make_inspect_envelope(prompt)
-                                                     return this.previous_envelope
-                                                  }
-        else if(media === "text")                 { this.previous_envelope = await this.make_text(prompt)
-                                                    return this.previous_envelope
-                                                  }
-        else if(media === "inspect_text_to_data") { this.previous_envelope = await this.make_inspect_text_to_data(prompt)
-                                                    return this.previous_envelope
-                                                  }
-        else if(media === "code_only")            { this.previous_envelope = await this.make_code_only(prompt)
-                                                    return this.previous_envelope
-                                                  }
-        else if(media === "whole_response")       { this.previous_envelope = await this.make_whole_response(prompt)
-                                                    return this.previous_envelope
-                                                  }
-        else if(media === "plot_numbers")         { this.previous_envelope = await this.make_plot_numbers(prompt)
-                                                    return this.previous_envelope
-                                                  }
-        else if (media === "search_google")       { this.previous_envelope = await this.make_search_google(prompt)
-                                                    return this.previous_envelope
-                                                  }
-        else if(media === "image")                { this.previous_envelope  = await this.make_image(prompt) //does not take temperature
-                                                    return this.previous_envelope
-                                                  }
+        if     (media === "inspect_envelope")     { this.previous_envelope = await this.make_inspect_envelope(prompt)}
+        else if(media === "text")                 { this.previous_envelope = await this.make_text(prompt)}
+        else if(media === "inspect_text_to_data") { this.previous_envelope = await this.make_inspect_text_to_data(prompt)}
+        else if(media === "code_only")            { this.previous_envelope = await this.make_code_only(prompt)}
+        else if(media === "whole_response")       { this.previous_envelope = await this.make_whole_response(prompt)}
+        else if(media === "plot_numbers")         { this.previous_envelope = await this.make_plot_numbers(prompt)}
+        else if(media === "search_google")        { this.previous_envelope = await this.make_search_google(prompt)}
+        else if(media === "image")                { this.previous_envelope = await this.make_image(prompt)} //does not take temperature
         else { shouldnt("In OpenAI.request with invalid response media of: " + media)}
     }
 
@@ -212,7 +196,6 @@ globalThis.OpenAI = class OpenAI{
     }
 
     //see: https://www.makeuseof.com/chatgpt-api-complete-guide/ for 3.5 and 4 api's.
-    //very similar to make_text
     static async make_inspect_envelope(prompt, callback=OpenAI.make_inspect_envelope_cb){
         let model       = DDE_DB.persistent_get("gpt_model")
         let max_tokens  = DDE_DB.persistent_get("gpt_completion_max_tokens")
@@ -332,18 +315,25 @@ globalThis.OpenAI = class OpenAI{
 
     static async make_search_google(prompt, callback=OpenAI.make_search_google_cb){
         out("<div class='gpt'> A Google search page will be shown in a new browser tab in a few seconds.</div>")
-        return await this.make_inspect_envelope(prompt, OpenAI.make_search_google_cb)
+        callback(prompt)
+        return OpenAI.previous_envelope //google search does not make a new envelope. ok to return null if that's what OpenAI.previous_envelope is bound to
     }
 
     //callback for make_text
     //called from more than 1 place
-    static make_search_google_cb(envelope){
-        let prompt = OpenAI.envelope_to_prompt(envelope)
+    static make_search_google_cb(envelope_or_prompt = OpenAI.previous_envelope){
+        let prompt
+        if(!envelope_or_prompt) {
+            prompt = OpenAI.previous_prompt() //will return "hello world" when OpenAI.previous_envelope is null as it is to start with
+        }
+        else if (typeof(envelope_or_prompt) === "string"){
+            prompt = envelope_or_prompt
+        }
+        else { //envelope_or_prompt is a real envelope
+            prompt = OpenAI.envelope_to_prompt(envelope_or_prompt)
+        }
         let encoded_prompt = encodeURIComponent(prompt)
         window.open("https://www.google.com/search?q=" + encoded_prompt,  "_blank")
-        //window.open("https://duckduckgo.com/?q=" + encoded_prompt + "&va=v&t=ha&ia=web", "_blank") //works
-        //window.open("https://duckduckgo.com/html/?q=" + encoded_prompt, "_blank") //result page doesn't contain images
-
     }
 
     //does not take a temperature. not sure why
@@ -436,7 +426,7 @@ globalThis.OpenAI = class OpenAI{
 
 
                          '<span title="Show the numbers in the response, if any."><input type="radio" name="response_media" value="plot_numbers" '   + plot_numbers_checked  + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>plot_numbers  </span>' +
-                         '<span title="Use the prompt to query Google search.&#13;You may have to allow pop-ups.&#13;Click on the leftmost icon in the right of the URL bar.">   <input type="radio" name="response_media" value="search_google" '  + search_google_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>search_google </span><br/>' +
+                         '<span title="Use the prompt to query Google search.&#13;You may have to allow pop-ups in Chrome.&#13;Click on the leftmost icon in the right of the URL bar.">   <input type="radio" name="response_media" value="search_google" '  + search_google_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>search_google </span><br/>' +
 
                          '<span title="Show an image of the response in a new tab.&#13;You may have to allow pop-ups.&#13;Click on the leftmost icon in the right of the URL bar."><input type="radio" name="response_media" value="image" '   + image_checked   + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>image</span> ' +
                          ' &nbsp;&nbsp;&nbsp;size: <select name="image_size" data-onchange="true">' +
@@ -533,13 +523,6 @@ globalThis.OpenAI = class OpenAI{
                         shouldnt("In OpenAI.request with invalid media of: " + media)
                     }
                 }
-                /*else if (vals.clicked_button_value === "Update max_tokens") {
-                    DDE_DB.persistent_set("gpt_completion_max_tokens", parseInt(vals.max_tokens))
-                    let media = DDE_DB.persistent_get("gpt_response_media")
-                    //if(["text", "inspect_text_to_data", "inspect_envelope", "code_only", "whole_response", "plot_numbers"].includes(media)){
-                    OpenAI.request()
-                    //}
-                } */
                 else if (vals.clicked_button_value === "image_size") {
                     DDE_DB.persistent_set("gpt_image_size", vals.image_size) //ie "256x256", "512x512", or "1024x1024"
                     if (DDE_DB.persistent_get("gpt_response_media") == "image") {

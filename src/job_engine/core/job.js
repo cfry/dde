@@ -457,6 +457,7 @@ class Job{
     //Called by user to start the job and "reinitialize" a stopped job
     start(options={}){  //sent_from_job = null
         out("Top of Job." + this.name + ".start()")
+        /* commented out due to new Waiting scheme
         let the_active_job_with_robot_maybe = Job.active_job_with_robot(this.robot) //could be null.
             //must do this before setting status_code to "starting".
             //there can only be one Job trying to use a Dexter. (at least as the Job's main robot.)
@@ -466,7 +467,7 @@ class Job{
             dde_error("Attempt to start Job." + this.name + " with Dexter." + this.robot.name +
                       ",<br/>but Dexter." + this.robot.name + " is already the default robot in Job." + the_active_job_with_robot_maybe.name +
                       ",<br/>so Job." + this.name + " was automatically stopped.")
-        }
+        } */
         if(this.wait_until_this_prop_is_false) { this.wait_until_this_prop_is_false = false } //just in case previous running errored before it could set this to false, used by start_objects
         if (["starting", "running", "stopping", "running_when_stopped", "suspended", "waiting"].includes(this.status_code)){
             //does not run when_stopped instruction.
@@ -474,15 +475,19 @@ class Job{
                       " but it has status code: " + this.status_code +
                       " which doesn't permit restarting.")
         }
-        else if (["not_started", "completed", "errored", "interrupted"].includes(this.status_code)){
+        /*else if (["not_started", "completed", "errored", "interrupted"].includes(this.status_code)){
+            //Waiting.done_with_job(this) //just makes sure we've cleaned up the Waiting state
+
             let early_robot = this.orig_args.robot
             if(options.hasOwnProperty("robot")) { early_robot = options.early_robot }
             //if(early_robot instanceof Dexter)   { early_robot.remove_from_busy_job_array(this) }
             Dexter.remove_from_busy_job_arrays(this)
-        }
+        }*/
+        Waiting.clear_all_if_ok() //just makes sure we've cleaned up the Waiting state
         //active jobs & is_busy checking
-        let early_start_if_robot_busy = this.orig_args.start_if_robot_busy
-        if (options && options.hasOwnProperty("start_if_robot_busy")) { early_start_if_robot_busy = options.start_if_robot_busy }
+        //let early_start_if_robot_busy = this.orig_args.start_if_robot_busy
+        //if (options && options.hasOwnProperty("start_if_robot_busy")) { early_start_if_robot_busy = options.start_if_robot_busy }
+        /* commented out due to new Waiting scheme
         if((this.robot instanceof Dexter) &&  //can 2 jobs use a Robot.Serial? I assume so for now.
            !early_start_if_robot_busy &&
            this.robot.is_busy()) {
@@ -506,7 +511,7 @@ class Job{
                         "to permit it to be started.")
                 }
                 return
-        }
+        } */
         //init from orig_args
             this.set_status_code("starting") //before setting it here, it should be "not_started"
             this.wait_until_instruction_id_has_run = null //needed the 2nd time we run this job, init it just in case it didn't get set to null from previous job run
@@ -524,7 +529,7 @@ class Job{
             this.initial_instruction     = this.orig_args.initial_instruction
             this.data_array_transformer  = this.orig_args.data_array_transformer
             this.get_dexter_defaults     = this.orig_args.get_dexter_defaults
-            this.start_if_robot_busy     = this.orig_args.start_if_robot_busy
+            //this.start_if_robot_busy     = this.orig_args.start_if_robot_busy
             this.if_robot_status_error   = this.orig_args.if_robot_status_error
             this.if_instruction_error    = this.orig_args.if_instruction_error
             this.if_dexter_connect_error = this.orig_args.if_dexter_connect_error
@@ -1560,7 +1565,7 @@ Job.stop_all_jobs = function(){
 }
 
 Job.prototype.undefine_job = function(){
-    if(this.robot instanceof Dexter) { Dexter.remove_from_busy_job_arrays(this) }
+    //if(this.robot instanceof Dexter) { Dexter.remove_from_busy_job_arrays(this) }
     delete Job[this.name]
     Job.forget_job_name(this.name)
     this.remove_job_button()
@@ -1894,9 +1899,10 @@ Job.prototype.finish_job = function(){
           else if(this.final_status_code) { //happens when the status_code was set to "running_when_stopped "
               this.status_code = this.final_status_code
           } //does not hit in the all defaults case
+          Waiting.done_with_job(this) //just makes sure we've cleaned up the Waiting state
           this.robot.finish_job()
           //if(this.robot instanceof Dexter) { this.robot.remove_from_busy_job_array(this)} //sometimes a job might be busy and the user clicks its stop button. Let's clean up after that!
-          Dexter.remove_from_busy_job_arrays(this) //remove from ALL Dexters' busy_job_arrays.
+          //Dexter.remove_from_busy_job_arrays(this) //remove from ALL Dexters' busy_job_arrays.
           this.color_job_button() //possibly redundant but maybe not and just called on finishing job so leave it in
           this.show_progress_maybe()
           out("Done with Job." + this.name + ", for reason: " + this.stop_reason +
@@ -2130,28 +2136,41 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         this.finish_job()
         return
     }
+    else if (this.stop_reason && (this.status_code !== "running_when_stopped")){ //maybe never hits as one of the above status_codes is pobably set
+        this.finish_job()
+        return
+    }
+    else if(Waiting.job_waiting_for_dexter(this)){
+        let dexter_instance = Waiting.job_waiting_for_dexter(this)
+        if(!Waiting.dexter_now_performing(dexter_instance)){ //the job is waiting, but for no good reason since the dexter is now free, so go ahead
+            let instr = Waiting.instruction_to_run_on_job(this)
+            Waiting.clear_job_and_dexter(this, dexter_instance)
+            this.send(instr)
+            return
+        }
+        else { this.set_up_next_do(0) }
+    }
+    /*
     else if (this.wait_until_instruction_id_has_run || (this.wait_until_instruction_id_has_run === 0)){ //the ordering of this clause is important. Nothing below has to wait for instructions to complete
         //wait for the wait instruction id to be done
         //the waited for instruction coming back thru robot_done_with_instruction will call set_up_next_do(1)
         //so don't do it here. BUT still have this clause to block doing anything below if we're waiting.
         return
-    }
-    else if (this.stop_reason && (this.status_code !== "running_when_stopped")){ //maybe never hits as one of the above status_codes is pobably set
-         this.finish_job()
-        return
-    } //must be before the below since if we've
+    }*/
+
     //already got a stop reason, we don't want to keep waiting for another instruction.
     else if (this.wait_until_this_prop_is_false) {
         this.set_up_next_do(0)
         return
     }
+
     else if (this.instr_and_robot_to_send_when_robot_unbusy) {
         let [inst, robot] = this.instr_and_robot_to_send_when_robot_unbusy
-        if(robot.is_busy()) { } //loop around again
-        else {
+        //if(robot.is_busy()) { } //loop around again
+        //else {
             this.robot_and_instr_to_send_when_robot_unbusy = null
             this.send(inst, robot)
-        }
+        //}
         return
     }
     else if (this.hasOwnProperty("insert_last_instruction_index") &&
@@ -2178,23 +2197,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             this.stop_for_reason("completed", stop_reason)
             this.finish_job()
         }
-        /* adds final "g" instruction but this is superfluous.
-          else if ((this.robot instanceof Dexter) &&
-            ((this.do_list.length == 0) ||
-            (last(this.do_list)[Dexter.INSTRUCTION_TYPE] != "g"))){
-            //this.program_counter = this.do_list.length //probably already true, but just to make sure.
-            //this.do_list.splice(this.program_counter, 0, Dexter.get_robot_status()) //this final instruction naturally flushes dexter'is instruction queue so that the job will stay alive until the last insetruction is done.
-                //this.added_items_count(this.program_counter, 0, 0)
-            //this.added_items_count.splice(this.program_counter, 0, 0)
 
-            this.insert_single_instruction(Dexter.get_robot_status(), false, true) //2nd arg false says making this new instruction a top level (not sub) instruction
-            //3rd arg true says even if we're running a MakeInstruction job and disallowing insertions,
-            //allow the insertion anyway.
-            //this.added_items_count[this.program_counter] += 1 //hmm, the final g instr isn't reallyy "nested" under the last item, just a top level expr
-                //but its not an orig top level one either. so maybe nest it.
-                //jun 9, 2018: No consider the new g a top level cmd with 0 subinstructions
-            this.set_up_next_do(0)
-        }*/
         else if (!this.stop_reason){
             let reason = "Finished all " + this.do_list.length + " do_list items."
             this.stop_for_reason("completed", reason)
@@ -2530,10 +2533,20 @@ Job.prototype.send = function(oplet_array_or_string, robot){ //if remember is fa
             //Socket.find_dexter_instance_from_robot_status needs it. So make a COPY of the array,
             //removing that last elt of a robot, as the socket code doesn't want a robot on the end of the array.
         }
-        else if (!robot)                                  { robot = this.robot } //use the job's default robot
+        else if (!robot)  { robot = this.robot } //use the job's default robot
     }
     if(robot instanceof Dexter){
-        if (robot.is_busy()){
+        if(Waiting.dexter_now_performing(robot)){
+            Waiting.set_job(this, robot, oplet_array_or_string)
+            this.set_up_next_do(0)
+            return
+        }
+        else { //ok to run this instruction now, but hold up this job until dexter_instance.robot_done_with_instruction called
+            Waiting.set_job_and_dexter(this, robot, oplet_array_or_string)
+        }
+
+
+       /* if (robot.is_busy()){
         //    this.instr_and_robot_to_send_when_robot_unbusy = [oplet_array_or_string, robot]
         //    return
         //}
@@ -2543,7 +2556,7 @@ Job.prototype.send = function(oplet_array_or_string, robot){ //if remember is fa
         }
         else {
            robot.add_to_busy_job_array(this)  //keep sending this one inst to the dexter.
-        }
+        }*/
     }
     let instruction_id
     const oplet = Instruction.extract_instruction_type(oplet_array_or_string)
@@ -2577,6 +2590,7 @@ Job.prototype.send = function(oplet_array_or_string, robot){ //if remember is fa
             oplet_array_or_string[Instruction.START_TIME] = Date.now()
         }
     }
+
     if (this.keep_history){
         this.sent_instructions.push(oplet_array_or_string) //for debugging mainly
     }
@@ -2585,9 +2599,10 @@ Job.prototype.send = function(oplet_array_or_string, robot){ //if remember is fa
         //cur instruction is "z"
     }
     //if(oplet === "a") { out("snd J2: " + oplet_array_or_string[6]) } //debugging statement only
-    if(robot instanceof Dexter){
+
+    /*if(robot instanceof Dexter){
         this.wait_until_instruction_id_has_run = instruction_id
-    }
+    }*/
     robot.send(oplet_array_or_string)
 }
 
@@ -3316,7 +3331,7 @@ Job.prototype.to_source_code = function(args={}){
                        "ending_program_counter",
                        "initial_instruction",
                        "data_array_transformer",
-                       "start_if_robot_busy",
+                       //"start_if_robot_busy",
                        "if_robot_status_error",
                        "if_instruction_error",
                        "if_dexter_connect_error",

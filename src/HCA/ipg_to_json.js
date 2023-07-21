@@ -226,7 +226,6 @@ globalThis.ipg_to_json = class ipg_to_json{
                 }
                 else if (section === "netList") {
                     if(system_ancestors.length > 0){
-                        debugger;
                     }
                     let bt_obj = this.parse_behavior_topology(trimmed_line, cur_obj_def)
                     cur_obj_def.netList.push(bt_obj)

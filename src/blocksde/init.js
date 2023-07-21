@@ -21,7 +21,7 @@ import "./js2b.js"
 
 //called from dde_init.js IFF we're in dde platform.
 function blocks_init(){
-   javascript_pane_header_wrapper_id.appendChild(
+   //javascript_pane_header_wrapper_id.appendChild(
    /*make_dom_elt("span",
                 {id:"text_blocks_toggle_id",
                  title: "Toggle editor view between text and blocks.",
@@ -32,7 +32,7 @@ function blocks_init(){
                  "vertical-align":"20%",
                  onclick:"toggle_text_blocks_display()"},
                 " &boxbox; "))*/
-    make_dom_elt("select",
+   /* make_dom_elt("select",
                   {id:"code_view_kind_id",
                   title:"Translate the Editor pane to a different syntax for viewing your code.",
                   "background-color": "#93dfff",
@@ -40,7 +40,7 @@ function blocks_init(){
                   onchange:"change_code_view_kind(event)"},
         "<option value='JS'>JS</option><option value='HCA'>HCA</option>" //"<option value='JS'>JS</option><option value='Blocks'>Blocks</option><option value='DefEng'>DefEng</option><option value='HCA'>HCA</option>"
                   )
-   )
+   )*/
     blocks_category_init()
     blocks_jsdb_init()
 }
@@ -75,8 +75,8 @@ function make_blocksde_dom_elt(){
 var blocksde_dom_elt   = null
 
 
-function change_code_view_kind(event){
-    let new_view_kind = code_view_kind_id.value
+function change_code_view_kind(new_view_kind){
+    //let new_view_kind = code_view_kind_id.value //use in DDE3
     console.log("new_view_kind: " + new_view_kind)
     if      (Editor.view === "JS"){ //old_view_kind
             if      (new_view_kind === "Blocks"){ js_to_blocks() }
@@ -92,7 +92,7 @@ function change_code_view_kind(event){
             if      (new_view_kind === "JS")    { defeng_to_js() }
             else if (new_view_kind === "Blocks"){ defeng_to_blocks() }
             else if (new_view_kind === "HCA")   {
-                code_view_kind_id.value = "DefEng"
+                //code_view_kind_id.value = "DefEng" //use in DDE3
                 warning("Sorry, can't convert from Definitive English to HCA yet.")
             }
     }
@@ -100,7 +100,7 @@ function change_code_view_kind(event){
             if      (new_view_kind === "JS")    { HCA_to_js() }
             else if (new_view_kind === "Blocks"){ HCA_to_blocks() }
             else if (new_view_kind === "DefEng"){
-                code_view_kind_id.value = "HCA"
+                //code_view_kind_id.value = "HCA" //use in DDE3
                 warning("Sorry, can't convert from HCA to Definitive English yet.")
             }
     }
@@ -233,7 +233,7 @@ function defeng_to_js(){
     let js
     try{js = DE.de_to_js(defeng)} //converts all whitespace to itself.
     catch(e) { //backout
-        code_view_kind_id.value = "DefEng"
+        code_view_kind_id.value = "DefEng" //will error in dde4
         Editor.view = "DefEng"
         Editor.myCodeMirror.focus()
         dde_error("The DefEng has an error so cannot change it to JS.")

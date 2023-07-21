@@ -115,12 +115,12 @@ class Robot {
     }
 
     //this is shadowed by Dexter, but all other robots are never busy.
-    is_busy(){ return false }
+    /*is_busy(){ return false }
 
     add_to_busy_job_array(a_job){ } //no-op. shadowed by Dexter.
 
     remove_from_busy_job_array(a_job){} //no-op. shadowed by Dexter.
-
+    */
     is_initialized(){ return true }
 
     //pretty weak. Only will work as long as Robots don't overlap in oplets
@@ -1115,7 +1115,7 @@ class Dexter extends Robot {
         this.angles     = [0, 0, 0, 0, 0, 0, 0] //used by move_to_relative, set by move_all_joints, move_to, and move_to_relative
         this.pid_angles = [0, 0, 0, 0, 0, 0, 0]
         //this.processing_flush = false //primarily used as a check. a_robot.send shouldn't get called while this var is true
-        this.busy_job_array = []
+        //this.busy_job_array = []
         Robot.set_robot_name(this.name, this)
         Dexter[this.name] = this //see comment in Robot.set_robot_name
          //ensures the last name on the list is the latest with no redundancy
@@ -1482,7 +1482,7 @@ class Dexter extends Robot {
                                  "Dexter.robot_done_with_instruction received a robot_status array: " +
                                   robot_status + " that is not an array.")
             job_instance.wait_until_instruction_id_has_run = null
-            this.remove_from_busy_job_array(job_instance)
+            //this.remove_from_busy_job_array(job_instance)
             job_instance.set_up_next_do(0)
             return
         }
@@ -1505,27 +1505,27 @@ class Dexter extends Robot {
             job_instance.set_up_next_do(0)
             return
         }
-        else if (job_instance.wait_until_instruction_id_has_run !== ins_id){
+        /*else if (job_instance.wait_until_instruction_id_has_run !== ins_id){
             job_instance.stop_for_reason("errored_from_dexter",
                 "Dexter.robot_done_with_instruction received a robot_status array with an instruction_id of: " + ins_id +
                 "<br/> but expected: " + job_instance.wait_until_instruction_id_has_run)
             job_instance.wait_until_instruction_id_has_run = null
             job_instance.set_up_next_do(0)
             return
-        }
+        }*/
         else if((error_code !== 0) && (oplet !== "r")){ //we've got an error
                 //job_instance.stop_for_reason("errored", "Robot status got error: " + error_code)
             job_instance.wait_until_instruction_id_has_run = null //but don't increment PC
-            let busy_job_array_copy = rob.busy_job_array.slice()
-            rob.clear_busy_job_array() //so that the other jobs that I call set_up_next_do, won't hang up because they are busy,
+            //let busy_job_array_copy = rob.busy_job_array.slice()
+            //rob.clear_busy_job_array() //so that the other jobs that I call set_up_next_do, won't hang up because they are busy,
             //because they no longer should be busy, because we got back our ack from Dexter that was keeping them busy,
-            for(let busy_job of busy_job_array_copy){
+            /*for(let busy_job of busy_job_array_copy){
                 if(busy_job === job_instance) {} //let this pass through to the below as the passed in robot_status is from this instrr and this job_instance
                 else {
                     busy_job.set_up_next_do(0) //now execute the instr at the PC in an OTHER job, without advancing it.
                     return
                 }
-            }
+            }*/
             let instruction_to_run_when_error = job_instance.if_robot_status_error //.call(job_instance, robot_status)
             if(instruction_to_run_when_error){
                 //note instruction_to_run_when_error can be a single instruction or an array
@@ -1537,6 +1537,15 @@ class Dexter extends Robot {
             return
         }
 
+        if(Waiting.is_job_waiting_for_dexter(job_instance, this)){
+            Waiting.clear_job_and_dexter(job_instance, this)
+        }
+        else {
+            shouldnt("In Dexter.robot_done_with_instruction, recieved job: " +
+                      job_instance.name + " and robot: " + this.name + " and oplet: " + oplet +
+                      " that were unexpected.")
+        }
+        /*
         job_instance.wait_until_instruction_id_has_run = null
         let busy_job_array_copy = rob.busy_job_array.slice()
         rob.clear_busy_job_array() //so that the other jobs that I call set_up_next_do, won't hang up because they are busy,
@@ -1547,7 +1556,7 @@ class Dexter extends Robot {
                busy_job.set_up_next_do(0) //now execute the instr at the PC in an OTHER job, without advancing it.
                return
             }
-        }
+        }*/
         if ((error_code !== 0) && (oplet === "r")){ //we have an error but its "file not found" handled specially
              //Dexter.read_file errored, assuming its "file not found" so end the rfr loop and set the "content read" as null, meaning file not found
                 //the below setting of the user data already done by got_content_hunk
@@ -1607,7 +1616,7 @@ class Dexter extends Robot {
     }
 
     //Dexter busy
-    clean_up_busy_job_array(){
+    /*clean_up_busy_job_array(){
        let result = []
        for(let a_job of this.busy_job_array){
             if(a_job.is_active()) { //remove inactive jobs from busy_job_array by preserviong the still active ones
@@ -1649,7 +1658,7 @@ class Dexter extends Robot {
 
     clear_busy_job_array(){
         this.busy_job_array = []
-    }
+    }*/
     //end robot_busy
 
     //Robot status accessors (read only for users)

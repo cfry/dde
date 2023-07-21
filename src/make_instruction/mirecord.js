@@ -539,7 +539,7 @@ class MiRecord {
         MiRecord.set_insert_recording_state("enabled")
         //Job.mi_record.undefine_job() //causes problems in sim, so just do:
         //Job.mi_record.robot.remove_from_busy_job_array(Job.mi_record)
-        Dexter.remove_from_busy_job_arrays(Job.mi_record)
+        //Dexter.remove_from_busy_job_arrays(Job.mi_record)
         Job.mi_record.remove_job_button()
         if(completed_ok){
             new Job({

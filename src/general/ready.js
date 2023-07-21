@@ -17,6 +17,7 @@ import "jqwidgets-scripts/jqwidgets/jqxlistbox.js"   //needed by combobox
 import "jqwidgets-scripts/jqwidgets/jqxbuttons.js"   //needed by listbox
 import "jqwidgets-scripts/jqwidgets/jqxscrollbar.js" //needed by listbox
 import "jqwidgets-scripts/jqwidgets/jqxcheckbox.js"
+import "jqwidgets-scripts/jqwidgets/jqxradiobutton.js"
 
 //see https://github.com/codemirror/CodeMirror/issues/5484
 import CodeMirror from "codemirror/lib/codemirror.js"
@@ -597,11 +598,11 @@ export function on_ready() {
  }
  Editor.set_menu_string(new_id, "New", "n")
 
- file_name_id.onchange = function(e){ //similar to open
-     let orig_path = Editor.current_file_path
+ file_name_id.onchange = function(event){ //similar to open
+     /*let orig_path = Editor.current_file_path
      const inner_path = e.target.value //could be "new buffer" or an actual file
      const path = Editor.files_menu_path_to_path(inner_path)
-     /*if (globalThis.HCA && (Editor.view === "HCA")){
+     if (globalThis.HCA && (Editor.view === "HCA")){
          try{
              HCA.edit_idl_or_json_file(path)
          }
@@ -612,8 +613,8 @@ export function on_ready() {
      }
      else { */ //presume JS, but if its .idl, that's ok we just edit the idl in the text editor
          //Editor.edit_file(path)
-     Editor.open_local_file_at_path(path)
-     //}
+     //} */
+     Editor.open_local_file_from_menu(event)
  }
 
  /*not used now jul 6, 2023
@@ -746,7 +747,7 @@ export function on_ready() {
  remove_id.onclick = function(){ Editor.remove() } //don't simply use Editor.remove as ther value  for onclick because we want to default its arg as the Editor.remove method does
  preferences_id.onclick = DDE_DB.show_dialog
 
- update_id.onclick = function(){ check_for_latest_release() }
+ //update_id.onclick = function(){ check_for_latest_release() }
 
  //Edit menu  (see editor.js for the Edit menu items
 
@@ -1735,12 +1736,14 @@ window_modify_id.onclick=function(){Editor.insert(
 
        let val = DDE_DB.persistent_get("save_on_eval")
        $("#save_on_eval_id").jqxCheckBox({checked: val})
+       $("#view_js_id").jqxRadioButton({checked: true})
+       $("#view_hca_id").jqxRadioButton({checked: false})
 
        //if(val) { //have to do this because, unlike the DOM doc, chrome/electron checks the box if you set it to false.
        //    save_on_eval_id.setAttribute("checked", val)
        //}
        //similar to animate ui
-       save_on_eval_id.onclick = function (event) { //todo dde4 broken because when you click, get error due to css and image file for checkbox
+       save_on_eval_id.onclick = function (event) {
            let val = $("#save_on_eval_id").val()
            DDE_DB.persistent_set("save_on_eval", val)
            event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
@@ -1752,6 +1755,18 @@ window_modify_id.onclick=function(){Editor.insert(
            $("#save_on_eval_id").val(new_val)
            DDE_DB.persistent_set("save_on_eval", new_val)
            event.stopPropagation()
+       }
+
+       view_hca_id.onclick = function (event) {
+           //let checked = event.args.checked;
+           // var checked = $("#jqxRadioButton").jqxRadioButton('checked'); see: https://www.jqwidgets.com/jquery-widgets-documentation/documentation/jqxcheckandradio/jquery-radiobutton-getting-started.htm
+           //DDE_DB.persistent_set("save_on_eval", val)
+           //event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
+           change_code_view_kind("HCA")
+       }
+
+       view_js_id.onclick = function (event) {
+           change_code_view_kind("JS")
        }
 
        val = DDE_DB.persistent_get("default_out_code")

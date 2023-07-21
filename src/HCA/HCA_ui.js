@@ -437,7 +437,7 @@ globalThis.HCA = class HCA {
             (Editor.get_javascript().trim().length > 0)){
             warning("The editor has unsaved changes.<br/>" +
                 "Please save it or delete all the content before switching the view to HCA.")
-            code_view_kind_id.value = "JS"
+            //code_view_kind_id.value = "JS"
             return
         }
         let source = Editor.get_javascript().trim()
@@ -446,7 +446,8 @@ globalThis.HCA = class HCA {
             globalThis.HCA_dom_elt.focus()
         }
         catch(err){
-            code_view_kind_id.value = "JS"
+            //code_view_kind_id.value = "JS"
+            $("#view_js_id").jqxRadioButton({ checked: true });
             Editor.view = "JS"
             Editor.myCodeMirror.focus()
             warning("Sorry, could not convert the JavaScript in the Editor buffer into a valid JSON object for HCA.<br/>" +
@@ -519,7 +520,9 @@ globalThis.HCA = class HCA {
 
     static save_handler(vals){
         if      (vals.clicked_button_value === "Cancel") {
-            code_view_kind_id.value = "HCA"
+            //code_view_kind_id.value = "HCA"
+            $("#view_hca_id").jqxRadioButton({ checked: true });
+            //view_hca_id.jqxRadioButton({ checked: true }); //simplifying to just using the dom elt id causes an error
             return
         }
         else if (vals.clicked_button_value === "Continue to JS") {
