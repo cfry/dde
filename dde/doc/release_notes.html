@@ -2,7 +2,7 @@
  <div style='font-size:16px;'>
 
 
-<details class="doc_details"><summary>v 4.1.3, Jul 20, 2023</summary>
+<details class="doc_details"><summary>v 4.1.3, Aug 13, 2023</summary>
  Highlights: DDE4 now accessible from browsing  <a target="_blank" href="https://cfry.github.io"> cfry.github.io </a>, our new cloud server.
     Numerous GPT Interface and File System Interface improvements.
     Better coordination for multiple jobs having the same Dexter instance as their robot.
@@ -42,9 +42,19 @@
       <li>New architecture for coordinating multiple jobs having the same Dexter instance as their robot.
           Now you can run such Jobs simultaneously.</li>
       <li>Removed "Update" from File menu. No longer applicable with cloud deployment.</li>
-      <li>The "view" menu in the Editor pane header is now a proper menu
+      <li>GPT: extended OpenAI.text_to_data to accept an envelope as its first arg. Documented, simplified
+          existing calls in src and ref man. Fixed bugs in callbacks for OpenAI.make_text</li>
+      <li>GPT:  Numerous more examples in ref man/GPT Interface/prompt engineering with
+          at least one example for the majority of High school and first college year courses.</li>
+      <li>Greatly reduced useless "refreshing" of sim pane when no change has occured.</li>
+      <li>HCA: The "view" menu in the Editor pane header is now a proper menu
           with radio button items of JavaScript and HCA. See <button>View&#9660;</button></li>
-</ul>
+      <li>HCA: you can now connect transports between an  output and an input when one of them is a Variant.</li>
+      <li>HCA: much better documentation for dragging transports. Most importantly, you can drag a transport off
+          of an input and drop it on nothing, to delete that transport.</li>
+      <li>Connecting to Dexter from DDE4 Cloud now possible.
+          See User Guide/Configure Dexter/Configure Browser .</li>
+  </ul>
 </details>
 
  <details class="doc_details"><summary>v 4.1.2, Jun 17, 2023</summary>

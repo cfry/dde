@@ -644,6 +644,9 @@ class Inspect{
         else if (item === globalThis) { // we dont' want to stringify globalThis
             info = "The global object"
         }
+        else if(item instanceof Dexter){ //without this, JSON.stringify will be called and *sometimes* runs into an infinite loop on Dexter instances
+            info = '{ip_address: "' + item.ip_address + '", port: ' + item.port + '...}'
+        }
         else {
             //console.log("non-array extra info: ") // + item)
             //info = "extra info cannot inspect"

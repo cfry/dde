@@ -349,11 +349,6 @@ function extract_job_name(job_name_with_extension){
 }
 
 
-//https://www.npmjs.com/package/ws
-console.log("now making wss");
-const wss = new WebSocketServer({port: 3001});    //server: http_server });
-console.log("done making wss: " + wss);
-
 
 /*
 function color_job_process_button(browser_socket) {
@@ -1133,112 +1128,103 @@ function closed() {
 }
 
 
-// Web Socket Proxy to DexRun raw socket
-wss.on('connection', function(the_ws, req) {
-  console.log("\n\nwss got connection: " + the_ws)
-  console.log("\nwss SAME AS the_ws : " + (wss === the_ws))
-  console.log("got req class: " + req.constructor.name) // IncomingMessage
-  let browser_socket = the_ws //the_socket used when stdout from job engine comes to the web server process
-  the_ws.on('message', function(message) {
-    console.log('\n\nwss server on message received: %s', message);
-    let mess_obj
-    try { mess_obj = JSON.parse(message)}
-    catch(err) { console.log("bad message: " + err); return; }
-    console.log("\nwss server on message received kind: " + mess_obj.kind)
-    if(mess_obj.kind === "get_dde_version"){
-        serve_get_dde_version(browser_socket, mess_obj)
-    }
-    else if(mess_obj.kind === "debug_click") {
-        serve_debug_click(browser_socket, mess_obj)
-    }
-    else if(mess_obj.kind === "keep_alive_click") {
-        serve_keep_alive_click(browser_socket, mess_obj)
-    }
-    else if(mess_obj.kind === "job_button_click") {
-    	serve_job_button_click(browser_socket, mess_obj)
-    }
-    else if(mess_obj.kind === "show_window_call_callback"){
-        serve_show_window_call_callback(browser_socket, mess_obj)
-    }
-    else if (mess_obj.kind === "eval"){
-        serve_eval_button_click(browser_socket, message)
-    }
-    else {
-      console.log("\n\nwss server received message kind: " + mess_obj.kind)
-      serve_job_button_click(browser_socket, mess_obj)
-    }
-  })
-  the_ws.send('websocket connected.\n')
-})
-
-
-
+// https://www.npmjs.com/package/ws
 //websocket server that connects to Dexter
 //socket server to accept websockets from the browser on port 3000
 //and forward them out to DexRun as a raw socket
-var browser = new WebSocketServer({ port:3000 })
+//For https: use var wss    = new WebSocketServer({ server: http_server })
+var wss = new WebSocketServer({ port:3000 })
 var bs 
-var dexter = new net.Socket()
+///var dexter = new net.Socket() //from old httpd.mjs. Fry renamed to dexter_net_socket for clarity
+var dexter_net_socket = new net.Socket()
 //don't open the socket yet, because Dexter only allows 1 socket connection
-dexter.connected = false //track socket status (doesn't ws do this?)
+dexter_net_socket.connected = false //track socket status (doesn't ws do this?)
 
-browser.on('connection', function connection(socket, req) {
-  console.log(process.hrtime()[1], " browser connected ", req.connection.Server);
-  bs = socket
-  socket.on('message', function (data) {
-    console.log(process.hrtime()[1], " browser says ", data.toString());
-    //Now as a client, open a raw socket to DexRun on localhost
-    if (!dexter.connected && !dexter.connecting) { 
-      dexter.connect(50000, "127.0.0.1") 
-      console.log("dexter connect")
-      dexter.on("connect", function () { 
-        dexter.connected = true 
-        console.log("dexter connected")
-        dexter.write(data.toString());
-        } )
-      dexter.on("data", function (data){
-        //console.log(process.hrtime()[1], " dexter says ", data)
-        //for(let i = 0; i<8*4; i+=4) {console.log(i, data[i])}
-        console.log(process.hrtime()[1], " dexter says ","#"+data[1*4]+" op:"+String.fromCharCode(data[4*4]) + " len: " + data.length)
-        if (data[5*4]) {console.log("error:"+data[5*4])}
-        if (bs) {
-            bs.send(data,{ binary: true })
-            console.log(process.hrtime()[1], " sent to browser ")
-            }
-        })
-      dexter.on("close", function () { 
-        dexter.connected = false 
-        console.log("dexter disconnect")
-        dexter.removeAllListeners() 
-        //or multiple connect/data/close events next time
-        } )
-      dexter.on("end", function (error) { 
-        dexter.connected = false 
-        console.log("dexter ended")
-        //dexter.removeAllListeners() 
-        if (error) {
-            console.log(error)
-            }
-        dexter.end()
-        dexter.destroy()
-        //or multiple connect/data/close events next time
-        } )
-      dexter.on("error", function () {
-        dexter.connected = false 
-        console.log("dexter error")
-        if (bs) { bs.send(null,{ binary: true }) }
-        dexter.removeAllListeners() 
-        dexter.destroy()
-        } )
-      } //TODO: Should this be an else? When re-connecting, messages are sent twice.
-    else {//already connected.
-      dexter.write(data.toString());
-      }
+function kill_dexter_net_socket(){
+    dexter_net_socket.connected = false
+    dexter_net_socket.removeAllListeners()
+    dexter_net_socket.end()
+    dexter_net_socket.destroy()
+}
+
+function define_web_socket_event_handlers(a_web_socket){
+    console.log("top of define_web_socket_event_handlers")
+    a_web_socket.on('message', function (data) {
+        console.log(process.hrtime()[1] + " a_web_socket.on message passed data: " + data.toString());
+        console.log("in a_web_socket.on message with dexter_net_socket.readyState: "  + dexter_net_socket.readyState)
+
+        //Now as a client, open a raw socket to DexRun on localhost
+        if(dexter_net_socket.connected || dexter_net_socket.connecting) {
+            //&& (dexter_net_socket.readyState === "open")) {  //open for reading and writing
+            console.log("In a_web_socket on message with dexter_net_socket open so writing now.")
+            dexter_net_socket.write(data.toString(),
+                function() { console.log("done writing")} //see https://javascript.plainenglish.io/node-js-tips-closing-sockets-writing-responses-and-parsing-html-c46ecdf8b66b , but its controversial
+            )
+        }
+        else {  //was: (!dexter_net_socket.connected && !dexter_net_socket.connecting) {
+            console.log("a_web_socket.on message is not connected and not connecting so init event handlers.")
+            //define_dexter_net_socket_event_handlers(data)
+            dexter_net_socket = new net.Socket()
+            let first_data = data
+            console.log("top of fake define_dexter_net_socket_event_handlers with first_data: " + first_data)
+            dexter_net_socket.on("connect", function () {
+                console.log("dexter_net_socket.on connect top")
+                dexter_net_socket.connected = true
+                console.log("dexter_net_socket.on connect calling dexter_net_socket.write with first instruction of: " + first_data.toString())
+                dexter_net_socket.write(first_data.toString(), function() { console.log("done writing") });
+            } )
+            dexter_net_socket.on("data", function (data){
+                //console.log(process.hrtime()[1], " dexter says ", data)
+                //for(let i = 0; i<8*4; i+=4) {console.log(i, data[i])}
+                console.log(process.hrtime()[1], " dexter_net_socket.on data sez: ","#"+data[1*4]+" op:"+String.fromCharCode(data[4*4]) + " len: " + data.length)
+                if (data[5*4]) {console.log("dexter_net_socket.on data got error with code:" +data[5*4])}
+                if (bs) {
+                    bs.send(data,{ binary: true })
+                    console.log(process.hrtime()[1], " sent to bs(websocket) ")
+                }
+            })
+            dexter_net_socket.on("close", function () {
+                console.log("dexter_net_socket.on close sez: disconnect")
+                kill_dexter_net_socket()
+            } )
+            dexter_net_socket.on("end", function (error) {
+                console.log("dexter_net_socket.on end sez: ended")
+                //dexter_net_socket.removeAllListeners()
+                if (error) {
+                    console.log(error)
+                }
+                kill_dexter_net_socket()
+            } )
+            dexter_net_socket.on("error", function (err) {
+                console.log("dexter_net_socket.on error: " + err.message)
+                if (bs) { bs.send(null,{ binary: true }) }
+                kill_dexter_net_socket()
+            } )
+
+            console.log("a_web_socket.on message now calling dexter_net_socket.connect")
+            dexter_net_socket.connect(50000,
+                "127.0.0.1")
+        }
+
     });
-  socket.on('close', function (data) {
-    console.log(process.hrtime()[1], " browser disconnected ");
-    bs = null
-    //dexter.close() //not defined.
-    dexter.end()
+    a_web_socket.on('close', function (data) {
+        console.log(process.hrtime()[1], " a_web_socket.on close sez: disconnected ");
+        //if(bs) {
+        //bs.close()
+        bs = null
+        console.log("in a_web_socket on close, dexter_net_socket.readyState: " + dexter_net_socket.readyState)
+        //}
+        kill_dexter_net_socket()
     });
-  });
+    a_web_socket.on('error', function(err){
+        console.log("a_web_socket on error passed: " + err.toString())
+        kill_dexter_net_socket()
+    })
+}
+
+wss.on('connection', function connection(a_web_socket, req) {
+    console.log("top of wss.on connection passed WebSocket? " + (a_web_socket instanceof WebSocket))
+    console.log(process.hrtime()[1] + " wss.on connection" )
+    bs = a_web_socket
+    define_web_socket_event_handlers(a_web_socket)
+});

@@ -4,7 +4,7 @@
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
     version: <span id="dde_version_id">4.1.3</span><br/>
-    released: <span id="dde_release_date_id">Jun 20, 2023</span>
+    released: <span id="dde_release_date_id">Aug 13, 2023</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -404,6 +404,43 @@ Each indicates that a joint has power.
             The movement should make a low volume continuous whirring sound.
             If there are any abrupt noises, that can indicate a mechanical error in assembly.</li>
      </ol>
+    </details>
+
+    <details id="configure_browser_for_dde4_cloud_id" class="doc_details"><summary>Configure Browser for DDE4 Cloud</summary>
+        Browsers protect users from inadvertently doing things that cause
+        security risks. They also prevent users from purposefully gaining
+        access to certain resources.
+        <p></p>
+        By default, browsers will prevent
+        DDE4 Cloud from driving Dexter. (You can still use the simulator.)
+        However, browsers have advanced settings that permit access to otherwise
+        prohibited resources. We have found an advanced setting on <b>Chrome</b> to
+        permit it to access Dexter. We have not found settings in other browsers,
+        but that doesn't mean they aren't there, or will be by the time you read this.
+        In particlar, we have tried to find such settings on the <b>Safari</b> browser running
+        on MacOS and failed. Note, though that the Safari <b>Develop</b> menu has a huge
+        number of items, particularly under the <b>Experimental</b> submenu.
+        Please let us know if you have found a solution on non-Chrome browsers.
+        <p></p>
+        <b>Configure Chrome</b><br/>
+        <ol>
+            <li>In Chrome, copy the URL:<br/><a target="_blank" href="chrome://flags/#unsafely-treat-insecure-origin-as-secure">
+                chrome://flags/#unsafely-treat-insecure-origin-as-secure</a><br/>
+                and paste it into the Chrome URL type-in.
+            </li>
+            <li>The web page will scroll to the flag titled:<br/><b>Insecure origins treated as secure</b></li>
+            <li>In the text type-in box for this flag, copy and paste in:<br/>
+            <code title="not in TestSuite">http://192.168.1.142,ws://192.168.1.142:3000</code></li>
+            <li>This flag has a menu to its right. Select <b>Enabled</b>.</li>
+            <li>Selecting this menu item will cause a button to appear on the page named
+                <b>Relaunch</b>. Choose it, or otherwise relaunch Chrome in order for this new
+            setting to take effect.</li>
+        </ol>
+        Note: In order to drive Dexter, you'll also need an updated (as of Mid Aug, 2023)<br/>
+        <code  title="not in TestSuite">/srv/samba/share/www/httpd.mjs</code><br/> file on
+        your Dexter.<br/><br/>
+        You should now be able to have DDE4 Cloud drive your Dexter, even after
+        rebooting DDE, Chrome and/or Dexter.
     </details>
 
     <details class="doc_details"><summary>Test Connectivity</summary>
@@ -2439,8 +2476,18 @@ and see the results in DDE's Output pane.
                      i.e. ":A", ":B", etc. such that the call names in the
                      object definitions remain unique.
                  </li>
-                 <li> <b>drag an input or output circle</b> to connect a wire to an output or input.</li>
-                 <li> <b>shift-click</b> on an input or output to delete its transport (wire).</li>
+                 <li> <b>drag an input or an output</b> to another block's output or input.
+                      You may not connect:
+                     <ul> <li>an input to an input</li>
+                          <li>an output to an output</li>
+                          <li>an output of one block to an input of the same block</li>
+                          <li>more than one transport to a given input</li>
+                          <li>an input to an output of a different type, unless
+                              one or both of the input or output is of type <i>Variant</i></li>
+                     </ul>
+                     You may connect more than one transport to a given output.
+                 </li>
+                 <li> <b>drag an input</b> and drop it on nothing to delete the transport.</li>
                  <li> <b>double-click</b> on a block to show a dialog of operations.</li>
                  <li> <b>2 finger drag</b> (or similar operation) on the editor pane to zoom (expand or shrink) the view.</li>
              </ul>

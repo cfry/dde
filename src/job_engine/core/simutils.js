@@ -614,6 +614,7 @@ class SimUtils{
         if(this.is_simulator_showing()) {
             if (Simulate.sim.J6) {
                 Simulate.sim.J6.rotation.z = rads
+                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
             }
             sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
         }
@@ -629,17 +630,7 @@ class SimUtils{
                 new_xpos *= 10
                 //out("J7 angle_degrees: " + angle_degrees + " new xpos: " + new_xpos)
                 Simulate.sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
-                //all below fail to change render
-                //Simulate.sim.J7.position.x = new_pos
-                //Simulate.sim.J7.updateMatrix() //no effect
-                //Simulate.sim.j7.updateWorldMatrix(true, true)
-                // prev new_pos value;
-                // ((angle_degrees * 0.05) / 330 ) * -1 //meters of new location
-                // but has the below problems
-                // x causes no movement, but at least inited correctly
-                // y sends the finger to move to outer space upon init, but still visible, however moving j7 doesn't move it
-                // z causes the finger to be somewhat dislocated upon dui init, however moving j7 doesn't move it
-                //Simulate.sim.J7.rotation.y = rads
+                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
             }
             sim_pane_j7_id.innerHTML = j_angle_degrees_rounded
             if (SimBuild.template_object) {

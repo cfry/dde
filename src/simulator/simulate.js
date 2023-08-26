@@ -811,6 +811,7 @@ class Simulate {
     }
 
     static gltf_render(){
+        console.log("top gltf_render")
     //  requestAnimationFrame(this.gltf_render)
     //  if (this.sim.mouseDown){
     //      this.stl_sim_handle_mouse_move()
@@ -818,10 +819,10 @@ class Simulate {
         //Must use Simulate. and not this.  below because requestAnimationFrame
         //calls its arg fn without a "this" of Simulate
         //so must make gltf_render not need a "this".
-        Simulate.updateRotation();
-        Simulate.updatePosition();
+        Simulate.updateRotation(); //unnecessary jul 26. 2023
+        Simulate.updatePosition(); //unnecessary jul 26. 2023
         Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
-        requestAnimationFrame(Simulate.gltf_render)
+        //requestAnimationFrame(Simulate.gltf_render)
     }
 
     static stl_init_mouse(){

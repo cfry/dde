@@ -104,7 +104,7 @@ globalThis.OpenAI = class OpenAI{
 
     static special_error_message(err){
         if(err.message.includes("401")){
-            return "<br/> A 401 status code means your organization or API key are not valid.<br/>" +
+            return "<br/> A 401 status code means your Organization ID or API Key are not valid.<br/>" +
                 "Please check DDE's GPT configuration settings for these keys.<br/>" +
                 "To see GPT configurations, click the down arrow next to DDE's <button>GPT</button> button."
         }
@@ -252,9 +252,7 @@ globalThis.OpenAI = class OpenAI{
     //callback for make_text
     //called from more than 1 place
     static make_inspect_text_to_data_cb(envelope){
-        let prompt = OpenAI.envelope_to_prompt(envelope)
-        let response = OpenAI.envelope_to_response(envelope)
-        let data = OpenAI.text_to_data(prompt, response)
+        let data = OpenAI.text_to_data(envelope)
         inspect(data)
         return envelope
     }
@@ -267,9 +265,7 @@ globalThis.OpenAI = class OpenAI{
     //callback for make_text
     //called from more than 1 place
     static make_code_only_cb(envelope){
-        let prompt   = OpenAI.envelope_to_prompt(envelope)
-        let response = OpenAI.envelope_to_response(envelope)
-        let data = OpenAI.text_to_data(prompt, response)
+        let data = OpenAI.text_to_data(envelope)
         let code = OpenAI.data_to_code(data)
         if ((code.length === 0) && data.numbers.length > 0){
             if(data.numbers.length === 1) { code = "" + data.numbers[0]}
@@ -296,15 +292,14 @@ globalThis.OpenAI = class OpenAI{
     }
 
     static async make_plot_numbers(prompt, callback=OpenAI.make_plot_numbers_cb){
+        this.show_prompt(prompt)
         return await this.make_inspect_envelope(prompt, OpenAI.make_plot_numbers_cb)
     }
 
     //callback for make_text
     //called from more than 1 place
     static make_plot_numbers_cb(envelope){
-        let prompt   = OpenAI.envelope_to_prompt(envelope)
-        let response = OpenAI.envelope_to_response(envelope)
-        let data = OpenAI.text_to_data(prompt, response)
+        let data = OpenAI.text_to_data(envelope)
         if(data.numbers.length === 0){
             warning("Sorry, no there are numbers in the response to plot.")
         }
@@ -395,12 +390,12 @@ globalThis.OpenAI = class OpenAI{
                      "<a style='font-weight:bold;' target='_blank' href='https://www.opengrowth.com/resources/the-dangers-of-chatgpt-how-it-can-put-you-at-risk'>The risks of GPT</a> " +
                      "</span>" +
                      "<fieldset style='margin-top:5px;'><legend><i>OpenAI Log In Requirements</i> </legend>" +
-                         "If you don't have a key, sign up at <a target='_blank' href='http://openai.com' title='On the menu in the upper right of the page, choose: Sign up.&#13;You are given a lot of initial usage for free.'>openai.com</a>. " +
+                         "<input type='button' value='Help for getting keys'></input> " +
                          "&nbsp;&nbsp;<a target='_blank' href='http://platform.openai.com/account/usage' title='How much you are spending at OpenAI.com'>usage</a><br/>" +
-                         'organization: <input id="gpt_config_org_id" type="password" style="margin:5px;width:235px;" value="' + org + '"/>' +
+                         'Organization ID: <input id="gpt_config_org_id" type="password" style="margin:5px;width:235px;" value="' + org + '"/>' +
                          '<input type="checkbox" name="show" data-onchange="true">Show</input><br/>' +
-                         'apiKey:      <input id="gpt_config_key_id" type="password" style="margin:5px;width:380px;" value="' + key + '"/><br/>' +
-                        '<input type="button" value="Update Organization and API keys" style="margin:4px;"></input>' +
+                         '<span title="Sometimes called a secrete key.">API Key</span>:      <input id="gpt_config_key_id" type="password" style="margin:5px;width:380px;" value="' + key + '"/><br/>' +
+                        '<input type="button" value="Update Organization ID and API Key" style="margin:4px;"></input>' +
                      '</fieldset>' +
                      "<fieldset style='margin-top:10px;'><legend><i>Model used to compute the response</i> </legend>" +
                          '<span title="Best but new and not everyone has access to the API." style="margin-left:5px";> <input type="radio" name="model" value="gpt-4" '            + gpt_4_checked        + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>gpt-4</span> ' +
@@ -441,7 +436,7 @@ globalThis.OpenAI = class OpenAI{
                       ,
                       x: 700,
                       y: 0,
-                      width:  500,
+                      width:  505,
                       height: 475,
                       callback: "OpenAI.show_config_cb"
         }
@@ -460,7 +455,10 @@ globalThis.OpenAI = class OpenAI{
                     gpt_config_key_id.setAttribute("type", "password")
                 }
             }
-            else if (vals.clicked_button_value  === "Update Organization and API keys"){
+            else if (vals.clicked_button_value  === "Help for getting keys"){
+                DocCode.open_doc(gpt_openai_keys_help_id)
+            }
+            else if (vals.clicked_button_value  === "Update Organization ID and API Key"){
                 let org = vals.gpt_config_org_id.trim()
                 let key = vals.gpt_config_key_id.trim()
                 if ((key.length > 0) &&
@@ -542,7 +540,15 @@ globalThis.OpenAI = class OpenAI{
         }
     }
 
-    static text_to_data(prompt = null, response){
+    static text_to_data(prompt_or_env = null, response){
+        let prompt
+        if(typeof(prompt_or_env) === "object"){
+            prompt = OpenAI.envelope_to_prompt(prompt_or_env)
+            response = OpenAI.envelope_to_response(prompt_or_env)
+        }
+        else {
+            prompt = prompt_or_env
+        }
         response = response.trim()
         let result = {prompt: prompt,
                       response: response,
@@ -958,12 +964,6 @@ globalThis.OpenAI = class OpenAI{
         return assertion
     }
 
-    //not now used
-    //static recursive_number_clean_up_response(response){
-    //     let data = OpenAI.text_to_data(response)
-    //    return data.numbers[0]
-    //}
-
     static recursive(pattern="[fire] is caused by",
                      responses=[], //but ultimately defaults to ["fire"]
                      times=3,
@@ -1084,9 +1084,7 @@ globalThis.OpenAI = class OpenAI{
                 function(){
                     OpenAI.make_text(prompt,
                         function(envelope){
-                            let prompt = OpenAI.envelope_to_prompt(envelope)
-                            let response = OpenAI.envelope_to_response(envelope)
-                            let data = OpenAI.text_to_data(prompt, response)
+                            let data = OpenAI.text_to_data(envelope)
                             let angles = data.numbers.slice(0, 5)
                             out("Computed angles to move Dexter to: " + angles)
                             Job.my_job.user_data.angles = angles

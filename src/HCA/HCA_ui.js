@@ -2,7 +2,6 @@ import {LiteGraph} from "litegraph.js";
 globalThis.LiteGraph = LiteGraph
 
 //overview: https://github.com/jagenjo/litegraph.js
-//copied from https://github.com/jagenjo/litegraph.js/blob/master/src/litegraph.js
 //src of litegraph is in big file: https://github.com/jagenjo/litegraph.js/blob/master/src/litegraph.js
 var LGraphCanvas_prototype_processKey = function(e) { //used in init
     if(Editor.view !== "HCA"){

@@ -59,8 +59,13 @@ class Socket{
                 try {
                     //net_soc_inst = new net.Socket()
                     //net_soc_inst.setKeepAlive(true)
-                    let ws_url = "wss://" + rob.ip_address //was "ws://" + rob.ip_address + ":" + rob.port
+                    let protocol = ((DDEFile.http_and_maybe_s === "http") ? "ws" : "wss")
+                    let port     = ((protocol === "ws") ? ":" + rob.port : "")
+                    let ws_url   = //"ws://" + rob.ip_address
+                                   //"ws://" + rob.ip_address + ":" + rob.port
+                                   protocol + "://" + rob.ip_address + port //port is normally 3000
                     net_soc_inst = new WebSocket(ws_url); // see https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
+                    console.log("In Socket.init, made new WebSocket at: " + ws_url)
                     if (!(net_soc_inst instanceof WebSocket)) {
                         dde_error("In Socket.init, could not create WebSocket for url: " + ws_url)
                     }
@@ -68,6 +73,10 @@ class Socket{
                 catch(err){
                         console.log(job_instance.name + " Socket.init catch clause with err: " + err.message)
                         this.close(robot_name, true)
+                        out('DDE cannot connect to Dexter.<br/>' +
+                            `Please read: <a href="#" onclick="DocCode.open_doc('configure_dexter_id', event)">Configure Dexter</a>)` +
+                            `and, in particular: <a href="#" onclick="DocCode.open_doc('configure_browser_for_dde4_cloud_id', event)">Configure Browser for DDE4 Cloud</a>)`
+                        )
                         dde_error("Error attempting to create socket to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + err.message)
                 }
                 //WebSocket creating succeeded
@@ -675,6 +684,7 @@ class Socket{
                     }
                 }, 1)}
             else {
+                Waiting.clear_job_and_dexter(job_instance, rob) //must do or the job will get stuck not advancing as it will be waiting for oplet_array_or_string to complete
                 this.close(robot_name, true) //both are send args
                 setTimeout(function(){
                     Socket.init(robot_name, job_instance, oplet_array_or_string)

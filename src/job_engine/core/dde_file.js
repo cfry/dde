@@ -1,6 +1,7 @@
 //import {eval_js_part2} from "../../general/eval.js" //now this is global
 
 class DDEFile {
+    static http_and_maybe_s = "http" //but could be set to "https" if using an https node serever
     //utilities
     static convert_backslashes_to_slashes(a_string){
         let result = a_string.replace(/\\/g, "/")
@@ -71,27 +72,27 @@ class DDEFile {
                 }
                 let ip_address = dex.ip_address
                 extracted_path = this.add_default_file_prefix_maybe(extracted_path)
-                url = "https://" + ip_address + query + extracted_path
+                url = DDEFile.http_and_maybe_s + "://" + ip_address + query + extracted_path
             }
         }
         else if(path.startsWith("host:")){
             let [full_dex_name, extracted_path] = path.split(":")
             let ip_address = this.host() //might return "localhost"
             extracted_path = this.add_default_file_prefix_maybe(extracted_path)
-            url = "https://" + ip_address + query + extracted_path
+            url = DDEFile.http_and_maybe_s + "://" + ip_address + query + extracted_path
         }
         else if (path.includes(":")) {
             if(query !== "") {
                 let [protocol, host, extracted_path] = path.split(":")
                 if((protocol === "http") || (protocol === "https")){
                     extracted_path = this.add_default_file_prefix_maybe(extracted_path)
-                    url = "https" + ":" + host + query + path //todo cut out host, just go with extracted path here???
+                    url = DDEFile.http_and_maybe_s + ":" + host + query + path //todo cut out host, just go with extracted path here???
                 }
                 else { //only 1 colon, assume its NOT the suffix to host but the separator before port
                     extracted_path = host
                     host = protocol
                     extracted_path = this.add_default_file_prefix_maybe(extracted_path)
-                    url = "https" + "://" + host + //":" +  //don't insert this colon. causes fetch to break
+                    url = DDEFile.http_and_maybe_s + "://" + host + //":" +  //don't insert this colon. causes fetch to break
                         query + extracted_path
                 }
             }
@@ -100,10 +101,10 @@ class DDEFile {
         else {
             path = this.add_default_file_prefix_maybe(path)
             if(dde_running_in_cloud()){
-                url = "https://" + path  //cloud can't handle any query strings
+                url = DDEFile.http_and_maybe_s + "://" + path  //cloud can't handle any query strings
             }
             else {
-                url = "https://" + this.host() + //":" +
+                url = DDEFile.http_and_maybe_s + "://" + this.host() + //":" +
                     query + path
             }
         }
@@ -229,7 +230,7 @@ class DDEFile {
     static async get_page_async(url, callback){
         //https://www.npmjs.com/package/request documents request
         let full_url = (dde_running_in_cloud() ? url :
-                   "http://" + this.host() + "/get_page?path=" + url)
+            DDEFile.http_and_maybe_s + "://" + this.host() + "/get_page?path=" + url)
         try {
             let response = await fetch(full_url) //will error due to CORS if the host serving full_url doesn't pave a response header allowing CORS
             if (response.ok) {

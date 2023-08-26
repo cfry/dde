@@ -25,10 +25,12 @@ globalThis.HCAObjDef = class HCAObjDef {
     static register_with_litegraph(obj_def){
         let fn = function(){
             for(let input of obj_def.inputs) {
-                this.addInput(input.name, input.type)
+                let type = HCACall.call_obj_io_type_to_node_io_type(input.type)
+                this.addInput(input.name, type)
             }
             for(let output of obj_def.outputs) {
-                this.addOutput(output.name, output.type)
+                let type = HCACall.call_obj_io_type_to_node_io_type(output.type)
+                this.addOutput(output.name, type)
             }
             //this.size = [80, 40] //width and height  if not given, this is automatically computed
             this.properties = { precision: 1 };
@@ -717,9 +719,9 @@ globalThis.HCAObjDef = class HCAObjDef {
         let lgraph_links = []
         for(let connection_index = 0;  connection_index < netList.length; connection_index++){
             let connection          = netList[connection_index]
-            let source_call_name     = connection.source.call_name
+            let source_call_name    = connection.source.call_name
             let source_outputNumber = connection.source.outputNumber
-            let sink_call_name       = connection.sink.call_name
+            let sink_call_name      = connection.sink.call_name
             let sink_inputNumber    = connection.sink.inputNumber
 
             let source_node =  HCACall.call_name_to_node(source_call_name, lgraph_config_json.nodes)
@@ -733,7 +735,7 @@ globalThis.HCAObjDef = class HCAObjDef {
                 //let source_obj_call = connection.source //obj_def.prototypes[i]
                 //type = source_obj_call.outputs[source_outputNumber].type //todo cant work. no type info in call
             }
-            catch(err) { type = "Varient"} //todo this is a hack, need to fix.
+            catch(err) { type = "Variant"} //todo this is a hack, need to fix.
             let source_node_id = call_names_array.indexOf(source_call_name)
             let sink_node_id   = call_names_array.indexOf(sink_call_name)
             let links_elt  = [connection_index, //LLink.id

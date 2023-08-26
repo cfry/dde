@@ -1853,9 +1853,9 @@ window_modify_id.onclick=function(){Editor.insert(
          //} //must occur after dde_init_doc_js_initialize  init_ros_service($("#dexter_url").val())
          // rde.ping() //rde.shell("date") //will show an error message
 
-         if (!globalThis.dde_running_in_cloud()) {
+         //if (!globalThis.dde_running_in_cloud()) {
              Editor.restore_files_menu_paths_and_last_file() //todo dde4 needs file system
-         }
+         //}
          //simulate_help_id.onclick=function(){ DocCode.open_doc(simulate_doc_id) }
 
 
@@ -1910,6 +1910,7 @@ window_modify_id.onclick=function(){Editor.insert(
           setTimeout(function(){ //dde4 todo needs file system
               DDEVideo.show_in_misc_pane(DDE_DB.persistent_get("misc_pane_content"))
           }, 200)
+         console.log("END OF on_ready_after_db_init")
 
 } //end of on_ready
 

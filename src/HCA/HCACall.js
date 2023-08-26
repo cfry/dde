@@ -176,7 +176,7 @@ globalThis.HCACall = class HCACall{
         //HCA.lgraphcanvas.drawFrontCanvas()
     }
 
-    //patthered after LGraphCanvas.prototype.centerOnNode
+    //patterned after LGraphCanvas.prototype.centerOnNode
     //but changed canvas.width and canvas.height to the actual shown
     //width and height, not the full canvas width and height
     static center_on_node(node){
@@ -224,20 +224,8 @@ globalThis.HCACall = class HCACall{
     //makes  a new HCAcall from the node input
     static node_to_new_HCACall(node){
         let [objectName, postfix_letter] = node.title.split(":")
-        let new_inputs = []
-        for(let node_in of node.inputs){
-            let hca_in =  {name: node_in.name, //ex: "In1"
-                           type:node_in.type //ex: "Variant"
-                          }
-            new_inputs.push(hca_in)
-        }
-        let new_outputs = []
-        for(let node_out of node.outputs){
-            let hca_out =  {name: node_out.name, //ex: "In1"
-                            type:node_out.type //ex: "Variant"
-                           }
-            new_outputs.push(hca_out)
-        }
+        let new_inputs  = this.node_ins_to_call_ins(node.inputs)
+        let new_outputs = this.node_outs_to_call_outs(node.outputs)
         let call_obj_id = objectName
         for(let new_in of new_inputs){
             call_obj_id += "," + new_in.type
@@ -246,7 +234,7 @@ globalThis.HCACall = class HCACall{
         call_obj_id += "," + output_count + "_outputs"
         return new HCACall({
             objectName:  objectName,
-            call_name:    node.title, //foo:A
+            call_name:   node.title, //foo:A
             call_obj_id: call_obj_id,
             //containing_obj_id: set this in update_current_obj_def_from_nodes
             node_id:     node.id, //needed temporarily
@@ -311,25 +299,66 @@ globalThis.HCACall = class HCACall{
         return vert_sections * 18 //32   LiteGraph.NODE_TITLE_HEIGHT
     }
 
+    //__________
+    static call_obj_io_type_to_node_io_type(type){
+        if(type === "Variant") { return "*" }
+        else { return type}
+    }
+
+    static call_ins_to_node_ins(call_ins){
+        let node_ins = []
+        for(let an_in of call_ins){
+            let type = this.call_obj_io_type_to_node_io_type(an_in.type)
+            let node_in = {name: an_in.name, type: type, link: null}
+            node_ins.push(node_in)
+        }
+        return node_ins
+    }
+
+    static call_outs_to_node_outs(call_outs){
+        let node_outs = []
+        for(let an_out of call_outs){
+            let type = this.call_obj_io_type_to_node_io_type(an_out.type)
+            let node_out = {name: an_out.name, type: type, links: []}
+            node_outs.push(node_out)
+        }
+        return node_outs
+    }
+
+    static node_io_type_to_call_obj_io_type(type){
+        if(type === "*") { return "Variant" }
+        else { return type}
+    }
+
+    static node_ins_to_call_ins(node_ins){
+        let call_ins = []
+        for(let an_in of node_ins){
+            let type = this.node_io_type_to_call_obj_io_type(an_in.type)
+            let call_in = {name: an_in.name, type: type, link: null}
+            call_ins.push(call_in)
+        }
+        return call_ins
+    }
+
+    static node_outs_to_call_outs(node_outs){
+        let call_outs = []
+        for(let an_out of node_outs){
+            let type = this.node_io_type_to_call_obj_io_type(an_out.type)
+            let call_out = {name: an_out.name, type: type, link: null}
+            call_outs.push(call_out)
+        }
+        return call_outs
+    }
+
+
     //was make_lgraph_node_json
     static call_obj_to_new_node(obj_call, id){
-        let ins = []
+        let ins = this.call_ins_to_node_ins(obj_call.inputs)
         //make json of format:
         // "inputs": [{ "name": "In1", "type": "Variant", "link": null_or_pos_int }]
-        let hca_call_ins = (obj_call.inputs? obj_call.inputs : [])
-        for(let an_in of hca_call_ins){
-            let a_graph_in = {name: an_in.name, type: an_in.type, link: null}
-            ins.push(a_graph_in)
-        }
-        let outs = []
+        let outs = this.call_outs_to_node_outs(obj_call.outputs)
         //make json of format:
         // "outputs": [{ "name": "In1", "type": "Variant", "link": null_or_pos_int }]
-        let hca_call_outs = (obj_call.outputs? obj_call.outputs : [])
-
-        for(let an_out of hca_call_outs){
-            let a_graph_out = {name: an_out.name, type: an_out.type, links: []} //links can be null if none
-            outs.push(a_graph_out)
-        }
         let width  = this.compute_block_width(obj_call)
         let height = this.compute_block_height(obj_call)
         let result = {

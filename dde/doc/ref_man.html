@@ -78,8 +78,8 @@
             <b>encoding</b> Default: <code>"utf8"</code> See
             <a href="#" onclick="DocCode.open_doc(write_file_doc_id)">encoding details</a><br/>
             <i>Example:</i><br/>
-            <code>DDEFile.append_to_file("ts_junk/append_to_file_test.txt", "hey world")</code>
-            <code>DDEFile.read_file_async("ts_junk/append_to_file_test.txt",
+            <code title="not in TestSuite">DDEFile.append_to_file("ts_junk/append_to_file_test.txt", "hey world")</code>
+            <code title="not in TestSuite">DDEFile.read_file_async("ts_junk/append_to_file_test.txt",
                   function(err, content){out("got content: " + content)})</code>
         </details>
 
@@ -148,7 +148,7 @@
         <code>null</code>, that means the operation succeeded.
         <p></p>
         <i>Examples:</i><br/>
-        <pre><code>DDEFile.copy_file_async(
+        <pre><code title="not in TestSuite">DDEFile.copy_file_async(
     "dde_init.js",
     "ts_junk/dde_init_copy_for_testing.js",
     function(err){
@@ -12503,19 +12503,55 @@ Monitor.strips_solve({
              The first time you click on <button>GPT</button>, it will redirect you
              to the Configuration dialog box. You can also show the dialog by clicking
              on the down arrow to the right of <button>GPT</button>
-             <p></p>
-             The top section of the dialog allows you to enter your organization and API Key,
-             which you can obtain at: <a target="_blank" href="http://openai.com">openai.com</a> .
-             Though this is a paid service, you get quite a bit of initial usage for free after you sign up.
-             Once you enter that information, you can
-             click <button>Update Configuration</button> and start using ChatGPT.
-             <p/>
+             <p id="gpt_openai_keys_help_id">
+             The top section of the GPT Configuration dialog allows you to enter your <b>Organization ID</b>
+                 and secrete <b>API Key</b>.
+             Acquiring these keys from OpenAI is the hardest part of using DDE's GPT Interface.
+             <ol>
+                 <li>Note: these directions match OpenAI's website as of Aug 18, 2023. Expect them
+                    to go out of date.</li>
+                 <li>Browse <a target="_blank" href="http://openai.com">openai.com</a></li>
+                 <li>If you don't have an OpenAI account:<br/>
+                     in the menu in the upper right, choose <b>Sign up</b>
+                     and create a new account.</li>
+                 <li>In the menu in the upper right of openai.com, choose <b>Log in</b></li>
+                 <li>You should see a page with several tiles. Click the <b>API</b> tile.</li>
+                 <li>In the new page, to the right of the menu bar, you should see your Organization name.
+                     (This might be <b>Personal</b> or the name of your company.)
+                     Click it to reveal a menu.</li>
+                 <li>Choose <b>Manage Account</b></li>
+                 <li>You should see your <b>Organization ID</b>. This is a whole bunch of random letters
+                     prefixed by "org-".<br/>
+                     Copy it.</li>
+                 <li> Paste it into the DDE GPT Configuration dialog, <b>Organization ID</b> field.</li>
+                 <li> In the left column, click <b>API Keys</b>.</li>
+                 <li> Click the button <b>Create new secrete key</b>.
+                      Note that OpenAI inconsistently calls this key "API Key" and "Secrete Key".
+                 </li>
+                 <li> This new key will be prefixed with "sk-".
+                     Copy it and paste it into the DDE GPT Configuration dialog, <b>API Key</b> field.</li>
+                 <li> In the DDE GPT configuration dialog, click <input type="button" value="Update Organization ID and API Key"></input></li>
+                 <li> In the left column, click <b>Billing</b>.</li>
+                 <li> Click <b>Payment Method</b>.</li>
+                 <li> Fill in your credit card or whatever.</li>
+                 <li> Click <b>Usage Limits</b>.</li>
+                 <li> Fill in a hard limit that's  easily affordable that also limits the damage
+                      that hackers can do. Say $10 to $25 a month.
+                      You probably won't exceed such limits unless you're automating
+                      a lot of requests. </li>
+                 <li> Test your set up by, in the DDE GPT Configuration dialog,
+                      clicking <input type="button" value="regenerate"></input>.
+                      This resends the last prompt you sent to OpenAI, or, if none, "hello world"</li>
+             </ol>
+             </p>
+
              The bottom section of the configuration dialog has settings that remain persistent even after you relaunch DDE
-             (just like the organization and API Key).
+             (just like the Organization ID and API Key).
              Those setting are used to modify what ChatGPT does for you. You can choose which
-             model to use, and the outout format to get information in, including images
+             model to use, and the output format to get information in, including images
              using Dall-E that can be existing ones on the web or made on the fly according
-             to your request.
+             to your request. We also provide a <b>search_google</b> option, making it easy
+             to get conventional URLs related to the current prompt.
          </details>
          <details class="doc_details"><summary style="color:red;">Responsible Use</summary>
              To get information from GPT you need to tell it what information you want.
@@ -12833,16 +12869,47 @@ foo(1, 1)</code></pre>
                   Ironically, writing a prompt that reliably makes only a call to a
                   function is an unsolved problem.
               </details>
-                 <details class="doc_details"><summary>Spanish</summary>
+                <details class="doc_details"><summary>Spanish</summary>
                   <code class="gpt">Convert Spanish to JavaScript:
                   Escriba una funci�n de JavaScript para multiplicar tres n�meros y luego sumar 6.</code><br/>
                   Select the new definition and click <button>Eval</button><br/>
                   Now select just the function name and click <button>Eval</button><br/>
                   This shows you the "binding" of that name to the function. Twist down
                   the result to see the function body, just to be sure the full definition was captured.
-                  </details>
-            </details> <!-- end of programming languages -->
-            <details class="doc_details"><summary>Math</summary>
+                </details>
+             </details> <!-- end of programming languages -->
+             <details class="doc_details"><summary>Science</summary>
+                 <code class="gpt">What is the scientific method?</code>
+                 <p></p>
+                 <b>Physics:</b> <code class="gpt">What is gravity?</code>
+                 <p></p>
+                 <b>Chemistry:</b>
+                 <code class="gpt">Why do concentrations in fluids dissipate?</code>
+                 <p></p>
+                 <code class="gpt">single word: what is the 5th element in the periodic table?</code>
+                 <p></p>
+                 <b>Biology:</b> <code class="gpt">What proteins are in blood? with URLs</code><br/>
+                 For any of these you can select just <i>part</i> of the proposed prompts.
+                 For example: <code class="gpt">proteins</code><br/>
+                 You can ALSO select any text in the Output pane and use that as a prompt.
+                 For example: select the name of one of the proteins printed and click
+                 <button>GPT</button> for details on that protein.
+                 <p></p>
+                 <b>Astronomy:</b> <code class="gpt">How does dark energy cause the universe to expand?</code>
+             </details>
+             <details class="doc_details"><summary>Technology & Robotics</summary>
+                 <code class="gpt">A 7 axis Dexter robot from Haddington Dynamics</code>
+                 <p></p>
+                 <code class="gpt">cycloidal drive</code>
+                 <p></p>
+                 <code class="gpt">dh parameters</code>
+             </details>
+             <details class="doc_details"><summary>Engineering</summary>
+                 <b>Energy:</b> <code class="gpt">What is the highest efficiency solar cell?</code>
+                 <p></p>
+                 <b>Material Science:</b> <code class="gpt">Is titanium stronger than carbon fiber?</code>
+             </details>
+             <details class="doc_details"><summary>Math</summary>
                 Math is a language, despite the lack of recognition of this fact.
                 Its so undesigned that it doesn't even have a proper name for the language so
                 I call it <b>Math lang</b>. You can use a variant, <b>Math lang ascii</b>
@@ -12856,30 +12923,49 @@ foo(1, 1)</code></pre>
                 <p></p>
                 <code class="gpt">the first 10 prime numbers</code>
                 <p></p>
-                <code class="gpt">Can pentagons tile a plane?</code>
-            </details>
-            <details class="doc_details"><summary>Science & Robotics</summary>
-                <code class="gpt">A 7 axis Dexter robot from Haddington Dynamics</code>
-                <p></p>
-                <code class="gpt">cycloidal drive</code>
-                <p></p>
-                <code class="gpt">dh parameters</code>
-                <p></p>
-                <code class="gpt">Is titanium stronger than carbon fiber?</code>
-                <p></p>
-                <code class="gpt">single word: what is the 5th element in the periodic table?</code>
-                <p></p>
-                <code class="gpt">What proteins are in blood? with URLs</code><br/>
-                For any of these you can select just <i>part</i> of the proposed prompts.
-                For example: <code title="not in TestSuite">proteins</code><br/>
-                You can ALSO select any text in the Output pane and use that as a prompt.
-                For example: select the name of one of the proteins printed and click
-                <button>GPT</button> for details on that protein.
-            </details>
-            <details class="doc_details"><summary>Geography</summary>
+                 <b>Algebra: </b> <code class="gpt">x + 2 = 5</code>
+                 <p></p>
+                <b>Geometry:</b> <code class="gpt">Can pentagons tile a plane?</code>
+                 <p></p>
+                 <b>Trigonometry:</b> <code class="gpt">sin of 90 degrees</code>
+                 <p></p>
+                 <b>Calculus:</b>  <code class="gpt">In calculus, what does derivative mean?</code>
+             </details>
+
+            <details class="doc_details"><summary>Geography and Earth Science</summary>
                  <code class="gpt">Where is Mali?</code>
                  <p></p>
                  <code class="gpt">Comma separated cities between SF and LA</code>
+                 <p></p>
+                 <code class="gpt">Do continents move?</code>
+                 <p></p>
+                 <code class="gpt">What causes global warming?</code>
+            </details>
+            <details class="doc_details"><summary>Social Science</summary>
+                <b>Anthropology:</b> <code class="gpt">When was the first human?</code>
+                <p></p>
+                <b>Archaeology:</b> <code class="gpt">What is carbon dating?</code>
+                <p></p>
+                <b>Economics:</b> <code class="gpt">What does "diseconomy of scale" mean?</code>
+                <p></p>
+                <code class="gpt">What is Makerism?</code>
+                <p></p>
+                <b>History:</b>   <code class="gpt">Did World War 1 cause World War 2?</code>
+                <p></p>
+                <b>Political Science:</b> <code class="gpt">Why do people support dictators?</code>
+                <p></p>
+                <b>Psychology:</b> <code class="gpt">What is a cognitive bias?</code>
+                <p></p>
+                <b>Sociology:</b>  <code class="gpt">What is Dunbar's number?</code>
+             </details>
+            <details class="doc_details"><summary>Art and Music</summary>
+                <code class="gpt">What do impressionistic paintings look like?</code>
+                <p></p>
+                <code class="gpt">How many frames per second do movies have?</code>
+                <p></p>
+                <code class="gpt">What is a chord progression?</code>
+                <p></p>
+                <code class="gpt">What is the difference between Rock&Roll and Hip-hop?</code>
             </details>
             <details class="doc_details"><summary>AI</summary>
                 <details class="doc_details"><summary>Natural Language Processing</summary>
@@ -12906,16 +12992,16 @@ role:named entities from:
 Hi Joe Schmoe here in Witchita, Kansas on May 24, 2023
 at 1-800-123-4567 from Acme Corp, author of How To Win.
 Contact me at joe@schmoe.com or the New York Times.</code></pre>
-                By using OpenAI.text_to_data, you can get entities as JavaScript data like so:
- <pre><code class="gpt">
+                By using <code>OpenAI.text_to_data</code>, you can get entities as JavaScript data like so:
+ <pre><code title="not in TestSuite">
 OpenAI.make_text(`role:named entities from:
     Hi Joe Schmoe here in Witchita, Kansas on May 24, 2023
     at 1-800-123-4567 from Acme Corp, author of How To Win.
     Contact me at joe@schmoe.com or the New York Times.`,
-     function(prompt, result){
-         inspect(OpenAI.text_to_data(result))
+     function(envelope){
+         inspect(OpenAI.text_to_data(envelope))
      })</code></pre>
-     The entities are the value of the property: <code class="gpt">name_value_pairs</code>,
+     If you're lucky, the entities are the value of the property: <code title="Not in Test Suite.">name_value_pairs</code>,
      but beware, this isn't reliable accross different kinds of entities.
              </details>
              <details class="doc_details"><summary>Similarity</summary>
@@ -12961,7 +13047,7 @@ OpenAI.make_text(`role:named entities from:
                     way for use in certain reasoning tasks, including <i>Common Sense Reasoning</i>.
                     OpenAI represents knowledge in English prose. Since English is ambiguous
                     and complex, it is a non-trivial task to extract definitive knowledge from it
-                    for use in computation. DDE's <code class="gpt">OpenAi.text_to_data</code> is a help,
+                    for use in computation. DDE's <code>OpenAI.text_to_data</code> is a help,
                     but with some prompt engineering, we can do more.
                     <p/>
                     For the below examples, select them and click <button>GPT</button> to
@@ -12983,19 +13069,19 @@ OpenAI.make_text(`role:named entities from:
                     We've got something to work with.
 
                     Programmatically, (use <button>Eval</button>)
-                    <pre><code class="gpt">OpenAI.make_text("single word: cat is a mammal",
-  function(prompt, result){
-    let data = OpenAI.text_to_data(result)
+                    <pre><code title="Not in TestSuite">OpenAI.make_text("single word: cat is a mammal",
+  function(envelope){
+    let data = OpenAI.text_to_data(envelope)
     out(data.first_word_data)
 })</code></pre>
                     The first word of the result, processed into data, is what's printed in the Output pane.
                     If that first word happens to be "Yes" or something similar,
-                    <code class="gpt">data.first_word_data</code> will be <samp>true</samp>.
+                    <code title="Not in TestSuite">data.first_word_data</code> will be <samp>true</samp>.
                     If the first word is "no" or something similar,
-                    <code class="gpt">data.first_word_data</code> will be <samp>false</samp>.
+                    <code title="Not in TestSuite">data.first_word_data</code> will be <samp>false</samp>.
                     Otherwise, its not easy to extract a boolean from the result, so just the string of
                     the first word in the result will be the value of
-                    <code class="gpt">data.first_word_data</code>.<br/>
+                    <code title="Not in TestSuite">data.first_word_data</code>.<br/>
                     Using the above code as a template, you can replace <code>out</code> with a function of
                     your choice.
                     <p/>
@@ -13058,11 +13144,11 @@ OpenAI.make_text(`role:named entities from:
                <p/>
                <i>Examples</i><br/>
                (After selecting the below code, click <button>Eval</button>.)
-<pre><code class="gpt">
+<pre><code title="not in TestSuite">
 OpenAI.make_text("10 is to 20 as 15 is to",
-    function(prompt, result){
-        out("Prompt: " + prompt +
-            ", returned:" + result,
+    function(envelope){
+        out("Prompt: " + OpenAI.envelope_to_prompt(envelope) +
+            " " + OpenAI.envelope_to_response(envelope),
             "blue")
 })</code></pre>
                We can even have our callback use the result it is passed
@@ -13075,12 +13161,15 @@ OpenAI.make_text("10 is to 20 as 15 is to",
                After selecting the below code, click <button>Eval</button>.
                This will take longer than our other GPT calls because we are
                calling GPT twice, one after the other.
-<pre><code class="gpt">
+<pre><code title="not in TestSuite">
 OpenAI.make_text("powers of 2 as numbers",
-      function(prompt, result){
-        OpenAI.make_text("Extract numbers from: " + result,
-          function(prompt, result){
-            let arr = result.split(",")
+      function(envelope){
+        inspect(envelope)
+        OpenAI.make_text("Extract numbers from: " +
+                          OpenAI.envelope_to_response(envelope),
+          function(envelope){
+            let response = OpenAI.envelope_to_response(envelope)
+            let arr = response.split(",")
             for(let i = 0; i < arr.length; i++){
                arr[i] = parseFloat(arr[i])
             }
@@ -13097,8 +13186,11 @@ OpenAI.make_text("powers of 2 as numbers",
         which can interoperate with one another to get the best funtionality
         of both languages.
         <p></p>
-         For an even easier way to extract date from GPT results, see:<br/>
-         <code>OpenAI.text_to_data</code>
+         For an even easier way to extract data from GPT results, see:<br/>
+         <code>OpenAI.text_to_data</code>. <br/>
+               <span style="color:red;">Warning</span>, these techniques are not
+               mathematically perfect and may well get "additional" or
+               redundant numbers to what you desire.
         </details> <!-- end make_text -->
         <details class="doc_details" id="OpenAI.text_to_data_doc_id"><summary>OpenAI.text_to_data</summary>
                    GPT returns <i>prose</i>. It is intended for humans to read.
@@ -13110,19 +13202,16 @@ OpenAI.make_text("powers of 2 as numbers",
                    intended for further processing by JavaScript.
                    <p/>
                    <i>Parameters:</i><br/>
-                   <b>text</b> A string. Typically the result of a request to GPT.<br/>
-                   <b>prompt</b> Default value: null. Typically a string, the prompt that generated the text.
-                   prompt simply becomes a key in the returned data structure with
-                   the value of the prompt. It is unnecessary to pass in teh prompt,
-                   but is convenient to get the prompt along with the rest of the data
-                   for potential further processing.
+                   <b>prompt_or_env</b> A string or an envelop object. Typically the result of a request to GPT.<br/>
+                   <b>response</b> Default value: null. Typically a string, generated that is the response to
+                    a call to OpenAI. If prompt_or_env is an envelope, response is ignored.
                    <br/>
-                   Returns a data structure with lots of information
+                   Returns an object with lots of information
                    extracted from the text, in a format suitable for JavaScript.
-<pre><code class="gpt">OpenAI.make_text("first 10 power of 2",
-   function(prompt, result){
-     out(result)
-     let data = OpenAI.text_to_data(result, prompt)
+<pre><code title="not in TestSuite">OpenAI.make_text("first 10 power of 2",
+   function(envelope){
+     out(OpenAI.envelope_to_response(envelope))
+     let data = OpenAI.text_to_data(envelope)
      inspect(data)
      Plot.show(null, data.numbers)
    })</code></pre>
@@ -13131,7 +13220,7 @@ OpenAI.make_text("powers of 2 as numbers",
                  the call to <code>OpenAI.text_to_data</code>.
                  We <code>inspect</code> that data, then pass the numbers from it
                  to <code>Plot.show</code> for a graphical representation of the numbers array.
-                 Take a close look at the inspected data to understand what data <code>OpenAI.text_to_data</code> gives you
+                 <i>Please</i> take a close look at the inspected data to understand what data <code>OpenAI.text_to_data</code> gives you
                    easy access to.
          </details>
 
@@ -13262,7 +13351,7 @@ OpenAI.make_text("powers of 2 as numbers",
          you think it should. It sometimes comes up with a "cause" that is also an "effect".
          But note, in real life, sometimes a cause is also an effect of the same thing.
          Typicaly, as the number of iterations increases, the quality of the results decreases.
-     </details> <!-- end OpenAi.recursive_doc_id -->
+     </details> <!-- end OpenAI.recursive_doc_id -->
      <details class="doc_details" id="OpenAI.create_embedding_doc_id"><summary>OpenAI.create_embedding</summary>
          Embeddings are a way to encode the semantics of text with an array of numbers.
          You can encode a single word or thousands of them with one array.

@@ -144,6 +144,7 @@ class dui2 {
     }
 
     static init(xy_width_in_px = 300){
+        console.log("top of dui2.init")
         DocCode.open_doc(dexter_user_interface_doc_id)
         if((platform == "dde") &&
             !globalThis.sim_graphics_pane_id) {
