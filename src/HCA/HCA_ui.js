@@ -165,7 +165,7 @@ globalThis.HCA = class HCA {
         ///                           {id: "HCA_palette_id", style: { height:400, "background-color":"#ffe0cd"}}//, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
         //                           )
         //big_div.append(palette)
-        let pal_html = "<div id='HCA_palette_id', style='min-width:200px; background-color:#ffe0cd; overflow-y:auto; padding:5px;'</div>" //, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
+        let pal_html = "<div id='HCA_palette_id', style='min-width:200px; background-color:#ffe0cd; overflow:scroll; padding:5px;'</div>" //, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
         content_div.insertAdjacentHTML("beforeend", pal_html)
         //let but = make_dom_elt("button", {margin: "5px"}, "number")
         //palette.append(but)
