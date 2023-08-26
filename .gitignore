@@ -5,3 +5,4 @@ node_modules
 .idea
 /src/third_party/rotating-calipers.js
 /dde_apps/
+/dde/build/bundle.mjs.map
