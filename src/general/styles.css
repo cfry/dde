@@ -27,8 +27,7 @@ html, body {  width: 100%;  height: 100%; font-family: sans-serif; overflow:hidd
 
 .pane_header_wrapper {
     padding:5px;
-    background-color: #bae5fe; /* for orig color, this was orange #ffbe3c;*/
-    min-height:30px;} /*the Editor pan header, files menu might go on right if dispay is wide enough
+    background-color: #bae5fe;} /* for orig color, this was orange #ffbe3c;*/ /*the Editor pan header, files menu might go on right if dispay is wide enough
                         but if not, it should go on 2nd row, thus the height of the header changes
                         based on allwoable width */
 

@@ -159,13 +159,14 @@ globalThis.HCA = class HCA {
     }
 
     static make_HCA_dom_elt(){
-        let big_div = make_dom_elt("div", {id: "HCA_dom_elt", style:{height: "100%"}})//, style: {display: "flex"}})
+        let big_div = make_dom_elt("div", {id: "HCA_dom_elt", style:{display: "flex", "flex-direction": "column", overflow: "hidden"}})//, style: {display: "flex"}})
+        let content_div = make_dom_elt("div", {style:{display:"flex", overflow: "hidden"}})
         //let palette = make_dom_elt("div",
         ///                           {id: "HCA_palette_id", style: { height:400, "background-color":"#ffe0cd"}}//, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
         //                           )
         //big_div.append(palette)
-        let pal_html = "<div id='HCA_palette_id', style='vertical-align:top; width:170px; height:400px; background-color:#ffe0cd; overflow-y:scroll; display:inline-block; padding:5px;'</div>" //, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
-        big_div.insertAdjacentHTML("beforeend", pal_html)
+        let pal_html = "<div id='HCA_palette_id', style='min-width:200px; background-color:#ffe0cd; overflow-y:auto; padding:5px;'</div>" //, "overflow-y":"scroll"}}, //display:"inline-block" //"overflow-block": "hidden"
+        content_div.insertAdjacentHTML("beforeend", pal_html)
         //let but = make_dom_elt("button", {margin: "5px"}, "number")
         //palette.append(but)
         setTimeout(this.populate_palette, 100)
@@ -174,8 +175,8 @@ globalThis.HCA = class HCA {
        //f )
        //f big_div.append(can_holder)
         let canvas_wrapper_html =
-            `<div id='HCA_canvas_wrapper_id' style='vertical-align:top; overflow:scroll;  display:inline-block; width:calc(100% - 190px); height:100%; border:1px solid blue;'>
-                <canvas id='HCA_canvas_id' width='720px' height='1024px' <!--backing store in pixels -->
+            `<div id='HCA_canvas_wrapper_id' style='overflow:auto;'>
+                <canvas id='HCA_canvas_id' width='1500px' height='1500px' <!--backing store in pixels -->
                     style='vertical-align:top; width:100%; height:100%; background-color:white;'> <!-- display size -->
                 </canvas>
             </div>`
@@ -211,7 +212,8 @@ globalThis.HCA = class HCA {
                               <button title="Set zoom, pan and spread to initial values." onclick="HCA.home()">Home</button>
                            </div>`
         big_div.insertAdjacentHTML("afterbegin", header_html)
-        big_div.insertAdjacentHTML("beforeend", canvas_wrapper_html)
+        content_div.insertAdjacentHTML("beforeend", canvas_wrapper_html)
+        big_div.insertAdjacentElement("beforeend", content_div)
         /*let can = make_dom_elt("canvas",
                           {id: "HCA_canvas_id",
                                      display: "inline-block",
