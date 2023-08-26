@@ -181,7 +181,7 @@ input::-webkit-inner-spin-button {
     padding:1px;
 }
 
-.CodeMirror {height: unset; font-size:17px; font-weight:600;} /* 500 and 550 are the same and both too light, but 600 is too dark */
+.CodeMirror {height: 100%; font-size:17px; font-weight:600;} /* 500 and 550 are the same and both too light, but 600 is too dark */
 .CodeMirror-cursor {
     border-left: 2px solid black;
     border-right: none;
