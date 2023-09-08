@@ -174,14 +174,34 @@ function cal_clear_points(){
 }
 
 function cal_redraw_points(){
-	remove_svg_points()
+    remove_svg_points()
     let J_num = showing_J_num
-	let points = cal_saved_points[J_num-1]
+    let points = cal_saved_points[J_num-1]
     let thehtml = ""
+
+    DisplayOldEyePoints(J_num)
+
     let num_points = points[0].length
     for(let i = 0; i < num_points; i++){
-    	thehtml = (svg_circle({html_class: "cal_svg_circle", cx: points[0][i], cy: flip_point_y(points[1][i]), r: 1}))
-		append_in_ui("svg_id", thehtml)
+        thehtml = (svg_circle({html_class: "cal_svg_circle", cx: points[0][i], cy: flip_point_y(points[1][i]), r: 1}))
+
+        append_in_ui("svg_id", thehtml)
+    }
+}
+
+function cal_redraw_points(){
+    remove_svg_points()
+    let J_num = showing_J_num
+    let points = cal_saved_points[J_num-1]
+    let thehtml = ""
+
+    DisplayOldEyePoints(J_num)
+
+    let num_points = points[0].length
+    for(let i = 0; i < num_points; i++){
+        thehtml = (svg_circle({html_class: "cal_svg_circle", cx: points[0][i], cy: flip_point_y(points[1][i]), r: 1}))
+
+        append_in_ui("svg_id", thehtml)
     }
 }
 
@@ -426,38 +446,61 @@ function cal_get_robot(){
     }
 }
 
-function init_calibrate(){
-
-	//this has been moved because the robot isn't known yet
+function init_calibrate()
+{
+    //this has been moved because the robot isn't known yet
     //init_view_eye() //will define (or redefine the view eye job, which is ok)
     cal_init_view_eye_state = true
-    
-    
+
+
     //init_calibrate_optical() //will define (or redefine the calibrate_optical job, which is ok)
     show_window({
-        title:"Calibrate your Dexter(s)",
-        x:325, y: 0, width:680, height: 640,
+        title:"Eye Center Calibration",
+        x:680, y: 0, width:680, height: 650,
+        //x:325, y: 0, width:680, height: 640,
         content:
-        "1. Choose a Dexter to calibrate: " + make_dexter_robot_menu_html() + "<br/>" +
-        "2. <span id='cal_instructions_id'>Calibrate optical sensors by<br/>&nbsp;&nbsp;&nbsp;&nbsp;choosing each joint to calibrate.</span><br/>" +
-        "<table style='margin:0px;padding:0px;'><tr><td style='margin:0px;padding-right:10px;background-color:#ffc69e;'>" +
-        make_calibrate_joint_buttons_html() +
-        "</td><td><table style='border-collapse:collapse !important;border;0px;'><tr><td>" +
-        //"<div style='width:20px;height:410px;display:inline-block; transform:rotateZ(-90deg);'>" +
-        //    " Right potentiometer: &nbsp;Clockwise pot rotation &rarr;" +
-        //    "</div></td><td>" +
-        svg_svg({width:20, height:410, child_elements: [svg_text({x:0, y:380, transform: 'rotate(-90 15 380)',
-            text:'Left potentiometer: &nbsp;Clockwise pot rotation &rarr;'
-        })]}) + "</td><td>" +
-        svg_svg({id: "svg_id", height: window.cal_svg_height, width: window.cal_svg_height,
-            html_class: "clickable", style:"background-color:white;",
-            child_elements: [
-                svg_text({text: "X   Axis", x: 150, y: 400, size: 30, color: "#DDDDDD", border_width: 1, border_color: "black", style: 'font-weight:bold;'}),
-                svg_text({text: "Y   Axis", x:  30, y: 250, size: 30, color: "#DDDDDD", border_width: 1, border_color: "black", style: 'font-weight:bold;', transform: 'rotate(-90 30 250)'}),
-            ]}) +
-        "</td></tr><tr style='border-collapse:collapse;'><td style='border-collapse:collapse;'></td><td>&nbsp;&nbsp;&nbsp;&nbsp;Right potentiometer: &nbsp;Clockwise pot rotation &rarr;</td></tr>" +
-        "</table></td></tr></table>" +
-        
+            "1. Choose a Dexter to calibrate: " + make_dexter_robot_menu_html() + "<br/>" +
+            "2. <span id='cal_instructions_id'>Calibrate optical sensors by<br/>&nbsp;&nbsp;&nbsp;&nbsp;choosing each joint to calibrate.</span><br/>" +
+            "<table style='margin:0px;padding:0px;'><tr><td style='margin:0px;padding-right:10px;background-color:#ffc69e;'>" +
+            make_calibrate_joint_buttons_html() +
+            "</td><td><table style='border-collapse:collapse !important;border;0px;'><tr><td>" +
+            //"<div style='width:20px;height:410px;display:inline-block; transform:rotateZ(-90deg);'>" +
+            //    " Right potentiometer: &nbsp;Clockwise pot rotation &rarr;" +
+            //    "</div></td><td>" +
+            svg_svg({width:20, height:410, child_elements: [svg_text({x:0, y:380, transform: 'rotate(-90 15 380)',
+                    text:'Left potentiometer: &nbsp;Clockwise pot rotation &rarr;'
+                })]}) + "</td><td>" +
+            svg_svg({id: "svg_id", height: window.cal_svg_height, width: window.cal_svg_height,
+                html_class: "clickable", style:"background-color:white;",
+                child_elements: [
+                    svg_text({text: "X   Axis", x: 150, y: 400, size: 30, color: "#DDDDDD", border_width: 1, border_color: "black", style: 'font-weight:bold;'}),
+                    svg_text({text: "Y   Axis", x:  30, y: 250, size: 30, color: "#DDDDDD", border_width: 1, border_color: "black", style: 'font-weight:bold;', transform: 'rotate(-90 30 250)'}),
+                ]}) +
+            "</td></tr><tr style='border-collapse:collapse;'><td style='border-collapse:collapse;'></td><td>&nbsp;&nbsp;&nbsp;&nbsp;Right potentiometer: &nbsp;Clockwise pot rotation &rarr;</td></tr>" +
+            "</table></td></tr></table>" +
+
+
+            "Legend: &nbsp;&nbsp;&nbsp;" +
+            "<span class='dot' style='height:10px;width:10px;background-color:blue;display:inline-block;border-radius: 50%'></span>"
+            + " = Previous Center &nbsp;&nbsp;&nbsp;" +
+            "<span class='dot' style='height:10px;width:10px;background-color:green;display:inline-block;border-radius: 50%'></span>"
+            + " = Predicted Center &nbsp;&nbsp;&nbsp;" +
+            "<span class='dot' style='height:10px;width:10px;background-color:red;display:inline-block;border-radius: 50%'></span>"
+            + " = Center to Save" +
+
+            "<br><br>" +
+            "MaxSpeed: " +
+            "<input id='MaxSpeed_id' title='MaxSpeed value during\neye center calibration\ndefault = 25\nunits = (deg/s)' type='number' style='width:45px;' value='25'/>" +
+            " Accel: " +
+            "<input id='Accel_id' title='Accleration value during\neye center calibration\ndefault = 0.001\nunits = N/A' type='number' style='width:65px;' value='0.001'/>" +
+            " StartSpeed: " +
+            "<input id='StartSpeed_id' title='StartSpeed value during\neye center calibration\ndefault = 5\nunits = (deg/s)' type='number' style='width:45px;' value='5'/>" +
+            " StepSize: " +
+            "<input id='StepSize_id'  title='StepSize value during\neye center calibration\ndefault = 0.1\nunits = deg'type='number' style='width:45px;' value='0.1' onchange='update_step_size()'/>" +
+            " RSpeed: " +
+            "<input id='RapidSpeed_id' title='RapidSpeed for movements\nbefore and after eye\ncenter calibration\ndefault = 25\nunits = (deg/s)' type='number' style='width:45px;' value='25'/>"
+
+
         /*
         "3. <input type='button' id='calibrate_optical_id' style='margin-top:10px;' title='Do each time you turn on Dexter.'" +
         "value='Calibrate optical encoders'/>" +
@@ -465,36 +508,116 @@ function init_calibrate(){
               value='Start FindHome'>
       </button> &nbsp(Experimental)`,
       */
+        /*
+          "3. <input type='button' id='calibrate_optical_id' style='margin-top:10px;' title='Do each time you turn on Dexter.'" +
+        "value='Calibrate optical encoders'/>",
+        */
 
-      	"3. <input type='button' id='calibrate_optical_id' style='margin-top:10px;' title='Do each time you turn on Dexter.'" +
-        "value='Calibrate optical encoders'/>" +
-
-        ` Calibration process: <div id="cal_dialog_make_ins_file_id" class="combo_box" style="display:inline-block;vertical-align:middle;">
-        <option selected="selected">Cal.make_ins</option>
-        <option>FastCal.make_ins</option>
-        </div>`,
-        
-      
-        callback: handle_cal
+        , callback: handle_cal
     })
     open_doc(calibrate_doc_id)
     setTimeout(cal_reset_ranges, 200)
     setTimeout(function(){
         try{
-        	//this errors when the robot to calibrate hasn't been chosen yet
-    		let robot_sim = Robot[robot_to_calibrate_id.value].simulate
-        	let sim_actual = Robot.get_simulate_actual(robot_sim)
-        	if(sim_actual === true){
-        		//show_window({content: "Don't Sim"})
-            	open_doc(dexter_param_simulate_doc_id)
-            	alert("Warning: Simulate is turned on so the calibration window will not work. \n" +
-                        "To set to real, choose Misc pane radio button: 'real'.")
-        	}
-        	else if (Dexter.all_names.length == 1) { cal_init_robot() } //Fry added Oct 19, 2018
-    	}catch(err){
-        	
+            //this errors when the robot to calibrate hasn't been chosen yet
+            let robot_sim = Robot[robot_to_calibrate_id.value].simulate
+            let sim_actual = Robot.get_simulate_actual(robot_sim)
+            if(sim_actual === true){
+                //show_window({content: "Don't Sim"})
+                open_doc(simulate_doc_id)
+                confirm("Warning: Simulate is set to true so calibration window will not work. \nTo set to false, choose Jobs menu/Simulate/false.")
+            }
+            else if (Dexter.all_names.length === 1) { cal_init_robot() } //Fry added Oct 19, 2018
+        }catch(err){
+
         }
     }, 1000)
-    
-    
+}
+
+function init_calibrate()
+{
+    //this has been moved because the robot isn't known yet
+    //init_view_eye() //will define (or redefine the view eye job, which is ok)
+    cal_init_view_eye_state = true
+
+
+    //init_calibrate_optical() //will define (or redefine the calibrate_optical job, which is ok)
+    show_window({
+        title:"Eye Center Calibration",
+        x:680, y: 0, width:680, height: 650,
+        //x:325, y: 0, width:680, height: 640,
+        content:
+            "1. Choose a Dexter to calibrate: " + make_dexter_robot_menu_html() + "<br/>" +
+            "2. <span id='cal_instructions_id'>Calibrate optical sensors by<br/>&nbsp;&nbsp;&nbsp;&nbsp;choosing each joint to calibrate.</span><br/>" +
+            "<table style='margin:0px;padding:0px;'><tr><td style='margin:0px;padding-right:10px;background-color:#ffc69e;'>" +
+            make_calibrate_joint_buttons_html() +
+            "</td><td><table style='border-collapse:collapse !important;border;0px;'><tr><td>" +
+            //"<div style='width:20px;height:410px;display:inline-block; transform:rotateZ(-90deg);'>" +
+            //    " Right potentiometer: &nbsp;Clockwise pot rotation &rarr;" +
+            //    "</div></td><td>" +
+            svg_svg({width:20, height:410, child_elements: [svg_text({x:0, y:380, transform: 'rotate(-90 15 380)',
+                    text:'Left potentiometer: &nbsp;Clockwise pot rotation &rarr;'
+                })]}) + "</td><td>" +
+            svg_svg({id: "svg_id", height: window.cal_svg_height, width: window.cal_svg_height,
+                html_class: "clickable", style:"background-color:white;",
+                child_elements: [
+                    svg_text({text: "X   Axis", x: 150, y: 400, size: 30, color: "#DDDDDD", border_width: 1, border_color: "black", style: 'font-weight:bold;'}),
+                    svg_text({text: "Y   Axis", x:  30, y: 250, size: 30, color: "#DDDDDD", border_width: 1, border_color: "black", style: 'font-weight:bold;', transform: 'rotate(-90 30 250)'}),
+                ]}) +
+            "</td></tr><tr style='border-collapse:collapse;'><td style='border-collapse:collapse;'></td><td>&nbsp;&nbsp;&nbsp;&nbsp;Right potentiometer: &nbsp;Clockwise pot rotation &rarr;</td></tr>" +
+            "</table></td></tr></table>" +
+
+
+            "Legend: &nbsp;&nbsp;&nbsp;" +
+            "<span class='dot' style='height:10px;width:10px;background-color:blue;display:inline-block;border-radius: 50%'></span>"
+            + " = Previous Center &nbsp;&nbsp;&nbsp;" +
+            "<span class='dot' style='height:10px;width:10px;background-color:green;display:inline-block;border-radius: 50%'></span>"
+            + " = Predicted Center &nbsp;&nbsp;&nbsp;" +
+            "<span class='dot' style='height:10px;width:10px;background-color:red;display:inline-block;border-radius: 50%'></span>"
+            + " = Center to Save" +
+
+            "<br><br>" +
+            "MaxSpeed: " +
+            "<input id='MaxSpeed_id' title='MaxSpeed value during\neye center calibration\ndefault = 25\nunits = (deg/s)' type='number' style='width:45px;' value='25'/>" +
+            " Accel: " +
+            "<input id='Accel_id' title='Accleration value during\neye center calibration\ndefault = 0.001\nunits = N/A' type='number' style='width:65px;' value='0.001'/>" +
+            " StartSpeed: " +
+            "<input id='StartSpeed_id' title='StartSpeed value during\neye center calibration\ndefault = 5\nunits = (deg/s)' type='number' style='width:45px;' value='5'/>" +
+            " StepSize: " +
+            "<input id='StepSize_id'  title='StepSize value during\neye center calibration\ndefault = 0.1\nunits = deg'type='number' style='width:45px;' value='0.1' onchange='update_step_size()'/>" +
+            " RSpeed: " +
+            "<input id='RapidSpeed_id' title='RapidSpeed for movements\nbefore and after eye\ncenter calibration\ndefault = 25\nunits = (deg/s)' type='number' style='width:45px;' value='25'/>"
+
+
+        /*
+        "3. <input type='button' id='calibrate_optical_id' style='margin-top:10px;' title='Do each time you turn on Dexter.'" +
+        "value='Calibrate optical encoders'/>" +
+        `&nbsp&nbsp4. <input type='button' style='margin-top:10px;' title='Click to start FindHome Job'
+              value='Start FindHome'>
+      </button> &nbsp(Experimental)`,
+      */
+        /*
+          "3. <input type='button' id='calibrate_optical_id' style='margin-top:10px;' title='Do each time you turn on Dexter.'" +
+        "value='Calibrate optical encoders'/>",
+        */
+
+        , callback: handle_cal
+    })
+    open_doc(calibrate_doc_id)
+    setTimeout(cal_reset_ranges, 200)
+    setTimeout(function(){
+        try{
+            //this errors when the robot to calibrate hasn't been chosen yet
+            let robot_sim = Robot[robot_to_calibrate_id.value].simulate
+            let sim_actual = Robot.get_simulate_actual(robot_sim)
+            if(sim_actual === true){
+                //show_window({content: "Don't Sim"})
+                open_doc(simulate_doc_id)
+                confirm("Warning: Simulate is set to true so calibration window will not work. \nTo set to false, choose Jobs menu/Simulate/false.")
+            }
+            else if (Dexter.all_names.length === 1) { cal_init_robot() } //Fry added Oct 19, 2018
+        }catch(err){
+
+        }
+    }, 1000)
 }

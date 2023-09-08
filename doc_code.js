@@ -245,7 +245,10 @@ function doc_pane_showing(){
 }
 
 function output_pane_showing(){
-    return !$('#left_splitter_id').jqxSplitter('panels')[1].collapsed
+    if(globalThis.left_splitter_id) {
+        return !$('#left_splitter_id').jqxSplitter('panels')[1].collapsed
+    }
+    else { return false }
 }
 
 function misc_pane_showing(){

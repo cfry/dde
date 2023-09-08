@@ -200,7 +200,7 @@ var Socket = class Socket{
     }
 
     static string_to_array_buffer(str){
-        var arr_buff = Buffer.alloc(128) //dexter code expecting fixed length buf of 128
+        var arr_buff = Buffer.alloc(256) //was 128 but no reason not to have it 256
         //var view1    = new Uint8Array(arr_buff)
         for(var i = 0; i < str.length; i++){
             let char = str[i]
@@ -337,6 +337,13 @@ var Socket = class Socket{
                     Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG5] * 3600)
                 return instruction_array_copy
             }
+            else if (name.startsWith("Joint")){ //JointSpeed, JointAcceleration
+                let instruction_array_copy = instruction_array.slice()
+                let old_val = instruction_array_copy[Instruction.INSTRUCTION_ARG2]
+                let new_val = old_val * 3600
+                instruction_array_copy[Instruction.INSTRUCTION_ARG2] = new_val
+                return instruction_array_copy
+            }
             else { return instruction_array }
         }
         else if (oplet == "T") { //move_to_straight
@@ -447,6 +454,13 @@ var Socket = class Socket{
                     instruction_array_copy[Instruction.INSTRUCTION_ARG4] / 1000000 //orig in microns
                 instruction_array_copy[Instruction.INSTRUCTION_ARG5] =
                     instruction_array_copy[Instruction.INSTRUCTION_ARG5] / 3600    //orig in arcsecs
+                return instruction_array_copy
+            }
+            else if (name.startsWith("Joint")){ //JointSpeed, JointAcceleration
+                let instruction_array_copy = instruction_array.slice()
+                let old_val = instruction_array_copy[Instruction.INSTRUCTION_ARG2]
+                let new_val = old_val / 3600
+                instruction_array_copy[Instruction.INSTRUCTION_ARG2] = new_val
                 return instruction_array_copy
             }
             else { return instruction_array }

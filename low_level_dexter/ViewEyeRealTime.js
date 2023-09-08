@@ -201,6 +201,50 @@ function display_center_guess(){
     append_in_ui("svg_id", thehtml)
 }
 
+var old_point_color = "#dedede"
+
+var cal_saved_points_old
+
+function DisplayOldEyePoints(J_num)
+{
+    let thehtml = ""
+
+    read_file_async("Dexter.default:/srv/samba/share/cal_data/OldEyeData.json", "utf-8",
+        function(err, data)
+        {
+            if(err) { //only call the callback for the read IF there's a read error.
+                out("No previous eye to read from! This is normal if this robot is new or was last calibrated before May 5, 2022.")
+            }
+            else {
+                out("DisplayOldEyePoints(): " + data)
+                if (!data.startsWith("Error"))
+                {
+                    cal_saved_points_old = JSON.parse(data)
+
+
+                    if (cal_saved_points_old) // Noah: Need to officially define cal_saved_points_old from exported file
+                    {
+                        let points_old = cal_saved_points_old[J_num-1]
+                        if (points_old[0]) //Plots old points from last calibration
+                        {
+                            let num_points_old = points_old[0].length
+                            for(let i = 0; i < num_points_old; i++)
+                            {
+                                thehtml = (svg_circle({html_class: "cal_svg_circle", cx: points_old[0][i], cy: flip_point_y(points_old[1][i]), r: 1, border_color: old_point_color, color: old_point_color}))
+                                append_in_ui("svg_id", thehtml)
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    out("No previous eye to read from! This is normal if this robot is new or was last calibrated before May 5, 2022.")
+                }
+            }
+        }
+    )
+}
+
 function init_view_eye(){
     //this table has to be here rather than top level in the file even though it is static,
     //because _nbits_cf and the other units cause errors if referenced at top level.
@@ -215,7 +259,13 @@ function init_view_eye(){
     new Job({name: "CalSensors", keep_history: true, show_instructions: false,
         inter_do_item_dur: .5 * _ms,
         robot: cal_get_robot(),
-        do_list: [ Dexter.move_all_joints(0, 0, 0, 0, 0),
+        do_list: [
+            function()
+            {
+                let J_num = window.cal_working_axis+1
+                DisplayOldEyePoints(J_num)
+            },
+            Dexter.move_all_joints(0, 0, 0, 0, 0),
             Robot.label("loop_start"),
             make_ins("w", 42, 64),
             make_ins("S", "J1BoundryHigh",648000*_arcsec),
@@ -255,7 +305,8 @@ function init_view_eye(){
                 let start_button_dom_elt = window["Start_J_" + J_num + "_id"]
                 start_button_dom_elt.style.backgroundColor = "rgb(230, 179, 255)"
                 cal_instructions_id.innerHTML =
-                    "Click in the center of the dot_pattern circle.<br/>"}
+                    "Click in the center of the dot_pattern circle."
+            }
         ]})
     cal_init_view_eye_state = false
 }

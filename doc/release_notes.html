@@ -6,6 +6,20 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.8.15, Sep 8, 2023</summary>
+Highlights: defaults.makeins and Calibrate Dexter dialog improved.
+    <ul>
+        <li>Its now possible to close the dde window if you've replace
+            the whole ui (the body_id dom element).</li>
+        <li>The packet size for sending instructions to Dexter has been increased from 128 to 256 bytes.</li>
+        <li> defaults.makeins handling has been improved, including support for
+            S params: <code>JointSpeed</code>, <code>JointAcceleration</code>,
+            <code>MotorMode</code>.</li>
+        <li>Calibrate Dexter dialog has been updated with a new footer legend
+            and 5 properties across the bottom.</li>
+    </ul>
+</details>
+
 <details class="doc_details"><summary>v 3.8.14, Mar 24, 2023</summary>
 Highlights mathjs installed, fixes and extensions for class Vector that uses mathjs.
     Fix and extension for Defaults.make_ins processing.

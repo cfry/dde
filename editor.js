@@ -672,7 +672,6 @@ handle_open_system_file = function(vals){
     else if (vals.clicked_button_value == "show dde_persistent.json"){
         let content = read_file("dde_persistent.json")
         content = replace_substrings(content, "\n", "<br/>")
-        out(content)
     }
     else if (vals.clicked_button_value.endsWith("Defaults.make_ins")){
         let path = vals.clicked_button_value.split(" ")[1]
