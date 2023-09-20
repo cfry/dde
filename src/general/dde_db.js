@@ -90,6 +90,7 @@ class DDE_DB{
                        }
                    }
                }
+               data.files_menu_paths = Utils.de_duplicate(data.files_menu_paths)
                DDE_DB.persistent_values = data
                if(is_modified) { objectStore.put(data, "persistent_values") }
                DDE_DB.db_init_cb.call()

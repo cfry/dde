@@ -2698,12 +2698,14 @@ Dexter.defaults = {
     }
 }*/
 
-Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null) {
+Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null, call_start_aux=true) {
     console.log("top of Dexter.prototype.set_link_lengths")
     let sim_actual = Robot.get_simulate_actual(this.simulate)
     if (job_to_start_when_done && (job_to_start_when_done.name === "set_link_lengths")) {
         console.log("set_link_lengths top of 1st if clause")
-        this.start_aux(job_to_start_when_done)
+        if(call_start_aux) {
+            this.start_aux(job_to_start_when_done)
+        }
     }
     else if (job_to_start_when_done.get_dexter_defaults) {
         console.log("set_link_lengths top of 2nd if clause")
@@ -2720,21 +2722,25 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null) {
                 //    "initialize Dexter defaults to their idealized values.")
                 //this.set_link_lengths_using_job(job_to_start_when_done)
             }*/
-            this.set_link_lengths_using_node_server(job_to_start_when_done)
+            this.set_link_lengths_using_node_server(job_to_start_when_done, call_start_aux)
         }
         else { //simulating, so set to idealized values
             console.log("set_link_lengths top of 2nd if clause, sim")
             this.defaults = Dexter.defaults
-            this.start_aux(job_to_start_when_done)
+            if(call_start_aux) {
+                this.start_aux(job_to_start_when_done)
+            }
         }
     }
     else { // set to idealized values
         console.log("set_link_lengths top of 3rd if clause")
         this.defaults = Dexter.defaults
-        this.start_aux(job_to_start_when_done)
+        if(call_start_aux) {
+            this.start_aux(job_to_start_when_done)
+        }
     }
 }
-Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start_when_done){
+Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start_when_done, call_start_aux){
     let the_dexter = this
     let callback = (function(err, content){
         if(err) { dde_error("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
@@ -2742,7 +2748,7 @@ Dexter.prototype.set_link_lengths_using_node_server = function(job_to_start_when
             err.message +
             "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.")
         }
-        else {
+        else if (call_start_aux){
             the_dexter.start_aux(job_to_start_when_done)
         }
     })

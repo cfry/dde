@@ -110,7 +110,8 @@ class dui2 {
                             name: name,
                             robot: new Brain({name: "dui_brain"}),
                             when_do_list_done: "wait",
-                            do_list: [the_dex.get_robot_status(), //necessary to init the robot_status on the_dex so that dui2.init can work
+                            do_list: [function() { the_dex.set_link_lengths(this, false) }, //2nd arg is call_start_aux wic needs to be false here.
+                                      the_dex.get_robot_status(), //necessary to init the robot_status on the_dex so that dui2.init can work
                                       dui2.init,
                                       the_dex.empty_instruction_queue() //needed because the next instruction may need to look a the measured_angles, and we want them updated to where dexter is really at.
                                       ]
@@ -350,11 +351,24 @@ class dui2 {
     make_joint_sliders_html(){
         let result = "" //"<style> .dui-slider::-webkit-slider-thumb {background-color:#00FF00;}</style>"
         for(let joint_number = 1; joint_number < 8; joint_number++){
-            let min_name = "J" + joint_number + "_angle_min"
-            let min = this.dexter_instance[min_name]
-            let max_name = "J" + joint_number + "_angle_max"
-            let max = this.dexter_instance[max_name]
-            let val = 0 //= RS_inst.measured_angle(joint_number) //these will be set in update_all.
+            let min, max, val
+            if(joint_number < 6) {
+                min = this.dexter_instance.defaults.BoundryLows[joint_number - 1]
+                max = this.dexter_instance.defaults.BoundryHighs[joint_number - 1]
+                val = 0
+            }
+            //should be able to pull these from Defaults.makeins, but can't now.
+            else if (joint_number === 6) {
+                min = -180
+                max = 180
+                val = 0
+            }
+            else if (joint_number === 7) {
+                min = 50  //from Fry experimentation
+                max = 200
+                val = 50  //min val, fingers closed
+            }
+            // val = 0 //= RS_inst.measured_angle(joint_number) //these will be set in update_all.
                         //When the robot hasn't had a job run on it yet, there won't be a measured_angle,
                         // and a val of "undefined" causes a low level warning.
             let slider_width = 200

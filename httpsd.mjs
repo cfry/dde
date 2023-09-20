@@ -585,8 +585,8 @@ function out_to_browser_out_pane(browser_socket, val, color="black", temp=false,
 }
 
 const options = {
-    key:  fs.readFileSync('key.pem'),
-    cert: fs.readFileSync('cert.pem')
+    key:  fs.readFileSync('./key.pem'),
+    cert: fs.readFileSync('./cert.pem')
 }
 
 //standard web server on port 80 to serve files

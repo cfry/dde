@@ -3,8 +3,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">4.1.3</span><br/>
-    released: <span id="dde_release_date_id">Aug 13, 2023</span>
+    version: <span id="dde_version_id">4.1.4</span><br/>
+    released: <span id="dde_release_date_id">Sep 19, 2023</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -424,7 +424,8 @@ Each indicates that a joint has power.
         <p></p>
         <b>Configure Chrome</b><br/>
         <ol>
-            <li>In Chrome, copy the URL:<br/><a target="_blank" href="chrome://flags/#unsafely-treat-insecure-origin-as-secure">
+            <li>In Chrome, make a new tab.
+            <li>Copy the URL:<br/><a target="_blank" href="chrome://flags/#unsafely-treat-insecure-origin-as-secure">
                 chrome://flags/#unsafely-treat-insecure-origin-as-secure</a><br/>
                 and paste it into the Chrome URL type-in.
             </li>
@@ -435,10 +436,13 @@ Each indicates that a joint has power.
             <li>Selecting this menu item will cause a button to appear on the page named
                 <b>Relaunch</b>. Choose it, or otherwise relaunch Chrome in order for this new
             setting to take effect.</li>
+
+            <li>In order to drive Dexter, you'll also need an updated (as of Mid Aug, 2023)<br/>
+            <code  title="not in TestSuite">/srv/samba/share/www/httpd.mjs</code><br/> file on
+            your Dexter.</li>
+            <li>After installing this file on your Dexter, power cycle Dexter to
+                take advantage of this new httpd.mjs file.
         </ol>
-        Note: In order to drive Dexter, you'll also need an updated (as of Mid Aug, 2023)<br/>
-        <code  title="not in TestSuite">/srv/samba/share/www/httpd.mjs</code><br/> file on
-        your Dexter.<br/><br/>
         You should now be able to have DDE4 Cloud drive your Dexter, even after
         rebooting DDE, Chrome and/or Dexter.
     </details>

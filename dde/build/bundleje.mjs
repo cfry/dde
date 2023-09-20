@@ -14,8 +14,8 @@ import require$$0 from 'domain';
 import path$1 from 'path';
 
 var name = "dde4";
-var version = "4.1.2";
-var release_date = "Jun 17, 2023";
+var version = "4.1.4";
+var release_date = "Sep 19, 2023";
 var description = "test rollup";
 var author = "Fry";
 var license = "GPL-3.0";
@@ -28142,12 +28142,14 @@ Dexter$1.defaults = {
     }
 }*/
 
-Dexter$1.prototype.set_link_lengths = function(job_to_start_when_done = null) {
+Dexter$1.prototype.set_link_lengths = function(job_to_start_when_done = null, call_start_aux=true) {
     console.log("top of Dexter.prototype.set_link_lengths");
     let sim_actual = Robot$1.get_simulate_actual(this.simulate);
     if (job_to_start_when_done && (job_to_start_when_done.name === "set_link_lengths")) {
         console.log("set_link_lengths top of 1st if clause");
-        this.start_aux(job_to_start_when_done);
+        if(call_start_aux) {
+            this.start_aux(job_to_start_when_done);
+        }
     }
     else if (job_to_start_when_done.get_dexter_defaults) {
         console.log("set_link_lengths top of 2nd if clause");
@@ -28164,21 +28166,25 @@ Dexter$1.prototype.set_link_lengths = function(job_to_start_when_done = null) {
                 //    "initialize Dexter defaults to their idealized values.")
                 //this.set_link_lengths_using_job(job_to_start_when_done)
             }*/
-            this.set_link_lengths_using_node_server(job_to_start_when_done);
+            this.set_link_lengths_using_node_server(job_to_start_when_done, call_start_aux);
         }
         else { //simulating, so set to idealized values
             console.log("set_link_lengths top of 2nd if clause, sim");
             this.defaults = Dexter$1.defaults;
-            this.start_aux(job_to_start_when_done);
+            if(call_start_aux) {
+                this.start_aux(job_to_start_when_done);
+            }
         }
     }
     else { // set to idealized values
         console.log("set_link_lengths top of 3rd if clause");
         this.defaults = Dexter$1.defaults;
-        this.start_aux(job_to_start_when_done);
+        if(call_start_aux) {
+            this.start_aux(job_to_start_when_done);
+        }
     }
 };
-Dexter$1.prototype.set_link_lengths_using_node_server = function(job_to_start_when_done){
+Dexter$1.prototype.set_link_lengths_using_node_server = function(job_to_start_when_done, call_start_aux){
     let the_dexter = this;
     let callback = (function(err, content){
         if(err) { dde_error("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
@@ -28186,7 +28192,7 @@ Dexter$1.prototype.set_link_lengths_using_node_server = function(job_to_start_wh
             err.message +
             "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.");
         }
-        else {
+        else if (call_start_aux){
             the_dexter.start_aux(job_to_start_when_done);
         }
     });
@@ -29341,11 +29347,15 @@ Dexter.prototype.defaults_read = function(callback = null){
     DDEFile.read_file_async(the_url, normal_defaults_read_cb);
 };
 
-//caution:  not ready for prime time.
-Dexter.prototype.defaults_write = function(){
+Dexter.prototype.defaults_write_return_string = function(){
     this.defaults_high_level_to_defaults_lines();
-    let the_url = this.defaults_url();
     let content = this.defaults_get("whole_file_string");
+    return content
+};
+
+Dexter.prototype.defaults_write = function(){
+    let content = this.defaults_write_return_string();
+    let the_url = this.defaults_url();
     let the_dex_inst = this;
     DDEFile.write_file_async(the_url,  content,
         function(err){
@@ -30144,7 +30154,9 @@ Dexter.prototype.defaults_line_to_high_level = function(line, line_number="unkno
         (parsed_line.kind === "colonless_comment_prop")) {
         if(parsed_line.value_array) {high_value = parsed_line.value_array[0];}
         else                        {
-            high_value = Dexter.defaults[high_key];
+            high_value = Dexter.defaults[high_key];  //todo bug: noah reports that Dexter.defaults
+            //is unbound. So before calling defaults_read, we need to get that
+            //Dexter.defaults bound and filled up SO that we can steal "high_value" from it.
             warning("While parsing the Defaults.make_ins file,<br/>" +
                 "there is no value for the comment_property key: " + low_key +
                 "<br/>so we're using the value from Dexter.default." + high_key +
@@ -30176,18 +30188,12 @@ Dexter.prototype.defaults_line_to_high_level = function(line, line_number="unkno
             let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this);
             let val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1); //the high_val array
             parsed_line.high_value_array = val_arr;
-            if (low_key === "JointDH") {
-                let joint_number = parsed_line.value_array[0]; //the low value_array
-                if (!this.defaults.dh_mat) {
-                    this.defaults.dh_mat = [];
-                }
-                let four_val_array = val_arr.slice(1); //take off the joint_number on the beginning of the array
-                this.defaults.dh_mat[joint_number - 1] = four_val_array;
-            } else if (low_key === "LinkLengths") { //array of 5, but needs to be reversed
+            if (low_key === "LinkLengths") { //array of 5, but needs to be reversed
                 let val = parsed_line.high_value_array.slice(); //make a copy
                 val.reverse(); //copies in place
                 this.defaults[low_key] = val;
-            } else if (["RebootServo", "ServoSetX", "ServoSet2X"].includes(low_key)) {
+            }
+            else if (["RebootServo", "ServoSetX", "ServoSet2X"].includes(low_key)) {
                 if (!this.defaults.ServoSetup) {
                     this.defaults.ServoSetup = [];
                 }
@@ -30196,28 +30202,58 @@ Dexter.prototype.defaults_line_to_high_level = function(line, line_number="unkno
                 obj[high_key] = parsed_line.high_value_array;
                 obj.orig_line = line_number;
                 this.defaults.ServoSetup.push(obj);
-            } else if (low_key === "CmdXor") {//Added by Noah, 2/1/2023
-                    if (!this.defaults[parsed_line.key]){
-                        this.defaults[low_key] = [];
+
+            }
+            else if (low_key === "CmdXor") {//Added by Noah, 2/1/2023
+                if (!this.defaults[parsed_line.key]){
+                    this.defaults[low_key] = [];
+                }
+                this.defaults[low_key] = parsed_line.value_array;
+            }
+            else if (low_key === "JointStiffness") ;
+            else if (low_key === "JointDH") {
+                let joint_number = parsed_line.value_array[0]; //the low value_array
+                if (!this.defaults.dh_mat) {
+                    this.defaults.dh_mat = [];
+                }
+                let four_val_array = val_arr.slice(1); //take off the joint_number on the beginning of the array
+                this.defaults.dh_mat[joint_number - 1] = four_val_array;
+            }
+            else if (low_key.startsWith("Joint")){
+                let joint_number = val_arr[0];
+                let val = val_arr[1];
+                if(!this.defaults[high_key]){
+                    this.defaults[high_key] = [];
+                }
+                let joint_number_minus_1 = joint_number - 1;
+                this.defaults[high_key][joint_number_minus_1] = val;  //this works even if the joint_numbers are out of order. thank you JS!
+            }
+            else if (low_key.endsWith("Joint")){
+                if(val_arr.length === 1){
+                    this.defaults[high_key] = val_arr[0]; //parsed_line.high_value_array[0]
+                }
+                else if (val_arr.length === 2){
+                    let val = val_arr[0];
+                    let joint_number = val_arr[1];
+                    if(!this.defaults[high_key]){
+                        this.defaults[high_key] = [];
                     }
-                    this.defaults[low_key] = parsed_line.value_array;
-            } else if (Dexter.defaults_is_j_key(low_key)) {
+                    let joint_number_minus_1 = joint_number - 1;
+                    this.defaults[high_key][joint_number_minus_1] = val;
+                }
+            }
+            else if (Dexter.defaults_is_j_key(low_key)) {
                 let [high_key, joint_number] = Dexter.defaults_j_key_to_high_key(low_key);
                 if (!this.defaults[high_key]) {
                     this.defaults[high_key] = [];
                 }
-                this.defaults[high_key][joint_number - 1] = parsed_line.high_value_array[0];
-            } else if (val_arr.length === 1) {
-                this.defaults[low_key] = parsed_line.high_value_array[0];
-            } else if (val_arr.length === 2) {
-                let val = parsed_line.high_value_array[0];
-                let joint_number = parsed_line.value_array[1]; //use low value here
-                if (!this.defaults[parsed_line.key]) {
-                    this.defaults[low_key] = [];
-                }
-                this.defaults[low_key][joint_number - 1] = val;
-            } else if (val_arr.length > 2) {
-                this.defaults[parsed_line.key] = parsed_line.high_value_array;
+                this.defaults[high_key][joint_number - 1] = val_arr[0];
+            }
+            else if (val_arr.length === 1) {
+                this.defaults[low_key] = val_arr[0];
+            }
+            else {
+                this.defaults[parsed_line.key] = val_arr;
             }
         }
     }
@@ -30347,7 +30383,7 @@ Dexter.prototype.defaults_compute_parsed_lines = function(){
 Dexter.prototype.defaults_high_level_to_defaults_lines = function(){
     let parsed_lines = this.defaults_compute_parsed_lines();
     let result_lines = [];
-    for(let line_number = 0; line_number <  parsed_lines.length; line_number++){
+    for(let line_number = 0; line_number < parsed_lines.length; line_number++){
         let parsed_line = parsed_lines[line_number];
         let low_key = parsed_line.key;
         if      (parsed_line.kind === "invalid")    ; //ignore
@@ -30374,12 +30410,6 @@ Dexter.prototype.defaults_high_level_to_defaults_lines = function(){
         else if (parsed_line.kind === "S_param") {
             let ins_arr = [];
             ins_arr[Instruction.INSTRUCTION_TYPE] = "S";
-            //ins_arr[Instruction.INSTRUCTION_ARG0] = parsed_line.key
-            //ins_arr = ins_arr.concat(parsed_line.value_array)
-            //let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this)
-            //let val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1)
-            //parsed_line.value_array = val_arr
-
             if (low_key === "LinkLengths") { //array of 5, but needs to be reversed
                 let high_key = low_key;
                 if(this.defaults.hasOwnProperty(high_key)) { //user didn't delete it
@@ -30396,6 +30426,18 @@ Dexter.prototype.defaults_high_level_to_defaults_lines = function(){
                     result_lines.push(new_line);
                     delete this.defaults[high_key];
                 }
+            }
+            else if (["RebootServo", "ServoSetX", "ServoSet2X"].includes(low_key)){  //no units conversion
+                let new_lines = this.defaults_high_level_to_defaults_lines_ServoSetup_line(line_number);
+                for(let new_line of new_lines) { result_lines.push(new_line); }
+            }
+            else if (low_key === "CmdXor") {//Added by Noah, 2/1/2023
+                let high_key = low_key;
+                let new_line = "S" + Dexter.defaults_arg_sep + high_key
+                    + Dexter.defaults_arg_sep +  this.defaults[high_key].join() +
+                    ";" + parsed_line.comment;
+                out(new_line);
+                result_lines.push(new_line);
             }
             else if(low_key === "JointDH"){
                 if(this.defaults.hasOwnProperty("dh_mat")) { //user didn't delete it
@@ -30417,33 +30459,7 @@ Dexter.prototype.defaults_high_level_to_defaults_lines = function(){
                     delete high_val[joint_number - 1];
                 }
             }
-            else if (["RebootServo", "ServoSetX", "ServoSet2X"].includes(low_key)){  //no units conversion
-                let new_lines = this.defaults_high_level_to_defaults_lines_ServoSetup_line(line_number);
-                for(let new_line of new_lines) { result_lines.push(new_line); }
-            }
-            else if (low_key === "CmdXor") {//Added by Noah, 2/1/2023
-                let high_key = low_key;
-                let new_line = "S" + Dexter.defaults_arg_sep + high_key
-                    + Dexter.defaults_arg_sep +  this.defaults[high_key].join() +
-                    ";" + parsed_line.comment;
-                out(new_line);
-                result_lines.push(new_line);
-            }
-            else if(Dexter.defaults_low_level_2nd_arg_is_joint_number(low_key)) {//S, BW params no units conversion
-                let high_key = low_key;
-                let joint_number = parsed_line.value_array[1];
-                if (this.defaults.hasOwnProperty(high_key)) { //user didn't delete it
-                    let high_val = this.defaults[high_key][joint_number - 1];
-                    let new_line = "S" +
-                        Dexter.defaults_arg_sep + low_key +
-                        Dexter.defaults_arg_sep + high_val +
-                        Dexter.defaults_arg_sep + joint_number +
-                        ";" + parsed_line.comment;
-                    result_lines.push(new_line);
-                    delete this.defaults[high_key][joint_number - 1];
-                }
-            }
-            else if(Dexter.defaults_is_j_key(low_key)){//ie J1BoundryLow, with high key BoundryLows
+            else if(Dexter.defaults_is_j_key(low_key)){//starts with J, 2nd char is digit. ie J1BoundryLow, with high key BoundryLows
                 let [high_key, joint_number] = Dexter.defaults_j_key_to_high_key(low_key);
                 if(this.defaults.hasOwnProperty(high_key)) { //user didn't delete it
                     ins_arr[Instruction.INSTRUCTION_ARG0] = low_key;
@@ -30458,6 +30474,45 @@ Dexter.prototype.defaults_high_level_to_defaults_lines = function(){
                     delete this.defaults[high_key][joint_number - 1];
                 }
             }
+            else if(low_key.startsWith("Joint")) {
+                if (this.defaults.hasOwnProperty(low_key)) { //user didn't delete it
+                    let joint_number = parsed_line.value_array[0]; // 1 based
+                    let high_val = this.defaults[low_key];
+                    let high_joint_val = high_val[joint_number - 1];
+                    ins_arr[Instruction.INSTRUCTION_ARG0] = low_key;
+                    ins_arr[Instruction.INSTRUCTION_ARG1] = joint_number;
+                    ins_arr[Instruction.INSTRUCTION_ARG2] = high_joint_val;
+                    let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                    let low_val = dde_ins_arr[Instruction.INSTRUCTION_ARG2];
+                    let new_line = "S" +
+                        Dexter.defaults_arg_sep + low_key +
+                        Dexter.defaults_arg_sep + joint_number +
+                        Dexter.defaults_arg_sep + low_val +
+                        ";" + parsed_line.comment;
+                    result_lines.push(new_line);
+                    delete this.defaults[low_key][joint_number - 1];
+                }
+            }
+            else if (low_key.endsWith("Joint")) {
+                if (this.defaults.hasOwnProperty(low_key)) { //user didn't delete it
+                    let joint_number = parsed_line.value_array[1]; // 1 based
+                    let high_val = this.defaults[low_key];
+                    let high_joint_val = high_val[joint_number - 1];
+                    ins_arr[Instruction.INSTRUCTION_ARG0] = low_key;
+                    ins_arr[Instruction.INSTRUCTION_ARG1] = high_joint_val;
+                    ins_arr[Instruction.INSTRUCTION_ARG2] = joint_number;
+                    let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                    let low_val = dde_ins_arr[Instruction.INSTRUCTION_ARG1];
+                    let new_line = "S" +
+                        Dexter.defaults_arg_sep + low_key +
+                        Dexter.defaults_arg_sep + low_val +
+                        Dexter.defaults_arg_sep + joint_number +
+                        ";" + parsed_line.comment;
+                    result_lines.push(new_line);
+                    delete this.defaults[low_key][joint_number - 1];
+                }
+            }
+
             else { //low_key is non j_key so use it as the high key
                 let high_key = low_key;
                 if(this.defaults.hasOwnProperty(high_key)) { //user didn't delete it
@@ -30465,20 +30520,10 @@ Dexter.prototype.defaults_high_level_to_defaults_lines = function(){
                     ins_arr[Instruction.INSTRUCTION_ARG0] = low_key;
                     let low_val_str;
                     if(Array.isArray(high_val)) {
-                        if(high_val.length === 2) {
-                            let joint_number = parsed_line.value_array[1];
-                            let high_joint_val = high_val[joint_number - 1];
-                            ins_arr[Instruction.INSTRUCTION_ARG1] = high_joint_val;
-                            let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
-                            let low_val     = dde_ins_arr[Instruction.INSTRUCTION_ARG1];
-                            low_val_str = low_val;
-                        }
-                        else {
-                            ins_arr = ins_arr.concat(high_val);
-                            let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
-                            let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1);
-                            low_val_str = low_val.join(Dexter.defaults_arg_sep);
-                        }
+                        ins_arr = ins_arr.concat(high_val);
+                        let dde_ins_arr = Socket.instruction_array_degrees_to_arcseconds_maybe(ins_arr, this);
+                        let low_val = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1);
+                        low_val_str = low_val.join(Dexter.defaults_arg_sep);
                     }
                     else {
                         ins_arr[Instruction.INSTRUCTION_ARG1] = high_val;
@@ -30494,43 +30539,9 @@ Dexter.prototype.defaults_high_level_to_defaults_lines = function(){
                 }
             }
         } //end S param
-        /* let ins_arr = []
-         ins_arr[Instruction.INSTRUCTION_TYPE] = "S"
-         //ins_arr.push(parsed_line.key) //arg0, the param name
-         ins_arr[Instruction.INSTRUCTION_ARG0] = parsed_line.key
-         ins_arr = ins_arr.concat(parsed_line.value_array)
-         let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this)
-         let val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG1)
-         parsed_line.value_array = val_arr
-        */
         else if (parsed_line.kind === "oplet_instruction"){
             let new_lines = this.defaults_high_level_to_defaults_lines_ServoSetup_line(line_number);
             for(let new_line of new_lines) { result_lines.push(new_line); }
-
-            /*if(parsed_line.value_array.length === 1){ //primarily for z oplet
-                let ins_arr = []
-                ins_arr[Instruction.INSTRUCTION_TYPE] = parsed_line.key
-                ins_arr = ins_arr.concat(parsed_line.value_array)
-                let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this)
-                let new_val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0)
-                parsed_line.value_array = new_val_arr
-                if(!this.defaults.ServoSetup) { this.defaults.ServoSetup = [] }
-                let obj = {}
-                obj[parsed_line.key] = parsed_line.value_array[0]
-                this.defaults.ServoSetup.push(obj)
-            }
-            else { //any oplet with non-1 args. primarily a, P, T
-                let ins_arr = []
-                ins_arr[Instruction.INSTRUCTION_TYPE] = parsed_line.key
-                ins_arr = ins_arr.concat(parsed_line.value_array)
-                let dde_ins_arr = Socket.instruction_array_arcseconds_to_degrees_maybe(ins_arr, this)
-                let new_val_arr = dde_ins_arr.slice(Instruction.INSTRUCTION_ARG0)
-                parsed_line.value_array = new_val_arr
-                if(!this.defaults.ServoSetup) { this.defaults.ServoSetup = [] }
-                let obj = {}
-                obj[parsed_line.key] = parsed_line.value_array
-                this.defaults.ServoSetup.push(obj)
-            } */
         }
         else { warning("bottom of Dexter.prototype.defaults_line_to_high_level <br/>" +
             "unhandled line: " + parsed_line.kind);
@@ -30546,11 +30557,6 @@ Dexter.prototype.defaults_high_level_to_defaults_lines = function(){
     return this.defaults_lines
 };
 
-//At least for now, key can be either a high_key or a low_key (ie suffix of "s" or not, start with J-digit or not)
-//returns boolean. For BackWin params
-Dexter.defaults_low_level_2nd_arg_is_joint_number = function(key){
-    return key.startsWith("BW")
-};
 
 Dexter.defaults_high_key_of_SS_obj = function(obj){
     if(!obj) { return null }
@@ -30700,19 +30706,6 @@ Dexter.prototype.defaults_high_level_to_defaults_lines_new_high_level = function
             let new_lines = this.defaults_high_level_to_defaults_lines_ServoSetup_line(null); //null means get all the remaining ones in the ServoSetup array
             for(let new_line of new_lines) { result_lines.push(new_line); }
         }
-        else if(Dexter.defaults_low_level_2nd_arg_is_joint_number(high_key)) { //a BW param. No units conversion
-            for(let joint_number = 1; joint_number <= high_val.length; joint_number++){
-                let low_key      = high_key;
-                let high_val_for_joint = high_val[joint_number - 1];
-                let new_line = "S" +
-                    Dexter.defaults_arg_sep + low_key +
-                    Dexter.defaults_arg_sep + high_val_for_joint +
-                    Dexter.defaults_arg_sep + joint_number +
-                    ";";
-                result_lines.push(new_line);
-            }
-            delete this.defaults[high_key];
-        }
         else if(Dexter.defaults_is_high_j_key(high_key)){
             for(let joint_number = 1; joint_number <= high_val.length; joint_number++){
                 let low_key  = "J" + joint_number + high_key.substring(0, high_key.length - 1); //cut off "s" suffix from high_key
@@ -30803,6 +30796,8 @@ Dexter.dexter0.defaults.LinkLengths[0] = 0.2
 
 
 Dexter.dexter0.defaults_high_level_to_defaults_lines()
+
+Dexter.dexter0.defaults_write_return_string()
 
 // Dexter.dexter0.defaults_write() //warning: not ready for prime time. make a backup first.
 */
@@ -30989,8 +30984,13 @@ class Socket$1{
                 try {
                     //net_soc_inst = new net.Socket()
                     //net_soc_inst.setKeepAlive(true)
-                    let ws_url = "wss://" + rob.ip_address; //was "ws://" + rob.ip_address + ":" + rob.port
+                    let protocol = ((DDEFile.http_and_maybe_s === "http") ? "ws" : "wss");
+                    let port     = ((protocol === "ws") ? ":" + rob.port : "");
+                    let ws_url   = //"ws://" + rob.ip_address
+                                   //"ws://" + rob.ip_address + ":" + rob.port
+                                   protocol + "://" + rob.ip_address + port; //port is normally 3000
                     net_soc_inst = new WebSocket(ws_url); // see https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
+                    console.log("In Socket.init, made new WebSocket at: " + ws_url);
                     if (!(net_soc_inst instanceof WebSocket)) {
                         dde_error("In Socket.init, could not create WebSocket for url: " + ws_url);
                     }
@@ -30998,6 +30998,10 @@ class Socket$1{
                 catch(err){
                         console.log(job_instance.name + " Socket.init catch clause with err: " + err.message);
                         this.close(robot_name, true);
+                        out('DDE cannot connect to Dexter.<br/>' +
+                            `Please read: <a href="#" onclick="DocCode.open_doc('configure_dexter_id', event)">Configure Dexter</a>)` +
+                            `and, in particular: <a href="#" onclick="DocCode.open_doc('configure_browser_for_dde4_cloud_id', event)">Configure Browser for DDE4 Cloud</a>)`
+                        );
                         dde_error("Error attempting to create socket to Dexter." + robot_name + " at ip_address: " + rob.ip_address + " port: " + rob.port + err.message);
                 }
                 //WebSocket creating succeeded
@@ -31353,7 +31357,7 @@ class Socket$1{
                 let instruction_array_copy = instruction_array.slice();
                 let joint_number = parseInt(name[1]);
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = this.degrees_to_dexter_units(first_arg, joint_number); //Math.round(first_arg * 3600) //deg to arcseconds
-                                            //only expecting j1 thru J5, and since j1 thru j5 are to be converted the same, just pass joint 1
+                //only expecting j1 thru J5, and since j1 thru j5 are to be converted the same, just pass joint 1
                 return instruction_array_copy
             }
             else if (["CommandedAngles", "RawEncoderErrorLimits", "RawVelocityLimits"].includes(name)){
@@ -31376,11 +31380,12 @@ class Socket$1{
                 rob.angles[6] = this.dexter_units_to_degrees(first_arg, 7);
                 return instruction_array
             }
-            //convert meters to microns
-            else if ((name.length == 5) && name.startsWith("Link")){
+            else if (name === "LinkLengths"){
                 let instruction_array_copy = instruction_array.slice();
-                let new_val = Math.round(first_arg / _um); //convert from meters to microns
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val;
+                for(let i = Instruction.INSTRUCTION_ARG1; i < instruction_array.length; i++){
+                    let orig_arg = instruction_array_copy[i];
+                    instruction_array_copy[i] = Math.round(orig_arg / _um);
+                }
                 return instruction_array_copy
             }
             else if (["CartesianSpeed", "CartesianSpeedStart", "CartesianSpeedEnd", "CartesianAcceleration",
@@ -31390,17 +31395,23 @@ class Socket$1{
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val;
                 return instruction_array_copy
             }
-            else if (name == "JointDH") {
+            else if(name === "JointDH") {
                 let instruction_array_copy = instruction_array.slice();
-                //arg0 is param name ie JointDB, arg1 is joint number.
                 instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
                     Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000000);
                 instruction_array_copy[Instruction.INSTRUCTION_ARG3] =
-                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 3600);
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG3] * 3600);
                 instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
-                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000000);
-                instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
-                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 3600);
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG4] * 1000000);
+                instruction_array_copy[Instruction.INSTRUCTION_ARG5] =
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG5] * 3600);
+                return instruction_array_copy
+            }
+            else if (name.startsWith("Joint")){ //JointSpeed, JointAcceleration
+                let instruction_array_copy = instruction_array.slice();
+                let old_val = instruction_array_copy[Instruction.INSTRUCTION_ARG2];
+                let new_val = old_val * 3600;
+                instruction_array_copy[Instruction.INSTRUCTION_ARG2] = new_val;
                 return instruction_array_copy
             }
             else { return instruction_array }
@@ -31458,7 +31469,7 @@ class Socket$1{
                 "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
                 "CartesianPivotAcceleration", "CartesianPivotStepSize" ].includes(name)){
                 let instruction_array_copy = instruction_array.slice();
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(first_arg / _nbits_cf);
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = first_arg / _nbits_cf;
                 return instruction_array_copy
             }
             else if (name.includes("Boundry")) { //the full name is  J1BoundryHigh thru J5BoundryHigh, or J1BoundryLow thru J5BoundryLow
@@ -31479,7 +31490,7 @@ class Socket$1{
             //dynamixel conversion
             else if (name == "EERoll"){ //J6 no actual conversion here, but this is a convenient place
                 //to put the setting of robot.angles and is also the same fn where we convert
-                //the degrees to dynamixel units of 0.20 degrees
+                // the degrees to dynamixel units of 0.20 degrees
                 //val is in dynamixel units
                 //don't do in this fn  rob.angles[5] = this.dexter_units_to_degrees(first_arg, 6) //convert dynamixel units to degrees then shove that into rob.angles for use by subsequent relative move instructions
                 return instruction_array
@@ -31488,11 +31499,12 @@ class Socket$1{
                 //don't do in this fn  rob.angles[6] = this.dexter_units_to_degrees(first_arg, 7)
                 return instruction_array
             }
-            //convert microns to meters
-            else if ((name.length == 5) && name.startsWith("Link")){
+            else if (name === "LinkLengths"){
                 let instruction_array_copy = instruction_array.slice();
-                let new_val = Math.round(first_arg * _um); //convert from meters to microns
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val;
+                for(let i = Instruction.INSTRUCTION_ARG1; i < instruction_array.length; i++){
+                    let orig_arg = instruction_array_copy[i];
+                    instruction_array_copy[i] = orig_arg * _um;
+                }
                 return instruction_array_copy
             }
             else if (["CartesianSpeed", "CartesianSpeedStart", "CartesianSpeedEnd", "CartesianAcceleration",
@@ -31502,13 +31514,23 @@ class Socket$1{
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val;
                 return instruction_array_copy
             }
-            else if (name == "JointDH") {
+            else if(name === "JointDH") {
                 let instruction_array_copy = instruction_array.slice();
-                //arg0 is param name ie JointDB, arg1 is joint number.
-                instruction_array_copy[Instruction.INSTRUCTION_ARG2] /= 1000000;
-                instruction_array_copy[Instruction.INSTRUCTION_ARG3] /= 3600;
-                instruction_array_copy[Instruction.INSTRUCTION_ARG4] /= 1000000;
-                instruction_array_copy[Instruction.INSTRUCTION_ARG4] /= 3600;
+                instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG2] / 1000000; //orig in microns
+                instruction_array_copy[Instruction.INSTRUCTION_ARG3] =
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG3] / 3600;    //orig in arcsecs
+                instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG4] / 1000000; //orig in microns
+                instruction_array_copy[Instruction.INSTRUCTION_ARG5] =
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG5] / 3600;    //orig in arcsecs
+                return instruction_array_copy
+            }
+            else if (name.startsWith("Joint")){ //JointSpeed, JointAcceleration
+                let instruction_array_copy = instruction_array.slice();
+                let old_val = instruction_array_copy[Instruction.INSTRUCTION_ARG2];
+                let new_val = old_val / 3600;
+                instruction_array_copy[Instruction.INSTRUCTION_ARG2] = new_val;
                 return instruction_array_copy
             }
             else { return instruction_array }
@@ -31530,7 +31552,7 @@ class Socket$1{
         else if (oplet == "z") { //sleep
             let instruction_array_copy = instruction_array.slice();
             instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
-                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] / Socket$1.DEXTER_UNITS_PER_SECOND_FOR_SLEEP); // nanoseconds to seconds
+                instruction_array_copy[Instruction.INSTRUCTION_ARG0] / Socket$1.DEXTER_UNITS_PER_SECOND_FOR_SLEEP; // nanoseconds to seconds
             return instruction_array_copy
         }
         else { return instruction_array }
@@ -31586,6 +31608,7 @@ class Socket$1{
                     }
                 }, 1);}
             else {
+                Waiting.clear_job_and_dexter(job_instance, rob); //must do or the job will get stuck not advancing as it will be waiting for oplet_array_or_string to complete
                 this.close(robot_name, true); //both are send args
                 setTimeout(function(){
                     Socket$1.init(robot_name, job_instance, oplet_array_or_string);
@@ -31623,6 +31646,7 @@ class Socket$1{
                             rob.resend_count = 1
                         }
                         else { rob.resend_count += 1 }*/
+                        Waiting.clear_job_and_dexter(job_instance, rob);
                         this.close(robot_name, true);
                         let timeout_dur = Math.pow(10, rob.resend_count);
                         setTimeout(function(){
@@ -31634,6 +31658,7 @@ class Socket$1{
                 }
             }
             else { //This only hits if there is no net_soc_inst in Socket.robot_name_to_soc_instance_map or if its not open
+                Waiting.clear_job_and_dexter(job_instance, rob);
                 this.close(robot_name, true);
                 setTimeout(function(){
                     Socket$1.init(robot_name, job_instance, oplet_array_or_string);
@@ -33939,6 +33964,7 @@ class SimUtils$1{
         if(this.is_simulator_showing()) {
             if (Simulate.sim.J6) {
                 Simulate.sim.J6.rotation.z = rads;
+                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
             }
             sim_pane_j6_id.innerHTML = j_angle_degrees_rounded;
         }
@@ -33954,17 +33980,7 @@ class SimUtils$1{
                 new_xpos *= 10;
                 //out("J7 angle_degrees: " + angle_degrees + " new xpos: " + new_xpos)
                 Simulate.sim.J7.position.setX(new_xpos); //see https://threejs.org/docs/#api/en/math/Vector3
-                //all below fail to change render
-                //Simulate.sim.J7.position.x = new_pos
-                //Simulate.sim.J7.updateMatrix() //no effect
-                //Simulate.sim.j7.updateWorldMatrix(true, true)
-                // prev new_pos value;
-                // ((angle_degrees * 0.05) / 330 ) * -1 //meters of new location
-                // but has the below problems
-                // x causes no movement, but at least inited correctly
-                // y sends the finger to move to outer space upon init, but still visible, however moving j7 doesn't move it
-                // z causes the finger to be somewhat dislocated upon dui init, however moving j7 doesn't move it
-                //Simulate.sim.J7.rotation.y = rads
+                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
             }
             sim_pane_j7_id.innerHTML = j_angle_degrees_rounded;
             if (SimBuild.template_object) {
@@ -34519,6 +34535,7 @@ globalThis.RobotStatus = RobotStatus$1;
 //import {eval_js_part2} from "../../general/eval.js" //now this is global
 
 class DDEFile$1 {
+    static http_and_maybe_s = "http" //but could be set to "https" if using an https node serever
     //utilities
     static convert_backslashes_to_slashes(a_string){
         let result = a_string.replace(/\\/g, "/");
@@ -34588,27 +34605,27 @@ class DDEFile$1 {
                 }
                 let ip_address = dex.ip_address;
                 extracted_path = this.add_default_file_prefix_maybe(extracted_path);
-                url = "https://" + ip_address + query + extracted_path;
+                url = DDEFile$1.http_and_maybe_s + "://" + ip_address + query + extracted_path;
             }
         }
         else if(path.startsWith("host:")){
             let [full_dex_name, extracted_path] = path.split(":");
             let ip_address = this.host(); //might return "localhost"
             extracted_path = this.add_default_file_prefix_maybe(extracted_path);
-            url = "https://" + ip_address + query + extracted_path;
+            url = DDEFile$1.http_and_maybe_s + "://" + ip_address + query + extracted_path;
         }
         else if (path.includes(":")) {
             if(query !== "") {
                 let [protocol, host, extracted_path] = path.split(":");
                 if((protocol === "http") || (protocol === "https")){
                     extracted_path = this.add_default_file_prefix_maybe(extracted_path);
-                    url = "https" + ":" + host + query + path; //todo cut out host, just go with extracted path here???
+                    url = DDEFile$1.http_and_maybe_s + ":" + host + query + path; //todo cut out host, just go with extracted path here???
                 }
                 else { //only 1 colon, assume its NOT the suffix to host but the separator before port
                     extracted_path = host;
                     host = protocol;
                     extracted_path = this.add_default_file_prefix_maybe(extracted_path);
-                    url = "https" + "://" + host + //":" +  //don't insert this colon. causes fetch to break
+                    url = DDEFile$1.http_and_maybe_s + "://" + host + //":" +  //don't insert this colon. causes fetch to break
                         query + extracted_path;
                 }
             }
@@ -34617,10 +34634,10 @@ class DDEFile$1 {
         else {
             path = this.add_default_file_prefix_maybe(path);
             if(dde_running_in_cloud()){
-                url = "https://" + path;  //cloud can't handle any query strings
+                url = DDEFile$1.http_and_maybe_s + "://" + path;  //cloud can't handle any query strings
             }
             else {
-                url = "https://" + this.host() + //":" +
+                url = DDEFile$1.http_and_maybe_s + "://" + this.host() + //":" +
                     query + path;
             }
         }
@@ -34746,7 +34763,7 @@ class DDEFile$1 {
     static async get_page_async(url, callback){
         //https://www.npmjs.com/package/request documents request
         let full_url = (dde_running_in_cloud() ? url :
-                   "http://" + this.host() + "/get_page?path=" + url);
+            DDEFile$1.http_and_maybe_s + "://" + this.host() + "/get_page?path=" + url);
         try {
             let response = await fetch(full_url); //will error due to CORS if the host serving full_url doesn't pave a response header allowing CORS
             if (response.ok) {

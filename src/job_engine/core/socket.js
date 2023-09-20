@@ -435,7 +435,7 @@ class Socket{
                 let instruction_array_copy = instruction_array.slice()
                 let joint_number = parseInt(name[1])
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = this.degrees_to_dexter_units(first_arg, joint_number) //Math.round(first_arg * 3600) //deg to arcseconds
-                                            //only expecting j1 thru J5, and since j1 thru j5 are to be converted the same, just pass joint 1
+                //only expecting j1 thru J5, and since j1 thru j5 are to be converted the same, just pass joint 1
                 return instruction_array_copy
             }
             else if (["CommandedAngles", "RawEncoderErrorLimits", "RawVelocityLimits"].includes(name)){
@@ -458,17 +458,10 @@ class Socket{
                 rob.angles[6] = this.dexter_units_to_degrees(first_arg, 7)
                 return instruction_array
             }
-            //convert meters to microns
-            else if ((name.length == 5) && name.startsWith("Link")){
-                let instruction_array_copy = instruction_array.slice()
-                let new_val = Math.round(first_arg / _um) //convert from meters to microns
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
-                return instruction_array_copy
-            }
-            else if ("LinkLengths" == "name"){
+            else if (name === "LinkLengths"){
                 let instruction_array_copy = instruction_array.slice()
                 for(let i = Instruction.INSTRUCTION_ARG1; i < instruction_array.length; i++){
-                    let orig_arg = instruction_array_copy[1]
+                    let orig_arg = instruction_array_copy[i]
                     instruction_array_copy[i] = Math.round(orig_arg / _um)
                 }
                 return instruction_array_copy
@@ -480,17 +473,23 @@ class Socket{
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
                 return instruction_array_copy
             }
-            else if (name == "JointDH") {
+            else if(name === "JointDH") {
                 let instruction_array_copy = instruction_array.slice()
-                //arg0 is param name ie JointDB, arg1 is joint number.
                 instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
                     Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000000)
                 instruction_array_copy[Instruction.INSTRUCTION_ARG3] =
-                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 3600)
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG3] * 3600)
                 instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
-                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000000)
-                instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
-                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 3600)
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG4] * 1000000)
+                instruction_array_copy[Instruction.INSTRUCTION_ARG5] =
+                    Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG5] * 3600)
+                return instruction_array_copy
+            }
+            else if (name.startsWith("Joint")){ //JointSpeed, JointAcceleration
+                let instruction_array_copy = instruction_array.slice()
+                let old_val = instruction_array_copy[Instruction.INSTRUCTION_ARG2]
+                let new_val = old_val * 3600
+                instruction_array_copy[Instruction.INSTRUCTION_ARG2] = new_val
                 return instruction_array_copy
             }
             else { return instruction_array }
@@ -548,7 +547,7 @@ class Socket{
                 "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
                 "CartesianPivotAcceleration", "CartesianPivotStepSize" ].includes(name)){
                 let instruction_array_copy = instruction_array.slice()
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(first_arg / _nbits_cf)
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = first_arg / _nbits_cf
                 return instruction_array_copy
             }
             else if (name.includes("Boundry")) { //the full name is  J1BoundryHigh thru J5BoundryHigh, or J1BoundryLow thru J5BoundryLow
@@ -569,7 +568,7 @@ class Socket{
             //dynamixel conversion
             else if (name == "EERoll"){ //J6 no actual conversion here, but this is a convenient place
                 //to put the setting of robot.angles and is also the same fn where we convert
-                //the degrees to dynamixel units of 0.20 degrees
+                // the degrees to dynamixel units of 0.20 degrees
                 //val is in dynamixel units
                 //don't do in this fn  rob.angles[5] = this.dexter_units_to_degrees(first_arg, 6) //convert dynamixel units to degrees then shove that into rob.angles for use by subsequent relative move instructions
                 return instruction_array
@@ -578,18 +577,11 @@ class Socket{
                 //don't do in this fn  rob.angles[6] = this.dexter_units_to_degrees(first_arg, 7)
                 return instruction_array
             }
-            //convert microns to meters
-            else if ((name.length == 5) && name.startsWith("Link")){
-                let instruction_array_copy = instruction_array.slice()
-                let new_val = Math.round(first_arg * _um) //convert from meters to microns
-                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
-                return instruction_array_copy
-            }
-            else if ("LinkLengths" == "name"){
+            else if (name === "LinkLengths"){
                 let instruction_array_copy = instruction_array.slice()
                 for(let i = Instruction.INSTRUCTION_ARG1; i < instruction_array.length; i++){
-                    let orig_arg = instruction_array_copy[1]
-                    instruction_array_copy[i] = Math.round(orig_arg * _um)
+                    let orig_arg = instruction_array_copy[i]
+                    instruction_array_copy[i] = orig_arg * _um
                 }
                 return instruction_array_copy
             }
@@ -600,13 +592,23 @@ class Socket{
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = new_val
                 return instruction_array_copy
             }
-            else if (name == "JointDH") {
+            else if(name === "JointDH") {
                 let instruction_array_copy = instruction_array.slice()
-                //arg0 is param name ie JointDB, arg1 is joint number.
-                instruction_array_copy[Instruction.INSTRUCTION_ARG2] /= 1000000
-                instruction_array_copy[Instruction.INSTRUCTION_ARG3] /= 3600
-                instruction_array_copy[Instruction.INSTRUCTION_ARG4] /= 1000000
-                instruction_array_copy[Instruction.INSTRUCTION_ARG4] /= 3600
+                instruction_array_copy[Instruction.INSTRUCTION_ARG2] =
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG2] / 1000000 //orig in microns
+                instruction_array_copy[Instruction.INSTRUCTION_ARG3] =
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG3] / 3600    //orig in arcsecs
+                instruction_array_copy[Instruction.INSTRUCTION_ARG4] =
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG4] / 1000000 //orig in microns
+                instruction_array_copy[Instruction.INSTRUCTION_ARG5] =
+                    instruction_array_copy[Instruction.INSTRUCTION_ARG5] / 3600    //orig in arcsecs
+                return instruction_array_copy
+            }
+            else if (name.startsWith("Joint")){ //JointSpeed, JointAcceleration
+                let instruction_array_copy = instruction_array.slice()
+                let old_val = instruction_array_copy[Instruction.INSTRUCTION_ARG2]
+                let new_val = old_val / 3600
+                instruction_array_copy[Instruction.INSTRUCTION_ARG2] = new_val
                 return instruction_array_copy
             }
             else { return instruction_array }
@@ -628,7 +630,7 @@ class Socket{
         else if (oplet == "z") { //sleep
             let instruction_array_copy = instruction_array.slice()
             instruction_array_copy[Instruction.INSTRUCTION_ARG0] =
-                Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG0] / Socket.DEXTER_UNITS_PER_SECOND_FOR_SLEEP) // nanoseconds to seconds
+                instruction_array_copy[Instruction.INSTRUCTION_ARG0] / Socket.DEXTER_UNITS_PER_SECOND_FOR_SLEEP // nanoseconds to seconds
             return instruction_array_copy
         }
         else { return instruction_array }
@@ -722,6 +724,7 @@ class Socket{
                             rob.resend_count = 1
                         }
                         else { rob.resend_count += 1 }*/
+                        Waiting.clear_job_and_dexter(job_instance, rob)
                         this.close(robot_name, true)
                         let timeout_dur = Math.pow(10, rob.resend_count)
                         setTimeout(function(){
@@ -733,6 +736,7 @@ class Socket{
                 }
             }
             else { //This only hits if there is no net_soc_inst in Socket.robot_name_to_soc_instance_map or if its not open
+                Waiting.clear_job_and_dexter(job_instance, rob)
                 this.close(robot_name, true)
                 setTimeout(function(){
                     Socket.init(robot_name, job_instance, oplet_array_or_string)

@@ -1,6 +1,35 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
 
+<details class="doc_details"><summary>v 4.1.4, Sep 19, 2023</summary>
+ Highlights: GPT, HCA, DexterUI & Defaults.makeins improvements.
+ <ul>
+     <li>Inspector: fixed a possible infinite loop when inspecting a Dexter instance.</li>
+     <li>GPT: documented the confusing acquisition of the OpenAI keys you'll need to utilize GPT.</li>
+     <li>GPT: Improved the GPT configure dialog box UI.</li>
+     <li>HCA bug fix corrected spelling of <code>node_io_type_to_call_obj_type</code>
+         to <code>node_io_type_to_call_obj_io_type</code> and a fix in which prevented
+         the loading of the A-Z file.</li>
+     <li>DexterUI dialog box not popping up fixed. Had to do with continuing to send the first instruction in the dui2_for_dexter
+         (a get_robot_status) repeatedly because the PC was not incremented.</li>
+     <li> Now populating file menu from browser storage</li>
+     <li>HCA scrolling, sizing of graphics canvas fixed.
+         Scroll bars fixed for graphics pane and palette.</li>
+      <li>Editor (JS) pane sizing fixed w.r.t. the output pane.</li>
+     <li>Added to defaults.js <code>Dexter.dexter0.defaults_write_return_string()</code></li>
+
+     <li><code>Dexter.defaults_low_level_2nd_arg_is_joint_number</code> deleted. No longer needed.</li>
+     <li>In calibrate_ui.js, increased the window height to 660 to get rid of
+         vertical scroll bar (also done in dde3.</li>
+     <li>New version of: <code>init_view_eye</code> in file: ViewEyeRealTime.js
+         and other fixes involving "Number("</li>
+     <li>Dexter UI dialog box, fixed bug of not coming up when choosing Dexter UI menu item.
+         Due to Socket.js when "retrying" socket.init, not calling first:
+         <code>Waiting.clear_job_and_dexter(job_instance, rob)</code>. Now it does.</li>
+     <li>Dexter UI dialog box, now the Joint sliders are reading min and max values
+         from <code>Defaults.makeins</code></li>
+</ul>
+     </details>
 
 <details class="doc_details"><summary>v 4.1.3, Aug 13, 2023</summary>
  Highlights: DDE4 now accessible from browsing  <a target="_blank" href="https://cfry.github.io"> cfry.github.io </a>, our new cloud server.

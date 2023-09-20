@@ -435,7 +435,7 @@ function init_calibrate(){
     //init_calibrate_optical() //will define (or redefine the calibrate_optical job, which is ok)
     show_window({
         title:"Calibrate your Dexter(s)",
-        x:325, y: 0, width:680, height: 640,
+        x:325, y: 0, width:680, height: 660,
         content:
         "1. Choose a Dexter to calibrate: " + make_dexter_robot_menu_html() + "<br/>" +
         "2. <span id='cal_instructions_id'>Calibrate optical sensors by<br/>&nbsp;&nbsp;&nbsp;&nbsp;choosing each joint to calibrate.</span><br/>" +
