@@ -72,7 +72,6 @@
     "three-orbitcontrols": "^2.110.3",
     "three-stl-loader": "^1.0.6",
     "three-text2d": "^0.6.0",
-    "url-to-screenshot": "^3.0.0",
     "webmidi": "^2.2.0",
     "ws": "^8.8.1"
   },
