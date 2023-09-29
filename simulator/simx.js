@@ -171,8 +171,7 @@ var SimX = class SimX{
         let obj = new THREE.Mesh(geom, mat)
         obj.name = name
         this.set_position(obj, position) //keep as dde_coordinates
-        //this.set_orientation(obj, orientation) //keep as dde_coordinates
-        // todo set_orientation now causes the obj to become invisible.
+        this.set_orientation(obj, orientation) //keep as dde_coordinates
         this.set_color(obj, color)
         sim.J0.add(obj) //sim.table.add(obj)
         SimUtils.render_once_with_prev_args_maybe()
@@ -180,14 +179,15 @@ var SimX = class SimX{
         return obj
     }
 
-    static make_cylinder({top_diameter = 1,
+    static make_cylinder({name          = "my_cylinder",
+                             top_diameter = 1,
                              bottom_diameter = 1,
                              height        = 1,
                              sides         = 12,
                              position      = [0, 0, 0], //dde coords
                              orientation   = [0, 0, 0], //dde coords
-                             color         = null, //0x00ff00
-                             name          = "my_cylinder"} = {}){
+                             color         = null //0x00ff00
+                             } = {}){
         let geom = new THREE.CylinderGeometry(top_diameter / 2, bottom_diameter / 2, height, sides)
         let mat = (color ? new THREE.MeshBasicMaterial({color: color}) :
             new THREE.MeshNormalMaterial({}))
@@ -259,21 +259,28 @@ var SimX = class SimX{
         let rads_in_three = this.position_dde_to_three(rads_in_dde)
         obj.rotateX(rads_in_three[0])
         obj.rotateY(rads_in_three[1])
-        obj.rotateZ(rads_in_three[3])
+        obj.rotateZ(rads_in_three[2])
         SimUtils.render_once_with_prev_args_maybe()
+    }
+
+    static get_size(object_or_name){
+       let obj = SimX.get_object(object_or_name)
+       let three_size = [obj.scale.x, obj.scale.y, obj.scale.z]
+       return this.size_three_to_dde(three_size)
     }
 
     //size in dde_coords
     static set_size(object_or_name, size = [1, 1, 1]){
         let obj = SimX.get_object(object_or_name)
-        let three_size = this.position_dde_to_three(size)
+        let three_size = this.size_dde_to_three(size)
         if (obj.geometry instanceof THREE.CylinderGeometry){
             let sides = obj.geometry.parameters.radialSegments
             //first & 2nd args below are radius's but we pass in overall width, so cut it in half,
             //and call that the top radius
             //use the 2nd size elt to mean the BOTTOM radius
             //and third to mean length of cylinder
-            let new_geom = new THREE.CylinderGeometry(three_size[0] / 2,
+            let new_geom = new THREE.CylinderGeometry(
+                three_size[0] / 2,
                 three_size[1] / 2,
                 three_size[2],
                 sides)
@@ -289,6 +296,12 @@ var SimX = class SimX{
                 obj.geometry)
         }
         SimUtils.render_once_with_prev_args_maybe()
+    }
+
+    static get_color(object_or_name){
+        let obj = SimX.get_object(object_or_name)
+        return obj.material.color
+
     }
     static set_color(object_or_name, color = null){
         let obj = SimX.get_object(object_or_name)
