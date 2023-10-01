@@ -106,7 +106,9 @@ import "./series.js"    //now Series is global
 import "./dde_video"  //makes DDEVideo global
 import "../simulator/simulate.js" //makes class Simulate global
 //import "../simulator/simutils.js" //makes class SimUtils global
+import "../simulator/SimObj.js" //makes class SimObj global. Should be before importing simbuild
 import "../simulator/simbuild.js" //makes class SimBuild global
+
 
 import "./inspect.js" //defines inspect & inspect_out globally
 //const {google} = require('googleapis'); //todo  do I use this?
@@ -1895,7 +1897,7 @@ window_modify_id.onclick=function(){Editor.insert(
           })
           */
 
-
+          SimBuild.init()
           OpenAI.init() //set's gpt button onclick and maybe the configuration, so needs
           //to be after DDE_DB init
 

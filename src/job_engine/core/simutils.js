@@ -583,13 +583,7 @@ class SimUtils{
                         SimBuild.handle_j7_change(angle_degrees, xyz, rob)
                     }
                     */
-                    if(SimBuild.template_object) {
-                        let xyz = Kin.J_angles_to_xyz(new_angles, rob.pose)[0]
-                        this.render_j7(ds_instance, xyz)
-                    }
-                    else {
-                        this.render_j7(ds_instance)
-                    }
+                    this.render_j7(ds_instance)
                     break;
             } //end switch
             //sim.renderer.render(sim.scene, sim.camera) //maybe not needed
@@ -620,27 +614,30 @@ class SimUtils{
         }
     }
 
-    static render_j7(ds_instance, xyz){ //xyz only needs to be passed in if using SimBuild
-        let angle_degrees = ds_instance.compute_measured_angle_degrees(7)
-        let rads = SimUtils.degrees_to_radians(angle_degrees)
-        let j_angle_degrees_rounded = Math.round(angle_degrees)
+    static render_j7(ds_instance){ //xyz only needs to be passed in if using SimBuild
+        let angles_in_degrees = ds_instance.compute_measured_angles_degrees()
+        let j7_angle_degrees = angles_in_degrees[6]
+        let rads = SimUtils.degrees_to_radians(j7_angle_degrees)
+        let j7_angle_degrees_rounded = Math.round(j7_angle_degrees)
         if(this.is_simulator_showing()) {
-            if (Simulate.sim.J7) { //330 degrees = 0.05 meters
-                let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
+            if (Simulate.sim.J7) { //a THREE Object3D, i.e. there is a J7.    330 degrees = 0.05 meters
+                let new_xpos = ((j7_angle_degrees * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
                 new_xpos *= 10
-                //out("J7 angle_degrees: " + angle_degrees + " new xpos: " + new_xpos)
+                //out("J7 j7_angle_degrees: " + j7_angle_degrees + " new xpos: " + new_xpos)
                 Simulate.sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
                 Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
             }
-            sim_pane_j7_id.innerHTML = j_angle_degrees_rounded
-            if (SimBuild.template_object) {
-                let rob_pose = ds_instance.robot.pose
-                SimBuild.handle_j7_change(angle_degrees, xyz, rob_pose)
+            sim_pane_j7_id.innerHTML = j7_angle_degrees_rounded
+            if (SimObj && SimObj.objects && SimObj.objects.length > 0) {
+                let rob        = ds_instance.robot
+                let rob_pose   = rob.pose
+                let xyz        = Kin.J_angles_to_xyz(angles_in_degrees, rob_pose)[0]
+                SimBuild.handle_j7_change(j7_angle_degrees, xyz, rob)
             }
         }
     }
 
-    //called by simx.js
+    //called by SimObj.js
     static render_once_with_prev_args_maybe(){
         if(this.prev_robot_status){
             this.render_once(SimUtils.prev_robot_status,

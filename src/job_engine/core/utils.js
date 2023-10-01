@@ -465,6 +465,34 @@ static rgb_string_to_integer_array(str){
     return result
 }
 
+//result is arr of 3 ints, each 0 to 255
+static hex_to_rgb_integer_array(hex) {
+    // Remove the # character if present
+    hex = hex.replace("#", "");
+
+    // Convert the hex value to RGB values
+    var r = parseInt(hex.substring(0, 2), 16);
+    var g = parseInt(hex.substring(2, 4), 16);
+    var b = parseInt(hex.substring(4, 6), 16);
+
+    // Return the RGB values as an object
+    return [r, g, b ]
+}
+
+static rgb_integer_array_to_hex(arr3){
+    let result = "#"
+    let str =  arr3[0].toString(16)
+    if(str.length === 1) {str = "0" + str}
+    result += str
+    str =  arr3[1].toString(16)
+    if(str.length === 1) {str = "0" + str}
+    result += str
+    str =  arr3[2].toString(16)
+    if(str.length === 1) {str = "0" + str}
+    result += str
+    return result
+}
+
 //not called oct 23, 2921
 static integer_array_to_rgb_string(arr3){
     return "rgb(" + arr3[0] + ", " + arr3[1] + ", " + arr3[2] + ")"

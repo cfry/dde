@@ -11,12 +11,14 @@ from http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 
 //import * as THREE from '../../node_modules/three/build/three.module.js'
 import * as THREE from 'three/build/three.module.js'
+globalThis.THREE = THREE
+
 import THREE_Text2D from 'three-text2d'
 //import THREE_GLTFLoader from 'three-gltf-loader' //using the examples folder like this is depricated three/examples/js/loaders/GLTFLoader.js')
 //see: https://github.com/johh/three-gltf-loader
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-class Simulate {
+globalThis.Simulate = class Simulate {
     static make_sim_html() {
         return `
         <div style="white-space:nowrap;"> 
@@ -24,7 +26,7 @@ class Simulate {
         <button onclick="SimUtils.render_joints_smart()" 
             title="Grab the joint angles from the selection&#13;and change the simulator to show them.&#13;Works on arrays, comma separated arg lists,&#13;and whole instruction calls.&#13;With 3 numbers, treats them as XYZ if they are in range.">
             Render selected joints</button>
-        <button onclick="SimBuild.init()">Load SimBuild</button>
+        <button onclick="SimBuild.show_dialog()" title="Make additional 3D objects in the Simulator pane.">SimBuild</button>
         <span title="Inspect simulator Details." 
         onclick="SimUtils.inspect_dexter_sim_instance()" 
         style="margin-left:15px;color:blue;cursor:help;font-weight:bold;"> &#9432; </span>       
@@ -946,5 +948,3 @@ class Simulate {
     }
 } //end class Simulate
 
-globalThis.Simulate = Simulate
-globalThis.THREE = THREE
