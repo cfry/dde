@@ -79,7 +79,6 @@
     "strips": "^0.0.10",
     "three": "^0.118.3",
     "three-fbx-loader": "^1.0.3",
-    "three-gltf-loader": "^1.111.0",
     "three-stl-loader": "^1.0.6",
     "three-text2d": "^0.6.0",
     "webmidi": "^2.5.3",

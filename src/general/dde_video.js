@@ -33,7 +33,9 @@
     //between dexter sim and stl view
     //https://stackoverflow.com/questions/9251837/how-to-remove-all-listeners-in-an-element
 import * as THREE from 'three'
-import THREE_GLTFLoader from 'three-gltf-loader'
+//import THREE_GLTFLoader from 'three-gltf-loader'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
 //import OrbitControls    from 'three-orbitcontrols'
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 
@@ -327,7 +329,7 @@ class DDEVideo {
     //      Simulate.stl_init_viewer()
             // from https://github.com/ckddbs/three-fbx-loader/commit/b3bc39bef2a4253abf2acc780870a03f5f9cd510
             //https://threejs.org/docs/#examples/en/loaders/GLTFLoader
-            var loader = new THREE_GLTFLoader()
+            var loader = new GLTFLoader()
 
             function chainLink ( children, i ) {
                 //	The  previous link (base if i is 0).
