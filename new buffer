@@ -1,13 +1,2 @@
-
-        
-new Job({
-    name: "my_job",
-    do_list: [
-        Dexter.dexter0.move_all_joints(62, 29, 81, -20, 0, 0, 50)
-]})
-
-var aaa = [10, 20, 30]
-aaa.slice()
-
-delete aaa[1]
-JavaScript remove item from array
+opposite side of a right trangle with adjacent side of 1 and
+angle of 11 degrees.

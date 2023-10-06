@@ -479,16 +479,22 @@ static hex_to_rgb_integer_array(hex) {
     return [r, g, b ]
 }
 
+//arr3 expected to have elts that are integers, 0 thru 255
 static rgb_integer_array_to_hex(arr3){
     let result = "#"
     let str =  arr3[0].toString(16)
     if(str.length === 1) {str = "0" + str}
+    else if(str.length > 2) { str = "ff" }
     result += str
+
     str =  arr3[1].toString(16)
     if(str.length === 1) {str = "0" + str}
+    if(str.length > 2) { str = "ff" }
     result += str
+
     str =  arr3[2].toString(16)
     if(str.length === 1) {str = "0" + str}
+    if(str.length > 2) { str = "ff" }
     result += str
     return result
 }

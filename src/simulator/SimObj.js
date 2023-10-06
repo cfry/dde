@@ -75,34 +75,29 @@ globalThis.SimObj = class SimObj{
     static get_bounding_box(object3d_or_name) {
         //from https://discourse.threejs.org/t/bounding-box-is-calculated-wrong/1763/5
         let bbox = new THREE.Box3() //.setFromObject(obj)
-        let obj = SimObj.get_object3d(object3d_or_name)
-        obj.geometry.computeBoundingBox()
-        bbox.copy(obj.geometry.boundingBox )
-        obj.updateMatrixWorld( true ); // ensure world matrix is up to date
-        bbox.applyMatrix4( obj.matrixWorld )
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        object3d.geometry.computeBoundingBox()
+        bbox.copy(object3d.geometry.boundingBox )
+        object3d.updateMatrixWorld( true ); // ensure world matrix is up to date
+        bbox.applyMatrix4( object3d.matrixWorld )
         return bbox
-        //from https://threejs.org/docs/index.html#api/en/math/Box3
-        //obj.geometry.computeBoundingBox()
-
-        //bbox.copy(obj.geometry.boundingBox ).applyMatrix4( obj.matrixWorld );
-        //return bbox
     }
 
     //xyz is in DDE coordinates
     //this fn is broken due to I can't figure out the proper
     //position transformations.
     static object_contains_xyz(object3d_or_name, xyz){
-        let obj = this.get_object3d(object3d_or_name)
+        let object3d = this.get_object3d(object3d_or_name)
         let xyz_three_arr = this.position_dde_to_three(xyz)
         let xyz_three_vec3 = this.array_to_Vector3(xyz_three_arr)
         let xyz_three_vec3_table = Simulate.sim.table.localToWorld(xyz_three_vec3)
-        let xyz_three_vec3_world = obj.localToWorld(xyz_three_vec3)
+        let xyz_three_vec3_world = object3d.localToWorld(xyz_three_vec3)
 
         let bbox = this.get_bounding_box(obj)
         let bbox_min_vec3 = bbox.min
         let bbox_max_vec3 = bbox.max
-        let bbox_min_vec3_world = obj.localToWorld(bbox_min_vec3)
-        let bbox_max_vec3_world = obj.localToWorld(bbox_max_vec3)
+        let bbox_min_vec3_world = object3d.localToWorld(bbox_min_vec3)
+        let bbox_max_vec3_world = object3d.localToWorld(bbox_max_vec3)
 
         let result = bbox.containsPoint(bbox_max_vec3_world)
         return result
@@ -184,7 +179,7 @@ globalThis.SimObj = class SimObj{
         return obj
     }*/
 
-    static make_box({name = "my_box",
+    /*static make_box({name = "my_box",
                                scale = [1, 1, 1], //dde coordinates
                                position = [0, 0, 0], //dde coordinates
                                orientation = [0, 0, 0], //dde coordinates
@@ -192,7 +187,7 @@ globalThis.SimObj = class SimObj{
                            } = {}){
         let geometry = "Box"
         return this.make_object3d({name: name, geometry: geometry, scale: scale, position: position, orientation: orientation, color: color})
-    }
+    }*/
 
     /*static make_cylinder({name          = "my_cylinder",
                       top_diameter = 1,
@@ -226,7 +221,7 @@ globalThis.SimObj = class SimObj{
                              sides         = 12,
                              position      = [0, 0, 0], //dde coords
                              orientation   = [0, 0, 0], //dde coords
-                             color         = null, //0x00ff00
+                             color         = [1, 1, 1], //0x00ff00
                          } = {}) {
         let geometry = new THREE.CylinderGeometry(top_diameter / 2, bottom_diameter / 2, height, sides)
         return this.make_object3d({name: name, geometry: geometry, scale: scale, position: position, orientation: orientation, color: color})
@@ -238,82 +233,145 @@ globalThis.SimObj = class SimObj{
     static make_object3d({name="my_object3d",
                           geometry="Box",
                           scale= [0.2, 0.2, 0.2],
-                          position=[0, 0.3, 0],
+                          position=[0, 0.3, 0.1],
                           orientation=[0, 0, 0],
-                          color=null}){
+                          material = "MeshNormal", //for one-color objects. use "MeshNormal" for a multi_color material that ignores the "color" passed in here
+                          color=[1, 1, 1],
+                          wireframe = false} = {}){ //[1, 1, 1] is white, corresponding to #ffffff
         this.remove(name) //for SimObj, a "name" is unique within the children
                           //of a parent. the "default parent" is scene.table
         //let mat = (color ? new THREE.MeshPhongMaterial() : //{color: color}) : //  MeshBasicMaterial
         //                   new THREE.MeshNormalMaterial({}))
         //mat.side = THREE.DoubleSide //From https://threejs.org/docs/index.html#manual/en/introduction/FAQ
-        if(typeof(geometry) === "string"){
-            let class_name = geometry + "Geometry"
-            geometry = new THREE[class_name]()
-        }
-        let object3d = new THREE.Mesh(geometry) //, mat)
+        /* if(typeof(geometry) === "string"){
+            if(!(geometry.endsWith("Geometry"))){
+                geometry = geometry + "Geometry"
+            }
+            geometry = new THREE[geometry]()
+        }*/
+        let object3d = new THREE.Mesh() //, mat)
         object3d.name = name
         this[name] = object3d
+        this.set_geometry(object3d, geometry)
+        this.set_material(object3d, material)
         this.set_color(object3d, color) //creates and sets the material property of the Mesh
+        this.set_wireframe(object3d, wireframe)
         this.set_scale(object3d, scale)
         this.set_position(object3d, position) //keep as dde_coordinates
         this.set_orientation(object3d, orientation) //keep as dde_coordinates
 
+        return this.make_object3d_given_object(object3d)
+    }
+
+    //called by both make_object3d and  make_copy_of_object3d
+    static make_object3d_given_object(object3d){
         Simulate.sim.J0.add(object3d) //sim.table.add(obj)
-        SimUtils.render_once_with_prev_args_maybe()
         SimObj.objects.push(object3d)
-        SimBuild.add_object3d_to_the_name(object3d)
+        //SimBuild.populate_dialog_from_object(object3d)
+        SimUtils.render_once_with_prev_args_maybe()
         return object3d
     }
 
+    //tries for a unique_name with the prefix up to 1k suffixes, and if can't
+    //find one, returns null
+    static unique_name_for_object3d_or_null(existing_object3d_name = "my_object3d"){
+        let existing_parts = existing_object3d_name.split("_")
+        let last_existing_part = Utils.last(existing_parts)
+        let num = parseInt(last_existing_part)
+        let prefix
+        if(Number.isNaN(num)) {
+            prefix = existing_object3d_name
+            num = 1
+        }
+        else {
+            let all_but_last_existing_parts = existing_parts.slice(0, -1) //cut off the last elt
+            prefix = all_but_last_existing_parts.join("_")
+        }
+        for(let i = num; i < 1000; i++){
+            let new_name = prefix + "_" + i
+            if(!SimObj[new_name]){
+                return new_name
+            }
+        }
+        return null
+    }
+
+    static make_copy_of_object3d(object3d, name = null){
+        if(!name){
+            name = this.unique_name_for_object3d_or_null(object3d.name)
+        }
+        if(!name) {
+            dde_error("You called SimObj with no name.<br/>" +
+                      "There are already 1k object with that name followed by a number.<br>" +
+                      "Please supply a unique name.")
+        }
+        // the below 3 lines are similar to lines in make_object3d
+        let copy = object3d.clone() //maybe should be clone? copy errors when calling copy without an arg.
+        copy.name = name
+        copy.material = object3d.material.clone() //needed or the same material will be used as object3d meaning we can't set their colors differently
+        this[name] = copy
+
+        //also called by make_object3d
+        return this.make_object3d_given_object(copy)
+    }
+
     static remove(object3d_or_name) {
-        let obj = SimObj.get_object3d(object3d_or_name)
-        if(obj) {
-            let the_name = obj.name
-            //sim.table.remove(obj)
-            if (obj) {
-                obj.parent.remove(obj)
-                let index = object.indexOf(obj)
-                this.object.splice(index, 1) //remove it from array, modifying the array, and now the array is  1 shorter.
-                if(SimBuild.gripper_now_holding_object === obj) {
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        if(object3d) {
+            if (object3d) {
+                object3d.parent.remove(object3d)
+                let index = this.objects.indexOf(object3d)
+                this.objects.splice(index, 1) //remove it from array, modifying the array, and now the array is  1 shorter.
+                if(SimBuild.gripper_now_holding_object === object3d) {
                     SimBuild.gripper_now_holding_object = null
                 }
+                let the_name = object3d.name
                 if (this[the_name]) {
                     delete this[the_name]
+                }
+                SimBuild.remove_object3d_to_the_name(object3d)
+                if((this.objects.length === 0) && SimBuild.dialog_dom_elt()){
+                    let name = prompt("All object3ds have been removed\nbut we must make one to have at least one showing.\nEnter a name for the new object:",
+                                       "my_object3d")
+                    SimObj.make_object3d({name: name})
                 }
                 SimUtils.render_once_with_prev_args_maybe()
             }
         }
     }
 
-    static remove_all(remove_template_too = true){
-        let template = null
-        for(let obj of this.objects.slice()) { //make a copy of objects array so we aren't removing from same array we're looping over.
-            let name = obj.name
+    static remove_all(){
+        for(let object3d of this.objects.slice()) { //make a copy of objects array so we aren't removing from same array we're looping over.
+            let name = object3d.name
             this.remove(obj)
         }
     }
 
     //returns array of [x, y, z] meters, in dde coords
     static get_position(object3d_or_name) {
-        let obj = SimObj.get_object3d(object3d_or_name)
-        let array_of_3 = [obj.position.x, obj.position.y, obj.position.z]
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        let array_of_3 = [object3d.position.x, object3d.position.y, object3d.position.z]
         return SimObj.position_three_to_dde(array_of_3)
     }
 
     //array_of_3 in dde_coords
     static set_position(object3d_or_name, array_of_3 = [0, 0, 0]){
-        let obj = SimObj.get_object3d(object3d_or_name)
+        let object3d = SimObj.get_object3d(object3d_or_name)
         let three_pos = this.position_dde_to_three(array_of_3)
-        obj.position.x = three_pos[0]
-        obj.position.y = three_pos[1]
-        obj.position.z = three_pos[2]
+        object3d.position.x = three_pos[0]
+        object3d.position.y = three_pos[1]
+        object3d.position.z = three_pos[2]
+        SimBuild.populate_dialog_property(object3d, "position_x", array_of_3[0])
+        SimBuild.populate_dialog_property(object3d, "position_y", array_of_3[1])
+        SimBuild.populate_dialog_property(object3d, "position_z", array_of_3[2])
+
         SimUtils.render_once_with_prev_args_maybe()
     }
 
     //returns array of [x_deg, y_deg, z_deg] in DDE coords
     static get_orientation(object3d_or_name){
-        let obj = SimObj.get_object3d(object3d_or_name)
-        let euler_rotation = obj.rotation
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        let euler_rotation = object3d.rotation
         let three_orientation = [this.rad_to_deg(euler_rotation._x),
             this.rad_to_deg(euler_rotation._y),
             this.rad_to_deg(euler_rotation._z)
@@ -322,7 +380,7 @@ globalThis.SimObj = class SimObj{
     }
 
     static set_orientation(object3d_or_name, orientation = [0, 0, 0]){
-        let obj = SimObj.get_object3d(object3d_or_name)
+        let object3d = SimObj.get_object3d(object3d_or_name)
         let rads_in_dde = [orientation[0] / _rad,
                            orientation[1] / _rad,
                            orientation[2] / _rad]
@@ -331,56 +389,204 @@ globalThis.SimObj = class SimObj{
         //obj.rotateY(rads_in_three[1])
         //obj.rotateZ(rads_in_three[2])
         //obj.rotation.set([rads_in_three[0], rads_in_three[1], rads_in_three[2]])
-        obj.rotation.x = rads_in_three[0]
-        obj.rotation.y = rads_in_three[1]
-        obj.rotation.z = rads_in_three[2]
+        object3d.rotation.x = rads_in_three[0]
+        object3d.rotation.y = rads_in_three[1]
+        object3d.rotation.z = rads_in_three[2]
+        SimBuild.populate_dialog_property(object3d, "orientation_x", orientation[0])
+        SimBuild.populate_dialog_property(object3d, "orientation_y", orientation[1])
+        SimBuild.populate_dialog_property(object3d, "orientation_z", orientation[2])
         SimUtils.render_once_with_prev_args_maybe()
     }
 
     static get_scale(object3d_or_name){
-        let obj = SimObj.get_object3d(object3d_or_name)
-        let three_scale = [obj.scale.x, obj.scale.y, obj.scale.z]
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        let three_scale = [object3d.scale.x, object3d.scale.y, object3d.scale.z]
         return this.scale_three_to_dde(three_scale)
     }
 
     //scale in dde_coords
     static set_scale(object3d_or_name, scale = [1, 1, 1]){
-        let obj = SimObj.get_object3d(object3d_or_name)
+        let object3d = SimObj.get_object3d(object3d_or_name)
         let three_scale = this.scale_dde_to_three(scale)
-        obj.scale.x = three_scale[0]
-        obj.scale.y = three_scale[1]
-        obj.scale.z = three_scale[2]
+        object3d.scale.x = three_scale[0]
+        object3d.scale.y = three_scale[1]
+        object3d.scale.z = three_scale[2]
+        SimBuild.populate_dialog_property(object3d, "scale_x", scale[0])
+        SimBuild.populate_dialog_property(object3d, "scale_y", scale[1])
+        SimBuild.populate_dialog_property(object3d, "scale_z", scale[2])
+
+        SimUtils.render_once_with_prev_args_maybe()
+    }
+    static get_geometry(object3d_or_name){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        return object3d.geometry
+    }
+
+    //the Geometry string like "Box", without a "Geometry" suffix
+    static get_geometry_short_name(object3d_or_name){
+        let object3d = this.get_object3d(object3d_or_name)
+        let the_class = Utils.get_class_of_instance(object3d.geometry)
+        let class_name = Utils.function_name(the_class)
+        let name_parts = class_name.split(".")
+        let last_class = Utils.last(name_parts)
+        let geo_index = last_class.indexOf("Geometry")
+        if(geo_index > 0){
+            last_class = last_class.slice(0, geo_index)
+        }
+        return last_class
+    }
+
+    static set_geometry(object3d_or_name, geometry){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        if(typeof(geometry) === "string"){
+            if(!(geometry.endsWith("Geometry"))){
+                geometry = geometry + "Geometry"
+            }
+            geometry = new THREE[geometry]()
+        }
+        object3d.geometry = geometry
+        let val = SimObj.get_geometry_short_name(object3d)
+        SimBuild.populate_dialog_property(object3d, "geometry", val)
+        SimUtils.render_once_with_prev_args_maybe()
+    }
+
+    static get_material(object3d_or_name){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        return object3d.material
+    }
+
+    //similar to SimObj.get_geometry_short_name
+    static get_material_short_name(object3d_or_name_or_material){
+        let material
+        if(typeof(object3d_or_name_or_material) === "string"){
+            let object3d = SimObj.get_object3d(object3d_or_name)
+            material = object3d.material
+        }
+        else if (SimObj.is_object3d(object3d_or_name_or_material)){
+            material = object3d_or_name_or_material.material
+        }
+        else if (object3d_or_name_or_material instanceof THREE.Material){
+            material = object3d_or_name_or_material
+        }
+        else {
+            shouldnt("SimObj.material_short_name called with invalid arg: " + object3d_or_name_or_material)
+        }
+        let the_class  = Utils.get_class_of_instance(material) //different as material is a function, not a proper class
+        let class_name = Utils.function_name(the_class)
+        let name_parts = class_name.split(".")
+        let last_class = Utils.last(name_parts)
+        let geo_index = last_class.indexOf("Material")
+        if(geo_index > 0){
+            last_class = last_class.slice(0, geo_index)
+        }
+        return last_class
+    }
+
+    static set_material(object3d_or_name, material){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        let making_new_material = false
+        if(typeof(material) === "string"){
+            if(!(material.endsWith("Material"))){
+                material = material + "Material"
+            }
+            material = new THREE[material]()
+            // causes bugSimObj.set_wireframe(object3d_or_name, object3d.material.wireframe) //use wireframe boolean from the old material in object3d
+            material.wireframe = object3d.material.wireframe
+            making_new_material = true
+        }
+        let three_color = object3d.userData.three_color
+        if (making_new_material && material.color && three_color){
+            material.color.set(three_color)
+        }
+        object3d.material = material
+        let multi_color_val = (material instanceof THREE.MeshNormalMaterial)
+        SimBuild.populate_dialog_property(object3d, "multi_color", multi_color_val, "checked")
         SimUtils.render_once_with_prev_args_maybe()
     }
 
     //returns an array of 3 floats, 0 to 1 for r, g, b.
     static get_color(object3d_or_name){
-        let obj = SimObj.get_object3d(object3d_or_name)
-        if(obj.material.color) {
-            return obj.material.color.toArray()
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        if(object3d.material.color) {
+            return object3d.material.color.toArray()
         }
-        else { return null } //the multi-color
+        else if(object3d.userData.three_color) { //should hit for MeshNormalMaterial
+            let three_color = object3d.userData.three_color
+            return SimObj.three_color_rgb_object_to_array_of_numbers(three_color)
+        }
+        else { return null } //shouldn't happen
+    }
+
+    //returns arr of 3 numbers, 0 to 1
+    static three_color_rgb_object_to_array_of_numbers(three_color){
+        return [three_color.r, three_color.g, three_color.b]
     }
 
     //color arg can be null (the default, makes a multi-colored obj.
     // "random" (different each time)
     // an array of 3 floats, (0 to 1, for r, g, b)
     //or any Threejs color
-    static set_color(object3d_or_name, color = null){
-        let obj = SimObj.get_object3d(object3d_or_name)
-        if(color === "random") {
-            color = new THREE.Color(Math.random(), Math.random(), Math.random())
+    static set_color(object3d_or_name, color = null) {
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        let three_color
+        if (color === "random") {
+            three_color = new THREE.Color(Math.random(), Math.random(), Math.random())
         }
-        else if (Array.isArray(color)){
-            color = new THREE.Color(color[0], color[1], color[2])
+        else if (Array.isArray(color)) {
+            three_color = new THREE.Color(color[0], color[1], color[2])
         }
-        //else  color is null,
-        if(color) { //obj.material.setValues({color: color})
-            obj.material = new THREE.MeshPhongMaterial({color: color})
+        if (three_color) {
+            if(object3d.material.color) { //does not hit on MeshNormalMaterial since that has no color
+                object3d.material.color.set(three_color)
+            } //see https://discourse.threejs.org/t/three-js-objects-failing-to-render-failed-to-execute-uniform3fv-on-webgl2renderingcontext-overload-resolution-failed/30736
+            object3d.userData.three_color = three_color //since MeshNormalMaterial can't store a color,
+            //we're cashing color so that if we switch to Phong Material, we can grab the color
+            //in userData and use it.
+            let color_array_of_0_to_256 = [Math.round(color[0] * 256),
+                                           Math.round(color[1] * 256),
+                                           Math.round(color[2] * 256)]
+            let hex_color = Utils.rgb_integer_array_to_hex(color_array_of_0_to_256)
+            SimBuild.populate_dialog_property(object3d, "color", hex_color)
+            SimUtils.render_once_with_prev_args_maybe()
         }
-        else      {
-            obj.material = new THREE.MeshNormalMaterial({})
-        } //the multi-no color
+    }
+    static get_wireframe(object3d_or_name){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        return object3d.material.wireframe
+    }
+
+    //wireframe is true or false
+    static set_wireframe(object3d_or_name, wireframe){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        object3d.material.wireframe = wireframe
+        SimBuild.populate_dialog_property(object3d, "wireframe", wireframe, "checked")
         SimUtils.render_once_with_prev_args_maybe()
     }
+
+    static all_objects_source_code(){
+        let objs_src = ""
+        for(let obj of this.objects){
+            let obj_src = to_source_code({value: obj})
+            objs_src += "  " + (obj_src + "\n\n")
+        }
+        let src = "function init_simulator_object3ds(){\n" +
+                   objs_src +
+                   "}\n"
+        return src
+    }
 }
+
+THREE.Mesh.prototype.to_source_code =
+    function({value, indent="", depth=0}){
+        return "SimObj.make_object3d({" +
+            'name: "'       + value.name + '", ' +
+            'geometry: "'   + SimObj.get_geometry_short_name(value)                     + '",\n    ' +
+            'scale: '       + to_source_code({value: SimObj.get_scale(value)})       + ', '  +
+            'position: '    + to_source_code({value: SimObj.get_position(value)})    + ', '  +
+            'orientation: ' + to_source_code({value: SimObj.get_orientation(value)}) + ',\n    '  +
+            'material: "'   + SimObj.get_material_short_name(value)                  + '", ' +
+            'color: '       + to_source_code({value: SimObj.get_color(value)})       + ', '  +
+            'wireframe: '   + SimObj.get_wireframe(value)                            + //boolean
+            "})"
+    }
+// to_source_code({value: SimObj.my_object3d})

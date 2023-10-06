@@ -211,6 +211,8 @@ div.CodeMirror-cursors {
 .simple_cmd:hover{background-color:rgb(180, 255, 180);}
 .simple_cmd:active{color:lime;}
 
+.simbuild_insert_button{background-color:#DDA0DD}
+
 
 
 
