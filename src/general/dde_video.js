@@ -34,7 +34,9 @@
     //https://stackoverflow.com/questions/9251837/how-to-remove-all-listeners-in-an-element
 import * as THREE from 'three'
 import THREE_GLTFLoader from 'three-gltf-loader'
-import OrbitControls    from 'three-orbitcontrols'
+//import OrbitControls    from 'three-orbitcontrols'
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
+
 import {STLLoader}      from 'three-stl-loader' //(THREE)
 //import * as FBXLoader from 'three-fbx-loader' //todo dde4 errors with
    //FBXLoader is not defined while loading node_modules/three-fbx-loader.index.js

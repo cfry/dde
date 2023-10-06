@@ -10,7 +10,8 @@ from http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 */
 
 //import * as THREE from '../../node_modules/three/build/three.module.js'
-import * as THREE from 'three/build/three.module.js'
+//import * as THREE from 'three/build/three.module.js'
+import * as THREE from 'three'
 globalThis.THREE = THREE
 
 import THREE_Text2D from 'three-text2d'
