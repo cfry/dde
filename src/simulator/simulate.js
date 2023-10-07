@@ -231,7 +231,8 @@ globalThis.Simulate = class Simulate {
         //	Remove imported lights, cameras. Just want Object3D.
         let objs = [];
         c0.children.forEach ( c => {
-            if ( c.constructor.name === 'Object3D' ) {
+            if ( c.constructor === THREE.Object3D //c instanceof THREE.Object3D //c.constructor.name === 'Object3D'
+               ) {
                 objs.push(c); } } );
         c0.children = objs;
         //	this.sim.scene.add(root)
@@ -261,7 +262,7 @@ globalThis.Simulate = class Simulate {
         Lprv.copy ( linkPrv.matrix );
 
         let nLprv = new THREE.Matrix4();
-        nLprv.getInverse ( Lprv );
+        nLprv.copy( Lprv ).invert(); //was nLprv.getInverse ( Lprv );
 
         //	The link's position WRT base.
         let link = children[i];
