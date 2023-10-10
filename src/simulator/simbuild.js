@@ -1,7 +1,7 @@
 globalThis.SimBuild = class SimBuild{
     static j7_threshold     //with yoga mat fingers, min distance is 50
     static j7_prev_angle_degrees
-    static gripper_now_holding_object
+    static gripper_now_holding_object3d
     static now_editing_object3d
 
     static init(){
@@ -9,7 +9,7 @@ globalThis.SimBuild = class SimBuild{
         SimObj.objects = [] //just to be sure
         this.j7_threshold = 60 //above this number of degrees, the gripper is considered open
         this.j7_prev_angle_degrees = 0
-        this.gripper_now_holding_object = null
+        this.gripper_now_holding_object3d = null
         this.now_editing_object3d = null
 
         SimObj.ensure_simulate()
@@ -93,8 +93,8 @@ globalThis.SimBuild = class SimBuild{
 
     static gripper_opening_sim_build(j7_angle, xyz, obj, rob){
         this.gripper_opening_default(j7_angle, xyz, obj, rob)
-        if(this.gripper_now_holding_object) { //let go of the held object.
-            /*let the_obj = this.gripper_now_holding_object
+        if(this.gripper_now_holding_object3d) { //let go of the held object.
+            /*let the_obj = this.gripper_now_holding_object3d
             the_obj.updateMatrixWorld()
             let the_obj_vec3_world = new THREE.Vector3()
             the_obj.getWorldPosition(the_obj_vec3_world) //populate the_obj_vec3_world
@@ -104,8 +104,8 @@ globalThis.SimBuild = class SimBuild{
             the_obj.updateMatrix()
             the_obj.updateMatrixWorld()
             */
-            Simulate.sim.table.attach(this.gripper_now_holding_object)
-            this.gripper_now_holding_object = null
+            Simulate.sim.table.attach(this.gripper_now_holding_object3d)
+            this.gripper_now_holding_object3d = null
             out("Gripper now not holding an object: ")
 
         }
@@ -114,12 +114,12 @@ globalThis.SimBuild = class SimBuild{
 
     static gripper_closing_sim_build(j7_angle, xyz, obj, rob){
         this.gripper_closing_default(j7_angle, xyz, obj, rob)
-        if(this.gripper_now_holding_object){ } //can't pick up an obj if you're holding one
+        if(this.gripper_now_holding_object3d){ } //can't pick up an obj if you're holding one
         else if (!obj) {} //no object to pick up
         else {
             Simulate.sim.LINK7.attach(obj) //Simulate.sim.LINK7.add(obj) //if you use add, the position and scale of obj get all screwed up, so use attach
-            this.gripper_now_holding_object = obj
-            out("Gripper now holding object3d of: " + this.gripper_now_holding_object.name)
+            this.gripper_now_holding_object3d = obj
+            out("Gripper now holding object3d of: " + this.gripper_now_holding_object3d.name)
         }
     }
 
@@ -128,31 +128,32 @@ globalThis.SimBuild = class SimBuild{
     // see: https://threejs.org/docs/#api/en/geometries/
     static geometry_names = [
         "Box",
-        //"Capsule",  not in THREE 0.118
-        "Circle", "" +
+        "Capsule",  //not in THREE 0.118
+        "Circle",
         "Cone",
         "Cylinder",
         "Dodecahedron",
-        //"Edges",    not in THREE 0.118
-        // "Extrude", not in THREE 0.118
+        //"Edges",    //not in THREE 0.118. in 0.157 but doesn't do anything without additional args
+        "Extrude", //not in THREE 0.118. in 0.157. as is, just puts in a cube. not new behavior, but leave in for now.
         "Icosahedron",
-        // "Lathe",  not in THREE 0.118
+        "Lathe",  //not in THREE 0.118. in 0.157. makes a small shape of 2 cones with their bases together.
         "Octahedron",
         "Plane",
-        //"Polyhedron", not in THREE 0.118
+        //"Polyhedron", //not in THREE 0.118 in 0.157 but doesn't do anything wilut further args.
         "Ring",
-        // "Shape",  not in THREE 0.118
+        "Shape",  //not in THREE 0.118 n 0,157 makes a triangle. (2D)
         "Sphere",
         "Tetrahedron",
         "Torus",
         "TorusKnot",
-        // "Tube",      not in THREE 0.118
-        // "WireFrame"  not in THREE 0.118
+        //"Tube",      //not in THREE 0.118 in 0.157 makes an odd, partial tube semi-di shape. Not useful and confusing. Needs more args.
+        //"Wireframe"  //not in THREE 0.118 in 0.157 but doesn't do anything without more args.
     ]
 
     //has to return an object, even if it has to make it
     //called by show_dialog when not passed a object3d which is the normal way
-    static object3d_for_dialog(object3d=null){
+    //NO allow dialog to not have an object3d
+   /* static object3d_for_dialog(object3d=null){
         if(object3d)  { return object3d }
         else if(SimObj.objects.length > 0){
             return Utils.last(SimObj.objects)
@@ -161,11 +162,12 @@ globalThis.SimBuild = class SimBuild{
             object3d = SimObj.make_object3d({geometry: "Box"}) //will stick the new box on SimObj.objects
             return object3d
         }
-    }
+    }*/
 
-    static show_dialog(object3d=null){
+    static show_dialog(object3d_or_name=null){
+        if(globalThis.SimBuild_doc_id) { DocCode.open_doc(SimBuild_doc_id) }
         let name_html = "<select name='the_name' data-oninput='true' title='Choose an object3d to edit.'>"
-        for(let obj of SimObj.objects){
+        for(let obj of SimObj.objects){ //might be none
             name_html += "<option>" + obj.name + "</option>"
         }
         name_html += "</select>"
@@ -173,7 +175,11 @@ globalThis.SimBuild = class SimBuild{
         for(let geo_name of this.geometry_names) {
             options += "<option>" + geo_name + "</option>"
         }
-        object3d = this.object3d_for_dialog(object3d) //must do BEFORE making the show_window so that the making of htis obj won't try to populate the window
+        let object3d = SimObj.get_object3d(object3d_or_name) //must do BEFORE making the show_window so that the making of htis obj won't try to populate the window
+                                                    //warning: often null
+        if(!object3d && SimObj.has_objects){
+            object3d = Utils.last(SimObj.objects)
+        }
         show_window({title: "Make Objects in Simulator",
                      content: `
          <input type="button" name="ref_name" value="name" class="simbuild_insert_button" title="Insert a reference to this object into the editor."/> : ` + name_html +
@@ -211,7 +217,7 @@ globalThis.SimBuild = class SimBuild{
                 
          <input type="button" name="insert_wireframe" value="wireframe" class="simbuild_insert_button" title="Insert a call to setting wireframe object edges into the editor."/> :  
               <input name="wireframe" type="checkbox" data-oninput='true'/> 
-         <p/>
+         <hr style="border: 2px solid black;"/>
          <input type="button" value="Make object"  title="Clones the currently edited object."/>
          <p/>
          <input type="button" value="Inspect this" title="Inspect the inner details of the currently edited object."/> &nbsp;
@@ -220,7 +226,9 @@ globalThis.SimBuild = class SimBuild{
          <input type="button" value="Remove this" title="Remove the currently edited object from the simulator."/>  &nbsp;
          <input type="button" value="Remove all"  title="Remove all object3ds from the simulator."/>
         `,
-                      callback: "SimBuild.dialog_cb"
+            height: 355,
+            width:  440, //the "name" select box, with a long name, requires a wider window.
+            callback: "SimBuild.dialog_cb"
 
         })
        //give dialog chance to render
@@ -233,35 +241,54 @@ globalThis.SimBuild = class SimBuild{
 
     static dialog_cb(vals){
         let object3d = SimObj.get_object3d(vals.the_name)
-        if (vals.clicked_button_value === "ref_name"){
+        let new_object3d
+        if(vals.clicked_button_value === "Make object"){ //the only clausd that can cope with no object3d
+            if(!object3d){ //can't clone it so we have to make a default one
+                let new_name = prompt("Enter a name for the new object3d in the Simulator pane.\nYou can't change this, so choose wisely.",
+                    "my_object3d")
+                if (!new_name) {
+                    return
+                } //user canceled so don't make a new object
+                else {
+                    new_object3d = SimObj.make_object3d({name: new_name})
+                }
+            }
+            else {
+                let new_name = SimObj.unique_name_for_object3d_or_null(object3d.name)
+                if (!new_name) { //unlikely as have to make a lot of objects with numerical suffixes, but *could* happen
+                    new_name = ""
+                }
+                new_name = prompt("Enter a name for the new object3d in the Simulator pane.\nYou can't change this, so choose wisely.",
+                    new_name)
+                if (!new_name) {
+                    return
+                } //user canceled so don't make a new object
+                else {
+                    /*let new_object3d = SimObj.make_copy_of_object3d(SimBuild.now_editing_object3d, new_name)
+                    //SimObj.set_wireframe(new_object3d, true ) //just so it will look different, but doesn't work as wireframe hidden by opaque orig object.
+
+                    //so we'll be able to SEE the new obj, not just a duplicate on top of what it copied.
+                    let dialog_dom_elt = SimBuild.dialog_dom_elt()
+                    let multi_color_dom_elt = dialog_dom_elt.querySelector("[name=multi_color]")
+                    let multi_color_val = multi_color_dom_elt.value
+                    multi_color_dom_elt.value = !multi_color_val
+
+                    let wireframer_dom_elt = dialog_dom_elt.querySelector("[name=wireframe]")
+                    wireframer_dom_elt.checked = true
+                     */
+                    let new_object3d = SimObj.make_copy_of_object3d(object3d, new_name)
+                    out("The new object is visually identical to the previously edited object.<br/>" +
+                        "Change something in the new object to make it stand out.", "green")
+                }
+            }
+            SimBuild.populate_dialog_from_object(new_object3d)
+        }
+        else if (!object3d) {
+            shouldnt("SimBuild.dialog_cb got no object3d to edit.")
+        }
+        else if (vals.clicked_button_value === "ref_name"){
             let src = "SimObj." + object3d.name + "\n"
             Editor.insert(src)
-        }
-        else if(vals.clicked_button_value === "Make object"){
-
-            let new_name = SimObj.unique_name_for_object3d_or_null(object3d.name)
-            if (!new_name) { new_name = "" }
-            new_name = prompt("Enter a name for the new object3d in the Simulator pane.\nYou can't change this, so choose wisely.",
-                              new_name)
-            if(!new_name) { return } //user canceled so don't make a new object
-            else {
-                /*let new_object3d = SimObj.make_copy_of_object3d(SimBuild.now_editing_object3d, new_name)
-                //SimObj.set_wireframe(new_object3d, true ) //just so it will look different, but doesn't work as wireframe hidden by opaque orig object.
-
-                //so we'll be able to SEE the new obj, not just a duplicate on top of what it copied.
-                let dialog_dom_elt = SimBuild.dialog_dom_elt()
-                let multi_color_dom_elt = dialog_dom_elt.querySelector("[name=multi_color]")
-                let multi_color_val = multi_color_dom_elt.value
-                multi_color_dom_elt.value = !multi_color_val
-
-                let wireframer_dom_elt = dialog_dom_elt.querySelector("[name=wireframe]")
-                wireframer_dom_elt.checked = true
-                 */
-                let new_object3d = SimObj.make_copy_of_object3d(object3d, new_name)
-                SimBuild.populate_dialog_from_object(new_object3d)
-                out("The new object is visually identical to the previously edited object.<br/>" +
-                    "Change something in the new object to make it stand out.", "green")
-            }
         }
         else if (vals.clicked_button_value === "Insert whole object"){
             let src = to_source_code({value: object3d})
@@ -418,10 +445,14 @@ globalThis.SimBuild = class SimBuild{
     //This method expects the <option> tag for the name of object3d to
     //aready be in the_name select tag.
     static populate_dialog_from_object(object3d){
-        if (!object3d) { return } //this should never hit, but if it did, don't change the dialog
         let dialog_dom_elt = SimBuild.dialog_dom_elt()
         if(!dialog_dom_elt) {  return }
+        else if (!object3d) {
+            this.disable_inputs()
+            return
+        }
         else {
+            this.enable_inputs()
             SimBuild.now_editing_object3d = object3d
 
             SimBuild.add_object3d_to_the_name(object3d) //adds an option tag under the select, but only if there's not one there for object3D.name
@@ -486,16 +517,46 @@ globalThis.SimBuild = class SimBuild{
         }
     }
 
-    static remove_object3d_to_the_name(object3d) {
+    static remove_object3d_from_the_name_menu(object3d) {
         let dialog_dom_elt =  SimBuild.dialog_dom_elt()
         if (dialog_dom_elt) {
-            let the_select_dom_elt = dialogs[0].querySelector("[name=the_name]")
+            let the_select_dom_elt = dialog_dom_elt.querySelector("[name=the_name]")
             //let inner_selector = "[innerHTML=" + object3d.name + "]" //fails. I can't find a way to use selector to select innerHTML oct 1, 2023
             //let the_option_dom_elt = the_select_dom_elt.querySelector(inner_selector)
             for(let a_option_dom_elt of the_select_dom_elt.childNodes){
                 if(a_option_dom_elt.innerHTML === object3d.name){
                     a_option_dom_elt.remove() //let run for more iterations just in case > 1 of that name get in the select dom elt
                 }
+            }
+        }
+    }
+
+    static disable_inputs(){
+        let dialog_dom_elt =  SimBuild.dialog_dom_elt()
+        if(dialog_dom_elt) {
+            let inputs = dialog_dom_elt.querySelectorAll("input")
+            for (let a_in of inputs) {
+                if (a_in.value !== "Make object") {
+                    a_in.setAttribute("disabled", "")
+                }
+            }
+            inputs = dialog_dom_elt.querySelectorAll("select")
+            for (let a_in of inputs) {
+                a_in.setAttribute("disabled", "")
+            }
+        }
+    }
+
+    static enable_inputs(){
+        let dialog_dom_elt =  SimBuild.dialog_dom_elt()
+        if(dialog_dom_elt) {
+            let inputs = dialog_dom_elt.querySelectorAll("input")
+            for (let a_in of inputs) {
+                a_in.removeAttribute("disabled")
+            }
+            inputs = dialog_dom_elt.querySelectorAll("select")
+            for (let a_in of inputs) {
+                a_in.removeAttribute("disabled")
             }
         }
     }

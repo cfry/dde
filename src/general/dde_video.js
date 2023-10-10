@@ -69,19 +69,27 @@ class DDEVideo {
         $('#misc_pane_menu_id').jqxComboBox('val', label)
     }
 
+    //called when resizing dde window splitters
+    static refresh_misc_pane(){
+        if(this.misc_pane_menu_selection === "Simulate Dexter") {
+            DDEVideo.show_in_misc_pane("Simulate Dexter")
+        }
+        // the rest of the "content" values to show_in_misc_pane don't need refreshing.
+    }
+
     //in code below' don't use "this'.
-    static show_in_misc_pane(content, arg1 = "", arg2){
+    //note: content is often a path name or a TYPE OF DISPLAY such as "Simualte Dexter"
+    static async show_in_misc_pane(content, arg1 = "", arg2){
     //if Choose File is called from outside dialog, and user cancels, we don't want to
     //change the combo_box value OR persistent save it.
     //But if user doesn't cancel, we DO want to change the combo box value, and,
     //if the value is good, persistent save it.
         if (content === "Choose File") {
-            content = choose_file() //will be undefined if user cancels the dialog box.
+            content = await Editor.pick_local_file()//returns a path NOT the content of the picked file. choose_file() //will be undefined if user cancels the dialog box.
             if(content) {
                 $("#misc_pane_menu_id").jqxComboBox('unselectItem', "Choose File") //must do!
-               // just let it fall through ////old: return show_in_misc_pane(content) //$('#misc_pane_menu_id').jqxComboBox('val', content) //causes show_in_misc_pane to be called with the chosen value
                 DDEVideo.set_misc_pane_menu_selection(content)
-
+                // just let it fall through ////old: return show_in_misc_pane(content) //$('#misc_pane_menu_id').jqxComboBox('val', content) //causes show_in_misc_pane to be called with the chosen value
             }
             else { //user canceled from choose file dialog so don't persistent-save the value.
                 //leave combo_box val at "choose file" which won't match content, but we might
@@ -127,7 +135,7 @@ class DDEVideo {
             //do not attempt to save the elt persistently. We just don't return to this if we launch dde.
         }
         //content = content.replaceAll(content, "__dirname", __dirname)//dde4 todo comment in once file system works
-        if((content == "Simulate Dexter") && DDEVideo.init_sim_in_process){
+        if((content === "Simulate Dexter") && DDEVideo.init_sim_in_process){
             return
         }
         else {
@@ -164,7 +172,9 @@ class DDEVideo {
                 Simulate.init_simulation()
                 //sim.renderer.render(sim.scene, sim.camera);
                 setTimeout(function() {
-                             SimUtils.render_multi_with_prev_args_maybe()},
+                             SimUtils.render_multi_with_prev_args_maybe()
+                             DDEVideo.init_sim_in_process = false
+                           },
                            100)
            //}
             content_is_good = true
@@ -399,6 +409,10 @@ class DDEVideo {
             )
         //  setTimeout(gltf_render, 400)
         }
+        //display any old html.
+        else if((typeof(content) === "string") && content.startsWith("<")){
+            sim_pane_content_id.innerHTML = content
+        }
         else if (content.endsWith(".jpg") ||
                  content.endsWith(".png") ||
                  content.endsWith(".gif") ||
@@ -410,26 +424,29 @@ class DDEVideo {
             content_is_good = true
 
         }
-        else if (content.endsWith(".txt")  ||
+        else { //presume we've got a text file and show its contents.
+              /*(content.endsWith(".txt")  ||
                  content.endsWith(".js")   ||
                  content.endsWith(".json") ||
-                 content.endsWith(".dde")){
-            if(globalThis.file_exists && file_exists(content)){
+                 content.endsWith(".py") ||
+                 content.endsWith(".dde")){ */
+            let path = content
+            content = await Editor.get_content_at_local_path(path) //the arg content is a path, the returned value is null or the actual file content
+            if(content){
                 let div_html =
                   "<div contenteditable='false' style='height:300px; width:800px; padding:5%; background-color:white; overflow:scroll;'>"
-
-                content = read_file(content)
                 content = content.replaceAll("<", "&lt;")
                 //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
                 sim_pane_content_id.innerHTML = div_html + "<pre>" + content + "</pre></div>"
                 content_is_good = true
             }
             else {
-                warning("Could not find file: " + content + "<br/>to show in the Misc pane.")
+                warning("Could not find file: " + path + "<br/>to show in the Misc pane.")
+                content_is_good = false
             }
         }
 
-        else if(globalThis.file_exists && file_exists(content)) { //content could be: (content.endsWith(".html") || content.endsWith(".htm") ||
+        /*else if(globalThis.file_exists && file_exists(content)) { //content could be: (content.endsWith(".html") || content.endsWith(".htm") ||
              //some random other file that hopefully can be displayed as html.
              //but if we get an error, the below catch will catch it.
             let div_html =
@@ -438,15 +455,13 @@ class DDEVideo {
             //sim_graphics_pane_id.style = "width:97%; height:90%; padding:5%; background-color:white; overflow:scroll !important;"
             sim_pane_content_id.innerHTML = div_html + content + "</div>"
             content_is_good = true //questionable, but maybe ok
-        }
-        //display any old html.
-        else if((typeof(content) === "string") && content.startsWith("<")){
-            sim_pane_content_id.innerHTML = content
-        }
+        }*
+
         else {
             warning("Could not find file: " + content + "<br/>to show in the Misc pane.")
+            content_is_good = false
             return
-        }
+        }*/
         } //end try
         catch(err){
             warning("Could not load: " + content  +

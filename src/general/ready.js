@@ -274,6 +274,7 @@ export function on_ready() {
         function (event) {
             let new_size = event.args.panels[0].size
             DDE_DB.persistent_set("left_panel_width", new_size)
+            DDEVideo.refresh_misc_pane()
             event.stopPropagation()
         })
 
@@ -288,6 +289,7 @@ export function on_ready() {
         function (event) {
             let new_size = event.args.panels[0].size
             DDE_DB.persistent_set("top_left_panel_height", new_size)
+            DDEVideo.refresh_misc_pane()
             event.stopPropagation() //must have or outer_splitter_id on resize is called
         })
 

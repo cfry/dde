@@ -1,6 +1,7 @@
 //import Vector from "../math/Vector.js" //now global
 
 class Gcode{
+  static default_xyz = [100, 100, 0] //document this so user can change it.
   static init(){ //called from ready.js
       Gcode.gcode_to_instructions_workspace_pose_default =
           Vector.make_pose([0, 0.5, 0.1], [0, 0, 0], _mm)
@@ -118,7 +119,10 @@ class Gcode{
         gobj = Gcode.gcode_line_to_obj(gobj)
     }
     if (gobj) {
-        let old_point = [gobj.X, gobj.Y, gobj.Z]
+        let old_point = [gobj.X || this.default_xyz[0],
+                         gobj.Y || this.default_xyz[1],
+                         gobj.Z || this.default_xyz[2]]
+        this.default_xyz = old_point
         var new_point = Vector.transpose(Vector.matrix_multiply(workspace_pose, Vector.properly_define_point(old_point))).slice(0, 3)
         let result = robot.move_to(new_point)
         return result
@@ -138,7 +142,9 @@ Gcode.gcode_to_instructions = function* ({gcode = "",
     if (filepath) { the_content += read_file(filepath) }
     let gcode_lines = the_content.split("\n")
     for(let i = 0; i < gcode_lines.length; i++){
-        let gobj = Gcode.gcode_line_to_obj(gcode_lines[i])
+        let line = gcode_lines[i]
+        console.log(line)
+        let gobj = Gcode.gcode_line_to_obj(line)
         if (gobj == null) { continue; }
         else {
             let result
@@ -152,7 +158,8 @@ Gcode.gcode_to_instructions = function* ({gcode = "",
                     yield result
                     break;
                 case "G28": //home
-                    result = Gcode.gobj_to_move_to({X: 100, Y:100, Z:0}, workspace_pose, robot) //needed to initialize out of the way
+                    let home_gobj = {X: default_xyz[0], Y: default_xyz[1], Z: default_xyz[2]}
+                    result = Gcode.gobj_to_move_to(home_gobj, workspace_pose, robot) //needed to initialize out of the way
                     yield result
                 case "VAR":
                     break; //ignore. do next iteration

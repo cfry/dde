@@ -91,10 +91,8 @@ var dependencies = {
 	"simple-get": "^3.1.0",
 	stream: "^0.0.2",
 	strips: "^0.0.10",
-	three: "^0.118.3",
+	three: "^0.157.0",
 	"three-fbx-loader": "^1.0.3",
-	"three-gltf-loader": "^1.111.0",
-	"three-orbitcontrols": "^2.110.3",
 	"three-stl-loader": "^1.0.6",
 	"three-text2d": "^0.6.0",
 	webmidi: "^2.5.3",
@@ -581,16 +579,22 @@ static hex_to_rgb_integer_array(hex) {
     return [r, g, b ]
 }
 
+//arr3 expected to have elts that are integers, 0 thru 255
 static rgb_integer_array_to_hex(arr3){
     let result = "#";
     let str =  arr3[0].toString(16);
     if(str.length === 1) {str = "0" + str;}
+    else if(str.length > 2) { str = "ff"; }
     result += str;
+
     str =  arr3[1].toString(16);
     if(str.length === 1) {str = "0" + str;}
+    if(str.length > 2) { str = "ff"; }
     result += str;
+
     str =  arr3[2].toString(16);
     if(str.length === 1) {str = "0" + str;}
+    if(str.length > 2) { str = "ff"; }
     result += str;
     return result
 }

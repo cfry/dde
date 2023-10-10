@@ -19,6 +19,10 @@ globalThis.SimObj = class SimObj{
         }
     }
 
+    static has_objects(){
+        return (this.objects.length > 0)
+    }
+
     //dde  xyz ->
     //3js -xzy  ???
     //setting x moves it to y neg
@@ -57,7 +61,9 @@ globalThis.SimObj = class SimObj{
     static is_object3d(object3d_maybe){
         return object3d_maybe instanceof THREE.Object3D // used to use THREE.Mesh here, but that fails for end effector in the dexter gltf model
     }
-    static get_object3d(object3d_or_name){
+
+    //will return null if passed null or undefined or false or nothing
+    /*static get_object3d(object3d_or_name=null){
         if(typeof(object3d_or_name) === "string") {
             return Simulate.sim.table.getObjectByName(object3d_or_name)
         }
@@ -67,8 +73,28 @@ globalThis.SimObj = class SimObj{
         else if (this.is_object3d(object3d_or_name)) {
             return object3d_or_name
         }
+        else if (!object3d_or_name) {
+            return null
+        }
         else { dde_error("SimObj.get_object3d called with: " + object3d_or_name
             + " which does not represent an object.")
+        }
+    }*/
+
+    //returns an existing object3d or null if none matches object3d_or_name
+    static get_object3d(object3d_or_name=null) {
+        if (typeof (object3d_or_name) === "string") {
+            let object3d = SimObj[object3d_or_name]
+            if (object3d) {
+                return object3d
+            } else return null
+        } else if (this.is_object3d(object3d_or_name)) {
+            return object3d_or_name
+        } else if (!object3d_or_name) {
+            return null
+        } else {
+            dde_error("SimObj.get_object3d called with: " + object3d_or_name
+                + " which does not represent an object.")
         }
     }
 
@@ -266,8 +292,11 @@ globalThis.SimObj = class SimObj{
     //called by both make_object3d and  make_copy_of_object3d
     static make_object3d_given_object(object3d){
         Simulate.sim.J0.add(object3d) //sim.table.add(obj)
+        let adding_first_object = !SimObj.has_objects()
         SimObj.objects.push(object3d)
-        //SimBuild.populate_dialog_from_object(object3d)
+        if(adding_first_object){
+            SimBuild.populate_dialog_from_object(object3d) //might as well maie it the edited object and enable dialog widgets
+        }
         SimUtils.render_once_with_prev_args_maybe()
         return object3d
     }
@@ -319,7 +348,8 @@ globalThis.SimObj = class SimObj{
         let object3d = SimObj.get_object3d(object3d_or_name)
         if(object3d) {
             if (object3d) {
-                object3d.parent.remove(object3d)
+                //object3d.parent.remove(object3d)
+                object3d.removeFromParent() //  THREEjs method to remove the object
                 let index = this.objects.indexOf(object3d)
                 this.objects.splice(index, 1) //remove it from array, modifying the array, and now the array is  1 shorter.
                 if(SimBuild.gripper_now_holding_object === object3d) {
@@ -329,21 +359,30 @@ globalThis.SimObj = class SimObj{
                 if (this[the_name]) {
                     delete this[the_name]
                 }
-                SimBuild.remove_object3d_to_the_name(object3d)
-                if((this.objects.length === 0) && SimBuild.dialog_dom_elt()){
+                SimBuild.remove_object3d_from_the_name_menu(object3d)
+                /*if((this.has_objects()) && SimBuild.dialog_dom_elt()){
                     let name = prompt("All object3ds have been removed\nbut we must make one to have at least one showing.\nEnter a name for the new object:",
                                        "my_object3d")
                     SimObj.make_object3d({name: name})
+                }*/
+                if(object3d === SimBuild.now_editing_object3d){
+                    if(this.has_objects()){
+                        let obj_to_edit = Utils.last(this.objects)
+                        SimBuild.populate_dialog_from_object(obj_to_edit)
+                    }
+                    else { //we removed the last object, so disable dialog inputs if dialog is up
+                        SimBuild.populate_dialog_from_object(null) //disables inputs
+                    }
                 }
                 SimUtils.render_once_with_prev_args_maybe()
             }
         }
+        //else apparently object3d_or_name is already gone, so do nothing.
     }
 
     static remove_all(){
         for(let object3d of this.objects.slice()) { //make a copy of objects array so we aren't removing from same array we're looping over.
-            let name = object3d.name
-            this.remove(obj)
+            this.remove(object3d)
         }
     }
 
@@ -569,7 +608,7 @@ globalThis.SimObj = class SimObj{
             let obj_src = to_source_code({value: obj})
             objs_src += "  " + (obj_src + "\n\n")
         }
-        let src = "function init_simulator_object3ds(){\n" +
+        let src = "function restore_simulator_object3ds(){\n" +
                    objs_src +
                    "}\n"
         return src

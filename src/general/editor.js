@@ -880,6 +880,58 @@ class Editor {
         }
     }
 
+     //high level fn:
+     //pops up a file picker, lets user choose a file or cancel.
+     //if they choose a file, the callback is called with:
+     //the path chosen and the content of the file
+     //else if user canceled from the file dialog, the callback is called with null, null.
+     static async pick_and_process_content(callback=out) {
+         let path = await Editor.pick_local_file()
+         //out("back in pick_and_process_content with path: " + path)
+         if (path) {
+             let content = await Editor.get_content_at_local_path(path)
+             //out("back in pick_and_process_content with content: " + content)
+             callback(path, content)
+         } else {
+             callback(null, null)
+         }
+     }
+
+     //returns a path of a dir to start the dialog box off.
+    // passing "path" is optional
+    //used in DDE_video.js and elsewhere
+    static async pick_local_file(path){
+        let options = ((typeof(path) === "string") ? {suggestedName: Editor.path_to_file_name(path)} : undefined)
+        try {
+            let [fileHandle] = await window.showOpenFilePicker(options)
+            //out("in pick_local_file with fileHandle: " + fileHandle)
+            if (fileHandle) {
+                let local_path = "/local/" + fileHandle.name
+                Editor.local_path_to_open_file_handle[local_path] = fileHandle
+                return local_path
+            } else {
+                return null
+            }
+        }
+        catch(err) { //probably because the user clicked cancel in the file dialog
+            return null
+        }
+    }
+
+    //If path is NOT in Editor.local_path_to_open_file_handle, returns null
+    //else returns the content in the path
+    //used in DDE_video.js and elsewhere
+    static async get_content_at_local_path(path){
+        let fileHandle = this.local_path_to_open_file_handle[path]
+        if(!fileHandle){
+            return null
+        }
+        const file = await fileHandle.getFile();  // file is an object that knows about the file
+        //why do we need both a fileHandle and a file object? Bad design as far as I can tell.
+        const content = await file.text()
+        return content
+    }
+
     static async open_local_file(path = null) {
         let options = ((typeof(path) === "string") ? {suggestedName: Editor.path_to_file_name(path)} : undefined)
         let [fileHandle] = await window.showOpenFilePicker(options)
@@ -932,6 +984,8 @@ class Editor {
         }*/
         globalThis.eval_js_part2(content) //calls eval_js_part3
     }
+
+
 
 
     /*static save_local_file() {

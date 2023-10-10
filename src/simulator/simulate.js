@@ -14,7 +14,20 @@ from http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 import * as THREE from 'three'
 globalThis.THREE = THREE
 
-import THREE_Text2D from 'three-text2d'
+import { FontLoader } from 'three/addons/loaders/FontLoader.js'
+const a_font_loader = new FontLoader();
+//globalThis.hel_font = null
+a_font_loader.load(//'node_modules/three/examples/fonts/helvetiker_bold.typeface.json', //THREE doc on this path is woefully insufficient. I patterned this after https://www.youtube.com/watch?v=l7K9AMnesJQ Without "node_modules/" on the front, it doesn't work
+                   //'./third_party/helvetiker_bold.typeface',
+                   //'../../third_party/helvetiker_bold.typeface',
+                   'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', //todo make this not depend on a web connection
+    function(font) {
+           globalThis.hel_font = font
+       }
+)
+
+//import THREE_Text2D from 'three-text2d'
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 //import THREE_GLTFLoader from 'three-gltf-loader' //using the examples folder like this is depricated three/examples/js/loaders/GLTFLoader.js')
 //see: https://github.com/johh/three-gltf-loader
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -100,7 +113,7 @@ globalThis.Simulate = class Simulate {
             else                { this.createMeshBoxes() }
           }
           catch(err){
-                  console.log("init_simulation errored with: " + err.stack)
+                  console.log("init_simulation errored with: " + err.message + "\n" + err.stack)
           }
     }
 
@@ -588,21 +601,99 @@ globalThis.Simulate = class Simulate {
         line.name = "table_line_segments"
         this.sim.table.add(line);
 
-        let x_text_mesh = new THREE_Text2D.MeshText2D(">> +X", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true })
-        x_text_mesh.name = "x_axis_label"
-        x_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
-        x_text_mesh.position.set(0.11, 0.055, -0.2) //= THREE.Vector3(20, 8, -10)
-        //For the XYZ in THREE (not in dde & robot)
-        //Three +x is further away from the tool rack in the horiz plane
-        //Three +y is up on the screen. equiv to DDE Z
-        //+z is in horiz plane towards the camera, orthogonal to x
-        //text_mesh.position.y = 8 //0, -1
-        //text_mesh.position.z = -10
-        x_text_mesh.rotation.x = 1.5708 //90 degrees, now parallel to plane of table with the letters readable from the top
-        x_text_mesh.rotation.z = -1.5708
-        this.sim.table.add(x_text_mesh)
+        //let x_text_mesh = new THREE_Text2D.MeshText2D(">> +X", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true })
+        if(globalThis.hel_font) { //protect against failure to load the font. Don't do the below if no font as it will error in the console, but rest of code will still run
+            let text_geo
+            let text_material
+            let text_mesh
 
-        let y_text_mesh = new THREE_Text2D.MeshText2D(">> +Y", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true })
+            //______X label______
+            text_geo = new TextGeometry(">> +X", //, {font: globalThis.hel_font})
+                {
+                    font: hel_font,
+                    size:  20, //100 is the default
+                    height: 5 //50 is the default
+                })
+            text_geo.name = "x_axis_label"
+            text_geo.scale(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
+            text_geo.translate(0.22, //0.11,
+                               -0.28, //0,    //0.055,
+                               0     //-0.2
+                               )
+            text_geo.rotateX(0) //1.5708)
+            text_geo.rotateY(1.5708)
+            text_geo.rotateZ(1.5708)
+            text_material = new THREE.MeshPhongMaterial()
+            text_material.color.set("#00FF00")
+            text_mesh = new THREE.Mesh(text_geo, text_material)
+            //this.sim.table.add(x_text_mesh)
+            this.sim.table.add(text_mesh)
+
+           /* //______Y label______
+            text_geo = new TextGeometry(">> +Y", //, {font: globalThis.hel_font})
+                {  font: hel_font,
+                    size:  20, //100 is the default
+                    height: 5 //50 is the default
+                })
+            text_geo.name = "y_axis_label"
+            text_material = new THREE.MeshPhongMaterial()
+            text_material.color.set("#00FF00")
+            text_mesh = new THREE.Mesh(text_geo, text_material)
+            text_mesh.rotateX(1.5708) //0) //1.5708)
+            text_mesh.rotateY(0) //1.5708)
+            text_mesh.rotateZ(Math.PI)//1.5708)
+            text_mesh.scale.x = 0.007
+            text_mesh.scale.y = 0.007
+            text_mesh.scale.z = 0.007
+            text_mesh.translateX(0.4) //0.22) //0.11, //moves in dde y axis
+            text_mesh.translateY(0) //-0.28, //0,    //0.055, //moves in dde x axis
+            text_mesh.translateZ(0)     //-0.2
+            this.sim.table.add(text_mesh)
+            */
+            //______Y label______
+            text_geo = new TextGeometry(">> +Y", //, {font: globalThis.hel_font})
+                {  font: hel_font,
+                    size:  20, //100 is the default
+                    height: 5 //50 is the default
+                })
+            text_geo.name = "y_axis_label"
+            text_material = new THREE.MeshPhongMaterial()
+            text_material.color.set("#00FF00")
+            text_mesh = new THREE.Mesh(text_geo, text_material)
+            text_mesh.rotateX(1.5708) //0) //1.5708)
+            text_mesh.rotateY(0) //1.5708)
+            text_mesh.rotateZ(Math.PI)//1.5708)
+            text_mesh.scale.x = 0.007
+            text_mesh.scale.y = 0.007
+            text_mesh.scale.z = 0.007
+            text_mesh.translateX(0.4) //0.22) //0.11, //moves in dde y axis
+            text_mesh.translateY(0) //-0.28, //0,    //0.055, //moves in dde x axis
+            text_mesh.translateZ(0)//______Y label______
+            this.sim.table.add(text_mesh)
+
+            //________Z Label
+            text_geo = new TextGeometry(">> +Z", //, {font: globalThis.hel_font})
+                {  font: hel_font,
+                    size:  20, //100 is the default
+                    height: 5 //50 is the default
+                })
+            text_geo.name = "z_axis_label"
+            text_material = new THREE.MeshPhongMaterial()
+            text_material.color.set("#00FF00")
+            text_mesh = new THREE.Mesh(text_geo, text_material)
+            text_mesh.rotateX(-1.5708) //0) //dde y axis rotation 1.5708)
+            text_mesh.rotateY(1.5708) //1.5708)0) //1.5708)
+            text_mesh.rotateZ(-Math.PI)//1.5708)
+            text_mesh.scale.x = 0.007
+            text_mesh.scale.y = 0.007
+            text_mesh.scale.z = 0.007
+            text_mesh.translateX(0) //dde z axis 0.4) //0.22) //0.11, //moves in dde y axis
+            text_mesh.translateY(0)   //dde x axis -0.8) //-0.28, //0,    //0.055, //moves in dde x axis
+            text_mesh.translateZ(0.5) //dde y axis 0)
+            this.sim.table.add(text_mesh)
+
+        }
+        /*let y_text_mesh = new THREE_Text2D.MeshText2D(">> +Y", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true })
         y_text_mesh.name = "y_axis_label"
         y_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
         y_text_mesh.position.set(-0.2, 0.055, 0.11) //= THREE.Vector3(20, 8, -10)
@@ -646,7 +737,7 @@ globalThis.Simulate = class Simulate {
         table_bottom_text_mesh.rotation.z = 0 //Math.PI / -2 //-1.5708
         table_bottom_text_mesh.rotation.y = -Math.PI / -2 //was +Math
         this.sim.table.add(table_bottom_text_mesh)
-
+*/
         //todo dde4 something like the below applied to the labels of text above
         //might work for dde4
         //see https://threejs.org/docs/#examples/en/geometries/TextGeometry

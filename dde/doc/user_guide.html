@@ -1261,8 +1261,61 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 correlated to a connected Dexter.
             </div>
 
-        </details>  <!-- end simulate pane -->
-    </details> <!--end misc_pane -->
+        </details>  <!-- end simulate dexter -->
+        <details  class="doc_details" id="SimBuild_doc_id" class="doc_details"><summary>SimBuild</summary>
+            Clicking the Misc pane's <button>SimBuild</button> button brings up a dialog box
+            that allows you to create, edit, and remove geometric shapes in the Sim pane
+            along side of Dexter. This is intended as a low-rez, easy way to simulate
+            objects next to the simulated Dexter.
+            <p></p>
+            When the SimBuild dialog is open, and there are no objects created,
+            the inputs will be disabled except for <input type="button" value="Make object"/>.
+            Click it to create your first object.
+            <p></p>
+            <b>Simulate Dexter moving an object</b><br/>
+            You can use Dexter to pick up and move an object.
+            <ol>
+                <li>Open joint 7 (the gripper) to above 60.</li>
+                <li>Move Dexter's end effector <i>into</i> an object.
+                    You can do this interactively via the <b>menu bar/Dexter menu/Dexter UI</b>
+                    or with a Job.
+                </li>
+                <li>With the end effector in an object, close J7 to below 60.
+                    Careful. Closing it below 50 or so may cause the
+                    J7 motor to overheat. If it does, a red LED will flash
+                    near J7. You can choose <b>menu bar Dexter menu/Reboot Joints</b>
+                    to initialize J6 an J7 to stop the overheating.
+                </li>
+                <li>Move Dexter to somewhere else, but leaving J7 the same.
+                    Dexter will take the object with it.</li>
+                <li>To "drop" the object, open J7 to greater than 60.
+                    The object will stay in place. (Sorry, no gravity simulation yet.)
+                </li>
+                <li>Move Dexter to somewhere else, but leaving J7 the same.
+                    Dexter will leave the object where it was dropped and
+                    move away empty handed.
+                </li>
+            </ol>
+            Each button in the dialog has a tooltip summarizing its functionality.
+            Most of them insert source code into the editor to acheive your
+            dialog box manipulations programmatically.
+            <p></p>
+            <b>Making New Objects</b><br/>
+            When you click the <input type="button" value="Make Object"/> button,
+            you will be prompted to name it.
+            The new object will be a clone of the current object so you won't notice
+            a change upon creating it as it will look the same as the current object.
+            Change something about the object like its position to notice it.
+            <p/>
+            The name of the new object will get added to the
+            <b>name</b> menu. Choose an object from that menu to make it current
+            so that you can edit it. To see which object in the simulator
+            is the currently-being-edited object, change something in it, like
+            toggling one of the check boxes.
+
+        </details>  <!-- end SimBuild -->
+
+        </details> <!-- end misc_pane -->
     <details id="dexter_user_interface_doc_id" class="doc_details">
          <summary>Dexter User Interface</summary>
          This dialog box can be brought up by choosing Jobs menu/Dexter UI.
