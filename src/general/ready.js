@@ -289,7 +289,6 @@ export function on_ready() {
         function (event) {
             let new_size = event.args.panels[0].size
             DDE_DB.persistent_set("top_left_panel_height", new_size)
-            DDEVideo.refresh_misc_pane()
             event.stopPropagation() //must have or outer_splitter_id on resize is called
         })
 
@@ -302,6 +301,7 @@ export function on_ready() {
         function (event) {
             let new_size = event.args.panels[0].size
             DDE_DB.persistent_set("top_right_panel_height", new_size)
+            DDEVideo.refresh_misc_pane()
             event.stopPropagation() //must have or outer_splitter_id on resize is called
         })
 
@@ -633,7 +633,7 @@ export function on_ready() {
 
  Editor.set_menu_string(open_local_id, "Open...", "o")
 
- open_local_id.onclick = Editor.open_local_file
+ open_local_id.onclick = function () { Editor.open_local_file.call(this) } //needs "this" of the user event to work
 
  //open_from_dexter_id.onclick = Editor.open_from_dexter_computer
 

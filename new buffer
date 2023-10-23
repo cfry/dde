@@ -1,2 +1,4 @@
-opposite side of a right trangle with adjacent side of 1 and
-angle of 11 degrees.
+var dialog_dom_elt = SimBuild.dialog_dom_elt()
+var css_sel = "[name=" + "multi_color" + "]"
+var widget_dom_elt = dialog_dom_elt.querySelector(css_sel)
+                widget_dom_elt[value_prop_name]

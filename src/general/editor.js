@@ -447,7 +447,7 @@ class Editor {
             }
             file_name_id.innerHTML = html
             if(Editor.files_menu_paths_empty_or_contains_only_dde_init()){
-                Editor.edit_new_file()
+                Editor.edit_new_file(true) //true means dont_save_cur_buff_even_if_changed.
             }
             else {
                 let latest_file = existing_paths[0]
@@ -932,9 +932,12 @@ class Editor {
         return content
     }
 
+    //"this" needs to be user event
     static async open_local_file(path = null) {
+        Editor.save_local_file.call(this) //don't use "this." here
         let options = ((typeof(path) === "string") ? {suggestedName: Editor.path_to_file_name(path)} : undefined)
         let [fileHandle] = await window.showOpenFilePicker(options)
+        console.log("open_local_file got new file file_handle: " + fileHandle)
         let local_path = "/local/" + fileHandle.name
         Editor.local_path_to_open_file_handle[local_path] = fileHandle
         await Editor.open_local_file_at_path(local_path)
@@ -954,7 +957,7 @@ class Editor {
             ipg_to_json.parse(path, content)
         }
         else {
-            Editor.edit_file(path, content)
+            Editor.edit_file(path, content, null) //null means IFF cur buff needs saving, ask the user if they want to or just throw out changes.
         }
     }
 
@@ -1031,20 +1034,35 @@ class Editor {
 
     static local_path_to_save_file_handle = {} //must be distinct from local_path_to_open_file_handle as they have different permissions
 
-    //tries to save file without a dialog box, but if it can't it brings up a dialog box
+    //if file doesn't need saving, does nothing.
+    //else tries to save file without a dialog box, but if it can't,
+    //ask user if they want to save it, and if so, it brings up a dialog box
     //called from menu item "save local" and maybe elsewhere
     static async save_local_file(path = Editor.current_file_path) {
+        let old_content = Editor.get_javascript()
+        if(!Editor.current_buffer_needs_saving ||
+                (old_content.trim().length === 0)){
+               //no need to save. save
+            return
+        }
         let handle = Editor.local_path_to_save_file_handle[path]
-        if (handle) { //user might have canceled in the file picker
+        if (handle && DDE_DB.persistent_get("save_on_eval")) {
             Editor.save_local_file_handle(handle)
         }
-        else if(window.showSaveFilePicker) {
-            handle = await Editor.get_handle() //calls showSaveFilePicker
+        else if (confirm("The editor buffer has unsaved changes.\n" +
+                "Click OK to save it before editing the other file.\n" +
+                "Click Cancel to not save it before editing the other file.")){
+            if(!handle) { //if there's already a cached handle, no need to ask the user to get a handle
+                handle = await Editor.get_handle.call(this) //calls showSaveFilePicker
+                console.log("save_local_file got old file file_handle: " + handle)
+
+            }
             if(handle){ //path is not in local_path_to_file_handle
                 Editor.local_path_to_save_file_handle[path] = handle
                 Editor.save_local_file_handle(handle)
             }
         }
+        //else user canceled the save meaning they didn't want to after all.
     }
 
     static async save_local_file_as(path= Editor.current_file_path){
@@ -1200,8 +1218,8 @@ Clear its content?
     })
     }
 
-    static edit_new_file (){
-        Editor.edit_file("new buffer")
+    static edit_new_file (dont_save_cur_buff_even_if_its_changed = false){
+        Editor.edit_file("new buffer", "", dont_save_cur_buff_even_if_its_changed)
     }
 
 //content is passed when we're editing a file by clicking on SSH dir listing file
@@ -1228,149 +1246,62 @@ Clear its content?
 // content is the new content that is being edited if any.
 //usually content is not passed as that's gotten from path,
 //but in the ssh context, it sometimes is passed.
-    static edit_file (path, content, dont_save_cur_buff_even_if_its_changed=false){ //path could be "new buffer"
-        let new_path = DDEFile.add_default_file_prefix_maybe(path) //converts backslashes to slashes and maybe prefixes "dde_apps"
-        let cur_path = Editor.current_file_path
-        let cur_content = Editor.get_javascript()
-        if(dont_save_cur_buff_even_if_its_changed ||
-           !Editor.current_buffer_needs_saving ||
-           (cur_content.trim().length === 0)){
-            Editor.remove_new_buffer_from_files_menu() //does nothing if "new buffer" is not on files menu
-                       //this only does something if cur_path is "new buffer"
-            if(typeof(content) === "string")     { Editor.edit_file_aux(new_path, content) }
-            else if(new_path   === "new buffer") { Editor.edit_file_aux(new_path, "") }
-            else {
-                DDEFile.edit_file(path, true) //dont save cur buff even if its changed, but get the new content
-                  //and call edit_file with content and 3rd arg true.
-                /*read_file_async(path, undefined, function(err, new_content) { //file_content will convert to windows format if needed
-                    if(err) {
-                        Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
-                        dde_error(err.message)
-                    }
-                    else {
-                        new_content = new_content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
-                        Editor.edit_file_aux(new_path, new_content)
-                    }
-                })*/
-            }
-        }
-         //cur buffer needs saving
-        else if(cur_path === "new buffer") { //Editor.current_file_path is null  when we first launch dde.
-            Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
-            if (path === "new buffer"){
-                if (cur_content.trim().length === 0) {  //nothing to do as our cur buf is empty and we've chosen a new buff.
-                    DDEFile.edit_file(new_path, true)
-                }
-                else { //Editor.show_clear_new_buffer_choice()
-                  warning("You can't go to a new file until you either<br/>" +
-                          "delete the contents of the current buffer<br/>" +
-                          "indicating you don't care about it, or<br/> " +
-                          "you choose file menu's <b>Save As</b> to save it in a named file.")
+//IF dont_save_cur_buff_even_if_its_changed is null, ask the question.
+//iF true, don't even attempt to save cur_buff.
+//IF true, do save the current buff.
 
-                }  //either we make the cur buff empty or we do nothing.
+    /*static edit_file (new_path, new_content="", dont_save_cur_buff_even_if_its_changed=false){ //new_path could be "new buffer"
+        let old_content = Editor.get_javascript()
+        let save_old_file
+        if((dont_save_cur_buff_even_if_its_changed === null) ||
+            (dont_save_cur_buff_even_if_its_changed === undefined)){
+            if(!Editor.current_buffer_needs_saving ||
+                (old_content.trim().length === 0)){
+                save_old_file = false
             }
-            //cur buff is a new buffer, and the target path is not
-            else if (cur_content.trim().length == 0) { //don't ask about deleting the new buf, just do it;
-                Editor.remove_new_buffer_from_files_menu() //get rid of the current "new buffer"
-                const path_already_in_menu = Editor.set_files_menu_to_path(new_path)
-                if (!path_already_in_menu) { Editor.add_path_to_files_menu(new_path) }
-                if(typeof(content) === "string") {
-                    Editor.edit_file_aux(new_path, content)
-                }
-                else {
-                    /*read_file_async(path, undefined, function(err, new_content) { //file_content will convert to windows format if needed
-                        if(err) {
-                            Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
-                            dde_error(err.message)
-                        }
-                        else {
-                            new_content = new_content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
-                            Editor.edit_file_aux(new_path, new_content)
-                        }
-                    })*/
-                    if(Editor.is_local_path(new_path)){
-                        Editor.open_local_file(new_path)
-                    }
-                    else{
-                        DDEFile.edit_file(new_path, false)
-                    }
-                }
-            }
-            //cur is new buffer, but it needs saving, we're trying to edit a new file.
-            //should we save the buffer first?
             else {
-                let save_it = confirm( "The editor buffer has unsaved changes.\n" +
+                save_old_file = confirm("The editor buffer has unsaved changes.\n" +
                     "Click OK to save it before editing the other file.\n" +
                     "Click Cancel to not save it before editing the other file.")
-                if(save_it) {
-                    Editor.save_local_file()
-                    /*let file_to_save_buffer_to = choose_save_file()
-                    if(file_to_save_buffer_to) {
-                        DDEFile.write_file_async(file_to_save_buffer_to, cur_content) //since this is async, we must already have the path and content to save as the 'cur' may have changed.
-                        out(file_to_save_buffer_to + " saved.")
-                        Editor.add_path_to_files_menu(file_to_save_buffer_to)
-                        Editor.remove_new_buffer_from_files_menu()
-                    }*/
-                    //else (user hit cancel in choose_save_file dialog).
-                    //     we just leave existing new buffer up and not saved.
-                }
-                else {
-                    Editor.remove_new_buffer_from_files_menu() //the only time "new buffer"
-                    //should be on the files menu, is if it is the currently selected one.
-                    //user can choose File menu, "new" to get a fresh "new buffer".
-                    DDEFile.edit_file(path, true) //eventually calls Editor.edit_file(path, actual_content, true)
-                }
-                /*read_file_async(new_path, undefined, function(err, new_content) { //file_content will convert to windows format if needed
-                    if(err) {
-                        Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
-                        dde_error(err.message)
-                    }
-                    else {
-                        new_content = new_content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
-                        Editor.edit_file_aux(new_path, new_content)
-                    }
-                })*/
             }
         }
+        else {
+            save_old_file = !dont_save_cur_buff_even_if_its_changed
+        }
+        //dont_save_cur_buff_even_if_its_changed is now true or false
+        new_path    = DDEFile.add_default_file_prefix_maybe(new_path) //converts backslashes to slashes and maybe prefixes "dde_apps"
+        let old_path    = Editor.current_file_path
 
-        else {  //cur path is NOT a new buffer, and it needs saving
-            let save_it
-            if (DDE_DB.persistent_get("save_on_eval")) { save_it = true }
-            else {
-                save_it =  confirm(Editor.current_file_path + "\n has unsaved changes.\n" +
-                                    "Click OK to save it before editing the other file.\n" +
-                                    "Click Cancel to not save it before editing the other file.")
-            }
-            if(save_it) {
-                //DDEFile.write_file_async(cur_path, cur_content) //since this is async, we must already have the path and content to save as the 'cur' may have changed.
-                Editor.save_local_file()
-                out(cur_path + " saved.")
-            }
-            //cur buffer has been delt with, now on to the new
-            if (path === "new buffer"){
-                Editor.edit_file_aux(new_path, (content? content: ""))
-            }
-            else {
-                const path_already_in_menu = Editor.set_files_menu_to_path(path)
-                if (!path_already_in_menu) { Editor.add_path_to_files_menu(path) }
-                if(content) {
-                    Editor.edit_file_aux(new_path, content)
-                }
-                else {
-                    /*read_file_async(new_path, undefined, function(err, new_content) { //file_content will conver to windows format if needed
-                        if(err) {
-                            Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file cause we can't get the new one
-                            dde_error(err.message)
-                        }
-                        else {
-                            new_content = new_content.toString() //because sometimes the content passed in is  buffer, not a string. This handles both.
-                            Editor.edit_file_aux(new_path, new_content)
-                        }
-                    })*/
-                    DDEFile.edit_file(path, true) //already saved current
-                }
-            }
+        if(!save_old_file){
+            Editor.remove_new_buffer_from_files_menu() //does nothing if "new buffer" is not on files menu
+                       //this only does something if old_path is "new buffer"
+            Editor.edit_file_aux(new_path, new_content)
         }
+         //cur buffer needs saving
+        else if(old_path === "new buffer") { //Editor.current_file_path is null  when we first launch dde.
+            Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file because we can't get the new one
+            Editor.save_local_file(old_path) //if old_path has already been saved in this dde session,
+            //then old_path is automatically written with its contents from the editor butter,
+            //else file picker is called to force user to pick a file to save it to.
+        }
+        else { //save to existing old file
+            Editor.set_files_menu_to_path() //set the files menu BACK to its previously selected file because we can't get the new one
+            Editor.save_local_file(old_path)
+        }
+        //done with processing old file. Now populate editor with the new file
+        if (new_path === "new buffer") {
+            Editor.remove_new_buffer_from_files_menu() //get rid of the current "new buffer"
+        }
+        const path_already_in_menu = Editor.set_files_menu_to_path(new_path)
+        if (!path_already_in_menu) { Editor.add_path_to_files_menu(new_path) }
+        Editor.edit_file_aux(new_path, new_content)
+    }*/
+
+    static edit_file (new_path, new_content=""){
+        new_path    = DDEFile.add_default_file_prefix_maybe(new_path) //converts backslashes to slashes and maybe prefixes "dde_apps"
+        const path_already_in_menu = Editor.set_files_menu_to_path(new_path)
+        if (!path_already_in_menu) { Editor.add_path_to_files_menu(new_path) }
+        Editor.edit_file_aux(new_path, new_content)
     }
 
     //saving of current buff, if needed has already happened.

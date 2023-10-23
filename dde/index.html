@@ -600,12 +600,8 @@
 
                         <!--<div style="vertical-align:middle;display:inline-block;margin:0px;padding:0px;"> -->
                             <!--<div title="Automatically save the edited file&#013;when you click 'Eval',&#013;and when you edit another file."> <input id="save_on_eval_id" type="checkbox" style="padding_bottom:15px;"/> <div style="padding:0px;margin:0px;display:inline-block;font-size:10px; vertical-align:0%;">Save</div></div>-->
-                            <div title="When checked, 'out' function calls, by default, format the output string as code." style="vertical-align:middle;display:inline-block;">
-                                <div style="padding:0px;margin:0px;font-size:10px; line-height:10px;">Code</div>
-                                <input id="format_as_code_id" type="checkbox" style="padding_bottom:15px; cursor:pointer;"/>
-                            </div>
+
                         <!--</div> -->
-                        <button id="clear_output_id" title="Remove all previously output text.">Clear</button>
                         <!--<div id="ros_menu_id" class="dde_menu" style="display:none;margin-left:10px;vertical-align: middle;">
                             <ul style="display:inline-block;padding:0;margin-top:0px;">
                                 <li style="display:inline-block;">ROS&#9660;
@@ -677,8 +673,13 @@
                             <!--<button id="eval_and_start_button_id" style="vertical-align:top;" title="Eval the selected JS.&#013;With the result, call its 'start' method or, &#013;if its a do_list item, run it in a Job on dexter0.">Eval&Start</button>
                             <button id="start_job_id" style="vertical-align:top;" title='Eval job that cursor is in and start it.&#13;Click on "Output" pane title for doc.'>Start Job</button>&nbsp;
                             -->
-                            <img id="stop_all_jobs_id" src="./doc/coor_images/stop_sign.png" title="Stop all of the currently running jobs.&#13;as well as running TestSuites." style="vertical-align:top; cursor:pointer;"/>
-                            <button id="undefine_jobs_id" style="vertical-align:39px;" title="Undefine all jobs that are not running.">Undef</button>
+                            <button id="clear_output_id" title="Remove all previously output text." style="vertical-align:top;" >Clear</button>
+                            <div title="When checked, 'out' function calls, by default, format the output string as code." style="vertical-align:top;display:inline-block;">
+                                <div style="padding:0px;margin:0px;font-size:10px; line-height:10px;">Code</div>
+                                <input id="format_as_code_id" type="checkbox" style="padding_bottom:15px; cursor:pointer;"/>
+                            </div>
+                            <img    id="stop_all_jobs_id" src="./doc/coor_images/stop_sign.png" title="Stop all of the currently running jobs.&#13;as well as running TestSuites." style="vertical-align:top; cursor:pointer;"/>
+                            <button id="undefine_jobs_id" style="vertical-align:top;margin-top:5px;" title="Undefine all jobs that are not running.">Undef</button>
                             <!--<div style="display:inline-block;vertical-align:top;">J<br/>o<br/>b<br/>s</div>-->
                             <div style="display:inline-block;margin:0px;padding:0px;font-size:11px;vertical-align:42px;transform:rotate(-90deg);">Jobs</div>
                             <!--<span style="vertical-align:top; margin-right:0px; padding-right:0px;">Jobs:</span>-->

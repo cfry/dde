@@ -119,7 +119,7 @@ globalThis.SimObj = class SimObj{
         let xyz_three_vec3_table = Simulate.sim.table.localToWorld(xyz_three_vec3)
         let xyz_three_vec3_world = object3d.localToWorld(xyz_three_vec3)
 
-        let bbox = this.get_bounding_box(obj)
+        let bbox = this.get_bounding_box(object3d)
         let bbox_min_vec3 = bbox.min
         let bbox_max_vec3 = bbox.max
         let bbox_min_vec3_world = object3d.localToWorld(bbox_min_vec3)
@@ -145,11 +145,24 @@ globalThis.SimObj = class SimObj{
 
     //returns the first object in this.objects that intersects with
     //the passed in object, or null if none
-    static object_intersecting_object(object3d_or_name){
+    static objects_intersecting_object(object3d_or_name){
         if(!this.objects) { return null }
         let main_obj = this.get_object3d(object3d_or_name)
+        let result = []
         for(let obj of this.objects){
-            if(this.does_object_intersect_object(main_obj, obj)){
+            if((obj !== main_obj) && this.does_object_intersect_object(main_obj, obj)){
+                result.push(obj)
+            }
+        }
+        return result
+    }
+
+    static newest_object_intersecting_object(object3d_or_name){
+        if(!this.objects) { return null }
+        let main_obj = this.get_object3d(object3d_or_name)
+        for(let i = (this.objects.length - 1); i >= 0; i--){
+            let obj = this.objects[i]
+            if((obj !== main_obj) && this.does_object_intersect_object(main_obj, obj)){
                 return obj
             }
         }
@@ -296,6 +309,9 @@ globalThis.SimObj = class SimObj{
         SimObj.objects.push(object3d)
         if(adding_first_object){
             SimBuild.populate_dialog_from_object(object3d) //might as well maie it the edited object and enable dialog widgets
+        }
+        else { //even though we're not changing the current object, we still want to add this new obj name to the names select menu
+            SimBuild.add_object3d_to_the_name(object3d)
         }
         SimUtils.render_once_with_prev_args_maybe()
         return object3d
@@ -475,7 +491,7 @@ globalThis.SimObj = class SimObj{
         return last_class
     }
 
-    static set_geometry(object3d_or_name, geometry){
+    static set_geometry(object3d_or_name="MeshNormal", geometry){
         let object3d = SimObj.get_object3d(object3d_or_name)
         if(typeof(geometry) === "string"){
             if(!(geometry.endsWith("Geometry"))){

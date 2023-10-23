@@ -261,6 +261,14 @@ static is_letter(char) {
     else { return false; }
 }
 
+static is_upper_case(char) {
+    return /[A-Z]/.test(char)
+}
+
+static is_lower_case(char) {
+    return /[a-z]/.test(char)
+}
+
 static is_letter_or_underscore(char) {
     var letter = /^[a-zA-Z_]+$/;
     if(char.match(letter)) {  return true; }
@@ -667,6 +675,19 @@ static subarray(arr, start_index=0, end_index){
     return result
 }
 
+// for [1, 2] and [2, 1] will return true
+static arrays_have_same_elements(arr1, arr2){
+    if(arr1.length === arr2.length){
+        for(let elt of arr1){
+            if(!(arr2.includes(elt))) {
+                return false
+            }
+        }
+        return true
+    }
+    else { return false }
+}
+
 //_____ set operations______
 static intersection(arr1, arr2){
     let result = []
@@ -763,7 +784,8 @@ static similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg1_already
     else { //arg1 and arg2 should be of type "object" but neither is null (due to primitive checks above)
         var props1 = Object.getOwnPropertyNames(arg1)
         var props2 = Object.getOwnPropertyNames(arg2)
-        if (!Utils.similar(props1, props2)) { return false }
+        //if (!Utils.similar(props1, props2)) { return false } //not good since same elts but different order will return false
+        if (!Utils.arrays_have_same_elements(props1, props2)){ return false } //needed because the props *might* be in a different order, which is ok
         for (let prop of props1){
             if (!Utils.similar(arg1[prop], arg2[prop], tolerance, tolerance_is_percent)) { return false}
         }

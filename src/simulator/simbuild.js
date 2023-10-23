@@ -46,7 +46,7 @@ globalThis.SimBuild = class SimBuild{
     //out("handle_j7_change j7_angle: " + j7_angle + " Dexter." + rob.name)
         if( this.is_gripper_open(this.j7_prev_angle_degrees) && //gripper was open
            !this.is_gripper_open(j7_angle_degrees)) {      //but now its closed
-            let obj = SimObj.object_intersecting_object(Simulate.sim.LINK7)
+            let obj = SimObj.newest_object_intersecting_object(Simulate.sim.LINK7)
             this.gripper_closing.call(this, j7_angle_degrees, xyz, obj, rob)
         }
         else if(!this.is_gripper_open(this.j7_prev_angle_degrees) && //gripper was closed
@@ -251,6 +251,7 @@ globalThis.SimBuild = class SimBuild{
                 } //user canceled so don't make a new object
                 else {
                     new_object3d = SimObj.make_object3d({name: new_name})
+                    SimBuild.populate_dialog_from_object(new_object3d)
                 }
             }
             else {
@@ -279,9 +280,9 @@ globalThis.SimBuild = class SimBuild{
                     let new_object3d = SimObj.make_copy_of_object3d(object3d, new_name)
                     out("The new object is visually identical to the previously edited object.<br/>" +
                         "Change something in the new object to make it stand out.", "green")
+                    SimBuild.populate_dialog_from_object(new_object3d)
                 }
             }
-            SimBuild.populate_dialog_from_object(new_object3d)
         }
         else if (!object3d) {
             shouldnt("SimBuild.dialog_cb got no object3d to edit.")

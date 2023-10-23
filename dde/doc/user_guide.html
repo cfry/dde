@@ -1262,9 +1262,10 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             </div>
 
         </details>  <!-- end simulate dexter -->
+
         <details  class="doc_details" id="SimBuild_doc_id" class="doc_details"><summary>SimBuild</summary>
             Clicking the Misc pane's <button>SimBuild</button> button brings up a dialog box
-            that allows you to create, edit, and remove geometric shapes in the Sim pane
+            that allows you to create, edit, save and remove geometric shaped objects in the Sim pane
             along side of Dexter. This is intended as a low-rez, easy way to simulate
             objects next to the simulated Dexter.
             <p></p>
@@ -1312,10 +1313,175 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             so that you can edit it. To see which object in the simulator
             is the currently-being-edited object, change something in it, like
             toggling one of the check boxes.
+            <p></p>
+            <b>Saving Objects</b><br/>
+            The buttons above the horizontal line in the dialog box insert source code
+            for modifying and restoring objects. When you evaluate this code it will
+            update the corresponding internal data structures and the dialog as appropriate.<br/>
+            <input type="button" value="name"/> inserts code in the editor pane (at the current
+            cursor position) to get a prpgrammatic reference to the object now being edited.
+            It will look something like: <code>SimObj.my_object</code>. Evaling it will
+            return the THREEjs object3d instance for that object.<br/>
+            <input type="button" value="Insert whole object"/> inserts code that will recreate
+            a new instance of the current object. If there is no curreont object in the dialog
+            box, it will display that new instance. Otherwise, it will just add the name
+            of the new instance to the name: menu in the dialog.
+            If the name of the new object is the same as an existing name, that
+            old object will be replaced by the new one.
+            <br/>
+            <input type="button" value="Insert all"/> inserts code representing
+            all objects now loaded as a function definition.<br/>
+            <b>Other Buttons</b> above the line insert code for changing the value of
+            a particular object property: position, orientation, scale (size), etc.
+            <p></p>
+            <b>Restoring Objects</b> (or creating them anew).
+            Just evaluate JavaScript code for making an object, whether it be
+            code inserted usiing the SimBuild dialog box, or code you've written by hand.
+        </details> <!--End SimBuild -->
 
-        </details>  <!-- end SimBuild -->
+        <details  class="doc_details" id="SimObj_doc_id" class="doc_details"><summary>SimObj</summary>
+        The methods in the <code>SimObj</code> class are wrappers around methods in <code>THREE.Object3D</code> class
+        and related classes. SimObj makes it easier for programmers to add and modify object3ds in
+        the similator pane.<br/>
+        The easiest way to discover and see example calls to SimObj methods
+        is to click the corresponding buttons in the SimBuild dialog box.
+         <p></p>
+         Searching the web for
+            <code title="not evalable">THREEjs Object3D</code> and related classes & methods
+            will give you documentation and tutorials on programming THREEjs.
+            Inspect: <code>SimObj</code> to see the avaliable functionality.
 
-        </details> <!-- end misc_pane -->
+         <details  class="doc_details" id="SimObj.make_object3d_doc_id" class="doc_details"><summary>SimObj.make_object3d</summary>
+            Calling this method will return an instance of THREE.Object3D.<br/>
+            <i>Parameters</i><br/>
+            <b>name</b> A string. Default: <code>"my_object3d"</code> Must be unique amongst object3ds.
+            If you call<br/>
+            <code>SimObj.make_object3d({name: "my_object3d"})</code><br/>
+            and then another same-named call, the 2nd object will overwrite the first.<br/>
+            <b>geometry</b> Default: <code>"Box"</code> Can also be a THREE.Geometry instance such
+            as THREE.BoxGeometry. See the SimBuild dialog geometry menu for the supported geometries.
+            Determines the shape of the object.<br/>
+            <b>scale</b> Default: <code>[1, 1, 1]</code> An array of x,y,z (width, depth, height) for the size of the object in meters.<br/>
+            <b>position</b> Default: <code>[0, 0, 0]</code> An array of x,y,z meters for the location of the object.
+                May have negative values.<br/>
+            <b>orientation</b> Default: <code>[0, 0, 0]</code> An array of the rotation of the object around the x, y, and z axis.
+                In degrees. May have negative values.<br/>
+            <b>material</b> Default: <code>"MeshNormal"</code>. Can be  the name of, or an instance of a THREE.Material.
+                THREE material names end in the suffix "Material" but you can leave that out in DDE.
+                The material determines the surface of an object.<br/>
+                Use <code>"MeshNormal"</code> for different faces of the object having different colors.
+                In the SimBuild dialog, check <i>multi-color</i> to use <code>"MeshNormal"</code>.
+                If you use "MeshNormal", the color of the SimObj will be ignored.
+                This is useful in showing the three-dimentionality of the object.<br/>
+                Use <code>"MeshPhong"</code> for giving the object a particular color.
+                In the SimBuild dialog, uncheck <i>multi-color</i> to use <code>"MeshPhong"</code>.<br/>
+             <b>color</b> Default: <code>[1, 1, 1]</code> (white)<br/>
+                    The array of 3 colors uses [red, green, blue] where each is a float
+                between 0 and 1.<br/>
+                <i>Example values:</i><br/>
+                <ul>
+                    <li> <code>[0, 0, 0]</code> represents black. </li>
+                    <li> <code>[1, 1, 1]</code> represents white. </li>
+                    <li> <code>[0.5, 0.5, 0.5]</code> represents gray. </li>
+                    <li> <code>[1, 0, 0]</code> represents red.   </li>
+                    <li> <code>[0, 1, 0]</code> represents green. </li>
+                    <li> <code>[0, 0, 1]</code> represents white. </li>
+                    <li> <code>[1, 0, 1]</code> represents purple.</li>
+                </ul>
+            <b>wireframe</b> Boolean, Default: <code>false</code>.
+             If <code>true</code>, the object is shown with just a line
+            for each edge. You can see through the object.<br/>
+            <i>Examples:</i>
+<pre><code>SimObj.make_object3d({name: "my_object3d",
+                      geometry: "Box",
+                      scale: [0.36, 0.2, 0.2],
+                      position: [-0.15, 0.3, 0.1],
+                      orientation: [0, 0, 0],
+                      material: "MeshPhong",
+                      color: [0.95, 0.26, 0.26],
+                      wireframe: false})</code></pre>
+ <pre><code>SimObj.make_object3d({name: "my_object3d_1",
+                      geometry: "Cylinder",
+                      scale: [0.36, 0.2, 0.2],
+                      position: [0.6, 0.0, 0.0],
+                      orientation: [0, 0, 0],
+                      material: "MeshNormal",
+                      color: [1, 0, 1],
+                      wireframe: false})</code></pre>
+             You can get a THREE object3d using its name by evaling:<br/>
+             <code>SimObj.my_object3d</code>
+       </details> <!-- end SimObj.make_object3d -->
+     <details  class="doc_details" id="SimObj Properties" class="doc_details"><summary>SimObj Properties</summary>
+      You can get and set properties of objects interactively using the SimBuild dialog box or programmatically
+         using the below pattern.<br/>
+      <i>Examples:</i><br/>
+         <pre><code>SimObj.set_position(SimObj.my_object3d_1, [0.2, 0.3, 0.4])
+SimObj.get_position(SimObj.my_object3d_1)</code> => <samp>[0.2, 0.3, 0.4]</samp></pre>
+      Use this pattern for properties:
+         <ul>
+             <li>scale</li>
+             <li>position</li>
+             <li>orientation</li>
+             <li>geometry</li>
+             <li>material</li>
+             <li>color</li>
+             <li>wireframe</li>
+          </ul>
+      You can see more specific examples by clicking on the insert button for a property in the SimBuild
+         dialog box.
+     </details> <!-- end SimObj properites-->
+    <details class="doc_details" id="SimObj.is_object3d" class="doc_details"><summary>SimObj.is_object3d</summary>
+        Returns true if the argument is an object3d, false otherwise.<br/>
+        <i>Example:</i><br>
+        <code>SimObj.is_object3d("junk")</code> => <samp>false</samp>
+    </details>
+    <details class="doc_details" id="SimObj.objects" class="doc_details"><summary>SimObj.objects</summary>
+        Returns an array of all obect3ds.<br/>
+        <i>Example:</i><br>
+        <code >SimObj.objects</code> => <samp>[SimObj.my_object3D, SimObj.my_object3D_1]</samp>
+    </details>
+
+    <details class="doc_details" id="SimObj.object_containing_xyz" class="doc_details"><summary>SimObj.object_containing_xyz</summary>
+        <i>Example:</i><br/>
+        <code>SimObj.object_contains_xyz(SimObj.my_object3d, [0, 0.1, 0.3])</code> => <samp>false</samp>
+     </details>
+    <details class="doc_details" id="SimObj.object_contains_xyz" class="doc_details"><summary>SimObj.object_contains_xyz</summary>
+        <i>Example:</i><br/>
+        <code>SimObj.object_containing_xyz([0.0, 0.1, 0.3])</code> => <samp>null</samp>
+    </details>
+    <details class="doc_details" id="SimObj.objects_intersecting_object" class="doc_details"><summary>SimObj.objects_intersecting_object</summary>
+        <i>Example:</i><br/>
+        <code >SimObj.objects_intersecting_object(SimObj.my_object3d)</code> => <samp>[]</samp>
+    </details>
+    <details class="doc_details" id="SimObj.newest_object_intersecting_object" class="doc_details"><summary>SimObj.newest_object_intersecting_object</summary>
+        If there is at least one object that intersects the passed in object,
+        return the newest one. The newest one is the one closest to the END of SimObj.objects,
+        i.e. the latest created one.
+        If there are no intersecting objects, <code>null</code> is returned.
+        <i>Example:</i><br/>
+        <code >SimObj.newest_object_intersecting_object(SimObj.my_object3d)</code> => <samp>null</samp>
+    </details>
+    <details class="doc_details" id="SimObj.does_object_intersect_object" class="doc_details"><summary>SimObj.does_object_intersect_object</summary>
+        <i>Example:</i><br/>
+        <code>SimObj.does_object_intersect_object(SimObj.my_object3d, SimObj.my_object3d_1)</code> => <samp>false</samp>
+    </details>
+
+    <details  class="doc_details" id="SimObj.remove" class="doc_details"><summary>SimObj.remove</summary>
+        Remove an object3d from the simulator.<br/>
+        <i>Example:</i><br>
+        <code>SimObj.remove(SimObj.my_object3d_1)</code><br/>
+        Attempting to remove a non-existent object does nothing.
+    </details>
+    <details class="doc_details" id="SimObj.remove_all" class="doc_details"><summary>SimObj.remove_all</summary>
+        Remove an object3d from the simulator.<br/>
+        <i>Example:</i><br>
+        <code>SimObj.remove_all()</code><br/>
+        <code>SimObj.objects.length</code> => <samp>0</samp>
+    </details>
+
+    </details> <!-- end SimObj -->
+    </details> <!-- end misc_pane -->
+
     <details id="dexter_user_interface_doc_id" class="doc_details">
          <summary>Dexter User Interface</summary>
          This dialog box can be brought up by choosing Jobs menu/Dexter UI.
