@@ -492,7 +492,7 @@ export function on_ready() {
     //the below 3 are also done in on_ready_je
     init_units() //In dde, has to be after init_series call.
     FPGA.init()  //does not depend on Series.
-    Gcode.init() //must be after init_series which calls init_units()
+    // not needed oct 26. 2023 new arch of GocdeGcode.init() //must be after init_series which calls init_units()
 
     Lesson.init() //sets css properties for steptorials.
 
@@ -1791,9 +1791,9 @@ window_modify_id.onclick=function(){Editor.insert(
        //PatchDDE.init()  //todo dde4 needs file system
 
          //will error using gitub.io platform, so for now don't call it.
-         if (!globalThis.dde_running_in_cloud()) {
+        // if (!globalThis.dde_running_in_cloud()) {
             await DDE_DB.dde_init_dot_js_initialize()//must occcur after persistent_initialize
-         }
+       //  }
          //use await because dde_init_dot_js_initialize has to await for getting the
          //dde_init.js file which *might* contain a def for dexter0.
          //if so, then Dexter.dexter0 will be defined and there won't be a redef of it below

@@ -1838,11 +1838,13 @@ Dexter.prototype.run_gcode = function({gcode = "",
 }
 
 Dexter.run_gcode      = function({gcode = "", filepath = null, workspace_pose = Vector.make_pose([0, 0.5, 0.1], [0, 0, 0], _mm), robot=Dexter}){
-                            return function(){
+                            let the_job = this
+                             return function(){
                                 return Gcode.gcode_to_instructions({gcode: gcode,
                                                                     filepath: filepath,
                                                                     workspace_pose: workspace_pose,
-                                                                    robot: robot})
+                                                                    robot: robot,
+                                                                    the_job: this})
                             }
                         }
 

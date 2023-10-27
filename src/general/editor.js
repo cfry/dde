@@ -934,7 +934,11 @@ class Editor {
 
     //"this" needs to be user event
     static async open_local_file(path = null) {
-        Editor.save_local_file.call(this) //don't use "this." here
+        let confirm_message = "The editor buffer has unsaved changes.\n" +
+            "Click OK to save it before editing the other file.\n" +
+            "Click Cancel to not save it before editing the other file."
+
+        await Editor.save_local_file.call(this, undefined, confirm_message) //don't use "this." here
         let options = ((typeof(path) === "string") ? {suggestedName: Editor.path_to_file_name(path)} : undefined)
         let [fileHandle] = await window.showOpenFilePicker(options)
         console.log("open_local_file got new file file_handle: " + fileHandle)
@@ -1038,7 +1042,10 @@ class Editor {
     //else tries to save file without a dialog box, but if it can't,
     //ask user if they want to save it, and if so, it brings up a dialog box
     //called from menu item "save local" and maybe elsewhere
-    static async save_local_file(path = Editor.current_file_path) {
+    //if confirm_message is null, don't confirm with user, just save.
+    //open_local_file passes a real confirm message to check if user wants to save the file
+    static async save_local_file(path = Editor.current_file_path,
+                                 confirm_message=null) {
         let old_content = Editor.get_javascript()
         if(!Editor.current_buffer_needs_saving ||
                 (old_content.trim().length === 0)){
@@ -1049,16 +1056,28 @@ class Editor {
         if (handle && DDE_DB.persistent_get("save_on_eval")) {
             Editor.save_local_file_handle(handle)
         }
-        else if (confirm("The editor buffer has unsaved changes.\n" +
-                "Click OK to save it before editing the other file.\n" +
-                "Click Cancel to not save it before editing the other file.")){
-            if(!handle) { //if there's already a cached handle, no need to ask the user to get a handle
+        else if (confirm_message) {
+            if (confirm(confirm_message)) {
+                if (!handle) { //if there's already a cached handle, no need to ask the user to get a handle
+                    handle = await Editor.get_handle.call(this) //calls showSaveFilePicker
+                    console.log("save_local_file got old file file_handle: " + handle)
+
+                }
+                if (handle) { //path is not in local_path_to_file_handle
+                    Editor.local_path_to_save_file_handle[path] = handle
+                    Editor.save_local_file_handle(handle)
+                }
+            }
+        }
+        else { //no confirm message
+            if (!handle) { //if there's already a cached handle, no need to ask the user to get a handle
                 handle = await Editor.get_handle.call(this) //calls showSaveFilePicker
                 console.log("save_local_file got old file file_handle: " + handle)
 
             }
-            if(handle){ //path is not in local_path_to_file_handle
-                Editor.local_path_to_save_file_handle[path] = handle
+            if (handle) { //path is not in local_path_to_file_handle
+                let path_to_save_to = "/local/" + handle.name
+                Editor.local_path_to_save_file_handle[path_to_save_to] = handle
                 Editor.save_local_file_handle(handle)
             }
         }
