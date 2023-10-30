@@ -1728,7 +1728,7 @@ window_modify_id.onclick=function(){Editor.insert(
                }
            }
        })
-      DDE_DB.init(on_ready_after_db_init)
+      DDE_DB.init(on_ready_after_db_init) 
          //persistent_initialize() //now performed by DDE_DB.init
          //called before loading dde_init.js by design.
          //Metrics.init() //now performed by DDE_DB.init
