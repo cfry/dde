@@ -1728,7 +1728,7 @@ window_modify_id.onclick=function(){Editor.insert(
                }
            }
        })
-      DDE_DB.init(on_ready_after_db_init) 
+      DDE_DB.init(on_ready_after_db_init)
          //persistent_initialize() //now performed by DDE_DB.init
          //called before loading dde_init.js by design.
          //Metrics.init() //now performed by DDE_DB.init
@@ -1792,8 +1792,15 @@ window_modify_id.onclick=function(){Editor.insert(
 
          //will error using gitub.io platform, so for now don't call it.
         // if (!globalThis.dde_running_in_cloud()) {
-            await DDE_DB.dde_init_dot_js_initialize()//must occcur after persistent_initialize
-       //  }
+
+        //dde_init_dot_js_initialize can't work because it has to load a file without
+       //user explicit permission which browser won't allow.
+       //The workaround is that user manually loads the file every time they
+       //launch dde4.
+       // todo But I can shove code into IndexDB from the user and that is loaded when DDE4 is launched.
+           // await DDE_DB.dde_init_dot_js_initialize()//must occur after persistent_initialize
+       //
+
          //use await because dde_init_dot_js_initialize has to await for getting the
          //dde_init.js file which *might* contain a def for dexter0.
          //if so, then Dexter.dexter0 will be defined and there won't be a redef of it below
