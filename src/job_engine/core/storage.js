@@ -43,6 +43,7 @@ function get_persistent_values_defaults() {
 }
 //ensures that dde_apps folder exists, that dde_persistent.json, and
 //loads in values from dde_persistent.json
+/* can't work in dde4 due to browser restrictions
 export function persistent_initialize() {
     if(!file_exists("")){
         make_folder("") //make dde_apps folder, synchronous

@@ -894,6 +894,7 @@ Messaging.start_job = function({job_name=null, start_options={}, if_started="ign
         mess_obj.job_name = to_source_code({value: mess_obj.job_name})
     }
     else if(mess_obj.job_name.startsWith("new Job(")){} //ok job def is on sender
+    /* can't work due to browser security
     else if(file_exists(mess_obj.job_name)) { //job def is on sender
         let jobs_in_file = Job.instances_in_file(mess_obj.job_name)
         if(jobs_in_file.length > 0) { mess_obj.job_name = to_source_code({value: jobs_in_file[0]}) }
@@ -901,7 +902,7 @@ Messaging.start_job = function({job_name=null, start_options={}, if_started="ign
             dde_error("Messaging.start_job has a job_name that's a path to an existing file: " + mess_obj.job_name + "<br/>" +
                 "but that file doesn't define any jobs.")
         }
-    }
+    }*/
     else if(Utils.is_string_an_identifier(mess_obj.job_name)){  //job def is on receiver
          mess_obj.job_name = job_name
     }

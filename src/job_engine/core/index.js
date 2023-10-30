@@ -236,7 +236,6 @@ global.append_to_file = append_to_file
 global.copy_file_async = copy_file_async
 global.copy_folder_async = copy_folder_async
 global.file_content = file_content //deprecated
-global.file_exists = file_exists
 global.folder_listing = folder_listing
 global.folder_separator = folder_separator
 global.folder_name_version_extension = folder_name_version_extension

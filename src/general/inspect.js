@@ -118,6 +118,7 @@ class Inspect{
     } //global called outside of this file, sometimes as onclick methods in HTML buttons.
 
 
+    /* no longer called because we can't call file_exists in dde4 due to browser restrictions
     static looks_like_an_existing_file_path(item){
         return ((typeof(item) == "string") &&
                 (item.length > 1) &&
@@ -125,6 +126,7 @@ class Inspect{
                 (!item.includes("\n")) &&
                 (file_exists(item)))
     }
+    */
 
     static inspect_2d = true //but changed by checking
 
@@ -554,6 +556,7 @@ class Inspect{
         Editor.insert(the_file_content)
     }
 
+    /*no longer called due to browser file security
     static inspect_one_liner_existing_file_path(item){
         let orig_arg = item
         item = make_full_path(item)
@@ -589,6 +592,7 @@ class Inspect{
             return result
         }
     }
+     */
 
     //returns a string but might be ""
     static inspect_extra_info(item){

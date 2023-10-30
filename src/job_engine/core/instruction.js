@@ -2197,6 +2197,7 @@ Instruction.include_job = class include_job extends Instruction{
                 resolved_first_arg   = Job[first_arg]
                 do_list_array_to_use = resolved_first_arg.orig_args.do_list
             }
+            /* can't work due to browser security
             else if (first_arg.includes(".")){ //got a file path with an extension.
                 if(file_exists(first_arg)){
                     let job_instances_in_file = Job.instances_in_file(first_arg)
@@ -2248,7 +2249,7 @@ Instruction.include_job = class include_job extends Instruction{
                                "so it is presumed to be a file path<br/>" +
                                "but no such file exists.")
                 }
-            }
+            }*/
             else if (globalThis[first_arg]) {
                 resolved_first_arg = globalThis[first_arg]
                 if(!Array.isArray(resolved_first_arg)) {
@@ -2816,6 +2817,7 @@ Instruction.start_job = class start_job extends Instruction{
             else if(typeof(this.job_name) == "string") {
                 if (this.job_name.startsWith("Job.")) { this.job_to_start = value_of_path(this.job_name) }
                 else if (Job[this.job_name]) {  this.job_to_start = Job[this.job_name] }
+                /* can't work due to browser security
                 else if(file_exists(this.job_name)) {
                     let jobs_in_file = Job.instances_in_file(this.job_name)
                     if(jobs_in_file.length > 0) { this.job_to_start = jobs_in_file[0] }
@@ -2823,7 +2825,7 @@ Instruction.start_job = class start_job extends Instruction{
                         dde_error("Control.start_job has a job_name that's a path to an existing file: " + this.job_name + "<br/>" +
                                   "but that file doesn't define any jobs.")
                     }
-                }
+                }*/
                 else {
                     dde_error("Control.start_job has a job_name of: " + this.job_name +
                               "<br/>but it doesn't resolve to a Job or a file containing one.")

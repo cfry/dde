@@ -234,7 +234,7 @@ class DDEVideo {
         }
 
         else if (content.endsWith(".stl")){
-            if(file_exists(content)){
+            if(file_exists(content)){ //todo won't work due to browser security
                 sim_pane_content_id.innerHTML = '<div id="sim_graphics_pane_id"></div>'
 
                 //from: init_simulation()
