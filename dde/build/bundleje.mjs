@@ -361,6 +361,14 @@ static is_letter(char) {
     else { return false; }
 }
 
+static is_upper_case(char) {
+    return /[A-Z]/.test(char)
+}
+
+static is_lower_case(char) {
+    return /[a-z]/.test(char)
+}
+
 static is_letter_or_underscore(char) {
     var letter = /^[a-zA-Z_]+$/;
     if(char.match(letter)) {  return true; }
@@ -767,6 +775,19 @@ static subarray(arr, start_index=0, end_index){
     return result
 }
 
+// for [1, 2] and [2, 1] will return true
+static arrays_have_same_elements(arr1, arr2){
+    if(arr1.length === arr2.length){
+        for(let elt of arr1){
+            if(!(arr2.includes(elt))) {
+                return false
+            }
+        }
+        return true
+    }
+    else { return false }
+}
+
 //_____ set operations______
 static intersection(arr1, arr2){
     let result = [];
@@ -863,7 +884,8 @@ static similar(arg1, arg2, tolerance=0, tolerance_is_percent=false, arg1_already
     else { //arg1 and arg2 should be of type "object" but neither is null (due to primitive checks above)
         var props1 = Object.getOwnPropertyNames(arg1);
         var props2 = Object.getOwnPropertyNames(arg2);
-        if (!Utils$1.similar(props1, props2)) { return false }
+        //if (!Utils.similar(props1, props2)) { return false } //not good since same elts but different order will return false
+        if (!Utils$1.arrays_have_same_elements(props1, props2)){ return false } //needed because the props *might* be in a different order, which is ok
         for (let prop of props1){
             if (!Utils$1.similar(arg1[prop], arg2[prop], tolerance, tolerance_is_percent)) { return false}
         }
@@ -20572,166 +20594,124 @@ function linux_error_message(error_code){
 
 globalThis.linux_error_message = linux_error_message;
 
-//import Vector from "../math/Vector.js" //now global
+globalThis.Gcode = class Gcode{
+    static print_gcode_line_when_run = true
+    static state = {
+        X: 0,
+        Y: 0,
+        Z: 0,
+        E: 0, //extruder
+        F: 0, //feedrate
+        G: 0, //type or speed of move
+        need_move: false, //boolean
+        M: 0, //current index into M array M0=pause, M1=pause_if_enabled, M2=End program
+        M_array: [], //array of variables of numbers meaning different things
+        S: 0, //value for M_array elements
+        need_m_update: false //boolean
+    }
 
-class Gcode$1{
-  static init(){ //called from ready.js
-      Gcode$1.gcode_to_instructions_workspace_pose_default =
-          Vector.make_pose([0, 0.5, 0.1], [0, 0, 0], _mm);
-  }
+    static prepare_gcode(str, the_job){
+        let lines = str.split("\n");
+        the_job.user_data.gcode_lines = lines;
+        the_job.user_data.gcode_pc = 0;
+    }
 
-//returns lit obj or null  if gstring is a comment or blank line
-  static gcode_line_to_obj (gstring){
-    gstring = Gcode$1.gline_remove_comment(gstring);
-    if (gstring == "") { return null }
-    else if (gstring.startsWith(";")){ //semicolon on non first column starts end of line comment.
-        return Gcode$1.gcode_varline_to_obj(gstring)
-    }
-    else {
-        var litobj = {};
-        var garray = gstring.split(" ");
-        litobj.type = garray[0];
-        for(let arg of garray){
-            arg = arg.trim();
-            let letter = arg[0];  //typically M, G, X, Y, X, E, F
-            let num = arg.substring(1);
-            if (Utils.is_string_a_number(num)){
-                num = parseFloat(num);
-            }
-            litobj[letter] = num; //allowed to be a string, just in case somethign wierd, but is
-            //usually a number
-        }
-        return litobj
-    }
-  }
-//trims whitespace and comment. Careful: if line begins with semicolon, its not a comment
- static gline_remove_comment(gstring){
-    let comment_pos = gstring.lastIndexOf(";");
-    if      (comment_pos == -1) { return gstring.trim() }
-    else if (comment_pos == 0)  {
-        if (gstring.includes("=")) { return gstring.trim()} //not actually a comment, its a var
-        else { return "" } //a comment whose line starts with semicolon as in the top line of a file
-    }
-    else                        { return gstring.substring(0, comment_pos).trim() }
-  }
-
- static gcode_varline_to_obj(gstring){
-    let litobj = {};
-    gstring = gstring.substring(1).trim(); //cut off the semicolon
-    let var_val = gstring.split("=");
-    let var_name = var_val[0].trim();
-    litobj.type = "VAR";
-    litobj.name = var_name;
-    let val = var_val[1].trim();
-    if (val.includes(",")){
-        let vals = val.split(",");
-        litobj.val = [];
-        for(let subval of vals){
-            let processed_subval = Gcode$1.gcode_process_subval(subval); //probably won't be [12, "%"] but if it is, ok
-            litobj.val.push(processed_subval); //if our val is something like "0x0,2x3,4x5" then each subval will b [0, 0] etc and we'll have an array of arrays
-        }
-    }
-    else {
-        let processed_subval = Gcode$1.gcode_process_subval(val);
-        if (Array.isArray(processed_subval) &&
-            (processed_subval.length == 2)  &&
-            (typeof(processed_subval[1]) != "number")){
-            litobj.val   = processed_subval[0];
-            litobj.units = processed_subval[1];
-        }
-        else { litobj.val = processed_subval; }
-    }
-    return litobj
-  }
-
-//subval can be "123", "123.45",  "123%"    "#FFFFFF"  "0x0", "123x45",  "G28" "M104 S0", "12.3mm",     "1548.5mm (3.7cm3)", ""
-//return         a number,        [123, "%"] "#FFFFFF", [0, 0] [123, 45], "G28" "M104 S0", [12.3, "mm"], "1548.5mm (3.7cm3)", ""
-  static gcode_process_subval(subval){
-    subval = subval.trim();
-    let x_pos = subval.indexOf("x");
-    if (subval.includes(" ")) { return subval } //just a string
-    else if ((x_pos != -1) &&
-        (x_pos != 0)  &&
-        (x_pos != (subval.length - 1))) { //we've probably got subval of format "12x34"
-        let subsubvals = subval.split("x");
-        let val = [];
-        for(let subsubval of subsubvals){
-            if (Utils.is_string_a_number(subsubval)) { val.push(parseFloat(subsubval));}
-            else { return subval } //its just a string with an x in the middle of it.
-        }
-        return val
-    }
-    else if (Utils.is_string_a_number(subval)){
-        return parseFloat(subval)
-    }
-    else { //maybe have a number with units ie 12.3mm, but we don't have just a number, we might have just a string
-        for(let i = 0; i < subval.length; i++){
-            let char = subval[i];
-            if ("0123456789.-".includes(char)) ; //continue looping
-            else if (i == 0) { //first char not in a num so whole thing is a string
-                return subval
-            }
-            else if ((i == 1) && (subval[0] == "-")){ //example "-foo". Its not a num
-                return subval
-            }
-            else {
-                let num = parseFloat(subval.substring(0, i));
-                let units = subval.substring(i);
-                return [num, units]
+    static line_to_do_list_item(gcode_line){
+        let line_tokens = gcode_line.split(" ");
+        for(let token of line_tokens){
+            if(token !== "") {
+                let op = token[0]; //ie G, M, etc.
+                op = op.toUpperCase();
+                if (!Utils.is_upper_case(op)) {
+                    dde_error("In Gcode.line_to_do_list_item got invalid non_upper case first letter of: " + op);
+                }
+                let val = token.substring(1);
+                val = parseFloat(val);
+                if (Number.isNaN(val)) {
+                    dde_error("In Gcode.line_to_do_list_item got non-number value of: " + val);
+                }
+                this.state[op] = val;
+                let handler_function_name = "handle_" + op;
+                let meth = Gcode[handler_function_name];
+                if (meth) {
+                    meth.call(val);
+                }
+                if ("EFGXYZ".includes(op)) {
+                    this.state.need_move = true;
+                }
             }
         }
-        //not expecting this to happen, but in case it does
-        return subval
+        return this.do_it() //call at end of every line
     }
-  }
 
-//G0 or G1 code
-  static gobj_to_move_to(gobj, workspace_pose, robot){ //ok for say, gobj to not have Z. that will just return undefined, and
-    //move_to will get the existing Z value and use it.
-    if (typeof(gobj) == "string") {
-        gobj = Gcode$1.gcode_line_to_obj(gobj);
-    }
-    if (gobj) {
-        let old_point = [gobj.X, gobj.Y, gobj.Z];
-        var new_point = Vector.transpose(Vector.matrix_multiply(workspace_pose, Vector.properly_define_point(old_point))).slice(0, 3);
-        let result = robot.move_to(new_point);
-        return result
-    }
-    else { return null } //happens when passing a string for gobj and its just a comment.
-  }
-}
-
-globalThis.Gcode = Gcode$1;
-
-//need this here because just putting a * at the end of a static method in a class errors.
-Gcode$1.gcode_to_instructions = function* ({gcode = "",
-                                          filepath = null,
-                                          workspace_pose = Gcode$1.gcode_to_instructions_workspace_pose_default,
-                                          robot=Dexter}){
-    let the_content = gcode;
-    if (filepath) { the_content += read_file(filepath); }
-    let gcode_lines = the_content.split("\n");
-    for(let i = 0; i < gcode_lines.length; i++){
-        let gobj = Gcode$1.gcode_line_to_obj(gcode_lines[i]);
-        if (gobj == null) { continue; }
-        else {
-            let result;
-            switch(gobj.type){
-                case "G0":
-                    result = Gcode$1.gobj_to_move_to(gobj, workspace_pose, robot);
-                    yield result;
-                    break;
-                case "G1":
-                    result = Gcode$1.gobj_to_move_to(gobj, workspace_pose, robot);
-                    yield result;
-                    break;
-                case "G28": //home
-                    result = Gcode$1.gobj_to_move_to({X: 100, Y:100, Z:0}, workspace_pose, robot); //needed to initialize out of the way
-                    yield result;
-            }
+    static do_it(){
+        if(this.state.need_move){
+            let do_list_item = this.move_it();
+            this.state.need_move = false;
+            return do_list_item
         }
     }
+
+    static move_it(){
+        let y_pos = this.state.Y;
+        if(y_pos === 0) {
+            y_pos = 1e-10; //to avoid singularity
+        }
+        let xyz = [this.state.X, y_pos, this.state.Z];
+
+        return [ function() { Gcode.extrude();},
+                 Dexter.move_to(xyz)
+               ]
+    }
+
+    static extrude(){
+        out("extruding: " + this.state.E + " at feedrate: " + this.state.F);
+    }
+
+    //called by Dexter.run_gcode({gcode: "G1 X0 Y5 Z8" ...}
+    static gcode_to_instructions({gcode = "",
+                                  filepath = null,
+                                  workspace_pose = Gcode.gcode_to_instructions_workspace_pose_default,
+                                  robot=Dexter,
+                                  the_job}){
+        return [
+            Gcode.prepare_gcode(gcode, the_job),
+            Control.loop(function() { return the_job.user_data.gcode_pc <
+                    the_job.user_data.gcode_lines.length
+                },
+                function(){
+                    let gcode_pc = the_job.user_data.gcode_pc;
+                    let gcode_line = the_job.user_data.gcode_lines[gcode_pc];
+                    if(Gcode.print_gcode_line_when_run) { out("Running gcode line number " + gcode_pc + " of " + gcode_line, "green"); }
+                    let do_list_item = Gcode.line_to_do_list_item(gcode_line);
+                    the_job.user_data.gcode_pc += 1; //get ready for next iteration
+                    return do_list_item
+                }
+            )]
+
+    }
+
 };
+/*
+new Job( { name: "my_gcode_job",
+           do_list: [
+            //Gcode.prepare_gcode("foo.gcode"),
+            Gcode.prepare_gcode(`g0 1 2 3
+                                     m107 true`),
+            Control.loop(function() { return this.user_data.gcode_pc <
+                    this.user_data.gcode_lines.length
+                },
+                function(){
+                    let gcode_line = this.user_data.gcode_lines[this.user_data.gcode_pc]
+                    if(Gcode.print_gcode_line_when_run) { out(gcode_line) }
+                    return Gcode.line_to_do_list_item(gcode_line)
+                }
+            ),
+            function(){ out("done")}
+        ]
+    }
+)
+*/
 
 //import {Dexter} from "./robot.js" //dde4 Dexter is now global
 
@@ -27316,11 +27296,12 @@ Dexter$1.prototype.run_gcode = function({gcode = "",
 };
 
 Dexter$1.run_gcode      = function({gcode = "", filepath = null, workspace_pose = Vector.make_pose([0, 0.5, 0.1], [0, 0, 0], _mm), robot=Dexter$1}){
-                            return function(){
+                             return function(){
                                 return Gcode.gcode_to_instructions({gcode: gcode,
                                                                     filepath: filepath,
                                                                     workspace_pose: workspace_pose,
-                                                                    robot: robot})
+                                                                    robot: robot,
+                                                                    the_job: this})
                             }
                         };
 
@@ -34019,30 +34000,37 @@ class SimUtils$1{
         }
     }
 
-    //called by SimObj.js
-    static render_once_with_prev_args_maybe(){
+    //no longer called by SimObj.js, but calls "render" instead
+    /*static render_once_with_prev_args_maybe(){
         if(this.prev_robot_status){
-            this.render_once(SimUtils$1.prev_robot_status,
-                             SimUtils$1.prev_robot_name);
+            this.render_once(SimUtils.prev_robot_status,
+                             SimUtils.prev_robot_name)
         }
         else {
             if (this.is_simulator_showing()) {
-                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
             } //just the initial condition, dex straight up
         }
         }
+    */
 
-    //called from video.js
+    /*was called from video.js, but now we use SimUtils.render()
     static render_multi_with_prev_args_maybe(){
         if(this.prev_robot_status){
-            this.render_multi(SimUtils$1.prev_robot_status,
-                SimUtils$1.prev_robot_name);
+            this.render_multi(SimUtils.prev_robot_status,
+                SimUtils.prev_robot_name)
         }
         else {
             if (this.is_simulator_showing()) {
-                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
             }
         } //just the initial condition, dex straight up
+    }*/
+
+    static render(){
+        if (this.is_simulator_showing()) {
+            Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+        }
     }
 
     /* apparently not called May 2, 2022 use SimUtils.is_simulator_showing() instead

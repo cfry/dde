@@ -1,6 +1,51 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
 
+<details class="doc_details"><summary>v 4.1.5, Oct 29, 2023</summary>
+    Highlights: Major extensions to SimBuild and SimObj classes
+    for creating shapes in the simulator pane. New architecture for Gcode.
+    Improved File System handling.
+    <ul>
+        <li>Old <code>SimX</code> class renamed to <code>SimObj</code>.
+            It is now loaded upon launch and is a global variable.
+            There are numerous extensions, all documented under
+            User Guide/User Interface/Misc Pane/SimObj</li>
+        <li>Respelled button: "Load SimBuild" to <button>SimBuild</button>
+            to more accurately reflect its functionality.</li>
+        <li>The <code>SimBuild</code> class also has numerous extensions and
+            is in sync with the new <code>SimObj</code>.
+            You can use the new <button>SimBuild</button> button from the Misc pane header to pop up a
+            dialog box to interactively create and edit <code>SimObj</code> object3d
+            shapes that are displayed in the Simulator pane.
+            Many more shapes and features now supported.</li>
+        <li><code>SimX.setOrientation</code> is now <code>SimObj.set_orientation</code></li>
+        <li><code>SimObj.get_size</code> defined.</li>
+        <li>Upgraded the <b>Threejs</b> package to v 0.157.0 The previous version used by DDE
+        was years out of date. This gives us new Threejs features and makes the
+        Threejs website documention more closely match DDE4.</li>
+        <li>When Misc pane is showing the simulator, and you resize the pane,
+            the simulation is redrawn to fit the new pane size.</li>
+        <li><code>Gcode</code> now has a new architecture,
+            making it easier to extend to complete Gcode functionality.
+            Gcode still has a long way to go, but now its much easier to increase Gcode instructions.</li>
+        <li>Output pane header rearranged to put the <button>clear</button> button and the
+            <b>code</b> checkbox on the 2nd row to be closer to the content of the output pane.</li>
+        <li><code>Utils.similar</code> fixed to compare 2 name-value pair objects that differ only
+            in the ORDER of the property names to be true.</li>
+        <li>File system: improved initialization from persistent data for both
+            DDE4 cloud and DDE4 localhost installations.</li>
+        <li>File system: now the recently used "files" menu in DDE's Editor Pane header is populated
+            upon launch. The first time you choose a file from it after lanuch you must
+            pick the file from the dialog box that comes up. But subsequent times you choose
+            that file, it works without the dialog box. This inconvenience is due to
+            browser security restrictions.</li>
+        <li>Default initialization for persistent value of files_menu_paths is now ["/local/dde_init.js"],
+            It is no longer getting data from the dde_init.js file on Dexter.</li>
+        <li>Doc addition: <b>Ref Man/GPT Interface/Prompt Engineering/Difference Between Text</b>
+            shows how to easily see the differences between text segments using DDE4's GPT Interface.</li>
+    </ul>
+</details>
+
 <details class="doc_details"><summary>v 4.1.4, Sep 19, 2023</summary>
  Highlights: GPT, HCA, DexterUI & Defaults.makeins improvements.
  <ul>

@@ -70,9 +70,11 @@ class DDEVideo {
     }
 
     //called when resizing dde window splitters
-    static refresh_misc_pane(){
+    static refresh_misc_pane(show_doc_for_sim_if_menu_sel_is_sim){ //if undefined, then DO show the doc, otherwise, don't.
+        // Default to undefined which WILL show the doc whne user chooses menu item, but NOT when they
+        //drag the splitter panes.
         if(this.misc_pane_menu_selection === "Simulate Dexter") {
-            DDEVideo.show_in_misc_pane("Simulate Dexter")
+            DDEVideo.show_in_misc_pane("Simulate Dexter", show_doc_for_sim_if_menu_sel_is_sim)
         }
         // the rest of the "content" values to show_in_misc_pane don't need refreshing.
     }
@@ -166,13 +168,15 @@ class DDEVideo {
                 //     '<b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>' +
                 //     '<b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>' +
                 //     '<div id="sim_graphics_pane_id"></div>'
-                setTimeout(function () { //I did this timeout because once I saw this break during init giving us an error and causing the simulator pane not to render.
-                    DocCode.open_doc(simulate_pane_doc_id)
-                }, 200)
+                if(arg1) {
+                    setTimeout(function () { //I did this timeout because once I saw this break during init giving us an error and causing the simulator pane not to render.
+                        DocCode.open_doc(simulate_pane_doc_id)
+                    }, 200)
+                }
                 Simulate.init_simulation()
                 //sim.renderer.render(sim.scene, sim.camera);
                 setTimeout(function() {
-                             SimUtils.render_multi_with_prev_args_maybe()
+                             SimUtils.render()
                              DDEVideo.init_sim_in_process = false
                            },
                            100)
@@ -186,7 +190,6 @@ class DDEVideo {
             let rotzyz = (arg2 ? arg2 : [0, 0, 0])
             Simulate.create_marker_mesh(xyz, rotzyz)
             Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
-            //SimUtils.render_once_with_prev_args_maybe()
             content_is_good = true
         }
         else if(content === "Dexter Photo"){

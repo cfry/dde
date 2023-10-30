@@ -637,8 +637,8 @@ class SimUtils{
         }
     }
 
-    //called by SimObj.js
-    static render_once_with_prev_args_maybe(){
+    //no longer called by SimObj.js, but calls "render" instead
+    /*static render_once_with_prev_args_maybe(){
         if(this.prev_robot_status){
             this.render_once(SimUtils.prev_robot_status,
                              SimUtils.prev_robot_name)
@@ -649,8 +649,9 @@ class SimUtils{
             } //just the initial condition, dex straight up
         }
         }
+    */
 
-    //called from video.js
+    /*was called from video.js, but now we use SimUtils.render()
     static render_multi_with_prev_args_maybe(){
         if(this.prev_robot_status){
             this.render_multi(SimUtils.prev_robot_status,
@@ -661,6 +662,12 @@ class SimUtils{
                 Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
             }
         } //just the initial condition, dex straight up
+    }*/
+
+    static render(){
+        if (this.is_simulator_showing()) {
+            Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+        }
     }
 
     /* apparently not called May 2, 2022 use SimUtils.is_simulator_showing() instead

@@ -45,18 +45,24 @@ globalThis.Gcode = class Gcode{
                 }
             }
         }
-        this.do_it() //call at end of every line
+        return this.do_it() //call at end of every line
     }
 
     static do_it(){
         if(this.state.need_move){
-            this.move_it()
+            let do_list_item = this.move_it()
             this.state.need_move = false
+            return do_list_item
         }
     }
 
     static move_it(){
-        let xyz = [this.state.X, this.state.Y, this.state.Z]
+        let y_pos = this.state.Y
+        if(y_pos === 0) {
+            y_pos = 1e-10 //to avoid singularity
+        }
+        let xyz = [this.state.X, y_pos, this.state.Z]
+
         return [ function() { Gcode.extrude()},
                  Dexter.move_to(xyz)
                ]
@@ -80,7 +86,7 @@ globalThis.Gcode = class Gcode{
                 function(){
                     let gcode_pc = the_job.user_data.gcode_pc
                     let gcode_line = the_job.user_data.gcode_lines[gcode_pc]
-                    if(Gcode.print_gcode_line_when_run) { out("Running gcode line #: " + gcode_pc + " of " + code_line, "green") }
+                    if(Gcode.print_gcode_line_when_run) { out("Running gcode line number " + gcode_pc + " of " + gcode_line, "green") }
                     let do_list_item = Gcode.line_to_do_list_item(gcode_line)
                     the_job.user_data.gcode_pc += 1 //get ready for next iteration
                     return do_list_item

@@ -193,65 +193,6 @@ globalThis.SimObj = class SimObj{
         return box1.intersectsBox(box2)
     }
 
-    /*static make_box({name = "my_box",
-                    scale = [1, 1, 1], //dde coordinates
-                    position = [0, 0, 0], //dde coordinates
-                    orientation = [0, 0, 0], //dde coordinates
-                    color = null //0x00ff00
-                        } = {}){
-        this.remove(name) //for SimObj, a "name" is unique within the children
-                          //of a parent. the "default parent" is scene.table
-        let three_scale = this.scale_dde_to_three(scale)
-        let geom = new THREE.BoxGeometry(three_scale[0], three_scale[1], three_scale[2])
-        let mat = (color ? new THREE.MeshPhongMaterial({color: color}) : //  MeshBasicMaterial
-                           new THREE.MeshNormalMaterial({}))
-        //mat.side = THREE.DoubleSide //From https://threejs.org/docs/index.html#manual/en/introduction/FAQ
-        let obj = new THREE.Mesh(geom, mat)
-        obj.name = name
-        this[name] = obj
-        this.set_position(obj, position) //keep as dde_coordinates
-        this.set_orientation(obj, orientation) //keep as dde_coordinates
-        this.set_color(obj, color)
-        Simulate.sim.J0.add(obj) //sim.table.add(obj)
-        SimUtils.render_once_with_prev_args_maybe()
-        SimObj.objects.push(obj)
-        return obj
-    }*/
-
-    /*static make_box({name = "my_box",
-                               scale = [1, 1, 1], //dde coordinates
-                               position = [0, 0, 0], //dde coordinates
-                               orientation = [0, 0, 0], //dde coordinates
-                               color = null //0x00ff00
-                           } = {}){
-        let geometry = "Box"
-        return this.make_object3d({name: name, geometry: geometry, scale: scale, position: position, orientation: orientation, color: color})
-    }*/
-
-    /*static make_cylinder({name          = "my_cylinder",
-                      top_diameter = 1,
-                      bottom_diameter = 1,
-                      height        = 1,
-                      sides         = 12,
-                      position      = [0, 0, 0], //dde coords
-                      orientation   = [0, 0, 0], //dde coords
-                      color         = null, //0x00ff00
-                     } = {}){
-        this.remove(name)
-        let geom = new THREE.CylinderGeometry(top_diameter / 2, bottom_diameter / 2, height, sides)
-        let mat = (color ? new THREE.MeshBasicMaterial({color: color}) :
-                           new THREE.MeshNormalMaterial({}))
-        let obj = new THREE.Mesh(geom, mat)
-        obj.name = name
-        this.set_position(obj, position)
-        this.set_orientation(obj, orientation)
-        this.set_color(obj, color)
-        Simulate.sim.J0.add(obj)
-        SimUtils.render_once_with_prev_args_maybe()
-        SimObj.objects.push(obj)
-        return obj
-    }*/
-
     static make_cylinder({name= "my_cylinder",
                              scale = [1, 1, 1],
                              top_diameter = 1,
@@ -313,8 +254,20 @@ globalThis.SimObj = class SimObj{
         else { //even though we're not changing the current object, we still want to add this new obj name to the names select menu
             SimBuild.add_object3d_to_the_name(object3d)
         }
-        SimUtils.render_once_with_prev_args_maybe()
+        SimUtils.render()
         return object3d
+    }
+
+    //called by Simulate.init_simulation
+    static refresh(){
+        if(this.objects.length > 0) {
+            for (let object3d of this.objects) {
+                if (!Simulate.sim.J0.children.includes(object3d)) {
+                    Simulate.sim.J0.add(object3d)  //because object3d's effectively removed when Simulate.init_simulation() is called
+                }
+            }
+            SimUtils.render()
+        }
     }
 
     //tries for a unique_name with the prefix up to 1k suffixes, and if can't
@@ -390,7 +343,7 @@ globalThis.SimObj = class SimObj{
                         SimBuild.populate_dialog_from_object(null) //disables inputs
                     }
                 }
-                SimUtils.render_once_with_prev_args_maybe()
+                SimUtils.render()
             }
         }
         //else apparently object3d_or_name is already gone, so do nothing.
@@ -420,7 +373,7 @@ globalThis.SimObj = class SimObj{
         SimBuild.populate_dialog_property(object3d, "position_y", array_of_3[1])
         SimBuild.populate_dialog_property(object3d, "position_z", array_of_3[2])
 
-        SimUtils.render_once_with_prev_args_maybe()
+        SimUtils.render()
     }
 
     //returns array of [x_deg, y_deg, z_deg] in DDE coords
@@ -450,7 +403,7 @@ globalThis.SimObj = class SimObj{
         SimBuild.populate_dialog_property(object3d, "orientation_x", orientation[0])
         SimBuild.populate_dialog_property(object3d, "orientation_y", orientation[1])
         SimBuild.populate_dialog_property(object3d, "orientation_z", orientation[2])
-        SimUtils.render_once_with_prev_args_maybe()
+        SimUtils.render()
     }
 
     static get_scale(object3d_or_name){
@@ -470,7 +423,7 @@ globalThis.SimObj = class SimObj{
         SimBuild.populate_dialog_property(object3d, "scale_y", scale[1])
         SimBuild.populate_dialog_property(object3d, "scale_z", scale[2])
 
-        SimUtils.render_once_with_prev_args_maybe()
+        SimUtils.render()
     }
     static get_geometry(object3d_or_name){
         let object3d = SimObj.get_object3d(object3d_or_name)
@@ -502,7 +455,7 @@ globalThis.SimObj = class SimObj{
         object3d.geometry = geometry
         let val = SimObj.get_geometry_short_name(object3d)
         SimBuild.populate_dialog_property(object3d, "geometry", val)
-        SimUtils.render_once_with_prev_args_maybe()
+        SimUtils.render()
     }
 
     static get_material(object3d_or_name){
@@ -556,7 +509,7 @@ globalThis.SimObj = class SimObj{
         object3d.material = material
         let multi_color_val = (material instanceof THREE.MeshNormalMaterial)
         SimBuild.populate_dialog_property(object3d, "multi_color", multi_color_val, "checked")
-        SimUtils.render_once_with_prev_args_maybe()
+        SimUtils.render()
     }
 
     //returns an array of 3 floats, 0 to 1 for r, g, b.
@@ -602,7 +555,7 @@ globalThis.SimObj = class SimObj{
                                            Math.round(color[2] * 256)]
             let hex_color = Utils.rgb_integer_array_to_hex(color_array_of_0_to_256)
             SimBuild.populate_dialog_property(object3d, "color", hex_color)
-            SimUtils.render_once_with_prev_args_maybe()
+            SimUtils.render()
         }
     }
     static get_wireframe(object3d_or_name){
@@ -615,7 +568,7 @@ globalThis.SimObj = class SimObj{
         let object3d = SimObj.get_object3d(object3d_or_name)
         object3d.material.wireframe = wireframe
         SimBuild.populate_dialog_property(object3d, "wireframe", wireframe, "checked")
-        SimUtils.render_once_with_prev_args_maybe()
+        SimUtils.render()
     }
 
     static all_objects_source_code(){

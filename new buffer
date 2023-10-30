@@ -1,4 +1,9 @@
-var dialog_dom_elt = SimBuild.dialog_dom_elt()
-var css_sel = "[name=" + "multi_color" + "]"
-var widget_dom_elt = dialog_dom_elt.querySelector(css_sel)
-                widget_dom_elt[value_prop_name]
+new Job({
+    name: "my_job",
+    do_list: [
+        Dexter.move_all_joints(10, 20, 30),
+        Dexter.move_all_joints(0, 0, 30)
+    ]
+})
+
+DDEVideo.refresh_misc_pane()

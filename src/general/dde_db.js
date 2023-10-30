@@ -19,7 +19,7 @@ class DDE_DB{
        "dexter0_ip_address": "auto",
        "dont_show_splash_screen_on_launch": false,
        "editor_font_size": 17,
-       "files_menu_paths": [DDEFile.add_default_file_prefix_maybe("dde_init.js")],
+       "files_menu_paths": ["/local/dde_init.js"],
        "kiosk": false,
        "last_open_dexter_file_path": "", //doesn't have a dexter: prefix,not robot specific.
        "left_panel_width":   700,

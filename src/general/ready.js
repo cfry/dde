@@ -274,7 +274,7 @@ export function on_ready() {
         function (event) {
             let new_size = event.args.panels[0].size
             DDE_DB.persistent_set("left_panel_width", new_size)
-            DDEVideo.refresh_misc_pane()
+            DDEVideo.refresh_misc_pane(false) //false means don't change content of Editor pane
             event.stopPropagation()
         })
 
@@ -301,7 +301,7 @@ export function on_ready() {
         function (event) {
             let new_size = event.args.panels[0].size
             DDE_DB.persistent_set("top_right_panel_height", new_size)
-            DDEVideo.refresh_misc_pane()
+            DDEVideo.refresh_misc_pane(false) //false means don't change content of Editor pane
             event.stopPropagation() //must have or outer_splitter_id on resize is called
         })
 
@@ -1711,7 +1711,7 @@ window_modify_id.onclick=function(){Editor.insert(
        $('#misc_pane_menu_id').on('keypress', function (event) {
            if(event.code == "Enter"){
                var val = event.target.value
-               DDEVideo.show_in_misc_pane(val)
+               DDEVideo.show_in_misc_pane(val, true)
            }
        })
        $('#misc_pane_menu_id').on('select', function (event) { //fired when user types a char, or chooses a menu item
@@ -1902,6 +1902,14 @@ window_modify_id.onclick=function(){Editor.insert(
           SimBuild.init()
           OpenAI.init() //set's gpt button onclick and maybe the configuration, so needs
           //to be after DDE_DB init
+
+
+          //without this, upon the first move of dexter in the
+          //simulator, one "ghost" image of the straight up image remains while
+          //another image of dexter moves.
+          setTimeout(function(){
+              DDEVideo.refresh_misc_pane()
+          }, 1000)
 
           help_system_id.onclick = function(){
              //DocCode.open_doc(help_system_doc_id)

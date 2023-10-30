@@ -430,7 +430,7 @@ class Editor {
     }
 
     //can't work in github_io deployment
-    static async restore_files_menu_paths_and_last_file (){ //called by on ready
+    /*static async restore_files_menu_paths_and_last_file (){ //called by on ready
             const paths =  DDE_DB.persistent_get("files_menu_paths")
             let existing_paths = []
             var html = ""
@@ -467,6 +467,28 @@ class Editor {
                     Editor.edit_new_file()
                 }
             }
+    }*/
+    /*this version of the method is much simpler than the above one used in dde3 because:
+    The dd33 version checked to see if each path from persistent still existed.
+    But in dde4,we'd hav to get the user's permission to select each file,
+    which is way too tedious for the files array on start up.
+    Also, we don't try to set the buffer to the last file that was being edited upon
+    quiting the last dde session because we'd have to ask the user if they wante to
+    edit that file with a file picker.
+    Better is just always bring up a new buffer on launch, and if the user wants
+    to go back to their last file, thy have to remember its name and pick it from the Files menu.
+    But otherwise they might want to just have ethe new buffer OR they might want to edit
+    another file.
+     */
+    static async restore_files_menu_paths_and_last_file (){ //called by on ready
+        const paths =  DDE_DB.persistent_get("files_menu_paths")
+        var html = ""
+        for(let path of paths){
+            let inner_path = Editor.path_to_files_menu_path(path)
+            html += '<option>' + inner_path + "</option>"
+        }
+        file_name_id.innerHTML = html
+        Editor.edit_new_file(true) //true means dont_save_cur_buff_even_if_changed.
     }
 
     static get_any_selection(){

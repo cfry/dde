@@ -6998,19 +6998,21 @@ the number of a joint to reboot. The only permissible numbers as of March 2021 a
 This instruction accepts the name of a file as input and creates additional instructions 
 to move Dexter to "draw the lines" indicated by the gcode file. Most of
 the instructions created are <code>Dexter.move_to</code> instructions.
-<ul><li><b>filepath</b> Default: <code>null</code> A string representing the name of the gcode file under the <b>dde_apps</b> folder
-    containing the gcode instructions. The file can be directly under dde_apps or
-    nested in subfolders of any depth. Typically, the filepath will have an extension of ".gcode"
-    but that isn't required by filepath.
-    If this defaults to <code>null</code>, only the <i>gcode</i> argument supplies the
-    actual gcode to use.
-    </li>
+<ul>
     <li><b>gcode</b> Default: <code>""</code> This string is
     prepended to the gcode from the filepath argument. It is intended to
     allow a user to "customize" the gcode in the file with some "header" codes.
     A second use case is if you have a string of gcode but no file,
     you can just let the filepath default to null and only the value of the <i>gcode</i>
     argument will be used.</li>
+    <!-- below was for dde3 gcode. Some of this may be revived in new dde4 gcode
+    <li><b>filepath</b> Default: <code>null</code> A string representing the name of the gcode file under the <b>dde_apps</b> folder
+        containing the gcode instructions. The file can be directly under dde_apps or
+        nested in subfolders of any depth. Typically, the filepath will have an extension of ".gcode"
+        but that isn't required by filepath.
+        If this defaults to <code>null</code>, only the <i>gcode</i> argument supplies the
+        actual gcode to use.
+    </li>
     <li><b>workspace_pose</b> Default:
          <code>Vector.make_pose([0, 0.5, 0.1], [0, 0, 0], _mm)</code>
         Gcode files indicate line endpoint positions as dimensionless units.
@@ -7032,16 +7034,15 @@ the instructions created are <code>Dexter.move_to</code> instructions.
        your gcode position values are expected to be in meters.
        <p></p>
        See <a href="#" onclick="DocCode.open_doc(units_system_help_doc_id, event)">Units System</a>
-    </li>
+    </li> -->
 </ul>
     <i>Examples:</i><br/>
-    <pre><code>Dexter.run_gcode({gcode: "G1 X0 Y5 Z8",
-                  position_units: _mm})
+    <pre><code>Dexter.run_gcode({gcode: "G1 X0 Y5 Z8"})
           </code></pre>
-    run_gcode can also take a robot instance as its subject like so:
+    <!--run_gcode can also take a robot instance as its subject like so:
     <pre><code>Dexter.dexter0.run_gcode({gcode: "G1 X0 Y5 Z8",
                   position_units: _mm})
-          </code></pre>
+          </code></pre> -->
     <code>Dexter.run_gcode</code> is similar to <code>Dexter.draw_dxf</code>.
     <code>Dexter.run_gcode</code> only handles G0 and G1 instructions,
     and only their X, Y, and Z arguments.
@@ -9876,7 +9877,6 @@ Plot.show(null, [trace0, trace1])   </code></pre>
     </details>
 
     </details> <!-- end Plot -->
-
 
     <details class="doc_details"><summary>Set DDE Colors</summary>
         Users can customize the DDE colors by calling the below functions.
@@ -12719,7 +12719,40 @@ Monitor.strips_solve({
                  I've seen images that have a pretty good match here, vague though the match may be.
                  Good art is in the eye of the beholder.
              </details>
-             <details class="doc_details"><summary>Other Natural Languages</summary>
+             <details class="doc_details"><summary>Difference Between Texts</summary>
+             <pre><code class="gpt">Difference between
+new Job({
+    name: "my_job",
+    do_list: [
+        Dexter.move_all_joints(19, 20, 30),
+         Dexter.move_all_joints(0, 0, 0)
+    ]
+})
+and
+new Job({
+    name: "my_job2",
+    do_list: [
+        Dexter.run_gcode({gcode: "G0 Z0.2"})
+    ]
+})</code></pre>
+             For a refactoring of the output, you may prefer:
+                 <pre><code class="gpt">Individual line by line differences between the lines
+new Job({
+    name: "my_job",
+    do_list: [
+        Dexter.move_all_joints(19, 20, 30),
+         Dexter.move_all_joints(0, 0, 0)
+    ]
+})
+and
+new Job({
+    name: "my_job2",
+    do_list: [
+        Dexter.run_gcode({gcode: "G0 Z0.2"})
+    ]
+})</code></pre>
+             </details>
+                     <details class="doc_details"><summary>Other Natural Languages</summary>
                  Use the Configuration dialog to switch back to <b>text</b>.<br/>
                  <code class="gpt"> Parlez-vous fran�ais?</code><br/>
                  GPT answers back in French. Um, what does that mean?

@@ -111,6 +111,7 @@ globalThis.Simulate = class Simulate {
             this.createLights()
             if(this.sim.hi_rez) { this.createMeshGLTF() }
             else                { this.createMeshBoxes() }
+            SimObj.refresh() //does nothing if no SimObjs. Otherwise makes sure their in the scene and refreshes
           }
           catch(err){
                   console.log("init_simulation errored with: " + err.message + "\n" + err.stack)
