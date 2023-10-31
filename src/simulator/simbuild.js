@@ -242,7 +242,10 @@ globalThis.SimBuild = class SimBuild{
     static dialog_cb(vals){
         let object3d = SimObj.get_object3d(vals.the_name)
         let new_object3d
-        if(vals.clicked_button_value === "Make object"){ //the only clausd that can cope with no object3d
+        if (vals.clicked_button_value === "close_button"){
+            SimBuild.now_editing_object3d = null
+        }
+        else if(vals.clicked_button_value === "Make object"){ //the only clausd that can cope with no object3d
             if(!object3d){ //can't clone it so we have to make a default one
                 let new_name = prompt("Enter a name for the new object3d in the Simulator pane.\nYou can't change this, so choose wisely.",
                     "my_object3d")
@@ -418,10 +421,6 @@ globalThis.SimBuild = class SimBuild{
             if(confirm("Remove all objects?")) {
                 SimObj.remove_all()
             }
-        }
-
-        else if (vals.clicked_button_value === "close_button"){
-            SimBuild.now_editing_object3d = null
         }
         else {
             shouldnt("In SimBuild.dialog.cb got invalid clicked_button_value of: " +
