@@ -165,7 +165,8 @@ import "../HCA/HCA_objdef.js"    //defines global HCAObjDef class
 import "../HCA/HCACall.js"       //defines global HCACall class
 import "../HCA/dataset.js"       //defines global Dataset class
 import "../HCA/fpga_type.js"     //defines global fpga class but its obsolete, just has the xyliks.Intel menu.
-import "../HCA/SysDesc.js"       //defined global SysDesc
+import "../HCA/SysDesc.js"       //define global SysDesc
+import "../HCA/make_ipg.js"      //defines global Make_ipg class
 
 import "../HCA/litegraph_patches.js"
 
@@ -1906,7 +1907,7 @@ window_modify_id.onclick=function(){Editor.insert(
           })
           */
 
-          SimBuild.init()
+          //SimBuild.init()
           OpenAI.init() //set's gpt button onclick and maybe the configuration, so needs
           //to be after DDE_DB init
 

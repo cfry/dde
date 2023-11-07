@@ -111,7 +111,8 @@ globalThis.Simulate = class Simulate {
             this.createLights()
             if(this.sim.hi_rez) { this.createMeshGLTF() }
             else                { this.createMeshBoxes() }
-            SimObj.refresh() //does nothing if no SimObjs. Otherwise makes sure their in the scene and refreshes
+            SimBuild.init()
+            SimObj.refresh() //does nothing if no SimObjs. Otherwise makes sure they are in the scene and refreshes
           }
           catch(err){
                   console.log("init_simulation errored with: " + err.message + "\n" + err.stack)
@@ -208,8 +209,8 @@ globalThis.Simulate = class Simulate {
 //processing in video.js to clean it up.
     static createMeshGLTF(){
         this.sim.table_width  = 0.447675,  //width was 1
-        this.sim.table_length = 0.6985,  //length was 2
-        this.sim.table_height = 0.01905  //height (thickness of Dexcell surface). This is 3/4 of an inch. was:  0.1)
+        this.sim.table_length = 0.6985,    //length was 2
+        this.sim.table_height = 0.01905    //height (thickness of Dexcell surface). This is 3/4 of an inch. was:  0.1)
         this.sim.table = this.draw_table(this.sim.scene, this.sim.table_width, this.sim.table_length, this.sim.table_height)
 
 
@@ -219,7 +220,7 @@ globalThis.Simulate = class Simulate {
         this.sim.J0.name = "J0"
         this.sim.J0.position.y = (this.sim.table_height / 2) //+ (leg_height / 2) //0.06 //for orig boxes model, leg)height was positive, but for legless dexter mounted on table, its probably 0
         this.sim.J0.position.x = (this.sim.table_length / 2)  //the edge of the table
-                             - 0.12425 //the distance from the edge of the table that Dexter is placed
+                                 //- 0.12425 the distance from the edge of the table that Dexter is placed
         this.sim.table.add(this.sim.J0)
 
         let loader = new GLTFLoader //THREE_GLTFLoader()

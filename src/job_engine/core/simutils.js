@@ -628,7 +628,7 @@ class SimUtils{
                 Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
             }
             sim_pane_j7_id.innerHTML = j7_angle_degrees_rounded
-            if (SimObj && SimObj.objects && SimObj.objects.length > 0) {
+            if (SimObj && SimObj.user_objects && SimObj.user_objects.length > 0) {
                 let rob        = ds_instance.robot
                 let rob_pose   = rob.pose
                 let xyz        = Kin.J_angles_to_xyz(angles_in_degrees, rob_pose)[0]

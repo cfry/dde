@@ -1,5 +1,6 @@
 globalThis.SimObj = class SimObj{
-    static objects = [] //all objects
+    static dde_objects  = [] //scene, table, dexter
+    static user_objects = []
     static array_to_Vector3(arr) { return new THREE.Vector3(arr[0], arr[1], arr[2])}
     static Vector3_to_array(vec3) { return [vec3.x, vec3.y, vec3.z] }
 
@@ -19,8 +20,85 @@ globalThis.SimObj = class SimObj{
         }
     }
 
+    static dde_object_names = ["scene", "table", "dexter", "user_origin"]
+
+    static init_dde_objects() {
+       //SimObj.remove_all()
+       this.scene   = Simulate.sim.scene
+       this.table   = Simulate.sim.table
+       this.dexter  = Simulate.sim.J0
+
+        /*let dpos = this.get_position(this.dexter).slice() //copy
+       dpos[2] = 0.01
+       this.make_object3d({name: "user_origin",
+                           parent: this.table,
+                           geometry:    "Ring",
+                           scale:       [0.2, 0.2, 0.2],
+                           color:       [1, 0, 0],
+                           wireframe:   false,
+                           material:    "MeshPhongMaterial",
+                           position:    dpos,
+                           orientation: [0, 90, 180]//this.get_orientation(this.dexter)
+                         })
+
+         */
+       //this.user_origin.setAttribute("radius", 0.5)
+       //this.table.add(this.user_origin)
+       this.make_user_origin_object3d()
+       this.dde_objects = [this.scene, this.table, this.dexter, this.user_origin] //beware, user_origin starts out at same pos as J0, but can change.
+
+    }
+
+    static make_user_origin_object3d(){
+        //see Simulate.js
+        let object3d        = new THREE.Object3D(); //0,0,0 //does not move w.r.t table.
+        object3d.name       = "user_origin" //this.sim.J0.name = "J0"
+        object3d.rotation.y = Simulate.sim.J0.rotation.y //= Math.PI //radians for 180 degrees
+        object3d.position.y = Simulate.sim.J0.position.y // = (this.sim.table_height / 2) //+ (leg_height / 2) //0.06 //for orig boxes model, leg)height was positive, but for legless dexter mounted on table, its probably 0
+        object3d.position.x = Simulate.sim.J0.position.x // = (this.sim.table_length / 2)  //the edge of the table
+        //- 0.12425 the distance from the edge of the table that Dexter is placed
+        Simulate.sim.table.add(object3d)
+
+        //see make_object3d_given_object
+        SimObj.user_origin = object3d
+        SimBuild.add_object3d_to_the_name_menu(object3d)
+    }
+
     static has_objects(){
-        return (this.objects.length > 0)
+        return (this.user_objects.length > 0)
+    }
+
+    static is_object3d(object3d_maybe){
+        return object3d_maybe instanceof THREE.Object3D // used to use THREE.Mesh here, but that fails for end effector in the dexter gltf model
+    }
+
+    static is_dde_object3d(object3d_or_name){
+        let object3d = this.get_object3d(object3d_or_name)
+        if(!object3d) { return false }
+        else {
+            let the_name = SimObj.get_name(object3d)
+            return this.dde_object_names.includes(the_name)
+        }
+    }
+    static is_user_object3d(object3d_or_name){
+        let object3d = this.get_object3d(object3d_or_name)
+        if(!object3d) { return false }
+        else {
+            return !this.is_dde_object3d(object3d)
+        }
+    }
+
+
+    static dde_and_user_objects(){
+        return this.dde_objects.concat(this.user_objects)
+    }
+    static dde_and_user_objects_names(){
+        let result = []
+        for(let object3d of this.dde_and_user_objects()){
+            let name = SimObj.get_name(object3d)
+            result.push(name)
+        }
+        return result
     }
 
     //dde  xyz ->
@@ -42,6 +120,16 @@ globalThis.SimObj = class SimObj{
         return [dde_x, dde_y, dde_z]
     }
 
+    static vector3_to_dde(vec3){
+        let dde_x = vec3.z  //z -> x
+        //dde_x = ((dde_x === 0) ? 0 : dde_x * -1) //ensure that we don't get any JS -0's
+        let dde_y = vec3.x  //x -> y
+        //dde_y = ((dde_y === 0) ? 0 : dde_y * -1)
+        let dde_z = vec3.y  //y -> z
+        //dde_z = ((dde_z === 0) ? 0 : dde_z * -1)
+        return [dde_x, dde_y, dde_z]
+    }
+
     static scale_dde_to_three(array_of_3){
         let result = this.position_dde_to_three(array_of_3)
         result[0] = ((result[0] < 0) ? result[0] * -1 : result[0])
@@ -58,9 +146,6 @@ globalThis.SimObj = class SimObj{
         return result
     }
 
-    static is_object3d(object3d_maybe){
-        return object3d_maybe instanceof THREE.Object3D // used to use THREE.Mesh here, but that fails for end effector in the dexter gltf model
-    }
 
     //will return null if passed null or undefined or false or nothing
     /*static get_object3d(object3d_or_name=null){
@@ -87,17 +172,22 @@ globalThis.SimObj = class SimObj{
             let object3d = SimObj[object3d_or_name]
             if (object3d) {
                 return object3d
-            } else return null
-        } else if (this.is_object3d(object3d_or_name)) {
+            }
+            else { return null }
+        }
+        else if (this.is_object3d(object3d_or_name)) {
             return object3d_or_name
-        } else if (!object3d_or_name) {
+        }
+        else if (!object3d_or_name) {
             return null
-        } else {
+        }
+        else {
             dde_error("SimObj.get_object3d called with: " + object3d_or_name
                 + " which does not represent an object.")
         }
     }
 
+    /*
     static get_bounding_box(object3d_or_name) {
         //from https://discourse.threejs.org/t/bounding-box-is-calculated-wrong/1763/5
         let bbox = new THREE.Box3() //.setFromObject(obj)
@@ -107,14 +197,33 @@ globalThis.SimObj = class SimObj{
         object3d.updateMatrixWorld( true ); // ensure world matrix is up to date
         bbox.applyMatrix4( object3d.matrixWorld )
         return bbox
+    }*/
+
+    //in world coords. boujding box is aligned to the world grid
+    static get_bounding_box(object3d_or_name) {
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        let bbox = new THREE.Box3().setFromObject(object3d) //from https://threejs.org/docs/?q=Box3#api/en/math/Box3, should return result in world coords.
+        return bbox
     }
+
+    //result in world coords, dde array of x, y, z
+    static get_center(object3d_or_name){
+        let bbox = SimObj.get_bounding_box(object3d_or_name)
+        let center_vec3 = new THREE.Vector3()
+        bbox.getCenter(center_vec3)  //now center_vec3 is full
+        let result = SimObj.vector3_to_dde(center_vec3)
+        return result
+    }
+
+
+
 
     //xyz is in DDE coordinates
     //this fn is broken due to I can't figure out the proper
     //position transformations.
-    static object_contains_xyz(object3d_or_name, xyz){
-        let object3d = this.get_object3d(object3d_or_name)
-        let xyz_three_arr = this.position_dde_to_three(xyz)
+    /*static object_contains_xyz(object3d_or_name, xyz){
+        let object3d       = this.get_object3d(object3d_or_name)
+        let xyz_three_arr  = this.position_dde_to_three(xyz)
         let xyz_three_vec3 = this.array_to_Vector3(xyz_three_arr)
         let xyz_three_vec3_table = Simulate.sim.table.localToWorld(xyz_three_vec3)
         let xyz_three_vec3_world = object3d.localToWorld(xyz_three_vec3)
@@ -127,15 +236,26 @@ globalThis.SimObj = class SimObj{
 
         let result = bbox.containsPoint(bbox_max_vec3_world)
         return result
+    }*/
+
+    //xyz is dde xyz, in world coords.
+    static object_contains_xyz(object3d_or_name, xyz){
+        let object3d       = this.get_object3d(object3d_or_name)
+        let xyz_three_arr  = this.position_dde_to_three(xyz)
+        let xyz_three_vec3 = this.array_to_Vector3(xyz_three_arr)
+        let bbox = this.get_bounding_box(object3d) //should be in world coords
+        let result = bbox.containsPoint(xyz_three_vec3)
+        return result
     }
 
     //xyz is in dde coordinates
-    //returns the first object found that contains xyz or null if none.
+    //returns the latest (newest) object found that contains xyz or null if none.
     //this fn is broken due to I can't figure out the proper
     //position transformations.
     static object_containing_xyz(xyz){
-        if(!this.objects) { return null }
-        for(let obj of this.objects){
+        if(!this.user_objects) { return null }
+        for(let i = this.user_objects.length - 1; i >= 0; i--){
+            let obj = this.user_objects[i]
             if(this.object_contains_xyz(obj, xyz)){
                 return obj
             }
@@ -143,13 +263,26 @@ globalThis.SimObj = class SimObj{
         return null
     }
 
+    /*
+    static newest_object_intersecting_object(object3d_or_name){
+        if(!this.user_objects) { return null }
+        let main_obj = this.get_object3d(object3d_or_name)
+        for(let i = (this.user_objects.length - 1); i >= 0; i--){
+            let obj = this.user_objects[i]
+            if((obj !== main_obj) && this.does_object_intersect_object(main_obj, obj)){
+                return obj
+            }
+        }
+        return null
+    }*/
+
     //returns the first object in this.objects that intersects with
     //the passed in object, or null if none
     static objects_intersecting_object(object3d_or_name){
-        if(!this.objects) { return null }
+        if(!this.user_objects) { return null }
         let main_obj = this.get_object3d(object3d_or_name)
         let result = []
-        for(let obj of this.objects){
+        for(let obj of this.user_objects){
             if((obj !== main_obj) && this.does_object_intersect_object(main_obj, obj)){
                 result.push(obj)
             }
@@ -157,12 +290,13 @@ globalThis.SimObj = class SimObj{
         return result
     }
 
-    static newest_object_intersecting_object(object3d_or_name){
-        if(!this.objects) { return null }
-        let main_obj = this.get_object3d(object3d_or_name)
-        for(let i = (this.objects.length - 1); i >= 0; i--){
-            let obj = this.objects[i]
-            if((obj !== main_obj) && this.does_object_intersect_object(main_obj, obj)){
+
+
+    static newest_object_intersecting_xyz(xyz){
+        if(!this.user_objects) { return null }
+        for(let i = (this.user_objects.length - 1); i >= 0; i--){
+            let obj = this.user_objects[i]
+            if((obj !== main_obj) && this.does_object_intersect_xyz(obj, xyz)){
                 return obj
             }
         }
@@ -188,10 +322,20 @@ globalThis.SimObj = class SimObj{
     static does_object_intersect_object(object3d_or_name1, object3d_or_name2) {
         let object1 = this.get_object3d(object3d_or_name1)
         let object2 = this.get_object3d(object3d_or_name2)
-        let box1    = new THREE.Box3().setFromObject(object1)
-        let box2    = new THREE.Box3().setFromObject(object2)
+        let box1    = new THREE.Box3().setFromObject(object1) //world axis aligned
+        let box2    = new THREE.Box3().setFromObject(object2) //world axis aligned
         return box1.intersectsBox(box2)
     }
+
+    /*static does_object_intersect_object(object3d_or_name1, object3d_or_name2) {
+        let object1 = this.get_object3d(object3d_or_name1)
+        let object2 = this.get_object3d(object3d_or_name2)
+        let box1    = object1.position.clone() //copy so as not to over-write
+        object1.localToWorld(box1) //fills box1 with world coords
+        let box2    = object2.position.clone() //copy so as not to over-write
+        object2.localToWorld(box2) //fills box2 with world coords
+        return box1.intersectsBox(box2)
+    }*/
 
     static make_cylinder({name= "my_cylinder",
                              scale = [1, 1, 1],
@@ -211,6 +355,7 @@ globalThis.SimObj = class SimObj{
     //see https://threejs.org/docs/#api/en/geometries for 20 or so geometries.
 
     static make_object3d({name="my_object3d",
+                          parent_or_name = "user_origin",
                           geometry="Box",
                           scale= [0.2, 0.2, 0.2],
                           position=[0, 0.3, 0.1],
@@ -229,7 +374,7 @@ globalThis.SimObj = class SimObj{
             }
             geometry = new THREE[geometry]()
         }*/
-        let object3d = new THREE.Mesh() //, mat)
+        let object3d = new THREE.Mesh()
         object3d.name = name
         this[name] = object3d
         this.set_geometry(object3d, geometry)
@@ -240,30 +385,37 @@ globalThis.SimObj = class SimObj{
         this.set_position(object3d, position) //keep as dde_coordinates
         this.set_orientation(object3d, orientation) //keep as dde_coordinates
 
-        return this.make_object3d_given_object(object3d)
+        return this.make_object3d_given_object(object3d, parent_or_name)
     }
 
     //called by both make_object3d and  make_copy_of_object3d
-    static make_object3d_given_object(object3d){
-        Simulate.sim.J0.add(object3d) //sim.table.add(obj)
+    static make_object3d_given_object(object3d, parent_or_name="user_origin"){
+        //Simulate.sim.J0.add(object3d) //sim.table.add(obj)
+        //if(parent === SimObj.user_origin) { parent = SimObj.dexter } //todo get rid of this line!
+        //parent.add(object3d)
+        SimObj.set_parent(object3d, parent_or_name)
         let adding_first_object = !SimObj.has_objects()
-        SimObj.objects.push(object3d)
+        let new_name = SimObj.get_name(object3d)
+        if(!SimObj.dde_object_names.includes(new_name)) {
+            SimObj.user_objects.push(object3d)
+        }
         if(adding_first_object){
             SimBuild.populate_dialog_from_object(object3d) //might as well maie it the edited object and enable dialog widgets
         }
-        else { //even though we're not changing the current object, we still want to add this new obj name to the names select menu
-            SimBuild.add_object3d_to_the_name(object3d)
-        }
+
+        SimBuild.add_object3d_to_the_name_menu(object3d)
+        SimBuild.add_object3d_to_the_parent_menu(object3d)
+
         SimUtils.render()
         return object3d
     }
 
     //called by Simulate.init_simulation
     static refresh(){
-        if(this.objects.length > 0) {
-            for (let object3d of this.objects) {
-                if (!Simulate.sim.J0.children.includes(object3d)) {
-                    Simulate.sim.J0.add(object3d)  //because object3d's effectively removed when Simulate.init_simulation() is called
+        if(this.user_objects.length > 0) {
+            for (let object3d of this.user_objects) {
+                if (!this.user_origin.children.includes(object3d)) {
+                    this.user_origin.add(object3d)  //because object3d's effectively removed when Simulate.init_simulation() is called
                 }
             }
             SimUtils.render()
@@ -294,9 +446,10 @@ globalThis.SimObj = class SimObj{
         return null
     }
 
-    static make_copy_of_object3d(object3d, name = null){
+    static make_copy_of_object3d(object3d_or_name, name = null){
+        let object3d = SimObj.get_object3d(object3d_or_name)
         if(!name){
-            name = this.unique_name_for_object3d_or_null(object3d.name)
+            name = this.unique_name_for_object3d_or_null(SimObj.get_name(object3d))
         }
         if(!name) {
             dde_error("You called SimObj with no name.<br/>" +
@@ -304,13 +457,13 @@ globalThis.SimObj = class SimObj{
                       "Please supply a unique name.")
         }
         // the below 3 lines are similar to lines in make_object3d
-        let copy = object3d.clone() //maybe should be clone? copy errors when calling copy without an arg.
-        copy.name = name
-        copy.material = object3d.material.clone() //needed or the same material will be used as object3d meaning we can't set their colors differently
-        this[name] = copy
+        let a_copy = object3d.clone(false) //false means we will NOT copy the descendents (children) just object3d itself
+        a_copy.name = name
+        a_copy.material = object3d.material.clone() //needed or the same material will be used as object3d meaning we can't set their colors differently
+        this[name] = a_copy
 
         //also called by make_object3d
-        return this.make_object3d_given_object(copy)
+        return this.make_object3d_given_object(copy, object3d.parent)
     }
 
     static remove(object3d_or_name) {
@@ -319,24 +472,19 @@ globalThis.SimObj = class SimObj{
             if (object3d) {
                 //object3d.parent.remove(object3d)
                 object3d.removeFromParent() //  THREEjs method to remove the object
-                let index = this.objects.indexOf(object3d)
-                this.objects.splice(index, 1) //remove it from array, modifying the array, and now the array is  1 shorter.
+                let index = this.user_objects.indexOf(object3d)
+                this.user_objects.splice(index, 1) //remove it from array, modifying the array, and now the array is  1 shorter.
                 if(SimBuild.gripper_now_holding_object === object3d) {
                     SimBuild.gripper_now_holding_object = null
                 }
-                let the_name = object3d.name
+                let the_name = SimObj.get_name(object3d)
                 if (this[the_name]) {
                     delete this[the_name]
                 }
                 SimBuild.remove_object3d_from_the_name_menu(object3d)
-                /*if((this.has_objects()) && SimBuild.dialog_dom_elt()){
-                    let name = prompt("All object3ds have been removed\nbut we must make one to have at least one showing.\nEnter a name for the new object:",
-                                       "my_object3d")
-                    SimObj.make_object3d({name: name})
-                }*/
                 if(object3d === SimBuild.now_editing_object3d){
                     if(this.has_objects()){
-                        let obj_to_edit = Utils.last(this.objects)
+                        let obj_to_edit = Utils.last(this.user_objects)
                         SimBuild.populate_dialog_from_object(obj_to_edit)
                     }
                     else { //we removed the last object, so disable dialog inputs if dialog is up
@@ -350,10 +498,35 @@ globalThis.SimObj = class SimObj{
     }
 
     static remove_all(){
-        for(let object3d of this.objects.slice()) { //make a copy of objects array so we aren't removing from same array we're looping over.
+        for(let object3d of this.user_objects.slice()) { //make a copy of objects array so we aren't removing from same array we're looping over.
             this.remove(object3d)
         }
     }
+
+    static get_name(object3d_or_name){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        if(object3d === SimObj.dexter) { return "dexter"}
+        else { return object3d.name }
+    }
+
+    static get_parent(object3d_or_name) {
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        return object3d.parent
+    }
+
+    static set_parent(object3d_or_name, parent_or_name=user_origin) {
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        parent = SimObj.get_object3d(parent_or_name)
+        if(parent === SimObj.user_origin){
+            parent.add(object3d)
+        }
+        else {
+            parent.attach(object3d)
+        }
+        SimBuild.populate_dialog_from_object_if_now_editing(object3d)
+        SimUtils.render()
+    }
+
 
     //returns array of [x, y, z] meters, in dde coords
     static get_position(object3d_or_name) {
@@ -433,6 +606,7 @@ globalThis.SimObj = class SimObj{
     //the Geometry string like "Box", without a "Geometry" suffix
     static get_geometry_short_name(object3d_or_name){
         let object3d = this.get_object3d(object3d_or_name)
+        if(!object3d.geometry) { return null }
         let the_class = Utils.get_class_of_instance(object3d.geometry)
         let class_name = Utils.function_name(the_class)
         let name_parts = class_name.split(".")
@@ -442,6 +616,16 @@ globalThis.SimObj = class SimObj{
             last_class = last_class.slice(0, geo_index)
         }
         return last_class
+    }
+
+    static two_d_shape_names = ["Circle", "Plane", "Ring", "Shape"]
+
+    static is_geometry_a_2d_shape(geometry_or_name){
+        let geo_name = geometry_or_name
+        if(geometry_or_name instanceof THREE.BufferGeometry){
+            geo_name = geometry_or_name.type //ie "CircleGeometry"
+        }
+        return Utils.starts_with_one_of(geo_name, this.two_d_shape_names)
     }
 
     static set_geometry(object3d_or_name="MeshNormal", geometry){
@@ -499,7 +683,11 @@ globalThis.SimObj = class SimObj{
             }
             material = new THREE[material]()
             // causes bugSimObj.set_wireframe(object3d_or_name, object3d.material.wireframe) //use wireframe boolean from the old material in object3d
-            material.wireframe = object3d.material.wireframe
+            material.wireframe = (object3d.material ? object3d.material.wireframe : false)
+            if (this.is_geometry_a_2d_shape(object3d.geometry)){
+                material.side = THREE.DoubleSide
+                material.depthWrite = false
+            }
             making_new_material = true
         }
         let three_color = object3d.userData.three_color
@@ -515,6 +703,7 @@ globalThis.SimObj = class SimObj{
     //returns an array of 3 floats, 0 to 1 for r, g, b.
     static get_color(object3d_or_name){
         let object3d = SimObj.get_object3d(object3d_or_name)
+        if(!object3d.material) { return null }
         if(object3d.material.color) {
             return object3d.material.color.toArray()
         }
@@ -523,6 +712,50 @@ globalThis.SimObj = class SimObj{
             return SimObj.three_color_rgb_object_to_array_of_numbers(three_color)
         }
         else { return null } //shouldn't happen
+    }
+
+    static get_visible(object3d_or_name){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        return object3d.visible
+
+    }
+
+    static set_visible(object3d_or_name, bool=true){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        object3d.visible = bool
+        SimBuild.populate_dialog_property(object3d, "visible", bool)
+        SimUtils.render()
+    }
+
+    static show(object3d_or_name, kind=""){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        if     (kind === "show_this")    { object3d.visible = true }
+        else if(kind === "hide_this")    { object3d.visible = false }
+        else if (kind === "show_only_this"){
+            for(let obj of this.user_objects){
+                if(obj === object3d){ obj.visible = true }
+                else {obj.visible = false  }
+            }
+        }
+        else if (kind === "hide_only_this") {
+            for(let obj of this.user_objects){
+                if(obj === object3d){ obj.visible = false }
+                else {obj.visible = true  }
+            }
+        }
+        else if (kind === "show_all") {
+            for(let obj of this.user_objects){
+                obj.visible = true
+            }
+        }
+        else if (kind === "hide_all") {
+            for(let obj of this.user_objects){
+                obj.visible = false
+            }
+        }
+        else { shouldnt("SimObj.show passed invalid kind: " + kind) }
+
+        SimUtils.render()
     }
 
     //returns arr of 3 numbers, 0 to 1
@@ -534,6 +767,7 @@ globalThis.SimObj = class SimObj{
     // "random" (different each time)
     // an array of 3 floats, (0 to 1, for r, g, b)
     //or any Threejs color
+    //If object3d doesn't have a material, this doesn't error, just doesn't attempt to set the color
     static set_color(object3d_or_name, color = null) {
         let object3d = SimObj.get_object3d(object3d_or_name)
         let three_color
@@ -544,7 +778,7 @@ globalThis.SimObj = class SimObj{
             three_color = new THREE.Color(color[0], color[1], color[2])
         }
         if (three_color) {
-            if(object3d.material.color) { //does not hit on MeshNormalMaterial since that has no color
+            if(object3d.material && object3d.material.color) { //does not hit on MeshNormalMaterial since that has no color
                 object3d.material.color.set(three_color)
             } //see https://discourse.threejs.org/t/three-js-objects-failing-to-render-failed-to-execute-uniform3fv-on-webgl2renderingcontext-overload-resolution-failed/30736
             object3d.userData.three_color = three_color //since MeshNormalMaterial can't store a color,
@@ -560,7 +794,8 @@ globalThis.SimObj = class SimObj{
     }
     static get_wireframe(object3d_or_name){
         let object3d = SimObj.get_object3d(object3d_or_name)
-        return object3d.material.wireframe
+        if(!object3d.material) { return false }
+        else { return object3d.material.wireframe }
     }
 
     //wireframe is true or false
@@ -587,7 +822,8 @@ globalThis.SimObj = class SimObj{
 THREE.Mesh.prototype.to_source_code =
     function({value, indent="", depth=0}){
         return "SimObj.make_object3d({" +
-            'name: "'       + value.name + '", ' +
+            'name: "'       + SimObj.get_name(value) + '", ' +
+            'parent: "'     + SimObj.get_name(value.parent) + '", ' +
             'geometry: "'   + SimObj.get_geometry_short_name(value)                     + '",\n    ' +
             'scale: '       + to_source_code({value: SimObj.get_scale(value)})       + ', '  +
             'position: '    + to_source_code({value: SimObj.get_position(value)})    + ', '  +

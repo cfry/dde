@@ -1,6 +1,7 @@
 globalThis.Gcode = class Gcode{
     static print_gcode_line_when_run = true
     static state = {
+        Y_offset: 0.1,
         X: 0,
         Y: 0,
         Z: 0,
@@ -58,9 +59,8 @@ globalThis.Gcode = class Gcode{
 
     static move_it(){
         let y_pos = this.state.Y
-        if(y_pos === 0) {
-            y_pos = 1e-10 //to avoid singularity
-        }
+        y_pos += this.state.Y_offset
+        if(y_pos === 0) { y_pos = 1e-10 }//to avoid singularity
         let xyz = [this.state.X, y_pos, this.state.Z]
 
         return [ function() { Gcode.extrude()},

@@ -454,8 +454,8 @@ class RobotStatus{
 
 
     //returns array. First elt is an array of x,y,z
-    xyz(){
-        let joint_angles = this.measured_angles(5)
+    xyz(joint_count = 5){
+        let joint_angles = this.measured_angles(joint_count)
         return Kin.J_angles_to_xyz(joint_angles)
     }
 

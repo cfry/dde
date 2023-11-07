@@ -7036,9 +7036,16 @@ the instructions created are <code>Dexter.move_to</code> instructions.
        See <a href="#" onclick="DocCode.open_doc(units_system_help_doc_id, event)">Units System</a>
     </li> -->
 </ul>
-    <i>Examples:</i><br/>
-    <pre><code>Dexter.run_gcode({gcode: "G1 X0 Y5 Z8"})
-          </code></pre>
+    <i>Example:</i><br/>
+    <pre><code>new Job({
+    name: "my_job",
+    do_list: [
+        Dexter.run_gcode({gcode:
+`G1 X0.3 Y0.3 Z0.3
+G1 X0.1 Y0.1 Z0.1`
+})
+    ]
+})</code></pre>
     <!--run_gcode can also take a robot instance as its subject like so:
     <pre><code>Dexter.dexter0.run_gcode({gcode: "G1 X0 Y5 Z8",
                   position_units: _mm})

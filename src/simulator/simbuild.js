@@ -5,14 +5,13 @@ globalThis.SimBuild = class SimBuild{
     static now_editing_object3d
 
     static init(){
-        if(SimObj.objects) { SimObj.remove_all() }
-        SimObj.objects = [] //just to be sure
         this.j7_threshold = 60 //above this number of degrees, the gripper is considered open
         this.j7_prev_angle_degrees = 0
         this.gripper_now_holding_object3d = null
         this.now_editing_object3d = null
 
-        SimObj.ensure_simulate()
+        //SimObj.ensure_simulate()
+        SimObj.init_dde_objects() //must be after SimObj.ensure_simulate
         this.gripper_closing = this.gripper_closing_sim_build
         this.gripper_opening = this.gripper_opening_sim_build
     }
@@ -46,7 +45,15 @@ globalThis.SimBuild = class SimBuild{
     //out("handle_j7_change j7_angle: " + j7_angle + " Dexter." + rob.name)
         if( this.is_gripper_open(this.j7_prev_angle_degrees) && //gripper was open
            !this.is_gripper_open(j7_angle_degrees)) {      //but now its closed
-            let obj = SimObj.newest_object_intersecting_object(Simulate.sim.LINK7)
+            //let obj = SimObj.object_containing_xyz(xyz)  //new method
+            //let obj = SimObj.newest_object_intersecting_object(Simulate.sim.LINK7) //old method
+           // const geombox = new THREE.BoxHelper( Simulate.sim.LINK7, 0xffff00 );
+           // geombox.scale.set(0.02, 0.02, 0.02 ) //todo remove after debug
+           // let bbox = SimObj.get_bounding_box(geombox)
+            let xyz = SimObj.get_center( Simulate.sim.LINK7)
+            let obj = SimObj.object_containing_xyz(xyz)
+
+            Simulate.sim.scene.add( geombox )
             this.gripper_closing.call(this, j7_angle_degrees, xyz, obj, rob)
         }
         else if(!this.is_gripper_open(this.j7_prev_angle_degrees) && //gripper was closed
@@ -64,7 +71,7 @@ globalThis.SimBuild = class SimBuild{
         let obj_name
         if(!obj) { obj_name = "no object" }
         else if(obj.name && (obj.name.length > 0)) {
-            obj_name = obj.name
+            obj_name = SimObj.get_name(obj)
         }
         else { obj_name = "an object with no name" }
         out("On Dexter." + rob.name  + "<br/>" +
@@ -80,13 +87,13 @@ globalThis.SimBuild = class SimBuild{
         let obj_name
         if(!obj) { obj_name = "no object" }
         else if(obj.name && (obj.name.length > 0)) {
-            obj_name = obj.name
+            obj_name = SimObj.get_name(obj)
         }
         else { obj_name = "an object with no name" }
-        out("On Dexter." + rob.name + "<br/>" +
-            "gripper closing to degrees: " + j7_angle +
-            " xyz: " + xyz
-        )
+            out("On Dexter." + rob.name + "<br/>" +
+                "gripper closing to degrees: " + j7_angle +
+                " xyz: " + xyz + " on object3d: " + obj_name
+            )
     }
     //this is the "default-default" setting
     static gripper_closing = this.gripper_closing_default
@@ -105,9 +112,13 @@ globalThis.SimBuild = class SimBuild{
             the_obj.updateMatrixWorld()
             */
             Simulate.sim.table.attach(this.gripper_now_holding_object3d)
+            let obj_name = SimObj.get_name(this.gripper_now_holding_object3d)
+            let obj_name_html = `<a href='#' onclick='inspect(SimObj["` + obj_name + `"])'>` + obj_name + `</a>`
+            out("Gripper dropped object: " + obj_name_html)
             this.gripper_now_holding_object3d = null
-            out("Gripper now not holding an object: ")
-
+        }
+        else {
+            out("Gripper was not holding an object when it opened.")
         }
         //this.set_position(new_obj, [0, 0, 0])
     }
@@ -115,11 +126,15 @@ globalThis.SimBuild = class SimBuild{
     static gripper_closing_sim_build(j7_angle, xyz, obj, rob){
         this.gripper_closing_default(j7_angle, xyz, obj, rob)
         if(this.gripper_now_holding_object3d){ } //can't pick up an obj if you're holding one
-        else if (!obj) {} //no object to pick up
+        else if (!obj) {
+            out("Gripper didn't close on an object.")
+        }
         else {
             Simulate.sim.LINK7.attach(obj) //Simulate.sim.LINK7.add(obj) //if you use add, the position and scale of obj get all screwed up, so use attach
             this.gripper_now_holding_object3d = obj
-            out("Gripper now holding object3d of: " + this.gripper_now_holding_object3d.name)
+            let obj_name = SimObj.get_name(obj)
+            let obj_name_html = `<a href='#' onclick='inspect(SimObj["` + obj_name + `"])'>` + obj_name + `</a>`
+            out("Gripper now holding object3d: " + obj_name_html)
         }
     }
 
@@ -166,59 +181,81 @@ globalThis.SimBuild = class SimBuild{
 
     static show_dialog(object3d_or_name=null){
         if(globalThis.SimBuild_doc_id) { DocCode.open_doc(SimBuild_doc_id) }
+
         let name_html = "<select name='the_name' data-oninput='true' title='Choose an object3d to edit.'>"
-        for(let obj of SimObj.objects){ //might be none
-            name_html += "<option>" + obj.name + "</option>"
+        let name_options_html = "" //used for both name and parent menus
+        for(let name of SimObj.dde_and_user_objects_names()){ //might be none
+            name_options_html += "<option>" + name + "</option>"
         }
-        name_html += "</select>"
-        let options  = ""
+        name_html += (name_options_html + "</select>")
+
+        let parent_html = "<select name='the_parent' data-oninput='true' title='Choose a parent for the current object.'>"
+        for(let name of SimObj.dde_and_user_objects_names()){ //might be none
+            let sel_html = ""
+            if(name === "user_origin") {sel_html = " selected " }
+            parent_html += "<option " + sel_html + ">" + name + "</option>"
+        }
+        parent_html += "</select>"
+
+        let geo_html = "<select name='geometry' data-oninput='true'>"
         for(let geo_name of this.geometry_names) {
-            options += "<option>" + geo_name + "</option>"
+            geo_html += "<option>" + geo_name + "</option>"
         }
-        let object3d = SimObj.get_object3d(object3d_or_name) //must do BEFORE making the show_window so that the making of htis obj won't try to populate the window
+        geo_html += "</select>"
+
+        let all_objs = SimObj.dde_and_user_objects()
+        if(!object3d_or_name && (all_objs.length > 0)){
+            object3d_or_name = Utils.last(all_objs)
+        }
+        let object3d = SimObj.get_object3d(object3d_or_name) //must do BEFORE making the show_window so that the making of this obj won't try to populate the window
                                                     //warning: often null
         if(!object3d && SimObj.has_objects){
-            object3d = Utils.last(SimObj.objects)
+            object3d = Utils.last(SimObj.dde_and_user_objects_names())
         }
+
+        let show_html = '<select name="simobj_show" data-oninput="true">'
+        for(let kind of ["show_all", "hide_all", "show_this", "hide_this", "show_only_this", "hide_only_this"]){
+            show_html += ' <option>' + kind + '</option>'
+        }
+        show_html += "</select> &nbsp;"
+
         show_window({title: "Make Objects in Simulator",
-                     content: `
-         <input type="button" name="ref_name" value="name" class="simbuild_insert_button" title="Insert a reference to this object into the editor."/> : ` + name_html +
-                         `<input type='button' value='Insert whole object'  style='margin-left:20px;'
-                                title='Inserts the source code\nfor re-creating this object3d\ninto the editor.'/> &nbsp;
-                                <input type='button' value='Insert all'
-                                title='Inserts the source code\n for all object3ds\ninto the editor.'/>                               
-         <p/>  
-         <input type="button" name="insert_geometry" value="geometry" class="simbuild_insert_button" title="Insert a call to setting geometry into the editor."/> : 
-         <select name="geometry" 
-                           data-oninput='true'> ` +
-                           options +
-                   `</select><p/>
+                     content:
+         `<input type="button" name="ref_name"   value="name"   class="simbuild_insert_button" title="Insert a reference to this object into the editor."/> : ` + name_html + "&nbsp;&nbsp;" +
+         `<input type="button" name="ref_parent" value="parent" class="simbuild_insert_button" title="Insert code to set the parent of this object."/> : `      + parent_html +
+         `<p/>  
+         <input type="button" name="insert_geometry" value="geometry" class="simbuild_insert_button" title="Insert a call to setting geometry into the editor."/> : ` +
+         geo_html +
+         `<p/>
         <input type="button" name="insert_scale" value="scale" class="simbuild_insert_button" title="Insert a call to setting scale into the editor."/> :  
                x: <input name="scale_x" type="number" min="0.01" max="2" step="0.01" value="0.2" data-oninput='true'/> &nbsp;
                y: <input name="scale_y" type="number" min="0.01" max="2" step="0.01" value="0.2" data-oninput='true'/> &nbsp;
                z: <input name="scale_z" type="number" min="0.01" max="2" step="0.01" value="0.2" data-oninput='true'/>
                <p/>
         <input type="button" name="insert_position" value="position" class="simbuild_insert_button" title="Insert a call to setting position into the editor."/> :  
-               x: <input name="position_x" type="number" min="-2" max="2" step="0.01" value="0.0" data-oninput='true'/> &nbsp;
-               y: <input name="position_y" type="number" min="-2" max="2" step="0.01" value="0.3" data-oninput='true'/> &nbsp;
-               z: <input name="position_z" type="number" min="-2" max="2" step="0.01" value="0.1" data-oninput='true'/>
+               x: <input name="position_x" type="number"  step="0.01" value="0.0" data-oninput='true'/> &nbsp;
+               y: <input name="position_y" type="number"  step="0.01" value="0.3" data-oninput='true'/> &nbsp;
+               z: <input name="position_z" type="number"  step="0.01" value="0.1" data-oninput='true'/>
                <p/>
         <input type="button" name="insert_orientation" value="orientation" class="simbuild_insert_button" title="Insert a call to setting orientation into the editor."/> :  
                x: <input name="orientation_x" type="number" min="-180" max="180" step="1" value="0" data-oninput='true'/> &nbsp;
                y: <input name="orientation_y" type="number" min="-180" max="180" step="1" value="0" data-oninput='true'/> &nbsp;
                z: <input name="orientation_z" type="number" min="-180" max="180" step="1" value="0" data-oninput='true'/>
-               <p/>
-        <input type="button" name="insert_color" value="color" class="simbuild_insert_button" title="Insert a call to setting color into the editor."/> :  
-         <input name="color" type="color" data-oninput='true' value="#ffffff" title="Click to change the color"/> &nbsp;
+               <p/>` +
+        show_html +
+        `<input type="button" name="insert_color" value="color" class="simbuild_insert_button" title="Insert a call to setting color into the editor."/>  
+        <input name="color" type="color" data-oninput='true' value="#ffffff" title="Click to change the color"/> &nbsp;
          
          <input type="button" name="insert_multi_color" value="multi_color" class="simbuild_insert_button" 
-              title="Insert a call to setting multi-color object sides into the editor.\nThis is done by changing the material from\n'MeshNormal' (multi_color) to 'MeshPhong' (single_color)."/> :  
+              title="Insert a call to setting multi-color object sides into the editor.\nThis is done by changing the material from\n'MeshNormal' (multi_color) to 'MeshPhong' (single_color)."/>  
               <input name="multi_color" type="checkbox" data-oninput='true'/>  &nbsp;
                 
-         <input type="button" name="insert_wireframe" value="wireframe" class="simbuild_insert_button" title="Insert a call to setting wireframe object edges into the editor."/> :  
+         <input type="button" name="insert_wireframe" value="wireframe" class="simbuild_insert_button" title="Insert a call to setting wireframe object edges into the editor."/>  
               <input name="wireframe" type="checkbox" data-oninput='true'/> 
          <hr style="border: 2px solid black;"/>
-         <input type="button" value="Make object"  title="Clones the currently edited object."/>
+         <input type="button" value="Make object"         title="Clones the currently edited object."/> &nbsp;
+         <input type='button' value='Insert whole object' title='Inserts the source code\\nfor re-creating this object3d\\ninto the editor.'/> &nbsp;
+         <input type='button' value='Insert all'          title='Inserts the source code\\n for all object3ds\\ninto the editor.'/> 
          <p/>
          <input type="button" value="Inspect this" title="Inspect the inner details of the currently edited object."/> &nbsp;
          <input type="button" value="Inspect all"  title="Inspect the inner details of all object3ds."/> &nbsp;
@@ -227,7 +264,7 @@ globalThis.SimBuild = class SimBuild{
          <input type="button" value="Remove all"  title="Remove all object3ds from the simulator."/>
         `,
             height: 355,
-            width:  440, //the "name" select box, with a long name, requires a wider window.
+            width:  460, //the "name" select box, with a long name, requires a wider window.
             callback: "SimBuild.dialog_cb"
 
         })
@@ -246,7 +283,7 @@ globalThis.SimBuild = class SimBuild{
             SimBuild.now_editing_object3d = null
         }
         else if(vals.clicked_button_value === "Make object"){ //the only clausd that can cope with no object3d
-            if(!object3d){ //can't clone it so we have to make a default one
+            if(!object3d || SimObj.is_dde_object3d(object3d)){ //can't clone it so we have to make a default one
                 let new_name = prompt("Enter a name for the new object3d in the Simulator pane.\nYou can't change this, so choose wisely.",
                     "my_object3d")
                 if (!new_name) {
@@ -291,7 +328,11 @@ globalThis.SimBuild = class SimBuild{
             shouldnt("SimBuild.dialog_cb got no object3d to edit.")
         }
         else if (vals.clicked_button_value === "ref_name"){
-            let src = "SimObj." + object3d.name + "\n"
+            let src = "SimObj." + SimObj.get_name(object3d) + "\n"
+            Editor.insert(src)
+        }
+        else if (vals.clicked_button_value === "ref_parent"){
+            let src = "SimObj." + SimObj.get_parent(object3d) + "\n"
             Editor.insert(src)
         }
         else if (vals.clicked_button_value === "Insert whole object"){
@@ -305,11 +346,34 @@ globalThis.SimBuild = class SimBuild{
         else if (vals.clicked_button_value === "the_name"){
             SimBuild.populate_dialog_from_object(object3d)
         }
+        else if (vals.clicked_button_value === "the_parent"){
+            let par = SimObj.get_object3d(vals.the_parent)
+            if(SimObj.is_dde_object3d(object3d)){
+                warning("You can't set the parent of dde system object3d's such as: " + SimObj.get_name(object3d))
+            }
+            else if(par === object3d){
+                warning("You can't set the parent of an object to itself.")
+            }
+            else {
+                if(SimObj.is_dde_object3d(par) && par !== SimObj.user_origin){
+                    par = SimObj.user_origin  //don't allow user to add objects anywhere but under user_origin
+                    //after init and  cur obj is user_origin with its PARENT of table,
+                    //the dialog will show that, but then if user clicks on make_object, we don't want to
+                    //make TABLE its parent, we want uesr_origin to be its parent.
+                }
+                SimObj.set_parent(object3d, par)
+            }
+        }
         else if(vals.clicked_button_value === "insert_geometry"){
-            let ref = "SimObj." + object3d.name
+            let ref = "SimObj." + SimObj.get_name(object3d)
             let class_name = SimObj.get_geometry_short_name(object3d)
-            let src = 'SimObj.set_geometry(' + ref + ', "' + class_name + '")\n'
-            Editor.insert(src)
+            if(!class_name){
+                warning(SimObj.get_name(object3d) + " has no geometry.")
+            }
+            else {
+                let src = 'SimObj.set_geometry(' + ref + ', "' + class_name + '")\n'
+                Editor.insert(src)
+            }
         }
         else if(vals.clicked_button_value === "geometry"){
             /*let gm_name = vals.geometry + "Geometry"
@@ -328,7 +392,7 @@ globalThis.SimBuild = class SimBuild{
         }
 
         else if (vals.clicked_button_value == "insert_scale") {
-            let ref = "SimObj." + object3d.name
+            let ref = "SimObj." + SimObj.get_name(object3d)
             let arr = SimObj.get_scale(object3d)
             let arr_str = to_source_code({value: arr})
             let src = 'SimObj.set_scale(' + ref + ', ' + arr_str + ')\n'
@@ -340,7 +404,7 @@ globalThis.SimBuild = class SimBuild{
         }
 
         else if (vals.clicked_button_value == "insert_position") {
-            let ref = "SimObj." + object3d.name
+            let ref = "SimObj." + SimObj.get_name(object3d)
             let arr = SimObj.get_position(object3d)
             let arr_str = to_source_code({value: arr})
             let src = 'SimObj.set_position(' + ref + ', ' + arr_str + ')\n'
@@ -350,7 +414,7 @@ globalThis.SimBuild = class SimBuild{
             SimObj.set_position(object3d,[vals.position_x, vals.position_y, vals.position_z])
         }
         else if (vals.clicked_button_value == "insert_orientation") {
-            let ref = "SimObj." + object3d.name
+            let ref = "SimObj." + SimObj.get_name(object3d)
             let arr = SimObj.get_orientation(object3d)
             let arr_str = to_source_code({value: arr})
             let src = 'SimObj.set_orientation(' + ref + ', ' + arr_str + ')\n'
@@ -359,8 +423,12 @@ globalThis.SimBuild = class SimBuild{
         else if (vals.clicked_button_value.startsWith("orientation")) {
             SimObj.set_orientation(object3d,[vals.orientation_x, vals.orientation_y, vals.orientation_z])
         }
+        else if (vals.clicked_button_value === "simobj_show") {
+            let kind = vals.simobj_show
+            SimObj.show(object3d, kind)
+        }
         else if (vals.clicked_button_value === "insert_color"){
-            let ref = "SimObj." + object3d.name
+            let ref = "SimObj." + SimObj.get_name(object3d)
             let arr = SimObj.get_color(object3d)
             let arr_str = to_source_code({value: arr})
             let src = 'SimObj.set_color(' + ref + ', ' + arr_str + ')\n'
@@ -375,7 +443,7 @@ globalThis.SimBuild = class SimBuild{
             SimObj.set_color(object3d, rgb_arr)
         }
         else if (vals.clicked_button_value === "insert_multi_color"){
-            let ref = "SimObj." + object3d.name
+            let ref = "SimObj." + SimObj.get_name(object3d)
             let short_material_name = SimObj.get_material_short_name(object3d)
             let src = 'SimObj.set_material(' + ref + ', "' + short_material_name + '")\n'
             Editor.insert(src)
@@ -396,7 +464,7 @@ globalThis.SimBuild = class SimBuild{
             SimObj.set_material(object3d, material)
         }
         else if (vals.clicked_button_value === "insert_wireframe"){
-            let ref = "SimObj." + object3d.name
+            let ref = "SimObj." + SimObj.get_name(object3d)
             let wireframe_val = SimObj.get_wireframe(object3d)
             let src = 'SimObj.set_wireframe(' + ref + ", " + wireframe_val + ')\n'
             Editor.insert(src)
@@ -408,12 +476,12 @@ globalThis.SimBuild = class SimBuild{
             inspect(object3d)
         }
         else if (vals.clicked_button_value === "Inspect all"){
-            inspect(SimObj.objects)
+            inspect(SimObj.dde_and_user_objects())
         }
 
         else if (vals.clicked_button_value === "Remove this"){
             let short_name = SimObj.get_geometry_short_name(object3d)
-            if(confirm("Remove " + short_name + " object: " + object3d.name + "?")) {
+            if(confirm("Remove " + short_name + " object: " + SimObj.get_name(object3d) + "?")) {
                 SimObj.remove(object3d)
             }
         }
@@ -435,8 +503,16 @@ globalThis.SimBuild = class SimBuild{
             if (dialog_dom_elt) {
                 let css_sel = "[name=" + prop_name + "]"
                 let widget_dom_elt = dialog_dom_elt.querySelector(css_sel)
-                widget_dom_elt[value_prop_name] = value
+                if(widget_dom_elt) {
+                    widget_dom_elt[value_prop_name] = value
+                }
             }
+        }
+    }
+
+    static populate_dialog_from_object_if_now_editing(object3d){
+        if(object3d === SimBuild.now_editing_object3d) {
+            this.populate_dialog_from_object (object3d)
         }
     }
 
@@ -455,8 +531,9 @@ globalThis.SimBuild = class SimBuild{
             this.enable_inputs()
             SimBuild.now_editing_object3d = object3d
 
-            SimBuild.add_object3d_to_the_name(object3d) //adds an option tag under the select, but only if there's not one there for object3D.name
-            this.populate_dialog_property(object3d, "the_name", object3d.name)
+            SimBuild.add_object3d_to_the_name_menu(object3d) //adds an option tag under the select, but only if there's not one there for object3D.name
+            this.populate_dialog_property(object3d, "the_name", SimObj.get_name(object3d))
+            this.populate_dialog_property(object3d, "the_parent", SimObj.get_name(SimObj.get_parent(object3d)))
 
 
             let geo_short_name = SimObj.get_geometry_short_name(object3d)
@@ -500,19 +577,38 @@ globalThis.SimBuild = class SimBuild{
         }
     }
 
-    static add_object3d_to_the_name(object3d) {
+    static add_object3d_to_the_name_menu(object3d) {
         let dialog_dom_elt = SimBuild.dialog_dom_elt()
         if (dialog_dom_elt) {
             let select_dom_elt = dialog_dom_elt.querySelector("[name=the_name]")
             if (select_dom_elt) {
+                let the_name = SimObj.get_name(object3d)
                 for (let child of select_dom_elt.children) {
-                    if (child.innerHTML === object3d.name) { //already has option for this name
+                    if (child.innerHTML === the_name) { //already has option for this name
                         return
                     }
                 }
                 select_dom_elt.insertAdjacentHTML(
                     "afterbegin",
-                    "<option>" + object3d.name + "</option>")
+                    "<option>" + the_name + "</option>")
+            }
+        }
+    }
+
+    static add_object3d_to_the_parent_menu(object3d) {
+        let dialog_dom_elt = SimBuild.dialog_dom_elt()
+        if (dialog_dom_elt) {
+            let select_dom_elt = dialog_dom_elt.querySelector("[name=the_parent]")
+            if (select_dom_elt) {
+                let the_name = SimObj.get_name(object3d)
+                for (let child of select_dom_elt.children) {
+                    if (child.innerHTML === the_name) { //already has option for this name
+                        return
+                    }
+                }
+                select_dom_elt.insertAdjacentHTML(
+                    "afterbegin",
+                    "<option>" + the_name + "</option>")
             }
         }
     }
@@ -521,10 +617,22 @@ globalThis.SimBuild = class SimBuild{
         let dialog_dom_elt =  SimBuild.dialog_dom_elt()
         if (dialog_dom_elt) {
             let the_select_dom_elt = dialog_dom_elt.querySelector("[name=the_name]")
-            //let inner_selector = "[innerHTML=" + object3d.name + "]" //fails. I can't find a way to use selector to select innerHTML oct 1, 2023
-            //let the_option_dom_elt = the_select_dom_elt.querySelector(inner_selector)
             for(let a_option_dom_elt of the_select_dom_elt.childNodes){
-                if(a_option_dom_elt.innerHTML === object3d.name){
+                let the_name = SimObj.get_name(object3d)
+                if(a_option_dom_elt.innerHTML === the_name){
+                    a_option_dom_elt.remove() //let run for more iterations just in case > 1 of that name get in the select dom elt
+                }
+            }
+        }
+    }
+
+    static remove_object3d_from_the_parent_menu(object3d) {
+        let dialog_dom_elt =  SimBuild.dialog_dom_elt()
+        if (dialog_dom_elt) {
+            let the_select_dom_elt = dialog_dom_elt.querySelector("[name=the_parent]")
+            for(let a_option_dom_elt of the_select_dom_elt.childNodes){
+                let the_name = SimObj.get_name(SimObj.get_parent(object3d))
+                if(a_option_dom_elt.innerHTML === the_name){
                     a_option_dom_elt.remove() //let run for more iterations just in case > 1 of that name get in the select dom elt
                 }
             }
