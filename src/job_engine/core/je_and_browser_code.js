@@ -445,7 +445,10 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
         let ins = show_window_elt.querySelectorAll(".clickable")
         for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
             var inp = ins[index]
-            inp.onclick = this.submit_window
+            //inp.onclick = "SW.submit_window(event)"
+            // this.submit_window. neither works
+            //inp.removeEventListener("click", SW.submit_window) //just in case there already is one, we don't want to get multiple
+            //inp.addEventListener("click", SW.submit_window)  //fails for spans
             if(!inp.name){ //something screwy is removing the "name" property. looks like electron or below bug
                 let outer_html = inp.outerHTML
                 let name_pos = outer_html.indexOf(" name=")

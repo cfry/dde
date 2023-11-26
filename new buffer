@@ -1,9 +1,0 @@
-new Job({
-    name: "my_job",
-    do_list: [
-        Dexter.move_all_joints(10, 20, 30),
-        Dexter.move_all_joints(0, 0, 30)
-    ]
-})
-
-DDEVideo.refresh_misc_pane()

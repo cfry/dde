@@ -3,8 +3,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">4.1.5</span><br/>
-    released: <span id="dde_release_date_id">Oct 29, 2023</span>
+    version: <span id="dde_version_id">4.1.6</span><br/>
+    released: <span id="dde_release_date_id">Nov 26, 2023</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -1266,8 +1266,15 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
         <details  class="doc_details" id="SimBuild_doc_id" class="doc_details"><summary>SimBuild</summary>
             Clicking the Misc pane's <button>SimBuild</button> button brings up a dialog box
             that allows you to create, edit, save and remove geometric shaped objects in the Sim pane
-            along side of Dexter. This is intended as a low-rez, easy way to simulate
-            objects next to the simulated Dexter.
+            along side of Dexter.
+            When the dialog is up, the edited object will be highlighted in the Simulator pane.<br/>
+            When the dialog is up, clicking on the object in the Simulator pane will edit
+            that object in the dialog.
+            <p></p>
+            This is intended as a low-rez, easy way to simulate
+            3D objects next to the simulated Dexter. It is not intended to replace
+            conventional CAD software used for designing parts or more sophisticated
+            simulations.
             <p></p>
             When the SimBuild dialog is open, and there are no objects created,
             the inputs will be disabled except for <input type="button" value="Make object"/>.
@@ -1310,9 +1317,9 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             <p/>
             The name of the new object will get added to the
             <b>name</b> menu. Choose an object from that menu to make it current
-            so that you can edit it. To see which object in the simulator
-            is the currently-being-edited object, change something in it, like
-            toggling one of the check boxes.
+            so that you can edit it. The currently edited object will be colored yellow
+            in the simulator pane. Often you can click on an object in the simulator pane
+            to edited it.
             <p></p>
             <b>Saving Objects</b><br/>
             The buttons above the horizontal line in the dialog box insert source code
@@ -1435,10 +1442,10 @@ SimObj.get_position(SimObj.my_object3d_1)</code> => <samp>[0.2, 0.3, 0.4]</samp>
         <i>Example:</i><br>
         <code>SimObj.is_object3d("junk")</code> => <samp>false</samp>
     </details>
-    <details class="doc_details" id="SimObj.objects" class="doc_details"><summary>SimObj.objects</summary>
+    <details class="doc_details" id="SimObj.user_objects" class="doc_details"><summary>SimObj.user_objects</summary>
         Returns an array of all obect3ds.<br/>
         <i>Example:</i><br>
-        <code >SimObj.objects</code> => <samp>[SimObj.my_object3d, SimObj.my_object3d_1]</samp>
+        <code >SimObj.user_objects</code> => <samp>[SimObj.my_object3d, SimObj.my_object3d_1]</samp>
     </details>
 
     <details class="doc_details" id="SimObj.object_containing_xyz" class="doc_details"><summary>SimObj.object_containing_xyz</summary>
@@ -1455,7 +1462,7 @@ SimObj.get_position(SimObj.my_object3d_1)</code> => <samp>[0.2, 0.3, 0.4]</samp>
     </details>
     <details class="doc_details" id="SimObj.newest_object_intersecting_object" class="doc_details"><summary>SimObj.newest_object_intersecting_object</summary>
         If there is at least one object that intersects the passed in object,
-        return the newest one. The newest one is the one closest to the END of SimObj.objects,
+        return the newest one. The newest one is the one closest to the END of SimObj.user_objects,
         i.e. the latest created one.
         If there are no intersecting objects, <code>null</code> is returned.
         <i>Example:</i><br/> <!--not in testsuite probably due to race condition. The test works ok when executing manually -->
@@ -1476,7 +1483,7 @@ SimObj.get_position(SimObj.my_object3d_1)</code> => <samp>[0.2, 0.3, 0.4]</samp>
         Remove an object3d from the simulator.<br/>
         <i>Example:</i><br>
         <code>SimObj.remove_all()</code><br/>
-        <code>SimObj.objects.length</code> => <samp>0</samp>
+        <code>SimObj.user_objects.length</code> => <samp>0</samp>
     </details>
 
     </details> <!-- end SimObj -->

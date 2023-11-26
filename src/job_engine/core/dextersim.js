@@ -10,6 +10,8 @@
 //import {Simqueue}      from "./simqueue.js"     //dde4 SimQueue is now global
 
 class DexterSim{
+    static robot_name_to_dextersim_instance_map = {}
+
     constructor(robot_name){ //called once per DDE session per robot_name by create_or_just_init
         this.robot_name = robot_name
         this.robot      = Robot[robot_name] //mostly used by predict_move_dur
@@ -18,6 +20,7 @@ class DexterSim{
                                    Socket.degrees_to_dexter_units(0, 6), //different from the others because for the others, 0 deg is also 0 dexter units, but not for j6
                                    50]  //50 which is the new HOME angle so that j7 doesn't overtorque.
         this.pid_angles_dexter_units = [0,0,0,0,0,0,0]  //last 2 angles are always zero.
+        this.parameters = {} //record latest set_parameter values for simulator, esp for AngularSpeed
     }
 
     compute_measured_angles_dexter_units(){
@@ -102,7 +105,9 @@ class DexterSim{
         //these should be in dexter_units
         this.parameters = { //set_params. see Socket.js instruction_array_degrees_to_arcseconds_maybe
             Acceleration:  0.0001,        // in _nbits_cf units
+            AngularSpeed: 30 * 3600, //must be here so that the dur for a move can be computed in DexterSim.predict_a_instruction_dur_in_ms
             MaxSpeed:     30 * _nbits_cf, // in _nbits_cf units
+
             StartSpeed:    0 * _nbits_cf  // in _nbits_cf units
         }
         this.status_mode = 0 //can also be 1, set by "g" command.
@@ -489,7 +494,11 @@ class DexterSim{
 
             //predict_move_dur takes degrees in and returns seconds
             //let dur_in_seconds = Math.abs(Kin.predict_move_dur(orig_angles_in_deg, angles_in_deg, this.robot))
-            let dur_in_seconds = Math.abs(Kin.predict_move_dur_5_joint(orig_angles_in_deg, angles_in_deg, this.robot))
+            //let max_speed_nbits = this.parameters["MaxSpeed"]
+            //let max_speed_deg = max_speed_nbits / _nbits_cf
+            let max_speed_arcseconds = this.parameters["AngularSpeed"]
+            let max_speed_deg = max_speed_arcseconds / 3600
+            let dur_in_seconds = Math.abs(Kin.predict_move_dur_5_joint(orig_angles_in_deg, angles_in_deg, max_speed_deg))
             //use 5 joint as j6 and j7 aren't part of this path.
             let dur_in_milliseconds = dur_in_seconds * 1000
             return dur_in_milliseconds
@@ -663,6 +672,35 @@ class DexterSim{
 
     static robot_name_to_dextersim_instance_map = {}
     static set_interval_id = null
+
+    static change_speed(){
+        /*if(!Job.change_dexter_speed){
+            new Job ({name: "change_dexter_speed",
+                      do_list: [function() {
+                          debugger;
+                          let speed_str = change_dexter_speed_id.value
+                          //let index = selected_label.indexOf(" ")
+                          //let new_speed_str = selected_label.substring(index + 1)
+                          let new_speed = parseFloat(speed_str)
+                          out("Dexter." + Dexter.default.name + " AngularSpeed set to " + new_speed + " degrees per second.", "green")
+                          change_dexter_speed_id.value = 0 //set back to the "header" so can change to any speed next time. Note any job can change the speed during it.
+                          return Dexter.set_parameter("AngularSpeed", new_speed)
+                      }
+                      ]})
+        }
+        Job.change_dexter_speed.start()
+         */
+        let speed_str = change_dexter_speed_id.value
+        //let index = selected_label.indexOf(" ")
+        //let new_speed_str = selected_label.substring(index + 1)
+        let new_speed = parseFloat(speed_str)
+        out("Dexter." + Dexter.default.name + " AngularSpeed set to " + new_speed + " degrees per second.", "green")
+        change_dexter_speed_id.value = 0 //set back to the "header" so can change to any speed next time. Note any job can change the speed during it.
+        let new_speed_arcsecs = new_speed * 3600
+        let robot_name = Dexter.default.name
+        let ds_instance =  DexterSim.robot_name_to_dextersim_instance_map[robot_name]
+        ds_instance.parameters["AngularSpeed"] = new_speed_arcsecs
+    }
     
 }
 

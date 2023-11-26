@@ -948,9 +948,9 @@ class Kin{
     }*/
 
     /*returns time in milliseconds*/
-    static predict_move_dur_5_joint(J_angles_original, J_angles_destination, robot){
+    static predict_move_dur_5_joint(J_angles_original, J_angles_destination, speed=30){
         //let speed = robot.prop("MAX_SPEED")
-        let speed = 30 //degrees per second
+        //let speed = 30 //degrees per second
         let angle_length = Math.min(J_angles_original.length, J_angles_destination.length)
         angle_length = Math.min(angle_length, 5)
         let delta = []

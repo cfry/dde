@@ -531,10 +531,31 @@ static to_fixed_smart(num, digits=0){
     else { return num } //presume its a string like "N/A" and leave it alone.
 }
 
+static starts_with_one_of_index(a_string, possible_starting_strings){
+    for (let i = 0; i < possible_starting_strings.length; i++){
+        let poss_str = possible_starting_strings[i]
+        if (poss_str.startsWith(a_string)) { return i }
+    }
+    return false
+}
 
 static starts_with_one_of(a_string, possible_starting_strings){
     for (let str of possible_starting_strings){
         if (a_string.startsWith(str)) { return true }
+    }
+    return false
+}
+
+static includes_one_of(a_string, possible_starting_strings){
+    for (let str of possible_starting_strings){
+        if (a_string.includes(str)) { return true }
+    }
+    return false
+}
+
+static ends_with_one_of(a_string, possible_starting_strings){
+    for (let str of possible_starting_strings){
+        if (a_string.endsWith(str)) { return true }
     }
     return false
 }
@@ -551,10 +572,10 @@ static index_of_first_one_of(a_string, possible_matching_strings, starting_pos=0
     }
     let matching_string = null
     let matching_index  = a_string_length_limit
-    for(let possible_maching_string of possible_matching_strings){
-        let index = a_string.indexOf(possible_maching_string, starting_pos)
+    for(let possible_matching_string of possible_matching_strings){
+        let index = a_string.indexOf(possible_matching_string, starting_pos)
         if((index !== -1) && (index < matching_index)){
-            matching_string = possible_maching_string
+            matching_string = possible_matching_string
             matching_index = index
         }
     }

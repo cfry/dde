@@ -79,7 +79,10 @@ import "../job_engine/core/instruction_dexter.js"   //sets Instruction.Dexter to
 import "../job_engine/core/instruction_io.js"       //makes class IO global
 import("../job_engine/core/instruction_control.js") //makes  class Control global
 import "../job_engine/core/robot.js"                //now global Robot, Brain, Serial, Human, Dexter
+
 import "../job_engine/core/dexter_defaults.js"      //just extends the Dexter class
+import "../job_engine/core/DexDefaults.js"  //nov 2023 new. defines globalThis.DexDefaults class
+
 import "../job_engine/core/waiting.js"              //defines globalThis.Waiting
 
 

@@ -1,6 +1,54 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
 
+<details class="doc_details"><summary>v 4.1.6, Nov 26, 2023</summary>
+Highlights: SimBuild extensions. Simulator speed control.
+    <ul>
+     <li>SimBuild
+         <ul>
+             <li>Dialog box now doesn't error when closed with no object3d edited</li>
+             <li>Dialog box has new <b>show</b> menu with 6 show or hide choices.</li>
+             <li>Dialog box <b>names</b> menu now includes scene, table, dexter, user_origin.</li>
+             <li>Dialog box new <b>parent</b> menu allows you to change the parent of an
+                 object for "grouping" related objects.</li>
+             <li>Dialog box <b>path</b> and <b>children</b> widgets show the hierarchy of the currently edited object
+                 and allow you to select its ancestors or children to edit.</li>
+             <li>Dialog box: When editing an object, that object in the simulator pane is colored yellow.</li>
+             <li>Dialog box: When you click on an object in the Sim pane, and the SimBuild dialog is up,
+                 that object is (often) automatically edited in the SimBuild dialog.</li>
+       </ul>
+       <li>When using simulated Dexter to grab an object by
+           closing joint 7 to below 60 degrees while the end effector is in the object:
+           <ul>
+               <li>The object grabbed more accurately reflects the simulated Dexter's
+                   end effector.</li>
+               <li>The output pane now has a clickable link to
+                    inspect the grabbed object.</li>
+           </ul>
+       <li><code>SimObj</code>: fixed bug of 2D shapes not rendering properly.</li>
+
+       <li>Simulator
+           <ul>
+              <li>Now the font used for displaying the x, y and z labels,
+                  is loaded when running on localhost without needing a web connection.</li>
+              <li><code>Kin.predict_move_dur_5_joint</code> changed unused 3rd param of "robot" to
+                  "speed=30.</li>
+             <li>The simulator now moves Dexter at the speed determined by the last S parameter instruction
+                 of <code>AngularSpeed</code> </li>
+             <li>The "real time" checkbox has been replaced by a "Change speed" menu,
+                 giving you three different speed options for simulating Dexter.<br/>
+                 This is useful for debugging and demos.<br/>
+                 Any such settings will be overridden by any S param <code>AngularSpeed</code>
+                 instructions.</li>
+           </ul>
+       </li>
+       <li> Now <code>AngularSpeed</code> via an S param instruction is sent to Dexter
+           in arcseconds, not nbits.</li>
+       <li><code>show_window</code>: When a dialog is replaced by calling show_window with the same title,
+           it use to get slightly bigger each time. Now it doesn't.</li>
+     </ul>
+</details>
+
 <details class="doc_details"><summary>v 4.1.5, Oct 29, 2023</summary>
     Highlights: Major extensions to SimBuild and SimObj classes
     for creating shapes in the simulator pane. New architecture for Gcode.

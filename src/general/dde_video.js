@@ -189,7 +189,8 @@ class DDEVideo {
             let xyz = arg1
             let rotzyz = (arg2 ? arg2 : [0, 0, 0])
             Simulate.create_marker_mesh(xyz, rotzyz)
-            Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+            //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+            SimUtils.render()
             content_is_good = true
         }
         else if(content === "Dexter Photo"){
@@ -263,7 +264,8 @@ class DDEVideo {
                     requestAnimationFrame( animate );
                     // r equired if controls.enableDamping or controls.autoRotate are set to true
                     the_controls.update();
-                    the_renderer.render( the_scene, the_camera );
+                    //the_renderer.render( the_scene, the_camera );
+                    SimUtils.render()
                 }
                 var loader = new STLLoader()
                 loader.load(content, function (geometry) {

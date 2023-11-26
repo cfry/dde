@@ -204,8 +204,10 @@ function show_window({content = `<input type="submit" value="Done"/>`,
                       title = "DDE Information",
                       title_bar_height = 25,
                       title_bar_color = "#b8bbff",
-                      width = 400, height = 400, //the outer width of the dialog. Content region is smaller
-                      x = 200, y = 200,
+                      width = 400,
+                      height = 400, //the outer width of the dialog. Content region is smaller
+                      x = 200,
+                      y = 200,
                       resizable = true,
                       draggable = true,
                       background_color = "rgb(238, 238, 238)",
@@ -231,8 +233,12 @@ function show_window({content = `<input type="submit" value="Done"/>`,
             var style = globalThis.getComputedStyle(latest_win, null)
             x = parseInt(style.getPropertyValue("left"), 10)
             y = parseInt(style.getPropertyValue("top"),  10)
-            width =  parseInt(style.getPropertyValue("width"), 10) //user might have resized the old window. let's preserve that
-            height = parseInt(style.getPropertyValue("height"), 10)
+
+            //user might have resized the old window. let's preserve that
+            //BUT, the value for getPropertyValue is actually too big by 10 and 20 so subtract that.
+            //might be due to the dialog wrapper or something. This is perfect but good enough.
+            width =  parseInt(style.getPropertyValue("width" ), 10) - 10
+            height = parseInt(style.getPropertyValue("height"), 10) - 20
             SW.close_window(title)
         }
     }

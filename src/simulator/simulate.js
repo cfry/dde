@@ -13,14 +13,19 @@ from http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 //import * as THREE from 'three/build/three.module.js'
 import * as THREE from 'three'
 globalThis.THREE = THREE
+import { InteractionManager } from 'three.interactive'; //to enable clicking on object3d's in sim pane. Fron nom pkg three.interative
+//see https://github.com/markuslerner/THREE.Interactive
+globalThis.InteractionManager
+// globalThis.interactionManager is inited below in the "init" method.
+
 
 import { FontLoader } from 'three/addons/loaders/FontLoader.js'
 const a_font_loader = new FontLoader();
 //globalThis.hel_font = null
 a_font_loader.load(//'node_modules/three/examples/fonts/helvetiker_bold.typeface.json', //THREE doc on this path is woefully insufficient. I patterned this after https://www.youtube.com/watch?v=l7K9AMnesJQ Without "node_modules/" on the front, it doesn't work
-                   //'./third_party/helvetiker_bold.typeface',
+                   './third_party/helvetiker_bold.typeface.json',
                    //'../../third_party/helvetiker_bold.typeface',
-                   'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', //todo make this not depend on a web connection
+                   //'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', //todo make this not depend on a web connection
     function(font) {
            globalThis.hel_font = font
        }
@@ -105,18 +110,34 @@ globalThis.Simulate = class Simulate {
             this.sim.container = sim_graphics_pane_id //a div that contains a canvas
             this.sim.scene  = new THREE.Scene();
             this.sim.scene.name = "scene"
-            this.sim.scene.background = new THREE.Color( 0xBBBBBB ) // 0x000000black is the default
+            this.sim.scene.background = new THREE.Color( 0x000000) //0xBBBBBB ) // 0x000000black is the default
             this.createRenderer()
             this.createCamera()
             this.createLights()
             if(this.sim.hi_rez) { this.createMeshGLTF() }
             else                { this.createMeshBoxes() }
             SimBuild.init()
+            this.init_interaction_manager()
             SimObj.refresh() //does nothing if no SimObjs. Otherwise makes sure they are in the scene and refreshes
           }
           catch(err){
                   console.log("init_simulation errored with: " + err.message + "\n" + err.stack)
           }
+    }
+
+    //called by SimObj.refresh() and Simulate.init()
+    static init_interaction_manager(){
+        if(globalThis.interactionManager) {
+            globalThis.interactionManager.dispose()
+            globalThis.interactionManager = undefined
+        }
+        //see https://github.com/markuslerner/THREE.Interactive/blob/master/examples/auto-add.html
+        globalThis.interactionManager = new InteractionManager(
+            this.sim.renderer,
+            this.sim.camera,
+            this.sim.renderer.domElement
+            //{ autoAdd: true, scene: this.sim.scene} //autoAdd seems not to word
+        )
     }
 
     static createCamera(){
@@ -150,13 +171,13 @@ globalThis.Simulate = class Simulate {
       //from Brad, App.js
       //ambient light
         const color = 0xFFFFFF;
-        const intensity = 0.75;
+        const intensity = 1 //0.75;
         const light = new THREE.AmbientLight ( color, intensity );
         this.sim.scene.add ( light );
 
       //directional light
         const dcolor = 0xFFFFFF;
-        const dintensity = 0.5;
+        const dintensity = 1 //0.5;
         //	const intensity = 0.35;		//	To see the helpers easier.
         const dlight = new THREE.DirectionalLight ( dcolor, dintensity );
         dlight.position.set ( 4, 4, 2 );
@@ -553,7 +574,8 @@ globalThis.Simulate = class Simulate {
                 Simulate.sim.mouseX = event.clientX;
                 Simulate.sim.mouseY = event.clientY;
                 Simulate.sim_handle_mouse_move()
-                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+                //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+                SimUtils.render()
             }
         }, false);
 
@@ -897,6 +919,7 @@ globalThis.Simulate = class Simulate {
             this.stl_sim_handle_mouse_move()
         }
         this.sim.renderer.render(this.sim.scene, this.sim.camera);
+
     }
 
     static fbx_render(){
@@ -918,7 +941,8 @@ globalThis.Simulate = class Simulate {
         //so must make gltf_render not need a "this".
         Simulate.updateRotation(); //unnecessary jul 26. 2023
         Simulate.updatePosition(); //unnecessary jul 26. 2023
-        Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+        //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+        SimUtils.render()
         //requestAnimationFrame(Simulate.gltf_render)
     }
 
@@ -949,7 +973,8 @@ globalThis.Simulate = class Simulate {
                 Simulate.sim.mouseX = event.clientX;
                 Simulate.sim.mouseY = event.clientY;
                 Simulate.stl_sim_handle_mouse_move()
-                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+                //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+                SimUtils.render()
             }
         }, false);
 
@@ -965,19 +990,19 @@ globalThis.Simulate = class Simulate {
     static stl_sim_handle_mouse_move(){
         var mouseX_diff =  this.sim.mouseX - this.sim.mouseX_at_mouseDown //positive if moving right, neg if moving left
         var mouseY_diff =  this.sim.mouseY - this.sim.mouseY_at_mouseDown //positive if moving right, neg if moving left
-        if (this.sim.shiftDown){
+        if (this.sim.shiftDown){ //zoom
             //alert(camera.zoom)  //camera.zoom starts at 1
             let zoom_increment = mouseX_diff / 100.0
             this.sim.camera.zoom = this.sim.zoom_at_mouseDown + zoom_increment //(spdy * 0.1)
             this.sim.camera.updateProjectionMatrix()
         }
-        else if (this.sim.altDown){
+        else if (this.sim.altDown){ //pan
             let panX_inc = mouseX_diff / 100
             let panY_inc = mouseY_diff / 100
             this.sim.camera.position.x =  this.sim.camera.position.x + panX_inc
             this.sim.camera.position.y =  this.sim.camera.position.y - panY_inc
         }
-        else {
+        else { //rotate
             //this.sim.table.rotation.x = this.sim.rotationX_at_mouseDown + (mouseY_diff / 100)
             //this.sim.table.rotation.y = this.sim.rotationY_at_mouseDown + (mouseX_diff / 100)
             this.sim.camera.position.x = this.stl_camera_radius * Math.cos( this.stl_camera_angle );

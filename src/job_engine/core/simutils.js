@@ -128,8 +128,7 @@ class SimUtils{
                 //                      " j_angle deg: " + (Math.round(j_angle) / 3600 ))
                 //}
                 let angle_degrees = Socket.dexter_units_to_degrees(j_angle, joint + 1)
-                if(((joint === 1) || (joint === 2) || (joint === 3)) //&& Simulate.sim.hi_rez //Simulate not in job engine, and doesn't really matter here so don't check this, just do the computation
-                      ) {
+                if((joint === 1) || (joint === 2) || (joint === 3)) {//&& Simulate.sim.hi_rez //Simulate not in job engine, and doesn't really matter here so don't check this, just do the computation
                     angle_degrees *= -1
                 }
                 new_angles.push(angle_degrees)
@@ -354,9 +353,11 @@ class SimUtils{
         if(this.is_simulator_showing()) {
             sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length)
         }
-        if(this.is_simulator_showing()) {
-            Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
-        }
+
+        //if(this.is_simulator_showing()) {
+        //    Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+        //}
+        SimUtils.render()
     }
 
     //joint number is 1 thru 7
@@ -608,7 +609,8 @@ class SimUtils{
         if(this.is_simulator_showing()) {
             if (Simulate.sim.J6) {
                 Simulate.sim.J6.rotation.z = rads
-                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+                //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+                SimUtils.render()
             }
             sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
         }
@@ -625,7 +627,8 @@ class SimUtils{
                 new_xpos *= 10
                 //out("J7 j7_angle_degrees: " + j7_angle_degrees + " new xpos: " + new_xpos)
                 Simulate.sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
-                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+                //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+                SimUtils.render()
             }
             sim_pane_j7_id.innerHTML = j7_angle_degrees_rounded
             if (SimObj && SimObj.user_objects && SimObj.user_objects.length > 0) {
@@ -666,6 +669,9 @@ class SimUtils{
 
     static render(){
         if (this.is_simulator_showing()) {
+            if(globalThis.interactionManager) {
+                interactionManager.update();
+            }
             Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
         }
     }

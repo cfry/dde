@@ -14,8 +14,8 @@ import require$$0 from 'domain';
 import path$1 from 'path';
 
 var name = "dde4";
-var version = "4.1.4";
-var release_date = "Sep 19, 2023";
+var version = "4.1.6";
+var release_date = "Nov 26, 2023";
 var description = "test rollup";
 var author = "Fry";
 var license = "GPL-3.0";
@@ -95,6 +95,7 @@ var dependencies = {
 	"three-fbx-loader": "^1.0.3",
 	"three-stl-loader": "^1.0.6",
 	"three-text2d": "^0.6.0",
+	"three.interactive": "^1.7.0",
 	webmidi: "^2.5.3",
 	ws: "^8.8.0"
 };
@@ -631,10 +632,31 @@ static to_fixed_smart(num, digits=0){
     else { return num } //presume its a string like "N/A" and leave it alone.
 }
 
+static starts_with_one_of_index(a_string, possible_starting_strings){
+    for (let i = 0; i < possible_starting_strings.length; i++){
+        let poss_str = possible_starting_strings[i];
+        if (poss_str.startsWith(a_string)) { return i }
+    }
+    return false
+}
 
 static starts_with_one_of(a_string, possible_starting_strings){
     for (let str of possible_starting_strings){
         if (a_string.startsWith(str)) { return true }
+    }
+    return false
+}
+
+static includes_one_of(a_string, possible_starting_strings){
+    for (let str of possible_starting_strings){
+        if (a_string.includes(str)) { return true }
+    }
+    return false
+}
+
+static ends_with_one_of(a_string, possible_starting_strings){
+    for (let str of possible_starting_strings){
+        if (a_string.endsWith(str)) { return true }
     }
     return false
 }
@@ -651,10 +673,10 @@ static index_of_first_one_of(a_string, possible_matching_strings, starting_pos=0
     }
     let matching_string = null;
     let matching_index  = a_string_length_limit;
-    for(let possible_maching_string of possible_matching_strings){
-        let index = a_string.indexOf(possible_maching_string, starting_pos);
+    for(let possible_matching_string of possible_matching_strings){
+        let index = a_string.indexOf(possible_matching_string, starting_pos);
         if((index !== -1) && (index < matching_index)){
-            matching_string = possible_maching_string;
+            matching_string = possible_matching_string;
             matching_index = index;
         }
     }
@@ -2758,7 +2780,10 @@ class SW$1 { //stands for Show Window. These are the aux fns that the top level 
         let ins = show_window_elt.querySelectorAll(".clickable");
         for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
             var inp = ins[index];
-            inp.onclick = this.submit_window;
+            //inp.onclick = "SW.submit_window(event)"
+            // this.submit_window. neither works
+            //inp.removeEventListener("click", SW.submit_window) //just in case there already is one, we don't want to get multiple
+            //inp.addEventListener("click", SW.submit_window)  //fails for spans
             if(!inp.name){ //something screwy is removing the "name" property. looks like electron or below bug
                 let outer_html = inp.outerHTML;
                 let name_pos = outer_html.indexOf(" name=");
@@ -8283,9 +8308,9 @@ class Kin$1{
     }*/
 
     /*returns time in milliseconds*/
-    static predict_move_dur_5_joint(J_angles_original, J_angles_destination, robot){
+    static predict_move_dur_5_joint(J_angles_original, J_angles_destination, speed=30){
         //let speed = robot.prop("MAX_SPEED")
-        let speed = 30; //degrees per second
+        //let speed = 30 //degrees per second
         let angle_length = Math.min(J_angles_original.length, J_angles_destination.length);
         angle_length = Math.min(angle_length, 5);
         let delta = [];
@@ -14207,7 +14232,7 @@ function setOpenLoop(robot){
 
 //FILE SYSTEM
 
-function read_file$1(path, encoding="utf8"){
+function read_file(path, encoding="utf8"){
     path = make_full_path(path);
     try{ return fs.readFileSync(path, encoding) }
     catch(err){
@@ -15063,7 +15088,7 @@ new Job({name: "Draw",
         }
 
         if(typeof(dxf_filepath) == "string" && dxf_filepath.length < 512){
-            dxf_content = read_file$1(dxf_filepath);
+            dxf_content = read_file(dxf_filepath);
             my_entities = DXF$1.content_to_entities(dxf_content);
             my_points = DXF$1.entities_to_points(my_entities);
         }else if(Array.isArray(dxf_filepath)){
@@ -16640,8 +16665,10 @@ function show_window$1({content = `<input type="submit" value="Done"/>`,
                       title = "DDE Information",
                       title_bar_height = 25,
                       title_bar_color = "#b8bbff",
-                      width = 400, height = 400, //the outer width of the dialog. Content region is smaller
-                      x = 200, y = 200,
+                      width = 400,
+                      height = 400, //the outer width of the dialog. Content region is smaller
+                      x = 200,
+                      y = 200,
                       resizable = true,
                       draggable = true,
                       background_color = "rgb(238, 238, 238)",
@@ -16667,8 +16694,12 @@ function show_window$1({content = `<input type="submit" value="Done"/>`,
             var style = globalThis.getComputedStyle(latest_win, null);
             x = parseInt(style.getPropertyValue("left"), 10);
             y = parseInt(style.getPropertyValue("top"),  10);
-            width =  parseInt(style.getPropertyValue("width"), 10); //user might have resized the old window. let's preserve that
-            height = parseInt(style.getPropertyValue("height"), 10);
+
+            //user might have resized the old window. let's preserve that
+            //BUT, the value for getPropertyValue is actually too big by 10 and 20 so subtract that.
+            //might be due to the dialog wrapper or something. This is perfect but good enough.
+            width =  parseInt(style.getPropertyValue("width" ), 10) - 10;
+            height = parseInt(style.getPropertyValue("height"), 10) - 20;
             SW.close_window(title);
         }
     }
@@ -20597,6 +20628,7 @@ globalThis.linux_error_message = linux_error_message;
 globalThis.Gcode = class Gcode{
     static print_gcode_line_when_run = true
     static state = {
+        Y_offset: 0.1,
         X: 0,
         Y: 0,
         Z: 0,
@@ -20654,9 +20686,8 @@ globalThis.Gcode = class Gcode{
 
     static move_it(){
         let y_pos = this.state.Y;
-        if(y_pos === 0) {
-            y_pos = 1e-10; //to avoid singularity
-        }
+        y_pos += this.state.Y_offset;
+        if(y_pos === 0) { y_pos = 1e-10; }//to avoid singularity
         let xyz = [this.state.X, y_pos, this.state.Z];
 
         return [ function() { Gcode.extrude();},
@@ -23174,47 +23205,48 @@ Instruction$1.include_job = class include_job extends Instruction$1{
                 resolved_first_arg   = Job[first_arg];
                 do_list_array_to_use = resolved_first_arg.orig_args.do_list;
             }
+            /* can't work due to browser security
             else if (first_arg.includes(".")){ //got a file path with an extension.
                 if(file_exists(first_arg)){
-                    let job_instances_in_file = Job.instances_in_file(first_arg);
+                    let job_instances_in_file = Job.instances_in_file(first_arg)
                     if(job_instances_in_file.length > 0) {
-                        resolved_first_arg   = job_instances_in_file[0];
-                        do_list_array_to_use = resolved_first_arg.orig_args.do_list;
+                        resolved_first_arg   = job_instances_in_file[0]
+                        do_list_array_to_use = resolved_first_arg.orig_args.do_list
                     }
                     else { //maybe file src starts with var foo = an_array_of_instructions
-                        let file_src = read_file(first_arg);
-                        let result_obj = eval_js_part2(file_src, false); // warning: calling straight eval often doesn't return the value of the last expr in the src, but my eval_js_part2 usually does. //globalThis.eval(file_src)
+                        let file_src = read_file(first_arg)
+                        let result_obj = eval_js_part2(file_src, false) // warning: calling straight eval often doesn't return the value of the last expr in the src, but my eval_js_part2 usually does. //globalThis.eval(file_src)
                         if(result_obj.error_message){
                            dde_error("Control.include_job's first argument: " + first_arg +
                                      "<br/>refers to an existing file but<br/>" +
                                      "that file contains the JavaScript error of:<br/>" +
-                                     err.message);
+                                     err.message)
                         }
-                        let file_value = result_obj.value;
+                        let file_value = result_obj.value
                         if (Array.isArray(file_value)) {
-                            resolved_first_arg   = file_value;
-                            do_list_array_to_use = file_value;
+                            resolved_first_arg   = file_value
+                            do_list_array_to_use = file_value
                         }
                         else if (file_value === undefined){ // if first expr in file is var foo = arrayof_instructions, use that
-                            file_src = Utils.trim_comments_from_front(file_src);
+                            file_src = Utils.trim_comments_from_front(file_src)
                             if(file_src.startsWith("var ")){
-                                let equal_sign_pos = file_src.indexOf("=");
+                                let equal_sign_pos = file_src.indexOf("=")
                                 if(equal_sign_pos == -1){
                                     dde_error("Control.include_job's first argument: " + first_arg +
                                               "<br/>refers to an existing file containing variable: " + var_name + ".<br/>" +
-                                             "However, their is no equal sign after 'var'");
+                                             "However, their is no equal sign after 'var'")
                                 }
-                                let var_name = file_src.substring(4, equal_sign_pos).trim();
-                                let var_val = globalThis[var_name];
+                                let var_name = file_src.substring(4, equal_sign_pos).trim()
+                                let var_val = globalThis[var_name]
                                 if(Array.isArray(var_val)){
-                                    resolved_first_arg   = var_val;
-                                    do_list_array_to_use = var_val;
+                                    resolved_first_arg   = var_val
+                                    do_list_array_to_use = var_val
                                 }
                                 else {
                                     dde_error("Control.include_job's first argument: " + first_arg +
                                             "<br/>refers to an existing file containing variable: " + var_name + ".<br/>" +
                                             "However, the value is not an array of instructions, but rather:<br/>" +
-                                            var_val);
+                                            var_val)
                                 }
                             }
                         }
@@ -23223,9 +23255,9 @@ Instruction$1.include_job = class include_job extends Instruction$1{
                 else {
                     dde_error("Control.include_job's first argument: " + first_arg + " has a dot in it<br/>" +
                                "so it is presumed to be a file path<br/>" +
-                               "but no such file exists.");
+                               "but no such file exists.")
                 }
-            }
+            }*/
             else if (globalThis[first_arg]) {
                 resolved_first_arg = globalThis[first_arg];
                 if(!Array.isArray(resolved_first_arg)) {
@@ -23792,14 +23824,15 @@ Instruction$1.start_job = class start_job extends Instruction$1{
             else if(typeof(this.job_name) == "string") {
                 if (this.job_name.startsWith("Job.")) { this.job_to_start = value_of_path(this.job_name); }
                 else if (Job[this.job_name]) {  this.job_to_start = Job[this.job_name]; }
+                /* can't work due to browser security
                 else if(file_exists(this.job_name)) {
-                    let jobs_in_file = Job.instances_in_file(this.job_name);
-                    if(jobs_in_file.length > 0) { this.job_to_start = jobs_in_file[0]; }
+                    let jobs_in_file = Job.instances_in_file(this.job_name)
+                    if(jobs_in_file.length > 0) { this.job_to_start = jobs_in_file[0] }
                     else {
                         dde_error("Control.start_job has a job_name that's a path to an existing file: " + this.job_name + "<br/>" +
-                                  "but that file doesn't define any jobs.");
+                                  "but that file doesn't define any jobs.")
                     }
-                }
+                }*/
                 else {
                     dde_error("Control.start_job has a job_name of: " + this.job_name +
                               "<br/>but it doesn't resolve to a Job or a file containing one.");
@@ -30815,6 +30848,230 @@ Dexter.dexter0.defaults_write_return_string()
 // Dexter.dexter0.defaults_write() //warning: not ready for prime time. make a backup first.
 */
 
+globalThis.DexDefaults = class DexDefaults{
+    static meta_data_comments_header = ";meta_data_comments"
+    static meta_data_sparams_header  = ";meta_data_sparams"
+    static model_instructions_header = ";model_instructions"
+    static user_instructions_header  = ";user_instructions"
+    static cal_sparams_header        = ";cal_sparams"
+
+    static meta_data_sparam_names      = ["DexterSerial",          "DexterModel",  "ManufactureLocation",  "StaticIPAddress"]
+    static meta_data_sparam_in_comment = ["Dexter Serial Number",  "Dexter Model", "Manufacture Location", "Static IP Address"]
+
+    static cal_sparam_names       = ["J1BoundryHigh", "J1BoundryLow",
+                                     "J2BoundryHigh", "J2BoundryLow",
+                                     "J3BoundryHigh", "J3BoundryLow",
+                                     "J4BoundryHigh", "J4BoundryLow",
+                                     "J5BoundryHigh", "J5BoundryLow",
+                                     "JointDH"  //(an array of arrays 6 x 4),
+                                     ]
+    static data = {}
+
+    static async file_to_data(path, //path is now ignored. user picks it.
+                              confirm_message="Choose a Defaults.make_ins file to read in.",
+                              callback=inspect){
+        if(confirm_message) {
+            if(!confirm(confirm_message)) {
+                return //user canceled
+            }
+        }
+        this.data = {}; //initialize
+        let lines = await this.file_to_lines();
+        this.data = this.lines_to_data(lines);
+        this.data.meta_data_sparams = this.meta_data_comments_lines_to_sparams(this.data.meta_data_comments_lines); //returns nmae-value pairs obj.
+        this.data.cal_sparams = this.lines_to_cal_sparams(this.data);
+        callback(this.data);
+    }
+
+    static async file_to_lines(){
+        let content = await Editor.pick_and_process_content();
+        let lines = content.split("\n");
+        return lines
+    }
+
+    static lines_to_data(lines) {
+        let data = {
+            meta_data_comments_lines: [],
+            meta_data_sparams:        {},
+            model_instructions_lines: [],
+            user_instructions_lines:  [],
+            cal_sparams_lines:        []
+        };
+        if (lines[0].startsWith(this.meta_data_comments_header)) { //new format file
+            let index_of_meta_data_comments_header =
+                Utils.starts_with_one_of_index(this.meta_data_comments_header, lines);
+            let index_of_meta_data_sparams_header =
+                Utils.starts_with_one_of_index(this.meta_data_sparams_header, lines);
+            Utils.starts_with_one_of_index(this.model_instructions_header, lines);
+            Utils.starts_with_one_of_index(this.user_instructions_header, lines);
+            Utils.starts_with_one_of_index(this.index_of_cal_sparams_header, lines);
+            data.meta_data_comments_lines = lines.slice(index_of_meta_data_comments_header + 1,
+                index_of_meta_data_sparams_header);
+            data.meta_data_sparams_lines = lines.slice(index_of_meta_data_sparams + 1,
+                index_of_model_instructions);
+            data.model_instructions_lines = lines.slice(index_of_model_instructions + 1,
+                index_of_user_instructions);
+            data.user_instructions_lines = lines.slice(index_of_user_instructions + 1,
+                index_of_cal_params);
+            data.cal_sparams_lines = lines.slice(index_of_cal_sparams + 1,
+                lines.length);
+            return data
+        }
+        else { //old format file
+            let section = "meta_data_comments";
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i];
+                if(line.trim() == "") ; //throw away empty lines
+                else if ((section === "meta_data_comments") &&
+                    (Utils.starts_with_one_of(line, ["; "]) )) {
+                    data.meta_data_comments_lines.push(line);
+                } else {
+                    section = "user_instructions";
+                    data.user_instructions_lines = lines.slice(i, lines.length);
+                    /*let dh_lines = []
+                    for (let j = 1; j < 7; j++) {
+                        let line_index = Utils.starts_with_one_of_index("S, JointDH " + j, lines)
+                        if (line_index > -1) {
+                            let line = lines[line_index]
+                            dh_lines.push(line)
+                        }
+                    }
+                    data.model_instructions.dh_guess_lines = dh_lines
+                     */
+                    break;
+                }
+            }
+            //rest of data are empty in old format
+            return data
+        }
+    }
+
+    static meta_data_comments_lines_to_sparams(meta_data_comments_lines){
+        let sparams = {};
+        let unfound_sparam_names = [];
+        for(let i = 0; i < this.meta_data_sparam_names.length; i++){
+            let sparam_name = this.meta_data_sparam_names[i];
+            let sparam_name_in_comment = this.meta_data_sparam_in_comment[i];
+            for(let comment_line of meta_data_comments_lines){
+                let start_index = comment_line.indexOf(sparam_name_in_comment);
+                if(start_index !== -1){
+                    let colon_index = comment_line.indexOf(":", start_index);
+                    let str = comment_line.slice(colon_index + 1).trim();
+                    let val;
+                    if(sparam_name === "StaticIPAddress"){ //because this looks like 192.168.1.142 and starting with a number, parseFloat grabs the first two numbers and throws out the rest, so do special parse
+                        val = str;
+                    }
+                    else {
+                        let num = parseFloat(str);
+                        val = (Number.isNaN(num) ? str : num);
+                    }
+                    sparams[sparam_name] = val;
+                }
+            }
+            if(!sparams[sparam_name]) {
+                unfound_sparam_names.push(sparam_name_in_comment);
+            }
+        }
+        if(unfound_sparam_names.length > 0){
+            warning("meta_data_comments_lines_to_sparams could not find params: " + unfound_sparam_names);
+        }
+        return sparams
+    }
+
+    static lines_to_cal_sparams(data){
+        //reverse the lines such that the first one we "find" in our search
+        //is really the last one.
+        let lines = data.cal_sparams_lines.slice().reverse();
+        lines = lines.concat(data.user_instructions_lines.slice().reverse());
+        lines = lines.concat(data.model_instructions_lines.slice().reverse());
+        let sparams_obj = {JointDH: []};
+        for(let sparam of this.cal_sparam_names) {
+            for(let line of lines){
+                line = line.trim();
+                if(line.startsWith(";")) ; //ignore it
+                else {
+                    if(line.includes(sparam)){
+                        let [oplet, sparam_name, first_arg, ...rest_args] = this.tokens_of_line(line);
+                        if(sparam === "JointDH") {
+                            let joint_number = first_arg;
+                            sparams_obj.JointDH[joint_number - 1] = rest_args;
+                        }
+                        else {//J1BoundryLow, etc
+                            sparams_obj[sparam] = first_arg;
+                        }
+                    }
+                }
+            }
+        }
+        return sparams_obj
+    }
+
+    static tokens_of_line(line){
+        let arr_of_strs = line.split(/[\s,]/); //split on space or comma, can yield elts that are ""
+        let tokens_of_instr = []; //nums and strs
+        for(let str of arr_of_strs) {
+            str = str.trim();
+            if ((str === "") || (str === ",")) ; //get rid of empty strs.
+            else {
+                let num = parseFloat(str);
+                if(Number.isNaN(num)) {
+                    tokens_of_instr.push(str);
+                }
+                else { tokens_of_instr.push(num);}
+            }
+        }
+        return tokens_of_instr
+    }
+
+    static data_to_file(data=DexDefaults.data,
+                        path="Defaults_calibrated.make_ins",
+                        confirm_message="Choose the file path to save the new Defaults values to."){
+        let content = this.data_to_string(data);
+        Editor.save_local_file(path, confirm_message, content);
+        let content_with_html = "<b>Written content:</b><br/>" + content.replaceAll("\n", "<br/>");
+        out(content_with_html);
+    }
+
+    static data_to_string(data=DexDefaults.data) {
+        let content = ";meta_data_comments Please don't delete this line.\n";
+        content += data.meta_data_comments_lines.join("\n");
+        content += "\n\n";
+        content += ";meta_data_sparams Please don't delete this line.\n";
+        for (let key of Object.keys(data.meta_data_sparams)) {
+            let val = data.meta_data_sparams[key];
+            let instr = "S " + key + " " + val + "\n";
+            content += instr;
+        }
+        content += "\n\n";
+        content += ";model_instructions  Please don't delete this line.\n";
+        content += data.model_instructions_lines.join("\n");
+        content += "\n\n";
+        content += ";user_instructions  Please don't delete this line.\n";
+        content += data.user_instructions_lines.join("\n");
+        content += "\n\n";
+        content += ";cal_sparams  Please don't delete this line.\n";
+        content += this.sparams_to_string(data.cal_sparams);
+        return content
+    }
+
+    static sparams_to_string(sparams_obj){
+        let str = "";
+        for(let key of Object.keys(sparams_obj)){
+            let val = sparams_obj[key];
+            if(key = "JointDH"){
+                for(let i = 0; i < val.length; i++) {
+                    let joint_number = i + 1;
+                    let one_joint_vals = val[i];
+                    let vals_str = one_joint_vals.join(", ");
+                    let args_str = joint_number + ", " + vals_str;
+                    str += "S, " + key + ", " + args_str + "\n";
+                }
+            }
+        }
+        return str
+    }
+};
+
 globalThis.Waiting = class Waiting {
 
     //called by Job.do_next_item
@@ -31269,7 +31526,7 @@ class Socket$1{
         else { //oplet_array_or_string is an array
             let str = "";
             for(var i = 0; i < oplet_array_or_string.length; i++){
-                let suffix = ((i == (oplet_array_or_string.length - 1))? ";": " ");
+                let suffix = ((i === (oplet_array_or_string.length - 1))? ";": " ");
                 //let elt = oplet_array_or_string[i] + suffix
                 let elt = oplet_array_or_string[i];
                 if (Number.isNaN(elt)) { elt = "NaN"; } //usually only for "a" instructions and only for elts > 4
@@ -31359,11 +31616,17 @@ class Socket$1{
             const first_arg = args[0];
             //first convert degrees to arcseconds
             if(["MaxSpeed", "StartSpeed", "Acceleration",
-                "AngularSpeed", "AngularSpeedStartAndEnd", "AngularAcceleration",
+                //"AngularSpeed",
+                "AngularSpeedStartAndEnd", "AngularAcceleration",
                 "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
                 "CartesianPivotAcceleration", "CartesianPivotStepSize" ].includes(name)){
                 let instruction_array_copy = instruction_array.slice();
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(first_arg * _nbits_cf);
+                return instruction_array_copy
+            }
+            else if(["AngularSpeed"].includes(name)){
+                let instruction_array_copy = instruction_array.slice();
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = this.degrees_to_dexter_units(first_arg);
                 return instruction_array_copy
             }
             else if (name.includes("Boundry")) { //the full name is  J1BoundryHigh thru J5BoundryHigh, or J1BoundryLow thru J5BoundryLow
@@ -32074,6 +32337,8 @@ globalThis.Socket = Socket$1;
 //import {Simqueue}      from "./simqueue.js"     //dde4 SimQueue is now global
 
 class DexterSim$1{
+    static robot_name_to_dextersim_instance_map = {}
+
     constructor(robot_name){ //called once per DDE session per robot_name by create_or_just_init
         this.robot_name = robot_name;
         this.robot      = Robot[robot_name]; //mostly used by predict_move_dur
@@ -32082,6 +32347,7 @@ class DexterSim$1{
                                    Socket.degrees_to_dexter_units(0, 6), //different from the others because for the others, 0 deg is also 0 dexter units, but not for j6
                                    50];  //50 which is the new HOME angle so that j7 doesn't overtorque.
         this.pid_angles_dexter_units = [0,0,0,0,0,0,0];  //last 2 angles are always zero.
+        this.parameters = {}; //record latest set_parameter values for simulator, esp for AngularSpeed
     }
 
     compute_measured_angles_dexter_units(){
@@ -32166,7 +32432,9 @@ class DexterSim$1{
         //these should be in dexter_units
         this.parameters = { //set_params. see Socket.js instruction_array_degrees_to_arcseconds_maybe
             Acceleration:  0.0001,        // in _nbits_cf units
+            AngularSpeed: 30 * 3600, //must be here so that the dur for a move can be computed in DexterSim.predict_a_instruction_dur_in_ms
             MaxSpeed:     30 * _nbits_cf, // in _nbits_cf units
+
             StartSpeed:    0 * _nbits_cf  // in _nbits_cf units
         };
         this.status_mode = 0; //can also be 1, set by "g" command.
@@ -32551,7 +32819,11 @@ class DexterSim$1{
 
             //predict_move_dur takes degrees in and returns seconds
             //let dur_in_seconds = Math.abs(Kin.predict_move_dur(orig_angles_in_deg, angles_in_deg, this.robot))
-            let dur_in_seconds = Math.abs(Kin.predict_move_dur_5_joint(orig_angles_in_deg, angles_in_deg, this.robot));
+            //let max_speed_nbits = this.parameters["MaxSpeed"]
+            //let max_speed_deg = max_speed_nbits / _nbits_cf
+            let max_speed_arcseconds = this.parameters["AngularSpeed"];
+            let max_speed_deg = max_speed_arcseconds / 3600;
+            let dur_in_seconds = Math.abs(Kin.predict_move_dur_5_joint(orig_angles_in_deg, angles_in_deg, max_speed_deg));
             //use 5 joint as j6 and j7 aren't part of this path.
             let dur_in_milliseconds = dur_in_seconds * 1000;
             return dur_in_milliseconds
@@ -32714,6 +32986,35 @@ class DexterSim$1{
 
     static robot_name_to_dextersim_instance_map = {}
     static set_interval_id = null
+
+    static change_speed(){
+        /*if(!Job.change_dexter_speed){
+            new Job ({name: "change_dexter_speed",
+                      do_list: [function() {
+                          debugger;
+                          let speed_str = change_dexter_speed_id.value
+                          //let index = selected_label.indexOf(" ")
+                          //let new_speed_str = selected_label.substring(index + 1)
+                          let new_speed = parseFloat(speed_str)
+                          out("Dexter." + Dexter.default.name + " AngularSpeed set to " + new_speed + " degrees per second.", "green")
+                          change_dexter_speed_id.value = 0 //set back to the "header" so can change to any speed next time. Note any job can change the speed during it.
+                          return Dexter.set_parameter("AngularSpeed", new_speed)
+                      }
+                      ]})
+        }
+        Job.change_dexter_speed.start()
+         */
+        let speed_str = change_dexter_speed_id.value;
+        //let index = selected_label.indexOf(" ")
+        //let new_speed_str = selected_label.substring(index + 1)
+        let new_speed = parseFloat(speed_str);
+        out("Dexter." + Dexter.default.name + " AngularSpeed set to " + new_speed + " degrees per second.", "green");
+        change_dexter_speed_id.value = 0; //set back to the "header" so can change to any speed next time. Note any job can change the speed during it.
+        let new_speed_arcsecs = new_speed * 3600;
+        let robot_name = Dexter.default.name;
+        let ds_instance =  DexterSim$1.robot_name_to_dextersim_instance_map[robot_name];
+        ds_instance.parameters["AngularSpeed"] = new_speed_arcsecs;
+    }
     
 }
 
@@ -33718,9 +34019,11 @@ class SimUtils$1{
         if(this.is_simulator_showing()) {
             sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length);
         }
-        if(this.is_simulator_showing()) {
-            Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
-        }
+
+        //if(this.is_simulator_showing()) {
+        //    Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+        //}
+        SimUtils$1.render();
     }
 
     //joint number is 1 thru 7
@@ -33971,7 +34274,8 @@ class SimUtils$1{
         if(this.is_simulator_showing()) {
             if (Simulate.sim.J6) {
                 Simulate.sim.J6.rotation.z = rads;
-                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+                //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+                SimUtils$1.render();
             }
             sim_pane_j6_id.innerHTML = j_angle_degrees_rounded;
         }
@@ -33988,10 +34292,11 @@ class SimUtils$1{
                 new_xpos *= 10;
                 //out("J7 j7_angle_degrees: " + j7_angle_degrees + " new xpos: " + new_xpos)
                 Simulate.sim.J7.position.setX(new_xpos); //see https://threejs.org/docs/#api/en/math/Vector3
-                Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+                //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+                SimUtils$1.render();
             }
             sim_pane_j7_id.innerHTML = j7_angle_degrees_rounded;
-            if (SimObj && SimObj.objects && SimObj.objects.length > 0) {
+            if (SimObj && SimObj.user_objects && SimObj.user_objects.length > 0) {
                 let rob        = ds_instance.robot;
                 let rob_pose   = rob.pose;
                 let xyz        = Kin.J_angles_to_xyz(angles_in_degrees, rob_pose)[0];
@@ -34029,6 +34334,9 @@ class SimUtils$1{
 
     static render(){
         if (this.is_simulator_showing()) {
+            if(globalThis.interactionManager) {
+                interactionManager.update();
+            }
             Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
         }
     }
@@ -34529,8 +34837,8 @@ class RobotStatus$1{
 
 
     //returns array. First elt is an array of x,y,z
-    xyz(){
-        let joint_angles = this.measured_angles(5);
+    xyz(joint_count = 5){
+        let joint_angles = this.measured_angles(joint_count);
         return Kin.J_angles_to_xyz(joint_angles)
     }
 

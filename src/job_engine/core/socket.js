@@ -334,7 +334,7 @@ class Socket{
         else { //oplet_array_or_string is an array
             let str = ""
             for(var i = 0; i < oplet_array_or_string.length; i++){
-                let suffix = ((i == (oplet_array_or_string.length - 1))? ";": " ")
+                let suffix = ((i === (oplet_array_or_string.length - 1))? ";": " ")
                 //let elt = oplet_array_or_string[i] + suffix
                 let elt = oplet_array_or_string[i]
                 if (Number.isNaN(elt)) { elt = "NaN" } //usually only for "a" instructions and only for elts > 4
@@ -424,11 +424,17 @@ class Socket{
             const first_arg = args[0]
             //first convert degrees to arcseconds
             if(["MaxSpeed", "StartSpeed", "Acceleration",
-                "AngularSpeed", "AngularSpeedStartAndEnd", "AngularAcceleration",
+                //"AngularSpeed",
+                "AngularSpeedStartAndEnd", "AngularAcceleration",
                 "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
                 "CartesianPivotAcceleration", "CartesianPivotStepSize" ].includes(name)){
                 let instruction_array_copy = instruction_array.slice()
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(first_arg * _nbits_cf)
+                return instruction_array_copy
+            }
+            else if(["AngularSpeed"].includes(name)){
+                let instruction_array_copy = instruction_array.slice()
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = this.degrees_to_dexter_units(first_arg)
                 return instruction_array_copy
             }
             else if (name.includes("Boundry")) { //the full name is  J1BoundryHigh thru J5BoundryHigh, or J1BoundryLow thru J5BoundryLow

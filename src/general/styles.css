@@ -49,6 +49,17 @@ button:hover              {border-color:lime;}
 input[type=button]:active {color:lime;}
 input[type=submit]:active {color:lime;}
 button:active             {color:lime;}
+
+.link_like_button { /*style a button so it looks like a link. Useful for show_window to mae a button look like a link*/
+    background-color: white !important;
+    border: none !important;
+    color: blue !important;
+    padding: 3px !important;
+    text-decoration: underline !important;
+    margin: 4px 2px !important;
+    cursor: pointer !important;
+
+}
 /* svg:focus { outline: 3px solid rgb(100,150,255); } */
 /* .jqx-menu-item {width:400px !important;} this forces menu items to be just 1 line but truncates it at about 150px regardless of the setting*/
 code { background-color:white; }

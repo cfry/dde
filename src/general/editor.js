@@ -882,6 +882,9 @@ class Editor {
 
     //the onclick handler for the pull down file select in DDE4
     static async open_local_file_from_menu(event){
+        if(Editor.current_buffer_needs_saving){
+            await Editor.save_local_file()
+        }
         let menu_item_label       = event.target.value //could be "new buffer" or an actual file
         let path = Editor.files_menu_path_to_path(menu_item_label)
         //let file_name  = Editor.path_to_file_name(menu_item_label)
@@ -907,15 +910,28 @@ class Editor {
      //if they choose a file, the callback is called with:
      //the path chosen and the content of the file
      //else if user canceled from the file dialog, the callback is called with null, null.
-     static async pick_and_process_content(callback=out) {
+    //BUT if NOT passed a callback, we just return the content
+    //to some call that is await-ing it.
+     static async pick_and_process_content(callback=null) {
          let path = await Editor.pick_local_file()
          //out("back in pick_and_process_content with path: " + path)
          if (path) {
              let content = await Editor.get_content_at_local_path(path)
              //out("back in pick_and_process_content with content: " + content)
-             callback(path, content)
-         } else {
-             callback(null, null)
+             if(callback) {
+                 callback(path, content)
+             }
+             else {
+                 return content
+             }
+         }
+         else {
+             if(callback) {
+                 callback(null, null)
+             }
+             else {
+                 return null //meaning no path
+             }
          }
      }
 
@@ -956,11 +972,14 @@ class Editor {
 
     //"this" needs to be user event
     static async open_local_file(path = null) {
-        let confirm_message = "The editor buffer has unsaved changes.\n" +
-            "Click OK to save it before editing the other file.\n" +
-            "Click Cancel to not save it before editing the other file."
-
-        await Editor.save_local_file.call(this, undefined, confirm_message) //don't use "this." here
+        if(Editor.current_buffer_needs_saving){
+            let confirm_message = "The editor buffer has unsaved changes.\n" +
+                "Click OK to save it before editing the other file.\n" +
+                "Click Cancel to not save it before editing the other file."
+            if(confirm(confirm_message)) {
+                await Editor.save_local_file()
+            }
+        }
         let options = ((typeof(path) === "string") ? {suggestedName: Editor.path_to_file_name(path)} : undefined)
         let [fileHandle] = await window.showOpenFilePicker(options)
         console.log("open_local_file got new file file_handle: " + fileHandle)
@@ -1067,16 +1086,11 @@ class Editor {
     //if confirm_message is null, don't confirm with user, just save.
     //open_local_file passes a real confirm message to check if user wants to save the file
     static async save_local_file(path = Editor.current_file_path,
-                                 confirm_message=null) {
-        let old_content = Editor.get_javascript()
-        if(!Editor.current_buffer_needs_saving ||
-                (old_content.trim().length === 0)){
-               //no need to save. save
-            return
-        }
+                                 confirm_message=null,
+                                 content=Editor.get_javascript()) {
         let handle = Editor.local_path_to_save_file_handle[path]
-        if (handle && DDE_DB.persistent_get("save_on_eval")) {
-            Editor.save_local_file_handle(handle)
+        if (handle) {
+            Editor.save_local_file_handle(handle, content)
         }
         else if (confirm_message) {
             if (confirm(confirm_message)) {
@@ -1087,9 +1101,10 @@ class Editor {
                 }
                 if (handle) { //path is not in local_path_to_file_handle
                     Editor.local_path_to_save_file_handle[path] = handle
-                    Editor.save_local_file_handle(handle)
+                    Editor.save_local_file_handle(handle, content)
                 }
             }
+            //else user back out, do nothing
         }
         else { //no confirm message
             if (!handle) { //if there's already a cached handle, no need to ask the user to get a handle
@@ -1100,21 +1115,32 @@ class Editor {
             if (handle) { //path is not in local_path_to_file_handle
                 let path_to_save_to = "/local/" + handle.name
                 Editor.local_path_to_save_file_handle[path_to_save_to] = handle
-                Editor.save_local_file_handle(handle)
+                Editor.save_local_file_handle(handle, content)
             }
         }
         //else user canceled the save meaning they didn't want to after all.
     }
 
-    static async save_local_file_as(path= Editor.current_file_path){
-        let handle = await Editor.get_handle() //calls showSaveFilePicker
-        if (handle) { //user might have canceled in the file picker
-            Editor.save_local_file_handle(handle)
+    static async save_local_file_as(confirm_message=null,
+                                    content=Editor.get_javascript(false)){
+        if (confirm_message) {
+            if (confirm(confirm_message)) {
+                let handle = await Editor.get_handle() //calls showSaveFilePicker
+                if (handle) { //user might have canceled in the file picker
+                    Editor.save_local_file_handle(handle, content)
+                }
+            }
+            //else user back out, do nothing
+        }
+        else { //no confirm message
+            let handle = await Editor.get_handle() //calls showSaveFilePicker
+            if (handle) { //user might have canceled in the file picker
+                Editor.save_local_file_handle(handle, content)
+            }
         }
     }
 
-    static async save_local_file_handle(handle){
-        let content = Editor.get_javascript(false)
+    static async save_local_file_handle(handle, content=Editor.get_javascript(false)){
         // creates a writable, used to write data to the file.
         const writable = await handle.createWritable();
         // write a string to the writable.
