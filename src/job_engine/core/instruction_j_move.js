@@ -423,6 +423,7 @@ new Job({
 
 
 /*
+
 //This should not be a DDE function, these should be defined correctly when a robot is first made and never changed.
 function j_set_hardware_limits(){
     //I'll come back and make this have args for everything later
