@@ -6477,6 +6477,76 @@ You might want to do this in an emergency situation or if the environment unexpe
 See also the instruction: <code>IO.grab_robot_status</code>
 </details>
 
+<details id="j_move_instructions_doc_id" class="doc_details"><summary>j_move_instructions</summary>
+The j_move instructions control Dexter precisely in velocity, acceleration,
+and jerk, providing for smooth motions.
+<details id="j_move_doc_id" class="doc_details"><summary>j_move</summary>
+    <code>Dexter.j_move</code> allows very precise Dexter motions.<br/>
+    <span style="color:red">Warning: this documentation is incomplete.</span><br/>
+    j_move is implemented using the "j" oplet. There
+    are three sub-oplets that provide attributes ("j", "a", and "v").
+    The "high level" j_move instruction sends a combination of lower-level
+    oplet instructions to Dexter.<br/>
+    <i>Parameters:</i><br/>
+    <b>j_angles</b> Required. An array of 6 numbers indicating degrees for
+    joints 1 through 6. The goal angles to be reached at the end of the j_move.<br/>
+    <b>options</b> Default: <code>{}</code> Tweaks to the motion of Dexter during the j_move.
+    <ul>
+        <li><b>end_velocity</b> default: <code>[0, 0, 0, 0, 0, 0]</code> An array of 6 numbers, one for each of joints 1 through 6.</li>
+        <li><b>end_acceleration:</b> default: <code> [0, 0, 0, 0, 0, 0]</code></li> An array of 6 numbers, one for each of joints 1 through 6.</li>
+        <li><b>duration:</b> default: <code> "?"</code></li>
+        <li><b>async:</b> Boolean. default: <code>false</code><br/>
+            If <code>true</code>, after the  j_move instruction is sent to Dexter,
+            the Job is immediately told to continue sending instructions
+            to Dexter.<br/>
+            If <code>false</code>, the Job waits until the j_move is complete
+            before running any more instructions.<br/>
+            See the example for <code>Dexter.j_reset</code>.
+        </li>
+        <li><b>sync_delay:</b> default: <code> 0.05</code></li>
+        <li><b>peak_velocity:</b> default: <code> undefined</code> An array of 6 numbers, one for each of joints 1 through 6.</li>
+        <li><b>peak_acceleration:</b> default: <code> undefined</code> An array of 6 numbers, one for each of joints 1 through 6.</li>
+        <li><b>peak_jerk:</b> default: <code> undefined</code> An array of 6 numbers, one for each of joints 1 through 6.</li>
+        <li><b>monitor_callback:</b> default: <code> function(){}</code></li>
+    </ul>
+    <i>Example:</i>
+    <pre><code title="not in Testsuite.">new Job({
+    name: "j_move_example_0",
+    show_instructions: false,
+    do_list: [
+    Dexter.j_move([0, -45, 0, 0, 0]),
+    Dexter.j_move([0, 45, 0, 0, 0], {})
+    ]
+})</code></pre>
+</details>
+
+<details id="j_reset_doc_id" class="doc_details"><summary>j_reset</summary>
+    <code>Dexter.j_reset</code> Stops the robot in the middle of a j_move
+    and empties the j_move queue.
+    <p></p>
+    In the below example, the <code>{async: true}</code>
+    causes the j_move instruction to be sent to Dexter and Dexter immediately
+    returns, telling the job to send the next instruction.
+    The next instruction causes a wait for 1 second until the the
+    next instruction on the do_list is run, which is <code>Dexter.j_reset()</code>
+    At this time the j_move instruction is ongoing, having completed the initial
+    second of its movement. But the j_reset halts that instruction in the middle,
+    and clears any other instructions in the j_move queue (in this case none).
+    <p></p>
+    <i>Example:</i>
+    <pre><code title="not in Testsuite.">new Job({
+    name: "j_reset_example",
+    show_instructions: false,
+    do_list: [
+         Dexter.j_move([0, -45, 0, 0, 0], {async: true}),
+         Control.wait_until(1),
+         Dexter.j_reset()
+    ]
+})</code></pre>
+</details>
+</details> <!-- end of j_move_instructions -->
+
+
 <details id="make_ins_doc_id" class="doc_details"><summary>make_ins</summary>
     Normally you should make instructions for Dexter using one of the high level method calls,
     ie <code>Dexter.move_all_joints</code>. However, we provide the function <code>make_ins</code>,

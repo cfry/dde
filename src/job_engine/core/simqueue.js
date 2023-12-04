@@ -47,12 +47,12 @@
 
 class Simqueue{
     static queue_max_length = 16
-    constructor(sim_instance){
-        this.sim_instance = sim_instance
+    constructor(dexter_sim_instance){
+        this.dexter_sim_instance = dexter_sim_instance
         this.queue = [] //new Array of 16 fails because length will == 16, and first push pushes to index 16  new Array(Simqueue.queue_max_length)
         this.queue_blocking_instruction = null //set when F cmd comes in, to that F instruction_array
         this.sleep_dur_us = 0   //microseconds
-        this.queue_dom_elt_id_string_prefix         = this.sim_instance.robot_name + "_queue_"
+        this.queue_dom_elt_id_string_prefix         = this.dexter_sim_instance.robot_name + "_queue_"
         this.queue_dom_elt_status_string            = this.queue_dom_elt_id_string_prefix + "status_id"
         this.queue_dom_elt_instruction_table_string = this.queue_dom_elt_id_string_prefix + "instruction_table_id"
         this.latest_sent_queued_instruction = null //every time a cmd is added to the queue, this var is set to it.
@@ -61,8 +61,8 @@ class Simqueue{
          //so we need this state var. J1 thru 5 make up the "SENT" robot_status row.
         this.instr_to_param_map = {} //keys are an instruction array. Values are an array of a set param name (string) and its new value
                                      //to be set in sim_inst.parameters whenever the instr is done executing (ie when removed from queue
-        this.joint_number_to_j6_plus_status_map = {6: "stopped at " + sim_instance.angles_dexter_units[5],
-                                                   7: "stopped at " + sim_instance.angles_dexter_units[6]
+        this.joint_number_to_j6_plus_status_map = {6: "stopped at " + dexter_sim_instance.angles_dexter_units[5],
+                                                   7: "stopped at " + dexter_sim_instance.angles_dexter_units[6]
                                                   }
         this.joint_number_to_render_j6_plus_frame_call_map = {}
         this.show_degrees = false
@@ -157,8 +157,8 @@ class Simqueue{
         if(param_names_and_values){
             for(let param_name in param_names_and_values){
                 let param_value = param_names_and_values[param_name]
-                this.sim_instance.parameters[param_name] = param_value
-                //this.sim_instance.simout("set_parameter: " + param_name + " to " + param_value)
+                this.dexter_sim_instance.parameters[param_name] = param_value
+                //this.dexter_sim_instance.simout("set_parameter: " + param_name + " to " + param_value)
             }
         }
         delete this.instr_to_param_map[cur_inst] //not needed anymore
@@ -173,7 +173,7 @@ class Simqueue{
     //do not remove the front instruction from the queue until AFTER its done running
     start_running_instruction_if_any(){
         if(this.is_queue_empty()) {
-            this.sim_instance.simout("queue is empty.")
+            this.dexter_sim_instance.simout("queue is empty.")
         }
         else {
             let instruction_array = this.current_instruction_in_queue()
@@ -199,12 +199,12 @@ class Simqueue{
            let instr = this.queue_blocking_instruction
            this.queue_blocking_instruction = f_instruction_array
            this.update_show_queue_if_shown() //probably not necessary because queue is already blocked
-           this.sim_instance.ack_reply(instr)
+           this.dexter_sim_instance.ack_reply(instr)
         }
         else if(this.is_queue_empty()){ //since the queue is already empty,
         //this instruction is basically a no-op. Don't set this.queue_blocking_instruction
         //just ack_reply
-            this.sim_instance.ack_reply(f_instruction_array)
+            this.dexter_sim_instance.ack_reply(f_instruction_array)
         }
         else { //normal case
             this.queue_blocking_instruction = f_instruction_array
@@ -216,7 +216,7 @@ class Simqueue{
         if(this.queue_blocking_instruction){
             let instr = this.queue_blocking_instruction
             this.queue_blocking_instruction = null
-            this.sim_instance.ack_reply(instr)
+            this.dexter_sim_instance.ack_reply(instr)
         }
     }
 
@@ -224,7 +224,7 @@ class Simqueue{
     unblock_from_unfull_maybe(){
         if(this.queue.length === (Simqueue.queue_max_length - 1)){
           let newest_instr = this.newest_instruction_in_queue()
-          this.sim_instance.ack_reply(newest_instr) //because its ack_reply wasn't called when it first came in and filled the queue
+          this.dexter_sim_instance.ack_reply(newest_instr) //because its ack_reply wasn't called when it first came in and filled the queue
         }
     }
 
@@ -248,14 +248,14 @@ class Simqueue{
            actions[param_name] = param_value
         }
         else { //queue is empty so just set params immediately and don't put them in instr_to_param_map
-               this.sim_instance.parameters[param_name] = param_value
-               //this.sim_instance.simout("set_parameter: " + param_name + " to " + param_value)
+               this.dexter_sim_instance.parameters[param_name] = param_value
+               //this.dexter_sim_instance.simout("set_parameter: " + param_name + " to " + param_value)
         }
     }
 
     //J6_plus
     start_running_j6_plus_instruction(joint_number, new_angle_in_dexter_units){
-        let ds_instance = this.sim_instance
+        let ds_instance = this.dexter_sim_instance
         let dur_in_ms = ds_instance.predict_j6_plus_instruction_dur_in_ms(new_angle_in_dexter_units, joint_number)
         if(dur_in_ms === 0) {} //the joint is already at the commanded angle so nothing to do. This is a big optimization for a common case.
         else if (SimUtils.is_simulator_showing()){
@@ -274,7 +274,7 @@ class Simqueue{
 
     //just sets j6_plus status and updates
     done_with_j6_plus_instruction(joint_number){
-        let du = this.sim_instance.angles_dexter_units[joint_number - 1]
+        let du = this.dexter_sim_instance.angles_dexter_units[joint_number - 1]
         let val_for_show = (this.show_degrees ? Socket.dexter_units_to_degrees(du, joint_number) : du)
         val_for_show = (Number.isInteger(val_for_show) ? val_for_show : val_for_show.toFixed(3))
         this.joint_number_to_j6_plus_status_map[joint_number] = "stopped at " + val_for_show
@@ -290,7 +290,7 @@ class Simqueue{
         setTimeout(function(){ //end sleep
                      queue_instance.sleep_dur_us = 0 //must do before update_show_queue_status
                      queue_instance.update_show_queue_status_if_shown()
-                     queue_instance.sim_instance.ack_reply(sleep_instruction)
+                     queue_instance.dexter_sim_instance.ack_reply(sleep_instruction)
                     }, sleep_dur_ms)
     }
 
@@ -299,7 +299,7 @@ class Simqueue{
     //called at the start of rendering an instruction
     render_instruction(instruction_array){
         let ins_args  = instruction_array.slice(Instruction.INSTRUCTION_ARG0, Instruction.INSTRUCTION_ARG7)
-        let dur_in_ms = this.sim_instance.predict_a_instruction_dur_in_ms(ins_args)
+        let dur_in_ms = this.dexter_sim_instance.predict_a_instruction_dur_in_ms(ins_args)
         //out("render_instruction passed instruction_array: " + instruction_array)
         //let job_id    = instruction_array[Instruction.JOB_ID]
         //let job_instance = Job.job_id_to_job_instance(job_id)
@@ -307,31 +307,31 @@ class Simqueue{
         //I took it out because in the testsuite or ref man, if you have 2 job defs of the same
         //name next to each other, then the 2nd one removes the first one.
         //but if the first one has instructions in the queue, they belong to a
-        //non_exisitant job so getting the job_id out of the instruction array and
+        //non_existant job so getting the job_id out of the instruction array and
         //looking it up to find the job def will fail, causing an error.
         //so just avoid that. Dexter (and by extension the simulator) don't
         //know about Jobs and don't care. Useful for debugging perhaps, but
         //causes problems as in above.
-        let rob_name  = this.sim_instance.robot_name
-        if(true //SimUtils.is_simulator_showing()  //todo probbly change away from "true"
+        let rob_name  = this.dexter_sim_instance.robot_name
+        if(true //SimUtils.is_simulator_showing()  //todo probably change away from "true"
           ) { //globalThis.platform == "dde") //even if we're in dde, unless the sim pane is up, don't attempt to render
-            SimUtils.render_multi(this.sim_instance, ins_args, rob_name, dur_in_ms)
+            SimUtils.render_multi(this.dexter_sim_instance, ins_args, rob_name, dur_in_ms)
         }
         else {
             if(platform !== "node") {
                 warning('To see a graphical simulation, choose from the Misc pane menu: "Simulate" then select: "Simulate."')
             }
-            let the_job = this.sim_instance.job_of_last_instruction_sent()
+            let the_job = this.dexter_sim_instance.job_of_last_instruction_sent()
             this.render_once_node(instruction_array, the_job.name, rob_name) //renders after dur, ie when the dexter move is completed.
         }
     }
     render_once_node(instruction_array, job_name, rob_name, dur_in_ms){
         let instr_str = "<code style='background-color:white;'> " + instruction_array.join(", ") + " </code>"
-        this.sim_instance.simout("For Job." + job_name +
+        this.dexter_sim_instance.simout("For Job." + job_name +
                "<br/><span style='margin-left:106px;'>Simulating instruction: " + instr_str, "</span>")
           let queue_instance = this
           setTimeout(function(){
-              queue_instance.sim_instance.simout("Done with: <span style='margin-right;40px;'/>" + instr_str, "green")
+              queue_instance.dexter_sim_instance.simout("Done with: <span style='margin-right;40px;'/>" + instr_str, "green")
               queue_instance.done_with_instruction()
           }, dur_in_ms)
     }
@@ -413,18 +413,18 @@ class Simqueue{
                           this.make_show_queue_status() +
                           this.make_show_queue_instructions_table() +
                           '\n</div>'
-            show_window({title: "Queue simulation for Dexter:" + this.sim_instance.robot_name,
+            show_window({title: "Queue simulation for Dexter:" + this.dexter_sim_instance.robot_name,
                          content: content,
                          x:520, y:0, width:600, height: 400,
                          callback: "Simqueue.show_queue_cb"})
         }
         else {
-            this.sim_instance.simout("simqueue is already shown.")
+            this.dexter_sim_instance.simout("simqueue is already shown.")
         }
         this.update_show_queue_if_shown()
     }
     make_show_queue_status(){
-        let rob_name = this.sim_instance.robot_name
+        let rob_name = this.dexter_sim_instance.robot_name
         return  '<input type="hidden" name="robot_name" value="' + rob_name + '"/>\n' +
 
                 `<input type="button" name="show_instructions" ` +

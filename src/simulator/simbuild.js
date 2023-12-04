@@ -116,7 +116,7 @@ globalThis.SimBuild = class SimBuild{
     static gripper_closing_sim_build(j7_angle, xyz, object3d, rob){
         this.gripper_closing_default(j7_angle, xyz, object3d, rob)
         if(this.gripper_now_holding_object3d){ } //can't pick up an obj if you're holding one
-        else if (!object3dj) {
+        else if (!object3d) {
             out("Gripper didn't close on an object.")
         }
         else {

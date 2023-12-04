@@ -14,8 +14,8 @@ import require$$0 from 'domain';
 import path$1 from 'path';
 
 var name = "dde4";
-var version = "4.1.6";
-var release_date = "Nov 26, 2023";
+var version = "4.1.7";
+var release_date = "Dec 4, 2023";
 var description = "test rollup";
 var author = "Fry";
 var license = "GPL-3.0";
@@ -8313,6 +8313,20 @@ class Kin$1{
         //let speed = 30 //degrees per second
         let angle_length = Math.min(J_angles_original.length, J_angles_destination.length);
         angle_length = Math.min(angle_length, 5);
+        let delta = [];
+        for(let i = 0; i < angle_length; i++){
+            let delta_val = J_angles_destination[i] - J_angles_original[i];
+            delta.push(Math.abs(delta_val));
+        }
+        return Vector.max(delta)/speed
+    }
+
+    /*For J_moves. returns time in milliseconds*/
+    static predict_move_dur_6_joint(J_angles_original, J_angles_destination, speed=30){
+        //let speed = robot.prop("MAX_SPEED")
+        //let speed = 30 //degrees per second
+        let angle_length = Math.min(J_angles_original.length, J_angles_destination.length);
+        angle_length = Math.min(angle_length, 6);
         let delta = [];
         for(let i = 0; i < angle_length; i++){
             let delta_val = J_angles_destination[i] - J_angles_original[i];
@@ -17147,7 +17161,7 @@ class Job$1{
                  program_counter=0,
                  ending_program_counter="end",
                  initial_instruction=null,
-                 data_array_transformer="P",
+                 data_array_transformer= undefined, // was "P", butthat's too dangerous. Only make transforming available to a job if it explicitly indicates a transformer.
                  get_dexter_defaults = true, //if true, always get defaults from Defaults.makeins file or error
                                                       //if false, always get idealized values from Dexter.defaults class.
                  start_if_robot_busy=false,
@@ -17223,7 +17237,8 @@ class Job$1{
         dde_error("While defining Job." + name + "<br/>" + err.message);
         return
     }
-    if((typeof(data_array_transformer) == "function") ||
+    if((data_array_transformer === undefined) || //the default, don't allow data transformation
+       (typeof(data_array_transformer) == "function") ||
         Robot.is_oplet(data_array_transformer)) ; //ok
     else {
         dde_error("Attempt to define Job." + name + " with a data_array_transformer of:<br/>" +
@@ -17338,7 +17353,7 @@ class Job$1{
                 program_counter:0,
                 ending_program_counter:"end",
                 initial_instruction: null,
-                data_array_transformer: "P",
+                data_array_transformer: undefined,
                 get_dexter_defaults: true,
                 start_if_robot_busy: false,
                 if_robot_status_error: Job$1.prototype.if_robot_status_error_default,
@@ -19366,7 +19381,7 @@ Job$1.prototype.do_next_item = function(){ //user calls this when they want the 
             this.wait_until_instruction_id_has_run = this.program_counter;
             this.send(cur_do_item);
         }
-        else if (Instruction.is_data_array(cur_do_item)){
+        else if (this.data_array_transformer && Instruction.is_data_array(cur_do_item)){
             let new_do_item = this.transform_data_array(cur_do_item);
             if(Instruction.is_no_op_instruction(new_do_item)) { this.set_up_next_do(1); }
             else if(Instruction.is_sendable_instruction(new_do_item)){
@@ -19520,7 +19535,7 @@ Job$1.prototype.handle_function_call_or_gen_next_result = function(cur_do_item, 
     }
     else if (Array.isArray(do_items)){
         if(Instruction.is_oplet_array(do_items) ||
-           Instruction.is_data_array(do_items)){
+            (this.data_array_transformer && Instruction.is_data_array(do_items))){
            this.insert_single_instruction(do_items);
            this.set_up_next_do(1);
         }
@@ -19605,7 +19620,7 @@ Job$1.prototype.handle_start_object = function(cur_do_item){
         this.set_up_next_do(1);
 };
 
-//only ever passed an instrution_array or a "raw" string to send directly to dexter.
+//only ever passed an instruction_array or a "raw" string to send directly to dexter.
 //if a raw string, it starts with the oplet and has to have
 //the prefix added to it.
 Job$1.prototype.send = function(oplet_array_or_string, robot){ //if remember is false, its a heartbeat
@@ -29323,6 +29338,530 @@ IO$1.take_picture = Robot.take_picture;
 
 globalThis.IO = IO$1;
 
+//we import it here, just to make sure its loaded,
+ //before the below code is loaded.
+
+
+class Control$1{
+    static is_control_instruction(arg){
+        if(!this.instruction_classes_in_control) {
+            this.init_classes_in_control();
+        }
+        for(let claz of Control$1.instruction_classes_in_control){
+            if(arg instanceof claz) { return true }
+        }
+        return false
+     }
+    /*static is_control_instruction(arg){
+        for(let claz of Instruction.control_classes){
+            if(arg instanceof claz) { return true }
+        }
+        return false
+    }*/
+     static init_classes_in_control() {
+        Control$1.instruction_classes_in_control = [
+            Instruction.break,
+            Instruction.continue,
+            Instruction.go_to,
+            Instruction.loop,
+            Instruction.label,
+            Instruction.suspend,
+            Instruction.unsuspend,
+            Instruction.sync_point,
+            Instruction.wait_until,
+
+            Instruction.include_job,
+            Instruction.send_to_job,
+            Instruction.sent_from_job,
+            Instruction.start_job,
+            Instruction.stop_job,
+
+            Instruction.debugger,
+            Instruction.step_instructions,
+            Instruction.error,
+            Instruction.if_any_errors
+        ];
+     }
+}
+Control$1.instruction_classes_in_control = null;
+
+//Methods that result in an instance of a Control class
+Control$1.break = Robot.break;
+Control$1.continue = Robot.continue;
+Control$1.go_to = Robot.go_to;
+Control$1.loop = Robot.loop;
+Control$1.label = Robot.label;
+Control$1.set_inter_do_item_dur = Robot.set_inter_do_item_dur;
+Control$1.suspend = Robot.suspend;
+Control$1.unsuspend = Robot.unsuspend;
+Control$1.sync_point = Robot.sync_point;
+Control$1.wait_until = Robot.wait_until;
+
+Control$1.include_job = Robot.include_job;
+Control$1.send_to_job = Robot.send_to_job;
+Control$1.sent_from_job = Robot.sent_from_job;
+Control$1.start_job = Robot.start_job;
+Control$1.stop_job = Robot.stop_job;
+
+Control$1.debugger = Robot.debugger;
+Control$1.step_instructions = Robot.step_instructions;
+Control$1.error = Robot.error;
+Control$1.if_any_errors = Robot.if_any_errors;
+
+globalThis.Control = Control$1;
+
+/* Dexter_j_move_proposal.dde
+Written by: James Wigglesworth
+Started: 11/13/2023
+Modified: 11/27/2023
+
+
+Proposed new functions:
+	-Dexter.j_move()
+    -Dexter.j_reset()
+    -Dexter.j_set_peak_velocity()
+    -Dexter.j_set_peak_acceleration()
+    -Dexter.j_set_peak_jerk()
+
+
+Example Dexter.j_move() calls:
+
+Dexter.j_move([0, -45, 0, 0, 0]),
+Dexter.j_move([0, -45, 0, 0, 0, 0]),
+Dexter.j_move([0, -10, 0, 0, 0], {duration: 1}),
+Dexter.j_move([0, 0, 0, 0, 0, 0], {end_velocity: [30, 0, 0, 0, 0, 0]}),
+Dexter.j_move([0, 0, 0, 0, 0, 0], {end_acceleration: [30, 0, 0, 0, 0, 0]}),
+Dexter.j_move([0, 30, 0, 0, 0, 0], {async: true}),
+
+
+
+Dexter.j_move([0, 30, 0, 0, 0, 0], {
+    end_velocity: [0, 0, 0, 0, 0, 0],
+    end_acceleration: [0, 0, 0, 0, 0, 0],
+    duration: "?", //'?' means get there as fast as possible
+    async: undefined, //defualts true if coming to stop, false if moving through point, will always be overwritten by user value
+}),
+
+
+
+//Limits:
+var speed = [30, 30, 30, 30, 30, 30]
+var accel = [150, 150, 150, 150, 150, 150]
+var jerk = [3000, 3000, 3000, 3000, 3000, 3000]
+define_j_move_functions() //this is just to show the code for the Jobs first in this file
+
+//Job Examples:
+
+//Example 1 - simple motion
+new Job({
+    name: "j_move_example_1",
+    show_instructions: false,
+    when_stopped: function(){
+        return Dexter.j_reset()
+    },
+    do_list: [
+        j_set_hardware_limits(),
+        Dexter.j_set_peak_velocity(speed),
+        Dexter.j_set_peak_acceleration(accel),
+        Dexter.j_set_peak_jerk(jerk),
+
+        Control.loop(true, function(){
+            return [
+                Dexter.j_move([0, -45, 0, 0, 0]),
+                Dexter.j_move([0, 45, 0, 0, 0]),
+            ]
+        })
+    ]
+})
+
+Example 1 oplet strings sent per loop
+    j p 0,-162000,0,0,0,0;
+    j v 0,0,0,0,0,0;
+    j a 0,0,0,0,0,0 ?;
+    F 50;
+    j p 0,162000,0,0,0,0;
+    j v 0,0,0,0,0,0;
+    j a 0,0,0,0,0,0 ?;
+    F 50;
+
+
+
+//Example 2 - simple motion with duration
+new Job({
+    name: "j_move_example_2",
+    show_instructions: false,
+    when_stopped: function(){
+        return Dexter.j_reset()
+    },
+    do_list: [
+        j_set_hardware_limits(),
+        Dexter.j_set_peak_velocity(speed),
+        Dexter.j_set_peak_acceleration(accel),
+        Dexter.j_set_peak_jerk(jerk),
+
+        Dexter.j_move([0, 0, 0, 0, 0]),
+        Control.loop(true, function(){
+            return [
+                Dexter.j_move([0, -10, 0, 0, 0], {duration: 1}),
+                Dexter.j_move([0, -5, 0, 0, 0], {duration: 1}),
+                Dexter.j_move([0, 10, 0, 0, 0], {duration: 1}),
+            ]
+        })
+    ]
+})
+
+Example 2 oplet strings sent per loop
+    j p 0,-36000,0,0,0,0;
+    j v 0,0,0,0,0,0;
+    j a 0,0,0,0,0,0 1;
+    F 50;
+    j p 0,-18000,0,0,0,0;
+    j v 0,0,0,0,0,0;
+    j a 0,0,0,0,0,0 1;
+    F 50;
+    j p 0,36000,0,0,0,0;
+    j v 0,0,0,0,0,0;
+    j a 0,0,0,0,0,0 1;
+    F 50;
+
+
+
+//Example 3 - Motion through a waypoint
+new Job({
+    name: "j_move_example_3",
+    show_instructions: false,
+    when_stopped: function(){
+        return Dexter.j_reset()
+    },
+    do_list: [
+        j_set_hardware_limits(),
+        Dexter.j_set_peak_velocity(speed),
+        Dexter.j_set_peak_acceleration(accel),
+        Dexter.j_set_peak_jerk(jerk),
+
+        Control.loop(true, function(){
+            return [
+                Dexter.j_move([-30, -30, 0, 0, 0, 0]),
+                Dexter.j_move([0, 0, 0, 0, 0, 0], {end_velocity: [30, 0, 0, 0, 0, 0]}),
+                Dexter.j_move([30, 0, 0, 0, 0, 0]),
+            ]
+        })
+    ]
+})
+
+Example 3 oplet strings sent per loop
+    j p -108000,-108000,0,0,0,0;
+    j v 0,0,0,0,0,0;
+    j a 0,0,0,0,0,0 ?;
+    F 50;
+    j p 0,0,0,0,0,0;
+    j v 108000,0,0,0,0,0;
+    j a 0,0,0,0,0,0 ?;
+    j p 108000,0,0,0,0,0;
+    j v 0,0,0,0,0,0;
+    j a 0,0,0,0,0,0 ?;
+    F 50;
+
+
+//Example 4 - Sync vs. Async calls (This won't work until we impliment 'F' to work for j moves)
+new Job({
+    name: "j_move_example_4",
+    show_instructions: false,
+    when_stopped: function(){
+        return Dexter.j_reset()
+    },
+    user_data: {
+        move_count: 0,
+    },
+    do_list: [
+        j_set_hardware_limits(),
+        Dexter.j_set_peak_velocity(speed),
+        Dexter.j_set_peak_acceleration(accel),
+        Dexter.j_set_peak_jerk(jerk),
+
+        Control.loop(true, function(){
+            return [
+                function(){
+                    this.user_data.move_count++
+                    out("Synchronous j_move " + this.user_data.move_count + " starting...")
+                    this.user_data.start_time = Date.now()
+                },
+                Dexter.j_move([0, -30, 0, 0, 0, 0]),
+                function(){
+                    let duration = Vector.round((Date.now() - this.user_data.start_time)*_ms, 5)
+                    out("Synchronous j_move " + this.user_data.move_count + " completed in " + duration)
+                },
+
+                function(){
+                    out("Asynchronous j_move " + this.user_data.move_count + " starting...")
+                    this.user_data.start_time = Date.now()
+                },
+                Dexter.j_move([0, 30, 0, 0, 0, 0], {async: true}),
+                function(){
+                    let duration = Vector.round((Date.now() - this.user_data.start_time)*_ms, 5)
+                    out("Asynchronous j_move " + this.user_data.move_count + " completed in " + duration)
+                },
+
+                function(){
+                    this.user_data.move_count++
+                    out("Synchronous j_move " + this.user_data.move_count + " starting...")
+                    this.user_data.start_time = Date.now()
+                },
+                Dexter.j_move([0, 0, 0, 0, 0, 0]),
+                function(){
+                    let duration = Vector.round((Date.now() - this.user_data.start_time)*_ms, 5)
+                    out("Synchronous j_move " + this.user_data.move_count + " completed in " + duration)
+                },
+
+            ]
+        })
+    ]
+})
+
+Example 4 oplet strings sent per loop
+    j p -108000,-108000,0,0,0,0;
+    j v 0,0,0,0,0,0;
+    j a 0,0,0,0,0,0 ?;
+    F 50;
+    j p 0,0,0,0,0,0;
+    j v 108000,0,0,0,0,0;
+    j a 0,0,0,0,0,0 ?;
+
+
+//Example 5 - Sync calls while moving (This won't work until we impliment sync_delay for 'F')
+new Job({
+    name: "j_move_example_5",
+    show_instructions: false,
+    when_stopped: function(){
+        return Dexter.j_reset()
+    },
+    user_data: {
+        move_count: 0,
+    },
+    do_list: [
+        j_set_hardware_limits(),
+        Dexter.j_set_peak_velocity(speed),
+        Dexter.j_set_peak_acceleration(accel),
+        Dexter.j_set_peak_jerk(jerk),
+
+        Control.loop(true, function(){
+            return [
+                Dexter.j_move([0, -30, 0, 0, 0, 0]),
+                Dexter.j_move([0, 0, 0, 0, 0, 0], {end_velocity: [0, 30, 0, 0, 0, 0], async: false, sync_delay: -0.1}),
+                function(){
+                    this.user_data.move_count++
+                    out("Midpoint " + this.user_data.move_count)
+                },
+                Dexter.j_move([0, 30, 0, 0, 0, 0]),
+            ]
+        })
+    ]
+})
+
+Example 5 oplet strings sent per loop
+    j p 0,-108000,0,0,0,0;
+    j v 0,0,0,0,0,0;
+    j a 0,0,0,0,0,0 ?;
+    F 50;
+    j p 0,0,0,0,0,0;
+    j v 0,108000,0,0,0,0;
+    j a 0,0,0,0,0,0 ?;
+    F -100;
+    j p 0,108000,0,0,0,0;
+    j v 0,0,0,0,0,0;
+    j a 0,0,0,0,0,0 ?;
+    F 50;
+
+
+new Job({
+    name: "stop_j_move",
+    inter_do_item_dur: 0,
+    show_instructions: false,
+    do_list: [
+        Dexter.j_reset()
+    ]
+})
+
+new Job({
+    name: "Home",
+    inter_do_item_dur: 0,
+    show_instructions: false,
+    do_list: [
+        j_set_hardware_limits(),
+        Dexter.j_set_peak_velocity(speed),
+        Dexter.j_set_peak_acceleration(accel),
+        Dexter.j_set_peak_jerk(jerk),
+
+        Dexter.j_move([0, 0, 0, 0, 0])
+    ]
+})
+*/
+    //stops Dexter from moving where ever it is and leaves it there.
+    Dexter.j_reset = function(){
+        return make_ins("j")
+    };
+
+    Dexter.j_set_peak_velocity = function(velocity = [30, 30, 30, 30, 30, 30]){
+        let cmd = [];
+        for(let i = 0; i < velocity.length; i++){
+            cmd.push(make_ins("S", "JointSpeed " + (i+1) + " " + Math.round(velocity[i]/_arcsec)));
+        }
+        return cmd
+    };
+
+    Dexter.j_set_peak_acceleration = function(acceleration = [300, 300, 300, 300, 300, 300]){
+        let cmd = [];
+        for(let i = 0; i < acceleration.length; i++){
+            cmd.push(make_ins("S", "JointAcceleration " + (i+1) + " " + Math.round(acceleration[i]/_arcsec)));
+        }
+        return cmd
+    };
+
+    Dexter.j_set_peak_jerk = function(jerk = [3000, 3000, 3000, 3000, 3000, 3000]){
+        let cmd = [];
+        for(let i = 0; i < jerk.length; i++){
+            cmd.push(make_ins("S", "JointJerk " + (i+1) + " " + Math.round(jerk[i]/_arcsec)));
+        }
+        return cmd
+    };
+
+
+    //goal_position is an array of angles, its lengths should be the same as the
+    //measured angles that we compare to.
+    //Truncate rs[Dexter.J1_MEASURED_ANGLE], based on goal_position length
+    Dexter.wait_until_measured_angles = function(goal_position, tolerance = 0.05, callback){
+        return Control.loop(true, function(){
+            let cmd = [];
+
+            let rs = this.robot.rs;
+            let meas = rs.measured_angles(goal_position.length);
+
+            let error = Vector.max(Vector.abs(Vector.subtract(meas, goal_position)));
+            cmd.push(callback);
+            if(error < tolerance){
+                cmd.push(Control.break());
+            }else {
+                cmd.push(Dexter.get_robot_status());
+            }
+            return cmd
+        })
+    };
+
+    Dexter.j_move = function(j_angles = [], options = {
+        end_velocity: [0, 0, 0, 0, 0, 0],
+        end_acceleration: [0, 0, 0, 0, 0, 0],
+        duration: "?",
+        async: false,
+        sync_delay: 0.05,
+        peak_velocity: undefined,
+        peak_acceleration: undefined,
+        peak_jerk: undefined,
+        monitor_callback: function(){}
+    }){
+
+        let default_options = {
+            end_velocity: [0, 0, 0, 0, 0, 0],
+            end_acceleration: [0, 0, 0, 0, 0, 0],
+            duration: "?", //'?' means get there as fast as possible
+
+            async: false, //defaults true if coming to stop, false if moving through point, will always be overwritten by user value
+            sync_delay: 0.05, //time from JtQ completion. Negative value means 'time before completion'.
+
+            peak_velocity: undefined,
+            peak_acceleration: undefined,
+            peak_jerk: undefined,
+
+            monitor_callback: function(){} //This function will get called over and over waiting for movement to complete. It returns to the do_list. It takes no args but THIS is the job,
+            //returns a list of instructions that are put on the do_list.
+        };
+
+        if(j_angles.length === 5){
+            j_angles.push(0);
+        }else if(j_angles.length !== 6){
+            dde_error("Dexter.j_move() was passed: " + j_angles + "<br>It must have 5 or 6 joint angles as arguments");
+        }
+
+        let option_keys = Object.keys(options);
+        let default_option_keys = Object.keys(default_options);
+        for(let i = 0; i < option_keys.length; i++){
+            if(!default_option_keys.includes(option_keys[i])){
+                dde_error("Dexter.j_move() passed an invalid option: " + option_keys[i] + "<br>Valid options: " + JSON.stringify(default_option_keys));
+            }
+            default_options[option_keys[i]] = options[option_keys[i]];
+        }
+
+        /*
+        if(default_options.async === false || Vector.is_equal(default_options.end_velocity, [0, 0, 0, 0, 0, 0]) && Vector.is_equal(default_options.end_acceleration, [0, 0, 0, 0, 0, 0])){
+            default_options.async = false
+        }else{
+            default_options.async = true
+        }
+        */
+
+        if(default_options.end_velocity.length === 5){
+            default_options.end_velocity.push(0);
+        }
+
+        if(default_options.end_acceleration.length === 5){
+            default_options.end_acceleration.push(0);
+        }
+
+        let cmd = [];
+
+        if(default_options.peak_velocity !== undefined){
+            cmd.push(Dexter.j_set_peak_velocity(default_options.peak_velocity));
+        }
+        if(default_options.peak_acceleration !== undefined){
+            cmd.push(Dexter.j_set_peak_acceleration(default_options.peak_acceleration));
+        }
+        if(default_options.peak_jerk !== undefined){
+            cmd.push(Dexter.j_set_peak_jerk(default_options.peak_jerk));
+        }
+
+        cmd.push(make_ins("j", "p", ...Vector.round(Vector.multiply(j_angles, 1/_arcsec), 0)));
+        cmd.push(make_ins("j", "v", ...Vector.round(Vector.multiply(default_options.end_velocity, 1/_arcsec), 0)));
+        cmd.push(make_ins("j", "a", ...Vector.round(Vector.multiply(default_options.end_acceleration, 1/_arcsec), 0), default_options.duration));
+
+        if(default_options.async === false){
+            //Eventually this will be the F oplet but for now:
+            cmd.push(Dexter.wait_until_measured_angles(j_angles, undefined, options.monitor_callback));
+            cmd.push(Control.wait_until(options.sync_delay));
+            //cmd.push(make_ins("F", Math.round(default_options.sync_delay/_ms))) //This may or may not become a different oplet specifically for j moves. Units could become seconds too.
+        }
+
+        return cmd
+    };
+
+
+
+/*
+//This should not be a DDE function, these should be defined correctly when a robot is first made and never changed.
+function j_set_hardware_limits(){
+    //I'll come back and make this have args for everything later
+    return [
+        "S, JointHardwareMaxSpeed, 1, 2880000;",
+        "S, JointHardwareMaxSpeed, 2, 2880000;",
+        "S, JointHardwareMaxSpeed, 3, 2880000;",
+        "S, JointHardwareMaxSpeed, 4, 4320000;",
+        "S, JointHardwareMaxSpeed, 5, 4320000;",
+        "S, JointHardwareMaxSpeed, 6, 5760000;",
+
+        "S, JointHardwareMaxAcceleration, 1, 28800000;",
+        "S, JointHardwareMaxAcceleration, 2, 28800000;",
+        "S, JointHardwareMaxAcceleration, 3, 28800000;",
+        "S, JointHardwareMaxAcceleration, 4, 43200000;",
+        "S, JointHardwareMaxAcceleration, 5, 43200000;",
+        "S, JointHardwareMaxAcceleration, 6, 57600000;",
+
+        "S, JointHardwareMaxJerk, 1, 324000000;",
+        "S, JointHardwareMaxJerk, 2, 324000000;",
+        "S, JointHardwareMaxJerk, 3, 324000000;",
+        "S, JointHardwareMaxJerk, 4, 324000000;",
+        "S, JointHardwareMaxJerk, 5, 324000000;",
+        "S, JointHardwareMaxJerk, 6, 324000000;"
+    ]
+}*/
+
 //See Examples at bottom of file
 
 Dexter.defaults_arg_sep = ", ";
@@ -31617,14 +32156,14 @@ class Socket$1{
             //first convert degrees to arcseconds
             if(["MaxSpeed", "StartSpeed", "Acceleration",
                 //"AngularSpeed",
-                "AngularSpeedStartAndEnd", "AngularAcceleration",
-                "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
-                "CartesianPivotAcceleration", "CartesianPivotStepSize" ].includes(name)){
+                ].includes(name)){
                 let instruction_array_copy = instruction_array.slice();
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(first_arg * _nbits_cf);
                 return instruction_array_copy
             }
-            else if(["AngularSpeed"].includes(name)){
+            else if(["AngularSpeed", "AngularSpeedStartAndEnd", "AngularAcceleration",
+                "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
+                "CartesianPivotAcceleration", "CartesianPivotStepSize"].includes(name)){
                 let instruction_array_copy = instruction_array.slice();
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = this.degrees_to_dexter_units(first_arg);
                 return instruction_array_copy
@@ -31741,11 +32280,16 @@ class Socket$1{
             const first_arg = args[0];
             //first convert arcseconds to degrees
             if(["MaxSpeed", "StartSpeed", "Acceleration",
-                "AngularSpeed", "AngularSpeedStartAndEnd", "AngularAcceleration",
-                "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
-                "CartesianPivotAcceleration", "CartesianPivotStepSize" ].includes(name)){
+                 ].includes(name)){
                 let instruction_array_copy = instruction_array.slice();
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = first_arg / _nbits_cf;
+                return instruction_array_copy
+            }
+            else if (["AngularSpeed", "AngularSpeedStartAndEnd", "AngularAcceleration",
+                "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
+                "CartesianPivotAcceleration", "CartesianPivotStepSize"]){
+                let instruction_array_copy = instruction_array.slice();
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = first_arg / 3600;
                 return instruction_array_copy
             }
             else if (name.includes("Boundry")) { //the full name is  J1BoundryHigh thru J5BoundryHigh, or J1BoundryLow thru J5BoundryLow
@@ -31966,8 +32510,8 @@ class Socket$1{
         //out("Socket.on_receive passed data: " + data +
         //                             " payload_string_maybe: " + payload_string_maybe +
         //                             " dexter_instance: " + dexter_instance)
-        console.log("on_receive passed data:");
-        console.log(data);
+        //console.log("on_receive passed data:")
+        //console.log(data)
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
             let robot_status = data;
             let oplet = robot_status[Dexter.INSTRUCTION_TYPE];
@@ -32427,7 +32971,8 @@ class DexterSim$1{
 
     init(sim_actual){
         this.sim_actual = sim_actual;
-        this.queue_instance = new Simqueue(this);
+        this.queue_instance  = new Simqueue(this);
+        this.queuej_instance = new SimqueueJ(this);
 
         //these should be in dexter_units
         this.parameters = { //set_params. see Socket.js instruction_array_degrees_to_arcseconds_maybe
@@ -32572,6 +33117,11 @@ class DexterSim$1{
             case "h": //doesn't go on instruction queue, just immediate ack
                 ds_instance.ack_reply(instruction_array);
                 break;
+            case "j":
+                console.log("DexterSim.send passed 'j' oplet: " + instruction_array);
+                ds_instance.queuej_instance.add_to_queue(instruction_array);
+                ds_instance.ack_reply_maybe(instruction_array); //send back the original
+                break;
             case "P": //does not go on queue  //ds_instance.queue_instance.add_to_queue(instruction_array)
                 //pid_move_all_joints for j6 and 7 are handled diffrently than J1 thru 5.
                 //IF we get a pid_maj for j6 and/or j7, just treat it like
@@ -32641,6 +33191,12 @@ class DexterSim$1{
                     //}
                     else {
                         ds_instance.parameters[param_name] = param_val;
+                        if(param_name === "MaxSpeed"){ //in order to make ethe simulator work on changes to MaxSpeed, we update the AngularSpeed too
+                            //bcuase the simulator runs off of the AngularSpeed setting
+                            let speed_in_deg = param_val / _nbits_cf;
+                            let new_angular_speed_in_arcsecs = speed_in_deg * 3600;
+                            ds_instance.parameters["AngularSpeed"] = new_angular_speed_in_arcsecs;
+                        }
                         ds_instance.simout("set parameter: " + param_name + " to " + param_val);
                     }
                 }
@@ -32991,7 +33547,6 @@ class DexterSim$1{
         /*if(!Job.change_dexter_speed){
             new Job ({name: "change_dexter_speed",
                       do_list: [function() {
-                          debugger;
                           let speed_str = change_dexter_speed_id.value
                           //let index = selected_label.indexOf(" ")
                           //let new_speed_str = selected_label.substring(index + 1)
@@ -33069,12 +33624,12 @@ globalThis.DexterSim = DexterSim$1;
 
 class Simqueue$1{
     static queue_max_length = 16
-    constructor(sim_instance){
-        this.sim_instance = sim_instance;
+    constructor(dexter_sim_instance){
+        this.dexter_sim_instance = dexter_sim_instance;
         this.queue = []; //new Array of 16 fails because length will == 16, and first push pushes to index 16  new Array(Simqueue.queue_max_length)
         this.queue_blocking_instruction = null; //set when F cmd comes in, to that F instruction_array
         this.sleep_dur_us = 0;   //microseconds
-        this.queue_dom_elt_id_string_prefix         = this.sim_instance.robot_name + "_queue_";
+        this.queue_dom_elt_id_string_prefix         = this.dexter_sim_instance.robot_name + "_queue_";
         this.queue_dom_elt_status_string            = this.queue_dom_elt_id_string_prefix + "status_id";
         this.queue_dom_elt_instruction_table_string = this.queue_dom_elt_id_string_prefix + "instruction_table_id";
         this.latest_sent_queued_instruction = null; //every time a cmd is added to the queue, this var is set to it.
@@ -33083,8 +33638,8 @@ class Simqueue$1{
          //so we need this state var. J1 thru 5 make up the "SENT" robot_status row.
         this.instr_to_param_map = {}; //keys are an instruction array. Values are an array of a set param name (string) and its new value
                                      //to be set in sim_inst.parameters whenever the instr is done executing (ie when removed from queue
-        this.joint_number_to_j6_plus_status_map = {6: "stopped at " + sim_instance.angles_dexter_units[5],
-                                                   7: "stopped at " + sim_instance.angles_dexter_units[6]
+        this.joint_number_to_j6_plus_status_map = {6: "stopped at " + dexter_sim_instance.angles_dexter_units[5],
+                                                   7: "stopped at " + dexter_sim_instance.angles_dexter_units[6]
                                                   };
         this.joint_number_to_render_j6_plus_frame_call_map = {};
         this.show_degrees = false;
@@ -33179,8 +33734,8 @@ class Simqueue$1{
         if(param_names_and_values){
             for(let param_name in param_names_and_values){
                 let param_value = param_names_and_values[param_name];
-                this.sim_instance.parameters[param_name] = param_value;
-                //this.sim_instance.simout("set_parameter: " + param_name + " to " + param_value)
+                this.dexter_sim_instance.parameters[param_name] = param_value;
+                //this.dexter_sim_instance.simout("set_parameter: " + param_name + " to " + param_value)
             }
         }
         delete this.instr_to_param_map[cur_inst]; //not needed anymore
@@ -33195,7 +33750,7 @@ class Simqueue$1{
     //do not remove the front instruction from the queue until AFTER its done running
     start_running_instruction_if_any(){
         if(this.is_queue_empty()) {
-            this.sim_instance.simout("queue is empty.");
+            this.dexter_sim_instance.simout("queue is empty.");
         }
         else {
             let instruction_array = this.current_instruction_in_queue();
@@ -33221,12 +33776,12 @@ class Simqueue$1{
            let instr = this.queue_blocking_instruction;
            this.queue_blocking_instruction = f_instruction_array;
            this.update_show_queue_if_shown(); //probably not necessary because queue is already blocked
-           this.sim_instance.ack_reply(instr);
+           this.dexter_sim_instance.ack_reply(instr);
         }
         else if(this.is_queue_empty()){ //since the queue is already empty,
         //this instruction is basically a no-op. Don't set this.queue_blocking_instruction
         //just ack_reply
-            this.sim_instance.ack_reply(f_instruction_array);
+            this.dexter_sim_instance.ack_reply(f_instruction_array);
         }
         else { //normal case
             this.queue_blocking_instruction = f_instruction_array;
@@ -33238,7 +33793,7 @@ class Simqueue$1{
         if(this.queue_blocking_instruction){
             let instr = this.queue_blocking_instruction;
             this.queue_blocking_instruction = null;
-            this.sim_instance.ack_reply(instr);
+            this.dexter_sim_instance.ack_reply(instr);
         }
     }
 
@@ -33246,7 +33801,7 @@ class Simqueue$1{
     unblock_from_unfull_maybe(){
         if(this.queue.length === (Simqueue$1.queue_max_length - 1)){
           let newest_instr = this.newest_instruction_in_queue();
-          this.sim_instance.ack_reply(newest_instr); //because its ack_reply wasn't called when it first came in and filled the queue
+          this.dexter_sim_instance.ack_reply(newest_instr); //because its ack_reply wasn't called when it first came in and filled the queue
         }
     }
 
@@ -33270,14 +33825,14 @@ class Simqueue$1{
            actions[param_name] = param_value;
         }
         else { //queue is empty so just set params immediately and don't put them in instr_to_param_map
-               this.sim_instance.parameters[param_name] = param_value;
-               //this.sim_instance.simout("set_parameter: " + param_name + " to " + param_value)
+               this.dexter_sim_instance.parameters[param_name] = param_value;
+               //this.dexter_sim_instance.simout("set_parameter: " + param_name + " to " + param_value)
         }
     }
 
     //J6_plus
     start_running_j6_plus_instruction(joint_number, new_angle_in_dexter_units){
-        let ds_instance = this.sim_instance;
+        let ds_instance = this.dexter_sim_instance;
         let dur_in_ms = ds_instance.predict_j6_plus_instruction_dur_in_ms(new_angle_in_dexter_units, joint_number);
         if(dur_in_ms === 0) ; //the joint is already at the commanded angle so nothing to do. This is a big optimization for a common case.
         else if (SimUtils.is_simulator_showing()){
@@ -33296,7 +33851,7 @@ class Simqueue$1{
 
     //just sets j6_plus status and updates
     done_with_j6_plus_instruction(joint_number){
-        let du = this.sim_instance.angles_dexter_units[joint_number - 1];
+        let du = this.dexter_sim_instance.angles_dexter_units[joint_number - 1];
         let val_for_show = (this.show_degrees ? Socket.dexter_units_to_degrees(du, joint_number) : du);
         val_for_show = (Number.isInteger(val_for_show) ? val_for_show : val_for_show.toFixed(3));
         this.joint_number_to_j6_plus_status_map[joint_number] = "stopped at " + val_for_show;
@@ -33312,7 +33867,7 @@ class Simqueue$1{
         setTimeout(function(){ //end sleep
                      queue_instance.sleep_dur_us = 0; //must do before update_show_queue_status
                      queue_instance.update_show_queue_status_if_shown();
-                     queue_instance.sim_instance.ack_reply(sleep_instruction);
+                     queue_instance.dexter_sim_instance.ack_reply(sleep_instruction);
                     }, sleep_dur_ms);
     }
 
@@ -33321,7 +33876,7 @@ class Simqueue$1{
     //called at the start of rendering an instruction
     render_instruction(instruction_array){
         let ins_args  = instruction_array.slice(Instruction.INSTRUCTION_ARG0, Instruction.INSTRUCTION_ARG7);
-        let dur_in_ms = this.sim_instance.predict_a_instruction_dur_in_ms(ins_args);
+        let dur_in_ms = this.dexter_sim_instance.predict_a_instruction_dur_in_ms(ins_args);
         //out("render_instruction passed instruction_array: " + instruction_array)
         //let job_id    = instruction_array[Instruction.JOB_ID]
         //let job_instance = Job.job_id_to_job_instance(job_id)
@@ -33329,23 +33884,23 @@ class Simqueue$1{
         //I took it out because in the testsuite or ref man, if you have 2 job defs of the same
         //name next to each other, then the 2nd one removes the first one.
         //but if the first one has instructions in the queue, they belong to a
-        //non_exisitant job so getting the job_id out of the instruction array and
+        //non_existant job so getting the job_id out of the instruction array and
         //looking it up to find the job def will fail, causing an error.
         //so just avoid that. Dexter (and by extension the simulator) don't
         //know about Jobs and don't care. Useful for debugging perhaps, but
         //causes problems as in above.
-        let rob_name  = this.sim_instance.robot_name;
+        let rob_name  = this.dexter_sim_instance.robot_name;
         { //globalThis.platform == "dde") //even if we're in dde, unless the sim pane is up, don't attempt to render
-            SimUtils.render_multi(this.sim_instance, ins_args, rob_name, dur_in_ms);
+            SimUtils.render_multi(this.dexter_sim_instance, ins_args, rob_name, dur_in_ms);
         }
     }
     render_once_node(instruction_array, job_name, rob_name, dur_in_ms){
         let instr_str = "<code style='background-color:white;'> " + instruction_array.join(", ") + " </code>";
-        this.sim_instance.simout("For Job." + job_name +
+        this.dexter_sim_instance.simout("For Job." + job_name +
                "<br/><span style='margin-left:106px;'>Simulating instruction: " + instr_str, "</span>");
           let queue_instance = this;
           setTimeout(function(){
-              queue_instance.sim_instance.simout("Done with: <span style='margin-right;40px;'/>" + instr_str, "green");
+              queue_instance.dexter_sim_instance.simout("Done with: <span style='margin-right;40px;'/>" + instr_str, "green");
               queue_instance.done_with_instruction();
           }, dur_in_ms);
     }
@@ -33427,18 +33982,18 @@ class Simqueue$1{
                           this.make_show_queue_status() +
                           this.make_show_queue_instructions_table() +
                           '\n</div>';
-            show_window({title: "Queue simulation for Dexter:" + this.sim_instance.robot_name,
+            show_window({title: "Queue simulation for Dexter:" + this.dexter_sim_instance.robot_name,
                          content: content,
                          x:520, y:0, width:600, height: 400,
                          callback: "Simqueue.show_queue_cb"});
         }
         else {
-            this.sim_instance.simout("simqueue is already shown.");
+            this.dexter_sim_instance.simout("simqueue is already shown.");
         }
         this.update_show_queue_if_shown();
     }
     make_show_queue_status(){
-        let rob_name = this.sim_instance.robot_name;
+        let rob_name = this.dexter_sim_instance.robot_name;
         return  '<input type="hidden" name="robot_name" value="' + rob_name + '"/>\n' +
 
                 `<input type="button" name="show_instructions" ` +
@@ -33673,6 +34228,139 @@ class Simqueue$1{
 
 globalThis.Simqueue = Simqueue$1;
 
+/* started from Simqueue but customized for J moves. */
+
+globalThis.SimqueueJ = class SimqueueJ {
+    //static queue_max_length = 16 //infinite
+    constructor(dexter_sim_instance) {
+        this.dexter_sim_instance = dexter_sim_instance;
+        this.queue = [];
+        this.latest_sent_queued_instruction = null; //every time a cmd is added to the queue, this var is set to it.
+        //we can't just pull the last item off the queue because,
+        //at the beginning. this is null, and if the queue is emptied, the lasteset wouldn't be on the queue.
+        //so we need this state var. J1 thru 6 make up the "SENT" robot_status row.
+    }
+
+    //called by test suite
+    is_simulator_running() {
+        return !this.is_queue_empty()
+    }
+
+    is_queue_empty() {
+        return (this.queue.length === 0)
+    }
+
+    //returns an instruction_array or null if the queue is empty
+    newest_instruction_in_queue() {
+        if (this.is_queue_empty()) {
+            return null
+        } else return this.queue[this.queue.length - 1]
+    }
+
+    current_instruction_in_queue() {
+        if (this.is_queue_empty()) {
+            return null
+        } else return this.queue[0]
+    }
+
+    simple_instruction_array_test(instruction_array) {
+        for (let i = 0; i < instruction_array.length; i++) {
+            let val = instruction_array[i];
+            let type = typeof (val);
+            if (!["number", "string", "undefined"].includes(type)) {
+                dde_error("Simulator passed invalid instruction arg at index " + i +
+                    " of : " + val +
+                    " in instruction array: " + instruction_array);
+            }
+        }
+    }
+
+    //instruction oplet guarenteed to be "j".
+    add_to_queue(instruction_array) {
+        this.simple_instruction_array_test(instruction_array);
+        let sub_oplet = instruction_array[Instruction.INSTRUCTION_ARG0]; //could be "p", "v", "a", maybe "d"
+        if(sub_oplet === undefined) {
+            this.j_reset();
+            return
+        }
+        else if(sub_oplet === "p") { //position
+            this.last_jp_instruction_in_arcsecs = instruction_array;
+        }
+        let queue_was_empty = this.is_queue_empty();
+        if(("pav".includes(sub_oplet) &&
+                (instruction_array[Instruction.INSTRUCTION_ARG7] !== undefined)) ||
+            (sub_oplet === "d")){ //trigger the current j_move position
+            this.queue.push(this.last_jp_instruction_in_arcsecs);
+        }
+        if (queue_was_empty) {
+            this.start_running_instruction_if_any();
+        }
+    }
+
+    jp_instruction_to_angles_in_arcsecs(instruction_array){
+        return instruction_array.slice(Instruction.INSTRUCTION_ARG1, Instruction.INSTRUCTION_ARG7) //should be 6 integers
+    }
+
+    j_reset(){
+        if(this.queue.length > 0){ //there is an ongoing j_move
+            this.stop_ongoing = true; //to stop ongoing j_move. must be set to false by rendering inner loop
+        }
+        this.queue = []; //empty the queue
+    }
+
+    //called when graphics simulator is done executing the now-running instruction.
+    //dont set params in here because remove_from_queue is called by
+    //empty_instruction_queue which we DON'T want to set_params.
+    remove_from_queue() { //takes off of front of queue, returns the removed instruction
+        this.queue.shift();
+    }
+
+    done_with_instruction() {
+        this.current_instruction_in_queue();
+        this.remove_from_queue();
+        let queue_instance = this;
+        setTimeout(function () {
+            queue_instance.start_running_instruction_if_any();
+        }, 1); //even if 0, its probably a good idea to give JS chance to run other stuff between instructions.
+    }
+
+    //do not remove the front instruction from the queue until AFTER its done running
+    start_running_instruction_if_any() {
+        if (this.is_queue_empty()) {
+            this.dexter_sim_instance.simout("queueJ is empty.");
+        }
+        else {
+            let instruction_array = this.current_instruction_in_queue();
+            this.render_instruction(instruction_array);
+        }
+    }
+
+
+    //______Render instruction ________
+    predict_j_instruction_dur_in_ms(angles_dexter_units){
+        if(angles_dexter_units === this.dexter_sim_instance.angles_dexter_units) { //an optimization for this common case of no change
+            return 0
+        }
+        else {
+            //predict needs its angles in degrees but ins_args are in arcseconds
+            const orig_angles_in_deg = Socket.dexter_units_to_degrees_array(this.dexter_sim_instance.angles_dexter_units);  //Socket.dexter_units_to_degrees(this.measured_angles_dexter_units) //this.measured_angles_dexter_units.map(function(ang) { return ang / 3600 })
+            const angles_in_deg  = Socket.dexter_units_to_degrees_array(angles_dexter_units); //ns_args.map(function(ang)    { return ang / 3600 })
+
+            let dur_in_seconds = Math.abs(Kin.predict_move_dur_6_joint(orig_angles_in_deg, angles_in_deg, 30)); //allow speed to always default to 30 deg per sec for now.
+            let dur_in_milliseconds = dur_in_seconds * 1000;
+            return dur_in_milliseconds
+        }
+    }
+
+    //called at the start of rendering an instruction
+    render_instruction(instruction_array) {
+        let ins_args  = this.jp_instruction_to_angles_in_arcsecs(instruction_array);
+        let dur_in_ms = this.predict_j_instruction_dur_in_ms(ins_args);
+        let rob_name  = this.dexter_sim_instance.robot_name;
+        SimUtils.render_multi(this.dexter_sim_instance, ins_args, rob_name, dur_in_ms, "j"); //last arg is "move_kind"
+    }
+};
+
 /**
  * Created by Fry on 3/30/16.
  */
@@ -33735,8 +34423,9 @@ class SimUtils$1{
 
 
     //ds_inst is an instance of DexterSim class.
-    //robot_name example: "Dexter.dexter0"
-    static render_multi(ds_instance, new_angles_dexter_units, robot_name, dur_in_ms=0){ //inputs in arc_seconds
+    //robot_name example: "dexter0"
+    //if move_kind === "j", new_angles_dexter_units is an array of 6.
+    static render_multi(ds_instance, new_angles_dexter_units, robot_name, dur_in_ms=0, move_kind="a"){ //inputs in arc_seconds
         //console.log("render_multi passed: " +  new_angles_dexter_units)
         //onsole.log("Dexter.default: " + Dexter.default)
         //onsole.log("Dexter.dexter0: " + Dexter.dexter0)
@@ -33761,7 +34450,7 @@ class SimUtils$1{
             let rob = Dexter[robot_name];
             let prev_js = ds_instance.angles_dexter_units.slice(); //must copy because render_multi is going to continuous update mesured_angels per frame and we want to capture the prev_js and keep it constant
             //console.log("calling render_multi_frame first time with new_angles as: " + new_angles_dexter_units + " prev_js: " + prev_js + " js_inc_per_frame: " + js_inc_per_frame)
-            SimUtils$1.render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, total_frames, 0, rob); //beginning an all but last rendering
+            SimUtils$1.render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, total_frames, 0, rob, move_kind); //beginning an all but last rendering
 
             //used by render_once_but_only_if_have_prev_args\
             this.prev_joint_angles     = new_angles_dexter_units;
@@ -33770,10 +34459,16 @@ class SimUtils$1{
         }
         else {
             setTimeout(function(){
-                ds_instance.queue_instance.done_with_instruction(); //this is the final action of
-                //calling SimUtils.render_multi_frame, and necessary to get this instruction
-                //out of the queue. Must do even if we aren't redendering (ie calling SimUtils.render_multi_frame)
-            }, dur_in_ms);
+                    if(move_kind === "a") {
+                        ds_instance.queue_instance.done_with_instruction(); //this is the final action of
+                        //calling SimUtils.render_multi_frame, and necessary to get this instruction
+                        //out of the queue. Must do even if we aren't redendering (ie calling SimUtils.render_multi_frame)
+                    }
+                    else if(move_kind === "j") {
+                        ds_instance.queuej_instance.done_with_instruction();
+                    }
+                    else { shouldnt("SimUtils.render_multi got invalid move_kind of: " + move_kind);}
+                }, dur_in_ms);
         }
     }
     //new_js is the array of target joint angles, only used for the "last" frame.
@@ -33781,12 +34476,25 @@ class SimUtils$1{
     //For given new commanded angles of an instrution, this fn is called many times, with a dur of ms_per_frame
     //between the calls. All args remain the same for such calls except for frame, which is incremented from
     //0 up to total_frames. Once its called with frame == total_frames, it immediately stops the recursive calls.
-    static render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, total_frames, frame_number=0, rob){
-        if(frame_number > total_frames) { //we're done
-            ds_instance.queue_instance.done_with_instruction(); //removes the cur instruction_array from queue and if there's more, starts the next instruction.
-        }
+    static render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, total_frames, frame_number=0, rob, move_kind="a"){
+        if((frame_number > total_frames) || ds_instance.queuej_instance.stop_ongoing) { //we're done
+            if(move_kind === "a") {
+                ds_instance.queue_instance.done_with_instruction(); //this is the final action of
+                //calling SimUtils.render_multi_frame, and necessary to get this instruction
+                //out of the queue. Must do even if we aren't redendering (ie calling SimUtils.render_multi_frame)
+            }
+            else if(move_kind === "j") {
+                ds_instance.queuej_instance.stop_ongoing = false;
+                ds_instance.queuej_instance.done_with_instruction();
+            }
+            else { shouldnt("SimUtils.render_multi got invalid move_kind of: " + move_kind);}        }
         else {
-            let prev_js_useful_len = Math.min(5, prev_js.length); //we do not handle j6 & 7 here. That's done with render_j6_plus
+            let len_for_min;
+            if(move_kind === "a")  len_for_min = 5;
+            else if (move_kind === "j") len_for_min = 6;
+            else { shouldnt("SimUtils.render_multi_frame got invalid move_kind of: " + move_kind);}
+
+            let prev_js_useful_len = Math.min(len_for_min, prev_js.length); //for "a" moves, we do not handle j6 & 7 here. That's done with render_j6_plus
             for(let joint = 0; joint < prev_js_useful_len; joint++){
                 let prev_j = prev_js[joint];
                 let j_inc_per_frame = js_inc_per_frame[joint]; //might be undefined for j6 and 7
@@ -33798,89 +34506,11 @@ class SimUtils$1{
                 //                      " j_angle deg: " + (Math.round(j_angle) / 3600 ))
                 //}
                 Socket.dexter_units_to_degrees(j_angle, joint + 1);
-
-               /* let j_angle_degrees_rounded = Math.round(angle_degrees)
-                let rads = SimUtils.degrees_to_radians(angle_degrees)
-
-                switch(joint) {
-                    case 0:
-                        Simulate.sim.J1.rotation.y = rads * -1
-                        sim_pane_j1_id.innerHTML = j_angle_degrees_rounded
-                        break;
-                    case 1:
-                        Simulate.sim.J2.rotation.z = rads
-                        sim_pane_j2_id.innerHTML = j_angle_degrees_rounded * -1
-                        break;
-                    case 2:
-                        Simulate.sim.J3.rotation.z = rads
-                        sim_pane_j3_id.innerHTML = j_angle_degrees_rounded * -1
-                        break;
-                    case 3:
-                        Simulate.Simulate.sim.J4.rotation.z = rads
-                        sim_pane_j4_id.innerHTML = j_angle_degrees_rounded * -1
-                        break;
-                    case 4:
-                        Simulate.sim.J5.rotation.y = rads * -1
-                        xyz = Kin.J_angles_to_xyz(new_angles, rob.pose)[0] //needed in case 6 and below
-                        sim_pane_j5_id.innerHTML = j_angle_degrees_rounded
-                        break;
-                    case 5:
-                        if(Simulate.sim.J6) {
-                            Simulate.sim.J6.rotation.z = rads
-                        }
-                        sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
-                        break;
-                    case 6:
-                        if(Simulate.sim.J7) { //330 degrees = 0.05 meters
-                           let new_xpos = ((angle_degrees * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
-                           new_xpos *= 10
-                           //out("J7 angle_degrees: " + angle_degrees + " new xpos: " + new_xpos)
-                           Simulate.sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
-                           //all below fail to change render
-                           //Simulate.sim.J7.position.x = new_pos
-                           //Simulate.sim.J7.updateMatrix() //no effect
-                           //Simulate.sim.j7.updateWorldMatrix(true, true)
-                                // prev new_pos value;
-                                // ((angle_degrees * 0.05) / 330 ) * -1 //meters of new location
-                                // but has the below problems
-                                // x causes no movement, but at least inited correctly
-                                // y sends the finger to move to outer space upon init, but still visible, however moving j7 doesn't move it
-                                // z causes the finger to be somewhat dislocated upon dui init, however moving j7 doesn't move it
-                           //sim.J7.rotation.y = rads
-                        }
-                        sim_pane_j7_id.innerHTML = j_angle_degrees_rounded
-                        if(globalThis.SimBuild) {
-                             SimBuild.handle_j7_change(angle_degrees, xyz, rob)
-                        }
-                        break;
-                } */ //end switch
             } //end for loop
-           /* let str_length
-            let x = xyz[0]
-            if(x < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
-            else      { str_length = 5}
-            sim_pane_x_id.innerHTML = ("" + x).substring(0, str_length)
 
-            let y = xyz[1]
-            if(y < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
-            else      { str_length = 5}
-            sim_pane_y_id.innerHTML = ("" + y).substring(0, str_length)
-
-            let z = xyz[2]
-            if(z < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
-            else      { str_length = 5}
-            sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length)
-
-            //ds_instance.queue_instance.update_show_queue_if_shown() //I *could* do this here and update
-            //the current instruction row based on ds_instance.measured_angles_dexter_units
-            //but update_show_queue_if_shown just uses the instruction_array's commanded angles and
-            //besides, you can see J angles updated every frame in the Sim pane's header.
-            //Best to just leave the queue sim alone until actual whole instructions in queue change.
-            sim.renderer.render(sim.scene, sim.camera) //tell the graphis to finally draw.
-            */
-            this.render_j1_thru_j5(ds_instance);
+            this.render_j1_thru_j5(ds_instance, move_kind);
             setTimeout(function() {
-                SimUtils$1.render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, total_frames, frame_number + 1, rob, false);
+                SimUtils$1.render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, total_frames, frame_number + 1, rob, move_kind);
             }, SimUtils$1.ms_per_frame);
         }
     }
@@ -33993,10 +34623,10 @@ class SimUtils$1{
     }
 
     //called by render_j1_thru_j5 as well as monitor_dexter
-    static render_joints(angle_degrees_array, rob_pose=Vector.make_pose()){
+    static render_joints(angle_degrees_array, rob_pose=Vector.make_pose(), move_kind = "a"){
         for(let i = 0; i < angle_degrees_array.length; i++){
             let angle_degrees = angle_degrees_array[i];
-            this.render_joint(i + 1, angle_degrees);
+            this.render_joint(i + 1, angle_degrees, move_kind);
         }
         let xyz = Kin.J_angles_to_xyz(angle_degrees_array, rob_pose)[0];
 
@@ -34027,8 +34657,8 @@ class SimUtils$1{
     }
 
     //joint number is 1 thru 7
-    static render_joint(joint_number, angle_degrees){
-        if(joint_number <= 5) {
+    static render_joint(joint_number, angle_degrees, move_kind="a"){
+        if((joint_number <= 5) || (move_kind === "j")) {
             let y_or_z = (((joint_number === 1) || (joint_number === 5)) ? "y" : "z");
             let j_angle_degrees_rounded = Math.round(angle_degrees);
             let rads = SimUtils$1.degrees_to_radians(angle_degrees);
@@ -34124,11 +34754,12 @@ class SimUtils$1{
             Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
     }*/
 
-    static render_j1_thru_j5(ds_instance){
+    static render_j1_thru_j5(ds_instance, move_kind = "a"){
         let angles_in_degrees = ds_instance.compute_measured_angles_degrees();
-        angles_in_degrees = angles_in_degrees.slice(0, 5); //we only want the first 5.
+        let ang_len = ((move_kind === "j") ? 6: 5);
+        angles_in_degrees = angles_in_degrees.slice(0, ang_len); //we only want the first 5.
         let rob_pos = ds_instance.robot.pose;
-        this.render_joints(angles_in_degrees, rob_pos);
+        this.render_joints(angles_in_degrees, rob_pos, move_kind);
     }
 
     //same level as render_multi but for one of j6 or j7.
@@ -34206,7 +34837,7 @@ class SimUtils$1{
             let ma_du   = ds_instance.angles_dexter_units;
             let prev_js = ma_du[joint_number - 1];     //grab the old
             let j_angle = prev_js + js_inc_per_frame;  //compute the new
-            ma_du[joint_number - 1] = j_angle;         //set it for all to see
+            ma_du[joint_number - 1] = j_angle;         //set ds_instance.angles_dexter_units for all to see
             //undate the graphics of the simulation
             let angle_degrees = Socket.dexter_units_to_degrees(j_angle, joint_number);
             SimUtils$1.degrees_to_radians(angle_degrees);
@@ -38794,7 +39425,6 @@ globalThis.Espree = Espree$1;
 globalThis.js_beautify = js_beautify;
 const config = { };
 globalThis.mathjs = create(all, config);
-Promise.resolve().then(function () { return instruction_control; }); //makes  class Control global
 
 
 //import "../job_engine/core/messaging.js"//defined global: Messaging todo dde4, this needs to be moved to the server.
@@ -39347,80 +39977,4 @@ function does_this_script_have_args() {
 node bundleje.mjs Job.define_and_start_job "/Users/Fry/Documents/dde_apps/just_prints.dde"
 
  */
-
-//we import it here, just to make sure its loaded,
- //before the below code is loaded.
-
-
-class Control$1{
-    static is_control_instruction(arg){
-        if(!this.instruction_classes_in_control) {
-            this.init_classes_in_control();
-        }
-        for(let claz of Control$1.instruction_classes_in_control){
-            if(arg instanceof claz) { return true }
-        }
-        return false
-     }
-    /*static is_control_instruction(arg){
-        for(let claz of Instruction.control_classes){
-            if(arg instanceof claz) { return true }
-        }
-        return false
-    }*/
-     static init_classes_in_control() {
-        Control$1.instruction_classes_in_control = [
-            Instruction.break,
-            Instruction.continue,
-            Instruction.go_to,
-            Instruction.loop,
-            Instruction.label,
-            Instruction.suspend,
-            Instruction.unsuspend,
-            Instruction.sync_point,
-            Instruction.wait_until,
-
-            Instruction.include_job,
-            Instruction.send_to_job,
-            Instruction.sent_from_job,
-            Instruction.start_job,
-            Instruction.stop_job,
-
-            Instruction.debugger,
-            Instruction.step_instructions,
-            Instruction.error,
-            Instruction.if_any_errors
-        ];
-     }
-}
-Control$1.instruction_classes_in_control = null;
-
-//Methods that result in an instance of a Control class
-Control$1.break = Robot.break;
-Control$1.continue = Robot.continue;
-Control$1.go_to = Robot.go_to;
-Control$1.loop = Robot.loop;
-Control$1.label = Robot.label;
-Control$1.set_inter_do_item_dur = Robot.set_inter_do_item_dur;
-Control$1.suspend = Robot.suspend;
-Control$1.unsuspend = Robot.unsuspend;
-Control$1.sync_point = Robot.sync_point;
-Control$1.wait_until = Robot.wait_until;
-
-Control$1.include_job = Robot.include_job;
-Control$1.send_to_job = Robot.send_to_job;
-Control$1.sent_from_job = Robot.sent_from_job;
-Control$1.start_job = Robot.start_job;
-Control$1.stop_job = Robot.stop_job;
-
-Control$1.debugger = Robot.debugger;
-Control$1.step_instructions = Robot.step_instructions;
-Control$1.error = Robot.error;
-Control$1.if_any_errors = Robot.if_any_errors;
-
-globalThis.Control = Control$1;
-
-var instruction_control = /*#__PURE__*/Object.freeze({
-  __proto__: null
-});
 //# sourceMappingURL=bundleje.mjs.map

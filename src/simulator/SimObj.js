@@ -655,9 +655,16 @@ globalThis.SimObj = class SimObj{
         //obj.rotateY(rads_in_three[1])
         //obj.rotateZ(rads_in_three[2])
         //obj.rotation.set([rads_in_three[0], rads_in_three[1], rads_in_three[2]])
+
         object3d.rotation.x = rads_in_three[0]
         object3d.rotation.y = rads_in_three[1]
         object3d.rotation.z = rads_in_three[2]
+
+        /*object3d.rotation.x = orientation[0] / globalThis._rad
+        object3d.rotation.y = orientation[1] / globalThis._rad
+        object3d.rotation.z = orientation[2] / globalThis._rad*/
+
+
         SimBuild.populate_dialog_property(object3d, "orientation_x", orientation[0])
         SimBuild.populate_dialog_property(object3d, "orientation_y", orientation[1])
         SimBuild.populate_dialog_property(object3d, "orientation_z", orientation[2])

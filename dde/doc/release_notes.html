@@ -1,6 +1,43 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
 
+<details class="doc_details"><summary>v 4.1.7, Dec 4, 2023</summary>
+    Highlights: new Dexter.j_move and Dexter.j_reset instructions.
+        Simulator, including SimBuild, improvements.
+        Proper S-param units conversion.
+    <ul>
+     <li><code>Job</code>'s <code>"data_transform"</code> default value has been switched fron "P"
+         to <code>undefined</code>, meaning that unless you explicitly declare a data_transform,
+         no transformations of data do_list items will take place.
+         This prevents an array of numbers on the do_list from
+         unintentionallly being treated as a valid instruction.
+         Instead the Job will error.
+         Since data_transforms are relatively rare, this prevents
+         unexpected behavior.</li>
+
+     <li><code>SimBuild</code> Fixed typo in gripper_closing_sim_build that prevented
+            proper picking up of a block in the simulator.</li>
+
+     <li><code>SimBuild</code> dialog fixed such that when you click on an Object3d in the
+         simulator pane, the Simbuild dialog is automatically updated with
+         the attributes of the clicked on Object3d. </li>
+
+     <li> Previously, DDE was not sending Dexter and the simulator the
+         proper units for <code>"MaxSpeed"</code>, <code>"AngularSpeed"</code>
+         and several othre S params.
+         Now it is.</li>
+
+     <li><code>DexterSim.send</code> extended such that if an S param <code>"MaxSpeed"</code> instruction is run,
+            we update the <code>"AngularSpeed"</code> cached value to effectively have that new speed
+            so the simulator will run at that new speed.</li>
+
+     <li><code>Dexter.j_move</code> and <code>Dexter.j_reset</code> instructions implemented.
+         These are now supported in the simulator, not with the
+         full power of the j_move, but at least the simulator moves Dexter to the
+         desired goal angles.</li>
+    </ul>
+</details>
+
 <details class="doc_details"><summary>v 4.1.6, Nov 26, 2023</summary>
 Highlights: SimBuild extensions. Simulator speed control.
     <ul>

@@ -425,14 +425,14 @@ class Socket{
             //first convert degrees to arcseconds
             if(["MaxSpeed", "StartSpeed", "Acceleration",
                 //"AngularSpeed",
-                "AngularSpeedStartAndEnd", "AngularAcceleration",
-                "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
-                "CartesianPivotAcceleration", "CartesianPivotStepSize" ].includes(name)){
+                ].includes(name)){
                 let instruction_array_copy = instruction_array.slice()
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = Math.round(first_arg * _nbits_cf)
                 return instruction_array_copy
             }
-            else if(["AngularSpeed"].includes(name)){
+            else if(["AngularSpeed", "AngularSpeedStartAndEnd", "AngularAcceleration",
+                "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
+                "CartesianPivotAcceleration", "CartesianPivotStepSize"].includes(name)){
                 let instruction_array_copy = instruction_array.slice()
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = this.degrees_to_dexter_units(first_arg)
                 return instruction_array_copy
@@ -549,11 +549,16 @@ class Socket{
             const first_arg = args[0]
             //first convert arcseconds to degrees
             if(["MaxSpeed", "StartSpeed", "Acceleration",
-                "AngularSpeed", "AngularSpeedStartAndEnd", "AngularAcceleration",
-                "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
-                "CartesianPivotAcceleration", "CartesianPivotStepSize" ].includes(name)){
+                 ].includes(name)){
                 let instruction_array_copy = instruction_array.slice()
                 instruction_array_copy[Instruction.INSTRUCTION_ARG1] = first_arg / _nbits_cf
+                return instruction_array_copy
+            }
+            else if (["AngularSpeed", "AngularSpeedStartAndEnd", "AngularAcceleration",
+                "CartesianPivotSpeed", "CartesianPivotSpeedStart", "CartesianPivotSpeedEnd",
+                "CartesianPivotAcceleration", "CartesianPivotStepSize"]){
+                let instruction_array_copy = instruction_array.slice()
+                instruction_array_copy[Instruction.INSTRUCTION_ARG1] = first_arg / 3600
                 return instruction_array_copy
             }
             else if (name.includes("Boundry")) { //the full name is  J1BoundryHigh thru J5BoundryHigh, or J1BoundryLow thru J5BoundryLow
@@ -774,8 +779,8 @@ class Socket{
         //out("Socket.on_receive passed data: " + data +
         //                             " payload_string_maybe: " + payload_string_maybe +
         //                             " dexter_instance: " + dexter_instance)
-        console.log("on_receive passed data:")
-        console.log(data)
+        //console.log("on_receive passed data:")
+        //console.log(data)
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
             let robot_status = data
             let oplet = robot_status[Dexter.INSTRUCTION_TYPE]

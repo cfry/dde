@@ -77,8 +77,9 @@ import "../job_engine/core/fpga.js" //globally defines FPGA
 import "../job_engine/core/instruction.js"          //globally defines Instruction, make_ins
 import "../job_engine/core/instruction_dexter.js"   //sets Instruction.Dexter to the dexter instruction class
 import "../job_engine/core/instruction_io.js"       //makes class IO global
-import("../job_engine/core/instruction_control.js") //makes  class Control global
+import "../job_engine/core/instruction_control.js" //makes  class Control global
 import "../job_engine/core/robot.js"                //now global Robot, Brain, Serial, Human, Dexter
+import "../job_engine/core/instruction_j_move.js"   //defines Dexter.j_move and friends
 
 import "../job_engine/core/dexter_defaults.js"      //just extends the Dexter class
 import "../job_engine/core/DexDefaults.js"  //nov 2023 new. defines globalThis.DexDefaults class
@@ -89,6 +90,8 @@ import "../job_engine/core/waiting.js"              //defines globalThis.Waiting
 import "../job_engine/core/socket.js"       //defines class Socket as global
 import "../job_engine/core/dextersim.js"    //defines class DexterSim as global
 import "../job_engine/core/simqueue.js"     //defines class Simqueue as global
+import "../job_engine/core/simqueuej.js"     //defines class SimqueueJ as global
+
 import "../job_engine/core/simutils.js"     //defines class SimUtils as global
 import "../job_engine/core/robot_status.js" //defines class RobotStatus as global
 

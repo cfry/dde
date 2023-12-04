@@ -100,7 +100,8 @@ class DexterSim{
 
     init(sim_actual){
         this.sim_actual = sim_actual
-        this.queue_instance = new Simqueue(this)
+        this.queue_instance  = new Simqueue(this)
+        this.queuej_instance = new SimqueueJ(this)
 
         //these should be in dexter_units
         this.parameters = { //set_params. see Socket.js instruction_array_degrees_to_arcseconds_maybe
@@ -245,6 +246,11 @@ class DexterSim{
             case "h": //doesn't go on instruction queue, just immediate ack
                 ds_instance.ack_reply(instruction_array)
                 break;
+            case "j":
+                console.log("DexterSim.send passed 'j' oplet: " + instruction_array)
+                ds_instance.queuej_instance.add_to_queue(instruction_array)
+                ds_instance.ack_reply_maybe(instruction_array) //send back the original
+                break;
             case "P": //does not go on queue  //ds_instance.queue_instance.add_to_queue(instruction_array)
                 //pid_move_all_joints for j6 and 7 are handled diffrently than J1 thru 5.
                 //IF we get a pid_maj for j6 and/or j7, just treat it like
@@ -314,6 +320,12 @@ class DexterSim{
                     //}
                     else {
                         ds_instance.parameters[param_name] = param_val
+                        if(param_name === "MaxSpeed"){ //in order to make ethe simulator work on changes to MaxSpeed, we update the AngularSpeed too
+                            //bcuase the simulator runs off of the AngularSpeed setting
+                            let speed_in_deg = param_val / _nbits_cf
+                            let new_angular_speed_in_arcsecs = speed_in_deg * 3600
+                            ds_instance.parameters["AngularSpeed"] = new_angular_speed_in_arcsecs
+                        }
                         ds_instance.simout("set parameter: " + param_name + " to " + param_val)
                     }
                 }
@@ -677,7 +689,6 @@ class DexterSim{
         /*if(!Job.change_dexter_speed){
             new Job ({name: "change_dexter_speed",
                       do_list: [function() {
-                          debugger;
                           let speed_str = change_dexter_speed_id.value
                           //let index = selected_label.indexOf(" ")
                           //let new_speed_str = selected_label.substring(index + 1)

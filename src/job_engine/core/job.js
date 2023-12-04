@@ -44,7 +44,7 @@ class Job{
                  program_counter=0,
                  ending_program_counter="end",
                  initial_instruction=null,
-                 data_array_transformer="P",
+                 data_array_transformer= undefined, // was "P", butthat's too dangerous. Only make transforming available to a job if it explicitly indicates a transformer.
                  get_dexter_defaults = true, //if true, always get defaults from Defaults.makeins file or error
                                                       //if false, always get idealized values from Dexter.defaults class.
                  start_if_robot_busy=false,
@@ -120,7 +120,8 @@ class Job{
         dde_error("While defining Job." + name + "<br/>" + err.message)
         return
     }
-    if((typeof(data_array_transformer) == "function") ||
+    if((data_array_transformer === undefined) || //the default, don't allow data transformation
+       (typeof(data_array_transformer) == "function") ||
         Robot.is_oplet(data_array_transformer)) {} //ok
     else {
         dde_error("Attempt to define Job." + name + " with a data_array_transformer of:<br/>" +
@@ -235,7 +236,7 @@ class Job{
                 program_counter:0,
                 ending_program_counter:"end",
                 initial_instruction: null,
-                data_array_transformer: "P",
+                data_array_transformer: undefined,
                 get_dexter_defaults: true,
                 start_if_robot_busy: false,
                 if_robot_status_error: Job.prototype.if_robot_status_error_default,
@@ -2270,7 +2271,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
             this.wait_until_instruction_id_has_run = this.program_counter
             this.send(cur_do_item)
         }
-        else if (Instruction.is_data_array(cur_do_item)){
+        else if (this.data_array_transformer && Instruction.is_data_array(cur_do_item)){
             let new_do_item = this.transform_data_array(cur_do_item)
             if(Instruction.is_no_op_instruction(new_do_item)) { this.set_up_next_do(1) }
             else if(Instruction.is_sendable_instruction(new_do_item)){
@@ -2428,7 +2429,7 @@ Job.prototype.handle_function_call_or_gen_next_result = function(cur_do_item, do
     }
     else if (Array.isArray(do_items)){
         if(Instruction.is_oplet_array(do_items) ||
-           Instruction.is_data_array(do_items)){
+            (this.data_array_transformer && Instruction.is_data_array(do_items))){
            this.insert_single_instruction(do_items)
            this.set_up_next_do(1)
         }
@@ -2514,7 +2515,7 @@ Job.prototype.handle_start_object = function(cur_do_item){
         this.set_up_next_do(1)
 }
 
-//only ever passed an instrution_array or a "raw" string to send directly to dexter.
+//only ever passed an instruction_array or a "raw" string to send directly to dexter.
 //if a raw string, it starts with the oplet and has to have
 //the prefix added to it.
 Job.prototype.send = function(oplet_array_or_string, robot){ //if remember is false, its a heartbeat
