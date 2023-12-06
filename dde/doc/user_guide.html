@@ -438,8 +438,8 @@ Each indicates that a joint has power.
             setting to take effect.</li>
 
             <li>In order to drive Dexter, you'll also need an updated (as of Mid Aug, 2023)<br/>
-            <code  title="not in TestSuite">/srv/samba/share/www/httpd.mjs</code><br/> file on
-            your Dexter.</li>
+            the web server files on the robot to add a CORS "Access-Control-Allow-Origin" header 
+            with a value of "*" in the http_server.</li>
             <li>After installing this file on your Dexter, power cycle Dexter to
                 take advantage of this new httpd.mjs file.
         </ol>
