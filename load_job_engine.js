@@ -60,12 +60,14 @@ var {Instruction, make_ins, human_task_handler, human_enter_choice_handler,
 var {FPGA} = require('./core/fpga.js')
 var {Robot, Brain, Dexter, Human, Serial} = require('./core/robot.js')
 
+
 //Brain.brain0 = new Brain({name: "brain0"})
 
 var {RobotStatus} = require('./core/robot_status.js')
 
 var {Control} = require('./core/instruction_control.js')
 var {IO} = require('./core/instruction_io.js')
+require('./core/instruction_j_move.js')
 require('./core/dexter_defaults.js')
 var Job  = require('./core/job.js')
 require('./core/dex.js') //makes Dex global
