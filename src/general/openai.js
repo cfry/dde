@@ -395,7 +395,7 @@ globalThis.OpenAI = class OpenAI{
                          'Organization ID: <input id="gpt_config_org_id" type="password" style="margin:5px;width:235px;" value="' + org + '"/>' +
                          '<input type="checkbox" name="show" data-onchange="true">Show</input><br/>' +
                          '<span title="Sometimes called a secrete key.">API Key</span>:      <input id="gpt_config_key_id" type="password" style="margin:5px;width:380px;" value="' + key + '"/><br/>' +
-                        '<input type="button" value="Update Organization ID and API Key" style="margin:4px;"></input>' +
+                         '<input type="button" value="Update Organization ID and API Key" style="margin:4px;"></input>' +
                      '</fieldset>' +
                      "<fieldset style='margin-top:10px;'><legend><i>Model used to compute the response</i> </legend>" +
                          '<span title="Best but new and not everyone has access to the API." style="margin-left:5px";> <input type="radio" name="model" value="gpt-4" '            + gpt_4_checked        + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>gpt-4</span> ' +

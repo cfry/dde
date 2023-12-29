@@ -96,9 +96,10 @@ import {latest_eval_button_click_source} from "./eval.js"
 import "./svg.js" //defines svg_svg & friends as globals.
 
 //in the general folder, as is ready.js
+import "./BrowserFile.js" // makes globalThis.BrowserFile
 import "./editor.js" //Editor now global
 
-//import {DDE_NPM}    from "./DDE_NPM.js"   //todo big changes due to import???
+//import {DDE_NPM}    from "./DDE_NPM.js"   //not used in DDE4. Use DDEFile.dynamic_import instead
 //import {SSH}        from "./ssh.js"       //todo
 import "./series.js"    //now Series is global
 //import {PatchDDE}   from "./patch_dde.js" //todo still needed?
@@ -619,7 +620,7 @@ export function on_ready() {
      else { */ //presume JS, but if its .idl, that's ok we just edit the idl in the text editor
          //Editor.edit_file(path)
      //} */
-     Editor.open_local_file_from_menu(event)
+     BrowserFile.open_local_file_from_menu(event)
  }
 
  /*not used now jul 6, 2023
@@ -634,7 +635,7 @@ export function on_ready() {
 
  Editor.set_menu_string(open_local_id, "Open...", "o")
 
- open_local_id.onclick = function () { Editor.open_local_file.call(this) } //needs "this" of the user event to work
+ open_local_id.onclick = function () { BrowserFile.open_local_file.call(this) } //needs "this" of the user event to work
 
  //open_from_dexter_id.onclick = Editor.open_from_dexter_computer
 
@@ -658,19 +659,17 @@ export function on_ready() {
  }*/
 
  load_local_file_id.onclick = function() {
-       Editor.load_local_file()
+       BrowserFile.load_local_file()
  }
 
- load_and_start_job_id.onclick = function(){
-     //const path = choose_file({title: "Choose a file to load"})
-     //if (path){ Job.define_and_start_job(path) }
-     DDEFile.choose_file({folder:   undefined,
-                          title:    "Load and start Job: ",
-                          callback: "DDEFile.load_and_start_job_handler" })
+ load_local_and_start_job_id.onclick = function(){
+     BrowserFile.load_local_and_start_job()
  }
 
- //DDE_NPM.init() //todo big changes due to import???
- //install_npm_pkg_id.onclick = DDE_NPM.show_ui
+ //DDE_NPM.init()
+ install_npm_pkg_id.onclick = function(){
+         DocCode.open_doc("DDEFile.dynamic_import_doc_id")
+ } //DDE_NPM.show_ui()
 
     download_file_id.onclick=function(){
          DDEFile.choose_file({folder:   undefined,
@@ -686,34 +685,32 @@ export function on_ready() {
     }
 
  insert_file_content_id.onclick=function(e) {
-     //const path = choose_file({title: "Choose a file to insert into DDE's editor"})
-     //if (path){
-     //    const content = read_file(path)
-     //    Editor.insert(content)
-     //}
-     DDEFile.choose_file({folder:   undefined,
-         title:    "Insert file content: ",
-         callback: "DDEFile.insert_file_content_handler" })
+     BrowserFile.insert_local_file()
  }
+
  insert_file_path_into_editor_id.onclick=function(e){
      //const path = choose_file({title: "Choose a file to insert into DDE's editor"})
      //if (path){ Editor.insert('"' + path + '"') }
-     DDEFile.choose_file_save_as({
+     /*DDEFile.choose_file_save_as({
                                   path:   undefined,
                                   save_button_label: "Insert",
                                   title:    "Insert file path:",
-                                  callback: "DDEFile.insert_file_path_handler" })
+                                  callback: "DDEFile.insert_file_path_handler" })*/
+     BrowserFile.insert_local_file_path_into_editor()
  }
 
  insert_file_path_into_cmd_input_id.onclick=function(e){
      //const path = choose_file({title: "Choose a file to insert into DDE's editor"})
      //if (path){ Editor.insert_into_cmd_input('"' + path + '"')}
-     DDEFile.choose_file_save_as({
+     /*DDEFile.choose_file_save_as({
                                   path:   undefined,
                                   save_button_label: "Insert",
                                   title:    "Insert file path into cmd input:",
                                   callback: "DDEFile.insert_file_path_into_cmd_handler" })
+     */
+     BrowserFile.insert_local_file_path_into_cmd_input()
  }
+
 
  /*now not used jul 6, 2023
  save_server_id.onclick = function() {
@@ -742,8 +739,8 @@ export function on_ready() {
  } //was: Editor.save_on_dde_computer //only for saving on dde computer
 */
 
- save_local_id.onclick    = function(event) { Editor.save_local_file() }
- save_local_as_id.onclick = function(event) { Editor.save_local_file_as() }
+ save_local_id.onclick    = function(event) { BrowserFile.save_local_file() }
+ save_local_as_id.onclick = function(event) { BrowserFile.save_local_file_as() }
 
 
     //obsolete with dde4

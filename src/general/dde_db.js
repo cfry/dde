@@ -208,7 +208,7 @@ class DDE_DB{
                 else if (Utils.is_string_a_integer(val)) {
                     val = parseInt(val)
                 }
-                out(key + ": " + val)
+                DDE_DB.persistent_set(key, val)
             }
         }
     }

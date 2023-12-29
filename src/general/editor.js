@@ -235,8 +235,8 @@ class Editor {
                 return
             }
             else {*/
-                if(this.current_buffer_needs_saving) {
-                    Editor.save_current_file()
+                if(BrowserFile.current_buffer_needs_saving()) {
+                    BrowserFile.save_local_file()
                 }
                 Editor.eval_button_action_aux(step)
             //}
@@ -881,6 +881,7 @@ class Editor {
     static local_path_to_open_file_handle = {}
 
     //the onclick handler for the pull down file select in DDE4
+    //the onclick handler for the pull down file select in DDE4
     static async open_local_file_from_menu(event){
         if(Editor.current_buffer_needs_saving){
             await Editor.save_local_file()
@@ -890,6 +891,7 @@ class Editor {
         //let file_name  = Editor.path_to_file_name(menu_item_label)
         let fileHandle = Editor.local_path_to_open_file_handle[path]
         if(!fileHandle){
+            let dir = this.extract_dir(path)
             Editor.open_local_file(path)
         }
         else {
@@ -1135,7 +1137,7 @@ class Editor {
         else { //no confirm message
             let handle = await Editor.get_handle() //calls showSaveFilePicker
             if (handle) { //user might have canceled in the file picker
-                Editor.save_local_file_handle(handle, content)
+                await Editor.save_local_file_handle(handle, content)
             }
         }
     }
@@ -1149,7 +1151,6 @@ class Editor {
         // close the writable and save all changes to disk. this will prompt the user for write permission to the file, if it's the first time.
         await writable.close();
         let path = "/local/" + handle.name  //can't get the directory, only the name
-        Editor.after_successful_save_as(path)
         out("Saved: " + path, "green")
     }
 
@@ -1479,6 +1480,11 @@ Clear its content?
     static after_successful_open(path){
         this.after_successful_save_as(path)
     }
+
+    static after_successful_save(path){
+        Editor.unmark_as_changed()
+    }
+
     //called from DDEFile.  works for opening a file too.
     static after_successful_save_as(path){
         Editor.remove_new_buffer_from_files_menu()

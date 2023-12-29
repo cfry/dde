@@ -208,22 +208,39 @@
             <code title="not in TestSuite">DDEFile.delete("junk.js", function(error_message, true_or_false){})</code>
         </details>
 
-        <details id="DDEFile.dynamic_import" class="doc_details"><summary>dynamic_import</summary>
-            Use Javascript ES6 modules to dynamically import an NPM package from The Skypack website.<br/>
-            Returns a Promise resolving to a Module object.
+        <details id="DDEFile.dynamic_import_doc_id" class="doc_details"><summary>dynamic_import</summary>
+            There are millions of open source JavaScript packages that you can use at
+            <a target="_blank" href="https://www.npmjs.com/">npmjs.com</a>
+            Javascript's ES6 modules allows you to dynamically import an NPM package from the Skypack website.<br/>
+            DDEFile.dynamic_import facilitates using this in your DDE code.
+            It returns a Promise resolving to a Module object.<br/>
             <i>Parameters:</i><br/>
-            <b>npm_package_name</b> A string. Required.<br/>
-            <b>global variable name</b> A string. Optional. If supplied,
-              binds the returned module to the global variable.
-              Will error if you include a hyphen in the variable name, which
+            <b>npm_package_name</b> A string. Required. Browse the above website to
+            find the JavaScript functionality you're looking for.<br/>
+            <b>global_var_name</b> A string. Optional. If supplied,
+              binds the returned module to the global variable.<br/>
+              Caution: this will error if you include a hyphen in the variable name, which
               is a common mistake because the mis-designed syntax of package names
-              allows a hyphen. Usually you should replace hyphens with underscores.
+              allows a hyphen. Usually you should replace hyphens with underscores.<br/>
+              The default value for global_var_name is the npm_package_name with
+              the hyphens replaced by underscores.<br/>
+            If this argument is <code>null</code>, no global variable is bound.
             <p></p>
             <i>Example:</i><br/>
             <code>DDEFile.dynamic_import("canvas-confetti", "canvas_confetti")</code><br/>
+            is the same as:<br/>
+            <code>DDEFile.dynamic_import("canvas-confetti")</code><br/>
+            Once globalThis.canvas_conetti is defined, you can call it like so:<br/>
             <code>globalThis.canvas_confetti.default()</code>
-            Evaluating the above causes some moving colored rectangles to be displayed
+            Evaluating the above causes some moving colored rectangles to be displayed in DDE,
             simulating confetti being dropped.
+            <p></p>
+            Here's a lower-level way to call this functionality without defining
+            a global variable:<pre>
+<code>import("https://cdn.skypack.dev/canvas-confetti").then(
+   function(mod) {
+     mod.default()
+   })</code></pre>
         </details>
 
         <details id="DDEFile.edit_file_doc_id" class="doc_details"><summary>DDEFile.edit_file</summary>

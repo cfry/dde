@@ -135,6 +135,10 @@ globalThis.SimObj = class SimObj{
         return [dde_x, dde_y, dde_z]
     }
 
+    static orientation_dde_to_three(array_of_3){
+        return [array_of_3[1], array_of_3[2], array_of_3[0] ]
+    }
+
     static vector3_to_dde(vec3){
         let dde_x = vec3.z  //z -> x
         //dde_x = ((dde_x === 0) ? 0 : dde_x * -1) //ensure that we don't get any JS -0's
@@ -650,7 +654,7 @@ globalThis.SimObj = class SimObj{
         let rads_in_dde = [orientation[0] / globalThis._rad,
                            orientation[1] / globalThis._rad,
                            orientation[2] / globalThis._rad]
-        let rads_in_three = this.position_dde_to_three(rads_in_dde)
+        let rads_in_three = this.orientation_dde_to_three(rads_in_dde)
         //obj.rotateX(rads_in_three[0]) //todo find set rotations
         //obj.rotateY(rads_in_three[1])
         //obj.rotateZ(rads_in_three[2])
@@ -659,6 +663,13 @@ globalThis.SimObj = class SimObj{
         object3d.rotation.x = rads_in_three[0]
         object3d.rotation.y = rads_in_three[1]
         object3d.rotation.z = rads_in_three[2]
+
+        /*the below 2 lines fail on rotation personal factory write just like the above 3 lines,
+        //by skewing instead of rotataing
+
+        let a_euler = new THREE.Euler( rads_in_three[0], rads_in_three[1], rads_in_three[2], 'XYZ' )
+        object3d.setRotationFromEuler(a_euler
+         */
 
         /*object3d.rotation.x = orientation[0] / globalThis._rad
         object3d.rotation.y = orientation[1] / globalThis._rad

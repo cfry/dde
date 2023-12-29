@@ -299,7 +299,7 @@ new Job({
 
     Dexter.j_set_peak_acceleration = function(acceleration = [300, 300, 300, 300, 300, 300]){
         let cmd = []
-        for(let i = 0; i < acceleration.length; i++){
+        for(let i = 0; i < accel.length; i++){
             cmd.push(make_ins("S", "JointAcceleration " + (i+1) + " " + Math.round(acceleration[i]/_arcsec)))
         }
         return cmd
@@ -318,18 +318,38 @@ new Job({
     //measured angles that we compare to.
     //Truncate rs[Dexter.J1_MEASURED_ANGLE], based on goal_position length
     Dexter.wait_until_measured_angles = function(goal_position, tolerance = 0.05, callback){
-        return Control.loop(true, function(){
+        return Control.loop(true, function() {
             let cmd = []
 
-            let rs = this.robot.rs
-            let meas = rs.measured_angles(goal_position.length)
+            let rs = this.robot.robot_status
+            let status_mode = rs[Dexter.STATUS_MODE]
+            let meas
+            if (status_mode === 0) {
+                meas = [
+                    rs[Dexter.J1_MEASURED_ANGLE],
+                    rs[Dexter.J2_MEASURED_ANGLE],
+                    rs[Dexter.J3_MEASURED_ANGLE],
+                    rs[Dexter.J4_MEASURED_ANGLE],
+                    rs[Dexter.J5_MEASURED_ANGLE],
+                ]
+            } else if (status_mode === 5) {
+                meas = [
+                    rs[Dexter.g5_J1_MEASURED_ANGLE],
+                    rs[Dexter.g5_J2_MEASURED_ANGLE],
+                    rs[Dexter.g5_J3_MEASURED_ANGLE],
+                    rs[Dexter.g5_J4_MEASURED_ANGLE],
+                    rs[Dexter.g5_J5_MEASURED_ANGLE],
+                ]
+                meas = Vector.multiply(meas, _arcsec)
+            }
 
-            let error = Vector.max(Vector.abs(Vector.subtract(meas, goal_position)))
+            let error = Vector.max(Vector.abs(Vector.subtract(meas, goal_position.slice(0, 5))))
             cmd.push(callback)
-            if(error < tolerance){
+            if (error < tolerance) {
                 cmd.push(Control.break())
-            }else{
-                cmd.push(Dexter.get_robot_status())
+            } else {
+                //cmd.push(Dexter.get_robot_status())
+                cmd.push(make_ins("g", 5))
             }
             return cmd
         })
@@ -352,15 +372,14 @@ new Job({
             end_acceleration: [0, 0, 0, 0, 0, 0],
             duration: "?", //'?' means get there as fast as possible
 
-            async: false, //defaults true if coming to stop, false if moving through point, will always be overwritten by user value
+            async: false, //defualts true if coming to stop, false if moving through point, will always be overwritten by user value
             sync_delay: 0.05, //time from JtQ completion. Negative value means 'time before completion'.
 
             peak_velocity: undefined,
             peak_acceleration: undefined,
             peak_jerk: undefined,
 
-            monitor_callback: function(){} //This function will get called over and over waiting for movement to complete. It returns to the do_list. It takes no args but THIS is the job,
-            //returns a list of instructions that are put on the do_list.
+            monitor_callback: function(){} //This function will get called over and over waiting for movement to complete. It returns to the do_list.
         }
 
         if(j_angles.length === 5){
@@ -394,6 +413,7 @@ new Job({
             default_options.end_acceleration.push(0)
         }
 
+
         let cmd = []
 
         if(default_options.peak_velocity !== undefined){
@@ -420,7 +440,17 @@ new Job({
         return cmd
     }
 
-
+function init_g5_robot_status_indexes() {
+    let keys = ["MEASURED_ANGLE", "STEP_ANGLE", "ANGLE_AT", "J_POSITION", "J_VELOCITY", "J_ACCELERATION", "J_temp_reserved_1", "J_temp_reserved_2"]
+    for (let i = 0; i < 6; i++) {
+        for (let j = 0; j < keys.length; j++) {
+            let key = "g5_J" + (i + 1) + "_" + keys[j]
+            let idx = i * keys.length + 10 + j
+            Dexter[key] = idx
+        }
+    }
+}
+init_g5_robot_status_indexes()
 
 /*
 

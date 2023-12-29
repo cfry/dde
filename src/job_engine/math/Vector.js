@@ -1390,7 +1390,7 @@ class Vector{
         return DCM
     }
 
-
+    /* buggy for certain inputs
     static DCM_to_quaternion(DCM = Vector.make_DCM()){
     	//Algorithm was found here:
         //http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
@@ -1423,7 +1423,35 @@ class Vector{
         }
     	quaternion = [w, x, y, z]
         return quaternion
-    }
+    }*/
+
+	static DCM_to_quaternion(DCM = Vector.make_DCM()){
+		//Convert rotation matrix to quaternion. Eq 2.34-2.35 Robotics book
+		//Equations taken from https://d3cw3dd2w32x2b.cloudfront.net/wp-content/uploads/2015/01/matrix-to-quat.pdf
+
+		DCM = Vector.transpose(DCM)
+		let t
+		let quat = [1, 0, 0, 0]
+		if(DCM[2][2] < 0){
+			if(DCM[0][0] > DCM[1][1]){
+				t = 1 + DCM[0][0] - DCM[1][1] - DCM[2][2]
+				quat = [DCM[1][2]-DCM[2][1], t, DCM[0][1]+DCM[1][0], DCM[2][0]+DCM[0][2]]
+			}else{
+				t = 1 - DCM[0][0] + DCM[1][1] - DCM[2][2]
+				quat = [DCM[2][0]-DCM[0][2], DCM[0][1]+DCM[1][0], t, DCM[1][2]+DCM[2][1]]
+			}
+		}else{
+			if(DCM[0][0] < -DCM[1][1]){
+				t = 1 - DCM[0][0] - DCM[1][1] + DCM[2][2]
+				quat = [DCM[0][1]-DCM[1][0], DCM[2][0]+DCM[0][2], DCM[1][2]+DCM[2][1], t]
+			}else{
+				t = 1 + DCM[0][0] + DCM[1][1] + DCM[2][2]
+				quat = [t, DCM[1][2]-DCM[2][1], DCM[2][0]-DCM[0][2], DCM[0][1]-DCM[1][0]]
+			}
+		}
+		quat = Vector.multiply(quat, 0.5, 1/Math.sqrt(t))
+		return quat
+	}
 
     static euler_angles_to_quaternion(euler_angles = [0, 0, 0], euler_sequence = "XYZ"){
         return Vector.DCM_to_quaternion(Vector.euler_angles_to_DCM(euler_angles, euler_sequence))

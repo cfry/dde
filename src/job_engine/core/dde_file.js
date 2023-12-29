@@ -1236,15 +1236,26 @@ class DDEFile {
     static async dynamic_import(package_name, global_var_name){
         let url = 'https://cdn.skypack.dev/' + package_name
         let result = await import(url)
-        if(global_var_name) {
+        if(global_var_name === null){}
+        else if (global_var_name === "") {
+            dde_error("DDEFile.dynamic_import passed a global_var_name of the empty string, which is invalid.<br/>" +
+                      "Pass in null if you don't want to bind a global variable,<br/>" +
+                       "or none at all to default the global varaible to<br/>" +
+                       "the package_name with underscores for hyphens.")
+        }
+        else if(global_var_name) {
             if(global_var_name.includes("-")) {
-                dde_error("dynamic_import passed a global_var_name of: " + global_var_name +
+                dde_error("DDEFile.dynamic_import passed a global_var_name of: " + global_var_name +
                     "<br/>that contains a hyphen which is invalid in JS.<br/>" +
                     "We recommend replacing hyphens with underscores.")
             }
             else {
                 globalThis[global_var_name] = result
             }
+        }
+        else { //default (argument not passed or is undefined
+            global_var_name = package_name.replaceAll("-", "_")
+            globalThis[global_var_name] = result
         }
         return result
     }
