@@ -85,7 +85,7 @@ class DDEFile {
             if(query !== "") {
                 let [protocol, host, extracted_path] = path.split(":")
                 if((protocol === "http") || (protocol === "https")){
-                    extracted_path = this.add_default_file_prefix_maybe(extracted_path)
+                    //extracted_path = this.add_default_file_prefix_maybe(extracted_path)
                     url = DDEFile.http_and_maybe_s + ":" + host + query + path //todo cut out host, just go with extracted path here???
                 }
                 else { //only 1 colon, assume its NOT the suffix to host but the separator before port

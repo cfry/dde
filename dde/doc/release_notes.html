@@ -1,6 +1,52 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
 
+<details class="doc_details"><summary>v 4.1.8, Jan 4, 2024</summary>
+    Highlights: Bug fix for Vector.DCM_to_quaterian definition.
+    Nearly all File menu items working for much better access to local file system.
+    Many of the remaining TestSuite failed tests fixed.
+ <ul>
+     <li> Replaced <code>Vector.DCM_to_quaterian</code> with new definiton, fixing a bug.</li>
+     <li> New Directory permissions file system interface. Nearly all items on the File menu
+     now work. Not perfect, but way fewer user clicks needed for file opening and saving to
+     your DDE computer, especially after you grant permissions to dde_apps folder in a given
+         DDE session.</li>
+     <li>File menu item: "Use NPM" replaces "Manage NPM" with JavaScript's new dynamic import
+     facility. Choose it to see documentation on how to use NPM packages in your DDE code.</li>
+     <li>In Ref Man example, fixed modify_window_cb to handle clicking on the X (close_button)
+     for the show_window example.</li>
+     <li>removed <code>modbus-serial</code> (now not requiring it, commented out ref man doc.
+     Still used in node server.</li>
+     <li>Monitor.init() fixed bug in the variable holding a new instance of websocket.</li>
+     <li>Removed <code>DDEPatch System</code>. Not appropriate for DDE4.</li>
+     <li>Removed <code>StripsMonitor</code> and friends from the TestSuite
+         because it requires Job Engine access.</li>
+     <li>Disabled the example code of <code>function(){}</code> from the TestSuite for
+         <code>j_move</code> doc because of bug in JavaScript design
+     about stand-along function defs without a name not evalable without surrounding parens.</li>
+     <li>Ref Man/IO/Picture/Camera IO/<code>show_picture</code> fixed
+         <code>show_window_callback_for_canvas_click</code> to
+         <code>Picture.show_window_callback_for_canvas_click</code>
+     and
+     added <code>"close_button"</code> handler.</li>
+     <li>Fixed Insert menu/examples:<br/>
+     Make Dictionary and<br/>
+     Nat Lang Reason<br/>
+         but still can't perform <code>recognize_speech</code> in DDE4,
+     so these remain broken.</li>
+     <li> Dex.m_joint (Jobless method call to move the robot) is working.
+     Increased timeout from 1000ms to 2000ms which fixed the first call in
+     the Ref Man from "timed-out" while running the TestSuite.</li>
+     <li>The new Web Serial functionality appears to be available for DDE4 running from
+         the github server and a local laptop server serving DDE4.<br/>
+         To Do: real testing with a serial device and document the crucial calls.<br/>
+         First level doc available at:<br/>
+         <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API">
+             https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API</a>
+     </li>
+     </ul>
+</details>
+
 <details class="doc_details"><summary>v 4.1.7, Dec 4, 2023</summary>
     Highlights: new Dexter.j_move and Dexter.j_reset instructions.
         Simulator, including SimBuild, improvements.

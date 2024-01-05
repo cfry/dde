@@ -73,7 +73,7 @@ class Dex {
         Dex.init() //make sure the job is running
         Dex.m_joint_aux(...array_of_angles)
         let eiq_instr_id = Job.DexJob.program_counter + 1 //pc is instr_id of the maj instr, one higher for the eiq
-        let timeoutMS = 10000 //todo call predict_dur to get a better estimate?
+        let timeoutMS = 20000 //todo call predict_dur to get a better estimate?
         console.log("m_joint before new promise")
         return new Promise((resolve, reject) => {
             console.log("m_joint inside top new promise fn")

@@ -610,7 +610,6 @@ new TestSuite("Structure.singularize",
     ['Structure.singularize("boxes")',   '"box"'],
     ['Structure.singularize("cars")',    '"car"']
 )
-var {shouldnt} = require("../core/utils.js")
 
 /*
 Start.parse("a robot has a hand") //show what START returns

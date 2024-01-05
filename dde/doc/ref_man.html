@@ -231,11 +231,11 @@
             is the same as:<br/>
             <code>DDEFile.dynamic_import("canvas-confetti")</code><br/>
             Once globalThis.canvas_conetti is defined, you can call it like so:<br/>
-            <code>globalThis.canvas_confetti.default()</code>
+            <code>globalThis.canvas_confetti.default()</code><br/>
             Evaluating the above causes some moving colored rectangles to be displayed in DDE,
             simulating confetti being dropped.
             <p></p>
-            Here's a lower-level way to call this functionality without defining
+            Here's a lower-level way to import this package and call this functionality without defining
             a global variable:<pre>
 <code>import("https://cdn.skypack.dev/canvas-confetti").then(
    function(mod) {
@@ -408,7 +408,7 @@ DDEFile.load_file("two_plus_three.js",
         the existing folders.<br/>
         <i>Example:</i><br/>
         <code>DDEFile.make_folder("junk_fold_for_test",
-              function(err, success){ out("make_folder err: " + err + " success: " + success)})</code>
+              function(err, success){ out("make_folder err: " + err + " success: " + success)})</code><br/>
         Makes the folder dde_apps/foo. Inside is placed
         a folder named "bar", and inside is placed a folder "baz".
         </details>
@@ -467,9 +467,10 @@ DDEFile.load_file("two_plus_three.js",
                 If there is no callback passed in, (the default), a promise is returned.
                 <br/></br/>
                 <b>Example:</b><br>
-                <pre><code>DDEFile.read_file_async("dde_init.js"),
+                <pre><code title="not in TestSuite">DDEFile.read_file_async("dde_init.js",
                          function(err, content){
-                             out("read_file got err: " + err + " and content: " + content)})
+                             out("read_file got err: " + err +
+                                 " and content: " + content)})
                 </code></pre>
      </details>
 
@@ -1461,7 +1462,7 @@ based on the <i>content</i> arg. If it is a string, that string will be shown in
 <b>rect_to_draw</b> Default: <code>null</code>. If this is an array of 4 non-negative integers,
 it is used to make a single pixel wide red box at the
 x, y, width and height specified in the array.<br/>
-<b>show_window_callback</b> Default <code>show_window_callback_for_canvas_click</code>.
+<b>show_window_callback</b> Default <code>Picture.show_window_callback_for_canvas_click</code>.
 If canvas_id does not exist, a new show_window will be created that has an HTML canvas
 tag that displays the content image. That show_window gets its callback argument
 from this argument.
@@ -6524,7 +6525,7 @@ and jerk, providing for smooth motions.
         <li><b>peak_velocity:</b> default: <code> undefined</code> An array of 6 numbers, one for each of joints 1 through 6.</li>
         <li><b>peak_acceleration:</b> default: <code> undefined</code> An array of 6 numbers, one for each of joints 1 through 6.</li>
         <li><b>peak_jerk:</b> default: <code> undefined</code> An array of 6 numbers, one for each of joints 1 through 6.</li>
-        <li><b>monitor_callback:</b> default: <code> function(){}</code></li>
+        <li><b>monitor_callback:</b> default: <code title="not in TestSuite"> function(){}</code></li>
     </ul>
     <i>Example:</i>
     <pre><code title="not in Testsuite.">new Job({
@@ -6538,7 +6539,7 @@ and jerk, providing for smooth motions.
 </details>
 
 <details id="j_reset_doc_id" class="doc_details"><summary>j_reset</summary>
-    <code>Dexter.j_reset</code> Stops the robot in the middle of a j_move
+    <code>Dexter.j_reset()</code> stops the robot in the middle of a j_move
     and empties the j_move queue.
     <p></p>
     In the below example, the <code>{async: true}</code>
@@ -8522,6 +8523,7 @@ See Job Example <i>Serial Port</i> for examples.
 </details> <!-- end of Serial Instructions -->
 </details> <!-- End Serial -->
 
+<!-- removed in DDE4. James N says not useful. use straight serial instead
 <details class="doc_details"><summary>Modbus</summary>
 Modbus is a serial communications protocol used to share information
 between PLC (Programmable Logic Controller) devices and computers.
@@ -8533,6 +8535,7 @@ This loads the modbus-serial software into DDE.
 For documentation, see
 <a target="_blank" href="https://www.npmjs.com/package/modbus-serial">modbus_serial</a>.
 </details>
+-->
 
 
 </details> <!-- end Robots -->
@@ -8556,14 +8559,14 @@ For documentation, see
          <code> Dex.m_xyz([0.1, 0.2, 0.3]) </code>
          <p/>
          Run both together:
-         <pre><code> Dex.m_joint([5, 10, 15])
+         <pre><code> Dex.m_joint([5, 10, 16])
  Dex.m_xyz([0.1, 0.2, 0.3]) </code></pre>
          An Extended example:
          <pre><code> function print_measured_angles(){
    out(this.robot.rs.measured_angles())
  }
  for(let i = 1; i < 4; i++) {
-    Dex.m_joint([5, 10, 15])
+    Dex.m_joint([5, 10, 17])
     Dex.run(IO.out("i = " + i))
     Dex.m_joint([10 * i, 20 * i, 30 * i])
     Dex.run(print_measured_angles)
@@ -10517,14 +10520,17 @@ show_window({
         to that new color. Then the string used to indicate that new color is
         added to the window just below the button.<pre><code>
 function modify_window_cb(vals){
-   let color = "rgb(" + Math.round(Math.random() * 255) + "," +
-                        Math.round(Math.random() * 255) + "," +
-                        Math.round(Math.random() * 255) + ")"
-   SW.selector_set_in_ui("#" + vals.show_window_elt_id + " [name=the_button] [style] [background]",
-                      color
-                      )
-   SW.selector_set_in_ui("#" + vals.show_window_elt_id + " [name=the_button] [afterend]",
-                      "&lt;br/>" + color)
+   if(vals.clicked_button_value === "close_button") {}
+   else {
+       let color = "rgb(" + Math.round(Math.random() * 255) + "," +
+                            Math.round(Math.random() * 255) + "," +
+                            Math.round(Math.random() * 255) + ")"
+       SW.selector_set_in_ui("#" + vals.show_window_elt_id + " [name=the_button] [style] [background]",
+                          color
+                          )
+       SW.selector_set_in_ui("#" + vals.show_window_elt_id + " [name=the_button] [afterend]",
+                          "&lt;br/>" + color)
+   }
 }
 show_window({title: "Modify Window",
              x:300, y:20, width:300, height:200,
@@ -11677,6 +11683,8 @@ Here we point out just a few that are especially easy and useful for teaching.
     </details>
 </details>
 </details> <!-- end of Lesson -->
+
+ <!--
 <details id="PatchDDE_doc_id" class="doc_details"><summary>PatchDDE</summary>
    <code>PatchDDE</code> encompasses tools to help you keep DDE up-to-date.
    <details class="doc_details"><summary>Deprecate</summary>
@@ -11730,6 +11738,7 @@ Here we point out just a few that are especially easy and useful for teaching.
          <i>Example:</i><br/>
          <code>PatchDDE.show_dde_2_to_3() </code>
    </details>
+
    <details class="doc_details"><summary>Patch System</summary>
    DDE has a mechanism for users to get small updates
    to a DDE release automatically. This is intended for isolated
@@ -11861,8 +11870,9 @@ Here we point out just a few that are especially easy and useful for teaching.
        prefix them with "PatchDDE." or
        eval <code title="not in TestSuite">PatchDDE.load_dde_2_to_3()</code>
    </details>
-   </details> <!-- end Patch System -->
-   </details> <!-- End PatchDDE -->
+   </details>
+   </details> --> <!-- End PatchDDE -->
+
    <details id="python_doc_id" class="doc_details"><summary>Python</summary>
        A language is a collection of tools that are designed to work synergistically
        with each other. When possible, it is good to keep the code for a program in
@@ -12159,9 +12169,9 @@ def main():
            For documentation on the npm library, see: <a target="_blank" href="https://www.npmjs.com/package/strips">npm STRIPS</a><br/>
            <b>Using STRIPS in the Job Engine</b><br/>
            The STRIPS documentation refers to the "class" of the STRIPS methods as <code title="unEVALable">strips</code> but
-           in the actual strips.js source code, the class in named <code>StripsManager</code>.
+           in the actual strips.js source code, the class in named <code title="not in TestSuite">StripsManager</code>.
            So in the Job Engine, we expose the name of the class in the actual code as the global variable
-           <code>StripsManager</code>
+           <code title="not in TestSuite">StripsManager</code>
            <br/><br/>
            From the straight documentation of the npm package, you describe
            the "domain" (the actions) and the problem in a language called
@@ -12176,7 +12186,7 @@ def main():
             invoke STRIPS running on the Job Engine and get a return object
                describing the resulting plan. DDE provides two different syntaxes for
                describing STRIPS domains and STRIPS problems.
-               <details><summary>Using PDDL</summary>
+               <details class="doc_details"><summary>Using PDDL</summary>
                    PDDL is the conventional syntax for describing STRIPS domains and problems.
                    This example was lifted from a
                    <a target="_blank" href="http://www.primaryobjects.com/2015/11/06/artificial-intelligence-planning-with-strips-a-gentle-introduction/">tutorial</a>
@@ -12231,7 +12241,7 @@ function my_strips_cb(val, websocket, json_data) {
   An example of passing the domain, problem, callback and some configurations to the Job Engine to run.
   Note that the Monitor also has a property named <code title="unEVALable">domain</code>
   so we use <code title="unEVALable">strips_domain</code> to keep them separate.
-                   <pre><code>
+                   <pre><code title="not in TestSuite">
 Monitor.strips_solve({
     domain        : "localhost",
     callback      : "my_strips_cb", //"Monitor.out" "my_strips_cb"   //"inspect" //can't use just inspect because the fn is also passed websocket and json_data which would cause inspect to error
@@ -12245,12 +12255,12 @@ Monitor.strips_solve({
 </code></pre>
    The result that is passed to the callback is an object.
     You can extract the names of the actions in the plan via:
-                   <code>globalThis.strips_example_result[0].path</code> =><br/>
+                   <code title="not in TestSuite">globalThis.strips_example_result[0].path</code> =><br/>
                    <samp>["move npc town field",
                           "move npc field castle"]</samp>
       </details> <!-- end Using PDDL -->
 
-      <details><summary>Using JSON</summary>
+      <details class="doc_details"><summary>Using JSON</summary>
           This is semantically the same as the above PDDL syntax example.
           However, from JavaScript its much more convenient to use JSON syntax
           because its familiar to JS programmers, and its easy to programmatically
@@ -12353,7 +12363,7 @@ function my_strips_cb(val, websocket, json_data) {
                    An example of passing the domain, problem, callback and some configurations to the Job Engine to run.
                    Note that the Monitor also has a property named <code title="unEVALable">domain</code>
                    so we use <code title="unEVALable">strips_domain</code> to keep them separate.
-                   <pre><code>
+                   <pre><code  title="not in TestSuite">
 Monitor.strips_solve({
     domain        : "localhost",
     callback      : "my_strips_cb", //"Monitor.out" "my_strips_cb"   //"inspect" //can't use just inspect because the fn is also passed websocket and json_data which would cause inspect to error
@@ -12367,7 +12377,7 @@ Monitor.strips_solve({
 </code></pre>
                    The result that is passed to the callback is an object.
                    You can extract the names of the actions in the plan via:
-                   <code>globalThis.strips_example_result[0].path</code> =><br/>
+                   <code title="not in TestSuite">globalThis.strips_example_result[0].path</code> =><br/>
                    <samp>["move npc town field",
                        "move npc field castle"]</samp>
       </details> <!-- end Using JSON -->

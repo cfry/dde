@@ -124,21 +124,24 @@ class Picture{
    }
 
     static show_window_callback_for_canvas_click(vals){
-        let canvas_id = vals.clicked_button_value
-        let canvas_elt = value_of_path(canvas_id)
-        let x = vals.offsetX
-        let y = vals.offsetY
-        let ctx = canvas_elt.getContext("2d")
-        let pix = ctx.getImageData(x, y, 1, 1).data
-        out( "You clicked: x: "     + x +
-            ", y: "     + y +
-            ", red: "   + pix[0] +
-            ", green: " + pix[1] +
-            ", blue: "  + pix[2] +
-            ", alpha: " + pix[3] +
-            "<div style='margin-left:10px; display:inline-block; width:30px;height:20px; " +
-            "background:rgb(" + pix[0] + "," + pix[1] + "," + pix[2] + ")';></div>"
-        )
+        if(vals.clicked_button_value === "close_button") {}
+        else {
+            let canvas_id = vals.clicked_button_value
+            let canvas_elt = value_of_path(canvas_id)
+            let x = vals.offsetX
+            let y = vals.offsetY
+            let ctx = canvas_elt.getContext("2d")
+            let pix = ctx.getImageData(x, y, 1, 1).data
+            out("You clicked: x: " + x +
+                ", y: " + y +
+                ", red: " + pix[0] +
+                ", green: " + pix[1] +
+                ", blue: " + pix[2] +
+                ", alpha: " + pix[3] +
+                "<div style='margin-left:10px; display:inline-block; width:30px;height:20px; " +
+                "background:rgb(" + pix[0] + "," + pix[1] + "," + pix[2] + ")';></div>"
+            )
+        }
     }
 
    static show_picture({canvas_id="canvas_id", //string of a canvas_id or canvasId dom elt
@@ -1186,7 +1189,10 @@ class Picture{
     }
 
    static make_classifier(path=null){
-        if(!path) { path = __dirname + "/vision/lbpcascade_frontalface.xml"}
+        if(!path) {
+            path = //__dirname + "/vision/lbpcascade_frontalface.xml"
+                   "http://localhost/dde/vision/lbpcascade_frontalface.xml"
+        }
         let body = read_file(path)
         let model_name = "model" + ++Picture.model_index + ".xml"
         cv.FS_createDataFile('/', model_name, body, true, true, false)

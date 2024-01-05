@@ -33,6 +33,12 @@ import js_beautify from "js-beautify"
 globalThis.js_beautify = js_beautify
 // js_beautify(JSON.stringify({a: 1, b:2})  //example of use. returns string nicely formatted.
 
+/*errors with "Failed to resolve module specifier "stream"."
+James N says: forget about modbus-serial, just uses serial. Its a very thinn layer on serial.
+import ModbusRTU from "modbus-serial"
+globalThis.ModbusRTU = ModbusRTU  //is this really ok in DDE4 browser (not job_engine?)
+*/
+
 //import mathjs from "mathjs" fails, see https://mathjs.org/docs/getting_started.html
 //globalThis.mathjs = mathjs
 

@@ -259,7 +259,7 @@ globalThis.BrowserFile = class BrowserFile{
         let [file_handle] = await window.showOpenFilePicker()
         let path = "/local/" + file_handle.name
         BrowserFile.local_path_to_open_file_handle[path] = file_handle
-        await Editor.load_local_file_at_path_aux(path)
+        await BrowserFile.load_local_file_at_path_aux(path)
     }
 
     //doesn't require user to click a dialog box.
@@ -348,7 +348,7 @@ globalThis.BrowserFile = class BrowserFile{
     //if confirm_message is null, don't confirm with user, just save.
     //open_local_file passes a real confirm message to check if user wants to save the file
     static async save_local_file(path = Editor.current_file_path,
-                                 confirm_message="Choose the folder to save the file in.",
+                                 confirm_message="Choose the folder to save the file in.\nDocuments/dde_apps is used for normal user files.",
                                  content=Editor.get_javascript()) {
         let file_handle = BrowserFile.local_path_to_save_file_handle[path]
         if (file_handle) {
@@ -427,7 +427,7 @@ globalThis.BrowserFile = class BrowserFile{
     }
      */
 
-    static async save_local_file_as(confirm_message="Choose the folder to save the file in.",
+    static async save_local_file_as(confirm_message="Choose the folder to save the file in.\nDocuments/dde_apps is used for normal user files.",
                                     content=Editor.get_javascript(false)){
         if (confirm_message && !confirm(confirm_message)) {
             return

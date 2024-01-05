@@ -9,7 +9,7 @@ function translate(text){
     var result = text
     for(let key of Object.keys(dict1)){
         const def = dict1[key]
-        result = replace_substrings(result, key, def)
+        result = result.replaceAll(key, def)
     }
     if (result.includes("selection")){
         let sel = Editor.get_javascript(true)
@@ -18,7 +18,7 @@ function translate(text){
             speak("There is no selection in the editor.")
         }
         else {
-            result = replace_substrings(result, "selection", sel)
+            result = result.replaceAll("selection", sel)
         }
     }
     return result
@@ -29,13 +29,13 @@ function handle_dialog(recognized_text, confidence){
     out("Heard: " + recognized_text)
     if (recognized_text == "insert dictionary"){
         var src = "\ndict1 = \n" + JSON.stringify(dict1)
-        src = replace_substrings(src, ",", ",\n")
+        src = src.replaceAll(",", ",\n")
         Editor.insert(src, "end")
         speak("Dictionary saved.")
     }
     else if (recognized_text == "show dictionary"){
         var src = JSON.stringify(dict1)
-        src = replace_substrings(src, ",", ",<br/>")
+        src = src.replaceAll(",", ",<br/>")
         show_window({title: "The dictionary you made",
             content: src})
     }
@@ -105,5 +105,3 @@ recognize_speech(
         finish_phrase: "finish",        //Say this to end speech reco when only_once=false.
         finish_callback: out, //Passed array of arrays of text and confidence when user says "finish". Default null. Only called if only_once=false
         x: 290, y: 100, height: 350})
-
-var {replace_substrings} = require("../core/utils.js")

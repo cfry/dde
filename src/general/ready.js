@@ -6,7 +6,6 @@ console.log("top of ready.js")
 //import * as fs from 'fs'; //errors on launch of dde4
 //globalThis.fs = fs
 
-
 //These imports only for when running_in_browser
 import "jqwidgets-scripts/jqwidgets/styles/jqx.base.css"
 import "jqwidgets-scripts/jqwidgets/jqxcore.js"
@@ -1229,12 +1228,28 @@ window_modify_id.onclick=function(){Editor.insert(
       //eval_and_start_button_id.onclick = eval_and_start
 
        make_dictionary_id.onclick=function(){
-           const code = read_file(__dirname + "/examples/make_dictionary.js")
-           Editor.insert(code)
+           DDEFile.read_file_async(//__dirname +
+               "dde/examples/make_dictionary.js",
+                function(err, content) {
+                    if (err) {
+                        warning("Could not find: " + path)
+                    }
+                    else {
+                        Editor.insert(content)
+                    }
+                })
        }
        nat_lang_reasoning_id.onclick=function(){
-           const code = read_file(__dirname + "/examples/nat_lang_reasoning.js")
-           Editor.insert(code)
+           DDEFile.read_file_async(//__dirname +
+               "dde/examples/nat_lang_reasoning.js",
+               function(err, content) {
+                   if (err) {
+                       warning("Could not find: " + path)
+                   }
+                   else {
+                       Editor.insert(content)
+                   }
+               })
        }
 
 

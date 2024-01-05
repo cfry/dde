@@ -57,11 +57,11 @@ class Monitor {
              out(warning_mess)
          }
          else {
-             let the_url        = this.ws_url(domain)
-             this.send_source   = source    //ok if undefined
+             let the_url = this.ws_url(domain)
+             this.send_source = source    //ok if undefined
              this.send_callback = callback  //ok if undefined
-             this.send_period   = period    //ok if undefined
-             let status_mess    = "Monitor.init opening websocket for url: " + the_url
+             this.send_period = period    //ok if undefined
+             let status_mess = "Monitor.init opening websocket for url: " + the_url
              console.log(status_mess)
              out(status_mess)
              let websocket = new WebSocket(the_url) //WebSocket defined in chrome browser
@@ -79,57 +79,56 @@ class Monitor {
                      Monitor.send_aux(websocket, source, callback, period)
                  }
              }
-         }
-		
-         websocket.onclose = function(evt) {
-             Monitor.delete_domain(websocket)
-             out("Monitor for: " + websocket.url + " websocket closed.") //onClose(evt)
-         }
-		
-         websocket.onmessage = function(evt) {
-             let data_str = evt.data
-             out("Monitor for: " + websocket.url + " onmessage got: " + data_str, undefined, true)
-             try {
-                 let json_data = JSON.parse(data_str)
-                 let callback_src = json_data.callback
-                 if(callback_src) {
-                     if(callback_src.startsWith("function(")){
-                         callback_src = "(" + callback_src + ")"
-                     }
-                     let callback_fn = globalThis.eval(callback_src)
-                     let value       = globalThis.eval(json_data.value)
-                     //out("Monitor for: " + websocket.url + " got value of: " + value)
-                     let result = callback_fn.call(null, value, websocket, json_data) //usually done for side effect.
-                 }
-                 //delete the below?
-                /*
-                 if (json_data.type === "show_measured_angles") {
-                     SimUtils.render_joints(json_data.value)
-                 } else if (json_data.type === "evaled") {
-                     let new_val
-                     if (json_data.callback) {
-                         let response_str_to_eval = json_data.callback + "(" + json_data.value + ")"
-                         try {
-                             new_val = globalThis.eval(response_str_to_eval)
-                         } catch (err) {
-                             dde_err("Monitor evaled callback errored with: " + err.message)
+
+             websocket.onclose = function (evt) {
+                 Monitor.delete_domain(websocket)
+                 out("Monitor for: " + websocket.url + " websocket closed.") //onClose(evt)
+             }
+
+             websocket.onmessage = function (evt) {
+                 let data_str = evt.data
+                 out("Monitor for: " + websocket.url + " onmessage got: " + data_str, undefined, true)
+                 try {
+                     let json_data = JSON.parse(data_str)
+                     let callback_src = json_data.callback
+                     if (callback_src) {
+                         if (callback_src.startsWith("function(")) {
+                             callback_src = "(" + callback_src + ")"
                          }
-                     } else {
-                         new_val = globalThis.eval(json_data.value)
+                         let callback_fn = globalThis.eval(callback_src)
+                         let value = globalThis.eval(json_data.value)
+                         //out("Monitor for: " + websocket.url + " got value of: " + value)
+                         let result = callback_fn.call(null, value, websocket, json_data) //usually done for side effect.
                      }
-                     out("Monitor got evaled of: " + new_val)
-                 } else if (json_data.type === "out") {
-                     out(json_data.value)
-                 } */
+                     //delete the below?
+                     /*
+                      if (json_data.type === "show_measured_angles") {
+                          SimUtils.render_joints(json_data.value)
+                      } else if (json_data.type === "evaled") {
+                          let new_val
+                          if (json_data.callback) {
+                              let response_str_to_eval = json_data.callback + "(" + json_data.value + ")"
+                              try {
+                                  new_val = globalThis.eval(response_str_to_eval)
+                              } catch (err) {
+                                  dde_err("Monitor evaled callback errored with: " + err.message)
+                              }
+                          } else {
+                              new_val = globalThis.eval(json_data.value)
+                          }
+                          out("Monitor got evaled of: " + new_val)
+                      } else if (json_data.type === "out") {
+                          out(json_data.value)
+                      } */
+                 } catch (err) {
+                     dde_error("Monitor for: " + websocket.url +
+                         " got error message back from MonitorServer of: " + err.message)
+                 }
              }
-             catch(err){
-                 dde_error("Monitor for: " + websocket.url +
-                           " got error message back from MonitorServer of: " + err.message)
+
+             websocket.onerror = function (evt) {
+                 dde_error("Monitor for: " + websocket.url + " errored probably because no Job Engine running at that url.")
              }
-         }
-		
-         websocket.onerror = function(evt) {
-            dde_error("Monitor for: " + websocket.url + " errored probably because no Job Engine running at that url.")
          }
       } //end of init
 
@@ -186,7 +185,7 @@ class Monitor {
          let websocket = this.domain_to_websocket(domain)
          if(websocket) { this.send_aux(websocket, source, callback, period) }
          else {
-             this.init(domain, source, callback, period)
+             Monitor.init(domain, source, callback, period)
          }
      }
 

@@ -1,7 +1,7 @@
 {
   "name": "dde4",
-  "version": "4.1.7",
-  "release_date": "Dec 4, 2023",
+  "version": "4.1.8",
+  "release_date": "Jan 4, 2024",
   "description": "test rollup",
   "author": "Fry",
   "license": "GPL-3.0",
@@ -54,7 +54,7 @@
     "mark.js": "^8.11.1",
     "mathjs": "^11.7.0",
     "minimist": "^1.2.6",
-    "modbus-serial": "^8.0.5",
+    "modbus-serial": "^8.0.16",
     "nouislider": "^15.5.0",
     "npm": "^8.1.0",
     "npm-programmatic": "^0.0.12",

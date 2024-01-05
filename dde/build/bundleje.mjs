@@ -14,8 +14,8 @@ import require$$0 from 'domain';
 import path$1 from 'path';
 
 var name = "dde4";
-var version = "4.1.7";
-var release_date = "Dec 4, 2023";
+var version = "4.1.8";
+var release_date = "Jan 4, 2024";
 var description = "test rollup";
 var author = "Fry";
 var license = "GPL-3.0";
@@ -68,7 +68,7 @@ var dependencies = {
 	"mark.js": "^8.11.1",
 	mathjs: "^11.7.0",
 	minimist: "^1.2.6",
-	"modbus-serial": "^8.0.5",
+	"modbus-serial": "^8.0.16",
 	nouislider: "^15.5.0",
 	npm: "^8.1.0",
 	"npm-programmatic": "^0.0.12",
@@ -5641,40 +5641,68 @@ class Vector$1{
         return DCM
     }
 
-
-    static DCM_to_quaternion(DCM = Vector$1.make_DCM()){
+    /* buggy for certain inputs
+    static DCM_to_quaternion(DCM = Vector.make_DCM()){
     	//Algorithm was found here:
         //http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
-    	let trace = DCM[0][0] + DCM[1][1] + DCM[2][2];
-        let S, w, x, y, z, quaternion;
+    	let trace = DCM[0][0] + DCM[1][1] + DCM[2][2]
+        let S, w, x, y, z, quaternion
         if(trace > 0){
-        	S = Math.sqrt(1.0 + trace) * 2;
-			w = .25 * S;
-            x = (DCM[2][1] - DCM[1][2]) / S;
-            y = (DCM[2][1] - DCM[1][2]) / S;
-            z = (DCM[2][1] - DCM[1][2]) / S;
+        	S = Math.sqrt(1.0 + trace) * 2
+			w = .25 * S
+            x = (DCM[2][1] - DCM[1][2]) / S
+            y = (DCM[2][1] - DCM[1][2]) / S
+            z = (DCM[2][1] - DCM[1][2]) / S
         }else if(DCM[0][0] > DCM[1][1] && DCM[0][0] > DCM[2][2]){
-        	S = 2 * Math.sqrt(1 + DCM[0][0] - DCM[1][1] - DCM[2][2]);
-            w = (DCM[2][1] - DCM[1][2]) / S;
-            x = .25 * S;
-            y = (DCM[0][1] + DCM[1][0]) / S;
-            z = (DCM[0][2] + DCM[2][0]) / S;
+        	S = 2 * Math.sqrt(1 + DCM[0][0] - DCM[1][1] - DCM[2][2])
+            w = (DCM[2][1] - DCM[1][2]) / S
+            x = .25 * S
+            y = (DCM[0][1] + DCM[1][0]) / S
+            z = (DCM[0][2] + DCM[2][0]) / S
         }else if(DCM[1][1] > DCM[2][2]){
-        	S = 2 * Math.sqrt(1 + DCM[1][1] - DCM[0][0] - DCM[2][2]);
-            w = (DCM[0][2] - DCM[2][0]) / S;
-            x = (DCM[0][1] + DCM[1][0]) / S;
-            y = .25 * S;
-            z = (DCM[1][2] + DCM[2][1]) / S;
+        	S = 2 * Math.sqrt(1 + DCM[1][1] - DCM[0][0] - DCM[2][2])
+            w = (DCM[0][2] - DCM[2][0]) / S
+            x = (DCM[0][1] + DCM[1][0]) / S
+            y = .25 * S
+            z = (DCM[1][2] + DCM[2][1]) / S
         }else if(DCM[1][1] > DCM[2][2]){
-        	S = 2 * Math.sqrt(1 + DCM[2][2] - DCM[0][0] - DCM[1][1]);
-            w = (DCM[1][0] - DCM[0][1]) / S;
-            x = (DCM[0][2] + DCM[2][0]) / S;
-            y = (DCM[1][2] + DCM[2][1]) / S;
-            z = .25 * S;
+        	S = 2 * Math.sqrt(1 + DCM[2][2] - DCM[0][0] - DCM[1][1])
+            w = (DCM[1][0] - DCM[0][1]) / S
+            x = (DCM[0][2] + DCM[2][0]) / S
+            y = (DCM[1][2] + DCM[2][1]) / S
+            z = .25 * S
         }
-    	quaternion = [w, x, y, z];
+    	quaternion = [w, x, y, z]
         return quaternion
-    }
+    }*/
+
+	static DCM_to_quaternion(DCM = Vector$1.make_DCM()){
+		//Convert rotation matrix to quaternion. Eq 2.34-2.35 Robotics book
+		//Equations taken from https://d3cw3dd2w32x2b.cloudfront.net/wp-content/uploads/2015/01/matrix-to-quat.pdf
+
+		DCM = Vector$1.transpose(DCM);
+		let t;
+		let quat = [1, 0, 0, 0];
+		if(DCM[2][2] < 0){
+			if(DCM[0][0] > DCM[1][1]){
+				t = 1 + DCM[0][0] - DCM[1][1] - DCM[2][2];
+				quat = [DCM[1][2]-DCM[2][1], t, DCM[0][1]+DCM[1][0], DCM[2][0]+DCM[0][2]];
+			}else {
+				t = 1 - DCM[0][0] + DCM[1][1] - DCM[2][2];
+				quat = [DCM[2][0]-DCM[0][2], DCM[0][1]+DCM[1][0], t, DCM[1][2]+DCM[2][1]];
+			}
+		}else {
+			if(DCM[0][0] < -DCM[1][1]){
+				t = 1 - DCM[0][0] - DCM[1][1] + DCM[2][2];
+				quat = [DCM[0][1]-DCM[1][0], DCM[2][0]+DCM[0][2], DCM[1][2]+DCM[2][1], t];
+			}else {
+				t = 1 + DCM[0][0] + DCM[1][1] + DCM[2][2];
+				quat = [t, DCM[1][2]-DCM[2][1], DCM[2][0]-DCM[0][2], DCM[0][1]-DCM[1][0]];
+			}
+		}
+		quat = Vector$1.multiply(quat, 0.5, 1/Math.sqrt(t));
+		return quat
+	}
 
     static euler_angles_to_quaternion(euler_angles = [0, 0, 0], euler_sequence = "XYZ"){
         return Vector$1.DCM_to_quaternion(Vector$1.euler_angles_to_DCM(euler_angles, euler_sequence))
@@ -29711,7 +29739,7 @@ new Job({
 
     Dexter.j_set_peak_acceleration = function(acceleration = [300, 300, 300, 300, 300, 300]){
         let cmd = [];
-        for(let i = 0; i < acceleration.length; i++){
+        for(let i = 0; i < accel.length; i++){
             cmd.push(make_ins("S", "JointAcceleration " + (i+1) + " " + Math.round(acceleration[i]/_arcsec)));
         }
         return cmd
@@ -29730,18 +29758,38 @@ new Job({
     //measured angles that we compare to.
     //Truncate rs[Dexter.J1_MEASURED_ANGLE], based on goal_position length
     Dexter.wait_until_measured_angles = function(goal_position, tolerance = 0.05, callback){
-        return Control.loop(true, function(){
+        return Control.loop(true, function() {
             let cmd = [];
 
-            let rs = this.robot.rs;
-            let meas = rs.measured_angles(goal_position.length);
+            let rs = this.robot.robot_status;
+            let status_mode = rs[Dexter.STATUS_MODE];
+            let meas;
+            if (status_mode === 0) {
+                meas = [
+                    rs[Dexter.J1_MEASURED_ANGLE],
+                    rs[Dexter.J2_MEASURED_ANGLE],
+                    rs[Dexter.J3_MEASURED_ANGLE],
+                    rs[Dexter.J4_MEASURED_ANGLE],
+                    rs[Dexter.J5_MEASURED_ANGLE],
+                ];
+            } else if (status_mode === 5) {
+                meas = [
+                    rs[Dexter.g5_J1_MEASURED_ANGLE],
+                    rs[Dexter.g5_J2_MEASURED_ANGLE],
+                    rs[Dexter.g5_J3_MEASURED_ANGLE],
+                    rs[Dexter.g5_J4_MEASURED_ANGLE],
+                    rs[Dexter.g5_J5_MEASURED_ANGLE],
+                ];
+                meas = Vector.multiply(meas, _arcsec);
+            }
 
-            let error = Vector.max(Vector.abs(Vector.subtract(meas, goal_position)));
+            let error = Vector.max(Vector.abs(Vector.subtract(meas, goal_position.slice(0, 5))));
             cmd.push(callback);
-            if(error < tolerance){
+            if (error < tolerance) {
                 cmd.push(Control.break());
-            }else {
-                cmd.push(Dexter.get_robot_status());
+            } else {
+                //cmd.push(Dexter.get_robot_status())
+                cmd.push(make_ins("g", 5));
             }
             return cmd
         })
@@ -29764,15 +29812,14 @@ new Job({
             end_acceleration: [0, 0, 0, 0, 0, 0],
             duration: "?", //'?' means get there as fast as possible
 
-            async: false, //defaults true if coming to stop, false if moving through point, will always be overwritten by user value
+            async: false, //defualts true if coming to stop, false if moving through point, will always be overwritten by user value
             sync_delay: 0.05, //time from JtQ completion. Negative value means 'time before completion'.
 
             peak_velocity: undefined,
             peak_acceleration: undefined,
             peak_jerk: undefined,
 
-            monitor_callback: function(){} //This function will get called over and over waiting for movement to complete. It returns to the do_list. It takes no args but THIS is the job,
-            //returns a list of instructions that are put on the do_list.
+            monitor_callback: function(){} //This function will get called over and over waiting for movement to complete. It returns to the do_list.
         };
 
         if(j_angles.length === 5){
@@ -29806,6 +29853,7 @@ new Job({
             default_options.end_acceleration.push(0);
         }
 
+
         let cmd = [];
 
         if(default_options.peak_velocity !== undefined){
@@ -29832,7 +29880,17 @@ new Job({
         return cmd
     };
 
-
+function init_g5_robot_status_indexes() {
+    let keys = ["MEASURED_ANGLE", "STEP_ANGLE", "ANGLE_AT", "J_POSITION", "J_VELOCITY", "J_ACCELERATION", "J_temp_reserved_1", "J_temp_reserved_2"];
+    for (let i = 0; i < 6; i++) {
+        for (let j = 0; j < keys.length; j++) {
+            let key = "g5_J" + (i + 1) + "_" + keys[j];
+            let idx = i * keys.length + 10 + j;
+            Dexter[key] = idx;
+        }
+    }
+}
+init_g5_robot_status_indexes();
 
 /*
 
@@ -35575,7 +35633,7 @@ class DDEFile$1 {
             if(query !== "") {
                 let [protocol, host, extracted_path] = path.split(":");
                 if((protocol === "http") || (protocol === "https")){
-                    extracted_path = this.add_default_file_prefix_maybe(extracted_path);
+                    //extracted_path = this.add_default_file_prefix_maybe(extracted_path)
                     url = DDEFile$1.http_and_maybe_s + ":" + host + query + path; //todo cut out host, just go with extracted path here???
                 }
                 else { //only 1 colon, assume its NOT the suffix to host but the separator before port
@@ -36723,15 +36781,26 @@ class DDEFile$1 {
     static async dynamic_import(package_name, global_var_name){
         let url = 'https://cdn.skypack.dev/' + package_name;
         let result = await import(url);
-        if(global_var_name) {
+        if(global_var_name === null);
+        else if (global_var_name === "") {
+            dde_error("DDEFile.dynamic_import passed a global_var_name of the empty string, which is invalid.<br/>" +
+                      "Pass in null if you don't want to bind a global variable,<br/>" +
+                       "or none at all to default the global varaible to<br/>" +
+                       "the package_name with underscores for hyphens.");
+        }
+        else if(global_var_name) {
             if(global_var_name.includes("-")) {
-                dde_error("dynamic_import passed a global_var_name of: " + global_var_name +
+                dde_error("DDEFile.dynamic_import passed a global_var_name of: " + global_var_name +
                     "<br/>that contains a hyphen which is invalid in JS.<br/>" +
                     "We recommend replacing hyphens with underscores.");
             }
             else {
                 globalThis[global_var_name] = result;
             }
+        }
+        else { //default (argument not passed or is undefined
+            global_var_name = package_name.replaceAll("-", "_");
+            globalThis[global_var_name] = result;
         }
         return result
     }
@@ -37707,11 +37776,11 @@ class Monitor {
              out(warning_mess);
          }
          else {
-             let the_url        = this.ws_url(domain);
-             this.send_source   = source;    //ok if undefined
+             let the_url = this.ws_url(domain);
+             this.send_source = source;    //ok if undefined
              this.send_callback = callback;  //ok if undefined
-             this.send_period   = period;    //ok if undefined
-             let status_mess    = "Monitor.init opening websocket for url: " + the_url;
+             this.send_period = period;    //ok if undefined
+             let status_mess = "Monitor.init opening websocket for url: " + the_url;
              console.log(status_mess);
              out(status_mess);
              let websocket = new WebSocket(the_url); //WebSocket defined in chrome browser
@@ -37729,58 +37798,57 @@ class Monitor {
                      Monitor.send_aux(websocket, source, callback, period);
                  }
              };
-         }
-		
-         websocket.onclose = function(evt) {
-             Monitor.delete_domain(websocket);
-             out("Monitor for: " + websocket.url + " websocket closed."); //onClose(evt)
-         };
-		
-         websocket.onmessage = function(evt) {
-             let data_str = evt.data;
-             out("Monitor for: " + websocket.url + " onmessage got: " + data_str, undefined, true);
-             try {
-                 let json_data = JSON.parse(data_str);
-                 let callback_src = json_data.callback;
-                 if(callback_src) {
-                     if(callback_src.startsWith("function(")){
-                         callback_src = "(" + callback_src + ")";
-                     }
-                     let callback_fn = globalThis.eval(callback_src);
-                     let value       = globalThis.eval(json_data.value);
-                     //out("Monitor for: " + websocket.url + " got value of: " + value)
-                     let result = callback_fn.call(null, value, websocket, json_data); //usually done for side effect.
-                 }
-                 //delete the below?
-                /*
-                 if (json_data.type === "show_measured_angles") {
-                     SimUtils.render_joints(json_data.value)
-                 } else if (json_data.type === "evaled") {
-                     let new_val
-                     if (json_data.callback) {
-                         let response_str_to_eval = json_data.callback + "(" + json_data.value + ")"
-                         try {
-                             new_val = globalThis.eval(response_str_to_eval)
-                         } catch (err) {
-                             dde_err("Monitor evaled callback errored with: " + err.message)
+
+             websocket.onclose = function (evt) {
+                 Monitor.delete_domain(websocket);
+                 out("Monitor for: " + websocket.url + " websocket closed."); //onClose(evt)
+             };
+
+             websocket.onmessage = function (evt) {
+                 let data_str = evt.data;
+                 out("Monitor for: " + websocket.url + " onmessage got: " + data_str, undefined, true);
+                 try {
+                     let json_data = JSON.parse(data_str);
+                     let callback_src = json_data.callback;
+                     if (callback_src) {
+                         if (callback_src.startsWith("function(")) {
+                             callback_src = "(" + callback_src + ")";
                          }
-                     } else {
-                         new_val = globalThis.eval(json_data.value)
+                         let callback_fn = globalThis.eval(callback_src);
+                         let value = globalThis.eval(json_data.value);
+                         //out("Monitor for: " + websocket.url + " got value of: " + value)
+                         let result = callback_fn.call(null, value, websocket, json_data); //usually done for side effect.
                      }
-                     out("Monitor got evaled of: " + new_val)
-                 } else if (json_data.type === "out") {
-                     out(json_data.value)
-                 } */
-             }
-             catch(err){
-                 dde_error("Monitor for: " + websocket.url +
-                           " got error message back from MonitorServer of: " + err.message);
-             }
-         };
-		
-         websocket.onerror = function(evt) {
-            dde_error("Monitor for: " + websocket.url + " errored probably because no Job Engine running at that url.");
-         };
+                     //delete the below?
+                     /*
+                      if (json_data.type === "show_measured_angles") {
+                          SimUtils.render_joints(json_data.value)
+                      } else if (json_data.type === "evaled") {
+                          let new_val
+                          if (json_data.callback) {
+                              let response_str_to_eval = json_data.callback + "(" + json_data.value + ")"
+                              try {
+                                  new_val = globalThis.eval(response_str_to_eval)
+                              } catch (err) {
+                                  dde_err("Monitor evaled callback errored with: " + err.message)
+                              }
+                          } else {
+                              new_val = globalThis.eval(json_data.value)
+                          }
+                          out("Monitor got evaled of: " + new_val)
+                      } else if (json_data.type === "out") {
+                          out(json_data.value)
+                      } */
+                 } catch (err) {
+                     dde_error("Monitor for: " + websocket.url +
+                         " got error message back from MonitorServer of: " + err.message);
+                 }
+             };
+
+             websocket.onerror = function (evt) {
+                 dde_error("Monitor for: " + websocket.url + " errored probably because no Job Engine running at that url.");
+             };
+         }
       } //end of init
 
       static close(domain){
@@ -37836,7 +37904,7 @@ class Monitor {
          let websocket = this.domain_to_websocket(domain);
          if(websocket) { this.send_aux(websocket, source, callback, period); }
          else {
-             this.init(domain, source, callback, period);
+             Monitor.init(domain, source, callback, period);
          }
      }
 
