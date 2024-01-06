@@ -1410,7 +1410,7 @@ function get_page_async(url_or_options, callback){
 module.exports.get_page_async = get_page_async
 
 var fs        = require('fs'); //errors because require is undefined.
-var app       = require('electron').remote;  //in the electron book, "app" is spelled "remote"
+var app       = require('@electron/remote');  //in the electron book, "app" is spelled "remote"
 var {Robot, Brain, Dexter, Human, Serial}  = require("./robot.js")
 var {shouldnt, starts_with_one_of, replace_substrings} = require("./utils")
 var Job       = require("./job.js") //because loading a file with new Job in it needs this.

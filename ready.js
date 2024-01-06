@@ -101,7 +101,7 @@ function on_ready() {
 
     if      (operating_system == "darwin")       { operating_system = "mac" }
     else if (operating_system.startsWith("win")) { operating_system = "win" }
-    const remote = require("electron").remote
+    const remote = require('@electron/remote')
     window.dde_apps_folder = convert_backslashes_to_slashes(remote.getGlobal("dde_apps_folder"))
     console.log("In renderer dde_apps_folder: " + window.dde_apps_folder)
     console.log("In renderer appPath: "      + remote.app.getAppPath())
@@ -1826,7 +1826,7 @@ return result
 
 
 function quit_dde(){
-require('electron').remote.getCurrentWindow().close()
+    require('@electron/remote').getCurrentWindow().close()
 }
 
 //misc fns called in ready.js

@@ -10,6 +10,7 @@ Then the below console.log prinouts appear in that terminal window.
  */
 
 var electron = require('electron')
+require('@electron/remote/main').initialize()
 const SerialPort = require("serialport")
 
 // Module to control application life.
@@ -126,7 +127,11 @@ function createWindow() {
                    kiosk: kiosk,  //makes DDE window be FULL SCREEN, ie no os title bar, etc. locks down app.
                    x: x, y: y, width: width, height: height, show: false,
                    title: "Dexter Development Environment", //not obvious that this actually shows up anywhere.
-                   webPreferences: { nodeIntegration: true }, //new for Electron 5
+                   webPreferences: {
+                       nodeIntegration: true, //new for Electron 5
+                       contextIsolation: false, //true,
+                       enableRemoteModule: true
+                   },
                    icon: __dirname + "/dexter_128.png", //icon: image doesn't work
                         //either does __dirname + "/dexter_128.png", nor "Tray" in on ready.
                    backgroundColor: '#00FFFF' //no effect
@@ -143,6 +148,7 @@ function createWindow() {
 
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`)
+  require("@electron/remote/main").enable(mainWindow.webContents)
 
     /* window.myvar if defined in the mainWindow's render process, is NOT available
       in the side window. Nor is an "id" global var in the html of side_win_index.html

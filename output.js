@@ -782,5 +782,5 @@ var {persistent_get, persistent_set} = require("./core/storage")
 var {function_name, is_string_a_integer, is_string_a_number, starts_with_one_of,
     stringify_value, value_of_path} = require("./core/utils.js")
 var {write_to_stdout} = require("./core/stdio.js")
-var { BrowserWindow } = require('electron').remote
+var { BrowserWindow } = require('@electron/remote')
 
