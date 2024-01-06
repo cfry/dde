@@ -12,7 +12,7 @@ to inspect it, then copy the output and paste into your program.
 */
 dde_version_between("2.1.15", null, "warn") 
 //started from the opencv.js code test file: tests/test_features2d.js
-var cv = require("opencv.js")
+Picture.init() //var cv = require("opencv.js")
 //var jpeg = require('jpeg-js');
 var sbd_params = {}; //Parameters for SimpleBlobDetector
 sbd_params.thresholdStep       = 10;

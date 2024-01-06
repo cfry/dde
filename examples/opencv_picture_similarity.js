@@ -6,6 +6,8 @@ If you want to use a different camera than your computer's built in default,
 3. Paste it in place of "webcam" in the below call to IO.show_video
    The pasted ID should be wrapped in quotes.
 */
+Picture.init()
+
 new Job({name: "pic_sim",
     user_data: {take_pic_point: [0, (0.747 / 2) + 0.15, 0.3]},
     do_list: [

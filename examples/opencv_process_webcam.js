@@ -1,6 +1,6 @@
 //inspired by https://davidwalsh.name/browser-camera
 
-var cv = require("opencv.js")
+Picture.init() //var cv = require("opencv.js")
 
 function handle_webcam_video(vals){ //vals contains name-value pairs for each
     //html elt in show_window's content with a name.

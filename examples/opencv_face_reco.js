@@ -14,7 +14,7 @@ On the "request.get" line below, use that first arg
 as an example of how to convert https://github.com/opencv/opencv urls
 into the url format used by this demo.
 */
-var cv = require("opencv.js")
+Picture.init() //var cv = require("opencv.js")
 var request  = require("request")
 var faceClassifier
 

@@ -1,4 +1,4 @@
-var cv = require("opencv.js")
+Picture.init() //var cv = require("opencv.js")
 
 function handle_hello_opencv(vals){
     if(vals.clicked_button_value == "show images"){

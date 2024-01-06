@@ -6,6 +6,8 @@ If you want to use a different camera than your computer's built in default,
 3. Paste it in place of "webcam" in the below call to IO.show_video
    The pasted ID should be wrapped in quotes.
 */
+Picture.init()
+
 function locate_obj(){
     this.user_data.loc_obj =
         Picture.locate_object({
