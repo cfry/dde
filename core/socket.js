@@ -176,10 +176,10 @@ var Socket = class Socket{
         }
     }
 
-    static oplet_array_or_string_to_array_buffer(oplet_array_or_string){
+    /*static oplet_array_or_string_to_array_buffer(oplet_array_or_string){
         let str = this.oplet_array_or_string_to_string(oplet_array_or_string)
         return this.string_to_array_buffer(str)
-    }
+    }*/
 
     static oplet_array_or_string_to_string(oplet_array_or_string) {
         if (typeof(oplet_array_or_string) == "string") { return oplet_array_or_string }
@@ -199,10 +199,49 @@ var Socket = class Socket{
         }
     }
 
+    //the below should replace oplet_array_or_string_to_string once its proved to work
+    static oplet_array_or_string_to_variable_length_string(oplet_array_or_string){
+        if (typeof(oplet_array_or_string) === "string") {
+            return oplet_array_or_string
+        }
+        else {
+            let op_arr = oplet_array_or_string
+            let prefix_str = ""
+            for(let i = 0; i < Instruction.INSTRUCTION_TYPE; i++){ //Instruction.INSTRUCTION_TYPE is 4. We put the LENGTH of the text including the oplet and the space before it into the resulting string
+                let elt = op_arr[i]
+                prefix_str += elt + " "
+            }
+            //prefix_str ends in a space. and contains up to but not including the oplet
+            let postfix_str = ""
+            for (let i = Instruction.INSTRUCTION_TYPE; i < op_arr.length; i++){
+                let elt = op_arr[i]
+                if (Number.isNaN(elt)) { elt = "NaN" }
+                postfix_str +=  " " + elt
+            }
+            postfix_str += ";"
+            //postfix_str starts with space and ends with semicolon
+            let len = postfix_str.length
+            let str = prefix_str + len + postfix_str
+            return str
+        }
+    }
+
     static string_to_array_buffer(str){
         var arr_buff = Buffer.alloc(256) //was 128 but no reason not to have it 256
         //var view1    = new Uint8Array(arr_buff)
         for(var i = 0; i < str.length; i++){
+            let char = str[i]
+            let code = char.charCodeAt(0)
+            arr_buff[i] = code
+        }
+        return arr_buff
+    }
+
+    static string_to_variable_length_array_buffer(str){
+        let len = str.length
+        var arr_buff = Buffer.alloc(len) //was 128 but no reason not to have it 256
+        //var view1    = new Uint8Array(arr_buff)
+        for(var i = 0; i < len; i++){
             let char = str[i]
             let code = char.charCodeAt(0)
             arr_buff[i] = code
@@ -499,15 +538,16 @@ var Socket = class Socket{
                      "<br/>extracted job_id:" + job_id + " but no defined Job with that ID.")
         }
         //out(job_instance.name + " " + robot_name + " Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
+        const str =  Socket.oplet_array_or_string_to_string(oplet_array_or_string_du) //will be replaced with oplet_array_or_string_to_variable_length_string
+        const arr_buff = Socket.string_to_array_buffer(str)
 
-        const str =  Socket.oplet_array_or_string_to_string(oplet_array_or_string_du)
         if(Instruction.is_F_instruction_string(str)) {
             rob.waiting_for_flush_ack = true
         }
         if(job_instance.keep_history) {
             job_instance.sent_instructions_strings.push(str)
         }
-        const arr_buff = Socket.string_to_array_buffer(str)
+
         var sim_actual = Robot.get_simulate_actual(rob.simulate)
         if((sim_actual === true) || (sim_actual === "both")){
             let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
@@ -530,10 +570,7 @@ var Socket = class Socket{
             let net_soc_inst = Socket.robot_name_to_soc_instance_map[robot_name]
             if(net_soc_inst && (net_soc_inst.readyState === "open")) {
                 try {
-                    //console.log("Socket.send about to send: " + str)
                     net_soc_inst.write(arr_buff) //if doesn't error, success and we're done with send
-                    //console.log("Socket.send just sent:     " + str)
-                    //this.stop_job_if_socket_dead(job_id, robot_name)
                     if(is_reboot_inst){
                         job_instance.stop_for_reason("completed", "Dexter.reboot_robot instruction sent.")
                         warning("Rebooting Dexter." + robot_name + " due to running reboot instruction.")

@@ -6,6 +6,33 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.8.19, Jan 11, 2024</summary>
+    Highlights: Now works on new Apple Silicon Macs (M1 thru M3)
+    <ul>
+        <li> Upgraded Electron platform from version 5 to version 28
+            and made several "incompatible" fixes to underlying DDE code
+            to work under the new Election.</li>
+        <li>Defined (but am not calling) two functions to enable DDE3 to send to dexrun,
+            variable lengthed strings, which include the number of chars in the string
+            as an integer. This will help long instructions such as j oplet instructions.<br/>
+            To experiment with these new definitions, eval:<pre><code>
+    Socket.string_to_array_buffer =
+    Socket.string_to_variable_length_array_buffer
+    Socket.oplet_array_or_string_to_string =
+    Socket.oplet_array_or_string_to_variable_length_string</code></pre>
+     Note that this requires a newer version of dexrun on Dexter to process
+     this new instruction format.<br/>
+    Note that once these are proven to work, they'll become
+    the default definitions for string_to_array_buffer & oplet_array_or_string_to_string
+    in a later DDE3 release.
+    </li>
+
+    <li>For the OpenCV "blur" example under Insert menu/Machine Vision/blur,
+        improved the documentation from
+        <i>digested & displayed</i> to <i>blurred & displayed</i>.
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.8.18, Dec 15, 2023</summary>
 <ul>
     <li>Fixed bug in Vector.DCM_to_quaternian.</li>

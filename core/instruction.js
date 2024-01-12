@@ -233,7 +233,7 @@ var Instruction = class Instruction {
         else { return parseInt(str) }
     }
 
-    static extract_instruction_type(oplet_array_or_string){
+    static extract_instruction_type(oplet_array_or_string){ //oplet single letter
         if(typeof(oplet_array_or_string) == "string") {
             oplet_array_or_string = oplet_array_or_string.substring(0, oplet_array_or_string.length - 1) //cut the ending semicolon
             oplet_array_or_string = oplet_array_or_string.split(" ")

@@ -21,7 +21,7 @@ content:
  .gif, .jpeg or .png<br/>
  then click on "show image".<br/>
  The image on the left has no cv processing.<br/>
- The right is digested & displayed by cv.<br/>
+ The right is blurred & displayed by cv.<br/>
 <input type="file" id="file_input_id"
        accept="image/gif, image/jpeg, image/png"/>
 <input type="button" value="show images"/> (may have to click twice)
