@@ -62,7 +62,7 @@ jobs:
         EP_PRE_RELEASE: "true"
 
   build-windows:
-    runs-on: windows-2019
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
