@@ -1,6 +1,9 @@
 name: Build
 
-on: [push]
+on:
+  push:
+    tags:
+      - '**'
 
 env:
   NODE_VERSION: 16
