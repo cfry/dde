@@ -37,7 +37,8 @@ function handle_webcam_video(vals){ //vals contains name-value pairs for each
     if(vals.clicked_button_value == "init"){ // Clicked button value holds the name of the clicked button.
         if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
-                video_id.src = window.URL.createObjectURL(stream);
+                //video_id.src = window.URL.createObjectURL(stream);
+                video_id.srcObject = stream //jan 2024
                 video_id.play();
             })
         }

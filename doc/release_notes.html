@@ -6,6 +6,40 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.9.0, Feb 9,, 2024</summary>
+Highlights: File menu items requiring choosing a file fixed.
+            New Dexter.j_move instuction
+<ul>
+    <li>Variable lengthed instructions now working in simulator.</li>
+    <li>Fixed bug in opencv examples:<br/>
+      dde menu Insert/machine Vision/Process WebCam, Face Recognition, Locate Object</li>
+      Now all Insert/Machine Vision/ examples working.
+    </li>
+
+    <li><code>choose_file</code>, <code>choose_folder</code>, <code>choose_save_file</code>, <code>choose_file_and_get_content</code>,
+        and the File menu items that
+        depend on them fixed, using new asnchronous function calling
+        required by the lastest Electron release.
+        Note that if you are calling choose_file or choose_folder,
+        you will have to extend your calls to take a callback of 2 arguments,
+        an "err" and a "path".
+        The following menn items have changed:
+    open<br/>
+    load file<br/>
+    insert file content<br/>
+    load and start job<br/>
+    insert file path into editor<br/>
+    insert file path into command line<br/>
+    save as<br/>
+    TestSuite.run_ts_in_file_ui<br/>
+    show_in_misc_pane  --- choose file.<br/>
+    Caution: EZTeach_base.js, Init_Run() has not been updated yet as this
+        is tricky. It is accessible from DDE menu/Insert/ezTeach,
+        but is now broken<br/></li>
+    <li>Added LICENSE file to source code.</li>
+    </ul>
+</details>
+
 <details class="doc_details"><summary>v 3.8.19, Jan 11, 2024</summary>
     Highlights: Now works on new Apple Silicon Macs (M1 thru M3)
     <ul>

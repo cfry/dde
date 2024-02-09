@@ -397,36 +397,62 @@ function read_file_async_from_dexter_using_job(dex_instance, path, callback){
 
 module.exports.read_file_async = read_file_async
 
-function choose_file(show_dialog_options={}) {
-    const dialog    = app.dialog;
-    const paths = dialog.showOpenDialog(app.getCurrentWindow(),
-        //passing this first arg of the window
-        // makes the dialog "modal" ie can't do anything but choose a file or cancel
-        //you can't even click outside the window ahd have it do anything.
-        //This prevents certain error states you can get into with
-        //the file dialog and DDE. Not *always* what you want but
-        //on average, mostly what you want, particulary on WindowsOS which is worse
-        //than MacOS when we DON'T pass this.
-        //Note that "title" option doesn't show up on Mac.
-            show_dialog_options)
-    if (paths) {
-        if (Array.isArray(paths) && (paths.length == 1)) {
-            return convert_backslashes_to_slashes(paths[0]) }
-        else {
-            let slashed_paths = []
-            for (let p of paths){
-                slashed_paths.push(convert_backslashes_to_slashes(p))
-            }
-            return slashed_paths
 
+function choose_file_default_callback(err, paths){
+    if(err){
+        if(paths.length === 0){
+            warning("choose_file: no files chosen")
+        }
+        else {
+            warning("choose_file errored with: " + err)
         }
     }
-    else { return null }
+    else {
+        out(paths)
+    }
+}
+//For the options areg to showOpenDialog
+// passing this first arg of the window
+// makes the dialog "modal" ie can't do anything but choose a file or cancel
+//you can't even click outside the window ahd have it do anything.
+//This prevents certain error states you can get into with
+//the file dialog and DDE. Not *always* what you want but
+//on average, mostly what you want, particulary on WindowsOS which is worse
+//than MacOS when we DON'T pass this.
+//Note that "title" option doesn't show up on Mac.
+function choose_file(show_dialog_options={},
+                     callback=choose_file_default_callback) {
+    const dialog    = app.dialog;
+    dialog.showOpenDialog(app.getCurrentWindow(), show_dialog_options).then(
+        function(an_obj){
+            let paths = an_obj.filePaths
+            if(an_obj.canceled) {
+                callback(true, paths)
+            }
+            else {
+                let path
+                if (Array.isArray(paths) && (paths.length == 1)) {
+                    path = convert_backslashes_to_slashes(paths[0]) }
+                else {
+                    let slashed_paths = []
+                    for (let p of paths){
+                        slashed_paths.push(convert_backslashes_to_slashes(p))
+                    }
+                    path = slashed_paths
+                }
+                callback(null, path)
+            }
+        },
+        function (reason){
+            callback(true, reason)
+            dde_warning("choose_file got error: " + reason)
+        }
+    )
 }
 
 module.exports.choose_file = choose_file
 
-function choose_folder(show_dialog_options={}) {
+function choose_folder(show_dialog_options={}, callback=choose_file_default_callback) {
     let props = show_dialog_options.properties
     if(!props) {
         props = ["openDirectory"]
@@ -437,25 +463,59 @@ function choose_folder(show_dialog_options={}) {
         }
     }
     show_dialog_options.properties = props
-    return choose_file(show_dialog_options)
+    choose_file(show_dialog_options, callback)
 }
 module.exports.choose_folder = choose_folder
 
-function choose_file_and_get_content(show_dialog_options={}, encoding="utf8") {
-    var path = choose_file(show_dialog_options)
-    if (path){
-        if (Array.isArray(path)) { path = path[0] }
-        return read_file(path, encoding)
+function choose_file_and_get_content_default_callback(err, content){
+    if(err){
+        warning("choose_file_and_get_content got error: " + content )
     }
+    else {
+        out("<code>" + content.replaceAll("\n", "<br/>") + "</code>")
+    }
+}
+
+function choose_file_and_get_content(show_dialog_options={}, encoding="utf8", callback=choose_file_and_get_content_default_callback) {
+    choose_file(show_dialog_options, function(err, path){
+        if(err){
+            warning("choose_file_and_get_content got error: " + err)
+        }
+        else {
+            read_file_async(path, encoding, callback)
+        }
+    })
 }
 module.exports.choose_file_and_get_content = choose_file_and_get_content
 
 
-function choose_save_file(show_dialog_options={}) { //todo document
+/*function choose_save_file(show_dialog_options={}) { //todo document
     const dialog    = app.dialog;  //use {defaultPath: '~/foo.xml'} to set default file name
     let result =  dialog.showSaveDialog(app.getCurrentWindow(), show_dialog_options)
     return convert_backslashes_to_slashes(result)
+}*/
+
+//very similar to choose_file BUT calls dialog.showSaveDialog
+function choose_save_file(show_dialog_options={}, callback) { //todo document
+    const dialog = app.dialog;
+    dialog.showSaveDialog(app.getCurrentWindow(), show_dialog_options).then(
+        function (an_obj) {
+            let path = an_obj.filePath  //NOT filePaths
+            if (an_obj.canceled) {
+                callback(true, path)
+            }
+            else {
+                path = convert_backslashes_to_slashes(path)
+                callback(null, path)
+            }
+        },
+        function (reason) {
+            callback(true, reason)
+            dde_warning("choose_file got error: " + reason)
+        }
+    )
 }
+
 module.exports.choose_save_file = choose_save_file
 
 function write_file(path, content, encoding="utf8"){
@@ -532,7 +592,7 @@ function write_file_async_default_callback(err){
         dde_error("write_file_async error: " + err.message)
     }
     else {
-        out("saved: file", undefined, true)
+        out("saved file", undefined, true)
     }
 }
 

@@ -91,13 +91,20 @@
             Pops up a dialog box allowing you to navigate the file system to choose a file.
             Returns a string of the full path of the file.
             <br/>
-            <i>Parameter:</i><br/>
+            <i>Parameters:</i><br/>
             <b>show_dialog_options</b> A JS literal object of name-value pairs, all of which
             are optional. See the options under "showOpenDialog" in <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/dialog.md">showOpenDialog</a>
             for details.<br/>
+            <b>callback</b> a function of 2 argumets:<br/>
+               err: if true, there was an error in choosing or the user canceled.<br/>
+                    if false or null, the user chose a file.<br/>
+               path: A string of the full path of the chosen file.<br/>
+            <br/>
             <i>Example:</i><br/>
-            <code title="not in TestSuite"> choose_file({buttonLabel: "pick the best"})</code> Just lets you choose files.<br/>
-            If the user chooses "cancel" in the dialog box, this function returns <code>null</code>.
+            <pre><code title="not in TestSuite"> choose_file({buttonLabel: "pick the best"},
+                function(err, path){ if(err) {warning("No file chosen")}
+                                     else { out("you chose: " + path) }
+                })</code></pre>
             If the options indicate that the user can choose more than one path, and they do,
             (using shift-click)
             an array of paths is returned. Otherwise (the default) just one path (a string) is returned.<br/>
@@ -111,24 +118,40 @@
             Does not actualy <i>save</i> the contents of the file. Use
             <code>write_file</code> for that.
             <br/>
-            <i>Parameter:</i><br/>
+            <i>Parameterss:</i><br/>
             <b>show_dialog_options</b> A JS literal object of name-value pairs, all of which
             are optional. See the options under showSaveDialog in <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/dialog.md">showSaveDialog</a>
             for details.<br/>
+            <b>callback</b> a function of 2 argumets:<br/>
+            err: if true, there was an error in choosing or the user canceled.<br/>
+            if false or null, the user chose a file.<br/>
+            path: A string of the full path of the chosen file.<br/>
+            <br/>
             <i>Example:</i><br/>
-            <code title="not in TestSuite"> choose_save_file({buttonLabel: "save the best"})</code>
-        </details>
+            <pre><code title="not in TestSuite"> choose_save_file({buttonLabel: "pick the best"},
+                function(err, path){ if(err) {warning("No file chosen")}
+                                     else { out("you chose: " + path) }
+                })</code></pre>        </details>
 
         <details id="choose_folder_doc_id" class="doc_details"><summary>choose_folder</summary>
             Pops up a dialog box allowing you to navigate the file system to choose a folder.
             Returns a string of the full path of the folder.
             <br/>
-            <i>Parameter:</i><br/>
+            <i>Parameters:</i><br/>
             <b>show_dialog_options</b> A JS literal object of name-value pairs, all of which
             are optional. See the options under "showOpenDialog" in <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/dialog.md">showOpenDialog</a>
             for details.<br/>
+            <b>callback</b> a function of 2 argumets:<br/>
+            err: if true, there was an error in choosing or the user canceled.<br/>
+            if false or null, the user chose a file.<br/>
+            path: A string of the full path of the chosen file.<br/>
+            <br/>
             <i>Example:</i><br/>
-            <code title="not in TestSuite"> choose_folder()</code> Just lets you choose folders.<br/>
+            <pre><code title="not in TestSuite"> choose_folder({buttonLabel: "pick the best"},
+                function(err, path){ if(err) {warning("No folder chosen")}
+                                     else { out("you chose: " + path) }
+                })</code></pre>
+
             If the user chooses "cancel" in the dialog box, this function returns <code>null</code>.
             If the options indicate that the user can choose more than one path, and they do,
             (using shift-click)

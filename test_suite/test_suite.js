@@ -343,12 +343,17 @@ var TestSuite = class TestSuite{
         return result
     }
 
-    static run_ts_in_file_ui(){
-        let path = choose_file()
-        if(path){
-            TestSuite.run_ts_in_file(path)
-        }
+    static run_ts_in_file_ui() {
+        let path = choose_file({},
+            function (err, path) {
+                if (err) {
+                    warning("No file chosen to run as test suite.")
+                } else {
+                    TestSuite.run_ts_in_file(path)
+                }
+            })
     }
+
 
     static run_ts_in_file(path){
         let ts_array

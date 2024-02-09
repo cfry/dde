@@ -117,7 +117,15 @@ DexterSim = class DexterSim{
 
     static array_buffer_to_oplet_array(arr_buff){
         let str = this.array_buffer_to_string(arr_buff)
+        if(str.endsWith(";")) {
+            str = str.substring(0, str.length - 1) //cut off the semicolon on the end
+        }
         let split_str = str.split(" ")
+        //if its a var length instruction, then an integer is in place of the oplet and the oplet is one later
+        let orig_oplet_maybe = split_str[Instruction.INSTRUCTION_TYPE]
+        if(!Robot.is_oplet(orig_oplet_maybe)) { //assume its an integer for a variable-length instruction
+            split_str.splice(Instruction.INSTRUCTION_TYPE, 1) //removes integer from var length array. makign it 1 shorter
+        }
         let oplet_array = []
         let oplet
         for(let i = 0; i <  split_str.length; i++) {

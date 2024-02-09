@@ -9,7 +9,7 @@ var Picture = class Picture{
    //the width and height are for the show_window made (if any)
    //iF the picture pixels are more than the window dimensions, the window will scroll.
    static init({width=320, height=240}={}){
-       if(typeof(cv) == "string") { //calling init a 2nd time some times screws up do to timing,
+       if(typeof(cv) === "string") { //calling init a 2nd time some times screws up do to timing,
                                     //probably due to the show_video call.
             cv = require("./node_modules/opencv.js/opencv")
             RotatingCalipers = require("rotating-calipers/rotating-calipers.js")
@@ -801,6 +801,9 @@ var Picture = class Picture{
     static mat_to_min_area_rect({mat_in, threshold=1, avg_center=true}){
         let points = Picture.mat_to_points(mat_in, threshold)
         if(points.length == 0) { return null}
+        if(typeof(RotatingCalipers) === "string"){
+            Picture.init()
+        }
         let solver = new RotatingCalipers(points)
         let mar    = solver.minAreaEnclosingRectangle() //.vertices
         //all the values in mar are epsilon differnt than an integer so clean it up
@@ -857,6 +860,9 @@ var Picture = class Picture{
     //https://github.com/sntran/RotatingCalipers/blob/master/demo.html
     static mat_to_convex_hull(mat_in, threshold=1){
         let points = Picture.mat_to_points(mat_in, threshold)
+        if(typeof(RotatingCalipers) === "string"){
+            Picture.init()
+        }
         let solver = new RotatingCalipers(points)
         let hull   = solver.convexHull()
         return hull

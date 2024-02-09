@@ -79,23 +79,26 @@ function show_in_misc_pane(content, arg1 = "", arg2){
     //But if user doesn't cancel, we DO want to change the combo box value, and,
     //if the value is good, persistent save it.
     if (content === "Choose File") {
-        content = choose_file() //will be undefined if user cancels the dialog box.
-        if(content) {
-            $("#misc_pane_menu_id").jqxComboBox('unselectItem', "Choose File") //must do!
-           // just let it fall through ////old: return show_in_misc_pane(content) //$('#misc_pane_menu_id').jqxComboBox('val', content) //causes show_in_misc_pane to be called with the chosen value
-            set_misc_pane_menu_selection(content)
-            destroySimulation();
-
-        }
-        else { //user canceled from choose file dialog so don't persistent-save the value.
-            //leave combo_box val at "choose file" which won't match content, but we might
-            // not want to "refresh" the content, and since that always happens
-            //if we did $('#misc_pane_menu_id').jqxComboBox('val', the_prev_val),
-            //just leave it as "Choose File"
-            let prev_val = persistent_get("misc_pane_content")
-            set_misc_pane_menu_selection(prev_val)
-            return
-        }
+        choose_file({},
+              function(err, path) {
+                  if(err) { //user canceled from choose file dialog so don't persistent-save the value.
+                          //leave combo_box val at "choose file" which won't match content, but we might
+                          // not want to "refresh" the content, and since that always happens
+                          //if we did $('#misc_pane_menu_id').jqxComboBox('val', the_prev_val),
+                          //just leave it as "Choose File"
+                          let prev_val = persistent_get("misc_pane_content")
+                          set_misc_pane_menu_selection(prev_val)
+                          return
+                  }
+                  else  {
+                        $("#misc_pane_menu_id").jqxComboBox('unselectItem', "Choose File") //must do!
+                       // just let it fall through ////old: return show_in_misc_pane(content) //$('#misc_pane_menu_id').jqxComboBox('val', content) //causes show_in_misc_pane to be called with the chosen value
+                        set_misc_pane_menu_selection(path)
+                        destroySimulation();
+                        show_in_misc_pane(path)
+                        return
+                  }
+              })
     }
     //let orig_content = $('#misc_pane_menu_id').jqxComboBox('val') //warning: this doesn't always get the
     //content showing in the combo box. Bug in jqxwidgets. So just always set it.
