@@ -149,7 +149,6 @@ globalThis.BrowserFile = class BrowserFile{
                         alert('Please select the "' + dir_path + '" folder.')
                     }
                     dir_handle = await window.showDirectoryPicker({mode: "readwrite", startIn: "documents"})
-                    out("the handle: " + dir_handle)
                     if (!dir_handle) {
                         return
                     } //user canceled
@@ -205,7 +204,6 @@ globalThis.BrowserFile = class BrowserFile{
                         alert('Please select the "' + dir_path + '" folder.')
                     }
                     dir_handle = await window.showDirectoryPicker({mode: "readwrite", startIn: "documents"})
-                    out("the handle: " + dir_handle)
                     if (!dir_handle) {
                         return
                     } //user canceled
@@ -433,7 +431,6 @@ globalThis.BrowserFile = class BrowserFile{
             return
         }
         let dir_handle = await window.showDirectoryPicker({mode: "readwrite", startIn: "documents"})
-        out("the handle: " + dir_handle)
         if (!dir_handle) { ////user canceled, do nothing
             return
         }

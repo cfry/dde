@@ -273,7 +273,7 @@ globalThis.SimBuild = class SimBuild{
         `
         show_window({title: "Make Objects in Simulator",
                      content: content,
-                     height: 380,
+                     height: 390,
                      width:  490, //the "name" select box, with a long name, requires a wider window.
                      callback: "SimBuild.dialog_cb"
         })
@@ -336,7 +336,9 @@ globalThis.SimBuild = class SimBuild{
             }
         }
         else if (!object3d) {
-            shouldnt("SimBuild.dialog_cb got no object3d to edit.")
+            warning("There is no selected objecct.<br/>" +
+                    "Please click on an object in the simulator pane or<br/>" +
+                    "select one from a menu in the SimBuild dialog box.")
         }
         else if (vals.clicked_button_value === "ref_name"){
             let src = "SimObj." + SimObj.get_name(object3d) + "\n"

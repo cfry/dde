@@ -1161,7 +1161,7 @@ folder_name_version_extension("foo_002.txt") => ["foo", 2, "txt"]
 
 export function folder_name_version_extension(path){
     path = make_full_path(path)
-    path = adjust_path_to_os(path)
+    path = convert_backslashes_to_slashes(path) //Feb 2024 should have slashes!   //adjust_path_to_os(path)
     let folder_parts = path.split("/")
     //folder_parts.shift() //takes off the initial ""
     let names_ver_ext = folder_parts.pop()

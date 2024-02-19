@@ -1,34 +1,42 @@
-//Caution: converting an image to b&w doesn't work for all images.
-var cv = require("opencv.js")
 
-function handle_hello_opencv(vals){
-    if(vals.clicked_button_value == "show images"){
-        src_image_id.src = vals.file_input_id
-        setTimeout(function(){ //need to delay until image is loaded
-            let mat          = cv.imread(src_image_id)
-            let gray_mat     = new cv.Mat(700, 700, cv.CV_8UC1)
-            cv.cvtColor(mat, gray_mat, cv.COLOR_RGBA2GRAY)
-            cv.imshow("output_canvas_id", gray_mat)
-            mat.delete()
-            gray_mat.delete()
-        }, 100)
+//inspired by https://davidwalsh.name/browser-camera
+
+function handle_webcam_video(vals){ //vals contains name-value pairs for each
+    //html elt in show_window's content with a name.
+    if(vals.clicked_button_value == "init"){ // Clicked button value holds the name of the clicked button.
+        if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+                video_id.srcObject = stream //jan 2024
+                video_id.play(); //show camera output into DOM elt video_id
+            })
+        }
+    }
+    else if (vals.clicked_button_value == "Snap Photo"){
+        let context = canvas_id.getContext('2d')
+        context.drawImage(video_id, 0, 0, 320, 240) //grab a still from video_id and show in canvas_id
+        let mat          = cv.imread(canvas_id) //convert still in canvas_id into OpenCV "mat" format
+        let mod_mat      = new cv.Mat(700, 700, cv.CV_8UC1)
+        cv.cvtColor(mat, mod_mat, cv.COLOR_RGBA2GRAY) //convert color picture in mat into black_and_white (gray) in mod_mat
+        cv.imshow("out1_canvas_id", mod_mat) //display mod_mat in out1_canvas_id DOM elt.
+        mat.delete()     //garbage collect mat
+        mod_mat.delete() //garbage collect mod_mat
+
     }
 }
 
-show_window({
-    content:
-    `<b>Hello OpenCV.js</b><br/>
-     1. Choose a file with an extension of .gif, .jpeg or .png<br/>
-     2. Click on "show image".<br/>
-     The image on the left has no cv processing.<br/>
-     The right is changed to gray by cv.<br/>
-     You may have to click on "Show Images" twice to show the 2nd image.<br/>
-    <input type="file" id="file_input_id"
-           accept="image/gif, image/jpeg, image/png"/>
-    <input type="button" value="show images"/>
-    <p/>
-    <img id="src_image_id"></img>
-    <canvas id="output_canvas_id"></canvas>`,
-    x: 50, y: 50, width: 800, height: 600,
-    callback: handle_hello_opencv
-})
+show_window({content:
+        `<input type="button" value="init" style="margin-left:4px;"/> 
+  &nbsp;webcam video display.
+ <input type="button" value="Snap Photo" style="margin-left:115px;"/>
+  &nbsp;from webcam video.<br/>
+ <video  id="video_id"  width="320" height="240" style="border-style:solid; border-width:1; margin:3px;" autoplay></video>
+ <canvas id="canvas_id" width="320" height="240" style="border-style:solid; border-width:1; margin:3px;""></canvas><br/>
+  &nbsp;Photo processed to Black and White. 
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  Photo processed swapping red and blue.</span><br/>
+ <canvas id="out1_canvas_id" width="320" height="240" style="border-style:solid; border-width:1; margin:3px;""></canvas>
+
+ `,
+    title: "Processing Webcam video with DDE and OpenCV",
+    width: 700, height: 600, x: 300, y:25,
+    callback: handle_webcam_video})

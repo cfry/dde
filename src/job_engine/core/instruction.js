@@ -620,8 +620,20 @@ function make_ins(instruction_type, ...args){
     }*/
     let result = new Array(Instruction.INSTRUCTION_TYPE)
     result.push(instruction_type)
-    if (args.length === 0) { return result } //avoids generating the garbage that concat with an arg of an empty list would for this common case, ie for "g" ahd "h" instructions
-    else                   { return result.concat(args) }
+    //if (args.length === 0) { return result } //avoids generating the garbage that concat with an arg of an empty list would for this common case, ie for "g" and "h" instructions
+    //else                   {
+        //return result.concat(args)
+        for (let arg of args){
+            if(typeof(arg) === "number") { result.push(arg) }
+            else if (arg === "") {}
+            else if (typeof(arg) === "string"){ //if we have an arg of "foo, 2", result will have an arg of "foo" and an arg of "2", ie the string of the diget 2, and that will NOT be converted from DDE to Dexter units, because its a string, not a number
+                let sub_args = arg.split(/[ ,]+/)//separator can be space, comma, or any combination of them
+                result.push(...sub_args)
+            }
+            else { result.push(arg) } //might be an instance of Dexter on the very end
+        }
+        return result
+    //}
 }
 
 globalThis.make_ins = make_ins

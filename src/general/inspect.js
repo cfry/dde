@@ -475,11 +475,18 @@ class Inspect{
             //return JSON.stringify(item)
             //var quoting_char = '"'
             let str_length = item.length
+            item = Utils.replace_substrings(item, "<", "&lt;") //so as not to render the html,
+            // just show us the raw html. We are inspective a string!
+            //not doing this, if we happen to render the string of index.htm, which will have output_div_id
+            //and cmd_input_id, each of those global vars will get boud to an html collection of
+            //2 items ,and now, printing to the output pane will fail, necessitating a
+            //relaunch of dde.
             item = Utils.replace_substrings(item, "\n", "<br/>")
             var pos_of_br = item.indexOf("<br/>")
             if (pos_of_br !== -1) {
                 let first_part = item.substring(0, pos_of_br)
                 let body       = item.substring(pos_of_br + 5)
+
                 body   = "<div style='display:inline-block;margin-left:17px;'>" + body + "</div>" //to indent by teh twist triangle
                 let result = "<details style='display:inline-block;'><summary>" +
                           "<i>String of " + str_length + "</i>: " +

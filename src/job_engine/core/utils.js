@@ -936,6 +936,19 @@ static reverse_string(s) {
     return o;
 }
 
+static cut_off_quotes_maybe(str){
+    if (str.length > 1){
+        let last_index = str.length - 1
+        if(((str[0] === '"') &&  (str[last_index] === '"')) ||
+            ((str[0] === "'") && (str[last_index] === "'")) ||
+            ((str[0] === "`") && (str[last_index] === "`"))) {
+            return str.substring(1, last_index)
+        }
+        else { return str }
+    }
+    else { return str }
+}
+
 static insert_string(base_string, insert_string, position=0){
     if(position > base_string.length) {
         position = base_string.length

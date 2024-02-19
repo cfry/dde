@@ -14,8 +14,8 @@ import require$$0 from 'domain';
 import path$1 from 'path';
 
 var name = "dde4";
-var version = "4.1.8";
-var release_date = "Jan 4, 2024";
+var version = "4.1.9";
+var release_date = "Feb 19, 2024";
 var description = "test rollup";
 var author = "Fry";
 var license = "GPL-3.0";
@@ -82,6 +82,7 @@ var dependencies = {
 	"plotly.js-dist": "^2.5.1",
 	process: "^0.11.10",
 	pump: "^3.0.0",
+	pyodide: "^0.25.0",
 	querystring: "^0.2.1",
 	"read-chunk": "^4.0.2",
 	readline: "^1.3.0",
@@ -1035,6 +1036,19 @@ static reverse_string(s) {
     for (var i = s.length - 1; i >= 0; i--)
         o += s[i];
     return o;
+}
+
+static cut_off_quotes_maybe(str){
+    if (str.length > 1){
+        let last_index = str.length - 1;
+        if(((str[0] === '"') &&  (str[last_index] === '"')) ||
+            ((str[0] === "'") && (str[last_index] === "'")) ||
+            ((str[0] === "`") && (str[last_index] === "`"))) {
+            return str.substring(1, last_index)
+        }
+        else { return str }
+    }
+    else { return str }
 }
 
 static insert_string(base_string, insert_string, position=0){
@@ -4254,8 +4268,25 @@ function cosd(theta){
 }
 
 
+function tand(theta){
+	if((theta+90)%180 == 0){
+    	return theta*Infinity
+    }
+	return Math.tan(theta*Math.PI/180)
+}
+
+function asind(ratio){
+	return Math.asin(ratio)*180/Math.PI
+}
+
+
 function acosd(ratio){
 	return Math.acos(ratio)*180/Math.PI
+}
+
+
+function atand(ratio){
+	return Math.atan(ratio)*180/Math.PI
 }
 
 function atan2d(num1, num2){
@@ -17189,7 +17220,7 @@ class Job$1{
                  program_counter=0,
                  ending_program_counter="end",
                  initial_instruction=null,
-                 data_array_transformer= undefined, // was "P", butthat's too dangerous. Only make transforming available to a job if it explicitly indicates a transformer.
+                 data_array_transformer= undefined, // was "P", but that's too dangerous. Only make transforming available to a job if it explicitly indicates a transformer.
                  get_dexter_defaults = true, //if true, always get defaults from Defaults.makeins file or error
                                                       //if false, always get idealized values from Dexter.defaults class.
                  start_if_robot_busy=false,
@@ -21671,8 +21702,20 @@ function make_ins$1(instruction_type, ...args){
     }*/
     let result = new Array(Instruction$1.INSTRUCTION_TYPE);
     result.push(instruction_type);
-    if (args.length === 0) { return result } //avoids generating the garbage that concat with an arg of an empty list would for this common case, ie for "g" ahd "h" instructions
-    else                   { return result.concat(args) }
+    //if (args.length === 0) { return result } //avoids generating the garbage that concat with an arg of an empty list would for this common case, ie for "g" and "h" instructions
+    //else                   {
+        //return result.concat(args)
+        for (let arg of args){
+            if(typeof(arg) === "number") { result.push(arg); }
+            else if (arg === "") ;
+            else if (typeof(arg) === "string"){ //if we have an arg of "foo, 2", result will have an arg of "foo" and an arg of "2", ie the string of the diget 2, and that will NOT be converted from DDE to Dexter units, because its a string, not a number
+                let sub_args = arg.split(/[ ,]+/);//separator can be space, comma, or any combination of them
+                result.push(...sub_args);
+            }
+            else { result.push(arg); } //might be an instance of Dexter on the very end
+        }
+        return result
+    //}
 }
 
 globalThis.make_ins = make_ins$1;
@@ -25680,7 +25723,7 @@ class Robot$1 {
                 }
                 else { return false }
             }
-            else { return true }
+            else { return !Utils.is_digit(oplet) } //ie its not a letter or puncutation, so probably a digit was when we have variable-length instructions, If so, return false
         }
         else { return false }
     }
@@ -31880,7 +31923,7 @@ class Socket$1{
                 };
                 net_soc_inst.onmessage = function(event) {
                     let msg = event.data;
-                    console.log("Socket.js onmessage got msg: " + msg);
+                    //console.log("Socket.js onmessage got msg: " + msg)
                     Socket$1.on_receive(msg, undefined, rob);
                 };
                 net_soc_inst.onclose = function(close_event){
@@ -32072,7 +32115,7 @@ class Socket$1{
             return net_soc_inst.readyState === "open"
         }
         else {
-            console.log("in Socket.js readyState_is_open, readyState is: " + net_soc_inst.readyState);
+            //console.log("in Socket.js readyState_is_open, readyState is: " + net_soc_inst.readyState)
             return net_soc_inst.readyState === WebSocket.OPEN //WebSocket.OPEN is 1
         }
     }
@@ -32083,7 +32126,7 @@ class Socket$1{
             net_soc_inst.write(arr_buff); //dde3
         }
         else { //net_soc_inst should be a WebSocket
-            console.log("send_low_level to WebSocket sending str of: " + str);
+            //console.log("send_low_level to WebSocket sending str of: " + str)
             net_soc_inst.send(str); //was: str // WebSocket send cab take a JS string as its arg.
         }
     }
@@ -32498,7 +32541,7 @@ class Socket$1{
             let net_soc_inst = Socket$1.robot_name_to_soc_instance_map[robot_name];
             if(net_soc_inst && this.readyState_is_open(net_soc_inst)) {
                 try {
-                    console.log("Socket.send about to send str: " + str, undefined, true);
+                    //console.log("Socket.send about to send str: " + str, undefined, true)
                     //net_soc_inst.write(arr_buff) //dde3
                     //net_soc_inst.send(str) //dde4
                     this.send_low_level(net_soc_inst, str);
@@ -32512,7 +32555,7 @@ class Socket$1{
                     return
                 }
                 catch(err) {
-                    console.log("Socket.send just after write in catch clause with err: " + err.message);
+                    //console.log("Socket.send just after write in catch clause with err: " + err.message)
                     if (rob.resend_count && (rob.resend_count >= 4)) {  //give up retrying and error
                         rob.resend_count = 0;
                         job_instance.stop_for_reason("errored_from_dexter", "can't connect to Dexter");
@@ -32587,13 +32630,11 @@ class Socket$1{
             let oplet  = String.fromCharCode(opcode);
             this.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance);
         }
-        else if(typeof(data) === "string"){
-            console.log("Socket.on_receive got data of a string: " + data);
-        }
+        else if(typeof(data) === "string");
         else if (data instanceof Blob) {//dde4 what comes back from  websocket
             //from https://javascript.info/blob
             // get arrayBuffer from blob
-            console.log("on_receive got blob of size: " + data.size);
+            //console.log("on_receive got blob of size: " + data.size)
             if(data.size === 0) { return } //just ignore this. maybe artifact of WebSockets
             let fileReader = new FileReader();
             fileReader.onload = function(event) {
@@ -32611,7 +32652,7 @@ class Socket$1{
                     }
                     let oplet = robot_status[Dexter.INSTRUCTION_TYPE];
                     oplet = String.fromCharCode(oplet);
-                    console.log("on_receive onload cb made rs: " + robot_status + " and got oplet; " + oplet);
+                    //console.log("on_receive onload cb made rs: " + robot_status + " and got oplet; " + oplet)
                     Socket$1.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance);
                 }
                 };
@@ -33064,7 +33105,15 @@ class DexterSim$1{
     }
 
     static str_to_oplet_array(str) {
-        let split_str = str.split(" ");
+        if(str.endsWith(";")) {
+            str = str.substring(0, str.length - 1); //cut off the semicolon on the end
+        }
+        let split_str = str.split(/[ ,]+/);//separator can be space, comma, or any combination of them. use to be just: " ", but that's not what dexrun does
+        //if its a var length instruction, then an integer is in place of the oplet and the oplet is one later
+        let orig_oplet_maybe = split_str[Instruction.INSTRUCTION_TYPE];
+        if(!Robot.is_oplet(orig_oplet_maybe)) { //assume its an integer for a variable-length instruction
+            split_str.splice(Instruction.INSTRUCTION_TYPE, 1); //removes integer from var length array. makign it 1 shorter
+        }
         let oplet_array = [];
         let oplet;
         for(let i = 0; i <  split_str.length; i++) {
@@ -33296,7 +33345,7 @@ class DexterSim$1{
                 break;
             default:
                 let temp_str = "non_normal_oplet_" + oplet; //prevent this from being printed more than once between out pane clearnings
-                warning("In DexterSim.send, got instruction not normally processed: " + oplet, temp_str);
+                warning("In DexterSim.send, got instruction not normally processed: " + temp_str + " in instruction_array: " + instruction_array);
                 ds_instance.ack_reply(instruction_array);
                 break;
         }
@@ -35598,8 +35647,19 @@ class DDEFile$1 {
     //used only in read_path_part where the initial path of the url is the file being looked at,
     //when you want to get just part of a file. So i guess the initial path must be absolute.
 
+    //needs to handle 3 cases:
+    //DDEFile.read_file_async(path)
+    // 0 getting files from user's hard drive                        file://documents/dde_apps/init.js
+    //             BUT this would only work from read_file_aysnc and friends IF user had already OKED via dialg box the call
+    //             so better not to use read_file_async for getting local files.
+    // 1 getting files from Dexter's server                          Dexter.dexter0://dde/examples/blur.js => http://192/edit?edit=dde/examples/blur.js
+    // From James N: When NO path is specified, /srv/samba/share should be assumed. If a path is specified, it should be considered "absolute" e.g. starting from root or /.
+    // 2 getting files from cfry.github.io (where DDE is served from host://dde/examples/blur.js,  dde/examples/blur.js
+    // 3 getting files from localhost  (when dde is served from the  host://dde/examples/blur.js
+    // 4    any url github should handle this. if dde serverd from Dexter, will fail  http://ibm.com/foo.html
+    // laptop running dde in browser)
 
-    static make_url(path, query=""){
+    static make_url(path, query=""){ //example query: "/edit?info="
         //if (adjust_to_os) { path = adjust_path_to_os(path) }
         let url;
         let colon_pos = path.indexOf(":");
@@ -35611,6 +35671,9 @@ class DDEFile$1 {
             }
             else {
                 let [full_dex_name, extracted_path] = path.split(":");
+                if(extracted_path.startsWith("//")){
+                    extracted_path = extracted_path.substring(2);
+                }
                 let dex = Utils.value_of_path(full_dex_name);
                 if(!dex) {
                     dde_error("The path of: " + path + " is invalid because<br/>" +
@@ -35618,16 +35681,34 @@ class DDEFile$1 {
                         "You need to define a Dexter instance with that name and<br/>" +
                         "an ip_address to use that path.");
                 }
-                let ip_address = dex.ip_address;
-                extracted_path = this.add_default_file_prefix_maybe(extracted_path);
+                //dex should now be the dexter instance, typically the value of Dexter.dexter0
+                let ip_address = dex.ip_address;  //something like "192.168.1.142"
+                //extracted_path = this.add_default_file_prefix_maybe(extracted_path)
+                if(query === "") {
+                    query = "/";
+                }
                 url = DDEFile$1.http_and_maybe_s + "://" + ip_address + query + extracted_path;
             }
         }
         else if(path.startsWith("host:")){
             let [full_dex_name, extracted_path] = path.split(":");
-            let ip_address = this.host(); //might return "localhost"
+            if(extracted_path.startsWith("//")) {
+                extracted_path = extracted_path.substring(2); //trim off the //. It will get added back later
+            }
+            this.host(); //might return "localhost"
             extracted_path = this.add_default_file_prefix_maybe(extracted_path);
-            url = DDEFile$1.http_and_maybe_s + "://" + ip_address + query + extracted_path;
+            let protocol_and_domain = window.origin; //either "http://localhost" or "https://cfry.github.io"
+            if(protocol_and_domain.endsWith("localhost")) {
+                //url = DDEFile.http_and_maybe_s + "://" + ip_address + query + extracted_path
+                url = protocol_and_domain + query + extracted_path;
+            }
+            else { // "https://cfry.github.io"
+                url = protocol_and_domain + "/dde4/" + extracted_path; //todo probably needs work
+
+            }
+        }
+        else if (Utils.starts_with_one_of(path, ["http:", "https:"])){
+            url = path;
         }
         else if (path.includes(":")) {
             if(query !== "") {
@@ -35783,7 +35864,7 @@ class DDEFile$1 {
             let response = await fetch(full_url); //will error due to CORS if the host serving full_url doesn't pave a response header allowing CORS
             if (response.ok) {
                 let content = await response.text();
-                return this.callback_or_return(callback, content, path)
+                return this.callback_or_return(callback, content, url)
             } else {
                 let err_mess =  "get_page_async for: " + url + " failed.<br/>" + err.message;
                 return this.callback_or_error(callback, err_mess, path)
@@ -38468,6 +38549,9 @@ MonitorServer.init()
 */
 
 //see https://pyodide.org/en/stable/usage/api-reference.html
+//import * as pyodide_load_obj from "pyodide";
+//globalThis.pyodide_load_obj = pyodide_load_obj
+
 globalThis.Py = class Py {
     static status = "not_loaded"
 
@@ -38480,24 +38564,63 @@ globalThis.Py = class Py {
             warning("Python is already initialized.<br/>To re-initialize the Python environment, you must relaunch DDE.");
         }
         else if (Py.status == "not_loaded"){
-            //await import("https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js")
-            await import('https://cdn.jsdelivr.net/pyodide/v0.23.2/full/pyodide.js');
             Py.status = "loading";
+            //await import("https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js")
+            //await import("https://cdn.jsdelivr.net/pyodide/v0.23.2/full/pyodide.js")
+            await import('https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js');
+            //let pyodide_load_obj = await import("pyodide") //this dynamic fails due to not finding files in teh build folder, now using statuic import at top of file
+
             globalThis.pyodide = await loadPyodide();
+            //globalThis.pyodide = await pyodide_load_obj.loadPyodide() //error: GET http://localhost/dde/build/pyodide-lock.json 404 (Not Found)
+            //await pyodide.loadPackage("numpy"); doesn't error but doesn't bind "numpy" either
+            //await pyodide.loadPackage(["js"]) //errors as does loading "sys"
             Py.status = "loaded";
-            out("Python initialized.");
+            //this.eval("import sys")
+            pyodide.runPython("import sys");
+            pyodide.runPython("import js");
+            await pyodide.loadPackage("numpy"); //needs to be loaded before its imported according to error messages.
+
+            out("Python initialized to: " + pyodide._api.sys.version + "<br/>" +
+                "with Pyodide version: " + pyodide.version);
+            //out("Python initialized with Pyodide version: " + pyodide_load_obj.version)
+
         }
         else { shouldnt("Py.init() has invalid status: " + Py.status);}
+    }
+
+    //this fn is a workaround for piodide discontinuing pyodide.isPyProxy in piodide 0.25.0
+    //without even documenting this incompatiable chnage from piodide 0.23
+    static is_py_proxy(obj){
+        //return ((typeof(obj) === "object") &&
+        //        obj.toJs &&
+        //        obj.destroy)
+        return obj instanceof pyodide.ffi.PyProxy //officially sanctioned way to do it.
     }
 
     static eval(python_source_code) {
         if (this.status === "loaded") {
             let proxy_maybe = pyodide.runPython(python_source_code);
-            if (pyodide.isPyProxy(proxy_maybe)) {
+            if(proxy_maybe === undefined) {
+                return undefined
+            }
+            else if (this.is_py_proxy(proxy_maybe)) { //(pyodide.isPyProxy(proxy_maybe)) {
                 let value = proxy_maybe.toJs();
-                proxy_maybe.destroy(); //get rid of the memory
+                //proxy_maybe.destroy() //get rid of the memory
                 return value
-            } else {
+            }
+            else if ((typeof(proxy_maybe) === "string") && proxy_maybe.startsWith("eval_in_js")){
+                let js_src = proxy_maybe.substring(10);
+                try {
+                    let value = eval(js_src);
+                    return value
+                }
+                catch(err){
+                    dde_error("Attempt to eval:<br/> <code>" + proxy_maybe +
+                        "</code><br/> from python errored with:<br/>" +
+                        err.message);
+                }
+            }
+            else {
                 return proxy_maybe
             }
         }
@@ -39494,6 +39617,13 @@ globalThis.Espree = Espree$1;
 globalThis.js_beautify = js_beautify;
 const config = { };
 globalThis.mathjs = create(all, config);
+globalThis.sind     = sind;
+globalThis.cosd     = cosd;
+globalThis.tand     = tand;
+globalThis.asind    = asind;
+globalThis.acosd    = acosd;
+globalThis.atand    = atand; //called in picture1.js
+globalThis.atan2d   = atan2d;
 
 
 //import "../job_engine/core/messaging.js"//defined global: Messaging todo dde4, this needs to be moved to the server.

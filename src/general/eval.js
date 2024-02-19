@@ -53,9 +53,13 @@ export function grab_text_for_eval_button(){
     if(DocCode.previous_active_element &&
         DocCode.previous_active_element.parentNode &&
         DocCode.previous_active_element.parentNode.parentNode &&
-        DocCode.previous_active_element.parentNode.parentNode.CodeMirror){
+        //DocCode.previous_active_element.parentNode.parentNode.CodeMirror)
+        DocCode.previous_active_element.parentNode.parentNode.classList &&
+        DocCode.previous_active_element.parentNode.parentNode.classList.contains("CodeMirror")){
         src = Editor.get_javascript("auto") //if sel in editor, get it, else get whole editor
         src_comes_from_editor = true
+        Editor.myCodeMirror.focus() //so that if I click on the Eval button AGAIN,
+        //without clicking on the Editor pane, it will still get the editor pane's src
     }
     else if (DocCode.selected_text_when_eval_button_clicked.length > 0) {
         src = DocCode.selected_text_when_eval_button_clicked

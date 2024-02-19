@@ -218,20 +218,37 @@ class DDEVideo {
             DocCode.open_doc(make_instruction_pane_doc_id)
             content_is_good = true
         }
-        else if (content === "Haddington Website"){ //Will work for https:// ...
-            content = "<iframe src='http://www.hdrobotic.com' width='100%' height='100%'/>" //no way to catch an error like 404 here due to security restrictions.
-            sim_pane_content_id.innerHTML = content
-            content_is_good = true
-        }
+
         else if (content === "Reward Board"){
             sim_pane_content_id.innerHTML = Metrics.make_html()
             content_is_good = true
         }
+
         else if (content.startsWith("http")){ //Will work for https:// ...
                 // Put before extension checking because of http://foo.jpg could be displayed if http checking before extension checking
             content = "<iframe src='" + content + "' width='100%' height='100%'/>" //no way to catch an error like 404 here due to security restrictions.
             sim_pane_content_id.innerHTML = content
             //might error with file not found or can't use content, so don't persist the url just in case.
+        }
+        else if (content === "Haddington Website"){ //Will work for https:// ...
+            DDEVideo.show_in_misc_pane('http://www.hdrobotic.com')
+            content_is_good = true
+        }
+        else if (content === "Three.js Examples"){ //Will work for https:// ...
+            DDEVideo.show_in_misc_pane('https://threejs.org/examples/#webgl_effects_stereo')
+            content_is_good = true
+        }
+        else if (content === "Enter URL"){ //Will work for https:// ...
+            let a_url = prompt("Enter an HTML URL to display.\nDoes not work for many URLs\nYou may have to click page content to see it.",
+                "https://immersive-web.github.io/webxr-samples/tests/cube-sea.html")
+
+            if(a_url) {
+                if(!a_url.startsWith("http") && !a_url.startsWith("HTTP")){
+                    a_url = "https://" + a_url
+                }
+                DDEVideo.show_in_misc_pane(a_url)
+                content_is_good = true
+            }
         }
 
         else if (content.endsWith(".stl")){

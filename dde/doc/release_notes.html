@@ -1,6 +1,97 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
 
+<details class="doc_details"><summary>v 4.1.9, Feb 19, 2024</summary>
+Highlights:Improvements to: Python support, Dex (jobless instructions), SimBuild.
+    Misc. bugs fixed.
+<ul>
+    <li>Variable lengthed instructions now working in simulator.</li>
+    <li>Bugs in opencv example fixed dde menu Insert/machine Vision/Process WebCam,
+       and Face Recognition</li>
+    <li>Fixed all OpenCV examples to work in DDE4 using camera to grab images,
+        except for face_reco in dde4 since it requires
+        OpenCV creating a file and using OpenCV load.</li>
+    <li><code>sind</code>, <code>cosd</code>, <code>tand</code>, <code>asind</code>,
+         <code>acosd</code>, <code>atand</code>, <code>atan2d</code>
+         are now all global vars as was the case in DDE3.
+     They are defined in math/Trig_in_Degrees.js
+     Fixes bug in Picture.mat_to_min_area_rect  of <code>atand</code> being undefined.</li>
+
+    <li>Fixed bug in <code>Robot.is_oplet</code> by changing
+        is_digit to <code>Utils.is_digit</code></li>
+    <li>Fixed <code>DDEFile.get_page_async</code> respelled "path" to "url".</li>
+    <li><code>DDEFile.make_url</code> now extended to accommodate "host://"
+        and that works for:<br/>
+        <code>DDEFile.read_file_async("host://dde/examples/blur.js")</code> too.</li>
+    <li><code>DDEFile.make_url</code> now extended to accommodate "Dexter.dexter0://AdcCenters.txt",
+     refers to dexter's /srv/samba/share/AdcCenters.txt (default folder to srv/samba/share
+     and so does: "Dexter.dexter0:///srv/samba/share/AdcCenters.txt"
+     which doesn't default folder but uses path as for absolute path from / ie
+     /srv/samba/share/AdcCenters.txt</li>
+
+    <li>DDEFile.make_url now extended to accommodate paths starting with "http" and "https".
+     Not all of these work in getting the HTML as they will from a browser,
+     but some do.</li>
+
+    <li><code>inspect</code> fixed to not render a long string that has html in it,
+     but just show the raw chars. This is more what you usually want when inspecting,
+     and causes less problems in DDE when rendering web pages grabbed from websites,
+     esp DDE's own index.html, which breaks DDE.</li>
+
+    <li>Fixed Dextersim's <code>str_to_oplet_array</code>
+     to cut off ending semicolon.</li>
+
+    <li>SimBuild: Now when there is no selected object,
+        you get a warning with what to do, not a shouldnt."</li>
+
+    <li>SimBuild: now setting the parent of an object3d works.</li>
+
+    <li>make_instruction: the initial default
+        <code>move_all_joints</code>, made joint 7 default to 50 since
+        defaulting to 0 causes overtorque of the motor.</li>
+
+    <li>Misc pane menu added: Enter URL, Three.js Examples</li>
+
+    <li>Fixed some test suite failures on WinOS, in file_system_test_suite.js,
+     folder_name_version_extension testsuite. More fixes needed here.</li>
+
+    <li>License file (GPLv3) now under "dde4" folder.</li>
+
+    <li>When choosing DDE File menu Open, and you choose a file with extension .py,
+     the file will be loaded into the editor with a slight green background tint
+     to let you know that clicking the <button>Eval</button>
+        button will send the selected code to <code>Py.eval</code>.<br/>
+     Also, if Py.init has not been called, it will automatically be called.</li>
+
+    <li>editor.js fix to function <code>grab_text_for_eval_button</code>.</li>
+    <li>Fixed bug when you are editing a .py file and your 2nd thru nth click on Eval
+     treated the selected text as JS, not Python code.</li>
+
+    <li>If evaling a Python expression returns a string like:
+     "eval_in_js [3, 4].length"
+     then "[3, 4].length" will get evaled in JS and work,
+     enabling JS code to be embedded in Python.</li>
+
+    <li>Python: sim and js packages are automatically imported now.</li>
+
+    <li>Simulator parsing instruction strings, now handles both spaces AND commas.
+     with regex: /[ ,]+/)//separator can be space, comma, or any combination of them</li>
+
+    <li>new method: <code>Dex.source</code> Used in Python code. </li>
+
+    <li>The <code>Dex</code> class and its methods are now much better documented.
+     See Ref Man/Dex (Jobless instructions)
+
+    <li>pyodide package for implementing Python upgraded version to latest 0.25.0 from version 0.23</li>
+
+    <li>Python better documented including new section:
+        Calling JavaScript from Python</li>
+
+    <li>In make_instruction/record, fixed the create job to have a data_array_transformer of "P".
+     Job's use to have "P" as a default but it was decided this was too dangerous
+     so we changed it to be "undefined". But this broke make_instruction/record
+     so Jobs used in recording are created with a "P" for that param.</li>
+</details>
 <details class="doc_details"><summary>v 4.1.8, Jan 4, 2024</summary>
     Highlights: Bug fix for Vector.DCM_to_quaterian definition.
     Nearly all File menu items working for much better access to local file system.

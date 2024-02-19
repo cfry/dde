@@ -49,8 +49,19 @@ class DDEFile {
     //used only in read_path_part where the initial path of the url is the file being looked at,
     //when you want to get just part of a file. So i guess the initial path must be absolute.
 
+    //needs to handle 3 cases:
+    //DDEFile.read_file_async(path)
+    // 0 getting files from user's hard drive                        file://documents/dde_apps/init.js
+    //             BUT this would only work from read_file_aysnc and friends IF user had already OKED via dialg box the call
+    //             so better not to use read_file_async for getting local files.
+    // 1 getting files from Dexter's server                          Dexter.dexter0://dde/examples/blur.js => http://192/edit?edit=dde/examples/blur.js
+    // From James N: When NO path is specified, /srv/samba/share should be assumed. If a path is specified, it should be considered "absolute" e.g. starting from root or /.
+    // 2 getting files from cfry.github.io (where DDE is served from host://dde/examples/blur.js,  dde/examples/blur.js
+    // 3 getting files from localhost  (when dde is served from the  host://dde/examples/blur.js
+    // 4    any url github should handle this. if dde serverd from Dexter, will fail  http://ibm.com/foo.html
+    // laptop running dde in browser)
 
-    static make_url(path, query=""){
+    static make_url(path, query=""){ //example query: "/edit?info="
         //if (adjust_to_os) { path = adjust_path_to_os(path) }
         let url
         let colon_pos = path.indexOf(":")
@@ -63,6 +74,9 @@ class DDEFile {
             }
             else {
                 let [full_dex_name, extracted_path] = path.split(":")
+                if(extracted_path.startsWith("//")){
+                    extracted_path = extracted_path.substring(2)
+                }
                 let dex = Utils.value_of_path(full_dex_name)
                 if(!dex) {
                     dde_error("The path of: " + path + " is invalid because<br/>" +
@@ -70,16 +84,34 @@ class DDEFile {
                         "You need to define a Dexter instance with that name and<br/>" +
                         "an ip_address to use that path.")
                 }
-                let ip_address = dex.ip_address
-                extracted_path = this.add_default_file_prefix_maybe(extracted_path)
+                //dex should now be the dexter instance, typically the value of Dexter.dexter0
+                let ip_address = dex.ip_address  //something like "192.168.1.142"
+                //extracted_path = this.add_default_file_prefix_maybe(extracted_path)
+                if(query === "") {
+                    query = "/"
+                }
                 url = DDEFile.http_and_maybe_s + "://" + ip_address + query + extracted_path
             }
         }
         else if(path.startsWith("host:")){
             let [full_dex_name, extracted_path] = path.split(":")
+            if(extracted_path.startsWith("//")) {
+                extracted_path = extracted_path.substring(2) //trim off the //. It will get added back later
+            }
             let ip_address = this.host() //might return "localhost"
             extracted_path = this.add_default_file_prefix_maybe(extracted_path)
-            url = DDEFile.http_and_maybe_s + "://" + ip_address + query + extracted_path
+            let protocol_and_domain = window.origin //either "http://localhost" or "https://cfry.github.io"
+            if(protocol_and_domain.endsWith("localhost")) {
+                //url = DDEFile.http_and_maybe_s + "://" + ip_address + query + extracted_path
+                url = protocol_and_domain + query + extracted_path
+            }
+            else { // "https://cfry.github.io"
+                url = protocol_and_domain + "/dde4/" + extracted_path //todo probably needs work
+
+            }
+        }
+        else if (Utils.starts_with_one_of(path, ["http:", "https:"])){
+            url = path
         }
         else if (path.includes(":")) {
             if(query !== "") {
@@ -235,7 +267,7 @@ class DDEFile {
             let response = await fetch(full_url) //will error due to CORS if the host serving full_url doesn't pave a response header allowing CORS
             if (response.ok) {
                 let content = await response.text()
-                return this.callback_or_return(callback, content, path)
+                return this.callback_or_return(callback, content, url)
             } else {
                 let err_mess =  "get_page_async for: " + url + " failed.<br/>" + err.message
                 return this.callback_or_error(callback, err_mess, path)

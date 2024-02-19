@@ -134,7 +134,15 @@ class DexterSim{
     }
 
     static str_to_oplet_array(str) {
-        let split_str = str.split(" ")
+        if(str.endsWith(";")) {
+            str = str.substring(0, str.length - 1) //cut off the semicolon on the end
+        }
+        let split_str = str.split(/[ ,]+/)//separator can be space, comma, or any combination of them. use to be just: " ", but that's not what dexrun does
+        //if its a var length instruction, then an integer is in place of the oplet and the oplet is one later
+        let orig_oplet_maybe = split_str[Instruction.INSTRUCTION_TYPE]
+        if(!Robot.is_oplet(orig_oplet_maybe)) { //assume its an integer for a variable-length instruction
+            split_str.splice(Instruction.INSTRUCTION_TYPE, 1) //removes integer from var length array. makign it 1 shorter
+        }
         let oplet_array = []
         let oplet
         for(let i = 0; i <  split_str.length; i++) {
@@ -366,7 +374,7 @@ class DexterSim{
                 break;
             default:
                 let temp_str = "non_normal_oplet_" + oplet //prevent this from being printed more than once between out pane clearnings
-                warning("In DexterSim.send, got instruction not normally processed: " + oplet, temp_str)
+                warning("In DexterSim.send, got instruction not normally processed: " + temp_str + " in instruction_array: " + instruction_array)
                 ds_instance.ack_reply(instruction_array)
                 break;
         }

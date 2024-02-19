@@ -44,7 +44,7 @@ class Job{
                  program_counter=0,
                  ending_program_counter="end",
                  initial_instruction=null,
-                 data_array_transformer= undefined, // was "P", butthat's too dangerous. Only make transforming available to a job if it explicitly indicates a transformer.
+                 data_array_transformer= undefined, // was "P", but that's too dangerous. Only make transforming available to a job if it explicitly indicates a transformer.
                  get_dexter_defaults = true, //if true, always get defaults from Defaults.makeins file or error
                                                       //if false, always get idealized values from Dexter.defaults class.
                  start_if_robot_busy=false,

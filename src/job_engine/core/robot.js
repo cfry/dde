@@ -141,7 +141,7 @@ class Robot {
                 }
                 else { return false }
             }
-            else { return true }
+            else { return !Utils.is_digit(oplet) } //ie its not a letter or puncutation, so probably a digit was when we have variable-length instructions, If so, return false
         }
         else { return false }
     }

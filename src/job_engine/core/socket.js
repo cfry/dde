@@ -87,7 +87,7 @@ class Socket{
                 }
                 net_soc_inst.onmessage = function(event) {
                     let msg = event.data
-                    console.log("Socket.js onmessage got msg: " + msg)
+                    //console.log("Socket.js onmessage got msg: " + msg)
                     Socket.on_receive(msg, undefined, rob)
                 }
                 net_soc_inst.onclose = function(close_event){
@@ -282,7 +282,7 @@ class Socket{
             return net_soc_inst.readyState === "open"
         }
         else {
-            console.log("in Socket.js readyState_is_open, readyState is: " + net_soc_inst.readyState)
+            //console.log("in Socket.js readyState_is_open, readyState is: " + net_soc_inst.readyState)
             return net_soc_inst.readyState === WebSocket.OPEN //WebSocket.OPEN is 1
         }
     }
@@ -293,7 +293,7 @@ class Socket{
             net_soc_inst.write(arr_buff) //dde3
         }
         else { //net_soc_inst should be a WebSocket
-            console.log("send_low_level to WebSocket sending str of: " + str)
+            //console.log("send_low_level to WebSocket sending str of: " + str)
             net_soc_inst.send(str) //was: str // WebSocket send cab take a JS string as its arg.
         }
     }
@@ -708,7 +708,7 @@ class Socket{
             let net_soc_inst = Socket.robot_name_to_soc_instance_map[robot_name]
             if(net_soc_inst && this.readyState_is_open(net_soc_inst)) {
                 try {
-                    console.log("Socket.send about to send str: " + str, undefined, true)
+                    //console.log("Socket.send about to send str: " + str, undefined, true)
                     //net_soc_inst.write(arr_buff) //dde3
                     //net_soc_inst.send(str) //dde4
                     this.send_low_level(net_soc_inst, str)
@@ -722,7 +722,7 @@ class Socket{
                     return
                 }
                 catch(err) {
-                    console.log("Socket.send just after write in catch clause with err: " + err.message)
+                    //console.log("Socket.send just after write in catch clause with err: " + err.message)
                     if (rob.resend_count && (rob.resend_count >= 4)) {  //give up retrying and error
                         rob.resend_count = 0
                         job_instance.stop_for_reason("errored_from_dexter", "can't connect to Dexter")
@@ -798,12 +798,12 @@ class Socket{
             this.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance)
         }
         else if(typeof(data) === "string"){
-            console.log("Socket.on_receive got data of a string: " + data)
+            //console.log("Socket.on_receive got data of a string: " + data)
         }
         else if (data instanceof Blob) {//dde4 what comes back from  websocket
             //from https://javascript.info/blob
             // get arrayBuffer from blob
-            console.log("on_receive got blob of size: " + data.size)
+            //console.log("on_receive got blob of size: " + data.size)
             if(data.size === 0) { return } //just ignore this. maybe artifact of WebSockets
             let fileReader = new FileReader();
             fileReader.onload = function(event) {
@@ -821,7 +821,7 @@ class Socket{
                     }
                     let oplet = robot_status[Dexter.INSTRUCTION_TYPE]
                     oplet = String.fromCharCode(oplet)
-                    console.log("on_receive onload cb made rs: " + robot_status + " and got oplet; " + oplet)
+                    //console.log("on_receive onload cb made rs: " + robot_status + " and got oplet; " + oplet)
                     Socket.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance)
                 }
                 };

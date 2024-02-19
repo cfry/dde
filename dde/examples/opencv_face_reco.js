@@ -14,19 +14,30 @@ On the "request.get" line below, use that first arg
 as an example of how to convert https://github.com/opencv/opencv urls
 into the url format used by this demo.
 */
-var cv = require("opencv.js")
-var request  = require("request")
-var faceClassifier
+
+//BUG in init_face_classifier() causes this to fail
+
+var faceClassifier = undefined
 
 function init_face_classifier(){
+    debugger;
     if(!faceClassifier) { //calling the below code twice in a dde session will error
-        let body = read_file(__dirname + "/vision/lbpcascade_frontalface.xml")
-        cv.FS_createDataFile('/', "model.xml", body, true, true, false)
-        faceClassifier = new cv.CascadeClassifier();
-        faceClassifier.load("model.xml");
-        if(faceClassifier.empty() == false) {
-            out("Model loaded into classifier.")
-        }
+        let face_file_path = "host://dde/vision/lbpcascade_frontalface.xml"
+        DDEFile.read_file_async(face_file_path,
+            function(err, content){
+                if(err) {
+                    warning("Could not find file: " + face_file_path)
+                }
+                else {
+                    cv.FS_createDataFile('/', "model.xml", content, true, true, false) // can't create a file
+                    faceClassifier = new cv.CascadeClassifier();
+                    faceClassifier.load("model.xml"); //IFF I could just supply the content instead
+                    if(faceClassifier.empty() == false) {
+                        out("Model loaded into classifier.")
+                    }
+                }
+            }
+        )
     }
 }
 
@@ -37,12 +48,14 @@ function handle_webcam_video(vals){ //vals contains name-value pairs for each
     if(vals.clicked_button_value == "init"){ // Clicked button value holds the name of the clicked button.
         if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
-                video_id.src = window.URL.createObjectURL(stream);
+                //video_id.src = window.URL.createObjectURL(stream);
+                video_id.srcObject = stream //jan 2024
                 video_id.play();
             })
         }
     }
     else if (vals.clicked_button_value == "Snap Photo"){
+        debugger;
         let context = canvas_id.getContext('2d')
         context.drawImage(video_id, 0, 0, 320, 240)
         let mat          = cv.imread(canvas_id)
@@ -86,7 +99,7 @@ function face_reco(faceMat, //gray mat to find faces in
 }
 
 show_window({content:
- `<input type="button" value="init" style="margin-left:4px;"/> 
+        `<input type="button" value="init" style="margin-left:4px;"/> 
   &nbsp;webcam video display.
  <input type="button" value="Snap Photo" style="margin-left:115px;"/>
   &nbsp;from webcam video.<br/>

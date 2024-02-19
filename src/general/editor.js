@@ -1380,7 +1380,10 @@ Clear its content?
         Editor.after_successful_open(path)
         file_name_id.title = path
         if(path.endsWith(".py")) {
-            set_css_properties('.CodeMirror { background:#FAFFFA;}')
+            set_css_properties('.CodeMirror { background:#F8FFF8;}')
+            if(Py.status === "not_loaded"){
+                Py.init()
+            }
         }
         else {
             set_css_properties('.CodeMirror { background:#FFFFFF;}')

@@ -133,9 +133,52 @@ class Dex {
     }
 
     static run(do_list_item){
+        Dex.init()
         Job.insert_instruction(do_list_item,
             {job: "DexJob",
                 offset: "end"})
+    }
+
+    //like Dex.run, but evals its arg and calls Dex.run on the result of the eval.
+    static source(do_list_item_source){
+        Dex.init()
+        let instr
+        try {
+            instr = eval(do_list_item_source)
+        }
+        catch(err){
+            dde_error("Dex.source passed " + do_list_item_source + "<br/>" +
+                "which errored during eval with: " + err.message)
+            return
+        }
+        if(Instruction.is_do_list_item(instr)){
+            Dex.run(instr)
+        }
+        else {
+            dde_error("Dex.source passed " + do_list_item_source + "<br/>" +
+                "which did not eval to a valid do_list_item: " + instr)
+            return
+        }
+    }
+
+    static cut_off_quotes_maybe(str){
+        if (str.length > 1){
+            let last_index = str.length - 1
+            if(((str[0] === '"') && (str[last_index] === '"')) ||
+               ((str[0] === "'") && (str[last_index] === "'")) ||
+               ((str[0] === "`") && (str[last_index] === "`"))) {
+                return str.substring(1, last_index)
+            }
+        }
+        else { return str }
+    }
+
+    //hmm, works ok but probably better to have users use the more general:
+    // Dex.source("Control.stop_job")
+    static stop_job(){
+        if(Job.DexJob){
+            Job.DexJob.stop_for_reason("interrupted", "Dex.stop_job called")
+        }
     }
 }
 globalThis.Dex = Dex

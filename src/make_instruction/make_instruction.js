@@ -115,7 +115,7 @@ class MakeInstruction{
             call_obj = MiIns.make_from_instruction_name_no_args("Dexter.move_all_joints")
             for(let i = 1; i < 8; i++) {  //not quite the same as merge_in_special_defaults
                 let arg_name = "joint" + i
-                call_obj.args_obj[arg_name] = "0"
+                call_obj.args_obj[arg_name] = ((i === 7) ? "50" : "0") //since 0 for joint 7 will overheat motors
             }
         }
         else {call_obj = instruction_call_src }
@@ -366,6 +366,14 @@ class MakeInstruction{
                        merge_in_pipeline()
             if(call_obj_or_instruction_name == "new Job") {
                 call_obj.args_obj.name = '"' + Job.generate_default_name() + '"'
+                if(call_obj.args_obj.data_array_transformer === "undefined") { //Feb 18, 2024: default for a Job's data_array_transformer param is undefined
+                    // because it use to be "P", but that was deemeed too dangerous as any old number array
+                    // that ended up on the do_list by mistake would move the robot.
+                    //however, recording and playing back jobs must have a data_array_transformer as we
+                    //record an instruction as just an array of numbers.
+                    //so here we force the setting of the data_array_transformer to "P"
+                    call_obj.args_obj.data_array_transformer = '"P"'
+                }
             }
             else if(call_obj_or_instruction_name == "new Dexter") {
                 call_obj.args_obj.name = '"' + Dexter.generate_default_name() + '"'

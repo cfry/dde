@@ -63,9 +63,10 @@
             <p></p>
             The code for your Job definitions should live under that folder (at any depth beneath
             that folder).
-            If you do not have a dde_apps folder under your Documents folder, please create one.
-
-
+            If you do not have a dde_apps folder under your Documents folder, please create one.<br/>
+            <br/>
+            The most commonly used (and tested) of the below methods is<br/>
+            <code>DDEFile.read_file_async</code> for getting the contents of a file.
 
         <details id="DDEFile.append_to_file_doc_id" class="doc_details"><summary>DDEFile.append_to_file</summary>
             Append content to a file path. Leaves the existing content in place but
@@ -455,7 +456,8 @@ DDEFile.load_file("two_plus_three.js",
         -->
 
      <details id="DDEFile.read_file_async_doc_id" class="doc_details"><summary>DDEFile.read_file_async</summary>
-           <b>Parameters: </b><br/>
+            Get the content of a file.<br/>
+            <b>Parameters: </b><br/>
             <b>path</b> The string path of the file to get the contents of.<br/>
             <b>callback</b> If callback is passed, it should be a function
                 of two arguments, an error, and the content of the file.
@@ -463,15 +465,42 @@ DDEFile.load_file("two_plus_three.js",
                 non-null, containing a string of the error message.
                 Else if there is no error, the error argument passed
                 in to the callback is <code>null</code>, and the 2nd argument is
-                the content of the file.<br/>
+                the content of the file as a string.<br/>
                 If there is no callback passed in, (the default), a promise is returned.
                 <br/></br/>
-                <b>Example:</b><br>
-                <pre><code title="not in TestSuite">DDEFile.read_file_async("dde_init.js",
-                         function(err, content){
-                             out("read_file got err: " + err +
-                                 " and content: " + content)})
-                </code></pre>
+                <b>Examples:</b><br>
+                  For getting random web pages, start the path with "http:" or "https:"<br/>
+                  First try such paths in a browser. If that works,
+                  you have a <i>chance</i> of getting the page's HTML, but certainly not
+                  guarenteed. Different websites have different policies, which may change.
+                <pre><code>DDEFile.read_file_async(
+     "https://www.cnn.com",
+     function(err, content){
+         out("read_file got err: " + err + " and content: " + content)})</code></pre>
+                  From DDE4's website on github.io
+                <pre><code>DDEFile.read_file_async(
+     "https://cfry.github.io/dde4/dde/examples/opencv_blur.js",
+     function(err, content){
+         out("read_file got err: " + err + " and content: " + content)})</code></pre>
+         The below is similar to the above, but is shorter, and will work from the
+         website that served DDE, regardless of if its github.io or localhost.
+         <pre><code>DDEFile.read_file_async(
+     "host://dde/examples/make_dictionary.js", //now works
+     function(err, content){
+         out("read_file got err: " + err + " and content: " + content)})</code></pre>
+                  You can also get files from a Dexter's file system provided you are connected to one.<br/>
+                  In the below example, because the path does not start with a slash,<br/>
+                  the file is retrieved from Dexter's <code>"/srv/samba/share"</code> folder:
+         <pre><code title="not in TestSuite">DDEFile.read_file_async(
+     "Dexter.dexter0://AdcCenters.txt",
+     function(err, content){
+        out("read_file got err: " + err + " and content: " + content)})</code></pre>
+                 With a slash (notice the triple slashes), the path is a full path from Dexter's / folder.<br/>
+                 The below example gets the same file as the above example.
+         <pre><code title="not in TestSuite">DDEFile.read_file_async(
+     "Dexter.dexter0:///srv/samba/share/AdcCenters.txt",
+     function(err, content){
+        out("read_file got err: " + err + " and content: " + content)})</code></pre>
      </details>
 
      <details id="DDEFile.write_file_async_doc_id" class="doc_details"><summary>DDEFile.write_file_async</summary>
@@ -8542,25 +8571,65 @@ For documentation, see
 
 <details id="Dex_doc_id" class="doc_details"><summary>Dex (Jobless instructions)</summary>
          <code>Dex</code> is a facility for making it easy to execute code to move
-         Dexter without having to create a Job and stick instructions on it's do_list.<br/>
-         <span style="color:red;">This is an experimental system so please don't expect it to be perfect.
-    </span>
+         Dexter and other controlling software without having to manually
+         create a Job and stick instructions on it's do_list. This is done for you automatically.
+
          <p/>
-         The first time you run a Dex instruction, a Job named <i>DexJob</i> is defined using
+         The first time you run a Dex method, a Job named <i>DexJob</i> is defined, using
          the robot of <code>Dexter.default</code> (the Dexter set in the Misc Pane header).<br/>
          Then that job is started and that first instruction is run.<br/>
          Then the Job waits for more Dex instructions.
          <p/>
-         <i>Examples:</i><br/>
-         Run a "move_all_joints" instruction:<br/>
-         <code> Dex.m_joint([5, 10, 15]) </code>
-         <p/>
-         Run a "move_to" instruction:<br/>
-         <code> Dex.m_xyz([0.1, 0.2, 0.3]) </code>
-         <p/>
-         Run both together:
-         <pre><code> Dex.m_joint([5, 10, 16])
- Dex.m_xyz([0.1, 0.2, 0.3]) </code></pre>
+         <i>The methods of the Dex class:</i><br/>
+    <details id="Dex.run_doc_id" class="doc_details"><summary>Dex.run</summary>
+        Define and run an instruction.<br/>
+        <i>Parameter:</i><br/>
+        <b>do_list_item</b> Any do_list_item. Required.<br/>
+        <i>Examples:</i><br/>
+        <code>Dex.run(Control.wait_until(4))</code><br/>
+        <code>Dex.run(Dexter.move_all_joints(10, 20, 30))</code><br/>
+        <code>Dex.run("a, 36000, 72000, 108000;")</code><br/> Same effect as the above,
+        putting a string on the do_list. Note the argument for the "a" oplet are in arcseconds.
+    </details>
+    <details id="Dex.source_doc_id" class="doc_details"><summary>Dex.source</summary>
+        Define and run an instruction. Similar to <code>Dex.run</code> but the argument is the
+        <i>source code</i> of an instruction. Not so useful in JavaScript but
+        is used by DDE's Python facility.<br/>
+        <i>Parameter:</i><br/>
+        <b>do_list_item_source</b> The source code for any do_list_item. Required.
+        Note that this is the string of code of an item in a Job's do_list.
+        It is evaluated and the result is pushed onto the Job.DexJob.do_list.
+        <br/>
+        <i>Examples:</i><br/>
+        <code>Dex.source("Control.wait_until(4)")</code><br/>
+        <code>Dex.source("Dexter.move_all_joints(10, 20, 30)")</code><br/>
+        <code>Dex.source('"a, 36000, 72000, 108000;"')</code><br/> Same effect as the above,
+        putting a string on the do_list. <br/>
+        Note: The arguments for the "a" oplet are in arcseconds.<br/>
+        Note: The argument starts with single quote followed by a double quote because
+        we want the evaluation of that argument to be a string.
+    </details>
+    <details id="Dex.m_joint" class="doc_details"><summary>Dex.m_joint</summary>
+        Define and run a <code>Dexter.move_all_joints</code> instruction.<br/>
+        <i>Parameter:</i><br/>
+        <b>array_of_angles</b> An array of joint angles OR the
+        angles spread out as separate arguments, just like <code>Dexter.move_all_joints</code>.<br/>
+        <i>Examples:</i><br/>
+        <code> Dex.m_joint([5, 10, 15]) </code><br/>
+        <code> Dex.m_joint(5, 10, 15) </code><br/>
+        Same effect as above.
+    </details>
+    <details id="Dex.m_xyz" class="doc_details"><summary>Dex.m_xyz</summary>
+        Define and run a <code>Dexter.move_to</code> instruction.<br/>
+        <i>Parameters:</i><br/>
+        <b>xyz</b> An array of x, y, and z numbers (each in meters).<br/>
+        <b>other parameters</b> are the same as <code>Dexter.move_to</code> parameters.
+            All of them have defaults.
+        <p/>
+        <i>Examples:</i><br/>
+        <code>Dex.m_xyz([0.1, 0.2, 0.3]) </code>
+         <pre><code>Dex.m_joint([5, 10, 16])
+Dex.m_xyz([0.1, 0.2, 0.3]) </code></pre>
          An Extended example:
          <pre><code> function print_measured_angles(){
    out(this.robot.rs.measured_angles())
@@ -8603,6 +8672,7 @@ For documentation, see
                  until then.
              </li>
          </ul>
+    </details> <!-- end Dex.m_xyz -->
 </details>
 
 <details id="units_system_help_doc_id" class="doc_details"><summary>Units System</summary>
@@ -11874,16 +11944,17 @@ Here we point out just a few that are especially easy and useful for teaching.
    </details> --> <!-- End PatchDDE -->
 
    <details id="python_doc_id" class="doc_details"><summary>Python</summary>
-       A language is a collection of tools that are designed to work synergistically
-       with each other. When possible, it is good to keep the code for a program in
-       one language for this reason.
+       A language is a collection of information processsing tools
+       that are designed to work synergistically with each other.
+       When possible, it is good to keep the code for a program in
+       one language because the code can easily interoperate with itself.
        <p></p>
        JavaScript was chosen for DDE because:
        <ul>
             <li>It has the largest repository of open source code for any programming language ever.</li>
             <li>Its the primary general purpose programming language on the Web.</li>
             <li>It has decent support for "eval" (which Python doesn't), necessary for
-                the kind of interactive IDE that DDE is. </li>
+                the kind of interactive IDE that DDE is and for writing code that writes code. </li>
        </ul>
        JavaScript, like all programming languages,
        especially those popular now, is far from perfect. DDE helps programmers
@@ -11892,7 +11963,8 @@ Here we point out just a few that are especially easy and useful for teaching.
        None-the-less, sometimes it is worth it to put up with the difficulties of
        "foreign function calls" to get the functionality in other languages.
        This can happen because a given functionality isn't available in the primary
-       language of the app, and it is too big to write. Or it may be that the programmer
+       language of the app, and it is too big to "port" to the primary language".
+        Or it may be that the programmer
        is more familiar with a library in another language. There are "cultural"
        reasons as well, or simply matters of personal taste.
        <p></p>
@@ -11901,14 +11973,17 @@ Here we point out just a few that are especially easy and useful for teaching.
        in Python, DDE has several ways that DDE programs can take advantage of
        existing Python code, or even write new bits of "glue code" between
        existing Python and DDE/JavaScript.
-       <ul><li>The Python code is in a file with a ".py" extension.</li>
-           <li>The code is wrapped in a call to DDE's (JavaScript) function:
+       <p/>
+       There are three places you can put Python code in DDE.
+       <ul><li>Python code can be in a file with a ".py" extension.</li>
+           <li>Python code can be an argument to DDE's (JavaScript) function:
                 <code>Py.eval</code></li>
-           <li>The code is in DDE's command line, and you've selected "Python"
+           <li>Python code can in DDE's command line, (in the Output pane header)
+               and you've selected "Python"
                in the command line's language menu (to the left of the type-in area).
            </li>
        </ul>
-       Only Python 3 is supported.
+       Only Python 3.11.3 is now supported.
        <p/>
        Behind the scenes, DDE can create a process to run Python.
        Python code will be evaluated in that process persisting any state you set
@@ -11947,17 +12022,18 @@ Here we point out just a few that are especially easy and useful for teaching.
            <li>
            The File menu/Load ... item allows you to choose a file.
            If you choose one with a ".py" extension,
-           you will be prompted to enter an "as name".
-           If you then click <button>OK</button>,
-           that is the equivalent of the python code:<br/>
-           <code title="unEVALable">import /the/file.py as somename</code><br/>
-           You'll see confirmation in the Output pane.
+           the code will be evaluated as Python code with the last value
+               printed in the output pane.
            </li>
            </ul>
        </details>
 
        <details id="Py.init_doc_id" class="doc_details"><summary>Py.init</summary>
-           When DDE launches, Python is not available until you explicitly initialize it via:
+           When DDE launches, Python is not available until it is initialized.
+           Loading a file with a .py extention, or choosing "Python" from the
+           language menu in the Output pane header will automatically initialize Python.<br/>
+           However, calling Py.eval will NOT automatically initilize Python.
+           To explicitly,  programmatically initialize Pyython, eval:<br/>
            <code>Py.init()</code>
            <br/><br/>
            In DDE, Python is implemented using
@@ -12064,31 +12140,109 @@ new Job({
       For a simpler way to call Python from within a Job, see
       <a href="#" onclick="DocCode.open_doc('Brain.eval_python_doc_id')">Brain.eval_python</a>
        </details>
+       <details class="doc_details"><summary>Calling JavaScript from Python</summary>
+           There are a variety of ways to call JavaScript from your DDE Python code.
+           You can call any JavaScript function, including add instructions to
+           DDE Jobs via the <code>Dex</code> class.<br/>
+           Below are examples of Python code in DDE. Please consider these a
+           work in progress. Note: you cannot eval these from the Doc pane. But
+           you can copy and paste them into an editor file whose name ends in .py
+           or into the Output pane's command line (after selected "Python" in its language menu).
+           Then you can select any Python expression and click the <button>Eval</button> button.
+           <pre><code title="not in Testsuite" style="background-color:#F8FFF8;"># js and sys are automatically loaded:  import js #now js is bound to what "window" is when in JS
 
-      <!--  <details  class="doc_details"><summary>dde_apps_folder for Python</summary>
-         In DDE JavaScript, <code>dde_apps_folder</code> is a global variable bound
-         to the full path of the dde_apps folder. It's exact value will be different
-         for each computer, but will be something like
-         <code>"/Users/Fry/Documents/dde_apps"</code>
-         <p></p>
-         This is so convenient that we've made this global variable available in
-         DDE's Python process as well.
-         Here's a case where you might use it. We're storing a filename to
-         write to in a global variable, then using it in a function
-         that writes <code>"Test47"</code> into a file in your dde_apps folder.<br/>
-         <i>Example:</i>
-         <pre><code>Py.eval(&#96;filename = dde_apps_folder + "/file_written_by_py.txt"
-def main():
-  with open(filename, 'w') as f:
-    f.write("Test47")&#96;)   </code></pre>
-         <code>Py.eval("main()")</code> //creates the file and sets its content to "Test47"<br/>
-         This is one strategy for getting a large string from Python into DDE JavaScript
-         via:<br/>
-         <code>read_file(dde_apps_folder + "/file_written_by_py.txt")</code> .
-         This call should return the content of the file, i.e. <code>"Test47"</code><br/>
-         Note that our designation for the file is <i>the same</i> for both Python and JavaScript.
-       </details>
-      -->
+js
+sys.version
+sys.platform
+
+len([4,5,6,7,8])
+
+import numpy
+
+numpy.array([1, 2, 3])
+
+def test():
+	print("hello world") # prints to Deve tools console.
+	return len([4,5])
+
+test()
+
+"eval_in_js [3, 4].length"
+
+"eval_in_js Dex.m_joint([5, 10, 15])"
+
+"eval_in_js Dex.m_joint([5, 10, 15]); Dex.m_joint([0, 0, 0]);"
+
+'''eval_in_js
+ Dex.m_joint(5, 10, 15)
+ Dex.m_joint(0, 0, 0)
+'''
+
+
+div = js.document.createElement("div") #make a dom elt. select "div" and click the eval button
+div.innerHTML = "<div>This element was created from Python</div>" #extend our new div dom element
+js.document.body.prepend(div) #causes "This element..." to appear at top of DDE IDE window
+
+js.out('HEY ME')
+js.out('hey u') #prints "hey u" in DDE output pane.
+
+js.Dex.m_joint(5, 30, 25)
+js.Dex.m_joint(0, 0, 0)
+
+
+#In the call to "out", x is evaled in python so
+#3 lines are printing of "aa", "bb", "cc"
+for x in ["aa", "bb", "cc"]:
+   js.out(x)
+
+#dexter J2 moves to, and x takes on the values of: 30, 60, 0
+for x in [30, 60, 0]:
+   js.out(x)
+   js.Dex.m_joint(0, x, 25)
+   js.Dex.m_joint(0, x, 0)
+
+(1, 4, 8)
+
+js.Dex.source("Dexter.move_all_joints(10, 20, 30)") #angles in degrees
+js.Dex.source("Dex.m_xyz([0.1, 0.2, 0.3])") #lengths in meters
+js.Dex.source("Dex.m_joint([0, 0, 0])")
+
+js.Dex.source("'a 0 72000 0 0'") #angles in arcseconds. Note: a string within a string.
+js.Dex.source("Control.stop_job") #stop the job handing "Dex" instructions.
+
+# js.Dex.m_joint([5, 10, 25])   #hangs Dexjob because Python lists aren't property converted to arrays
+# js.Dex.m_xyz([0.1, 0.2, 0.3]) #hangs DexJob
+
+from pyodide.ffi import to_js
+js.Dex.m_xyz(to_js([0.1, 0.2, 0.3]))</code></pre>
+       </details> <!-- end Calling JavaScript from Python -->
+
+
+
+           <!--  <details  class="doc_details"><summary>dde_apps_folder for Python</summary>
+              In DDE JavaScript, <code>dde_apps_folder</code> is a global variable bound
+              to the full path of the dde_apps folder. It's exact value will be different
+              for each computer, but will be something like
+              <code>"/Users/Fry/Documents/dde_apps"</code>
+              <p></p>
+              This is so convenient that we've made this global variable available in
+              DDE's Python process as well.
+              Here's a case where you might use it. We're storing a filename to
+              write to in a global variable, then using it in a function
+              that writes <code>"Test47"</code> into a file in your dde_apps folder.<br/>
+              <i>Example:</i>
+              <pre><code>Py.eval(&#96;filename = dde_apps_folder + "/file_written_by_py.txt"
+     def main():
+       with open(filename, 'w') as f:
+         f.write("Test47")&#96;)   </code></pre>
+              <code>Py.eval("main()")</code> //creates the file and sets its content to "Test47"<br/>
+              This is one strategy for getting a large string from Python into DDE JavaScript
+              via:<br/>
+              <code>read_file(dde_apps_folder + "/file_written_by_py.txt")</code> .
+              This call should return the content of the file, i.e. <code>"Test47"</code><br/>
+              Note that our designation for the file is <i>the same</i> for both Python and JavaScript.
+            </details>
+           -->
        <details class="doc_details"><summary>DDEFile.load_file</summary>
        You can use DDEFile.load_file to load a Python file.
            If the path ends with ".py", then rather than the file content

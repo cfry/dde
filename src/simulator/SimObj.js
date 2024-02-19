@@ -570,15 +570,15 @@ globalThis.SimObj = class SimObj{
         return object3d.parent
     }
 
-    static set_parent(object3d_or_name, parent="user_origin") {
+    static set_parent(object3d_or_name, new_parent="user_origin") {
         let object3d = SimObj.get_object3d(object3d_or_name)
-        parent = SimObj.get_object3d(parent)
+        new_parent = SimObj.get_object3d(new_parent)
         //if(parent === SimObj.user_origin){ parent.add(object3d) }
-        if(object3d === parent){
+        if(object3d === new_parent){
             dde_error("In SimObj.set_parent, attempt to set the parent of: " + object3d.name + " to itself.")
         }
-        else if (parent.children.includes(object3d)) {} //nothing to do.
-        else if(this.is_descendent_of(object3d, parent)){ //object3d is a descendent but NOT a child, so make it so
+        else if (new_parent.children.includes(object3d)) {} //nothing to do.
+        else if(this.is_descendent_of(object3d, new_parent)){ //object3d is a descendent but NOT a child, so make it so
             //often such action would be illegal, but here we just swap the
             //object3d with the parent
             //be careful such that we don't mess up the "moving" of any object in global position
@@ -587,14 +587,14 @@ globalThis.SimObj = class SimObj{
             //First we change the "parent"s parent to be the same as the
             //object3d's parent, making object3d and parent siblings.
             //Second we move the object3d to be a child of parent
-            object3d.parent.attach(parent)
-            parent.attach(object3d)
+            //object3d.new_parent.attach(new_parent)
+            new_parent.attach(object3d)
         }
-        else if(!object3d.parent){
-            parent.add(object3d)
+        else if(!object3d.new_parent){
+            new_parent.add(object3d)
         }
         else {
-            parent.attach(object3d)
+            new_parent.attach(object3d)
         }
         SimBuild.populate_dialog_from_object_if_now_editing(object3d)
         SimUtils.render()

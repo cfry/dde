@@ -66,6 +66,15 @@ import "../job_engine/core/je_and_browser_code.js" //defines SW and out globally
 
 import "../job_engine/math/Coor.js"    //now sets global Coor
 import "../job_engine/math/Vector.js"  //now global
+import {sind, cosd, tand, asind, acosd, atand, atan2d} from "../job_engine/math/Trig_in_Degrees.js"
+globalThis.sind     = sind
+globalThis.cosd     = cosd
+globalThis.tand     = tand
+globalThis.asind    = asind
+globalThis.acosd    = acosd
+globalThis.atand    = atand //called in picture1.js
+globalThis.atan2d   = atan2d
+
 import "../job_engine/math/Convert.js" //now global
 import "../job_engine/math/Kin.js"     //now global
 import "../job_engine/math/DXF.js"     //now global

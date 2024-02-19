@@ -1117,44 +1117,45 @@ window_modify_id.onclick=function(){Editor.insert(
 
    // build_window_id.onclick=ab.launch //todo dde4 revive this?
 
-    opencv_gray_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_gray.js")
+    opencv_gray_id.onclick= async function(){
+        const code = await DDEFile.read_file_async("dde/examples/opencv_gray.js")
         Editor.insert(code)
     }
-    opencv_blur_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_blur.js")
-        Editor.insert(code)
-    }
-
-    opencv_in_range_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_in_range.js")
+    opencv_blur_id.onclick= async function (){
+        const code = await DDEFile.read_file_async("dde/examples/opencv_blur.js")
         Editor.insert(code)
     }
 
-    opencv_blob_detector_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_blob_detector.js")
+    opencv_in_range_id.onclick= async function(){
+        const code = await DDEFile.read_file_async("dde/examples/opencv_in_range.js")
+        Editor.insert(code)
+    }
+
+    opencv_blob_detector_id.onclick= async function(){
+        const code = await DDEFile.read_file_async("dde/examples/opencv_blob_detector.js")
         Editor.insert(code)
         DocCode.open_doc("Picture.detect_blobs_doc_id")
     }
 
-    opencv_process_webcam_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_process_webcam.js")
+    opencv_process_webcam_id.onclick= async function(){
+        const code = await DDEFile.read_file_async("dde/examples/opencv_process_webcam.js")
         Editor.insert(code)
     }
 
-    opencv_face_reco_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_face_reco.js")
+    /* can't work see dde/examples/opencv_face_reco.js for details
+    opencv_face_reco_id.onclick= async function(){
+        const code = await DDEFile.read_file_async("dde/examples/opencv_face_reco.js")
         Editor.insert(code)
-    }
+    }*/
 
-    opencv_locate_object_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_locate_object.js")
+    opencv_locate_object_id.onclick= async function(){
+        const code = await DDEFile.read_file_async("dde/examples/opencv_locate_object.js")
         Editor.insert(code)
         DocCode.open_doc("Picture.locate_object_doc_id")
     }
 
-    opencv_picture_similarity_id.onclick=function(){
-        const code = read_file(__dirname + "/examples/opencv_picture_similarity.js")
+    opencv_picture_similarity_id.onclick= async function(){
+        const code = await DDEFile.read_file_async("dde/examples/opencv_picture_similarity.js")
         Editor.insert(code)
         DocCode.open_doc("Picture.mats_similarity_by_color_doc_id")
     }
@@ -1716,6 +1717,8 @@ window_modify_id.onclick=function(){Editor.insert(
                          'Make Instruction',
                          'Dexter Photo',
                          'Haddington Website',
+                         'Enter URL',
+                         'Three.js Examples',
                          'Dexter Architecture',
                          'Reference Manual',
                          'Choose File',

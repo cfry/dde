@@ -1,7 +1,7 @@
 {
   "name": "dde4",
-  "version": "4.1.8",
-  "release_date": "Jan 4, 2024",
+  "version": "4.1.9",
+  "release_date": "Feb 19, 2024",
   "description": "test rollup",
   "author": "Fry",
   "license": "GPL-3.0",
@@ -68,6 +68,7 @@
     "plotly.js-dist": "^2.5.1",
     "process": "^0.11.10",
     "pump": "^3.0.0",
+    "pyodide": "^0.25.0",
     "querystring": "^0.2.1",
     "read-chunk": "^4.0.2",
     "readline": "^1.3.0",
