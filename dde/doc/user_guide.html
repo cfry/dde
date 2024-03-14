@@ -3,8 +3,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">4.1.9</span><br/>
-    released: <span id="dde_release_date_id">Feb 19, 2024</span>
+    version: <span id="dde_version_id">4.2.0</span><br/>
+    released: <span id="dde_release_date_id">Mar 13, 2024</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -47,151 +47,86 @@
     </details>
 </details>
 <details class="doc_details"><summary>Prerequisites</summary>
+    DDE4 is a webpage so you "run" it by just browsing a URL.
+    We highly recommend running in Google's Chrome browser
+    (free at: <a target="_blank" href="https://www.google.com/chrome/dr/download">https://www.google.com/chrome/dr/download</a>).
+    Much of DDE4 will work in other browsers, but connecting to Dexter and
+    more complex parts of the User Interface will have some issues.
+    <p/>
+    DDE needs a large screen to function well so we don't recommend running it
+    on a smart phone. Tablets may have issues connecting to Dexter,
+    but you should be able to use DDE and its Dexter simulator on them.
+    <p/>
     You'll need a Dexter robot and a basic knowledge of JavaScript to make full use of DDE.
     DDE provides a lot of help for learning JavaScript directly and the
     <b>Learning JavaScript</b> section of this documentation gives you a number of
-    very good on-line sources to smooth your path.
+    very good on-line sources to smooth your path. DDE also has support for Python.
+    See: the DDE Reference Manual/<a href="#" onclick="DocCode.open_doc(python_doc_id)">Python</a>
+    <p></p>
     Without a robot, you can still use DDE to <i>simulate</i> one.
 </details>
-<details class="doc_details"><summary>Installation</summary>
-    <details class="doc_details"><summary>First Install</summary>
-        To get the latest DDE release, start the process by:
-        <ul><li> Browse <a href="https://github.com/cfry/dde/releases/latest" target="_blink">Github</a></li>
-            <li> Click on the file for your operating system:
-                <ul><li>For Windows: <samp>.exe</samp></li>
-                    <li>For Mac: <samp>.dmg</samp></li>
-                    <li>For Linux: <samp>.AppImage</samp> </li>
-                    <li>Sorry, other OS's like ChromeOS are not now supported.</li>
-                </ul></li>
-            <li> The clicked file will be copied to your downloads folder.
-                For Windows and Mac, you may have to click on it to
-                complete installation, or that might start automatically.
-                For Linux, you will have to make the file executable like so:<br/>
-                <samp>$ chmod +x dexter_dev_env.AppImage</samp><br/>
-                in order to run it.
-            </li>
-        </ul>
-    </details>
-    <details id="update_doc_id" class="doc_details"><summary>Updating to the latest DDE</summary>
-        Follow the directions under <b>First Install</b> above.
-        This will not change any files in your <samp> Documents/dde_apps</samp> folder.
-        <p></p>
-        Twist down the <b>About</b> row in the Doc pane to see the installed version number of DDE.
-    </details>
-    <details class="doc_details"><summary>Launch DDE</summary>
-        On Windows, the DDE application is installed in
-        <samp>C:\Program Files\dexter_dev_env\dexter_dev_env.exe</samp>
-        and on the desktop.<br/>
-        On Mac, <samp>Macintosh HD/Applications/dexter_dev_env.app</samp>
-        <p></p>
-        Double click on the file to launch DDE.<br/>
-        The first time you launch, you will be told that you need to create a
-        dde_apps folder under your Documents folder.
-        The message you get should include the full path of this folder.
-        For instance, on MacOS it will be "/Users/your_name/Documents/dde_apps/".
-        <br/>
-        If there is a file
-        <samp>Documents/dde_apps/dde_init.js</samp>, it will be
-        loaded automatically. (If it does not exist in that folder, a new one
-        will be made.) Thus, you can put any code in that file
-        that you want to be evaled at start-up, such as libraries you've
-        written, etc.
-    </details>
-    <details class="doc_details"><summary>Windows OS Problems</summary>
-        If you have additional useful information about these issue, please tell us!
-    <details class="doc_details"><summary>OneDrive on Windows 10</summary>
-      We suspect Microsoft's change to the default setting for a OneDrive configuration
-      checkbox in a Windows 10 update in Feb or Mar 2018 causes DDE
-      to not launch correctly. The underlying cause is that
-      DDE can't find the right folder for its dde_init.js and/or dde_persistent.json
-      files. This results in numerous problems like loading and saving files.
-      Applications besides DDE have had similar problems.
-      <p/>
-      If you are using Windows 10, we recommend:
-      <ol><li>Right-click the OneDrive icon on the Windows Task Bar.</li>
-          <li>In the dialog box that comes up, in its right-hand column,
-              click "Settings"</li>
-          <li>In the next dialog box that comes up, click the "Settings" tab.</li>
-          <li> In the "Files on Demand" section, uncheck
-               "Save space and download files as you use them"</li>
-      </ol>
-    </details>
-    <details class="doc_details"><summary>Installation Hangs Bug</summary>
-        <b>Symptom:</b> While installing DDE on WinOS 7, 10, and maybe others,
-        you get a dialog box that says<br/>
-        "Installing, please wait..."<br/>
-        whose progress bar stops progressing, and you have to wait for more than 1 minute.<br/>
-        <b>Work Around:</b>
-        <ol><li>Close the dialog box.</li>
-            <li>Win7:  choose Start menu/Control Panel/Programs and Features<br/>
-                Win10: choose Start menu/Windows System/Control Panel/Programs and Features</li>
-            <li>Click right on "dexter_dev_env".</li>
-            <li>Choose "uninstall"</li>
-            <li>You may get a dialog that says:<br/>
-                "An error occurred while trying to uninstall...
-                Would you like to remove ..."<br/>
-                Click the "Yes" button.</li>
-            <li>Double click on Downloads/dexter_dev_env-setup-(version number).exe  to reinstall.
-                DDE Should install in 1 minute or less.</li>
-        </ol>
-        <b>Why this happens:</b> If you rename or remove C:\Program Files\dexter_dev_env
-        it screws up the Windows registry, and the DDE installer program can't handle it.
-        Electron Apps (like DDE) use a program called NSIS for installation,
-        and it has this, ahem, feature.
-    </details>
-    </details> <!-- end Windows OS Problems -->
-    <details class="doc_details"><summary>Multiple DDEs Installed</summary>
-      You can have multiple versions of DDE installed on your computer at once,
-      and even run them simultaneously. You might want to do this
-      when you have some code that works fine in a version, and are nervous that
-      installing a new version will cause something to break.
-      (Normally, installing a new version overwrites the previous version.)
-      Keeping the old version installed lets you easily go back to it.
-      Here's how to keep your old version:
-      <p></p>
-      <b>WinOS</b> Before installing the new version,
-         <ol>
-          <li>copy the old version from Local Disc (C:)/Program Files/dexter_dev_env</li>
-          <li>paste it into (C:)/Program Files/</li>
-          <li>rename it with its old version i.e. dexter_dev_env_3.6.6.</li>
-          <li>install the new version, which will go in the C:/Program Files/dexter_dev_env folder.</li>
-         </ol>
-      <b>MacOS</b>
-      <ol>
-        <li>Rename MacintoshHD/Applications/dexter_dev_env.app to something like
-            MacintoshHD/Applications/dexter_dev_env_3.6.6.app</li>
-        <li>Install a new version.</li>
-      </ol>
-      You can keep as many versions of DDE as you like as long as their folder names differ.
-      <p></p>
-      On Windows, you can launch a 2nd instance of DDE from the File Explore by double-clicking on it
-      again. On Mac, this won't launch a 2nd instance, but if you copy the dexter_dev_env.app file
-      and rename it, then you can double-click that and run a 2nd instance of the same
-      DDE version.
 
-    </details>
-</details> <!-- end installation -->
+ <details id="configure_browser_for_dde4_cloud_id" class="doc_details"><summary>Configure Browser for DDE4 Cloud</summary>
+     Browsers protect users from inadvertently doing things that cause
+     security risks. They also prevent users from purposefully gaining
+     access to certain resources.
+     <p></p>
+     By default, browsers will prevent
+     DDE4 Cloud from driving Dexter. (You can still use the simulator.)
+     However, browsers have advanced settings that permit access to otherwise
+     prohibited resources. We have found an advanced setting on <b>Chrome</b> to
+     permit it to access Dexter. We have not found settings in other browsers,
+     but that doesn't mean they aren't there, or will be by the time you read this.
+     In particlar, we have tried to find such settings on the <b>Safari</b> browser running
+     on MacOS and failed. Note, though that the Safari <b>Develop</b> menu has a huge
+     number of items, particularly under the <b>Experimental</b> submenu.
+     Please let us know if you have found a solution on non-Chrome browsers.
+     <p></p>
+     <b>Configure Chrome</b><br/>
+     <ol>
+         <li>In Chrome, make a new tab.
+         <li>Copy the URL:<br/><a target="_blank" href="chrome://flags/#unsafely-treat-insecure-origin-as-secure">
+             chrome://flags/#unsafely-treat-insecure-origin-as-secure</a><br/>
+             and paste it into the Chrome URL type-in.
+         </li>
+         <li>The web page will scroll to the flag titled:<br/><b>Insecure origins treated as secure</b></li>
+         <li>In the text type-in box for this flag, copy and paste in:<br/>
+             <code title="not in TestSuite">http://192.168.1.142,ws://192.168.1.142:3000</code></li>
+         <li>This flag has a menu to its right. Select <b>Enabled</b>.</li>
+         <li>Selecting this menu item will cause a button to appear on the page named
+             <b>Relaunch</b>. Choose it, or otherwise relaunch Chrome in order for this new
+             setting to take effect.</li>
+
+         <li>In order to drive Dexter, you'll also need an updated (as of Mid Aug, 2023)<br/>
+             <code  title="not in TestSuite">/srv/samba/share/www/httpd.mjs</code><br/> file on
+             your Dexter.</li>
+         <li>After installing this file on your Dexter, power cycle Dexter to
+             take advantage of this new httpd.mjs file.
+     </ol>
+     You should now be able to have DDE4 Cloud drive your Dexter, even after
+     rebooting DDE, Chrome and/or Dexter.
+ </details>
+
 <details class="doc_details"><summary>Configure DDE</summary>
-    DDE uses a folder under your Documents folder named <samp> dde_apps</samp>.
-    If one is not there, it will be created when you launch DDE.
-    It's the default folder for JS code that you write.
-    <p></p>
-    dde_apps also stores
-    a file called <samp>dde_persistent.json</samp> which stores settings you've made in
-    DDE so that the next time DDE launches it can restore these settings.
-    Mostly you can ignore this file.
-    <p></p>
-    The dde_apps folder also stores
-    a file named <samp>dde_apps.js</samp>. It will be automatically created if
-    it doesn't exist. This file contains JS. It is loaded every time
-    DDE is launched. You can use it to customize your DDE environment.
-    <p></p>
-    DDE requires that you have a default robot named "dexter0". Usually the one
-    that is automatically inserted into the file dde_apps/dde_init.js is fine.
-    However, in that file you may need to modify the ip_address and port number
-    of Dexter. The default ip_address is <code>"192.168.1.142"</code> The port number
-    is typically <code>"3000"</code>. Be sure to (Eval)uate the file or restart DDE so
-    your changes will have effect.
+    The normal place to store Dexter Job files (apps that run on Dexter or the simulator)
+    is in a folder under your Documents folder named: <samp>dde_apps</samp>.
+    Create this folder manually.
+    <p/>
+    DDE requires that you have a default robot named "dexter0".
+    This is automatically creating for you.
+    It has the default ip_address is <code>"192.168.1.142"</code> with a port number
+    of <code>"3000"</code>. Normally this is fine. You can verify these values by
+    evaling:<br/>
+    <code>Dexter.dexter0.ip_address</code> and<br/>
+    <code>Dexter.dexter0.port</code>.<br/>
+    You can set them by evaling:<br/>
+    <code>Dexter.dexter0.ip_address = "192.168.1.142"</code> and<br/>
+    <code>Dexter.dexter0.port = 3000</code>
+</details>
+
+<details class="doc_details"><summary>Run DDE</summary>
+ Browse: <a target="_blank" href="https://cfry.github.io">https://cfry.github.io</a>
+ to run DDE in your browser.
 </details>
 
 <details id="configure_dexter_id" class="doc_details"><summary>Configure Dexter</summary>
@@ -242,14 +177,13 @@ Dexter's power socket is connected by 2 short wires to Dexter's base. You turn o
 plugging in the power adapter to Dexter and the wall.
 If the wall has power, an LED on the power adapter will go on.
 <p></p>
-When Dexter is turned on, after about 8 seconds, it does a 5 second or so little "dance"
-moving each of its joints.
+When Dexter is turned on, it will normally perform a calibration movement that takes about a minute.
 <p></p>
 The processor board has 3 bright LEDs.
 <ul>
     <li><b style="color:green;">green</b> lights when the processor board is getting power.</li>
-    <li><b style="color:blue;">blue</b>   lights when the FPGA is programmed and ready for operation.</li>
-    <li><b style="color:red;">red</b>     lights during disk access (to the 8 Gigabyte SD card.) </li>
+    <li><b style="color:blue;">blue</b>  lights when the FPGA is programmed and ready for operation.</li>
+    <li><b style="color:red;">red</b>   lights during disk access (to the 8 Gigabyte SD card.) </li>
 </ul>
 The base of the motor controller board has 3
 <b style="color:#c6ff21;">green-yellow</b> LEDs on one side and 2 on the other.
@@ -301,7 +235,7 @@ Each indicates that a joint has power.
         <li>Click the OK button and close the remaining dialogs.</li>
      </ol>
      <b>On MacOS:</b> <br/>
-     First, newer new Macintosh's that don't have an Ethernet socket will need a
+     First, newer Macintosh's that don't have an Ethernet socket will need a
      "dongle" from USB (or Thunderbolt) to Ethernet socket.
      You can buy these at an Apple Store or online (see above Apple URL).
      <p></p>
@@ -406,46 +340,7 @@ Each indicates that a joint has power.
      </ol>
     </details>
 
-    <details id="configure_browser_for_dde4_cloud_id" class="doc_details"><summary>Configure Browser for DDE4 Cloud</summary>
-        Browsers protect users from inadvertently doing things that cause
-        security risks. They also prevent users from purposefully gaining
-        access to certain resources.
-        <p></p>
-        By default, browsers will prevent
-        DDE4 Cloud from driving Dexter. (You can still use the simulator.)
-        However, browsers have advanced settings that permit access to otherwise
-        prohibited resources. We have found an advanced setting on <b>Chrome</b> to
-        permit it to access Dexter. We have not found settings in other browsers,
-        but that doesn't mean they aren't there, or will be by the time you read this.
-        In particlar, we have tried to find such settings on the <b>Safari</b> browser running
-        on MacOS and failed. Note, though that the Safari <b>Develop</b> menu has a huge
-        number of items, particularly under the <b>Experimental</b> submenu.
-        Please let us know if you have found a solution on non-Chrome browsers.
-        <p></p>
-        <b>Configure Chrome</b><br/>
-        <ol>
-            <li>In Chrome, make a new tab.
-            <li>Copy the URL:<br/><a target="_blank" href="chrome://flags/#unsafely-treat-insecure-origin-as-secure">
-                chrome://flags/#unsafely-treat-insecure-origin-as-secure</a><br/>
-                and paste it into the Chrome URL type-in.
-            </li>
-            <li>The web page will scroll to the flag titled:<br/><b>Insecure origins treated as secure</b></li>
-            <li>In the text type-in box for this flag, copy and paste in:<br/>
-            <code title="not in TestSuite">http://192.168.1.142,ws://192.168.1.142:3000</code></li>
-            <li>This flag has a menu to its right. Select <b>Enabled</b>.</li>
-            <li>Selecting this menu item will cause a button to appear on the page named
-                <b>Relaunch</b>. Choose it, or otherwise relaunch Chrome in order for this new
-            setting to take effect.</li>
 
-            <li>In order to drive Dexter, you'll also need an updated (as of Mid Aug, 2023)<br/>
-            <code  title="not in TestSuite">/srv/samba/share/www/httpd.mjs</code><br/> file on
-            your Dexter.</li>
-            <li>After installing this file on your Dexter, power cycle Dexter to
-                take advantage of this new httpd.mjs file.
-        </ol>
-        You should now be able to have DDE4 Cloud drive your Dexter, even after
-        rebooting DDE, Chrome and/or Dexter.
-    </details>
 
     <details class="doc_details"><summary>Test Connectivity</summary>
         You should now be able to ping Dexter and have connectivity.<br/>
@@ -475,23 +370,14 @@ Each indicates that a joint has power.
         We recommend choosing <span style="color:blue;">?</span>
         in the upper right corner of the Doc pane to understand the Help System.
     </details>
-    <details id="dexters_file_system_doc_id" class="doc_details"><summary>Dexter's File System</summary>
-    Dexter's processor board runs Linux. Once you are connected to Dexter,
-    you should be able to browse this file system using your computer's
-    file navigation tools. Dexter's file system will show up as
-    a separate "Volume" or "Device".
-    On the Mac, in the Finder, you should see, in the left column,
-    <samp>Localhost</samp>. Click on it. In a half minute or so,
-    you should see in the right (main) pane of the finder a
-    single folder <samp>share</samp>. This folder is on Dexter.
-    Expand it to see several files on Dexter.
-    <p></p>
-    DDE can also access this share folder on Dexter.
-    Use the File menu/Open to edit a file. You can save modified
-    files on Dexter too.
-
+    <details id="dexters_file_system_doc_id" class="doc_details"><summary>Dexter's Server</summary>
+        Dexter runs a (local) web server. You can browse the home page of this server
+        from DDE by choosing menubar/Dexter/Browse Dexter. This oresents a page of
+        "tiles" of some utility applications. The tile "Edit" allows you to browse
+        Dexter's linux file system and edit those files.
+        You can also browse the Dexter server home page by browsing the IP address of your Dexter,'
+        typically <a target="_blank" href="192.168.1.142">192.168.1.142</a>
     </details>
-
 
     </details><!-- end Set Up Dexter -->
 

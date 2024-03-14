@@ -27,6 +27,8 @@ import "codemirror/mode/javascript/javascript.js"
 import "codemirror/addon/lint/lint.css"
 import "codemirror/addon/lint/lint.js"
 
+//import { autocompletion } from "@codemirror/autocomplete"
+
 //see https://github.com/angelozerr/codemirror-lint-eslint/blob/master/index.html
 //import eslint from "eslint"
 //which is required by eslint, which is required by eslint-lint
@@ -1336,7 +1338,7 @@ window_modify_id.onclick=function(){Editor.insert(
                    Editor.insert(prefix + 'Control.step_instructions(),nnll') //ok if have comma after last list item in new JS.
                }
 
-    debugger_id.onclick        = function(){Editor.insert("debugger;nnll")} ////LEAVE THIS IN RELEASED CODE
+    debugger_id.onclick        = function(){Editor.insert("debugger;nnll")} //LEAVE THIS IN RELEASED CODE
 
     debugger_instruction_id.onclick = function(){
             DocCode.open_doc("Control.debugger_doc_id")

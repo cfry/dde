@@ -14,8 +14,8 @@ import require$$0 from 'domain';
 import path$1 from 'path';
 
 var name = "dde4";
-var version = "4.1.9";
-var release_date = "Feb 19, 2024";
+var version = "4.2.0";
+var release_date = "Mar 13, 2024, 2024";
 var description = "test rollup";
 var author = "Fry";
 var license = "GPL-3.0";
@@ -18866,19 +18866,22 @@ Job$1.prototype.if_robot_status_error_default = function(){
         if((sim_actual === false) || (sim_actual === "both")){
             try{ let path = "Dexter." + rob.name + ":/srv/samba/share/errors.log";
                  DDEFile.read_file_async(path, function(err, content){
-                         if(err) {warning("Could not find: " + path);}
+                         if(err) {warning("Could not find: " + path + " with error: " + err.message);}
                          else {
+                            let msg = "";
                             if((typeof(content) != "string") ||
                                 (content.length == 0)){
-                                content == "<i>errors.log is empty</i>";
+                                msg = "<i>errors.log is empty</i>";
                             }
                             else {
-                             content = Utils.replace_substrings(content, "\n", "<br/>");
-                             content = "Content of " + path + "<br/><code>" + content + "</code>";
-                             setTimeout(function(){DDEFile.write_file_async(path, "");},
-                                        400); //give the read_file job a chance to finish properly
+                             let content_arr = content.split("\n");
+                             let last_line = content_arr.pop();
+                             last_line = last_line.replaceAll(",", ",<br/>");
+                             msg += "<details><summary>Last error in " + path + "</summary><code>" + last_line + "</code></details>";
+                                //setTimeout(function(){DDEFile.write_file_async(path, "")},
+                             //           400) //give the read_file job a chance to finish properly
                             }
-                            out(content);
+                            out(msg);
                         }
                  });
                }
@@ -18919,22 +18922,52 @@ Job$1.prototype.if_dexter_connect_error_default = function(robot_name){
 Job$1.prototype.rs_to_error_message = function(robot_status){
     let error_code = robot_status[Dexter.ERROR_CODE];
     let oplet_error_code = error_code & 0xFF; //lower 8 bits
-    let msg = "error_code: " + error_code + " ";
     let oplet = robot_status[Dexter.INSTRUCTION_TYPE];
+    let msg = "oplet: " + oplet + " oplet_error_code: " + oplet_error_code;
     if (error_code > 0) {
-        if((oplet == "r") || (oplet == "w")) {
+        if((oplet === "r") || (oplet === "w")) {
             let linux_msg = globalThis.linux_error_message(oplet_error_code);
-            msg += "Error on oplet 'r' (read_file) with Linux error of: " + linux_msg;
+            msg += " Linux error: " + linux_msg;
+        }
+        else if((oplet_error_code === 8) && ((oplet === "a") || (oplet === "P") || (oplet === "j"))) {
+            msg += " Goal position outside joint boundries.";
+        }
+        else if(oplet === "j") {
+            msg += " j_move error: ";
+            if(oplet_error_code === 4){
+                msg += " Ruckig compute error. Check JointHardwareMax??? configuration.";
+            }
+            else if(oplet_error_code === 5){
+                msg += " Ruckig cannot meet specified duration.";
+            }
+            else if(oplet_error_code === 6){
+                msg += " Replay error. Under-run or over-speed.";
+            }
+            else if(oplet_error_code === 7){
+                msg += " j_move system in an error state.";
+            }
+            msg += " Clear using 'j' oplet without args.";
         }
         else {
-            if      (oplet_error_code == 1)  {msg += " oplet:"    + oplet + " is unknown to Dexter. Please upgrade Dexter firmware and gateware.<br/>";}
-            else if (oplet_error_code == 2)  {msg += " on oplet:" + oplet + " communication error.<br/>";}
-            else                             {msg += " on oplet:" + oplet + " Unknown error.<br/>";}
+            if      (oplet_error_code == 0)  ; //don't add an extra message
+            else if (oplet_error_code == 1)  {msg += " oplet is unknown to Dexter. Please upgrade Dexter firmware and gateware.<br/>";}
+            else if (oplet_error_code == 2)  {msg += " communication error. No semicolon at end of instruction.<br/>";}
+            else if (oplet_error_code == 3)  {msg += " invalid parameter.<br/>";}
+            else                             {msg += " Unknown error.<br/>";}
         }
+        //error flags
         if(error_code & (1 << 10)) {msg+=" Firmware - Gateware Mismatch. Update system. Fatal error.<br/>";}
-        if(error_code & (1 << 27)) {msg+=" SPAN Servo, Joint 7. r 0 errors.log <br/>";}
-        if(error_code & (1 << 28)) {msg+=" ROLL Servo, Joint 6. r 0 errors.log <br/>";}
-        if(error_code & (1 << 30)) {msg+=" Joint Monitor. r 0 errors.log <br/>";}
+        if(error_code & (1 << 24)) {msg+=" P-Stop error code.<br/>";}
+        if(error_code & (1 << 25)) {msg+=" Encoder error.<br/>";}
+        if(error_code & (1 << 26)) {msg+=" Kinematics error.<br/>";}
+        if(error_code & (1 << 27)) {msg+=" SPAN Servo, Joint 7.<br/>";}
+        if(error_code & (1 << 28)) {msg+=" ROLL Servo, Joint 6.<br/>";}
+        if(error_code & (1 << 30)) {msg+=" Joint Monitor.<br/>";}
+        for(let i = 11; i < 24; i++){
+            if(error_code & (1 << i)) {
+                msg+=" Unknown error flag on bit: " + i + ".<br/>";
+            }
+        }
     }
     return msg
 };
@@ -28028,12 +28061,36 @@ Dexter$1.prototype.turn_on_j6_and_j7_torque  = function(){
 
 
 //from Dexter_Modes.js (these are instructions. The fns return an array of instructions
-Dexter$1.set_follow_me                = function(){ return make_ins("S", "RunFile", "setFollowMeMode.make_ins")
-                                        //Dexter.turn_off_j6_and_j7_torque()]
-                                        };
-Dexter$1.prototype.set_follow_me      = function(){ return make_ins("S", "RunFile", "setFollowMeMode.make_ins", this)
-                                        //this.turn_off_j6_and_j7_torque()]
-                                        };
+Dexter$1.set_follow_me                = function(motor_enable= "use_checkbox"){
+    if(motor_enable === "use_checkbox"){
+        if(window.set_follow_me_motor_enable_id === undefined){ //dialog is closed so use the default, which is on.
+            motor_enable = 1;
+        }
+        else if (window.set_follow_me_motor_enable_id.checked){
+            motor_enable = 1;
+        }
+        else { motor_enable = 0; }
+    }
+    return [make_ins("S", "RunFile", "setFollowMeMode.make_ins"),
+            Dexter$1.turn_off_j6_and_j7_torque(),
+            Dexter$1.set_parameter("MotorEnable", 0)
+    ]
+};
+
+Dexter$1.prototype.set_follow_me      = function(motor_enable= "use_checkbox"){ //1 means motors on with "active assist". 0 means Dexter goes limp
+    if(motor_enable === "use_checkbox"){
+        if(window.set_follow_me_motor_enable_id === undefined){ //dialog is closed so use the default, which is on.
+            motor_enable = 1;
+        }
+        else if (window.set_follow_me_motor_enable_id.checked){
+            motor_enable = 1;
+        }
+        else { motor_enable = 0; }
+    }
+    return [make_ins("S", "RunFile", "setFollowMeMode.make_ins", this),
+           this.turn_off_j6_and_j7_torque(),
+           this.set_parameter("MotorEnable", motor_enable)]};
+
 
 Dexter$1.set_force_protect            = function(){ return make_ins("S", "RunFile", "setForceProtectMode.make_ins")
                                          //Dexter.turn_on_j6_and_j7_torque()]
@@ -28042,12 +28099,16 @@ Dexter$1.prototype.set_force_protect  = function(){ return make_ins("S", "RunFil
                                         //this.turn_on_j6_and_j7_torque()]
                                         };
 
-Dexter$1.set_keep_position            = function(){ return make_ins("S", "RunFile", "setKeepPositionMode.make_ins")
-                                        //Dexter.turn_on_j6_and_j7_torque()]
-                                        };
-Dexter$1.prototype.set_keep_position  = function(){ return make_ins("S", "RunFile", "setKeepPositionMode.make_ins", this)
-                                        //this.turn_on_j6_and_j7_torque()]
-                                        };
+Dexter$1.set_keep_position            = function(){
+    return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins"),
+            Dexter$1.turn_on_j6_and_j7_torque(),
+            Dexter$1.set_parameter("MotorEnable", 1)]};
+
+Dexter$1.prototype.set_keep_position  = function(){
+    return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins", this),
+            this.turn_on_j6_and_j7_torque(),
+            this.set_parameter("MotorEnable", 0)]};
+
 
 Dexter$1.set_open_loop                = function(){ return make_ins("S", "RunFile", "setOpenLoopMode.make_ins")
                                         // Dexter.turn_on_j6_and_j7_torque()] //use to be in before Nov 3, 2022 but James N says shouldn't be there
@@ -32251,6 +32312,13 @@ class Socket$1{
             }
             return instruction_array_copy
         }
+        else if (oplet === "M"){ //Move to
+            let instruction_array_copy = instruction_array.slice();
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] = instruction_array_copy[Instruction.INSTRUCTION_ARG0] * 1000000; //convert meters to microns
+            instruction_array_copy[Instruction.INSTRUCTION_ARG1] = instruction_array_copy[Instruction.INSTRUCTION_ARG1] * 1000000; //convert meters to microns
+            instruction_array_copy[Instruction.INSTRUCTION_ARG2] = instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000000; //convert meters to microns
+            return instruction_array_copy
+        }
         else if (oplet === "S") {
             const name = instruction_array[Instruction.INSTRUCTION_ARG0];
             const args = instruction_array.slice(Instruction.INSTRUCTION_ARG1, instruction_array.length);
@@ -32374,6 +32442,13 @@ class Socket$1{
                 let converted_val = this.dexter_units_to_degrees(arg_val, i + 1);
                 instruction_array_copy[index] = converted_val;
             }
+            return instruction_array_copy
+        }
+        else if (oplet === "M"){ //Move to
+            let instruction_array_copy = instruction_array.slice();
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] = instruction_array_copy[Instruction.INSTRUCTION_ARG0] / 1000000; //convert microns to meters
+            instruction_array_copy[Instruction.INSTRUCTION_ARG1] = instruction_array_copy[Instruction.INSTRUCTION_ARG1] / 1000000; //convert microns to meters
+            instruction_array_copy[Instruction.INSTRUCTION_ARG2] = instruction_array_copy[Instruction.INSTRUCTION_ARG2] / 1000000; //convert microns to meters
             return instruction_array_copy
         }
         else if (oplet === "S") {
@@ -33229,6 +33304,32 @@ class DexterSim$1{
                 console.log("DexterSim.send passed 'j' oplet: " + instruction_array);
                 ds_instance.queuej_instance.add_to_queue(instruction_array);
                 ds_instance.ack_reply_maybe(instruction_array); //send back the original
+                break;
+            case "M": //move to.  convert to an "a" array and use that.
+                //note: doesn't encode j6 and j7.
+                //see: https://github.com/HaddingtonDynamics/OCADO/wiki/Command-oplet-instruction
+                let ins_arr_a = instruction_array.slice(0, Instruction.INSTRUCTION_ARG0);
+                ins_arr_a[Instruction.INSTRUCTION_TYPE] = "a";
+                let xyz_meters = [instruction_array[Instruction.INSTRUCTION_ARG0] / 1000000,  //x
+                    instruction_array[Instruction.INSTRUCTION_ARG1] / 1000000,  //y
+                    instruction_array[Instruction.INSTRUCTION_ARG2] / 1000000];  //z
+
+                let direction  = [instruction_array[Instruction.INSTRUCTION_ARG3],
+                    instruction_array[Instruction.INSTRUCTION_ARG4],
+                    instruction_array[Instruction.INSTRUCTION_ARG5]];
+
+                let config     = [instruction_array[Instruction.INSTRUCTION_ARG6],
+                    instruction_array[Instruction.INSTRUCTION_ARG7],
+                    instruction_array[Instruction.INSTRUCTION_ARG8]];
+
+                let new_angles_deg = Kin.xyz_to_J_angles(xyz_meters, direction, config);
+                for(let i = 0; i < 5; i++) {
+                    let deg = new_angles_deg[i];
+                    let arcsec = deg * 3600;
+                    ins_arr_a.push(arcsec);
+                }
+                ds_instance.queue_instance.add_to_queue(ins_arr_a);
+                ds_instance.ack_reply_maybe(instruction_array); //return the orig "M" array
                 break;
             case "P": //does not go on queue  //ds_instance.queue_instance.add_to_queue(instruction_array)
                 //pid_move_all_joints for j6 and 7 are handled diffrently than J1 thru 5.

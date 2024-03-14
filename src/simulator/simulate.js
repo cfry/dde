@@ -37,6 +37,10 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 //see: https://github.com/johh/three-gltf-loader
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
+//From https://threejs.org/docs/#manual/en/introduction/How-to-create-VR-content
+import { VRButton } from 'three/addons/webxr/VRButton.js'; //VR  search this file for "//VR" to see all Virtual Reality code
+
+
 globalThis.Simulate = class Simulate {
     static make_sim_html() {
         return `
@@ -52,7 +56,7 @@ globalThis.Simulate = class Simulate {
         
         
         </div>
-        <div style="white-space:nowrap;">
+        <div id="sim_pane_header_alignment_id" style="white-space:nowrap;">
         <b title="X position of end effector in meters.">X: </b><span id="sim_pane_x_id" style="min-width:50px; text-align:left; display:inline-block"></span>
         <b title="Y position of end effector in meters."> Y: </b><span id="sim_pane_y_id" style="min-width:50px; text-align:left; display:inline-block"></span>
         <b title="Z position of end effector in meters."> Z: </b><span id="sim_pane_z_id" style="min-width:50px; text-align:left; display:inline-block"></span>
@@ -223,6 +227,11 @@ globalThis.Simulate = class Simulate {
         //sim_graphics_pane_id.innerHTML = "" //done in video.js
         this.sim.renderer.shadowMap.enabled = true;
         this.sim.container.appendChild(this.sim.renderer.domElement)
+        let vr_but = VRButton.createButton( this.sim.renderer )  //VR
+        sim_pane_header_alignment_id.append(vr_but)              //VR //put right after the "Alignment: " buttons
+        //but not the button doesn't actually appear here. It appears IN the real sim rendering pane,
+        //at the bottom in an "overlay" which will usually say, in a box,  "VR NOT SUPPORTED"
+        this.sim.renderer.xr.enabled = true;                     //VR
     }
 
 //simulator using actual Dexter CAD. the GLTF was created by using the

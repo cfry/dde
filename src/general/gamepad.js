@@ -121,6 +121,34 @@ class Gamepad {
         else { return null }
     }
 
+    static gamepad_button_number_to_name(axes_num){
+        switch (axes_num)
+        {
+            case -1:
+                return "LEFT_STICK_X"
+            case -2:
+                return "LEFT_STICK_Y"
+            case -3:
+                return "RIGHT_STICK_X"
+            case -4:
+                return "RIGHT_STICK_Y"
+        }
+    }
+
+    static button_number_to_name(axes_num){
+        switch (axes_num)
+        {
+            case -1:
+                return "LEFT_STICK_X"
+            case -2:
+                return "LEFT_STICK_Y"
+            case -3:
+                return "RIGHT_STICK_X"
+            case -4:
+                return "RIGHT_STICK_Y"
+        }
+    }
+
     static down_keys(device="keyboard_gamepad", which_gamepad=0){
         const result = []
         if (device.includes("keyboard")){
@@ -186,7 +214,7 @@ class Gamepad {
                     let val = gp.axes[i]
                     if ((val >= 0.1) || (val <= -0.1)) { //joysticks are "noisy" so filter out values close to 0
                         let axes_num = (i + 1) * -1 //axes_num is typically -1 thru -4
-                        var axes_name = gamepad_button_number_to_name(axes_num)
+                        var axes_name = Gamepad.button_number_to_name(axes_num)
                         result.push({gamename: axes_name,
                                      gamecode: axes_num, //will be -1, -2, -3, or -4
                                      keycode:  null,

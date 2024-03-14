@@ -2454,12 +2454,36 @@ Dexter.prototype.turn_on_j6_and_j7_torque  = function(){
 
 
 //from Dexter_Modes.js (these are instructions. The fns return an array of instructions
-Dexter.set_follow_me                = function(){ return make_ins("S", "RunFile", "setFollowMeMode.make_ins")
-                                        //Dexter.turn_off_j6_and_j7_torque()]
-                                        }
-Dexter.prototype.set_follow_me      = function(){ return make_ins("S", "RunFile", "setFollowMeMode.make_ins", this)
-                                        //this.turn_off_j6_and_j7_torque()]
-                                        }
+Dexter.set_follow_me                = function(motor_enable= "use_checkbox"){
+    if(motor_enable === "use_checkbox"){
+        if(window.set_follow_me_motor_enable_id === undefined){ //dialog is closed so use the default, which is on.
+            motor_enable = 1
+        }
+        else if (window.set_follow_me_motor_enable_id.checked){
+            motor_enable = 1
+        }
+        else { motor_enable = 0 }
+    }
+    return [make_ins("S", "RunFile", "setFollowMeMode.make_ins"),
+            Dexter.turn_off_j6_and_j7_torque(),
+            Dexter.set_parameter("MotorEnable", 0)
+    ]
+}
+
+Dexter.prototype.set_follow_me      = function(motor_enable= "use_checkbox"){ //1 means motors on with "active assist". 0 means Dexter goes limp
+    if(motor_enable === "use_checkbox"){
+        if(window.set_follow_me_motor_enable_id === undefined){ //dialog is closed so use the default, which is on.
+            motor_enable = 1
+        }
+        else if (window.set_follow_me_motor_enable_id.checked){
+            motor_enable = 1
+        }
+        else { motor_enable = 0 }
+    }
+    return [make_ins("S", "RunFile", "setFollowMeMode.make_ins", this),
+           this.turn_off_j6_and_j7_torque(),
+           this.set_parameter("MotorEnable", motor_enable)]}
+
 
 Dexter.set_force_protect            = function(){ return make_ins("S", "RunFile", "setForceProtectMode.make_ins")
                                          //Dexter.turn_on_j6_and_j7_torque()]
@@ -2468,12 +2492,16 @@ Dexter.prototype.set_force_protect  = function(){ return make_ins("S", "RunFile"
                                         //this.turn_on_j6_and_j7_torque()]
                                         }
 
-Dexter.set_keep_position            = function(){ return make_ins("S", "RunFile", "setKeepPositionMode.make_ins")
-                                        //Dexter.turn_on_j6_and_j7_torque()]
-                                        }
-Dexter.prototype.set_keep_position  = function(){ return make_ins("S", "RunFile", "setKeepPositionMode.make_ins", this)
-                                        //this.turn_on_j6_and_j7_torque()]
-                                        }
+Dexter.set_keep_position            = function(){
+    return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins"),
+            Dexter.turn_on_j6_and_j7_torque(),
+            Dexter.set_parameter("MotorEnable", 1)]}
+
+Dexter.prototype.set_keep_position  = function(){
+    return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins", this),
+            this.turn_on_j6_and_j7_torque(),
+            this.set_parameter("MotorEnable", 0)]}
+
 
 Dexter.set_open_loop                = function(){ return make_ins("S", "RunFile", "setOpenLoopMode.make_ins")
                                         // Dexter.turn_on_j6_and_j7_torque()] //use to be in before Nov 3, 2022 but James N says shouldn't be there

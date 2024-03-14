@@ -1,5 +1,44 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
+<details class="doc_details"><summary>v 4.2.0, Mar 13, 2024</summary>
+Highlights: "M" oplet instructions now supported in Simulator.
+    <code>Dexter.set_follow_me</code> extensions facilitates smoother make-instruction recording dialog
+      programming by example.
+    Updated User Guide for first time users.
+    <ul>
+     <li>Added <code>Picture.init()</code> to top of examples/opencv_locate_object.js to
+         automatically initizialized the Picture code. for that use case.</li>
+     <li>New defs for <code>Dexter.set_keep_position</code> and
+         <code>Dexter.set_follow_me</code> instructions.
+        Makes robot easier to move when in follow_me mode, and "unsets it when done.</li>
+     <li><code>Dexter.set_follow_me</code>  now takes arg: <code>motor_enable="use_checkbox"</code>
+        which resolved to true if the new checkbox in Misc Pane/make_instruction/Record
+        is checked (the default).
+        Unchecking this means robo will "go limp" when the "Record" button is clicked,
+        making it easier to precisely position the robot, BUT you have to hold Dexter
+        before clicking Record as Dexter may fall over.
+     </li>
+     <li>Missing function gamepad.js now defined in: <code>Gamepad.button_number_to_name</code></li>
+     <li>In ViewEyeRealTime.ms, function <code>init_view_eye</code>, removed setting of boundaries.</li>
+     <li>(done in prior release) Extended sending of instructions to dexter and
+            sim with a longer string dynamically
+            created (variable lengthed instructions).</li>
+     <li><code>Job.prototype.if_robot_status_error_default</code> no longer sets errors.log to empty content.</li>(
+     <li><code>Job.prototype.if_robot_status_error_default</code> now prints out only the last line of
+          errors.log rather than the whole log file.</li>
+     <li><code>Job.prototype.rs_to_error_message</code>: extended error message.</li>
+     <li><code>Socket.instruction_array_degrees_to_arcseconds_maybe</code> added "M" oplet support.</li>
+     <li><code>Socket.instruction_array_arcseconds_to_degrees_maybe</code> added "M" oplet support.</li>
+     <li>"M" oplet now supported in the simulator.</li>
+     <li><code>Job.prototype.if_robot_status_error_default</code>  improved error message.</li>
+     <li><code>Job.prototype.rs_to_error_message</code> improved error message.</li>
+     <li>Added VR support for Sim Pane rendering of Dexter model.
+     The sim pane now has a new button IN the content region which will say
+     "VR NOT SUPPORTED" if you don't have a VR headset plugged in.
+     Warning: experimental & needs testing.</li>
+     <li>Overhaul of User Guide to replace DDE3 doc with what's more relevant to DDE4.</li>
+   </ul>
+</details>
 
 <details class="doc_details"><summary>v 4.1.9, Feb 19, 2024</summary>
 Highlights:Improvements to: Python support, Dex (jobless instructions), SimBuild.

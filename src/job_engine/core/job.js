@@ -1697,19 +1697,22 @@ Job.prototype.if_robot_status_error_default = function(){
         if((sim_actual === false) || (sim_actual === "both")){
             try{ let path = "Dexter." + rob.name + ":/srv/samba/share/errors.log"
                  DDEFile.read_file_async(path, function(err, content){
-                         if(err) {warning("Could not find: " + path)}
+                         if(err) {warning("Could not find: " + path + " with error: " + err.message)}
                          else {
+                            let msg = ""
                             if((typeof(content) != "string") ||
                                 (content.length == 0)){
-                                content == "<i>errors.log is empty</i>"
+                                msg = "<i>errors.log is empty</i>"
                             }
                             else {
-                             content = Utils.replace_substrings(content, "\n", "<br/>")
-                             content = "Content of " + path + "<br/><code>" + content + "</code>"
-                             setTimeout(function(){DDEFile.write_file_async(path, "")},
-                                        400) //give the read_file job a chance to finish properly
+                             let content_arr = content.split("\n")
+                             let last_line = content_arr.pop()
+                             last_line = last_line.replaceAll(",", ",<br/>")
+                             msg += "<details><summary>Last error in " + path + "</summary><code>" + last_line + "</code></details>"
+                                //setTimeout(function(){DDEFile.write_file_async(path, "")},
+                             //           400) //give the read_file job a chance to finish properly
                             }
-                            out(content)
+                            out(msg)
                         }
                  })
                }
@@ -1750,22 +1753,52 @@ Job.prototype.if_dexter_connect_error_default = function(robot_name){
 Job.prototype.rs_to_error_message = function(robot_status){
     let error_code = robot_status[Dexter.ERROR_CODE]
     let oplet_error_code = error_code & 0xFF //lower 8 bits
-    let msg = "error_code: " + error_code + " "
     let oplet = robot_status[Dexter.INSTRUCTION_TYPE]
+    let msg = "oplet: " + oplet + " oplet_error_code: " + oplet_error_code
     if (error_code > 0) {
-        if((oplet == "r") || (oplet == "w")) {
+        if((oplet === "r") || (oplet === "w")) {
             let linux_msg = globalThis.linux_error_message(oplet_error_code)
-            msg += "Error on oplet 'r' (read_file) with Linux error of: " + linux_msg
+            msg += " Linux error: " + linux_msg
+        }
+        else if((oplet_error_code === 8) && ((oplet === "a") || (oplet === "P") || (oplet === "j"))) {
+            msg += " Goal position outside joint boundries."
+        }
+        else if(oplet === "j") {
+            msg += " j_move error: "
+            if(oplet_error_code === 4){
+                msg += " Ruckig compute error. Check JointHardwareMax??? configuration."
+            }
+            else if(oplet_error_code === 5){
+                msg += " Ruckig cannot meet specified duration."
+            }
+            else if(oplet_error_code === 6){
+                msg += " Replay error. Under-run or over-speed."
+            }
+            else if(oplet_error_code === 7){
+                msg += " j_move system in an error state."
+            }
+            msg += " Clear using 'j' oplet without args."
         }
         else {
-            if      (oplet_error_code == 1)  {msg += " oplet:"    + oplet + " is unknown to Dexter. Please upgrade Dexter firmware and gateware.<br/>"}
-            else if (oplet_error_code == 2)  {msg += " on oplet:" + oplet + " communication error.<br/>"}
-            else                             {msg += " on oplet:" + oplet + " Unknown error.<br/>"}
+            if      (oplet_error_code == 0)  { } //don't add an extra message
+            else if (oplet_error_code == 1)  {msg += " oplet is unknown to Dexter. Please upgrade Dexter firmware and gateware.<br/>"}
+            else if (oplet_error_code == 2)  {msg += " communication error. No semicolon at end of instruction.<br/>"}
+            else if (oplet_error_code == 3)  {msg += " invalid parameter.<br/>"}
+            else                             {msg += " Unknown error.<br/>"}
         }
+        //error flags
         if(error_code & (1 << 10)) {msg+=" Firmware - Gateware Mismatch. Update system. Fatal error.<br/>"}
-        if(error_code & (1 << 27)) {msg+=" SPAN Servo, Joint 7. r 0 errors.log <br/>"}
-        if(error_code & (1 << 28)) {msg+=" ROLL Servo, Joint 6. r 0 errors.log <br/>"}
-        if(error_code & (1 << 30)) {msg+=" Joint Monitor. r 0 errors.log <br/>"}
+        if(error_code & (1 << 24)) {msg+=" P-Stop error code.<br/>"}
+        if(error_code & (1 << 25)) {msg+=" Encoder error.<br/>"}
+        if(error_code & (1 << 26)) {msg+=" Kinematics error.<br/>"}
+        if(error_code & (1 << 27)) {msg+=" SPAN Servo, Joint 7.<br/>"}
+        if(error_code & (1 << 28)) {msg+=" ROLL Servo, Joint 6.<br/>"}
+        if(error_code & (1 << 30)) {msg+=" Joint Monitor.<br/>"}
+        for(let i = 11; i < 24; i++){
+            if(error_code & (1 << i)) {
+                msg+=" Unknown error flag on bit: " + i + ".<br/>"
+            }
+        }
     }
     return msg
 }

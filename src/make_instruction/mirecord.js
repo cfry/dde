@@ -359,7 +359,7 @@ class MiRecord {
             // know we're creating a new recording when the user clicks the record button.
             //the do_list will be replaced when user click the record button to stop recording.
         }
-        let job_name = MakeInstruction.arg_name_to_src_in_mi_dialog("name")
+        let job_name = MakeInstruction.arg_name_to_src_in_mi_dialog("name") //the job we arre recording INTO
         job_name = job_name.trim()
         if (Utils.is_string_a_literal_string(job_name)) {
             job_name = job_name.substring(1, job_name.length - 1)
@@ -404,7 +404,7 @@ class MiRecord {
                 "<br/>Please edit its fields and try again.")
             }
         }
-        MiState.job_instance = job_instance
+        MiState.job_instance = job_instance ////the job we arre recording INTO, often a made up name like Job2
         this.start_record_pre_aux()
     }
 
@@ -447,6 +447,9 @@ class MiRecord {
         //same robot for doing the recording as we will for running the job that is recorded.
         MiRecord.start_time_in_ms = Date.now()
         console.log("just before starting record job")
+        //if(Job.mi_record && Job.mi_record.is_active()){
+        //    Job.mi_record.stop_for_reason("interrupted", "User starting a new recording.")
+        //}
         new Job({
             name: "mi_record",
             robot: job_wrapper_robot,
@@ -484,7 +487,7 @@ class MiRecord {
                         return //Control.stop_job(undefined, "User stopped Job rather than calibrating robot.")
                     }
                 },
-                Dexter.set_follow_me(),
+                Dexter.set_follow_me(), //default first arg is "use_checkbox" (in the Recording dialog box.)
                 Control.loop(true,
                              function(){
                                 console.log("top of record job's loop")
@@ -932,6 +935,8 @@ class MiRecord {
                          "</div>" +
                         */
                      "</div>" +
+                     "<input id='set_follow_me_motor_enable_id' type='checkbox' checked title='When checked, Dexter motors assist in applying friction to joints.'/>" +
+                      "motor_enable" +
                      "<div style='white-space:nowrap;'>highest_completed_instruction: " +
                            "<span id='mi_highest_completed_instruction_id'>None</span> " +
                            "<button title='Click to reset the current job.\nThe next time it is played, it will be:\n1. redefined from the Make Instruction dialog code\n2. started.' style='padding:1px;font-size:13px;'>Reset</button>" +
