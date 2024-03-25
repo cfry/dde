@@ -1,5 +1,5 @@
-global.dde_version = "3.9.0" //require("../package.json").version
-global.dde_release_date = "Feb 9, 2024" //require("../package.json").release_dat9
+global.dde_version = "3.9.1" //require("../package.json").version
+global.dde_release_date = "Mar 23, 2024" //require("../package.json").release_dat9
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
 
@@ -173,6 +173,8 @@ var {convertArrayBufferToString, convertStringToArrayBuffer,
      serial_disconnect, serial_disconnect_all,  serial_flush,
      serial_get_or_make_port, serial_path_to_port_map,
      serial_port_path_to_info_map, serial_port_init, serial_send, serial_send_low_level} = require("./serial.js")
+require("./servo.js") //defines globalThis.Servo
+
 
 var {close_readline, set_keep_alive_value, write_to_stdout} = require("./stdio.js")
 

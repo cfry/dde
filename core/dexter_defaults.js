@@ -37,10 +37,31 @@ Dexter.prototype.defaults_read = function(callback = null){
     let the_url = this.defaults_url()
     let the_dex_inst = this
     let normal_defaults_read_cb = (function(err, content){
-                        if(err) { dde_error("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
+                        if(err) { //Often becuse Defaults.make_ins isn't on the Dexter.
+                                  //so print a warning and use Dexter.defaults instead
+                                  //and let the Job proceed
+                            if (typeof(err) !== "string"){
+                                err = err.toString()
+                            }
+                            let extra_error_message = ""
+                            if(err.includes("404")){
+                                extra_error_message = "<br/>/serve_samba/share/Defaults.make_ins does not exist on Dexter." + the_dex_inst.name
+                            }
+                            let defaults_copy = JSON.parse(JSON.stringify(Dexter.defaults))
+                            the_dex_inst.defaults = defaults_copy
+                            warning("Could not read : " + the_url + " + due to:<br/>" +
+                                err + extra_error_message +
+                                "<br/>so Dexter." + the_dex_inst.name +
+                                ".defaults has been set to a copy of Dexter.defaults."
+                            )
+                            if (callback) {
+                                callback.call(the_dex_inst, null)
+                            }
+                            /*dde_error("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
                                              the_url + "<br/>and error message: " +
                                              err.message +
                                              "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.")
+                            */
                         }
                         else {
                             try {

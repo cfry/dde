@@ -1050,6 +1050,9 @@ Dexter = class Dexter extends Robot {
         this.pid_angles = [0, 0, 0, 0, 0, 0, 0]
         //this.processing_flush = false //primarily used as a check. a_robot.send shouldn't get called while this var is true
         this.busy_job_array = []
+
+        this.servos = Servo.make_servos_for_dexter()
+
         Robot.set_robot_name(this.name, this)
          //ensures the last name on the list is the latest with no redundancy
         let i = Dexter.all_names.indexOf(this.name)
@@ -2341,26 +2344,35 @@ Dexter.prototype.turn_on_j6_and_j7_torque  = function(){
             this.set_parameter("ServoSet", 1, 24, 1)] //J7, for XL-320 motors
 }
 
+Dexter.set_follow_me                = function(){
+    return [make_ins("S", "RunFile", "setFollowMeMode.make_ins"),
+        Dexter.turn_off_j6_and_j7_torque(),
+        Dexter.set_parameter("MotorEnable", 0)
+    ]
+}
+
+Dexter.prototype.set_follow_me      = function(){
+    return [make_ins("S", "RunFile", "setFollowMeMode.make_ins", this),
+        this.turn_off_j6_and_j7_torque(),
+        this.set_parameter("MotorEnable", 0)]}
+
+
 
 //from Dexter_Modes.js (these are instructions. The fns return an array of instructions
-Dexter.set_follow_me                = function(){ return make_ins("S", "RunFile", "setFollowMeMode.make_ins")
-                                                          //Dexter.turn_off_j6_and_j7_torque()]
-                                        }
-Dexter.prototype.set_follow_me      = function(){ return make_ins("S", "RunFile", "setFollowMeMode.make_ins", this)
-                                                          //this.turn_off_j6_and_j7_torque()]
-                                      }
+Dexter.set_keep_position            = function(){
+    return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins"),
+        Dexter.turn_on_j6_and_j7_torque(),
+        Dexter.set_parameter("MotorEnable", 1)]}
+
+Dexter.prototype.set_keep_position  = function(){
+    return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins", this),
+        this.turn_on_j6_and_j7_torque(),
+        this.set_parameter("MotorEnable", 1)]}
 
 Dexter.set_force_protect            = function(){ return make_ins("S", "RunFile", "setForceProtectMode.make_ins")
                                                           //Dexter.turn_on_j6_and_j7_torque()]
                                       }
 Dexter.prototype.set_force_protect  = function(){ return make_ins("S", "RunFile", "setForceProtectMode.make_ins", this)
-                                                          //this.turn_on_j6_and_j7_torque()]
-                                      }
-
-Dexter.set_keep_position            = function(){ return make_ins("S", "RunFile", "setKeepPositionMode.make_ins")
-                                                          //Dexter.turn_on_j6_and_j7_torque()]
-                                      }
-Dexter.prototype.set_keep_position  = function(){ return make_ins("S", "RunFile", "setKeepPositionMode.make_ins", this)
                                                           //this.turn_on_j6_and_j7_torque()]
                                       }
 
@@ -2772,7 +2784,7 @@ Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
         this.J3_angle_min = Dexter.J3_ANGLE_MIN
         this.J4_angle_min = Dexter.J4_ANGLE_MIN
         this.J5_angle_min = Dexter.J5_ANGLE_MIN
-        this.J6_angle_min = Dexter.J6_ANGLE_MIN
+        this.J6_angle_min = ƒ
         this.J7_angle_min = Dexter.J7_ANGLE_MIN
 
         this.J1_angle_max = Dexter.J1_ANGLE_MAX

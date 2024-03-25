@@ -300,6 +300,7 @@ function init_view_eye(){
             Dexter.move_all_joints(0, 0, 0, 0, 0),
             Robot.label("loop_start"),
             make_ins("w", 42, 64),
+           /* These should only be set in defaults.make_ins file
             make_ins("S", "J1BoundryHigh",648000*_arcsec),
             make_ins("S", "J1BoundryLow",-648000*_arcsec),
             make_ins("S", "J2BoundryLow",-350000*_arcsec),
@@ -310,7 +311,7 @@ function init_view_eye(){
             make_ins("S", "J4BoundryHigh",490000*_arcsec),
             make_ins("S", "J5BoundryLow",-648000*_arcsec),
             make_ins("S", "J5BoundryHigh",648000*_arcsec),
-
+           */
             make_ins("S", "MaxSpeed", Number(MaxSpeed_id.value)),
             make_ins("S", "Acceleration",Number(Accel_id.value)),
             make_ins("S", "StartSpeed",Number(StartSpeed_id.value)),

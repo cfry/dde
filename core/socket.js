@@ -309,6 +309,13 @@ var Socket = class Socket{
             }
             return instruction_array_copy
         }
+        else if (oplet === "M"){ //Move to
+            let instruction_array_copy = instruction_array.slice()
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] = instruction_array_copy[Instruction.INSTRUCTION_ARG0] * 1000000 //convert meters to microns
+            instruction_array_copy[Instruction.INSTRUCTION_ARG1] = instruction_array_copy[Instruction.INSTRUCTION_ARG1] * 1000000 //convert meters to microns
+            instruction_array_copy[Instruction.INSTRUCTION_ARG2] = instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000000 //convert meters to microns
+            return instruction_array_copy
+        }
         else if (oplet === "S") {
             const name = instruction_array[Instruction.INSTRUCTION_ARG0]
             const args = instruction_array.slice(Instruction.INSTRUCTION_ARG1, instruction_array.length)
@@ -426,6 +433,13 @@ var Socket = class Socket{
                 let converted_val = this.dexter_units_to_degrees(arg_val, i + 1)
                 instruction_array_copy[index] = converted_val
             }
+            return instruction_array_copy
+        }
+        else if (oplet === "M"){ //Move to
+            let instruction_array_copy = instruction_array.slice()
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] = instruction_array_copy[Instruction.INSTRUCTION_ARG0] / 1000000 //convert microns to meters
+            instruction_array_copy[Instruction.INSTRUCTION_ARG1] = instruction_array_copy[Instruction.INSTRUCTION_ARG1] / 1000000 //convert microns to meters
+            instruction_array_copy[Instruction.INSTRUCTION_ARG2] = instruction_array_copy[Instruction.INSTRUCTION_ARG2] / 1000000 //convert microns to meters
             return instruction_array_copy
         }
         else if (oplet === "S") {
@@ -685,9 +699,9 @@ var Socket = class Socket{
         let job_instance = Job.job_id_to_job_instance(job_id)
         //out(job_instance.name + " " + rob.name + " bottom of Socket.on_receive with: " + robot_status)
 
-        if(oplet === "M"){ //todo just temporary for testing. remove.
-            robot_status[Dexter.ERROR_CODE] = 9
-        }
+        //if(oplet === "M"){ //todo just temporary for testing. remove.
+        //    robot_status[Dexter.ERROR_CODE] = 9
+        //}
 
         dexter_instance.robot_done_with_instruction(robot_status) //robot_status ERROR_CODE *might* be 1
     }

@@ -348,9 +348,10 @@ function read_file_async_from_dexter_using_node_server(dex_instance, path, callb
     }
     let url = "http://" + dex_instance.ip_address + "/edit?edit=" + path //example: "http://192.168.1.142/edit?edit=root/dde_apps/dde_init.js" whereby no beiginning slas actually means going from the server's top level of file system
     let req = {
-        url: url,
-        encoding: null
+        url: url //,
+        //encoding: null  //commenting out gives us a string of chars which is nearly always desirable.
     }
+
     let content_array = get_page(req) //does not error if file doesn't exist so ...
     let content = content_array.toString("binary"); //Strings can contain binary file content
     let the_err = null
@@ -1254,7 +1255,7 @@ folder_name_version_extension("foo_002.txt") => ["foo", 2, "txt"]
 
 function folder_name_version_extension(path){
     path = make_full_path(path)
-    path = adjust_path_to_os(path)
+    path = convert_backslashes_to_slashes(path) //Feb 2024 should have slashes!   //adjust_path_to_os(path)
     let folder_parts = path.split("/")
     //folder_parts.shift() //takes off the initial ""
     let names_ver_ext = folder_parts.pop()

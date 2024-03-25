@@ -120,7 +120,7 @@ DexterSim = class DexterSim{
         if(str.endsWith(";")) {
             str = str.substring(0, str.length - 1) //cut off the semicolon on the end
         }
-        let split_str = str.split(" ")
+        let split_str = str.split(/[ ,]+/)//separator can be space, comma, or any combination of them, was: " " which didn't handle commas
         //if its a var length instruction, then an integer is in place of the oplet and the oplet is one later
         let orig_oplet_maybe = split_str[Instruction.INSTRUCTION_TYPE]
         if(!Robot.is_oplet(orig_oplet_maybe)) { //assume its an integer for a variable-length instruction
@@ -208,6 +208,37 @@ DexterSim = class DexterSim{
                 break;*/
             case "h": //doesn't go on instruction queue, just immediate ack
                 ds_instance.ack_reply(instruction_array)
+                break;
+            case "j":
+                console.log("DexterSim.send passed 'j' oplet: " + instruction_array)
+                ds_instance.queuej_instance.add_to_queue(instruction_array)
+                ds_instance.ack_reply_maybe(instruction_array) //send back the original
+                break;
+            case "M": //move to.  convert to an "a" array and use that.
+                //note: doesn't encode j6 and j7.
+                //see: https://github.com/HaddingtonDynamics/OCADO/wiki/Command-oplet-instruction
+                let ins_arr_a = instruction_array.slice(0, Instruction.INSTRUCTION_ARG0)
+                ins_arr_a[Instruction.INSTRUCTION_TYPE] = "a"
+                let xyz_meters = [instruction_array[Instruction.INSTRUCTION_ARG0] / 1000000,  //x
+                                  instruction_array[Instruction.INSTRUCTION_ARG1] / 1000000,  //y
+                                  instruction_array[Instruction.INSTRUCTION_ARG2] / 1000000]  //z
+
+                let direction  = [instruction_array[Instruction.INSTRUCTION_ARG3],
+                                 instruction_array[Instruction.INSTRUCTION_ARG4],
+                                 instruction_array[Instruction.INSTRUCTION_ARG5]]
+
+                let config     = [instruction_array[Instruction.INSTRUCTION_ARG6],
+                                  instruction_array[Instruction.INSTRUCTION_ARG7],
+                                  instruction_array[Instruction.INSTRUCTION_ARG8]]
+
+                let new_angles_deg = Kin.xyz_to_J_angles(xyz_meters, direction, config)
+                for(let i = 0; i < 5; i++) {
+                    let deg = new_angles_deg[i]
+                    let arcsec = deg * 3600
+                    ins_arr_a.push(arcsec)
+                }
+                ds_instance.queue_instance.add_to_queue(ins_arr_a)
+                ds_instance.ack_reply_maybe(instruction_array) //return the orig "M" array
                 break;
             case "P": //does not go on queue  //ds_instance.queue_instance.add_to_queue(instruction_array)
                 //pid_move_all_joints for j6 and 7 are handled diffrently than J1 thru 5.

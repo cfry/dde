@@ -169,7 +169,9 @@ function out(val="", color="black", temp=false, code=null){
     }
     if(window["document"]){
         let orig_focus_elt = document.activeElement
-        orig_focus_elt.focus()
+        if(orig_focus_elt) {
+            orig_focus_elt.focus()
+        }
     }
     if (temp){
         return "dont_print"

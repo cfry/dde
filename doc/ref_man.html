@@ -6,8 +6,6 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
-
-
 <details id="i/o_doc_id" class="doc_details"><summary>I/O</summary>
         <details class="doc_details"><summary>CSV</summary>
         CSV stands for "Comma Separated Value". It is a file format for spreadsheets
@@ -6985,7 +6983,79 @@ proportional–integral–derivative controller</a>.<br/>
     <code>Dexter.pid_move_to([0, 0.1, 0.2])</code>
 </details>
 
-<details id="Dexter.read_file_doc_id" class="doc_details"><summary>read_file</summary>
+<details id="end_effector_instructions_doc_id" class="doc_details"><summary>End Effector Instructions</summary>
+Dexter's Joint 6 is typically a "twist wrist". Joint 7 is typically a gripper.
+The motors for these joints can be tweaked using the <a href="#" onclick="open_doc(servo_doc_id)">Servo class</a>.
+But for the common gross motions, use the below Job instructions.
+<p></p>
+    Like most Dexter instructions, you can prefix these with "Dexter." to use the
+    robot of the Job, or "Dexter.dexter0." to send the instructions to a particular Dexter.
+
+    <details id="Dexter.move_until_torque_doc_id" class="doc_details"><summary>move_until_torque</summary>
+    Causes joint 6 or 7 to move until it reaches a certain torque, at which point motion stops.<br/>
+       <i>Parameters:</i><br/>
+       <b>goal_degrees</b> A number. Default: <code>90</code><br/>
+       <b>joint_number</b> 6 or 7.   Default: <code>7</code><br/>
+       <b>torque_limit</b> A number. Default: <code>500</code><br/>
+      <i>Example:</i>
+<pre><code>new Job({name: "move_ee",
+         do_list: [Dexter.move_until_torque(45, 6, 450)]
+}) </code></pre>
+    </details>
+
+    <details id="Dexter.move_until_static_doc_id" class="doc_details"><summary>move_until_static</summary>
+     Like move_until_torque but doesn't take a torque argument.
+     This instruction stops trying to move the joint when the joint is blocked from moving.
+     If joint 6 or 7 is blocked from moving, it will overheat if it continues to try to
+     move for several seconds. This can happen when j7 gripper is closed as it can be,
+     or joint 6 is trying to twist a bolt that's frozen.
+    This is often more convenient to use than move_until_torque.
+    <i>Parameters:</i><br/>
+        <b>goal_degrees</b>     A number. Default: <code>20</code><br/>
+        <b>joint_number</b>     A number. Default: <code>7</code><br/>
+        <b>degree_tolerance</b> A number. Default: <code>0.01</code><br/>
+        <i>Example:</i>
+<pre><code>new Job({name: "move_ee",
+         do_list: [Dexter.move_until_static(100, 7)]
+}) </code></pre>
+    </details>
+
+    <details id="Dexter.twist" class="doc_details"><summary>twist</summary>
+        Twist the wrist (joint 6).
+     <i>Parameter:</i><br/>
+        <b>goal_degrees</b> A number. Default: <code>0</code>
+        Range <code>Dexter.J6_ANGLE_MIN</code> to <code>Dexter.J6_ANGLE_MAX</code><br/>
+        <i>Example:</i>
+<pre><code>new Job({name: "move_ee",
+         do_list: [Dexter.twist(45)]
+}) </code></pre>
+    </details>
+
+    <details id="Dexter.grasp" class="doc_details"><summary>grasp</summary>
+        Close the gripper (Joint 7) until it can't move due to gripping an object,
+        or reaches 20 degrees, whichever occurs first.<br/>
+        <i>Parameter:</i><br/>
+        <b>min_degrees</b> A number. Default: <code>20</code><br/>
+        <i>Example:</i>
+<pre><code>new Job({name: "move_ee",
+         do_list: [Dexter.grasp()]
+}) </code></pre>
+    </details>
+    <details id="Dexter.ungrasp" class="doc_details"><summary>ungrasp</summary>
+        Open the gripper (Joint 7) until it can't move due to touching something
+        or reaches max_degrees. whichever occurs first.<br/>
+        <i>Parameter:</i><br/>
+        <b>max_degrees</b>  Default: <code>270</code><br/>
+        The theoretical max_degrees is 296 but without perfect calibration,
+        its best to set it lower.<br/>
+        <i>Example:</i><br/>
+<pre><code>new Job({name: "move_ee",
+         do_list: [Dexter.ungrasp()]
+}) </code></pre>
+    </details>
+</details> <!-- end of end effector instructions -->
+
+        <details id="Dexter.read_file_doc_id" class="doc_details"><summary>read_file</summary>
     This instruction allows you to transfer the content of a file on Dexter into
     a user_data variable in the enclosing Job.
     <p></p>
@@ -8755,7 +8825,96 @@ For documentation, see
 <a target="_blank" href="https://www.npmjs.com/package/modbus-serial">modbus_serial</a>.
 </details>
 
+<details id="servo_doc_id" class="doc_details"><summary>Servo</summary>
+    Dexter's, as of March 2024, typically have 7 joints, each with its own motor.
+    Joints 6 and 7 are different than the others. The Servo class helps
+    control the fine points of these motors.<br/>
+    For more typical control via Job instructions, see
+    <a href="#" onclick="open_doc(end_effector_instructions_doc_id)">End Effector Instructions</a>
+   <!-- Here's an article comparing the two:
+    <a target="_blank" href="https://www.machinedesign.com/automation-iiot/article/21836868/stepper-and-servo-motor-tradeoffs">
+      stepper vs servo motors</a>
+    The article implies that only servo motors have encoders and thus are more accurate than
+    stepper motors. However, Dexter's stepper motors have encoders and are highly accurately.
+    <p></p>
+    Normal Dexters have stepper motors for joints 1 through 5 and servos for joints 6 and 7.
+    Joint 6 is a "wrist for twist" of the end effector. Joint 7 is usually used for
+    opening and closing the fingers of a gripper.
+    Joints 6 and 7 are much quieter than the other joints.
+    <p></p>
+    Because the control of Dexter's servo motors has lots of sublties, DDE has a special
+    class for controlling them called <code>Servo</code>. Below is the documentation for
+    the Servo class's terminology, data and methods.-->
+    <p></p>
+    <h3>Terminology</h3>
+    <b>servo_firmware_type</b> A positive integer representing the low level type of a motor on Dexter<br>
+       &nbsp;&nbsp;<i>Examples: </i>
+       <ul>
+           <li>1 (nothing: doesn't exist)</li>
+           <li>8 (steppers, joint 1 thru 5)</li>
+           <li>320 (possibly for j6 & j7)</li>
+           <li>430 (possibly for j6 & j7)</li>
+        </ul>
+    <b>servo_model_class_name</b> A string.   <i>Examples: </i> "XL320", "XL330", "XC430" "XC430_LOAD"<br/>
+    <b>servo_model_number</b>     An Integer. <i>Examples: </i> 350,     1200,           1240,          1080 <br/>
+    <b>servo_model_name</b>       A string.   <i>Examples: </i> "XL320", "XL330-M288-T", "XC330-M288-T" "XC430-W240-T" (one to one with servo_model_number) <br/>
+    <b>servo_id</b>  An integer designating a servo on a Dexter.<br/>
+    &nbsp;&nbsp;<i>Examples: </i>3 for J6, 1 for j7, (j1 thru 5 not in this category because are not servos, they are steppers) <br/>
 
+    <h3>Data</h3>
+    <code>Servo.models</code> Name-value pairs where the name is a <i>servo_model_class_name</i>
+    and the value is lots of data about that model class. Use DDE's inspector to see it.<br/>
+    <code>Servo.default_servos</code> An array of actual servos data for testing purposes.
+    The indexes of the array are servo_id's.
+    <b>servo_status</b>  A json object containing the status of a servo on a Dexter.
+    Used in <code title="not in testsuite">a_job.user_data.servo_status</code><br/>
+
+    <h3>Methods</h3>
+    <b>Servo.set_servo_id_model</b> Set values in a servo object.<br/>
+    <i>Parameters:</i><br/>
+    <b>servo_id</b><br/>
+    <b>model_or_servo_model_class_name</b><br/>
+    <b>robot</b>
+    <p></p>
+    <b>Servo.servo_id_to_servo</b> Returns the servo data.<br/>
+    <i>Parameters:</i><br/>
+    <b>servo_id</b><br/>
+    <b>a_dexter</b>
+    <p></p>
+    <b>Servo.servo_property</b> Return the value of property_name in the servo data table.<br/>
+    <i>Parameters:</i><br/>
+    <b>servo</b> The servo data.<br/>
+    <b>property_name</b> A string.
+
+
+    <h3>Example uses in a Job</h3>
+    <pre><code>
+new Job({ //test
+    name: "test_servos", user_data: {count: 0},
+    do_list: [ IO.out("starting at "+Date())
+        //,Dexter.read_from_robot("#Servo 3 0 2", "servo_status")
+        //,function() { out("servo returned:"+this.user_data.servo_status+" good luck with that") }
+        ,Dexter.servo_get(3, "MODEL") //instead of the above, just do this
+        ,function() {
+            let servo = this.user_data.servo_status;
+            out(servo.id+" is a "+servo.type);
+            out(Servo.servo_id_to_servo(3, this) === this.robot.servos[3]) //test that we did learn it
+        }
+        //,Dexter.dexter1.servo_get(3, "MODEL")() //as expected, fails; there is no dexter1 robot. move to doc example for servo-get
+        //,Dexter.servo_get(2, "MODEL") //as expected, fails; there is no servo id 2.  ,,, move as above
+        ,Dexter.servo_detect(1) //just calls servo_get(id, "MODEL"), if found, servo is added to the robot.
+        //,"S ServoSetX 1, 116, 12, %01%00%00%00" //only if it's a 430  ,, move to doc  for servp_set
+        //,"S ServoSetX 1, 30, 6, %01%00" //only if it's a 320
+        //,"S ServoSet2X 1, 30, 1" //only if it's a 320, can't support a 430's 4 byte position
+        ,Dexter.servo_set(1, "GOAL_POSITION", 400)
+        ,Dexter.servo_set(Dexter.dexter0.servos.roll, "TORQUE", 0) //must specify robot to use named servos. sigh.
+
+        ,function() {inspect(this.user_data.servo_status)}
+    ]
+})</code></pre>
+
+
+</details> <!-- end of Servo-->
 </details> <!-- end Robots -->
 
 <details id="Dex" class="doc_details"><summary>Dex (Jobless instructions)</summary>

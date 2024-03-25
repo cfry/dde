@@ -15,6 +15,7 @@ var {convertArrayBufferToString, convertStringToArrayBuffer,
     serial_connect_low_level,
     serial_send_low_level, serial_connect, serial_send, serial_flush, serial_disconnect,
     serial_disconnect_all} = require("./core/serial.js")
+require("./core/serial.js") //defines globalThis.Servo
 
 
 var {array_to_html_table, array_to_csv, csv_to_array,
@@ -70,7 +71,8 @@ var {IO} = require('./core/instruction_io.js')
 require('./core/instruction_j_move.js')
 require('./core/dexter_defaults.js')
 var Job  = require('./core/job.js')
-require('./core/dex.js') //makes Dex global
+require('./core/dex.js')   //makes Dex global
+require('./core/servo.js') //makes Servo global
 var {Messaging, MessStat} = require('./core/messaging.js')
 var {linux_error_message} = require('./core/linux_error_message.js')
 

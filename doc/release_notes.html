@@ -6,7 +6,51 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
-<details class="doc_details"><summary>v 3.9.0, Feb 9,, 2024</summary>
+<details class="doc_details"><summary>v 3.9.1, Mar 23, 2024</summary>
+    Highlights: new Servo class.
+    5 new end-effector Job instructions.
+    "M" oplet supported in the simulator.
+    No error with non-existent Defaults.make_ins file.
+<ul>
+    <li>Missing function <code>Gamepad.button_number_to_name</code> is now defined.</li>
+    <li>In function <code>init_view_eye</code>, removed setting of boundaries.</code></li>
+    <li><code>Job.prototype.if_robot_status_error_default</code> no longer
+        sets errors.log to empty content.</li>
+    <li><code>Job.prototype.if_robot_status_error_default</code> now prints out
+        only the last line of errors.log.</li>
+    <li><code>Job.prototype.rs_to_error_message</code>: extended error message.</li>
+    <li><code>"M" oplet now supported in the simulator.</code></li>
+    <li><code>Socket.instruction_array_degrees_to_arcseconds_maybe</code> added "M" oplet support.</li>
+    <li><code>Socket.instruction_array_arcseconds_to_degrees_maybe</code> added "M" oplet support.</li>
+    <li><code>Job.prototype.if_robot_status_error_default</code>: improved error message.</li>
+    <li><code>Job.prototype.rs_to_error_message</code> improved error message</li>
+    <li>Utils fns: <code>value_to_percent_hex</code> and <code>little_hex_to_integer</code> now defined.</li>
+    <li>Robustified function <code>out</code> so it doesn't error when called before
+        DDE window is up.</li>
+
+    <li>New <code>Servo</code> class. Documented in Ref Man/Robot/Servo.
+        Test Suite extended to test some of this new functionality.
+    </li>
+    <li> New end effector Dexter instructions:
+        <ul>
+            <li><code>Dexter.move_until_torque</code></li>
+            <li><code>Dexter.move_until_static</code></li>
+            <li><code>Dexter.twist</code></li>
+            <li><code>Dexter.grasp</code></li>
+            <li><code>Dexter.ungrasp</code></li>
+         </ul>
+          Documented in RefMan/Robot/Dexter/Dexter Instructions/End Effector Instructions.
+    </li>
+
+    <li>When /serve/samba/share/Default.make_ins doesn't exist on Dexter,
+        running a job no longer errors.
+        A warning message is printed, "default" versions of
+        the setting in Defaults.make_ins are used, and the job proceeds.
+    </li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.9.0, Feb 9, 2024</summary>
 Highlights: File menu items requiring choosing a file fixed.
             New Dexter.j_move instuction
 <ul>
