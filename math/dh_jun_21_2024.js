@@ -1,7 +1,23 @@
-let mathjs = require("mathjs")
-globalThis.DH = {}
+var DH = {}
+globalThis.DH = DH
 
+//J_angles, if it isn't already an array of 5 angles (in degrees)
+//will be converted to one, either truncating too long arrays,
+//or padding the end with zeros if its too short.
+//dh_mat is expected to be an array 6 long.
+//this fn does not modify either of its args.
 DH.forward_kinematics = function(J_angles, dh_mat){
+    if(!Array.isArray(J_angles)) { dde_error("DH.forward_kinematics called with first arg of:<br/>" +
+                                   J_angles + "<br/> which is not an array.")}
+    else if(J_angles.length === 6) {} //ok as is
+    else if (J_angles.length < 6) {
+        J_angles = J_angles.slice() //make a copy
+        do { J_angles.push(0) }
+        while (J_angles.length < 6)
+    }
+    else { //J_angles length is > 6
+        J_angles = J_angles.slice(0, 6)
+    }
 	let T = [0, 0, 0, 0, 0, 0]
 	T[0] = Vector.make_pose()
     let dh = JSON.parse(JSON.stringify(dh_mat)) //deep copy
@@ -34,7 +50,6 @@ DH.forward_kinematics = function(J_angles, dh_mat){
 
 var folder = "C:/Users/james/Documents/dde_apps/2021/Code/MoveWithForce/data_set_HDI_000047/"
 var dh_mat = DH.parse_dh_mat_file(folder + "dh_mat.out")
-debugger
 var J_angles = [0, 0, 90, 0, 0, 0]
 var fk = DH.forward_kinematics(J_angles, dh_mat)
 inspect(fk[2][6])
@@ -305,9 +320,6 @@ DH.force_to_torque = function(force_vector, J_angles, dh_mat){
 DH.parse_dh_mat_file = function(fp, dist_units = _m, ang_units = _deg){
 	var dh_content = file_content(fp)
     var dh_mat = dh_content.split('\r\n')
-    if(dh_mat.length < 2){
-    	dh_mat = dh_content.split('\n')
-    }
     dh_mat.pop() //last element is empty
     let units
     for(let i = 0; i < dh_mat.length; i++){
@@ -763,39 +775,7 @@ DH.disps_to_torques = function(disps, lin_fits){
 
 //The following is here to patch a bug in some versions of DDE
 
-Vector.DCM_to_quaternion = function(DCM = Vector.make_DCM()){
-    	//Algorithm was found here:
-        //http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
-    	let trace = DCM[0][0] + DCM[1][1] + DCM[2][2]
-        let S, w, x, y, z, quaternion
-        if(trace > 0){
-        	S = Math.sqrt(1.0 + trace) * 2
-			w = .25 * S
-            x = (DCM[2][1] - DCM[1][2]) / S
-            y = (DCM[0][2] - DCM[2][0]) / S
-            z = (DCM[1][0] - DCM[0][1]) / S
-        }else if(DCM[0][0] > DCM[1][1] && DCM[0][0] > DCM[2][2]){
-        	S = 2 * Math.sqrt(1 + DCM[0][0] - DCM[1][1] - DCM[2][2])
-            w = (DCM[2][1] - DCM[1][2]) / S
-            x = .25 * S
-            y = (DCM[0][1] + DCM[1][0]) / S
-            z = (DCM[0][2] + DCM[2][0]) / S
-        }else if(DCM[1][1] > DCM[2][2]){
-        	S = 2 * Math.sqrt(1 + DCM[1][1] - DCM[0][0] - DCM[2][2])
-            w = (DCM[0][2] - DCM[2][0]) / S
-            x = (DCM[0][1] + DCM[1][0]) / S
-            y = .25 * S
-            z = (DCM[1][2] + DCM[2][1]) / S
-        }else if(DCM[1][1] > DCM[2][2]){
-        	S = 2 * Math.sqrt(1 + DCM[2][2] - DCM[0][0] - DCM[1][1])
-            w = (DCM[1][0] - DCM[0][1]) / S
-            x = (DCM[0][2] + DCM[2][0]) / S
-            y = (DCM[1][2] + DCM[2][1]) / S
-            z = .25 * S
-        }
-    	quaternion = [w, x, y, z]
-        return quaternion
-    }
+
 /*
 
 var r_des = [
@@ -817,88 +797,6 @@ should return:
 
 
 */
-    
-//Patch:
-function angles_to_DCM(angles = [0, 0, 0], sequence = "XYZ"){
-    //default could be ZX'Z'
-
-    var result = []
-    let elt = ""
-    for(let char of sequence){
-        if(elt.length == 1){
-            if(char == "'"){
-                elt += char
-                result.push(elt)
-                elt = ""
-            }else{
-                result.push(elt)
-                elt = char
-            }
-        }else{
-            elt = char
-        } 
-    }
-    if((elt != "'") && (elt.length == 1)){
-        result.push(elt)
-    }
-
-    let DCM = Vector.identity_matrix(3)
-    if(result.length == 3){
-        for(var i = 0; i < 3; i++){
-            DCM = Vector.rotate_DCM(DCM, result[i], angles[i]) 
-        }
-    }
-    return Vector.transpose(DCM)
-}
-
-function quat_to_DCM(quaternion = [1, 0, 0, 0]){
-    //Algorithm was found here:
-    //http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/
-    let w = quaternion[0]
-    let x = quaternion[1]
-    let y = quaternion[2]
-    let z = quaternion[3]
-
-    let DCM = Vector.make_matrix(3,3)
-    DCM[0][0] = 1-2*y*y-2*z*z
-    DCM[1][0] = 2*x*y+2*z*w
-    DCM[2][0] = 2*x*z-2*y*w
-    DCM[0][1] = 2*x*y-2*z*w
-    DCM[1][1] = 1-2*x*x-2*z*z
-    DCM[2][1] = 2*y*z+2*x*w
-    DCM[0][2] = 2*x*z+2*y*w
-    DCM[1][2] = 2*y*z-2*x*w
-    DCM[2][2] = 1-2*x*x-2*y*y
-    return DCM
-}
-
-Vector.make_pose = function(position = [0, 0, 0], orientation = [0, 0, 0], scale_factor = 1, sequence = "ZYX"){
-		let dim = Vector.matrix_dimensions(orientation)
-        let DCM
-        let s = scale_factor
-        if(dim[0] === 1 && dim[1] === 3){
-        	//Euler Angle
-            //DCM = Convert.angles_to_DCM(orientation, sequence)
-            DCM = angles_to_DCM(orientation, sequence)
-        }else if(dim[0] === 1 && dim[1] === 4){
-            //Quaternion
-            //DCM = Convert.quat_to_DCM(orientation)
-            DCM = quat_to_DCM(orientation)
-        }else if(dim[0] === 3 && dim[1] === 3){
-        	//DCM
-            DCM = orientation
-        }else{
-        	dde_error("orientation is improperly formatted")
-        }
-        
-        //Please tell me there's a better way to do this:
-        let pose = [[s*DCM[0][0], s*DCM[0][1], s*DCM[0][2], position[0]],
-        			[s*DCM[1][0], s*DCM[1][1], s*DCM[1][2], position[1]],
-                    [s*DCM[2][0], s*DCM[2][1], s*DCM[2][2], position[2]],
-                    [0, 0, 0, 1]]
-        return pose
-	}
-
 
 /*
 
@@ -942,270 +840,3 @@ Vector.euler_angles_to_DCM = function(euler_angles = [0, 0, 0], euler_sequence =
     }
 
 */
-
-DH.scale_dh_mat = function(dh_mat, length_scale = 1, rotation_scale = 1){
-    for(let i = 0; i < dh_mat.length; i++){
-    	dh_mat[i][0] *= length_scale
-        dh_mat[i][1] *= rotation_scale
-        dh_mat[i][2] *= length_scale
-        dh_mat[i][3] *= rotation_scale
-    }
-    return dh_mat
-}
-
-
-
-//******************************* Acceleration Conversion *********************
-// Written by Josh Smith
-// Started: 3/1/2023
-// Updated: 3/28/2023
-
-
-DH.sub = {} //all of the sub functions are put here to not polute DH
-
-DH.sub.to_radians = function (degrees) {
-  return degrees * (Math.PI / 180);
-}
-DH.sub.from_radians = function (radians) {
-  return radians * (180/Math.PI);
-}
-DH.sub.dh_to_T = function(dh_params){
-    //convert dh parameters to homogenous transformation
-	var [d, theta, r, alpha] = dh_params
-    var alpha_c = Math.cos(DH.sub.to_radians(alpha))
-    var alpha_s = Math.sin(DH.sub.to_radians(alpha))
-    var theta_c = Math.cos(DH.sub.to_radians(theta))
-    var theta_s = Math.sin(DH.sub.to_radians(theta))
-    var result = [[theta_c,-theta_s*alpha_c,theta_s*alpha_s,r*theta_c],
-                  [theta_s,theta_c*alpha_c,-theta_c*alpha_s,r*theta_s],
-                  [0,alpha_s,alpha_c,d],
-                  [0,0,0,1]]
-    return result
-}
-DH.sub.T_to_Ad = function(T){
-    //convert homogenoeous matrix to SE3 adjoint
-	var R = mathjs.subset(T,mathjs.index([0,1,2],[0,1,2]))
-    var p_skew = [[0, -T[2][3], T[1][3]],
-                  [T[2][3], 0, -T[0][3]],
-                  [-T[1][3], T[0][3], 0]]
-    var Ad = mathjs.zeros(6,6)
-    Ad.subset(mathjs.index([0,1,2],[0,1,2]),R)
-    Ad.subset(mathjs.index([3,4,5],[3,4,5]),R)
-    Ad.subset(mathjs.index([0,1,2],[3,4,5]),mathjs.multiply(p_skew,R))
-    return Ad
-}
-DH.sub.qd_to_twist = function(qd, Ad){
-    //convert qd to the local twist for a link
-	var eta = [0,0,0,0,0,1] // rotation around z axis only due to DH parameters
-    var twist = mathjs.multiply(mathjs.inv(Ad),mathjs.multiply(eta,qd))
-    return twist
-}
-DH.sub.twist_to_adj = function(twist){
-   //convert 6x1 twist into se3 6x6 adj
-   var adj = mathjs.zeros(6,6)
-   var v_skew = [[0, -twist[2], twist[1]],
-                 [twist[2],0,-twist[0]],
-                 [-twist[1],twist[0],0]]
-   var w_skew = [[0, -twist[5], twist[4]],
-                 [twist[5],0,-twist[3]],
-                 [-twist[4],twist[3],0]]
-   adj.subset(mathjs.index([0,1,2],[0,1,2]),w_skew)
-   adj.subset(mathjs.index([3,4,5],[3,4,5]),w_skew)
-   adj.subset(mathjs.index([0,1,2],[3,4,5]),v_skew)
-   return adj
-}
-DH.sub.compute_Jd_body = function(Ad, Adj, J){
-    // Jd_i+1 =  Ad_i^-1 * Jd_i - adj_i * Ad_i^-1 * J_i
-	var jacobian_dot_acc = (acc => (ad,i) => {acc = mathjs.add(mathjs.multiply(mathjs.inv(ad),acc), mathjs.unaryMinus(mathjs.multiply(Adj[i], mathjs.multiply(mathjs.inv(ad),i>=1?J[i-1]:mathjs.zeros(6,6))))); return acc})(mathjs.zeros(6,6))
-    return Ad.map(jacobian_dot_acc)
-}
-DH.sub.compute_J_body = function(Ad){
-    // J_i+1 = Ad_i^-1 * J_i + Ad_i^-1 * [0,0,0,0,0,1]
-	var jacobian_acc = (acc => (ad,i) => {acc = mathjs.multiply(mathjs.inv(ad),acc); acc.subset(mathjs.index([0,1,2,3,4,5],i),mathjs.multiply(mathjs.inv(ad),[0,0,0,0,0,1])); return acc})(mathjs.zeros(6,6))
-	return Ad.map(jacobian_acc)
-}
-    
-DH.sub.compute_J_wa = function(fk, J){
-	//compute body to world aligned frame conversion (no translation only rotation)
-    var ee = mathjs.clone(fk[5])
-    ee.subset(mathjs.index([0,1,2],[3,4,5]),mathjs.zeros(3,3))
-    //convert body jacobian to world aligned
-    return mathjs.multiply(ee,J[5])
-}
-
-DH.sub.compute_Jd_wa = function(fk, twists, J_wa, Jd){
-    //compute body to world aligned frame conversion (no translation only rotation)
-    var ee = mathjs.clone(fk[5])
-    ee.subset(mathjs.index([0,1,2],[3,4,5]),mathjs.zeros(3,3))
-    //compute derivative of conversion from body to world aligned
-    var twists_adj = DH.sub.twist_to_adj(mathjs.multiply(ee, twists[5])._data)
-    twists_adj.subset(mathjs.index([0,1,2],[3,4,5]),mathjs.zeros(3,3))
-    //convert body jacobian derivative to world aligned
-    return mathjs.add(mathjs.multiply(ee, Jd[5]), mathjs.multiply(twists_adj, J_wa))
-}
-
-DH.sub.compute_Jd = function(fk, twists, Ad, Adj, J, J_wa){
-    //compute the body jacobian first
-	var Jd = DH.sub.compute_Jd_body(Ad,Adj,J)
-    //convert the frame into world aligned
-    return DH.sub.compute_Jd_wa(fk,twists, J_wa, Jd)
-}
-
-DH.sub.compute_link_states = function(Q_rad, dh_mat){
-    //DH parameters to transformation matrices
-    var robot_fixed = dh_mat.map((dh_params) => DH.sub.dh_to_T(dh_params))
-    //Joint state to transformation matrix
-    var robot_joints = Q_rad.map((q,i) => mathjs.matrix([[Math.cos(q), -Math.sin(q),0,0],
-                                                         [Math.sin(q), Math.cos(q),0,0],
-                                                         [0,0,1,0],
-                                                         [0,0,0,1]]))
-    //Multiply joint state and dh parameters to get per link FK at robot state Q
-    var robot_state = robot_joints.map((T,i) => mathjs.multiply(T,robot_fixed[i]))
-    //Transformation matrices to SE3 spatial transform
-    var robot_ad = robot_state.map((T) => DH.sub.T_to_Ad(T._data))
-    return robot_ad
-}
-
-DH.sub.compute_link_twists = function(Q_dot_rad, Ad){
-    //convert Q_dot to spatial twists
-    var robot_twists = Ad.map((Ad,i) => DH.sub.qd_to_twist(Q_dot_rad[i],Ad))
-    //convert twist to se3 lie algebra
-    var robot_adj = robot_twists.map((twist) => DH.sub.twist_to_adj(twist._data))
-    return [robot_twists,robot_adj]
-}
-
-DH.J_accel_to_cart = function(Q, Q_dot, Q_dot_dot, dh_mat){
-    var cart_accels = [0, 0, 0, 0, 0, 0]
-    //Map Q to radians
-    var Q_rad = Vector.multiply(Q, DH.sign_swap).map((q)=>DH.sub.to_radians(q))
-    var Q_dot_rad = Vector.multiply(Q_dot, DH.sign_swap).map((q)=>DH.sub.to_radians(q))
-    var Q_dot_dot_rad = Vector.multiply(Q_dot_dot, DH.sign_swap).map((q)=>DH.sub.to_radians(q))
-    
-   	//compute SE3 adjoint and se3 adj
-    var Ad = DH.sub.compute_link_states(Q_rad,dh_mat)
-    var [twists,adj] = DH.sub.compute_link_twists(Q_dot_rad,Ad)
-    
-    //cumulatively add up adjoints to fk
-    var cumulative_ad = (acc => (ad,i) => {acc = mathjs.multiply(acc,ad);return acc})(mathjs.identity(6,6))
-    var fk = Ad.map(cumulative_ad)
-    //compute cumulative twist to end effector
-    var cumulative_twist = (acc => (twist,i) => {acc = mathjs.add(mathjs.multiply(mathjs.inv(Ad[i]),acc),twist); return acc})([0,0,0,0,0,0])
-    var fk_twists = twists.map(cumulative_twist)
-    
-    //compute body jacobians
-	var J_body = DH.sub.compute_J_body(Ad)
-    //compute world aligned jacobian
-    var J = DH.sub.compute_J_wa(fk, J_body)
-    //compute world aligned jacobian derivative
-    var Jd = DH.sub.compute_Jd(fk, fk_twists, Ad, adj, J_body, J)
-    // xdd = Jqdd + Jd qd
-    
-    return [mathjs.multiply(J,Q_dot_rad)._data,mathjs.add(mathjs.multiply(J,Q_dot_dot_rad)._data, mathjs.multiply(Jd, Q_dot_rad)._data)]
-    //return [mathjs.multiply(J,Q_dot_rad),mathjs.add(mathjs.multiply(J,Q_dot_dot_rad), mathjs.multiply(Jd, Q_dot_rad))]
-}
-DH.cart_accel_to_J = function(cart_accel, cart_vel, Q, dh_mat){
-    //convert Q into radians
-    var Q_rad = Vector.multiply(Q, DH.sign_swap).map((q)=>DH.sub.to_radians(q))
-    //compute SE3 adjoints
-    var Ad = DH.sub.compute_link_states(Q_rad,dh_mat)
-    //compute body jacobians
-    var J_body = DH.sub.compute_J_body(Ad)
-    //cumulatively add up adjoints to fk
-    var cumulative_ad = (acc => (ad,i) => {acc = mathjs.multiply(acc,ad);return acc})(mathjs.identity(6,6))
-    var fk = Ad.map(cumulative_ad)
-    //convert body jacobian to world aligned jacobian
-    var J = DH.sub.compute_J_wa(fk, J_body)
-    //compute q dot from jacobian inverse (assumed world aligned)
-    var Q_dot_rad = mathjs.multiply(mathjs.inv(J), cart_vel)
-    
-    //compute the se3 adj
-    var [twists,adj] = DH.sub.compute_link_twists(Q_dot_rad._data,Ad)
-    
-    //compute cumulative twist to end effector
-    var cumulative_twist = (acc => (twist,i) => {acc = mathjs.add(mathjs.multiply(mathjs.inv(Ad[i]),acc),twist); return acc})([0,0,0,0,0,0])
-    var fk_twists = twists.map(cumulative_twist)
-    
-    //compute the world aligned jacobian derivative
-    var Jd = DH.sub.compute_Jd(fk, fk_twists, Ad, adj, J_body, J)
-    // qdd = J^-1 (xdd - Jd qd)
-    Q_dot_dot_rad = mathjs.multiply(mathjs.inv(J),mathjs.add(cart_accel, mathjs.unaryMinus(mathjs.multiply(Jd, Q_dot_rad))))
-    
-    //map back to degrees
-    return [Vector.multiply(Q_dot_rad.map((qd)=>DH.sub.from_radians(qd))._data,DH.sign_swap),Vector.multiply(Q_dot_dot_rad.map((qdd)=>DH.sub.from_radians(qdd))._data,DH.sign_swap)]
-}
-
-module.exports = DH
-
-
-/* // Tests for Acceleration Conversion:
-//DH params from Dexter HDI-007010 (meters and degrees):
-var dh_mat = [
-    [0.250101, 91.59388888888888, -0.003545, 85.35805555555555],
-    [0.088342, 89.42305555555555, 0.339865, 180.43055555555554],
-    [0.06146, -0.018333333333333333, 0.31178, 0.8072222222222222],
-    [0.0393, 86.67277777777778, -0.000049, 89.75666666666666],
-    [0.055616, 94.56972222222223, 0, 90],
-    [0.08295, 0, 0, -90]
-]
-var range = 60
-var lower = -30
-var random = function(){ return Math.random()*range + lower }
-
-
-var error_sum = 0
-var N = 10
-var start_time = Date.now()
-for(let i = 0; i < N; i++){
-    var Q = [random(),random(),random(),random(),random(),random()]
-    range = 40
-    lower = -20
-    var Q_dot = [random(),random(),random(),random(),random(),random()]
-    var Q_dot_dot = [random(),random(),random(),random(),random(),random()]
-    var [cart_vel,cart_acc] = DH.J_accel_to_cart(Q,Q_dot,Q_dot_dot, dh_mat)
-
-    var [Q_dot_computed, Q_dot_dot_computed] = DH.cart_accel_to_J(cart_acc, cart_vel, Q, dh_mat)
-    var result = Vector.subtract(Q_dot_dot, Q_dot_dot_computed)
-    var error = Vector.max(Vector.abs(result))
-    if(error > 1e-7){
-    	out()
-        out("Error " + error_sum + ":" + error)
-        out("Result: " + JSON.stringify(result))
-        out("Q: " + JSON.stringify(Q))
-        out("Q_dot: " + JSON.stringify(Q_dot))
-        out("Q_dot_dot: " + JSON.stringify(Q_dot_dot))
-        error_sum++
-    }
-}
-var dur = (Date.now() - start_time)*_ms
-out("dur: " + dur)
-out("dur/iteration: " + dur/N)
-out("Succes Rate: " + 100*(1-error_sum/N) + "%")
-out("Goal Success: 99.939%")
-
-//out(mathjs.add(Q_dot_dot, mathjs.unaryMinus(Q_dot_dot_computed))._data)
-
-
-
-cart_acc._data = [0, 0, 0, 0, 0, 0]
-cart_vel._data = [0, 0, 0, 0, 0, 0]
-Q = [0, 0, 0, 0, 0, 0]
-
-var [Q_dot_computed, Q_dot_dot_computed] = DH.cart_accel_to_J(cart_acc, cart_vel, Q, dh_mat)
-out(Q_dot_dot_computed)
-out(mathjs.add(Q_dot_dot, mathjs.unaryMinus(Q_dot_dot_computed)))
-
-
-var [Q_dot_computed, Q_dot_dot_computed] = DH.cart_accel_to_J(cart_acc, cart_vel, Q, dh_mat)
-
-var [cart_vel,cart_acc] = DH.J_accel_to_cart(Q,Q_dot,Q_dot_dot, dh_mat)
-
-*/
-
-
-
-//******************************* End of Acceleration Conversion *********************
-
-
-
-
-

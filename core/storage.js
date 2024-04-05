@@ -306,6 +306,7 @@ module.exports.file_content = file_content //depricated
 //and just returns the string if data happens to be a string
 //for referencing a file on dexter, path example 'Dexter.dexter0:/srv/samba/share/errors
 function read_file_async(path, encoding="utf8", callback){
+    console.log("top of read_file_async passed path of: " + path)
     let dex_instance = path_to_dexter_instance(path)
     if(dex_instance){
            //if(node_server_supports_editor(dex_instance)) {

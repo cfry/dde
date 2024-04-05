@@ -5,7 +5,8 @@ var Convert = require("./math/Convert.js")
 var Coor    = require("./math/Coor.js")
 var Kin     = require("./math/Kin.js")
 var Vector  = require("./math/Vector.js")
-require("./math/dh.js")     //makes DH global
+require("./math/DH.js")     //makes DH global
+require("./math/HiMem.js")  //makes HiMem global
 var txt     = require("./math/txt.js")
 var calibrate_build_tables = require("./low_level_dexter/calibrate_build_tables.js")
 

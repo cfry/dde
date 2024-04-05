@@ -1,5 +1,5 @@
-global.dde_version = "3.9.1" //require("../package.json").version
-global.dde_release_date = "Mar 23, 2024" //require("../package.json").release_dat9
+global.dde_version = "3.9.2" //require("../package.json").version
+global.dde_release_date = "Apr 5, 2024" //require("../package.json").release_dat9
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
 
@@ -121,6 +121,7 @@ function run_shell_cmd(cmd_string, options={}, cb=run_shell_cmd_default_cb){
 var child_process = require("child_process")
 var WebSocket = require('ws')
 var fs = require('fs')
+var mathjs = require('mathjs')
 
 var Socket = require("./socket.js")
 
@@ -141,6 +142,8 @@ var {Root} = require("./object_system.js")
 var Coor   = require("../math/Coor.js")
 var Kin    = require("../math/Kin.js")
 var Vector = require("../math/Vector.js")
+var DH     = require("../math/DH.js")
+
 var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("../math/Trig_in_Degrees.js")
 var Job    = require("./job.js")
 
@@ -188,6 +191,7 @@ var {Py} = require("./py.js")
 global.child_process = child_process
 global.WebSocket = WebSocket
 global.fs       = fs
+global.mathjs   = mathjs
 global.Socket   = Socket
 global.to_source_code = to_source_code
 global.keep_alive_value = false
@@ -222,6 +226,7 @@ global.Control  = Control
 global.IO       = IO
 global.Job      = Job
 global.Vector   = Vector
+global.DH       = DH
 global.Kin      = Kin
 global.FPGA     = FPGA
 

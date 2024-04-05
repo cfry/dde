@@ -24,20 +24,25 @@ Dexter.prototype.defaults_url = function(){
     return "Dexter." + this.name + ":/srv/samba/share/Defaults.make_ins"
 }
 
+Dexter.prototype.defaults_alt_url = function(){
+    return "Dexter." + this.name + ":/srv/samba/share/make_ins/Defaults.make_ins"
+}
 
-/*Gets the Defaults.make_ins file from Dexter and
-sets this.defaults_lines with an array of strings (1 string per line)
-Dexter.dexter0.defaults_read()
-Dexter.dexter0.defaults_lines
+
+/*Obsolete, pre apr 4 2024 version
+//Gets the Defaults.make_ins file from Dexter and
+// sets this.defaults_lines with an array of strings (1 string per line)
+// Dexter.dexter0.defaults_read()
+// Dexter.dexter0.defaults_lines
 //the callback is optional.
 //when set_link_lengths called defaults_read,
 //it has the callback call Dexter.prototype.start_aux
-*/
+
 Dexter.prototype.defaults_read = function(callback = null){
     let the_url = this.defaults_url()
     let the_dex_inst = this
     let normal_defaults_read_cb = (function(err, content){
-                        if(err) { //Often becuse Defaults.make_ins isn't on the Dexter.
+                        if(err) { //Often because Defaults.make_ins isn't on the Dexter.
                                   //so print a warning and use Dexter.defaults instead
                                   //and let the Job proceed
                             if (typeof(err) !== "string"){
@@ -57,11 +62,11 @@ Dexter.prototype.defaults_read = function(callback = null){
                             if (callback) {
                                 callback.call(the_dex_inst, null)
                             }
-                            /*dde_error("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
-                                             the_url + "<br/>and error message: " +
-                                             err.message +
-                                             "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.")
-                            */
+                            //dde_error("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
+                            //                 the_url + "<br/>and error message: " +
+                            //                 err.message +
+                            //                 "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.")
+
                         }
                         else {
                             try {
@@ -84,6 +89,81 @@ Dexter.prototype.defaults_read = function(callback = null){
         })
     read_file_async(the_url, undefined, normal_defaults_read_cb)
 }
+*/
+
+/* Apr 4, 2024 version
+   defaults_read: populate Dexter.defaults with the right values.
+   Never errors.
+   //Its signature is the same as pre apr 4, 2024 version
+   //except for the name of the arg.
+Algorithm:
+first try to get /s/s/s/Defaults.make_ins.
+If that doesn't exist, try to get /s/s/s/make_ins/Defaults.make_ins
+If that doesn't exist, use "default_defaults".
+If parsing one of the Defaults.make_ins files fails,
+  use the default_default.
+Once we finally set Dexter.defaults with the right values,
+call the callback to defaults_read with args: the_dex_inst, null.
+
+The 1 existing call to defaults_read is in robot.js line 2731 in
+set_link_lengths_using_node_server
+stays exactly the same: the_dexter.defaults_read(callback)
+*/
+Dexter.prototype.defaults_read = function(the_defaults_read_cb = null){
+    //the below 5 are all closed over in read_file_async_callback
+    out("Now attempting to read file: Defaults.make_ins for initializing Dexter.")
+    let make_ins_urls = [this.defaults_url(), this.defaults_alt_url()]
+    let orig_make_ins_urls = make_ins_urls.slice()//make a copy for warning messages
+    let the_dex_inst = this
+    let read_file_async_callback_container = [] //for closure self reference
+    let now_trying_make_ins_url = null
+
+    let read_file_async_callback = function(err, content) {
+        if(err){
+            warning("Failed to find: " + now_trying_make_ins_url + " due to: " + err)
+            if(make_ins_urls.length > 0){ //more urls to try
+                now_trying_make_ins_url = make_ins_urls.shift()
+                read_file_async(now_trying_make_ins_url, undefined, read_file_async_callback_container[0])
+            }
+            else { //no more urls to try so use default_defaults
+                the_dex_inst.defaults = JSON.parse(JSON.stringify(Dexter.defaults))
+                warning("Could not read any of: " + orig_make_ins_urls +
+                    "<br/>so Dexter." + the_dex_inst.name +
+                    ".defaults has been set to a copy of Dexter.defaults, the 'default defaults'."
+                )
+                if (the_defaults_read_cb) {
+                    the_defaults_read_cb.call(the_dex_inst, null)
+                }
+            }
+        }
+        else { //got good content
+            out("Found: " + now_trying_make_ins_url, "green")
+            try{
+                the_dex_inst.defaults_set_lines_from_string(content)
+                the_dex_inst.defaults_lines_to_high_level()
+            }
+            catch(err){
+                let defaults_copy = JSON.parse(JSON.stringify(Dexter.defaults))
+                the_dex_inst.defaults = defaults_copy
+                warning("Could not parse " + orig_make_ins_urls[0] +
+                        " due to:<br/>" + err.message +
+                        "<br/>so Dexter." + the_dex_inst.name +
+                        ".defaults has been set to a copy of Dexter.defaults."
+                )
+            }//end catch
+            if (the_defaults_read_cb) {
+                the_defaults_read_cb.call(the_dex_inst, null)
+            }
+        }//end else
+    } //end of read_file_async_callback def.
+
+    read_file_async_callback_container[0] = read_file_async_callback
+
+    //do the first call to read_file_async_callback
+    //the 2nd call is made within read_file_async_callback
+    now_trying_make_ins_url = make_ins_urls.shift()
+    read_file_async(now_trying_make_ins_url, undefined, read_file_async_callback)
+} //end defaults_read
 
 Dexter.prototype.defaults_write_return_string = function(){
     this.defaults_high_level_to_defaults_lines()

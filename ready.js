@@ -1859,11 +1859,13 @@ bod = encodeURIComponent(make_dde_status_report())
 window.open("mailto:cfry@hdrobotic.com?subject=" + subj + "&body=" + bod)
 }
 const {google} = require('googleapis');
+var mathjs = require(/*DDE_NPM.folder + */ "mathjs")
 
 var {get_output} = require("./core/out.js")
 //var {Root} = require("./core/object_system.js") //should work but doesn't jan 13, 2019
 var {convert_backslashes_to_slashes} = require("./core/storage.js")
 var Coor  = require("./math/Coor.js")
+var DH    = require("./math/DH.js")
 var calibrate_build_tables = require("./low_level_dexter/calibrate_build_tables.js")
 var Job   = require("./core/job.js")
 var Gcode = require("./core/gcode.js")
@@ -1873,7 +1875,8 @@ var {FPGA} = require("./core/fpga.js")
 var {Simqueue} = require("./core/simqueue.js")
 require('./core/dexter_defaults.js')
 
-var mathjs = require(/*DDE_NPM.folder + */ "mathjs")
+
+
 
 
 

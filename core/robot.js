@@ -2062,18 +2062,43 @@ Dexter.prototype.move_to = function(xyz            = [],
                          j7_angle,
                          this)
 }
-
-//note that a workspace_pose = null, will default to the job's default workspace_pose
 Dexter.move_to = function(xyz            = [],
-                          J5_direction   = [0, 0, -1],
-                          config         = Dexter.RIGHT_UP_OUT,
-                          workspace_pose = null,
-                          j6_angle       = [0],
-                          j7_angle       = [0],
-                          robot
-                         ){
-       return new Instruction.Dexter.move_to(xyz, J5_direction, config, workspace_pose, j6_angle, j7_angle, robot)
+                             J5_direction   = [0, 0, -1],
+                             config         = Dexter.RIGHT_UP_OUT,
+                             workspace_pose = null,
+                             j6_angle       = [0],
+                             j7_angle       = [0],
+                             robot
+){
+    return new Instruction.Dexter.move_to(xyz, J5_direction, config, workspace_pose, j6_angle, j7_angle, robot)
 }
+
+
+Dexter.prototype.move_to_DH = function(xyz              = [],
+                                       orientation = [[-1, 0, 0],
+                                                                 [0, 0, 1],
+                                                                 [0, 1, 0]
+                                                                ],
+                                       dh_mat,
+                                       robot
+                                    ) {
+    return Dexter.move_to_DH(xyz,
+        orientation,
+        dh_mat,
+        this)
+}
+
+Dexter.move_to_DH = function(xyz   = [],
+                             orientation = [[-1, 0, 0],
+                                 [0, 0, 1],
+                                 [0, 1, 0]
+                             ],
+                             dh_mat,
+                             robot
+){
+    return new Instruction.Dexter.move_to_DH(xyz, orientation, dh_mat, robot)
+}
+
 
 //the same as move_to but generates a "P" oplet
 Dexter.prototype.pid_move_to = function(xyz        = [],
@@ -2619,13 +2644,14 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null) {
                 this.set_link_lengths_using_node_server(job_to_start_when_done)
             }
             else {
+                /*replaced Apr 3, 2024 with the below 2 lines. Requested by James W to help with
+                   his proxy server.
                 job_to_start_when_done.stop_for_reason("errored_from_dexter_connect",
                     "While attempting to set_link_lengths, " +
                            " can't connect to Dexter." + this.name)
-                //dde_error("Dexter." + this.name + "'s node server is not responding.<br/>" +
-                //    "Set the Job's 'get_dexter_defaults' param to false to avoid looking for Defaults.makeins file and<br/>" +
-                //    "initialize Dexter defaults to their idealized values.")
-                //this.set_link_lengths_using_job(job_to_start_when_done)
+                */
+                this.defaults = Dexter.defaults
+                this.start_aux(job_to_start_when_done)
             }
         } else { //simulating, so set to idealized values
             this.defaults = Dexter.defaults

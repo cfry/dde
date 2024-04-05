@@ -6883,6 +6883,38 @@ Dexter.move_to([0.1, 0.2, 0.3],      // xyz position
 )  </code></pre>
 </details> <!--end move_to -->
 
+<details id="Dexter.move_to_DHdoc_id" class="doc_details"><summary>move_to_DH</summary>
+    Like <code>Dexter.move_to</code> in functionality but more acccurate since its
+    customized to the particular Dexter used.
+    <br/>
+    <i>Parameters</i><br/>
+    <b>xyz</b> An array of 3 numbers, x, y and z in meters. Required.
+    The numbers are floating point, can be negative or positive.
+    The possible range of each number depends on the other numbers.
+    The numbers will generally be > -1 and < 1.<br/>
+    <b>orientation</b> An array of length 3 whose elements are also an
+      array of length 3. The inner arrays contain elements that are either
+      -1, 0, or 1. Default:<br>
+    <code>[[-1, 0, 0],[0, 0, 1],[0, 1, 0]]</code><br/>
+    <b>dh_mat</b> An array of length 6. The elements are each arrays
+      of length 4 of floating point numbers. Normally this is automatically
+      retrieved from the Defaults.make_ins file for the specific robot.
+      This matrix is made during the calibration of the robot. It differs
+      from Dexter to Dexter because Dexters differ (very slightly) in their
+      link lengths and joint positions.<br/>
+    <i>Examples:</i>
+    <pre><code>
+new Job({name: "my_job",
+         do_list: [
+           Dexter.move_to_DH([0.1, 0.2, 0.2])
+       ]}) </code></pre>
+    <pre><code>
+new Job({name: "my_job",
+         do_list: [
+           Dexter.dexter0.move_to_DH([0.1, 0.2, 0.2])
+       ]}) </code></pre>
+</details>
+
 <details id="Dexter.move_to_relative_doc_id" class="doc_details"><summary>move_to_relative</summary>
     This instruction is similar to <code>Dexter.move_to</code> except that the passed in
     xyz array values (in meters) that are ADDED to Dexter's
@@ -8827,8 +8859,9 @@ For documentation, see
 
 <details id="servo_doc_id" class="doc_details"><summary>Servo</summary>
     Dexter's, as of March 2024, typically have 7 joints, each with its own motor.
-    Joints 6 and 7 are different than the others. The Servo class helps
-    control the fine points of these motors.<br/>
+    Joints 6 and 7 are different than the others. They use Dynamixel servos whereas
+    the other joints use stepper motors paired with Haddongton's own optical encorders.
+    The Servo class helps control the fine points of Dynamixel servos.<br/>
     For more typical control via Job instructions, see
     <a href="#" onclick="open_doc(end_effector_instructions_doc_id)">End Effector Instructions</a>
    <!-- Here's an article comparing the two:

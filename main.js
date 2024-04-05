@@ -376,7 +376,7 @@ ipc.on('serial_devices', function(event){
 //used by render process get_page for synchronous call
 //beware, if the url is non-existent, this might not return an error.
 ipc.on('get_page', function(event, url_or_options){
-  console.log("in get_page in main.js with:  " + url_or_options)
+  //onsole.log("in get_page in main.js with:  " + url_or_options)
   try{
       request(url_or_options,
               function(err, response, body) {

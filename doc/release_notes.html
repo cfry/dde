@@ -6,6 +6,34 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
+<details class="doc_details"><summary>v 3.9.2, Apr 5, 2024</summary>
+Highlights: New, no-error process for getting Defaults.makeins file from Dexter.
+    New Job instruction: Dexter.move_to_DH.
+    New HiMem class.
+<ul>
+    <li>Ref Man Robot/Dexter/Servo extended to describe J6 and 7 motors
+        as Dynamixel servos.</li>
+    <li> When getting the Defaults.makeins from Dexter, now does, in order:
+        <ol><li>Check for the file /srv/samba/share/Defaults.make_ins.
+            If it is not present...</li>
+            <li>Check for the file /srv/samba/share/make_ins/Defaults.make_ins
+                If it is not present...</li>
+            <li>use the "default default" values from <code>Dexter.defaults</code></li>
+        </ol>
+    </li>
+    <li>If there is no server on Dexter, or some other errors parsing a found Defaults.make_ins,
+        prints a warning instead of erroring and uses the "default default" values.</li>
+    <li>Slight increase in height of the Output pane header to reduce the
+        likelyhood of a vertical scroll bar showing up in the Output pane header.</li>
+    <li>New Job instruction <code>Dexter.move_to_DH</code>. See Ref Man for details.</li>
+    <li><code>DH</code> and <code>mathjs</code> are now global variables.
+        You should not have to require these from now on.</li>
+    <li>New algorithm for using DH parameters.</li>
+    <li>HiMem class now contains utility methods for dealing with "Hi Mem" on Dexter.
+        <code>HiMem</code> is a global variable.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.9.1, Mar 23, 2024</summary>
     Highlights: new Servo class.
     5 new end-effector Job instructions.
