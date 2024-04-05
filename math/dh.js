@@ -1,5 +1,5 @@
 let mathjs = require("mathjs")
-globalThis.DH = {}
+globalThis.mathjs = mathjs
 
 DH.forward_kinematics = function(J_angles, dh_mat){
 	let T = [0, 0, 0, 0, 0, 0]
