@@ -2,6 +2,7 @@ let mathjs = require("mathjs")
 globalThis.mathjs = mathjs
 var DH = {}
 
+
 DH.forward_kinematics = function(J_angles, dh_mat){
 	let T = [0, 0, 0, 0, 0, 0]
 	T[0] = Vector.make_pose()
