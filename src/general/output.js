@@ -6,13 +6,19 @@
 //since I can't actually change window width, height, x, y programmatically,
 //probably have to give up on this.
 globalThis.addEventListener('resize', function(event){
-    DDE_DB.persistent_values.dde_window_x      = globalThis.screenX //todo dde4 coment these back in
+    DDE_DB.persistent_values.dde_window_x      = globalThis.screenX //todo see todo comment below
     DDE_DB.persistent_values.dde_window_y      = globalThis.screenY
+
     DDE_DB.persistent_values.dde_window_width  = globalThis.outerWidth
-    DDE_DB.persistent_set("dde_window_height",   globalThis.outerHeight) //causes them all to be saved.
+    DDE_DB.persistent_set("dde_window_height",   globalThis.outerWidth) //causes just outerwidth to be saved.
+
+    DDE_DB.persistent_values.dde_window_height = globalThis.outerHeight
+    DDE_DB.persistent_set("dde_window_height",   globalThis.outerHeight) //causes just outerHeight to be saved.
 });
 
 //todo dde4: though this is documented to work, it doesn't and probably wont
+//    but more important, since dde4 is just a tab in the window, one of many,
+//    dde4 shouldn't be setting the position of the user's window. Just let Chrome do that.
 //due to security reasons. Probably have to give up on this.
 globalThis.set_dde_window_size_to_persistent_values = function(){
     globalThis.moveTo(DDE_DB.persistent_get("dde_window_x"), DDE_DB.persistent_get("dde_window_y"))

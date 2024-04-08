@@ -1,0 +1,77 @@
+does my openai account support gpt4?
+Return only a JavaScript data structure.
+
+which openai model is being used?
+return only the model name.
+
+which openai model is being used?
+Return only a JavaScript data structure.
+returns {
+  model: "GPT-3"
+}
+
+what is 12 times 4?
+Return only the number.
+
+what is 12 times 4?
+Return only a JavaScript data structure. (returns just the number)
+
+
+what is 12 times 4?
+Return only the answer.
+
+What are the colors of the rainbow.
+Return only a JavaScript data structure. (returns an array of strings)
+
+What are the colors of the rainbow.
+Return a JavaScript array.
+
+Are you sentient?
+Return only yes or no.
+
+Are you sentient?
+Return only a JavaScript data structure.{
+  error: "Invalid request"
+}
+
+5 equals two times four.
+Return only a JavaScript data structure
+
+Are you sentient?
+Return only the answer.
+
+What color is the sky?
+Return only the color.
+
+What are the first 10 prime numbers?
+Return a JavaScript array.
+
+What are the first 10 prime numbers?
+Return only the answer.
+
+Who is the prime minister of Canada?
+Return only the answer.
+
+When is Christmas?
+Return only the answer.
+
+Where is Los Angeles?
+Return just the answer.
+
+What are the parameters of the Javascript function "fetch"?
+Return only a JavaScript array.  => ["fetch(url, options)"]
+
+What are the parameters of the Javascript function "fetch"?
+Return only the answer.
+
+Who were the United States Presidents?
+Return only a JavaScript data structure.
+
+Write a JavaScript function that returns the square of its argument.
+Return only the answer.
+
+Why doesn't OpenAI's API have useful error messages?
+
+How do I send feedback to OpenAI?
+
+A house with birds. Not bird houses.

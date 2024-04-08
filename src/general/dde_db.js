@@ -100,7 +100,12 @@ class DDE_DB{
 
    static persistent_get(key) {
        //onsole.log("this.persistent_values: " + this.persistent_values)
-       return this.persistent_values[key]
+       if(key) {
+           return this.persistent_values[key]
+       }
+       else {
+           return this.persistent_values
+       }
    }
 
    static metrics_get(key){

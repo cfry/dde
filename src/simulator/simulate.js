@@ -218,7 +218,7 @@ globalThis.Simulate = class Simulate {
             this.sim.scene.add ( light.target ); }
     */
     }
-
+    static VR_but_dom_elt
     static createRenderer(){
         this.sim.renderer = new THREE.WebGLRenderer({ antialias:true });//antialias helps with drawing the table lines. //example: https://threejs.org/docs/#Manual/Introduction/Creating_a_scene
         this.sim.renderer.setSize( //this.sim.container.clientWidth, this.sim.container.clientHeight) //causes no canvas to appear
@@ -227,11 +227,47 @@ globalThis.Simulate = class Simulate {
         //sim_graphics_pane_id.innerHTML = "" //done in video.js
         this.sim.renderer.shadowMap.enabled = true;
         this.sim.container.appendChild(this.sim.renderer.domElement)
-        let vr_but = VRButton.createButton( this.sim.renderer )  //VR
-        sim_pane_header_alignment_id.append(vr_but)              //VR //put right after the "Alignment: " buttons
+        this.VR_but_dom_elt = VRButton.createButton( this.sim.renderer )  //VR makes global dom elt "VRButton" odd. the orig class VRButton var is over-ridden??? Don't depend on it!
+        // sim_pane_header_alignment_id.append(vr_but)           //VR //put right after the "Alignment: " buttons
+        this.sim.container.append(this.VR_but_dom_elt)
         //but not the button doesn't actually appear here. It appears IN the real sim rendering pane,
         //at the bottom in an "overlay" which will usually say, in a box,  "VR NOT SUPPORTED"
         this.sim.renderer.xr.enabled = true;                     //VR
+        this.sim.renderer.xr.setReferenceSpaceType( 'local' ); //from threejs.org webxr_vr_rollercoaster.html
+        //this.init_vr()
+    }
+
+    static xrSession
+    //from https://developer.mozilla.org/en-US/docs/Web/API/XRSystem/requestSession
+    //with fry mods
+    static init_vr(){
+        debugger;
+        if (navigator.xr) {
+            navigator.xr.isSessionSupported("immersive-vr").then((isSupported) => {
+                if (isSupported) {
+                    Simulate.VR_but_dom_elt.addEventListener("click", vr_onButtonClicked);
+                    Simulate.VR_but_dom_elt.textContent = "Enter XR";
+                    Simulate.VR_but_dom_elt.disabled = false;
+                } else {
+                    console.error("WebXR doesn't support immersive-vr mode!");
+                }
+            });
+        } else {
+            console.error("WebXR is not available!");
+        }
+
+        function vr_onButtonClicked() {
+            if (!Simulate.xrSession) {
+                navigator.xr.requestSession("immersive-vr").then((session) => { //requestSession creates the WEbXR session
+                    Simulate.xrSession = session;
+                    // onSessionStarted() not shown for reasons of brevity and clarity.
+                    //onSessionStarted(Simulate.xrSession); //not defined
+                });
+            } else {
+                // Button is a toggle button.
+                Simulate.xrSession.end().then(() => (Simulate.xrSession = null));
+            }
+        }
     }
 
 //simulator using actual Dexter CAD. the GLTF was created by using the

@@ -224,6 +224,12 @@ div.CodeMirror-cursors {
 
 .simbuild_insert_button{background-color:#DDA0DD}
 
+.talk_cmd{
+    text-decoration:underline;
+    color:#3600cc;
+    cursor:pointer;
+}
+
 
 
 

@@ -80,14 +80,19 @@ globalThis.OpenAI = class OpenAI{
     //but better: https://www.npmjs.com/package/openai
     //to use gpt-3.5-turbo, see:
     // https://stackoverflow.com/questions/72326140/openai-api-refused-to-set-unsafe-header-user-agent
-    static async request(prompt= OpenAI.previous_prompt()){
-        if(typeof(prompt) !== "string") {
+    static async request(prompt= OpenAI.previous_prompt()) {
+        if (typeof (prompt) !== "string") {
             prompt = this.envelope_to_prompt(this.previous_envelope)
         }
         //let response = await openai.listEngines();#bcfbe0  #6afbbc too dark green
-        if(Editor.current_buffer_needs_saving) {
+        if (Editor.current_buffer_needs_saving) {
             Editor.save_current_file()
         }
+        this.request_aux(prompt)
+    }
+
+    //called directly from Talk.gpt
+    static async request_aux(prompt) {
         prompt = prompt.trim()
         this.show_prompt(prompt)
         let media = DDE_DB.persistent_get("gpt_response_media")

@@ -458,6 +458,27 @@ static get_class_of_instance(instance){
     return instance.constructor
 }
 
+static value_to_percent_hex (num, size) {
+        let num_str = (num >>> 0).toString(16).toUpperCase()
+//the 0 bit shift tricks it into doing two's compliment for negative values
+        num_str = ("00000000"+num_str).substr(size*-2)
+        let str = ""
+        for(let i = size*2-2; i >= 0  ; i -= 2){
+            str += "%" + num_str.substr(i,2)
+        }
+        return str
+    }
+
+static little_hex_to_integer(hex) { //converts little endian hex string to int
+        let sum = 0;
+        hex = hex.split(' ').join(''); //normalize out spaces
+        for (let i=hex.length/2-1; i>=0; i--) { //console.log(i, sum)
+            sum *= 256
+            sum += parseInt('0x'+hex.substr(i*2,2),16)
+        }
+        return sum
+    }
+
 
 
 //______color_______
@@ -2098,12 +2119,12 @@ static make_ins_arrays(default_oplet, instruction_arrays=[]){
     }
 
 //lots of inputs, returns "Mar 23, 2017" format
-    static date_to_mmm_dd_yyyy(date){ //can't give the default value here because on DDE launch,
+    static date_to_mmm_dd_yyyy(date=new Date()){ //can't give the default value here because on DDE launch,
 //this method is called and for some weird reason, that call errors, but doesn't
 //if I set an empty date below.
         if(!(date instanceof Date)) { date = new Date(date) }
         const d_string = date.toString()
-        const mmm = d_string.substring(4, 8)
+        const mmm      = d_string.substring(4, 7)
         return mmm + " " + date.getDate() + ", " + date.getFullYear()
     }
 
@@ -2212,10 +2233,14 @@ static string_to_seconds(dur){
    //see https://gomakethings.com/how-to-get-all-parent-elements-with-vanilla-javascript/
    //fry modified, but same core algorithm
    //used in DocCode.open_doc
-   static get_dom_elt_ancestors(dom_elt) {
+   static get_dom_elt_ancestors(dom_elt, include_dom_elt=true) {
         let result = [];
+        let orig_dom_elt = dom_elt
         for ( ; dom_elt && dom_elt !== document; dom_elt = dom_elt.parentNode ) {
-            result.push(dom_elt)
+            if((dom_elt === orig_dom_elt) && (!include_dom_elt)) {} //don't add to the result
+            else {
+                result.push(dom_elt) //do add to the result
+            }
         }
         return result
     }

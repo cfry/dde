@@ -78,7 +78,8 @@ globalThis.atan2d   = atan2d
 import "../job_engine/math/Convert.js" //now global
 import "../job_engine/math/Kin.js"     //now global
 import "../job_engine/math/DXF.js"     //now global
-import "../job_engine/math/dh.js"      //DH is now global
+import "../job_engine/math/DH.js"      //DH is now global
+import "../job_engine/math/HiMem.js"   //DH is now global
 
 import "../job_engine/low_level_dexter/calibrate_build_tables.js"
 

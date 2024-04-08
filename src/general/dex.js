@@ -115,12 +115,25 @@ class Dex {
             {job: "DexJob",
                 offset: "end"})
     }
+    static my_concat (a, b) {
+        if(Py.is_py_proxy(a)) {
+            a = a.toJs()
+            console.log("converted a to array.")
+        }
+        console.log("in Dex.my_concat passed a: " + a)
+        console.log("in Dex.my_concat.isArray(xyz): " + Array.isArray(a))
+        return a.concat(b)
+    } //just for testing. remove.
+
     static m_xyz(xyz = [],
                  J5_direction   = [0, 0, -1],
                  config         = Dexter.RIGHT_UP_OUT,
                  workspace_pose = null, //will default to the job's default workspace_pose
                  j6_angle       = [0],
                  j7_angle       = [0]){
+        console.log("in Dex.m_xyz passed xyz: " + xyz)
+        console.log("in Dex.m_xyz.isArray(xyz): " + Array.isArray(xyz))
+
         Dex.init()
         let the_maj = Dexter.move_to(xyz, J5_direction, config, workspace_pose, j6_angle, j7_angle)
         Job.insert_instruction(the_maj,

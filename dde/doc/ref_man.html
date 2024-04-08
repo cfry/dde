@@ -3571,6 +3571,18 @@ When speaking from a Job in DDE, we recommend using the Job instruction:
 This will not work for Jobs run on the Job Engine on Dexter.
 </details> <!-- end of speak -->
 
+<details id="is_speaking_doc_id" class="doc_details"><summary>is_speaking</summary>
+    Returns true if now speaking, false otherwise.<br/>
+    <i>Example:</i><br/>
+     <code>is_speaking()</code>
+</details>
+
+<details id="stop_speaking_doc_id" class="doc_details"><summary>stop_speaking</summary>
+    Stops any ongoing speech.<br/>
+    <i>Example:</i><br/>
+    <code>stop_speaking()</code>
+</details>
+
 </details> <!-- end of Sound -->
 
 <!-- can't work in dde4 must use async
@@ -13028,6 +13040,27 @@ new Job({
                     <code class="gpt">for(let i=0, i < 10; i++) {</code><br/>
                     We get back a description of the <i>corrected</i> code, what was corrected,
                     and how to complete it. Your own private JavaScript tutor!
+                      <p></p>
+                      To get back a value you can use in JavaScript, you have to "turn off"
+                      all the verbose prose that GPT wraps around the answer to any question.
+                      Two suffixes for a prompt have been useful.<br/>
+                      <i>Examples:</i><br/>
+                      <code class="gpt">what is 12 times 4?
+                          Return only the answer.</code>
+                      <p></p>
+                      <code class="gpt">What are the colors of the rainbow?
+                          Return a JavaScript array.</code><br/>
+                      Note that in both of these, a string comes back, which you'll
+                      have to convert into JavaScript data by calling eval with the string
+                      as the argument.
+                      <p></p>
+                      Sometimes GPT will return an extra period at the end, which you'll
+                      have to remove. When asking a yes-or-no question, GPT may return
+                      "Yes" or "No" which you'll have to convert into <code>true</code> or
+                      <code>false</code> to be useful.
+                      <p></p>
+                      See <a href="#" onclick="DocCode.open_doc('OpenAI.text_to_data_doc_id')">text_to_data</a>
+                      for another way to convert GTP text responses into programmatically useful data.
                   </details>
                   <details class="doc_details"><summary>C</summary>
                   But how does it do on <b>C</b>?

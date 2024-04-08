@@ -245,6 +245,8 @@ Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
                  j7_angle    = [0],
                  robot
     ){
+        console.log("Dexter.move_to passed xyz: " + xyz)
+        console.log("in Dexter.move_to Array.isArray(xyz): " + Array.isArray(xyz))
         super()
         this.xyz            = xyz
         this.J5_direction   = J5_direction

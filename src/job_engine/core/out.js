@@ -107,6 +107,8 @@ function get_output(){ //rather uncommon op, used only in SW.append_to_output
 
 globalThis.get_output = get_output
 
+//_______ speak and friends _________
+
 //value can either be some single random js type, or a literal object
 //with a field of speak_data, in which case we use that.
 function stringify_for_speak(value, recursing=false){
@@ -187,6 +189,19 @@ function speak({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0, lan
 }
 
 globalThis.speak = speak
+
+function is_speaking(){
+    return window.speechSynthesis.speaking
+}
+globalThis.is_speaking = is_speaking
+
+//stops ongoing speak and any queued speak.
+function stop_speaking() {
+    window.speechSynthesis.cancel() //weird syntax. see: https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis/cancel
+}
+
+
+globalThis.stop_speaking = stop_speaking
 
 //______show_window_____
 //output the "vals" to inspector or stdout.

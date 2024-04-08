@@ -55,6 +55,7 @@ globalThis.Py = class Py {
             }
             else if (this.is_py_proxy(proxy_maybe)) { //(pyodide.isPyProxy(proxy_maybe)) {
                 let value = proxy_maybe.toJs()
+                console.log("Py.eval converted proxy to value: " + value)
                 //proxy_maybe.destroy() //get rid of the memory
                 return value
             }
