@@ -611,6 +611,10 @@ class SimUtils{
     }*/
 
     static render(){
+        //this.render_used_in_loop()
+    }
+
+    static render_used_in_loop(){
         if (this.is_simulator_showing()) {
             if(globalThis.interactionManager) {
                 interactionManager.update();
@@ -618,6 +622,7 @@ class SimUtils{
             Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
         }
     }
+
 
     /* apparently not called May 2, 2022 use SimUtils.is_simulator_showing() instead
     static is_shown(){

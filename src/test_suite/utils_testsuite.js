@@ -48,6 +48,22 @@ new TestSuite("Utils.is_array_of_numbers",
     ["Utils.is_array_of_numbers([10, 20], null, 15, 30)", "false"]
 )
 
+new TestSuite("Utils.starts_with_one_of",
+    ['Utils.starts_with_one_of("green", ["blue", "gre"])', '"gre"'],
+    ['Utils.starts_with_one_of("purple", ["black"])', "false"],
+)
+
+new TestSuite("Utils.starts_with_one_of_and_tail",
+    ['Utils.starts_with_one_of_and_tail("abcde", ["abc", "def"])', '["abc", "de"]'],
+    ['Utils.starts_with_one_of_and_tail("abc", ["abc", "def"])', '["abc", ""]'],
+    ['Utils.starts_with_one_of_and_tail("abcdefgh", ["abc", "abcdef"])', '["abcdef", "gh"]'],
+    ['Utils.starts_with_one_of_and_tail(" abcdefgh", ["abc", "abcdef"], false)', "[false, false]"],
+    ['Utils.starts_with_one_of_and_tail(" abcdefgh", ["abc", "abcdef"])', "[false, false]"],
+    ['Utils.starts_with_one_of_and_tail(" abcdefgh", ["abc", "abcdef"], true)', '["abcdef", "gh"]'],
+    ['Utils.starts_with_one_of_and_tail(" this is a bust.", ["this", "this is"])', "[false, false]"],
+    ['Utils.starts_with_one_of_and_tail(" this is a bust.", ["this", "this is"], true)', '["this is", "a bust."]']
+)
+
 
 
 

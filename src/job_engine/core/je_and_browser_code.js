@@ -381,6 +381,23 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
         }
     }
 
+    static sw_expand(elt){
+        let dia_elt = elt.closest(".show_window")
+        let content_elt = dia_elt.querySelector(".show_window_content")
+        content_elt.style.display = "block"
+        dia_elt.style.height = dia_elt["data-full-height"]
+        //elt.innerHTML = "&#8679;" //"^"
+    }
+
+    static sw_shrink(elt){
+        let dia_elt = elt.closest(".show_window")
+        let content_elt = dia_elt.querySelector(".show_window_content")
+        dia_elt["data-full-height"] = dia_elt.style.height
+        content_elt.style.display = "none"
+        dia_elt.style.height = "35px"
+        //elt.innerHTML = "&#8681;" //"v"
+    }
+
     static sw_allow_drop(event) {
         event.preventDefault();
     }

@@ -1,265 +1,41 @@
-/*
-How to Use OpenAI Whisper for speech recognition on MacOS in Node:
-https://medium.com/codingthesmartway-com-blog/speech-to-text-use-node-js-and-openais-whisper-api-to-record-transcribe-in-one-step-c9a1fd441765
-Needs OpenAI APIkey
-//todo
-   current bug: bring up dialog, click on Edit Job, enter xxx (non job name)
-                see warning: Job not defined, click Edit Job
-                and see that I DON'T get the type-in input in the dialog.
-                BUT if I click on Edit Job a 2nd time, it works fine.
-                It seems that at that first, failing click, the "Edit Job"
-                text appears in teh dialog but click right on it, and
-                no element is there. Rather chrom dev tools shows me the
-                containing field_set as if there was no elt where I clicked.
-   new cmd: Plot  point 2 3 point 4 5 point 6 7
-             (starts new plot, shows the plot
-            point 6 7  point 8 9   add points to the current plot
-            erase point 7 8 erase point 4 5  and it erasese those points and redisplays
-               the plot. Sort by x value?
-               Maybe just auto insert js code into editor when showing its plot
-               Allow: Plot name foo cmd
-               Then user just sayng the nmae of the plot could bring it up.
-               Way to hid a showing plot? (click its close box, but verbally?)
-   new cmds:
-        grab, release //close, open  (j7)// uses the value incremented by more, less.
-           or perhaps better: narrower, wider and put it in down, etc loop to keep
-           "narrowing" until user says "stop"/
-           New servo instructions use "grasp", "ungrasp"
-        pitch up, pitch down   uses the value incremented by more, less.
-           can stick this into new "move until stop."
-        yawl left, yawl right  uses the value incremented by more, less.
-           rename clockwise, counterclockwise and "move until stop."
-        roll left, roll right  uses the value incremented by more, less.
-           new servo uses "twist"
-        OR increase pitch, decrease pitch, same for yawl and role
-        softer, louder and display status of volume next to Speaker: off
-        initialize??? (stick in mode initial list of displayed cmds, but not elsewhere.)
-        Convert from step_distance to degrees for pitch, yawl, roll and distance for j7 open.close
-        In show_window, display state of:
-          should I show, along with step_distance, the equiv step_degrees and step_gripper_distance?
+/* How to add a new command
+- Extend cmd_props_table with a row under the existing mode for the command
 
-        Start recording =>  define path
-        Move => Move <i>aka</i> Show movement commands  (and have "Show movement commands" as an alternative)
-   ______
-       mode: calculate
-              add 23 and/to 5 and/to 6
-              substract 34 and/from 45
-              multiply 5 and/by/times
-              divide 3 and/by 4
-              square 17
-              square root(of) 43
-              power 2 and/of 3
-              degrees to arcseconds 23
-              arcseconds to degrees 45
-              current position (print out joint angles and xyz, dir, etc.
-   ---
-   define_command(string_or_name_array, body_array_of_commands) //analogous to a function def
-   //in a Job file, then we can have "say(cmd_name)" as do_list src code
-   Maybe each cmd is defined subclass of Say top level class.
-   OR
-   define_command({mode="user", string_or_alternatives_array, fn, process_args})
-   pushes a full cmd onto cmd obj that has for each mode the mode as a key and the value
-     is an array of cmd_objects as the value.
-   at end of handle_command
-   loop over each command_obj, If we get a match (looking at the alternatives,
-   then strip off the cmd name from the full_text and take the remainer of full_text
-   and process it into the args to apply them to the fn.
-   The fn always returns "valid" unless it errors. hmm do we move on to other possible
-   commands, or display an error message? Probably display the error message.
-   processing the args converts "null" => null, "undefined" => undefined
-   "true" => true (maybe "yes" => true) "false" => false,
-   "one" => 1 (hard, use the npm pkg.)
-   in full text, " and " is separator between args.
-   consider allowing "and" synonyms: " of ", " by " " to " (essentially commas in the fn call.
-   string_or_alternatives_array defaults to the name of the fn,
-   but lower case and replace underscores with spaces.
-   _____
-   List reader:
-      define list  Then
-         each sentence you say gets added to an array (of strings).
-         If you say "do over", it writes over the last thing you said.
-         when you say "done" it prompts you for a list name.
-      Then it gets added to "recordings". Say the name and it says:
-      "number 1: (the text you said) or maybe special case the first item:
-          "the first of 3 items" (the text you said)
-       also special case last item:  "number 3 and last item: (the text you said)
-       when you say "next", it says
-       "number 2: (the text you said)
-         "previous" reads the previous item, and you can back up more than once to
-           go back further, then say "next" to go forward from there.
-        "done" ends the list reading, or its done when
-         it reads the last item.
-         "delete" deletes the last read item.
-         "insert" inserts a new item into the list at that point.
-         "replace" replaces the current item with a new spoken text.
-         "repeat" say the current list item.
-         "read rest" (reads rest of items but does not move pointer to end)
-         "read next" (reads next item but doesn't move pointer to it.)
-         "resume" start "playing" the list from the last "current item"
-             ie Talk.talk_out("resuming from item 3 blue") //give user previous context.
-         hmm, could we store COMMANDS as items, them "play" them all?
-         Implementation:
-             - as a job with Human.task for each item?
-                         Get speech reco to work on "continue" and "stop job"
-                         ultimately get reco to work on multiple choice, checkboxes, etc.
-            - as special Talk mechanism
-                class to_do_list
-                   static list (of utterance strings)
-                   static current_item (0 thru n - 1.)
-                   static instances = [] //array of all the lists.
-                   static next() {
-                      current_item++
-                      Talk.talk_out(current_item + 1 + ". " + this.list[this.current_item])
-                   }
-                   static repeat(){
-                      Talk.talk_out(current_item + 1 + ". " + this.list[this.current_item])
-                   }
-                   static start_over(){
-                      this.current_item = 0
-                      Talk.talk_out(current_item + 1 + ". " + this.list[this.current_item])
-                   }
- */
-/*
-_____obsolete Commands
-_____end obsolete Commands
+- add a method for the command in Talk class, named the cmd prose name with spaces replaced by underscores
+  which takes 3 args, full_text, the command string from speech reco (may contain internal spaces,
+  and content, the text after the command (if any).  If none. content is the empty string.
+  It does not start with a space.
+  The method returns true if that method could handle the command and false or undefined if it can't.
 
-Talk Chicago contact:
-Collin Borns collin@speechly.com +1 650-535-0146
+- If you need to add a new mode, extend the cmd_props_table copying the syntax for an exiwting mode,
+  and any new cmds under it.
+  Mode names are all lower case, no spaces.
+  Note that a cmd row can appear in more than one mode,
+   but it needs to have the same behaivor OR its method needs to banch on the Talk.mode to
+   accomodate the different functionality.
 
-Fixing the 1011 error June 9, 2023:
-To Reproduce by using talk app:
-- from DDE Dexter menu, choose the talk item.
-- click to turn on mic,
-- say something.
-See error with code 1011 in the chrome dev tools console.
-To fix:
-Browse https://api.speechly.com/dashboard
-click on my app "voice app"
-click on "voice_app" tile (my speechly app supporting my "talk" app.
-click on "training data"
-click in the text editor pain
-make a trivial change like adding a new line
-now the "deploy" button in the upper right lights up
-click it
-wait 6 minutes for it to compile and say its done.
-Now use talk app
-______
-Bug report to Talk:
-sent Dec 11 to us@speechly.com
-
-- on https://www.npmjs.com/package/@speechly/browser-client
-  first line of JS example is:
-  import { BrowserClient, BrowserMicrophone, Segment } from '@speechly/browser-client'
-  but that causes the error:
-  Import of non-existent export (for Segment)
-  I deleted ", Segment" and it works ok
-
- - Your line: appId: 'your-app-id'
-   causes a syntax error. Change it to:
-   appId: 'your-app-id',
-
- - on the page: https://api.speechly.com/dashboard/#/app/2357493e-4713-4d54-a041-a792f4952a62/trainingdata
-   under Entities, I selected "number" in the drop down, then typed in "number"
-   to the right of it and clicked "add"
-    But that apparently did nothing since in the code:
-    client.onSegmentChange((segment) => {
-    console.log('Received new segment from the API:',
-        segment.intent,
-        segment.entities,
-    When I said the words "thirty seven".
-    I did see the regular words "thirty" and "seven" in the segment.
-    But the segment.entities printed out as the empty array.
-
-    Entity reco is an important functionality. I read
-    https://github.com/speechly/api/blob/master/docs/slu.md#speechly.slu.v1.WLUEntity
-    but with zero examples, let alone in JavaScript, its not useful.
-    https://docs.speechly.com/features/intents-entities
-
-- Your page: https://api.speechly.com/dashboard/#/dashboard
-  gives doc for "Integrate Talk" which describes on "On Device".
-  That didn't have enough code for doing "On Device".
-   Also what I really needed was "Off Device"
-   It would be great to have documentation for a browser example that does not use the CDN
-   for web page installation, but walks a developer though the steps of
-   importing as well as getting app_id
-
-- As far as I can tell, you don't document a way to get the string
- of a full utterance. Am I missing finding your doc, or
- do I have to cobble this together by looping through the
- words of a segment?
-
-- I left the mic open without saying anything, then talked and got:
-   "the audio stream is too long"
-   My application needs a continuously open mic and to get
-   utterances as they're uttered and just leave open the
-   recognition. How do I do that?
-   One thing I'm hoping is that when there's a long silence at the
-   beginning of an audio file you're sending to the cloud,
-   you just cut off that long silence (I know silences aren't really silences,
-   but something like that would make the file much less long.
-   Then less transfer of nothing over the web.
-   I've used your tool to say a fairly long paragraph and seems to work
-   quite well.
-   Is there a
-
-- Is there a way to turn off the reco of all but the "final" utterance?
-  This could save network bandwidth and the use of your server compute resources
-  potentially.
-  ---- more after my email was sent.
-- under the free usage, does it restrict who or what computers can use speech reco,
-  or just the amount of usage?
-
-- Is there a way to set a volume threshhold on the mic such that it
-  ignores audio below a certain volume?
-
-- can I "mute the microphone" temporarily so that I can have some speech output
-  and not interfere with it getting recognized?
-
-- how can I tell how much recognition time I've used up? (I get 50 hours free???)
-
+- modes *should* also have a "misc" method named MODENAME_mode_misc  that takes full_text (string from reco),
+  the first word of the full_text and the content after the first word.
+  The first word has no spaces. The content does not start with a space.
+  and returns true if it handles the full_text, undefined if it doesn't.
+    MODENAME_mode_misc handle the misc full_text that can't be handled by the
+    normal cmds of the mode, such as when we say just a Job name to run the job,
+    or the param name and value in a param dialog.
+    IF you need fancy parsing where the beginning of the utterance is NOT one of the
+    known cmds for teh mode, then handle it in MODENAME_mode_misc.
+    If there is no defined misc method, the user will get a warning:
+    warning("Mode: " + Tall.mode + " doesn't have a matching command for: " + full_text + " (no misc method).")
+    Else if there is a misc method, but no known cmds matched and the misc method did not match,
+    the user gets a warning:
+    warning("Mode: " + Tall.mode + " doesn't have a matching command for: " + full_text)
 */
-/* Entity reco in the SAL lang: https://dreamy-cori-a02de1.netlify.app/slu-examples/cheat-sheet/
-   and https://docs.speechly.com/reference/sal/#entity
-
-Example:
-*relative_move down $SPEECHLY.NUMBER(num)
-"*relative_move" is the intent of the utterance matched
-"down " is just recoed text match
-in place of "down" we could have [down | up] mathcing either "down" or "up" for this intent.
-"$SPEECHLY.NUMBER"  captures numbers (including pos and neg, and decimal numbers).
-     see https://dreamy-cori-a02de1.netlify.app/slu-examples/standard-variables/
-"(num)" is used in the returned entity as a label for the found number.
-
-To input this SAL lang entity reco,
-browse: https://api.speechly.com/dashboard/#/app/2357493e-4713-4d54-a041-a792f4952a62/trainingdata
-click on "login with Google"
-Click on "voice_app" (Fry's app used in this code)
-click on the "training data" tab
-
-On the client, this.client.onSegmentChange callback is called with a segment
-that's a nested JSON object
-segment.isFinal => true
-segment.intent.intent => "relative_move"
-segment.entities[0].type => "a_number"
-segment.entities[0].value => "36" note: this is NOT a number, its the string digits of the number.
-
-
-
-*/
-
-//import { BrowserClient, BrowserMicrophone, Segment } from '@speechly/browser-client' //from Talk example but Segment is non-existent export
-//import { BrowserClient, BrowserMicrophone} from '@speechly/browser-client'
-//globalThis.BrowserClient = BrowserClient
-// Create a new client.
-// NOTE: Configure and get your appId from https://api.speechly.com/dashboard
-// NOTE: Set vad.enable to true for hands free use
 
 class Talk {
     static speech_reco_possible //true or false
     static client
     static microphone
     static sw_index
-    static mode = "not_initialied"  //"main_menu" "move" "playing_recording" "waiting_for_saying_name" "waiting_for_position_name" "waiting_for_recording_name"
+    static mode
 
     static enable_speaker
     static speak_volume
@@ -269,18 +45,26 @@ class Talk {
     static recording_name_now_playing //string
 
     static step_distance  //float in meters
-    static is_moving      //true or false
+    static is_moving      //true or false. Automatically set to true when Dexter is moving due to user invoking a normal
+                          //move command like "down". 
+                          //To stop such a command as its running, set is_moving to false.
     static current_command //initially null, then when moving: "down", up, left, right, farther, closer, reverse, forward
+    static last_move_command // a string
+    static xyz_arrays_being_recorded //null or an array of xyz arrays when is_recording is true.
+
     static last_reverse_forward_index  //int
     static forward_limit_index //int
-    static last_move_command // a string
+
+    static job_for_normal_moves //normally set to the job named "talk_internal". Use "_internal" so users
+       //will know its not for them to manipulate.
+       //Has a robot of Dexter, normally dexter_default at initialization time
 
     //we can call this more than once, and it brings down prev dialog, etc.
     //and re-initializes
     static initialize(speech_reco_possible=true){
         this.speech_reco_possible = speech_reco_possible
         this.sw_index       = null
-        this.mode           = "not_initialied"
+        this.mode           = "not_initialized"
         this.enable_speaker = false
         this.speak_volume   = 0.5
         this.listening      = false //can't find a way to determine this from Speechly
@@ -290,15 +74,17 @@ class Talk {
         this.step_distance   = 0.005
         this.is_moving       = false
         this.current_command = null
+        this.last_move_command = null
+        this.xyz_arrays_being_recorded = null
+
         this.last_reverse_forward_index  = null
         this.forward_limit_index         = null
-        this.last_move_command           = null
-        if((Job.talk_to_dexter) && Job.talk_to_dexter.is_active()){
-            Job.talk_to_dexter.stop_for_reason("interrupted",
-                                               "re-initialization of Job.talk_to_dexter")
+        if((Job.talk_internal) && Job.talk_internal.is_active()){
+            Job.talk_internal.stop_for_reason("interrupted",
+                                               "re-initialization of Job.talk_internal")
         }
-        new Job ({name: "talk_to_dexter",
-            robot: Brain.brain0,
+        this.job_for_normal_moves = new Job ({name: "talk_internal",
+            robot: Dexter.dexter_default,
             when_do_list_done: "wait",
             do_list: [
             ]
@@ -315,7 +101,7 @@ class Talk {
         }
         this.recognition = new SpeechRecognition()
         this.recognition.continuous = false;  //true doesn't seem to work, but in any case,
-        // its documented to stop reco after a while anyway, so not really continuous.
+        // it's documented to stop reco after a while anyway, so not really continuous.
         this.recognition.lang = 'en-US';
         this.recognition.interimResults = false;
         this.recognition.maxAlternatives = 1;
@@ -329,85 +115,66 @@ class Talk {
             //Talk.recognition.start()
         };
 
+        this.recognition.onspeechstart = () => {
+            console.log("Speech has been detected");
+        };
+
+        this.recognition.onstart = function(){ //after recognition.start is called and its ready to recieve speech, this will automatically be called.
+            console.log("got recognition.onstart")
+        }
+
         this.recognition.onresult = function(event) { //not called if onsoundstart called but no actual words
                                                  // The SpeechRecognitionEvent results property returns a SpeechRecognitionResultList object
                                                  // The SpeechRecognitionResultList object contains SpeechRecognitionResult objects.
                                                  // It has a getter, so it can be accessed like an array
                                                  // The first [0] returns the SpeechRecognitionResult at the last position.
                                                  // Each SpeechRecognitionResult object contains SpeechRecognitionAlternative objects that contain individual results.
-                                                 // These also have getters so they can be accessed like arrays.
+                                                 // These also have getters, so they can be accessed like arrays.
                                                  // The second [0] returns the SpeechRecognitionAlternative at position 0.
                                                  // We then return the transcript property of the SpeechRecognitionAlternative object
-            Talk.turn_off_mic()
+            Talk.turn_off_mic_aux()
             let full_text = event.results[0][0].transcript
             console.log("got onresult of text: " + full_text)
             console.log('Confidence: ' + event.results[0][0].confidence);
-            Talk.handle_command(full_text)
+            Talk.handle_command(full_text) //the main call to handle_command
         }
 
-        this.recognition.onspeechend = function() {
+        this.recognition.onnomatch = function(event){
+            Talk.display_message("Sorry, speech recognition failed. Please try again.")
+            Talk.turn_off_mic_aux()
+        }
+
+        //fired when there is actual speech detected BUT
+        // might be called before or after onresult.
+        //but also called when no speech detected, but there is sound.
+        //So for the later case, we need to call Talk.turn_off_mic_aux() to chante
+        //the status to turn off the mic, but for the former,
+        //we need to NOT call a warning since maybe onresult was called.
+        //if onresult was called, Talk.listening will be false and we don't
+        //then want to issue the warning.
+        this.recognition.onspeechend = function() { //seems to be called AFTER onresult which doesn't match the spec
             console.log("got onspeechend")
             Talk.recognition.stop();
+            if (Talk.listening) {
+                Talk.turn_off_mic_aux()
+                //Don't warn because sometimes onspeechend is called AFTER we've already got the result,
+                //Now if we got the result, that should hav
+                // Talk.warning("Talk detected noise but not speech.<br/>Tap the space-bar and speak clearly.")
+            }
         }
 
          //called when recognition.abort() is called, which I often do.
         this.recognition.onerror = function(event) {
-            Talk.turn_off_mic()
+            Talk.turn_off_mic_aux()
             console.log("got onerror of " + event.error) //"no-speech" after about 5 secs of quiet.// "network" immediately after click and no net connection
+            if(event.error === "no-speech") {
+                Talk.warning("Talk did not hear you say anything.<br/>After tapping the space-bar you must say a command.")
+            }
+            Talk.listening = false
+            Talk.display_status()
         }
     }
 
-    /*static async init_speechly(){
-        if(this.speech_reco_possible) {
-            try {
-                this.client = new BrowserClient({
-                    appId: '2357493e-4713-4d54-a041-a792f4952a62',
-                    vad: {enabled: true, //enables voice activated detection, no need to use stop and start except to pause
-                          noiseGateDb: -24.0} // https://github.com/speechly/speechly/blob/main/libraries/browser-client/docs/interfaces/client.VadOptions.md#enabled
-                })
-                this.is_vad_enabled = true
-                this.microphone = new BrowserMicrophone()
-                // React to the updates from the API.
-                this.client.onSegmentChange((segment) => {
-                    console.log('Received new segment:', segment
-                        // segment.intent,
-                        // segment.entities,
-                        // segment.words,
-                        // segment.isFinal
-                    ) //the duration between getting a non-final "stop" and a final "go" is
-                    // 20ms??? and undetectable by me (the dur for both is about 500ms)
-                    //so might as well not do special processing and send "stop" through the regular pipeline
-                    //if((segment.words.length === 1) &&
-                    //    segment.words[0] &&
-                    //    (segment.words[0].value === "stop")){
-                    //    console.log('Received non_final segment of: stop')
-                    //    Talk.stop()
-                    //}
-                    //else
-                    if (segment.isFinal) {
-                        console.log('Received final segment of: ' + this.segment_to_text(segment))
-                        Talk.handle_command(segment)
-                    }
-                })
-                // Initialize the microphone - this will ask the user for microphone permissions
-// and establish the connection to Talk API.
-// Make sure you call `initialize` from a user action handler
-// (e.g. from a button press handler).
-                await this.microphone.initialize()
-
-// bind the microphone to the client
-                await this.client.attach(this.microphone.mediaStream)// Initialize the microphone - this will ask the user for microphone permissions
-                //this.client.start() //done only in turn_on_mic
-            }
-            catch(err){
-                warning("Sorry, can't connect to internet-based speech recognition.<br/>" +
-                         "Check your connectivity.<br/>" +
-                         err.message)
-                this.speech_reco_possible = false
-            }
-        }
-    }
-    */
 
     static segment_to_text(segment){
         let text = ""
@@ -433,10 +200,10 @@ class Talk {
         }
         Talk.sw_index =
         show_window({title: "<b>Talk to Dexter</b>",
-            x: 200, y:7, width: 570, height: 385,
+            x: 200, y:7, width: 570, height: 390,
             content: `<fieldset style="padding:2px;"><legend><i>Status</i></legend>
-                            <div id="status_id"></div>
-                            <div id="talk_out_id" style="background-color:white;font-size:20px;padding:10px;"></div>
+                            <div id="display_status_id"></div>
+                            <div id="talk_out_id" style="background-color:white;font-size:20px;padding:5px;min-height:50px;"></div>
                       </fieldset>
                       <fieldset style="padding:2px;"><legend><i>Valid Commands</i></legend>
                             <ul id='valid_commands_id' style="font-size:22px;margin:0px 0px 0px 20px; padding:0px;"></ul>
@@ -448,48 +215,58 @@ class Talk {
             Talk.dialog_dom_elt.onkeydown = //don't use onkeyup here because that causes the whole dde window to scroll up about an inch. Very annoying.
                 function(event){
                     if (event.key === " ") { //when talk dialog is up, and user hits space, turn on the mic.
-                        //out("got space")
+                        console.log("talk whole dialog got space char")
+                        //Talk.stop_except_no_change_to_enable_speaker()
+                        Talk.stop_except_no_change_to_enable_speaker_aux() //fast as possible to set is_moving to false
                         globalThis.stop_speaking()
-                        Talk.stop_except_no_change_to_enable_speaker()
+
                         event.stopPropagation()
                         event.preventDefault()
-                        setTimeout(function() { //needed because if there the mic is still on when the used hits space bar again,
+                        setTimeout(function() { //needed because if the mic is still on when the used hits space bar again,
                             //the call to this.recognition.start() inside turn_on_mic will error.
                             //Now we try to turn off the underlying mic in stop_except_no_change_to_enable_speaker but
                             //apparently this doesn't happen immediately so give it 100 ms to stop
-                            Talk.turn_on_mic()
+                            Talk.turn_on_mic_aux()
                         }, 100)
                     }
                 }
 
             Talk.dialog_dom_elt.onblur = function(event){
-                let ancests = []
-                let mess = null
-                /*if(event.relatedTarget) { //when teh reason onblur is called is because we're focusing on a thype_in elt in the talk dialog, we want to keep the dialog background non-gray
-                    ancests = Utils.get_dom_elt_ancestors(event.relatedTarget, false)
-                } //don't include event.target in ancests
-                if (ancests.includes(Talk.dialog_dom_elt)) { //don't change dialog message.  Leave Talk.dialog_dom_elt fully visible with whatever its current message is which is probably instrudtions for filling in its input field.
-                    mess = null
+                if(event.relatedTarget) { //when the reason onblur is called is because we're focusing on a type_in elt in the talk dialog, we want to keep the dialog background non-gray
+                    let ancests = Utils.get_dom_elt_ancestors(event.relatedTarget, false)//don't include event.target in ancests
+                    if (ancests.includes(Talk.dialog_dom_elt)) { //don't change dialog message.  Leave Talk.dialog_dom_elt fully visible with whatever its current message is which is probably instructions for filling in its input field.
+                    }
+                    else {
+                        SW.sw_shrink(Talk.dialog_dom_elt)
+                    }
                 }
                 else {
-                    mess = "Disabled. Click dialog to enable."
+                    SW.sw_shrink(Talk.dialog_dom_elt)
                 }
-                console.log("in onblur for dialog_dom_elt calling display_status with: " + "Disabled. Click dialog to enable. and: " + event.relatedTarget)
-                */
-                //don't change the mess when blur, keep the old one. We know the dialog is disabled by its gray background
-                Talk.display_status(mess, event.relatedTarget) //with mess == null, it leaves in
-                //the current mess which is probably an input field for "print" and related Talk cmds
             }
 
             Talk.dialog_dom_elt.onfocus = function(event){
-                console.log("in onfocus for dialog_dom_elt calling display_status")
-                Talk.display_status(null)
+                if(event.relatedTarget) { //when the reason onblur is called is because we're focusing on a type_in elt in the talk dialog, we want to keep the dialog background non-gray
+                    let ancests = Utils.get_dom_elt_ancestors(event.relatedTarget, false)//don't include event.target in ancests
+                    if (ancests.includes(Talk.dialog_dom_elt)) { //don't change dialog message.  Leave Talk.dialog_dom_elt fully visible with whatever its current message is which is probably instructions for filling in its input field.
+                    }
+                    else {
+                        console.log("in onfocus for dialog_dom_elt calling display_status")
+                        SW.sw_expand(Talk.dialog_dom_elt)
+                        Talk.display_status(null)
+                    }
+                }
+                else {
+                    console.log("in onfocus for dialog_dom_elt calling display_status")
+                    SW.sw_expand(Talk.dialog_dom_elt)
+                    Talk.display_status(null)
+                }
             }
             Talk.set_mode("main_menu")
             }, //need "Talk" here, not "this"
             200
         )
-        Talk.talk_out(Talk.say_or_click() + " on a valid command.")
+        Talk.display_message(Talk.say_or_click())
     }
 
     static sw_callback(vals){
@@ -498,46 +275,56 @@ class Talk {
         if(but_val === "close_button") {
             Talk.off()
         }
-        /*else { //all the cmds in the window are A tags with thei own onclick methods.
-            let meth = Talk.cmd_method(but_val) //Talk.prose_name_to_method(but_val)
-            if (meth) {
-                meth.call(Talk)
-            } else {
-                out("show_window click has no action.")
-            }
-        }*/
+        else {
+            shouldnt("Talk.sw_callback got invalid button_value of: " + but_val)
+        }
     }
 
     static set_mode(mode, message){
         Talk.mode = mode //must use "Talk", not "this" due to setTimeout call
-        Talk.display_status(message)
+        Talk.display_all(message)
     }
+
+    static set_params_mode(cmd_str){
+        this.set_mode(this.mode + "__" + cmd_str + "__params",
+            "For <b>" + cmd_str + "</b>, say or enter a param_name and its new value.")
+    }
+
 
     //shows status including valid cmds
     //not passing in a message displays the default message.
-    static display_status(message, related_target){
-        //out("top of display_status")
-        if(globalThis.status_id) { //show_window is shown
-            status_id.innerHTML =
-                "<i>Mode: </i><b>"          + this.mode + (Talk.recording_name_now_playing ?  " " + Talk.recording_name_now_playing : "") + "</b> &nbsp;" +
-                "<i>Step distance: </i><b>" + this.step_distance                   + "</b> &nbsp;" +
-                "<i>Mic: </i><b>"           + (this.is_mic_on() ?    "on" : "off") + "</b> &nbsp;" +
-                "<i>Speaker: </i><b>"       + (this.enable_speaker ? "on" : "off") + "</b> &nbsp;" +
-                "<i>Recording: </i><b>"     + (this.is_recording ?   "on" : "off") + "</b> &nbsp;"
-
-            this.set_display_status_color(related_target)
-            let valid_cmds_html_fn_name
-            valid_cmds_html_fn_name = "show_" + Talk.mode + "_mode_commands"
-            let mode_cmds_meth = Talk[valid_cmds_html_fn_name]
-            mode_cmds_meth.call(Talk) //show valid cmds for this Talk.mode, ie main menu, move menu, etc.
-            if(message){
-                Talk.talk_out(message)
-            }
+    static display_all(message, related_target=document.activeElement){ //display_all
+        //out("top of display_all")
+        this.display_status()
+        this.display_color(related_target)
+        this.display_commands()
+        if(message){
+            Talk.display_message(message)
         }
     }
 
-    static set_display_status_color(related_target) { //related_target is like print_elt_id, aan input elt inside the dialog , or nothing
-        console.log("top of set_display_status_color passed related_target: " + related_target)
+    static display_status(){
+        if (globalThis.display_status_id) { //show_window is shown
+            display_status_id.innerHTML =
+                "<i>Mic:           </i><b>" + (this.is_mic_on() ? "<span style='color:rgb(0, 220, 0);'>on</span>" : "off") + "</b> &nbsp;" +
+                "<i>Speaker:       </i><b>" + (this.enable_speaker ? "<span style='color:rgb(0, 220, 0);'>on</span>" : "off") + "</b> &nbsp;" +
+                "<i>Recording:     </i><b>" + (this.is_recording ? "<span style='color:rgb(0, 220, 0);'>on</span>" : "off") + "</b> &nbsp;" +
+                "<i>Step distance: </i><b>" + this.step_distance + "</b><br/>" +
+                "<i>Mode:          </i><b>" + this.mode + (Talk.recording_name_now_playing ? " " + Talk.recording_name_now_playing : "") + "</b>"
+        }
+    }
+
+    static display_message(html){ //display_message
+        if(globalThis.talk_out_id) {
+            talk_out_id.innerHTML = html
+        }
+    }
+
+    static display_color(related_target) { // display_color related_target is like print_elt_id, aan input elt inside the dialog , or nothing
+        console.log("top of display_color passed related_target:")
+        //console.log(related_target)
+        //console.log("and activeElement")
+        //console.log(document.activeElement)
         let in_focus_color = "#ffd6c2" //"#ffd9ad" //tan  rgb(255, 253, 208) //cream
         let out_focus_color = "gray"
         //let bg_color=  ((document.activeElement === this.dialog_dom_elt) ? in_focus_color : out_focus_color)
@@ -558,33 +345,128 @@ class Talk {
         else {
             color = out_focus_color
         }
-        status_id.style["background-color"] = color
+        display_status_id.style["background-color"] = color
         talk_out_id.style["background-color"] = color
         this.dialog_dom_elt.style["background-color"] = color
-        console.log("just set color to: " + color + "with: ")
-        console.log("document.activeElement: " + document.activeElement)
-        console.log("_________")
+        console.log("just set color to: " + color + " with activeElement: ")
+        //console.log(document.activeElement)
+        //console.log("document.activeElement: " + document.activeElement)
+        console.log("_________end of display_color")
     }
 
- //_______command Utilties_______
+    static display_commands(){
+        valid_commands_id.innerHTML = this.cmds_html_for_current_mode()
+    }
 
-    //cmds is a list of cmd_rows. a list of methods  without their subject, lower-case, with underscores
-    static make_command_list_items(...cmds){
+ //_______command Utilities_______
+
+    static onkeydown_for_arg_input(event){
+        event.stopPropagation()
+        //event.preventDefault()
+    }
+
+    static onkeyup_for_arg_input(event){
+        event.stopPropagation()
+        //event.preventDefault()
+        if(event.key === "Enter") {
+            let [parent_mode, cmd_str] = Talk.mode.split("__")
+            let names = Talk.cmd_param_names_for_current_params_mode()
+            let last_name = Utils.last(names)
+            let [id_parent_mode, cmd, params_const, param_name] = event.target.id.split("__")
+            if(param_name === last_name){ //user edited last param value and hit Enter, so just run the cmd
+                Talk.handle_command("run")
+            }
+            else { //focus on next input
+                let cur_index = names.indexOf(param_name)
+                let next_index = cur_index + 1
+                let next_param_name = names[next_index]
+                let next_id = parent_node + "__" + cmd_str + "__params__" + next_param_name
+                let next_dom_elt = thisGlobal[next_id]
+                if(next_dom_elt) {
+                    next_dom_elt.focus()
+                }
+            }
+        }
+    }
+
+    static cmds_html_for_current_mode() {
+        if (this.mode.endsWith("__params")) {
+            let [parent_mode, cmd] = this.mode.split("__")
+            let params = this.cmd_params_for_current_params_mode()
+            let html = ""
+            let tooltip = "A parameter for the " + cmd + " command."
+            for (let param of params) {
+                let [param_name, def_val] = param
+                let id = this.mode + "__" + param_name + "__id"
+                html += "<li style='height:30px;' title='" + tooltip + "' >" + param_name + ": " +
+                    "<input id='" + id + "' value='" + def_val +
+                    "' onkeydown='Talk.onkeydown_for_arg_input(event)' " +
+                    "' onkeyup='Talk.onkeyup_for_arg_input(event)' " +
+                    "'/></li>\n"
+            }
+
+            //html that, when clicked on will run the cmd with all the args in the param menu
+            let click_source = "Talk.handle_command('run')"
+            //we want to bypass the handle_command call because it would call the cmd table but it can't handle the params dialog
+            //Talk.handle_command('" + norm_cmd + "')"
+            tooltip = "Run the " + cmd + " command with the param values in this dialog box."
+            let display_prose = "Run"
+            let li_body_html = '<span class="talk_cmd" onclick="' + click_source + '"' + //performing span onclick doesn't trigger onblur for dialog box as a whole and since these links change after dialog creation, doesn't need the fancy SW processing to call the sw callback upon click
+                ' title="' + tooltip +
+                '">' +
+                display_prose + '</span>\n'
+            let li_menu_item = "<li style='height:30px;'>" + li_body_html + "</li>\n"
+            html += li_menu_item
+
+            //html that, when clicked on will go back to the parent mode menu
+            click_source = "Talk.set_mode('" + parent_mode + "', Talk.say_or_click())"
+                  //we want to bypass the handle_command call because it would call the cmd table but it can't handle the params dialog
+                  //Talk.handle_command('" + norm_cmd + "')"
+            tooltip = "Change the menu of commands back to the main menu."
+            display_prose = Talk.string_to_display_prose(parent_mode)
+            li_body_html = '<span class="talk_cmd" onclick="' + click_source + '"' + //performing span onclick doesn't trigger onblur for dialog box as a whole and since these links change after dialog creation, doesn't need the fancy SW processing to call the sw callback upon click
+                            ' title="' + tooltip +
+                            '">' +
+                            display_prose + '</span>\n'
+            li_menu_item = "<li style='height:30px;'>" + li_body_html + "</li>\n"
+            html += li_menu_item
+
+            return html
+        }
+        else {//regular mode
+            let cmds_for_mode = this.cmd_props_table[this.mode]
+            if (cmds_for_mode) {
+                return this.make_command_list_items(cmds_for_mode)
+            }
+            else {
+                shouldnt("cmds_html_for_current_mode passed unknown mode: " + this.mode)
+            }
+        }
+    }
+
+     //for format of cmds_for_mode, see cmd_props_table for any mode.
+    static make_command_list_items(cmds_for_mode){
         let result = ""
-        for(let cmd_row_arr of cmds){
-            if(!cmd_row_arr ) { continue }
+        for(let cmd_rows of cmds_for_mode){
+            if(!cmd_rows ) { continue }
             result += "<li style='height:30px;'>"
-            for(let cmd of cmd_row_arr) {
-                if(!cmd ) { continue }
-                if ((cmd_row_arr.length > 1) && (cmd !== cmd_row_arr[0])) { //put comma before every non-first elt
+            for(let cmd_props of cmd_rows) {
+                if(!cmd_props ) { continue }
+                let cmd_normalized_prose = cmd_props[0]  //usually a string, but could be a fn
+                if(typeof(cmd_normalized_prose) === "function") {
+                    cmd_normalized_prose = cmd_normalized_prose.call(Talk)
+                    if (typeof (cmd_normalized_prose) !== "string") { //function might decide NOT to display anything, ie this cmd not appropriate given the runtime, so just don't display it.
+                        continue
+                    }
+                }
+                if ((cmd_rows.length > 1) && (cmd_props !== cmd_rows[0])) { //put comma before every non-first elt
                     result += " &nbsp;&#x2022;&nbsp;"
                 }
-                let display_prose = this.cmd_display_prose(cmd) //upper case first letter, spaces between words
-                let norm = this.cmd_normalized_prose(cmd)
-                let tooltip = this.cmd_tooltip(norm)
-                let click_source = "Talk.handle_command('" + norm + "')"
+                let display_prose = this.cmd_display_prose(cmd_normalized_prose) //upper case first letter, spaces between words
+                let tooltip = this.cmd_tooltip(cmd_normalized_prose)
+                let click_source = "Talk.handle_command('" + cmd_normalized_prose + "')"
                 let style_val = "" //text-decoration: underline; color:#3600cc " //#7d00fa; " //purple
-                if(norm === 'stop recording') {
+                if(cmd_normalized_prose === 'stop recording') {
                     style_val += "background-color:rgb(255, 180, 180);"
                 }
                 /*li_body_html = '<a class="simple_cmd" href="#" ' + color +
@@ -599,11 +481,49 @@ class Talk {
             }
             result += "</li>\n"
         }
-        return result //+= "<li><span onclick='alert(123)' name='mynam'>cont</span></li>"
+        return result //+= "<li><span onclick='alert(123)' name='myname'>cont</span></li>"
+    }
+
+    //presents collecting an argument to a command for user to "fill in"
+    static show_command_parameter(cmd_meth_name) {
+        let callback_name = cmd_meth_name + "_from_type_in"
+        let param_name = this.cmd_param_name(cmd_meth_name)
+        let callback_callback = Talk[cmd_meth_name + "_action"]
+        this.define_command_parameter_callback(callback_name, param_name, callback_callback)
+        let default_value = this.cmd_param_default_value(param_name)
+        let doc = "Say or type in " + param_name
+        this.display_message(doc +
+            " <input id='print_text_id' " +
+            " onkeyup='Talk." + callback_name + "(event)' " +
+            " value='" + default_value + "'/>"
+        )
+    }
+
+    static define_command_parameter_callback(callback_name, callback_param_name, callback_callback){
+        Talk[callback_name] = function(event) {
+            event.stopPropagation()
+            if (event.key === "Enter") {
+                let arg_str = event.target.value
+                if (arg_str && (arg_str.length > 0)) {
+                    callback_callback(arg_str)
+                }
+                else {
+                    //Talk.move_menu()
+                    Talk.warning("You must type something in.")
+                }
+            }
+            else if ((event.key === " ") &&
+                (event.target.value.length === 0)) {
+                let call_back_param_doc = "Say " + callback_param_name + "."
+                Talk.display_message(call_back_param_doc)
+                Talk.turn_on_mic()
+                Talk.dialog_dom_elt.focus()
+            }
+        }
     }
 
     //used only when user is saying a recording name.
-    static clean_full_text(full_text){
+    static replace_words(full_text){
         full_text = full_text.trim()
         let result = ""
         let word_array = full_text.split(" ")
@@ -618,83 +538,139 @@ class Talk {
     }
 
     static word_replacements = {
-        "poor": "pour" //as in "poor water
+        "poor": "pour", //as in "pour water"
+        "fu":   "foo",
+        "fubar": "foo bar"
     }
 
-    static cmd_props_table = [
+    //static modes = ["main_menu", "move_menu", "waiting_for_job_name", "waiting_for_place_name", "playing_recording"]
+
+    //used in cmd_props_table
+    static turn_on_mic_maybe(){
+            if(this.speech_reco_possible && !this.is_mic_on()){
+              return "turn on mic"
+            }
+    }
+    static turn_off_mic_maybe(){
+        if(this.speech_reco_possible && this.is_mic_on()){
+            return "turn off mic"
+        }
+    }
+
+    static turn_on_speaker_maybe(){
+        if(!this.is_speaker_on()){
+            return "turn on speaker"
+        }
+    }
+
+    static turn_off_speaker_maybe(){
+        if(!this.is_speaker_on()){
+            return "turn off speaker"
+        }
+    }
+
+    static start_recording_maybe(){
+        if(!this.is_recording) {
+            return "start recording"
+        }
+    }
+
+    static stop_recording_maybe(){
+        if(this.is_recording) {
+            return "stop recording"
+        }
+    }
+
+    static cmd_props_table = {
         //0 cmd_normalized_prose,   1 cmd_display_prose,       2 cmd_method_name,  3 cmd_can_be_  4 cmd_alternatives                       5 cmd_tooltip
         //aka utterance from reco                              aka recording_name, in_recording,
+        //                             1 cmd_alternatives                         2 params        3 cmd_tooltip
+        main_menu: [
+       [ [Talk.turn_on_mic_maybe,      ["turn on mike",  "turn on microphone"],  [], "Turn on the mic (or press space-bar),&#013;then say a command."],
+         [Talk.turn_off_mic_maybe,     ["turn off mike", "turn off microphone"], [], "Turn off the mic (or just pause speaking for auto-off)"],
+         [Talk.turn_on_speaker_maybe,  ["turn speaker on"],                      [], "Enables the speaker to work when Talk tries to, um, talk."],
+         [Talk.turn_off_speaker_maybe, ["turn speaker off", "quiet", "be quiet", "shut up"], [], "Disables speaker so that Talk will (usually) be quiet."]
+       ],
+       [ ["move menu",                 ["move"],                                 [], "Displays a menu of robot movement commands." ],
+       ],
+       [ ["note",                      [],                                       [["text", ""]], "Inserts text into the end of the editor with a timestamp."  ], //don't have alternatives
+         ["print",                     [],                                       [["text", ""]], "Inserts text into the current position of the editor without timestamp."], //don't have alternatives
+       ],
+       [ ["say selection",             [],                                       [], "Select some text in the editor and &#13;say or click 'Say selection' to have it spoken."],
+         ["define saying",             ["defined saying", "dine saying"],        [["name", ""], ["saying", ""]],
+             "The 1st word of a saying is its name,&#13;the 2nd + is its body.&#13;Ex: Say 'define saying green is good'.&#13;Or select 'green is good' in the editor and&#13;click the menu item.&#13;Tap the space-bar and say 'green',&#13;or click Job button 'green' to hear 'is good'."],
+       ],
+       [ ["gpt",                      ["GPT"],                                   [["prompt", ""]], "Passes the spoken text as a prompt to GPT.&#13;The response appears in the Output pane. "],
+       ],
+       [ ["stop",                     [],                                        [], "Stop Dexter and other ongoing activities."],  //on both main and move menus
+         ["off",                      [],                                        [], "Stop activities and close the Talk dialog box."],
+       ]
+     ], //end main_menu
+     move_menu: [
+      [ ["straight up",               [],                                        [], "Move Dexter until its straight up and stop."],
+      ],
+      [ ["up",                        [],                                        [], "Move Dexter up."],
+        ["down",                      [],                                        [], "Move Dexter down.&#13;If Dexter is straight up (as it is initially)&#13;you must move it down&#13;before moving it in any other direction."],
 
-        ["turn on mic",            "Turn on mic",              "turn_on_mic",      true, ["turn on mike",  "turn on microphone"],  "Turn on the mic (or press space bar),&#013;then say a command."],
-        ["turn off mic",           "Turn off mic",             "turn_off_mic",     true, ["turn off mike", "turn off microphone"], "Turn off the mic"], //note this isn't even on the menu and doesn't need to be as mic auto turns off after a pause in speaking
+        ["left",                      [],                                        [], "Move Dexter left."],
+        ["right",                     [],                                        [], "Move Dexter right."],
 
-        ["turn on speaker",        "Turn on speaker",          "turn_on_speaker",  true, [], "Enables the speaker to work when Talk tries to, um, talk."],
-        ["turn off speaker",       "Turn off speaker",         "turn_off_speaker", true,  ["turn speaker off", "quiet", "be quiet", "shut up"], "Disables speaker so that Talk will (usually) be quiet."],
-        ["move",                   "Move&#9660;",              "move",             false, ["show movement commands"], "Displays a menu of robot movement commands."],
-        ["note",                   "Note (text)",              "note",             true, [], "Inserts text into the end of the editor with a timestamp."  ], //don't have alternatives
-        ["print",                  "Print (text)",             "print",            true, [], "Inserts text into the current position of the editor without timestamp."], //don't have alternatives
-        ["say selection",          "Say selection",            "say_selection",    true, [], "Select some text in the editor and &#13;say or click 'Say selection' to have it spoken."],
-        ["define saying",          "Define saying (text)",     "define_saying",    true, ["define saying", "defined saying", "dine saying"], //must be 2 words.
-             "The 1st word of a saying is its name,&#13;the 2nd is its body.&#13;Ex: Say 'define saying green is good'.&#13;Or select 'green is good' in the editor and&#13;click the menu item.&#13;Tap the space bar and say 'green',&#13;or click Job button 'green' to hear 'is good'."],
+        ["closer",                    [],                                        [], "Move Dexter closer to its base."],
+        ["farther",                   ["further"],                               [], "Move Dexter farther from its base."],
+      ],
+      [ ["faster",                    [],                                        [], "Double the speed of Dexter when it moves."],
+        ["slower",                    [],                                        [], "Half the speed of Dexter when it moves."],
 
-        //recording dialog
-        ["define position",        "Define position",          "define_position",  false, ["defined position", "dine position"]],
-        ["start recording",        "Start recording",          "start_recording",  false, ["started recording"]],
-        ["stop recording",         "Stop recording",           "stop_recording",   false],
-        ["play recording",         "Play Recording (name)",    "play_recording",   true],
-        ["stop playing",           "Stop playing",             "stop_playing",     true],
-        ["edit job",               "Edit Job (name)",          "edit_job",         true, [], "Say 'Edit [job name] to&#13;insert the Job definition into the editor."], //don't have alternatives
-        //["list recordings",        "List recordings",          "list_recordings",  true],
-        ["gpt",                    "GPT (prompt)",             "gpt",              false, ["g", "gee", "GPT"], "Passes the spoken text as a prompt to GPT.&#13;The response appears in the Output pane. "],
-        //move dialog
-        ["straight up",            "Straight up",              "straight_up",      true, [], "Move Dexter until its straight up and stop."],
-        ["down",                   "Down",                     "down",             true, [], "Move Dexter down.&#13;If Dexter is straight up (as it is initially)&#13;you must move it down&#13;before moving it in any other direction."],
-        ["up",                     "Up",                       "up",               true, [], "Move Dexter up."],
-        ["left",                   "Left",                     "left",             true, [], "Move Dexter left."],
-        ["right",                  "Right",                    "right",            true, [], "Move Dexter right."],
-        ["closer",                 "Closer",                   "closer",           true, [], "Move Dexter closer to its base."],
-        ["farther",                "Farther",                  "farther",          true,  ["further"], "Move Dexter farther from its base."],
-        ["reverse",                "Reverse",                  "reverse",          true, [], "Move Dexter back along the path from whence it came."],
-        ["forward",                "Forward",                  "forward",          true, ["foreword"], "Move Dexter forward after you have moved it back along its path."],
-        ["faster",                 "Faster",                   "faster",           true, [], "Double the speed of Dexter when it moves."],
-        ["slower",                 "Slower",                   "slower",           true, [], "Half the speed of Dexter when it moves."],
-        ["stop",                   "Stop",                     "stop",             true, [], "Stop Dexter and other ongoing activities."],  //on both main and move menus
+        ["forward",                  ["foreword"],                               [], "Move Dexter forward after you have moved it back along its path."],
+        ["reverse",                  [],                                         [], "Move Dexter back along the path from whence it came."],
+      ],
+      [ ["define place",             ["defined place", "dine place"],            [["job_name", ""]], "Assign Dexter's current position to a name."],
+        [Talk.start_recording_maybe, ["started recording"],                      [], "Begin the recording of Dexter move commands into a Job."],
+        [Talk.stop_recording_maybe,  [],                                         [], "Stop the recording of Dexter move commands into a Job."],
+      ],
+      [ ["run job",                  [],                                         [["job_name", Talk.default_job_name]], "Say 'Run Job [job name] or&#13;just the Job name to&#13;start the Job."],
+        ["edit job",                 [],                                         [["job_name", Talk.default_job_name]], "Say 'Edit [job name] to&#13;insert the Job definition into the editor."], //don't have alternatives
+      ],
+      [
+        ["stop",                     [],                                         [], "Stop Dexter and other ongoing activities."],  //on both main and move menus
+        ["main menu",                ["main", "maine"],                          [], "Change the menu of commands back to the main menu."],
+      ],
+   ], //end move_menu
+   params: [ //the constant cmds for all params valid cmds. Dynamically the "back" menu gets added by cmd_rows_for_mode and a row for each param will get added by cmds_html_for_current_mode
+      [ ["run",                      [],                                         [], "Run the current command with the values for each param."]
 
-        ["back",                   "Back",                     "back",             true, [], "Change the menu of commands back to the main menu."],
-        ["off",                    "Off",                      "off",              false, [], "Stop activities and close the Talk dialog box."]
-    ]
-    static show_main_menu_mode_commands() {
-        let mic_cmd = []
-        if(this.speech_reco_possible){
-            mic_cmd.push((this.is_mic_on() ? "Turn off mic" : "Turn on mic"))
+      ]
+   ]
+        /*
+   job_name: [
+      [ [Talk.turn_on_mic_maybe,     "Turn on mic",              "turn_on_mic",     true,  ["turn on mike",  "turn on microphone"],  "Turn on the mic (or press space-bar),&#013;then say a command."],
+        [Talk.turn_off_mic_maybe,    "Turn off mic",             "turn_off_mic",    true,  ["turn off mike", "turn off microphone"], "Turn off the mic (or just pause speaking for auto-off)"],
+      ],
+      [ ["move menu",  "Move menu&#9660; (cancel recording)",    "move_menu",       false, ["move"], "Displays a menu of robot movement commands." ]
+      ],
+   ], //end job_name
+   waiting_for_place_name: [
+      [ [Talk.turn_on_mic_maybe,     "Turn on mic",              "turn_on_mic",     true,  ["turn on mike",  "turn on microphone"],  "Turn on the mic (or press space-bar),&#013;then say a command."],
+        [Talk.turn_off_mic_maybe,    "Turn off mic",             "turn_off_mic",    true,  ["turn off mike", "turn off microphone"], "Turn off the mic (or just pause speaking for auto-off)"],
+      ],
+      [ ["move menu",  "Move menu&#9660; (cancel defining place)", "move_menu",  false, ["move"], "Stops recording and displays a menu of robot movement commands." ],
+      ],
+   ],
+   playing_recording: [
+      [ ["stop playing",             "Stop playing",           "stop_playing",      false, [], "Stop the Job now running."],
+      ]
+   ] // end playing_recording
+   */
+} //end cmd_props_table
+    //not called Apr 22 whuich is good because excludes params mode if any.
+    static is_mode(a_string){
+        if(this.cmd_props_table[a_string]){
+            return true
         }
-        mic_cmd.push((this.is_speaker_on()? "Turn off speaker" : "Turn on speaker"))
-        let cmd_rows_arr = [
-            mic_cmd,
-            ["move"],
-            ["note", "print", "say selection"],
-            ["define saying", "define position", (this.is_recording ? "stop recording" : "start recording")],
-            ["play recording", "edit job"],
-            ["gpt"],
-            ["stop", "off"],
-        ]
-        valid_commands_id.innerHTML = this.make_command_list_items(...cmd_rows_arr)
+        else { return false}
     }
 
-    static show_move_mode_commands(){
-        let cmd_row_arr =  [ //even if not moving, we need this to get back to main_menu mode
-            ["straight up"],
-            ["up",       "down"],
-            ["left",     "right"],
-            ["closer",   "farther"],
-            ["forward",  "reverse"],
-            ["faster",   "slower"],
-            ["stop",     "back"]
-        ]
-        valid_commands_id.innerHTML = this.make_command_list_items(...cmd_row_arr)
-    }
-
-    //does not check for existance, just converts string to the right FORMAT of a cmd_normalized_prose.
+    //does not check for existence, just converts string to the right FORMAT of a cmd_normalized_prose.
     //used to get a recording_name as might be spoken
     static string_to_cmd_normalized_prose(string){
         let paren_index = string.indexOf("(")
@@ -703,8 +679,9 @@ class Talk {
                                                       //an open paren signifies a comment to the end of the string
         }
         string = string.replaceAll(",", "")
-        string = string.trim()
+        string = Utils.trim_all(string) //trim off begin and ending witespace. replace multiple whitespace with one space.
         string = string.toLowerCase()
+        string = string.replaceAll("_", " ")
         return string
     }
 
@@ -721,75 +698,214 @@ class Talk {
         return string
     }
 
-    static get_cmd_props(cmd){ //ex: cmd === "print", returns ["print", "Print (text)", ...]
-        for(let cmd_arr of this.cmd_props_table){  //cmd_arr ex: ["print", "Print (text)", ...]
-            if((cmd_arr[0] === cmd) || (cmd_arr[1] === cmd) || (cmd_arr[2] === cmd) || (cmd_arr[4] === cmd)){ //excludes can_be_recording and tooltips on purpose
-                return cmd_arr
+    //for Talk.mode of main_menu and move_menu, returs "main menu: or "move menu"
+    //fpr param Talk.mode, it gets the parent mode and also changes underscores to spaces.
+    static cmd_normalized_prose_from_current_mode(){
+        let [parent_mode, cmd_str, params] = this.mode.split("__")
+        return this.string_to_cmd_normalized_prose(parent_mode)
+    }
+
+    //if mode is a normal mode (non-params) just get the rows from the cmd_props_table.
+    //otherwise, get the "params" rows from the cmd_props_table and
+    //add the appropriate "menu" row the return those rows.
+    //For a params mode, this does not return rows for each param. handle_command
+    //does that separately.
+    static cmd_rows_for_mode(a_mode){
+        let rows = this.cmd_props_table[a_mode]
+        if(rows) { return rows }
+        else {
+            let [parent_mode, cmd_str, params_const] = a_mode.split("__")
+            if(params_const){
+              let rows = this.cmd_props_table["params"].slice()
+              let norm_prose = this.cmd_normalized_prose_from_current_mode()
+              let tooltip = "Change the menu of commands back to the " + norm_prose + "."
+              let menu_row = [norm_prose, [], [], tooltip]
+              rows.push([menu_row])
+              return rows
+            }
+            else {
+                shouldnt("In Talk.cmd_rows_for_mode passed mode: " + a_mode + " is not in cmd_props_table more is it a params mode.")
             }
         }
-        return null
+    }
+
+
+    //returns true for regular Talk cmds only
+    static is_known_cmd(cmd){
+        let cmd_props = this.get_cmd_props(cmd)
+        if(cmd_props){ return true }
+        else { return false }
+    }
+
+    //returns cmd_props but with no function as the first elt of the array
+    //OR null if cmd is not in the current mode
+    static get_cmd_props(cmd){ //ex: cmd === "print", returns ["print", "Print (text)", ...]
+        cmd = cmd.toLowerCase()
+        cmd = cmd.replaceAll("_", " ")
+        let use_mode = this.mode
+        if(use_mode.endsWith("__params")){
+            let [parent_mode, cmd] = use_mode.split("__")
+            //use_mode = parent_mode
+            use_mode = "params"
+        }
+        let cmds_for_mode = this.cmd_props_table[use_mode]
+        for(let cmd_row of cmds_for_mode){  //cmd_arr ex: ["print", "Print (text)", ...]
+            for(let cmd_props of cmd_row) {
+                let normalized_cmd = cmd_props[0]
+                if(typeof(normalized_cmd) === "function"){
+                    normalized_cmd = normalized_cmd.call(this)
+                    if(normalized_cmd === cmd) {
+                        cmd_props = cmd_props.slice()
+                        cmd_props[0] = normalized_cmd  //because we don't want to return a cmd_props that has a fn as its first elt, we want the  real string that its supposed to be in the current mode
+                        return cmd_props
+                    }
+                }
+                else if ((normalized_cmd === cmd) || (cmd_props[1] === cmd) || (cmd_props[2] === cmd) || (cmd_props[4] === cmd)) { //excludes can_be_recording and tooltips on purpose
+                    return cmd_props
+                }
+            }
+        }
+        return null  //happens when say cmd === "turn off speaker" but speaker is not on so "turn off speaker" is not displayed in the menu and is not valid in the current mode
+        //also could happen if cmd is just never legit and the whole utterance is going to the default (gpt)
     }
 
 //called at top of handle_command. all lower case, spaces between words
     static cmd_normalized_prose(cmd){
+       cmd = cmd.toLowerCase()
+       cmd = cmd.replaceAll("_", " ")
        let cmd_props = this.get_cmd_props(cmd)
-       if(cmd_props){ return cmd_props[0] }
-       let norm_cmd = this.string_to_cmd_normalized_prose(cmd)
-       let meth_name = this.string_to_method_name(cmd)
-       if(this.is_recording_name(meth_name)) { return norm_cmd } //yes this is unnecessary, but clearer intent
-       else                                  { return norm_cmd }//Might be a brand-new recording name
-    }
-
-    //returns true for regular cmds and known recording_names
-    static is_known_cmd(cmd){
-        let cmd_props = this.get_cmd_props(cmd)
-        if(cmd_props){ return true }
-        let meth_name = this.string_to_method_name(cmd)
-        if(this.is_recording_name(meth_name)) { return true }
-        else { return false }//cmd Might be a brand-new recording name, but we still return false as is it is as of yet, unknown
+       if(cmd_props){
+           let norm_cmd = cmd_props[0]
+           if(typeof(norm_cmd) === "function"){
+               norm_cmd = norm_cmd.call(Talk)
+           }
+           return norm_cmd
+       }
+       else { //can happen for Job names
+           return cmd
+       }
     }
 
     static cmd_display_prose(cmd){
-        let cmd_props = this.get_cmd_props(cmd)
-        if(cmd_props){ return cmd_props[1] }
-        return this.string_to_display_prose(cmd)
+        let result = cmd.replaceAll("_", " ")
+        result = Utils.make_first_char_upper_case(result)
+        let params = this.cmd_params(cmd)
+        if(!params) { shouldnt("cmd_display_prosep passed unknown cmd: " + cmd) }
+        else if (params.length === 0) {}
+        else {
+            let first_param_name = params[0][0]
+            result += " (" + first_param_name + ")"
+        }
+        return result
     }
 
     static cmd_method_name(cmd){
-        let cmd_props = this.get_cmd_props(cmd)
-        if(cmd_props){ return cmd_props[2] }
-        //below used for making a recording_name from some potentially unknown string
-        let meth_name = this.string_to_method_name(cmd)
-        return meth_name
+        let result = cmd.replaceAll(" ", "_")
+        result = result.replaceAll("'", "") // "don't" => "dont"
+        if(typeof(Talk[result]) === "function") {
+            return meth_name
+        }
+        else {
+            shoiudnt("Talk.cmd_method_name passed unknown cmd: " + cmd)
+        }
     }
 
     static cmd_method(cmd){
         let meth_name = this.cmd_method_name(cmd)
         if(meth_name) { return Talk[meth_name] }
-        return null //not found
+        else {
+            return null
+        } //not found
     }
 
-    //note that an unknown but proper recording_name will still return false
-    static cmd_can_be_in_recording(cmd){
+    static cmd_params(cmd){
         let cmd_props = this.get_cmd_props(cmd)
-        if(cmd_props){ return cmd_props[3] }
-        let meth_name = this.string_to_method_name(string)
-        if(this.is_recording_name(meth_name)) { true }
-        return null //not found
+        if(!cmd_props) { shouldnt("In Talk.cmd_params, passed unknown cmd: " + cmd)}
+        return cmd_props[2]
+    }
+
+    static cmd_param_names(cmd){
+        let params = this.cmd_params(cmd)
+        let param_names = []
+        for(let param of params){
+            param_names.push(param[0])
+        }
+        return param_names
+    }
+
+    //returns an array of elements of [param_name, default_value]
+    static cmd_params_for_current_params_mode(){
+        let [parent_mode, cmd_str] = this.mode.split("__")
+        let rows = this.cmd_props_table[parent_mode]
+        for(let row of rows){
+            for(let cmd_arr of row){
+                if(cmd_str === cmd_arr[0]){
+                    return cmd_arr[2]
+                }
+            }
+        }
+        shouldnt("cmd_param_names_for_current_params_mode couldn't find the cmd: " +
+            cmd_str + " in mode: " + parent_mode)
+    }
+
+    static cmd_param_names_for_current_params_mode(){
+        let params = this.cmd_params_for_current_params_mode()
+        let param_names = []
+        for(let param of params){ //name-default_value pairs
+            param_names.push(param[0])
+        }
+        return param_names
+    }
+
+    static is_param(cmd, param_name){
+        let params = this.cmd_params(cmd)
+        if(!params) { shouldnt("In Talk.cmd_param_default_value, passed unknown cmd: " + cmd)}
+        for(let a_param of params) {
+            if(a_param === param_name) {
+                return true
+            }
+        }
+        return false
+    }
+
+    static cmd_param_default_value(cmd, param_name){
+        let params = this.cmd_params(cmd)
+        if(!params) { shouldnt("In Talk.cmd_param_default_value, passed unknown cmd: " + cmd)}
+        for(let a_param of params) {
+           if(a_param === param_name) {
+               let default_value = a_param[1]
+               if(typeof(default_value) === "function") {
+                   default_value = result.call(Talk)
+               }
+               return default_value
+           }
+       }
+       shouldnt("In Talk.cmd_param_default_value, passed unknown param: " + param_name + " for cmd: " + cmd)
     }
 
     //always returns an array.
     //If include_normalized_prose is true, the array will always be non-empty
     //with the normalized prose as the first elt.
-    //else if include_normalized_prose is false, and there are no alternaitvles in the table,
+    //else if include_normalized_prose is false, and there are no alternatives in the table,
     //returns the empty array.
     static cmd_alternatives(cmd, include_normalized_prose=true){
         let cmd_props = this.get_cmd_props(cmd)
-        let alts = cmd_props[4]
-        if(!alts){
+        let alts
+        if(!cmd_props){ //hits when say cmd is "turn speaker off" when the speaker is already off, so "turn speaker_off" is not on the menu.
+            return []   //so saying it has no alteratives is literally true.
+            //but more than that, even if include_normalized_prose == true, we want to return []
+            //so that in the normal call to cmd_alternatives at the top of the cmd methods,
+            //"cmd" will NOT match any alternatives, and the method will return "invalid"
+            //so that we move on to check the next cmd in the cmds_for_mode.
+        }
+        else {
+            alts = cmd_props[1]
+        }
+        if(!alts){ //no alts in the table so []
             alts = []
         }
-        if(include_normalized_prose){
+        if(include_normalized_prose){ //If cmd is not in the table, this will cause the alts return to be [cmd]
+            //now if cmd is not allowed, this would be
             alts = alts.slice() //copy
             alts.unshift(this.cmd_normalized_prose(cmd))
         }
@@ -798,13 +914,11 @@ class Talk {
 
     static cmd_tooltip(cmd){
         let cmd_props = this.get_cmd_props(cmd)
-        if(cmd_props){ return cmd_props[5] }
+        if(cmd_props){ return cmd_props[3] }
         return ""  //don't return null as I use the result in a title dom elt.
     }
 
 //______Show mode commands__________
-
-
 
     //from: https://stackoverflow.com/questions/822452/strip-html-from-text-javascript
     static strip_html(str){
@@ -815,41 +929,9 @@ class Talk {
         str=str.replace(/\n+\s*/gi, "\n\n");
         return str
     }
-    static talk_out(html){
-        if(globalThis.talk_out_id) {
-            talk_out_id.innerHTML = html
-            /* if (this.enable_speaker) {
-                // but having problems turning it back on.
-                //this.microphone.close()
-                if(this.speech_reco_possible && this.is_mic_on()) {
-                    //this.client.stop()
-                    this.listening = false
-                    //Talk.client.adjustAudioProcessor( { vad: { enabled: false }})
-                }
-                let str = this.strip_html(html)
-                speak({
-                    speak_data: str, volume:
-                    this.speak_volume,
-                    callback: function () {
-                        if(Talk.speech_reco_possible && !Talk.is_mic_on()) {
-                            //Talk.client.start()
-                            Talk.listening = true
-                            //Talk.client.adjustAudioProcessor( { vad: { enabled: true }})
-                        }
-                    }
-                })
-                //setTimeout(this.speak_and_restart(html), 1000)
-            }
-        }
-        else {
-            out(html)
-        }
-             */
-        }
-    }
 
     static say_or_click(){
-        return (this.is_mic_on()? "Say or click" : "Tap space bar to turn on mic or click")
+        return "Tap the space-bar and say a command, or click on one."
     }
 
     //_______speak methods_______
@@ -867,7 +949,7 @@ class Talk {
     }
 
     static warning(text){
-        Talk.talk_out("<span style=color:red;>" + text + "</span>")
+        Talk.display_message("<span style=color:red;>" + text + "</span>")
         Talk.speak_if_enabled(text)
     }
 
@@ -916,29 +998,57 @@ class Talk {
         return result
     }
 
+    //returns last defined job name, or if none "", but avoid returning "talk_internal"
+    //as we don't want the user editing or overwriting this job.
+    static default_job_name(){
+        if(Job.all_names.length > 0) {
+            let last_name = Utils.last(Job.all_names)
+            if(last_name === "talk_internal"){
+                if(Job.all_names.length === 1){
+                    return ""
+                }
+                else {
+                    return Job.all_names[Job.all_names.length - 2] //get the 2nd latest
+                }
+            }
+            else {
+                return last_name
+            }
+        }
+        else {
+            return ""
+        }
+    }
+
 
 
 //_______Start of Command Implementations________
-    //if called with "off" or NO arg, it should still work
+//There are two syntactic types of commands
+//1. cmds with no "content" (args). If these are given extra text after the cmd they
+//aren't recognized as the cmd.
+//2. cmds with "content" (args). Some of these MUST have content in the "full_text",
+// others can get the content after the cmd is recognized with a type-in field, saying it,
+//or sometimes from selection in the editor.
+
     static off(full_text="off"){
         let alts = this.cmd_alternatives("off", true)
-        if(alts.includes(full_text)){
-            Talk.stop() //stop speaking, turn_off_mic, etc.
-            Talk.set_mode("main_menu")
-            setTimeout(function(){  //not sure why this is needed but clicking "Off" doesn't close the show_window without it
-                SW.close_window(Talk.sw_index)
-            }, 100)
-            if (Job.talk_to_dexter) {
-                Job.talk_to_dexter.when_do_list_done = "run_when_stopped"
-                //change from "wait" so that stop_for_reason will stop the job.
-                Job.talk_to_dexter.stop_for_reason("completed", "user stopped job")
-                Job.talk_to_dexter.undefine_job()
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str){
+            if(content === "") {
+                Talk.stop() //stop speaking, turn_off_mic, etc.
+                Talk.set_mode("main_menu")
+                setTimeout(function () {  //not sure why this is needed but clicking "Off" doesn't close the show_window without it
+                    SW.close_window(Talk.sw_index)
+                }, 100)
+                if (Job.talk_internal) {
+                    Job.talk_internal.when_do_list_done = "run_when_stopped"
+                    //change from "wait" so that stop_for_reason will stop the job.
+                    Job.talk_internal.stop_for_reason("completed", "user stopped job")
+                    Job.talk_internal.undefine_job()
+                }
+                return true
             }
-            //put the above before the below because the below try doesn't catch a broken websocket error
-
-            return "valid"
         }
-        else { return "invalid"}
     }
 
     static is_mic_on(){
@@ -949,27 +1059,49 @@ class Talk {
 
     static turn_on_mic(full_text="turn on mic"){
         let alts = this.cmd_alternatives("turn on mic", true) //don't do if we're already listening.
-        if(!this.listening && alts.includes(full_text)){ //don't do if we're already listening.
-            this.recognition.start()
-            this.listening = true
-            Talk.display_status()
-            Talk.talk_out(Talk.say_or_click() + " on a valid command.")
-            return "valid"
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str && !this.listening) { //don't do if we're already listening.
+            if (content === "") {
+                return this.turn_on_mic_aux()
+            }
         }
-        else { return "invalid"}
+    }
+
+    //this is also called by onkeydown for the whole dialog
+    //since turn_on_mic isn't a cmd in mode: move_menu, we need
+    //to call this aux version from onkeydown for the whole dialog
+    static turn_on_mic_aux(){
+        console.log("in turn_on_mic_aux just before calling reco-start")
+        this.recognition.start() //should cause recognition.onstart to get fired, but it does nothing
+        this.listening = true
+        Talk.display_status()
+        Talk.display_message("Say a command.")
+        return true
     }
 
     static turn_off_mic(full_text="turn off mic"){
         let alts = this.cmd_alternatives("turn off mic", true)
-        if(alts.includes(full_text)){
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str){
+            if(content === "") {
+                this.turn_off_mic_aux()
+                return true
+            }
+        }
+    }
+
+    //also called by
+    static turn_off_mic_aux(){
+        if(this.listening) {
             this.recognition.abort();
             this.listening = false
             this.display_status()
-            if(talk_out_id.innerText.startsWith("Unrecognized")){}
-            else { this.talk_out("Tap space bar then say a command.") }
-            return "valid"
+            if (talk_out_id.innerText.startsWith("Unrecognized")) {
+            }
+            else {
+                this.display_message("Tap the space-bar then say a command.")
+            }
         }
-        else { return "invalid"}
     }
 
     static is_speaker_on(){
@@ -978,63 +1110,65 @@ class Talk {
 
     static turn_on_speaker(full_text = "turn on speaker") {
         let alts = this.cmd_alternatives("turn on speaker", true)
-        if(!this.listening && alts.includes(full_text)){
-            this.enable_speaker = true
-            this.display_status()
-            this.talk_out("The speaker is now on.")
-            speak("The speaker is now on.")
-            return "valid"
-        } else {
-            return "invalid"
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if (cmd_str && !this.listening) {
+            if (content === "") {
+                this.enable_speaker = true
+                this.display_status()
+                this.display_message("The speaker is now on.")
+                speak("The speaker is now on.")
+                return true
+            }
         }
     }
 
-    static turn_off_speaker(full_text = "turn off speaker"){
+    static turn_off_speaker(full_text = "turn off speaker") {
         let alts = this.cmd_alternatives("turn off speaker", true)
-        if(alts.includes(full_text)){
-            this.enable_speaker = false
-            this.display_status()
-            this.talk_out(this.say_or_click() + ' "Turn on Speaker" to start Dexter talking.')
-            return "valid"
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if (cmd_str) {
+            if (content === "") {
+                this.enable_speaker = false
+                this.display_status()
+                this.display_message(this.say_or_click() + ' "Turn on Speaker" to start Dexter talking.')
+                return true
+            }
         }
-        else { return "invalid"}
     }
 
-    static note(full_text="note"){
+    static note(full_text="note", cmd_str, content){
         //let alts = this.cmd_alternatives("note", true)
-        if(full_text === "note"){
-            this.talk_out("Type in text to print and hit Enter: " +
-                "<input id='print_text_id'  onkeyup='Talk.note_from_type_in(event)'/>"
-            )
-            setTimeout(function(){
-                if(globalThis.print_text_id){ //just in case a speechly_out erases the recording_name input
-                    globalThis.print_text_id.onkeydown = function(event){
-                        if (event.key === " ") { //so hitting the space bar doesn't try to turn on the mic.
-                            //out("got space")
-                            event.stopPropagation()
+        //let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        //if(cmd_str) {
+            if (content === "") {
+                /*this.display_message("Type in text to print and hit Enter: " +
+                    "<input id='print_text_id'  onkeyup='Talk.note_from_type_in(event)'/>"
+                )
+                setTimeout(function () {
+                    if (globalThis.print_text_id) { //just in case a speechly_out erases the recording_name input
+                        globalThis.print_text_id.onkeydown = function (event) {
+                            if (event.key === " ") { //so hitting the space bar doesn't try to turn on the mic.
+                                //out("got space")
+                                event.stopPropagation()
+                            }
                         }
+                        globalThis.print_text_id.focus()
+                        setTimeout(function () {
+                            console.log("calling display_status after focus on print_text_id")
+                            Talk.display_status(null, globalThis.print_text_id)
+                        }, 200)
                     }
-                    globalThis.print_text_id.focus()
-                    setTimeout(function() {
-                        console.log("calling display_status after focus on print_text_id")
-                        Talk.display_status(null, globalThis.print_text_id)
-                    }, 200)
-                }
-            }, 200)
-            return "valid"
-        }
-        else if(full_text.startsWith("note")){ //if we get here we have a message in tull_text
-            let mess = full_text.substring(5)
-            let text = "\n" + new Date() + "\n" + mess + "\n"
-            Editor.insert(text, "end")
-            Talk.dialog_dom_elt.focus() //we don't want to leave focus in the editor pane.
-            Talk.talk_out("Printing into the editor.")
-            return "valid"
-        }
-
-        else {
-            return "invalid"
-        }
+                }, 200)*/
+                this.set_params_mode(cmd_str)
+                return true
+            }
+            else {
+                let text = "\n" + new Date() + "\n" + content + "\n"
+                Editor.insert(text, "end")
+                Talk.dialog_dom_elt.focus() //we don't want to leave focus in the editor pane.
+                Talk.display_message("Printing into the editor.")
+                return true
+            }
+        //}
     }
 
     static note_from_type_in(event){
@@ -1042,43 +1176,75 @@ class Talk {
             let text = "\n" + new Date() + "\n" + event.target.value + "\n"
             Editor.insert(text, "end")
             Talk.dialog_dom_elt.focus() //we don't want to leave focus in the editor pane.
-            Talk.talk_out("Printing into the editor.")
+            Talk.display_message("Printing into the editor.")
+        }
+    }
+
+    //called only when Talk.mode is a "__params" mode.
+    static params_mode_misc(full_text){
+        let [parent_mode, cmd_str] = this.mode.split("__")
+        let param_names = this.cmd_param_names_for_current_params_mode()
+        let [param_name, param_val] = Utils.starts_with_one_of_and_tail(full_text, param_names, true)
+        if(param_name){
+            if(param_val === ""){ //ie the new param value
+               this.display_message("After saying the name of the param (i.e. " + param_name + "), say its new value.")
+            }
+            else {
+                let id = this.mode + //main_menu__note__params
+                         "__" + param_name + "__id"
+                globalThis[id].value = param_val
+                if(param_names.length === 1) {
+                    this.run() //gets us out of the params dialog and pops back up.
+                    //observe that we don't really need to set the field in the type in box,
+                    //but just in case someething goes wrong, etc.
+                    //its not a bad thing to do, even if not seen by the user.
+                }
+                return true
+            }
+        }
+        else { //no param name at beginning of full_text, so assume full_text is the value of the first param
+               //if user wants to fill in other param values, they have to say the param name first.
+            let first_param = param_names[0]
+            let id_str = parent_mode + "__" + cmd_str + "__params__" + first_param + "__id"
+            let dom_elt = globalThis[id_str]
+            dom_elt.value = full_text
+            if(param_names.length === 1){ //only 1 param so just do it!
+                this.run()
+            }
+            return true
         }
     }
 
     static print(full_text="print"){
-        //let alts = this.cmd_alternatives("note", true)
-        if(full_text === "print"){
-            this.talk_out("Type in text to make a note and hit Enter: " +
-                "<input id='print_text_id'  onkeyup='Talk.print_from_type_in(event)'/>"
-            )
-            setTimeout(function(){
-                if(globalThis.print_text_id){ //just in case a speechly_out erases the recording_name input
-                    globalThis.print_text_id.onkeydown = function(event){
-                        if (event.key === " ") { //so hitting the space bar doesn't try to turn on the mic.
-                            //out("got space")
-                            event.stopPropagation()
+        let alts = this.cmd_alternatives("print", true)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str) {
+            if (content === "") {
+                this.display_message("Type in text to make a note and hit Enter: " +
+                    "<input id='print_text_id'  onkeyup='Talk.print_from_type_in(event)'/>"
+                )
+                setTimeout(function () {
+                    if (globalThis.print_text_id) { //just in case a speechly_out erases the recording_name input
+                        globalThis.print_text_id.onkeydown = function (event) {
+                            if (event.key === " ") { //so hitting the space bar doesn't try to turn on the mic.
+                                //out("got space")
+                                event.stopPropagation()
+                            }
                         }
+                        globalThis.print_text_id.focus()
+                        setTimeout(function () {
+                            console.log("calling display_status after focus on print_text_id")
+                            Talk.display_status(null, globalThis.print_text_id)
+                        }, 200)
                     }
-                    globalThis.print_text_id.focus()
-                    setTimeout(function() {
-                        console.log("calling display_status after focus on print_text_id")
-                        Talk.display_status(null, globalThis.print_text_id)
-                    }, 200)
-                }
-            }, 200)
-            return "valid"
-        }
-        else if(full_text.startsWith("print")){ //if we get here we have a message in tull_text
-            let text = full_text.substring(5)
-            Editor.insert(text, "end")
-            Talk.dialog_dom_elt.focus() //we don't want to leave focus in the editor pane.
-            Talk.talk_out("Printing into the editor.")
-            return "valid"
-        }
-
-        else {
-            return "invalid"
+                }, 200)
+                return true
+            } else { //if we get here we have a message
+                Editor.insert(content, "end")
+                Talk.dialog_dom_elt.focus() //we don't want to leave focus in the editor pane.
+                Talk.display_message("Printing into the editor.")
+                return true
+            }
         }
     }
 
@@ -1087,121 +1253,45 @@ class Talk {
             let text = event.target.value
             Editor.insert(text, "end")
             Talk.dialog_dom_elt.focus() //we don't want to leave focus in the editor pane.
-            Talk.talk_out("Printing into the editor.")
+            Talk.display_message("Printing into the editor.")
         }
     }
 
     //always speaks regardles of Talk.enable_speaker
     static say_selection(full_text="say selection"){
         let alts = this.cmd_alternatives("say selection", true)
-        if(alts.includes(full_text)){
-            let sel = Editor.get_javascript(true)
-            if(sel.length === 0) {
-                speak({speak_data: "There is no selection. Drag the mouse over some text and try again."})
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str){
+            if(content === "") {
+                let sel = Editor.get_javascript(true)
+                if (sel.length === 0) {
+                    speak({speak_data: "There is no selection. Drag the mouse over some text and try again."})
+                } else {
+                    speak({speak_data: sel})
+                }
+                return true
             }
             else {
-                speak({speak_data: sel})
-            }
-            return "valid"
-        }
-        else {
-            return "invalid"
-        }
-    }
-
-    //Defines a job with a name so goes in the Job bar. then user can SAY
-    //any job name to run it.
-    /* static define_saying(full_text="define saying", playing_a_recording_cmd=false) {
-        let alts = this.cmd_alternatives("define saying", true)
-        if(alts.includes(full_text)){
-            let first_space_index = full_text.indexOf(" ")
-            let second_space_index = full_text.indexOf(" ", first_space_index + 1)
-            if(second_space_index === -1) {
-                Talk.saying_being_defined = ""
-            }
-            else {
-                Talk.saying_being_defined = full_text.substring(second_space_index + 1).trim() //can handle both define and defined.
-            }
-            if(Talk.saying_being_defined.length === 0){
-                Talk.saying_being_defined = Editor.get_javascript(true)
-            }
-            if (Talk.saying_being_defined.length > 0) {
-                this.set_mode("waiting_for_saying_name")
-                this.talk_out("Say or type in a name for the saying and hit Enter: " +
-                    "<input id='saying_name_id'  onkeyup='Talk.saying_name_from_type_in(event)'/>"
-                )
-                setTimeout(function () {
-                    if (globalThis.saying_name_id) { //just in case a speechly_out erases the recording_name input
-                        saying_name_id.focus()
-                    }
-                }, 200)
-            } else {
-                Talk.talk_out('You must say something after "define saying" or have selected text to define a saying.')
-            }
-            return "valid"
-        } else {
-            return "invalid"
-        }
-    }
-
-    static saying_name_from_type_in(event){
-        if(event.key === "Enter") {
-            let saying_name = event.target.value
-            if(saying_name && (saying_name.length > 0)) {
-                Talk.define_saying_name(saying_name)
+                speak({speak_data: content})
             }
         }
     }
 
-    //tne "saying" becomes a one istruction job, appearing on the job bar that you can click on.
-    //todo If you say the name of a job, run it. No need to put it on a menu because its
-    //already on the job bar to click on.
-    static define_saying_name(saying_name, saying=Talk.saying_being_defined) {
-        if(Talk.is_known_cmd(saying_name)) { //we want to exclude known recording names
-            Talk.set_mode("main_menu")
-            Talk.talk_out('"' + saying_name + '" is a command, so it can&apos;t be used to name a saying.')
-            return "valid"
-        }
-        else {
-            Talk.set_mode("main_menu")
-            Talk.talk_out('The saying "' + saying_name + '" has been defined.')
-            new Job({
-                name: saying_name,
-                do_list:
-                    [function () {
-                        //speak({speak_data: saying})
-                        out("<b>" + saying + "</b>")
-                        Talk.talk_out(saying)
-                    }]
-            })
-            return "valid"
-        }
-    }
-     */
-
-    static define_saying(full_text="define saying", playing_a_recording_cmd=false) {
-        let alts = this.cmd_alternatives("define saying", true)
-        if (alts.includes(full_text)) { //exact match of an alternative. get content from Editor selection
-            let content = Editor.get_javascript(true).trim()
+    static define_saying(full_text="define saying",  cmd_str, content) {
+        if(cmd_str) {
             if (content === "") {
-                Talk.warning("To define a saying without giving the content,<br/> select the text in the editor.")
-                return "valid"
-            } else {
+                content = Editor.get_javascript(true).trim()
+                if (content === "") {
+                    this.set_params_mode(cmd_str)
+                    return true
+                }
+                else {
+                    return this.define_saying_handle_content(content)
+                }
+            }
+            else {//we've passed in at least some content
                 return this.define_saying_handle_content(content)
             }
-        }
-        else if (full_text.startsWith("define saying")){ //we've passed in at least some content
-            let first_space_index  = full_text.indexOf(" ")
-            let second_space_index = full_text.indexOf(" ", first_space_index + 1)
-            if(second_space_index === -1){
-                Talk.warning("To define a saying, you must start with a name.")
-                return "valid"
-            }
-            let content = full_text.substring(second_space_index).trim()
-            return this.define_saying_handle_content(content)
-        }
-        else {
-            return "invalid"
         }
     }
 
@@ -1217,14 +1307,15 @@ class Talk {
         let end_of_name_index = content.search(/\s+/)
         if(end_of_name_index === -1){
             Talk.warning("To define a saying, you must have words to say<br/> after the name of the saying.")
-            return "valid"
+            return true
         }
         let name = content.substring(0, end_of_name_index)
         let body = content.substring(end_of_name_index).trim()
         if (body === "") { //probably this won't hit, but its protection
             Talk.warning("To define a saying, you must have words to say<br/> after the name of the saying.")
-            return "valid"
-        } else {
+            return true
+        }
+        else {
             let the_job_src =   '\nnew Job({name: "' + name + '",\n' +
                                 '         do_list: [\n' +
                                 '           function () {\n' +
@@ -1233,7 +1324,7 @@ class Talk {
             eval(the_job_src)
             Editor.insert(the_job_src)
             Talk.dialog_dom_elt.focus() //we don't want to leave focus in the editor pane.
-            return "valid"
+            return true
         }
     }
 
@@ -1246,24 +1337,21 @@ class Talk {
 
     static gpt(full_text="gpt") {
         let alts = this.cmd_alternatives("gpt", true)
-        if (alts.includes(full_text)) { //exact match of an alternative. get content from Editor selection
-            let prompt = Editor.get_javascript(true).trim()
-            if (prompt === "") {
-                Talk.warning("You must select text in the editor for a GPT prompt.")
-                return "valid"
-            } else {
-                return this.gpt_aux(prompt)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str){
+            if(content === "") {
+                content = Editor.get_javascript(true).trim()
+                if (content === "") {
+                    Talk.warning("If you don't say a GPT prompt,<br/>you must select text in the editor for the prompt.")
+                    return true
+                }
+                else {
+                    return this.gpt_aux(content)
+                }
             }
-        } else if (full_text.startsWith("gpt")) {
-            let first_space_index = full_text.indexOf(" ")
-            let prompt = full_text.substring(first_space_index + 1).trim()
-            if (prompt === "") {
-                Talk.warning("You must say a GPT prompt.")
-            } else {
-                return this.gpt_aux(prompt)
+            else {
+                return this.gpt_aux(content)
             }
-        } else {
-            return "invalid"
         }
     }
 
@@ -1275,10 +1363,11 @@ class Talk {
             Talk.speak_if_enabled(response)
             Talk.dialog_dom_elt.focus()
         })
-        return "valid"
+        return true
    }
 
-    //run as gpt cmd maybe. Only call after normal cmd's all checked and didn't hit.
+    //not now called or needed.
+    //run as gpt cmd, maybe. Only call after normal cmd's all checked and didn't hit.
     static convert_to_gpt_cmd_maybe(full_text){
         let words = full_text.split(" ")
         if(Utils.is_digit(full_text[0])) { //captures full_text like "2 + 3"
@@ -1291,8 +1380,32 @@ class Talk {
         else if(words.length > 3){
             return Talk.gpt("gpt " + full_text)
         }
+    }
+
+    static main_menu_mode_misc(full_text, cmd_str, content) {
+        let new_cmd_str = "run job"
+        let new_content = full_text //hopefully a job name
+        let new_full_text = new_cmd_str + " " + new_content
+        if(this.is_recording_name(new_content)) { //we don't want to get the warning message from run_job about a non-existend job name so catch this here
+            if (this.run_job(new_full_text, new_cmd_str, new_content)) { //will always return true
+                return true
+            }
+        }
         else {
-            return "invalid"
+            new_cmd_str = "gpt"
+            new_full_text = new_cmd_str + " " + new_content
+            if (this.gpt(new_full_text, new_cmd_str, new_content)) {
+                return true
+            }
+        }
+    }
+
+    static move_menu_mode_misc(full_text, cmd_str, content) {
+        //note cmd_str will just be the first word, ie "run"
+        //and content will be the remaining ie "job blue" so neither are helpful.
+        //but if "full_job" is a job_name, we can win
+        if(this.run_job("run job " + full_text, "run job", full_text)) {
+            return true
         }
     }
 
@@ -1303,66 +1416,83 @@ class Talk {
         let job_names = Job.defined_job_names()
         let rec_names = []
         for(let job_name of job_names){
-            if(!(job_name === "talk_to_dexter")){
+            if(!(job_name === "talk_internal")){
                 rec_names.push(job_name)
             }
         }
         return rec_names
     }
 
-    static is_recording_name(cmd){
+    static is_recording_name(cmd_str){
         //return this.array_of_recording_names().includes(cmd)
-        return (Job[cmd] ? true : false)
+        return (Job[cmd_str] && (Job[cmd_str] instanceof Job) && (cmd_str !== "talk_internal"))
     }
 
     static start_recording(full_text="start recording"){
         let alts = this.cmd_alternatives("start recording", true)
-        if(!this.is_recording && alts.includes(full_text)){
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
                 //this.set_mode("now_recording")
-           Talk.is_recording = true
-           this.the_recording_in_progress = [] //clear out the previous recording
-           this.talk_out("Now recording.<br/>" + this.say_or_click() + " on commands, pausing between each.")
-           this.show_main_menu_mode_commands() //needs to replace "Start recording" with "Stop recording"
-           this.display_status() //needs to update "Recording" status
-           return "valid"
+        if(cmd_str) {
+           if(content === ""){
+               Talk.is_recording = true
+               this.xyz_arrays_being_recorded = [] //clear out the previous recording
+               this.display_status() //needed to update "Recording" status from off to on and "start recording" to "stop recording"
+               this.display_message("To record a command, tap the space-bar and say it or click on it.")
+               return true
+            }
         }
-        else { return "invalid"}
-    }
-
-    static show_waiting_for_recording_name_mode_commands(){
-        valid_commands_id.innerHTML = this.make_command_list_items( ["(the name for this recording)"],
-                                                        ["Main menu (cancel recording)"]
-                                                        )
-    }
-
-    static show_waiting_for_saying_name_mode_commands(){
-        valid_commands_id.innerHTML = this.make_command_list_items( ["(the name for this saying)"],
-            ["Main menu (cancel saying)"]
-        )
-    }
-
-    static show_waiting_for_position_name_mode_commands(){
-        valid_commands_id.innerHTML = this.make_command_list_items( ["(the name for this saying)"],
-            ["Main menu (cancel position)"]
-        )
     }
 
     static stop_recording(full_text="stop recording"){
-        let alts = this.cmd_alternatives("start recording", true)
-        if(this.is_recording && alts.includes(full_text)){
-            this.set_mode("waiting_for_recording_name")
-            this.talk_out("Say the name of your recording or<br/>" +
-                                    "type it in and hit Enter: " +
-                                    "<input id='recording_name_id'  onkeyup='Talk.define_recording_from_type_in(event)'/>"
-            )
-            Talk.is_recording = false
-            setTimeout(function(){
-                if(globalThis.recording_name_id){ //just in case a speechly_out erases the recording_name input
-                    recording_name_id.focus() }
-                }, 200)
-            return "valid"
+        let alts = this.cmd_alternatives("stop recording", true)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str && this.is_recording) { //since NO arguments, don't use starts_with_one_of
+            //this.dialog_dom_elt.focus() //should be unnecessary, but when the type in is displayed,
+            //it gets the focus, however if instead of typing in, you click on a menu item,
+            //doing this focus ensures that that menu item will actually work.
+            if (content === "") {
+                if (this.xyz_arrays_being_recorded.length === 0) {
+                    this.is_recording = false
+                    this.xyz_arrays_being_recorded = null
+                    this.set_mode("move_menu") //changes the "stop recording" button to "start recording"
+                    this.warning("No commands have been recorded.")
+                    return true
+                } else {
+                    this.is_recording = false //must go before set_mode
+                    let mess =  "Tap the space-bar and say the name of your recording or<br/>" +
+                                "type it in and hit Enter: " +
+                                "<input id='recording_name_id'  " +
+                                "onkeydown='Talk.define_recording_from_type_in(event)' " +
+                                "value='" + this.default_job_name() + "'/>"
+                    this.set_mode("job_name", mess)
+                    setTimeout(function () {
+                        if (globalThis.recording_name_id) { //just in case a speechly_out erases the recording_name input
+                            recording_name_id.focus()
+                        }
+                    }, 200)
+                    return true
+                }
+            }
         }
-        else { return "invalid" }
+    }
+
+    static define_recording_from_type_in(event){
+        event.stopPropagation()
+        if(event.key === "Enter") {
+            let rec_name = event.target.value
+            if(rec_name && (rec_name.length > 0)) {
+                Talk.define_recording(rec_name)
+            }
+            else {
+                Talk.move_menu()
+            }
+        }
+        else if((event.key === " ") &&
+                (event.target.value.length === 0)) {
+            Talk.display_message("Say the name of the recording.")
+            Talk.turn_on_mic()
+            Talk.dialog_dom_elt.focus()
+        }
     }
 
     static job_name_prose_to_job_name(job_name_prose){
@@ -1377,48 +1507,31 @@ class Talk {
         return null //no jobs of that name
     }
 
-    //not on the menu, but handle_cmd tries it
-    static start_job(job_name_prose){
-        let job_name = this.job_name_prose_to_job_name(job_name_prose)
-        if(job_name){
-            Job[job_name].start()
-            return "valid"
-        }
-        else {
-            return "invalid"
-        }
+    static job_name_mode_misc(full_text){
+        this.define_recording(full_text)
     }
 
     //full_text must be passed, it can't default
-    //always returns valid todo questionable!
-
+    //always returns valid
     static define_recording(full_text){
-        full_text = this.clean_full_text(full_text)
+        full_text = this.replace_words(full_text)
         let recording_name = this.string_to_method_name(full_text)
-        if(this.is_recording_name(recording_name)) {}
-        else if(this.is_known_cmd(recording_name)) { //we want to exclude known recording names
-            this.talk_out('"' + full_text + '" is a command, so it can&apos;t be used to name a recording.')
-            return "invalid"
+        //if(this.is_recording_name(recording_name)) {} this is ok, we are just redefining an existing job
+        if(this.is_known_cmd(recording_name)) { //we want to exclude known recording names
+            this.display_message('"' + full_text + '" is a command, so it can&apos;t be used to name a recording.')
+            return false
         }
-
+        let mess
         if(this.is_recording_name(recording_name)) {
-            this.talk_out('"' + full_text + '" has been over-written with your new recording.')
+            mess = '"' + recording_name + '" has been over-written with your new recording.'
         }
         else {
-            this.talk_out('"' + full_text + '" is now a brand new recording.')
+            mess = 'Say or click the Job button for: "' + recording_name + '" to start it.'
         }
-        this.define_job(recording_name, this.the_recording_in_progress)
-        this.set_mode("main_menu")
-        return "valid"
-    }
-
-    static define_recording_from_type_in(event){
-        if(event.key === "Enter") {
-            let rec_name = event.target.value
-            if(rec_name && (rec_name.length > 0)) {
-                Talk.define_recording(rec_name)
-            }
-        }
+        this.define_job(recording_name, this.xyz_arrays_being_recorded)
+        this.set_mode("move_menu", mess)
+        this.dialog_dom_elt.focus()
+        return true
     }
 
     //instruction_strings example: ["down", "straight up"], ie cmd_normalized_prose
@@ -1426,161 +1539,187 @@ class Talk {
         let do_list = []
         for(let xyz of xyz_arrays){
             do_list.push(Dexter.move_to(xyz))
-            do_list.push(Dexter.empty_instruction_queue()) //so that when we issue a stop cmd, there will be no queue so it will stop quickly.
+            do_list.push(Dexter.empty_instruction_queue()) //so that when we issue a stop cmd, there will be no queue, so it will stop quickly.
         }
         new Job({name: job_name,
                  do_list: do_list})
+        this.xyz_arrays_being_recorded = null
         return Job[job_name]
     }
 
-    //_____define position_______
-    static define_position(full_text="define position", playing_a_recording_cmd=false, the_job=Job.talk_to_dexter){
-        let alts = this.cmd_alternatives("define position", true)
-        if(alts.includes(full_text)){
-            let first_space_index  = full_text.indexOf(" ")
-            let second_space_index = full_text.indexOf(" ", first_space_index + 1)
-            let name_maybe
-            if(second_space_index === -1) {
-                name_maybe = ""
+    //_____define place_______
+    //expects full_text of "define postion", "define place foo"
+    static define_place(full_text="define place") {
+        let alts = this.cmd_alternatives("define place", true)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if (cmd_str) {
+            if (!Dexter.default.rs) {
+                Talk.warning("To name a Dexter place, you have to move Dexter first.")
+                return true
+            }
+            let recording_name = content
+            if (recording_name === "") { //no name give so get from user type in
+                let mess =  "Tap space-bar or say the name of your recording or<br/>" +
+                            "type it in and hit Enter: " +
+                            "<input id='recording_name_id'  onkeyup='Talk.define_place_from_type_in(event)'/>"
+                this.set_mode("waiting_for_place_name", mess)
+                setTimeout(function () {
+                    Talk.dialog_dom_elt.focus()
+                    if (globalThis.recording_name_id) { //just in case this goes away from some other speechly_out.
+                        recording_name_id.focus()
+                    }
+                }, 200)
+                return true
             }
             else {
-                name_maybe = full_text.substring(second_space_index + 1).trim() //can handle both define and defined.
+                return this.define_place_with_name(recording_name)
             }
-            let dex = this.dexter_for_job(the_job)
-            if (name_maybe.length > 0){
-                full_text = this.clean_full_text(full_text)
-                let recording_name = this.string_to_method_name(name_maybe)
+        }
+    }
 
-                if(this.is_known_cmd(recording_name)) { //we want to exclude known recording names
-                    this.talk_out('"' + full_text + '" is a command, so it can&apos;t be used to name a position.')
-                    return "valid"
+    static define_place_from_type_in(event){
+        if(event.key === "Enter") {
+            let recording_name = event.target.value
+            if(recording_name && (recording_name.length > 0)) {
+                Talk.define_place_with_name(recording_name) //should pass in Job here but that's hard.
+            }
+        }
+    }
+
+    static define_place_with_name(recording_name){
+        recording_name = this.replace_words(recording_name) //leaves spaces in
+        recording_name = this.string_to_method_name(recording_name) //
+        if (this.is_known_cmd(recording_name)) { //we want to exclude user over-writing  normal cmd like "move menu"
+            this.warning('"' + recording_name + '" is a command, so it can&apos;t be used to name a place.')
+            return true
+        }
+        //ok we've got a valid recording_name, good to go
+        if (this.is_recording_name(recording_name)) {
+            this.display_message('"' + recording_name + '" has been over-written with your new place.')
+        } else {
+            this.display_message('"' + recording_name + '" is now a defined place.')
+        }
+        let angles =  Dexter.default.rs.measured_angles()
+        let instrs = [Dexter.default.move_all_joints(angles),
+                      Dexter.default.empty_instruction_queue()
+                     ]
+        new Job({name: recording_name, do_list: instrs})
+        Talk.dialog_dom_elt.focus()
+        let mess = 'Tap space-bar and say: "' + recording_name + '" or<br/>click the "' +
+            recording_name + '" button to move Dexter to its current position.'
+        Talk.set_mode("move_menu", mess)
+        return true
+    }
+
+    //used near the end of main_mode and menu_mode.
+    //Called by a regular cmd and by mode_misc methods which prepend "run job " to full_text first.
+    static run_job(full_text = "run_job", cmd_str, content){
+        if(cmd_str){
+            if(content){
+                let job_name = this.job_name_prose_to_job_name(content)
+                if(this.is_recording_name(job_name)){
+                    Job[job_name].start()
+                    return true
                 }
                 else {
-                    if(!dex.rs) {
-                        Talk.talk_out("To name a Dexter position, you have to move Dexter first.")
-                        return "valid"
-                    }
-                    if(this.is_recording_name(recording_name)) {
-                        this.talk_out('"' + recording_name + '" has been over-written with your new position.')
-                    }
-                    else {
-                        this.talk_out('"' + recording_name + '" is now a defined position.')
-                    }
-                    //if (this.initialize_dexter_maybe(full_text, playing_a_recording_cmd, the_job)) {
-                    //    return "valid"  //even if its not really valid, validate anyway. If full_text isn't valid,
-                        //it will get caught by the handle_command in the setTimeout fn
-                    //}
-                    let angles = dex.rs.measured_angles()
-                    let instrs = [dex.move_all_joints(angles), dex.empty_instruction_queue()]
-                    this.define_position_name(recording_name, instrs) //got all the info we need dto define position and show main menu
-                    return "valid"
+                    Talk.warning('The "run job" command passed: " + job_name + " which does not name a defined Job.')
+                    return true
                 }
             }
-            else if(!dex.rs) {
-                Talk.talk_out("To name a Dexter position, you have to move Dexter first.")
-                return "valid"
-            }
             else {
-                this.set_mode("waiting_for_position_name")
-                this.talk_out("Say the name of your recording or<br/>" +
-                    "type it in and hit Enter: " +
-                    "<input id='recording_name_id'  onkeyup='Talk.define_position_from_type_in(event)'/>"
-                )
-                setTimeout(function(){
-                       if(globalThis.recording_name_id){ //just in case this goes away from some other speechly_out.
-                           recording_name_id.focus()
-                       }}, 200)
-                return "valid"
+                Talk.warning('You must say "Run Job a_name" or just the Job name to start it.')
+                return true
             }
         }
-        else { return "invalid"}
-    }
-
-    static define_position_from_type_in(event){
-        if(event.key === "Enter") {
-            let rec_name = event.target.value
-            if(rec_name && (rec_name.length > 0)) {
-                Talk.define_position("define position "  + rec_name) //should pass in Job here but that's hard.
-            }
-        }
-    }
-
-    //just move the robot to the named position
-    //having a whole job is kinda overkill, but fits in well with recordings.
-    //instrs are actual dde job instruction instances
-    static define_position_name(job_name, instrs){
-        this.set_mode("main_menu")
-        return new Job({name: job_name, do_list: instrs})
-    }
-
-    //not needed in the menu. This is now just the job buttons in the job bar.
-    static list_recordings(full_text="list recordings"){
-        let alts = this.cmd_alternatives("list recordings", true)
-        if(alts.includes(full_text)){
-            let job_names = this.array_of_recording_names()
-            if (job_names.length === 0){
-                this.talk_out('There are no recordings.<br/>Use "Start recording" to make one.')
-            }
-            else {
-                let arr_of_arrs = [["main menu"]]
-                for(let job_name of job_names){
-                    job_name = job_name.replaceAll("_", " ")
-                    arr_of_arrs.push([job_name, "Edit " + job_name])
-                }
-                valid_commands_id.innerHTM = this.make_command_list_items(...arr_of_arrs)
-                this.talk_out(this.say_or_click() + ' the name of a recording to play it.')
-            }
-            return "valid"
-        }
-        else { return "invalid" }
     }
 
 
     static edit_job(full_text="edit job"){ //ex: "edit job my job"
-        // let alts = this.cmd_alternatives("edit job", true) //can't have alternatives
-        if(full_text === "edit job"){
-            this.talk_out("Type in Job name to edit and hit Enter: " +
-                "<input id='print_text_id' onkeyup='Talk.edit_job_from_type_in(event)'/>"
-            )
-            setTimeout(function(){
-                if(globalThis.print_text_id){
-                    console.log("globalThis.print_text_id:" + globalThis.print_text_id)
-                    globalThis.print_text_id.onkeydown = function(event){
-                        if (event.key === " ") { //so hitting the space bar doesn't try to turn on the mic.
-                            //out("got space")
-                            event.stopPropagation()
+        let alts = this.cmd_alternatives("edit job", true) //can't have alternatives
+        let [cmd_str, arg] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str) {
+            if (this.default_job_name() === "") {
+                Talk.warning("There are no defined Jobs to edit.")
+                return true
+            }
+            if (arg === "") {
+                /*this.display_message("Type in Job name to edit and hit Enter: " +
+                    "<input id='print_text_id' " +
+                    " onkeyup='Talk.edit_job_from_type_in(event)' " +
+                    " value='" + this.default_job_name() + "'/>"
+                )
+                setTimeout(function () {
+                    if (globalThis.print_text_id) {
+                        console.log("globalThis.print_text_id:" + globalThis.print_text_id)
+                        globalThis.print_text_id.onkeydown = function (event) {
+                            if (event.key === " ") { //so hitting the space bar doesn't try to turn on the mic.
+                                //out("got space")
+                                event.stopPropagation()
+                            }
                         }
+                        globalThis.print_text_id.focus()
+                        setTimeout(function () {
+                            console.log("calling display_status after focus on print_text_id")
+                            Talk.display_status(null, globalThis.print_text_id)
+                        }, 200)
                     }
-                    globalThis.print_text_id.focus()
-                    setTimeout(function() {
-                        console.log("calling display_status after focus on print_text_id")
-                        Talk.display_status(null, globalThis.print_text_id)
-                    }, 200)
+                }, 200)
+                return true*/
+                let cmd_meth_name = this.cmd_method_name(cmd_str)
+                this.show_command_parameter(
+                    //doc:                     "Say or type in a Job name.",
+                    //callback_name_prefix:    "edit_job",
+                    //callback_param_name:     "a Job name",
+                    //param_default_value_str: this.default_job_name(),
+                    //callback_callback:       Talk.edit_job_action
+                    cmd_meth_name
+                )
+                return true
+            }
+            else { //expect "edit job my job" or similar
+             /* let job_name = this.job_name_prose_to_job_name(arg) //convert "my job" tp "my_job"
+                if (!job_name) {
+                    return false
                 }
-            }, 200)
-            return "valid"
+                else {
+                    let the_job = Job[job_name]
+                    the_job.program_counter = 0
+                    let job_src = to_source_code({value: the_job, job_orig_args: true})
+                    Editor.insert("\n" + job_src, "end")
+                    Talk.dialog_dom_elt.focus()
+                    Talk.display_message('The definition for "' + job_name + '" has been appended to the editor buffer.')
+                    return true
+
+                }
+              */
+               return callback_callback.call(Talk, arg)
+            }
         }
-        else if (full_text.startsWith("edit job")) { //expect "edit job my job" or similar
-            let possible_job_name = full_text.substring(9).trim()
-            let job_name = this.job_name_prose_to_job_name(possible_job_name) //convert "my job" tp "my_job"
-            if(!job_name){
-                return "invalid"
-            }
-            else {
-                let the_job = Job[job_name]
-                let job_src = to_source_code({value: the_job, job_orig_args: true})
-                Editor.insert("\n" + job_src, "end")
-                Talk.dialog_dom_elt.focus()
-                Talk.talk_out('The definition for "' + job_name + '" has been appended to the editor buffer.')
-                return "valid"
-            }
+
+    }
+
+    static edit_job_action(arg){
+        let job_name = Talk.job_name_prose_to_job_name(arg) //convert "my job" tp "my_job"
+        if (!job_name) {
+            return false
+        }
+        else if (!Talk.is_recording_name(job_name)){
+            Talk.warning(job_name + " is not the name of a defined Job.")
         }
         else {
-            return "invalid"
+            let the_job = Job[job_name]
+            the_job.program_counter = 0
+            let job_src = to_source_code({value: the_job, job_orig_args: true})
+            Editor.insert("\n" + job_src, "end")
+            setTimeout(function() {
+                Talk.dialog_dom_elt.focus()
+                Talk.display_message('The definition for "' + job_name + '" has been appended to the editor buffer.')
+            }, 200)
+                return true
         }
     }
 
-    static edit_job_from_type_in(event){
+   /*static edit_job_from_type_in(event){
         if(event.key === "Enter") {
             let possible_job_name = event.target.value
             let job_name = this.job_name_prose_to_job_name(possible_job_name) //convert "my job" tp "my_job"
@@ -1592,54 +1731,48 @@ class Talk {
                 let job_src = to_source_code({value: the_job, job_orig_args: true})
                 Editor.insert("\n" + job_src, "end")
                 Talk.dialog_dom_elt.focus()
-                Talk.talk_out('The definition for "' + job_name + '" has been appended to the editor buffer.')
+                Talk.display_message('The definition for "' + job_name + '" has been appended to the editor buffer.')
             }
-            //Talk.talk_out(Talk.say_or_click() + " a valid command.")
+            //Talk.display_message(Talk.say_or_click() + " a valid command.")
         }
-    }
+    }*/
 
-    static show_playing_recording_mode_commands(){
-        valid_commands_id.innerHTML = this.make_command_list_items(["Stop playing"])
-    }
-
+    //not now a command or otherwise called
     static play_recording(full_text="play recording"){
-        let trimmed_text
         let alts = this.cmd_alternatives("play recording", true)
-        if(alts.includes(full_text)){
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str){
             if (this.array_of_recording_names().length === 0) {
-                this.talk_out('There are no recordings to play.<br/>' + this.say_or_click() + ' on "Start recording"" to make one.')
-                return "valid"
-            } else {
-                this.list_recordings()
-                this.talk_out(this.say_or_click() + ' on the name of a recording to play it.')
-                return "valid"
+                this.display_message('There are no recordings to play.<br/>' + this.say_or_click() + ' on "Start recording"" to make one.')
+                return true
             }
-        } else if (Utils.starts_with_one_of(full_text, alts)) {
-            trimmed_text = full_text.substring("play recording ".length).trim()
-        } else {
-            trimmed_text = full_text
+            else if(content === ""){
+                this.warning("You must say a recording name.")
+                return true
+            }
+            else {
+                let recording_name = this.string_to_method_name(content)
+                let the_job = Job[recording_name]
+                if(the_job) {
+                    the_job.start()
+                    this.recording_name_now_playing = recording_name //do before set_mode
+                    let mess = "Now playing recording: " + recording_name
+                    this.set_mode("playing_recording", mess)
+                    setTimeout(function(){ Talk.finished_playing_maybe(recording_name)},
+                                500)
+                    return true
+               }
+                else {
+                    this.warning("There is no defined Job named: " + recording_name)
+                }
+            }
         }
-        trimmed_text = this.clean_full_text(trimmed_text)
-        let recording_name = this.string_to_method_name(trimmed_text)
-        let the_job = Job[recording_name]
-        if(the_job) {
-            the_job.start()
-            this.recording_name_now_playing = recording_name //do before set_mode
-            this.set_mode("playing_recording")
-            this.talk_out("Now playing recording: " + recording_name)
-            setTimeout(function(){ Talk.finished_playing_maybe(recording_name)},
-                        500)
-            return "valid"
-       }
-       else {
-            return "invalid" //not "invalid" because we know the full_text starts with "play recording"
-       }
     }
 
     static finished_playing_maybe(recording_name) {
         //out("top of finished_playing_maybe with: " + recording_name + " mode: " + Talk.mode)
         let the_job = Job[recording_name]
-        if (the_job.is_active()) { //job is still active (playing) so keep checking to see if its quit by being completed
+        if (the_job.is_active()) { //job is still active (playing) so keep checking to see if it ztopped by being completed
             //out("top of finished_playing_maybe with ACTIVE: " + recording_name)
             setTimeout(function () {
                     Talk.finished_playing_maybe(recording_name)
@@ -1657,18 +1790,47 @@ class Talk {
 
     static stop_playing(full_text="stop playing"){
         let alts = this.cmd_alternatives("stop playing", true)
-        if(alts.includes(full_text)){
-            let rec_name = Talk.recording_name_now_playing
-            let the_job = Job[rec_name]
-            Talk.recording_name_now_playing = null
-            if (the_job.is_active()) {
-                the_job.stop_for_reason("interrupted", 'User said "stop playing".')
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str) {
+            if (content === "") {
+                let rec_name = Talk.recording_name_now_playing
+                let the_job = Job[rec_name]
+                if(rec_name && the_job) { //the Job might have already stopped, and recording_name_now_playing is already null.
+                                          //if so, skip the action of this IF and go straight to set_mode
+                    Talk.recording_name_now_playing = null
+                    if (the_job.is_active()) {
+                        the_job.stop_for_reason("interrupted", 'User said "stop playing".')
+                    }
+                }
+                let mess = "Finished playing: " + rec_name + ", with status: " + the_job.status_code + "."
+                Talk.set_mode("main_menu", mess)
+                return true
             }
-            Talk.set_mode("main_menu")
-            Talk.talk_out("Finished playing: " + rec_name + ", with status: " +  the_job.status_code + ".")
-            return "valid"
         }
-        else { return "invalid" }
+    }
+
+    static run(full_text="run"){
+        if(full_text === "run") {
+            let [parent_mode, cmd_str] = this.mode.split("__")
+            let param_names = this.cmd_param_names_for_current_params_mode()
+            let full_cmd = cmd_str
+            for (let param_name of param_names) {
+                let id_str = parent_mode + "__" + cmd_str + "__params__" + param_name + "__id"
+                let dom_elt = globalThis[id_str]
+                let val = dom_elt.value
+                full_cmd += " " + val //TODO: if a non-last param value has a space in it,
+                //we can't know that its a 2 or more word value. Bad, but for
+                //single param cmds ok, but not fully general.
+                //I need some separator between args, like comma,
+                // or to wrap quotes around multi-word args, then
+                //the receiver has to parse those out.
+                //but we don't have commas in speech so for now, only last
+                //arg can have spaces in it. Maybe in practice not so limiting.
+            }
+            this.set_mode(parent_mode) //or the "cmd" won't be recognized as valid
+            this.handle_command(full_cmd)
+            return true
+        }
     }
 
 //____________move commands_____________
@@ -1682,17 +1844,9 @@ class Talk {
         return angles
     }
 
-    static dexter_for_job(the_job){
-        if(the_job.robot instanceof Dexter){
-            return the_job.robot
-        }
-        else { //probably the_job is Job.talk_to_dexter
-            return Dexter.default
-        }
-    }
-
-    static initial_angles(the_job=Job.talk_to_dexter){
-        let dex = this.dexter_for_job(the_job)
+    //Not called Apr 14, 2024
+    static initial_angles(){
+        let dex = this.job_for_normal_moves.robot
         if(dex.rs){
             return dex.rs.measured_angles()
         }
@@ -1700,8 +1854,8 @@ class Talk {
             return this.straight_up_angles() }
     }
 
-    static current_or_straight_up_angles(the_job=Job.talk_to_dexter){
-        let dex = this.dexter_for_job(the_job)
+    static current_or_straight_up_angles(){
+        let dex = this.job_for_normal_moves.robot
         if(dex.rs){
             let ma = dex.rs.measured_angles()
             if(this.is_home_angles(ma)){
@@ -1740,7 +1894,7 @@ class Talk {
     //Copied from dexter_user_interface2 and modified
     // xyz is an array of 3 floats.
     // if angle_array is an array whose first 5 elts are 0, return a new array
-    //whose first 5 elts are 0 except the 2nd elt is Number.EPSLION
+    //whose first 5 elts are 0 except the 2nd elt is Number.EPSILON
     //and any additional elts are the same as their corresponding ones in angle_array
     //Returned is an array of arrays.
     static fix_xyz(xyz){
@@ -1769,7 +1923,8 @@ class Talk {
         else { return false} //not a valid word
     }
 
-    static axis_index_and_direction_to_word(axis_index = Talk.axis_index, axis_direction=Talk.axis_direction){
+    //Not called Apr 14, 2024
+    static axis_index_and_direction_to_word(axis_index, axis_direction){
         if     (axis_index === 0){
             return ((axis_direction === 1) ? "left"    : "right")
         }
@@ -1789,15 +1944,23 @@ class Talk {
 
     static stop(full_text="stop"){
         let alts = this.cmd_alternatives("stop", true)
-        if(alts.includes(full_text)){
-            try {
-                Talk.stop_aux()
-                Talk.talk_out(this.say_or_click() + " on a valid command")
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str) {
+            if (content === "") {
+                if(this.is_recording){
+                    this.stop_recording()
+                    return true
+                }
+                try {
+                    Talk.stop_aux()
+                    Talk.display_message(this.say_or_click())
+                }
+                catch (err) {
+                } //we don't want any errors during stop, lke if the Talk dialog box is down, and we try to write to it
+                return true
             }
-            catch(err) {} //we don't want any errors during stop, lke if the Talk dialog box is down, and we try to write to it
-            return "valid"
         }
-        else { return "invalid" }
+
     }
 
 
@@ -1808,10 +1971,10 @@ class Talk {
         this.recognition.abort()
         globalThis.stop_speaking()
         this.enable_speaker = false
-        this.turn_off_mic() //calls display_status
+        this.turn_off_mic_aux()
         for(let job_inst of Job.active_jobs()){
-            if(job_inst.name !== "talk_to_dexter"){
-                job_inst.stop_for_reason("interrupted", "user said stop")
+            if(job_inst !== Talk.job_for_normal_moves){
+                job_inst.stop_for_reason("interrupted", 'Talk user said "Stop"')
             }
         }
     }
@@ -1820,12 +1983,10 @@ class Talk {
         if(full_text === "stop except speaking"){
             try {
                 Talk.stop_except_no_change_to_enable_speaker_aux()
-                Talk.talk_out(this.say_or_click() + " on a valid command")
             }
             catch(err) {} //we don't want any errors during stop, lke if the Talk dialog box is down and we try to write to it
-            return "valid"
+            return true
         }
-        else { return "invalid" }
     }
 
 
@@ -1836,203 +1997,329 @@ class Talk {
         this.recognition.abort()
         //globalThis.stop_speaking() //bad idea if speaking a define saying as it will cut it off prematurely
         //this.enable_speaker = false //don't change this
-        this.turn_off_mic() //calls display_status
+        this.turn_off_mic_aux() //calls display_status
         for(let job_inst of Job.active_jobs()){
-            if((job_inst.name !== "talk_to_dexter") &&
+            if((job_inst.name !== "talk_internal") &&
                 !is_speaking()){ //because define_saying uses a job and we don't
                 //want to cut off a job if its speaking
                 job_inst.stop_for_reason("interrupted", "user said stop")
             }
         }
+        Talk.display_message(this.say_or_click())
     }
 
-    /* now using "back" instead, but "main menu" is more accurate.
+    //same as former "back"
     static main_menu(full_text="main menu"){
         let alts = this.cmd_alternatives("main menu", true)
-        if(alts.includes(full_text)){
-            this.set_mode("main_menu")
-            Talk.talk_out(this.say_or_click() + " on a valid command.")
-            return "valid"
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str){
+            if(content === "") {
+                this.set_mode("main_menu", this.say_or_click())
+                return true
+            }
         }
-        else { return "invalid" }
-    }*/
+    }
 
-    static back(full_text="back"){
+    /*static back(full_text="back"){
         let alts = this.cmd_alternatives("back", true)
         if(alts.includes(full_text)){
             Talk.set_mode("main_menu")
-            Talk.talk_out(this.say_or_click() + " on a valid command")
-            return "valid"
+            Talk.display_message(this.say_or_click())
+            return true
         }
-        else { return "invalid" }
+    }*/
+
+    static move_menu(full_text="move menu"){
+        let alts = this.cmd_alternatives("move menu", true)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str){
+            if(content === "") {
+                this.set_mode("move_menu", this.say_or_click())
+                this.dialog_dom_elt.focus()
+                return true
+            }
+        }
     }
 
-    static move(full_text){
-        let alts = this.cmd_alternatives("move", true)
-        if(alts.includes(full_text)){
-            this.set_mode("move")
-            this.talk_out(this.say_or_click() + " on a valid command.")
-            return "valid"
+//_______Move commands_________
+
+    static straight_up(full_text = "straight up"){
+        let alts = this.cmd_alternatives("straight up", true)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str) {
+            if (content === "") {
+                Talk.current_command = cmd_str //not really needed
+                this.display_color()
+                let dex = this.job_for_normal_moves.robot
+                this.send_instruction_to_dexter([
+                        Talk.start_moving_aux,
+                        dex.move_all_joints(Talk.straight_up_angles()),
+                        dex.empty_instruction_queue(),
+                        function () {
+                            Talk.stop_aux() //changes status color back to white
+                        },
+                        function () {
+                            Talk.display_message("Dexter is straight up.")
+                        }]
+                )
+                Talk.display_message("Dexter is moving straight up...")
+                return true
+            }
+        }
+    }
+
+    static left(full_text="left"){
+        let alts = this.cmd_alternatives("left", true)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str) {
+            if (content === "") {
+                Talk.current_command = cmd_str
+                Talk.start_normal_move_cmd()
+                return true
+            }
+        }
+    }
+
+    static right(full_text="right"){
+        let alts = this.cmd_alternatives("right", true)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str) {
+            if (content === "") {
+                Talk.current_command = cmd_str
+                Talk.start_normal_move_cmd()
+                return true
+            }
+        }
+    }
+
+    static farther(full_text="farther"){
+        let alts = this.cmd_alternatives("farther", true)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str) {
+            if (content === "") {
+                Talk.current_command = cmd_str
+                Talk.start_normal_move_cmd()
+                return true
+            }
+        }
+    }
+
+    static closer(full_text="closer"){
+        let alts = this.cmd_alternatives("closer", true)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str) {
+            if (content === "") {
+                Talk.current_command = cmd_str
+                Talk.start_normal_move_cmd()
+                return true
+            }
+        }
+    }
+
+    static up(full_text="up"){
+        let alts = this.cmd_alternatives("up", true)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str) {
+            if (content === "") {
+                Talk.current_command = cmd_str
+                Talk.start_normal_move_cmd()
+                return true
+            }
+        }
+    }
+
+    static down(full_text="down"){
+        let alts = this.cmd_alternatives("down", true)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str) {
+            if (content === "") {
+                Talk.current_command = cmd_str
+                Talk.start_normal_move_cmd()
+                return true
+            }
+        }
+    }
+
+    static reverse(full_text="reverse") {
+        let alts = this.cmd_alternatives("reverse", true)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str) {
+            if (content === "") {
+                Talk.current_command = cmd_str
+                Talk.start_normal_move_cmd()
+                return true
+            }
+        }
+    }
+
+    static forward(full_text="forward") {
+        let alts = this.cmd_alternatives("forward", true)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str) {
+            if (content === "") {
+                Talk.current_command = cmd_str
+                Talk.start_normal_move_cmd()
+                return true
+            }
+        }
+    }
+
+    static compute_reverse_instruction(the_job){
+        let dex = this.job_for_normal_moves.robot
+        let hist_arr   = the_job.rs_history
+        if(this.last_reverse_forward_index === null) {
+            this.last_reverse_forward_index = hist_arr.length - 1
+            this.forward_limit_index = hist_arr.length - 1
+        }  //skip past the latest one
+
+        if(this.last_reverse_forward_index === 0){
+            Talk.display_message("There are no more commands to reverse to.")
+            return null //get out of loop
         }
         else {
-            return "invalid"
+            let RS_inst = new RobotStatus({})
+            for (let i = this.last_reverse_forward_index - 1; i >= 0; i--) {
+                this.last_reverse_forward_index = i //so that if we switch to forward, that will start in the right place, as will subsequence calls to  compute_reverse_instruction
+                let single_rs = hist_arr[i]
+                let oplet = single_rs[Dexter.INSTRUCTION_TYPE]
+                if (oplet === "F") { //this is the one to go back to.
+                    RS_inst.robot_status = single_rs
+                    let angles = RS_inst.measured_angles()
+                    let instr = dex.move_all_joints(angles)
+                    //out("compute_reverse_instruction returning instr: " + instr)
+                    return instr
+                }
+            }
+            Talk.display_message("There are no more commands to reverse to.")
+            return null
         }
     }
 
-    //called as a fn on do_list of talk_to_dexter just before Control.loop for move_incrementally
+    static compute_forward_instruction(the_job){
+        let dex = this.job_for_normal_moves.robot
+        let hist_arr   = the_job.rs_history
+        if(this.last_reverse_forward_index === null) {
+            this.last_reverse_forward_index = hist_arr.length - 1
+            this.forward_limit_index = hist_arr.length - 1
+        }  //skip past the latest one
+
+        if(this.last_reverse_forward_index >= this.forward_limit_index){
+            Talk.display_message("There are no more commands to go forward to.")
+            return null //get out of loop
+        }
+        else {
+            let RS_inst = new RobotStatus({})
+            for (let i = this.last_reverse_forward_index + 1; i <= this.forward_limit_index; i++) {
+                this.last_reverse_forward_index = i //so that if we switch to forward, that will start in the right place, as will subsequence calls to  compute_reverse_instruction
+                let single_rs = hist_arr[i]
+                let oplet = single_rs[Dexter.INSTRUCTION_TYPE]
+                if (oplet === "F") { //this is the one to go back to.
+                    RS_inst.robot_status = single_rs
+                    let angles = RS_inst.measured_angles()
+                    let instr = dex.move_all_joints(angles)
+                    //out("compute_forward_instruction returning instr: " + instr)
+                    return instr
+                }
+            }
+            Talk.display_message("There are no more commands to reverse to.")
+            return null
+        }
+    }
+
+    static faster(full_text="faster"){
+        let alts = this.cmd_alternatives("faster", true)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str) {
+            if (content === "") {
+                this.set_step_distance(this.step_distance * 2)
+                this.display_message("Step distance has been increased to: " + this.step_distance + " meters.")
+                return true
+            }
+        }
+    }
+
+    static slower(full_text="slower"){
+        let alts = this.cmd_alternatives("slower", true)
+        let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
+        if(cmd_str) {
+            if (content === "") {
+                this.set_step_distance(this.step_distance / 2)
+                this.display_message("Step distance has been decreased to: " + this.step_distance + " meters.")
+                return true
+            }
+        }
+    }
+//______End move commands _______
+//_______End all commands_______
+
+//_______move plumbing____________
+    //called by down, left and friends to do their real action.
+    //this version mostly works BUT If dexter is already moving (say "down")
+    //and you click on "left" for a bit, then the stop, the job
+    //keeps togging between running the last 2 instructions. Bad. The
+    //below version with the timeout fixes this.
+    /*static start_normal_move_cmd() {
+        this.is_moving = false //if dexter has an ongoing normal move cmd, stop it
+        setTimeout(this.start_normal_move_cmd_aux,
+            200 //Talk.job_for_normal_moves.inter_do_item_dur * 3
+        ) //give ongoing move a chance to stop after setting is_moving to false
+    }*/
+
+    static start_normal_move_cmd() {
+        if(this.is_moving){
+            this.start_normal_move_cmd_aux()
+        }
+        else {
+            setTimeout(this.start_normal_move_cmd_aux,
+                200 //Talk.job_for_normal_moves.inter_do_item_dur * 3
+            ) //give ongoing move a chance to stop after setting is_moving to false
+        }
+    }
+
+    static start_normal_move_cmd_aux(){
+        let dex = Talk.job_for_normal_moves.robot
+        if(!Talk.job_for_normal_moves.user_data.talk_started_init){ //just hits teh first time start_normal_move_cmd_aux is called per init of the job.
+            Talk.job_for_normal_moves.user_data.talk_started_init = true //just done once until redefine the job
+            Talk.display_message("Initializing Dexter to straight up.")
+            let job_initial_instructions = [
+                dex.move_all_joints(Talk.straight_up_angles()),
+                dex.empty_instruction_queue(),
+                function () {
+                    Talk.display_message("Dexter is straight up.")
+                }
+            ]
+            Talk.send_instruction_to_dexter(job_initial_instructions)
+        }
+
+        if (!dex.rs) {
+            setTimeout(Talk.start_normal_move_cmd_aux, //loop around again waiting for rs to be set
+                       100)
+        }
+        else if (!Talk.is_moving) {
+            let loop_inst =
+                    Control.loop(function () {
+                        return Talk.is_moving //keep looping (and calling move_incrementally) as long as Talk.is_moving  is true
+                    },
+                    Talk.move_incrementally)
+            Talk.send_instruction_to_dexter([Talk.start_moving_aux, //sets Talk.is_moving = true and redisplay
+                                            Talk.move_incrementally //loop_inst
+                ]
+            )
+        }
+        else  {
+            shouldnt("In Talk.start_normal_move_cmd_aux, called when it shouldn't have been.")
+        }
+    }
+
+    //called as a fn on do_list of talk_internal just before Control.loop for move_incrementally
     //don't return a value
     static start_moving_aux(){
         Talk.is_moving = true
-        Talk.set_display_status_color()
+        Talk.display_color()
     }
 
-    static straight_up(full_text = "straight up", playing_a_recording_cmd=false, the_job=Job.talk_to_dexter){
-        let alts = this.cmd_alternatives("straight up", true)
-        if(alts.includes(full_text)){
-            this.set_display_status_color()
-            let dex = this.dexter_for_job(the_job)
-            this.send_instruction_to_dexter([Talk.start_moving_aux,
-                    dex.move_all_joints(Talk.straight_up_angles()),
-                    dex.empty_instruction_queue(),
-                    function() {
-                        Talk.stop_aux() //changes status color back to white
-                    },
-                    function(){
-                        Talk.talk_out("Dexter is straight up.")
-                    }],
-                the_job)
-
-            Talk.talk_out("Dexter is moving straight up...")
-            return "valid"
-        }
-        else { return "invalid"}
-    }
-
-    static left(full_text="left", playing_a_recording_cmd=false, the_job=Job.talk_to_dexter){
-        let alts = this.cmd_alternatives("left", true)
-        if(alts.includes(full_text)){
-            Talk.current_command = full_text
-            Talk.send_init_and_control(the_job)
-            return "valid"
-        }
-        else { return "invalid"}
-    }
-
-    static right(full_text="right", playing_a_recording_cmd=false, the_job=Job.talk_to_dexter){
-        let alts = this.cmd_alternatives("right", true)
-        if(alts.includes(full_text)){
-            Talk.current_command = full_text
-            Talk.send_init_and_control(the_job)
-            return "valid"
-        }
-        else { return "invalid"}
-    }
-
-    static farther(full_text="farther", playing_a_recording_cmd=false, the_job=Job.talk_to_dexter){
-        let alts = this.cmd_alternatives("farther", true)
-        if(alts.includes(full_text)){
-            Talk.current_command = full_text
-            Talk.send_init_and_control(the_job)
-            return "valid"
-        }
-        else { return "invalid"}
-    }
-
-    static closer(full_text="closer", playing_a_recording_cmd=false, the_job=Job.talk_to_dexter){
-        let alts = this.cmd_alternatives("closer", true)
-        if(alts.includes(full_text)){
-            Talk.current_command = full_text
-            Talk.send_init_and_control(the_job)
-            return "valid"
-        }
-        else { return "invalid"}
-    }
-
-    static up(full_text="up", playing_a_recording_cmd=false, the_job=Job.talk_to_dexter){
-        let alts = this.cmd_alternatives("up", true)
-        if(alts.includes(full_text)){
-            Talk.current_command = full_text
-            Talk.send_init_and_control(the_job)
-            return "valid"
-        }
-        else { return "invalid"}
-    }
-
-    static down(full_text="down", playing_a_recording_cmd=false, the_job=Job.talk_to_dexter){
-        let alts = this.cmd_alternatives("down", true)
-        if(alts.includes(full_text)){
-            Talk.current_command = full_text
-            Talk.send_init_and_control(the_job)
-            return "valid"
-        }
-        else { return "invalid"}
-    }
-
-
-    static send_init_and_control(the_job){
-        if(this.is_moving){} //if we're moving, its been initialized and the control loop is running, so nothing to do
-        else {
-            this.send_instruction_to_dexter(
-                function () { //initialize to straight_up maybe
-                    let cmds = [Talk.start_moving_aux]
-                    let dex = Talk.dexter_for_job(the_job)
-                    if (!dex.rs) {
-                        cmds.push(function () {
-                            Talk.talk_out("Initializing Dexter to straight up.")
-                        })
-                        cmds.push(dex.move_all_joints(Talk.straight_up_angles()))
-                        cmds.push(dex.empty_instruction_queue())
-                        cmds.push(function () {
-                            Talk.talk_out("Dexter is straight up.")
-                        })
-                    }
-                    if (!Talk.is_moving) {
-                        cmds.push(Control.loop(function () {
-                                return Talk.is_moving
-                            },
-                            Talk.move_incrementally))
-                        //cmds.push(function () {
-                        //    Talk.talk_out(Talk.say_or_click() + ' on a valid command.')
-                        //})
-                    }
-                    return cmds
-                }, //end big send fn
-                the_job
-            ) //end send_instruction_to_dexter
-        }
-    }
-
-    static send_instruction_to_dexter(instruction, the_job) {
-        the_job.insert_single_instruction(instruction, false)
-    }
-
-    //moves dester straight up if we don't know hwere it is, and then
-    //calls the next_full_text
-    //returns true if it has to do the init, and false if its already good to go.
-    //called by move_incrementally and define_position
-    static initialize_dexter_maybe(next_full_text, playing_a_recording_cmd, the_job){
-        let dex = this.dexter_for_job(the_job)
-        if (dex.rs) { return false} //does not need to be initialized so the caller can keep going
-        else {
-            this.handle_command("straight_up", playing_a_recording_cmd, the_job)
-            Talk.talk_out("Initializing Dexter to straight up position.")
-            // setTimeout(function () {
-            //     Talk.handle_command(next_full_text, playing_a_recording_cmd, the_job)
-            // }, 5000) //beware, possible infinite loop if straight_up fails to set the_job.robot.rs
-            return true
-        }
-    }
-
-    static initialize_dexter_in_job_maybe(the_job){
-        let dex = this.dexter_for_job(the_job)
-        if (dex.rs) { return null} //does not need to be initialized so the caller can keep going
-        else {
-            //Talk.talk_out("Initializing Dexter to straight up position.")
-            // setTimeout(function () {
-            //     Talk.handle_command(next_full_text, playing_a_recording_cmd, the_job)
-            // }, 5000) //beware, possible infinite loop if straight_up fails to set the_job.robot.rs
-            return true
-        }
+    static send_instruction_to_dexter(instruction) {
+        this.job_for_normal_moves.insert_single_instruction(instruction, false)
     }
 
     static is_in_reach(xyz, J5_direction = [0, 0, -1], config = [1, 1, 1], dexter_inst_or_workspace_pose){
@@ -2061,36 +2348,35 @@ class Talk {
     static move_incrementally() {
         //out("top of move_incrementally, is_moving: " + Talk.is_moving + " cmd: " + Talk.current_command)
         if (!Talk.is_moving) {
-            return Control.break()
+            return //Control.break()
         }
         if (Talk.current_command !== Talk.last_move_command){
-            Talk.talk_out("Moving Dexter " + Talk.current_command +
+            Talk.display_message("Moving Dexter " + Talk.current_command +
                            '...<br/>Click "Stop" to stop.')
             Talk.last_move_command = Talk.current_command
         }
-        let the_job = this
-        let dex = Talk.dexter_for_job(the_job) //this is the job running the move_to instruction
+        let dex = this.robot //"this" is the running job
 
         if((Talk.current_command === "forward") || (Talk.current_command === "reverse")) {
            let inst
            if (Talk.current_command === "reverse") {
-               inst = Talk.compute_reverse_instruction(the_job)
+               inst = Talk.compute_reverse_instruction(this.job_for_normal_moves)
            }
-           else { inst = Talk.compute_forward_instruction(the_job) }
+           else { inst = Talk.compute_forward_instruction(this.job_for_normal_moves) }
 
            if(inst === null) {
                 Talk.stop_aux()
-                return Control.break()
+                return //Control.break()
            }
            else {
-                return [inst, // undefined, undefined, undefined, undefined, dex),
+                return [inst,
                         dex.empty_instruction_queue()]
            }
         }
         else { //regular move
             let [axis_index, axis_direction] = Talk.word_to_axis_index_and_direction(Talk.current_command)
-            let ma = Talk.current_or_straight_up_angles(the_job)
-            let orig_xyz = Kin.J_angles_to_xyz(ma)[0] //the_job.robot.rs.xyz()[0]
+            let ma = Talk.current_or_straight_up_angles()
+            let orig_xyz = Kin.J_angles_to_xyz(ma)[0]
 
             let [new_x, new_y, new_z] = orig_xyz
             let new_xyz = [new_x, new_y, new_z]
@@ -2102,173 +2388,58 @@ class Talk {
                 new_y = orig_xyz[axis_index] + (axis_direction * Talk.step_distance)
                 new_xyz[1] = new_y
                 if (new_y < 0) {
-                    Talk.talk_out("This installation of Dexter prevents Dexter from going behind itself: " + to_source_code(new_xyz))
+                    Talk.display_message("This installation of Dexter prevents Dexter from going behind itself: " + to_source_code(new_xyz))
                     Talk.stop_aux()
-                    return Control.break()
+                    return //Control.break()
                 }
             }
             else if (axis_index === 2) {  //z
                 new_z = orig_xyz[axis_index] + (axis_direction * Talk.step_distance)
                 new_xyz[2] = new_z
                 if (new_z < 0) {
-                    Talk.talk_out("This installation of Dexter prevents Dexter from going below it base: " + to_source_code(new_xyz))
+                    Talk.display_message("This installation of Dexter prevents Dexter from going below it base: " + to_source_code(new_xyz))
                     Talk.stop_aux()
-                    return Control.break()
+                    return //Control.break()
                 }
             }
-            else if (axis_index === 5) {  //pitch up j6 clockwis4/counterclockwide
-                new_z = orig_xyz[axis_index] + (axis_direction * Talk.step_distance)
-                new_xyz[2] = new_z
+            else if (axis_index === 5) {  //pitch up j6 clockwise/counterclockwide
+                //TODO
                 if (new_z < 0) {
-                    Talk.talk_out("This installation of Dexter prevents Dexter from going below it base: " + to_source_code(new_xyz))
+                    Talk.display_message("This installation of Dexter prevents Dexter from going below it base: " + to_source_code(new_xyz))
                     Talk.stop_aux()
-                    return Control.break()
+                    return //Control.break()
                 }
             }
 
             //let orig_angles2 = Kin.xyz_to_J_angles(orig_xyz)
             if (Talk.is_in_reach(new_xyz, undefined, undefined, dex)) { //bug in Kin.is_in_reach so use my special one.
-                if (Talk.is_recording) {
-                    Talk.the_recording_in_progress.push(new_xyz)
+                if(Talk.is_recording) {
+                    Talk.xyz_arrays_being_recorded.push(new_xyz)
                 }
                 //out("move_incrementally, in reach: " + new_xyz)
-                return [dex.move_to(new_xyz), // undefined, undefined, undefined, undefined, dex),
-                    dex.empty_instruction_queue()]
-            } else {
+                return [dex.move_to(new_xyz),
+                        dex.empty_instruction_queue(),
+                    Talk.move_incrementally
+                ]
+            }
+            else {
                 out("bottom of move_incrementally, out of reach: " + new_xyz)
                 let mess = "Moving to xyz: <br/>" + to_source_code(new_xyz) + "<br/>is out of Dexter's reach."
                 Talk.stop_aux(mess)
-                return Control.break()
+                return //Control.break()
             }
         }
     }
 
-    static reverse(full_text="reverse", playing_a_recording_cmd=false, the_job=Job.talk_to_dexter) {
-        let alts = this.cmd_alternatives("reverse", true)
-        if(alts.includes(full_text)){
-            Talk.current_command = full_text
-            Talk.send_init_and_control(the_job)
-            return "valid"
-        } else {
-            return "invalid"
-        }
-    }
 
-    static forward(full_text="forward", playing_a_recording_cmd=false, the_job=Job.talk_to_dexter) {
-        let alts = this.cmd_alternatives("forward", true)
-        if(alts.includes(full_text)){
-            Talk.current_command = full_text
-            Talk.send_init_and_control(the_job)
-            return "valid"
-        } else {
-            return "invalid"
-        }
-    }
-
-    static compute_reverse_instruction(the_job){
-        let dex = this.dexter_for_job(the_job)
-        let hist_arr   = the_job.rs_history
-        if(this.last_reverse_forward_index === null) {
-            this.last_reverse_forward_index = hist_arr.length - 1
-            this.forward_limit_index = hist_arr.length - 1
-        }  //skip past the latest one
-
-        if(this.last_reverse_forward_index === 0){
-            Talk.talk_out("There are no more commands to reverse to.")
-            return null //get out of loop
-        }
-        else {
-            let RS_inst = new RobotStatus({})
-            for (let i = this.last_reverse_forward_index - 1; i >= 0; i--) {
-                this.last_reverse_forward_index = i //so that if we switch to forward, that will start in the right place, as will subsequence calls to  compute_reverse_instruction
-                let single_rs = hist_arr[i]
-                let oplet = single_rs[Dexter.INSTRUCTION_TYPE]
-                if (oplet === "F") { //this is the one to go back to.
-                    RS_inst.robot_status = single_rs
-                    let angles = RS_inst.measured_angles()
-                    let instr = dex.move_all_joints(angles)
-                    //out("compute_reverse_instruction returning instr: " + instr)
-                    return instr
-                }
-            }
-            Talk.talk_out("There are no more commands to reverse to.")
-            return null
-        }
-    }
-
-    static compute_forward_instruction(the_job){
-        let dex = this.dexter_for_job(the_job)
-        let hist_arr   = the_job.rs_history
-        if(this.last_reverse_forward_index === null) {
-            this.last_reverse_forward_index = hist_arr.length - 1
-            this.forward_limit_index = hist_arr.length - 1
-        }  //skip past the latest one
-
-        if(this.last_reverse_forward_index >= this.forward_limit_index){
-            Talk.talk_out("There are no more commands to go forward to.")
-            return null //get out of loop
-        }
-        else {
-            let RS_inst = new RobotStatus({})
-            for (let i = this.last_reverse_forward_index + 1; i <= this.forward_limit_index; i++) {
-                this.last_reverse_forward_index = i //so that if we switch to forward, that will start in the right place, as will subsequence calls to  compute_reverse_instruction
-                let single_rs = hist_arr[i]
-                let oplet = single_rs[Dexter.INSTRUCTION_TYPE]
-                if (oplet === "F") { //this is the one to go back to.
-                    RS_inst.robot_status = single_rs
-                    let angles = RS_inst.measured_angles()
-                    let instr = dex.move_all_joints(angles)
-                    //out("compute_forward_instruction returning instr: " + instr)
-                    return instr
-                }
-            }
-            Talk.talk_out("There are no more commands to reverse to.")
-            return null
-        }
-    }
-
-    static faster(full_text="faster"){
-        let alts = this.cmd_alternatives("faster", true)
-        if(alts.includes(full_text)){
-            this.set_step_distance(this.step_distance * 2)
-            this.talk_out("Step distance has been increased to: " + this.step_distance + " meters.")
-            return "valid"
-        }
-        else { return "invalid"}
-    }
-
-    static slower(full_text="slower"){
-        let alts = this.cmd_alternatives("slower", true)
-        if(alts.includes(full_text)){
-            this.set_step_distance(this.step_distance / 2)
-            this.talk_out("Step distance has been decreased to: " + this.step_distance + " meters.")
-            return "valid"
-        }
-        else { return "invalid"}
-    }
-
-//______End move commands_______
-
-
-
-//____________END OF CMD DEFS_________
-
-    static handle_command(segment_or_full_text, playing_a_recording_cmd=false, the_job=Job.talk_to_dexter){
-        let full_text = segment_or_full_text
-        if(typeof(full_text) !== "string"){
-            full_text = this.segment_to_text(segment_or_full_text)
-        }
-        //out("Starting to handle: " + full_text)
-        full_text = this.cmd_normalized_prose(full_text)
-        //if(!["reverse", "forward", "stop"].includes(full_text)){
-        //    this.last_reverse_forward_index = null //no longer in reverse-forward sequence
-        //    this.forward_limit_index        = null
-        //}
+    /*
+    static handle_command(full_text){
+        console.log("handle_command passed: " + full_text)
         Talk.stop_except_no_change_to_enable_speaker() //when starting a cmd before doing anything else, stop robot and mic
-        let status
-        //full_text is a valid normalized command
-        //the "main_menu mode needs to be first, See the below comment on "initia;" mode.
-        if((this.mode === "main_menu") || playing_a_recording_cmd) {
+        let status = "invalid"
+        //full_text is a valid, normalized command
+        //the main_menu mode needs to be first, See the below comment on "initial" mode.
+        if(this.mode === "main_menu") {
 
             status = this.turn_on_mic(full_text)
             if(status === "valid") { return }
@@ -2297,29 +2468,10 @@ class Talk {
                 return
             }
 
-            status = this.start_recording(full_text)
-            if(status === "valid") { return }
-
-            status = this.stop_recording(full_text)
-            if(status === "valid") { return }
-
-            status = this.define_position(full_text, playing_a_recording_cmd, the_job)
-            if(status === "valid") { return }
-
             //status = this.list_recordings(full_text)
             //if(status === "valid") { return }
 
-            status = this.gpt(full_text)
-            if(status === "valid") { return }
-
-            status = this.edit_job(full_text)
-            if(status === "valid") { return }
-
-            //this should be last because full_text can be a user made up name of recording.
-            status = this.play_recording(full_text)
-            if(status === "valid") { return }
-
-            status = this.move(full_text)
+            status = this.move_menu(full_text)
             if(status === "valid") { return }
 
             status = this.stop(full_text)
@@ -2328,10 +2480,91 @@ class Talk {
             status = this.off(full_text)
             if(status === "valid") {return}
 
+            status = this.gpt(full_text) //expects full_text to start with "gpt" or alternative.
+            if(status === "valid") { return }
+
+            //do I still need this?
+            //this should be last because full_text can be a user made up name of recording.
+            //status = this.play_recording(full_text)
+            //if(status === "valid") { return }
+
+            this.main_menu_mode_misc(full_text)
+            return
+
             //must go close to end
-            status = this.start_job(full_text)
+            status = this.run_job(full_text)
             if(status === "valid") {
-                console.log("handled start_job")
+                console.log("handled run_job")
+                return
+            }
+
+            //must go at very end.
+            status = this.convert_to_gpt_cmd_maybe(full_text) //full text can be any phrase of > 3 words and a few others
+            if(status === "valid") {return}
+
+            Talk.warning("Unrecognized command: " + full_text + ".")
+            return
+        } //end of "main_menu" mode
+
+        else if(this.mode === "move_menu") {
+            status = this.stop(full_text)
+            if(status === "valid") {return}
+
+            status = this.straight_up(full_text)
+            if(status === "valid") { return }
+
+            status = this.up(full_text)
+            if(status === "valid") { return }
+
+            status = this.down(full_text)
+            if(status === "valid") { return }
+
+            status = this.left(full_text)
+            if(status === "valid") { return }
+
+            status = this.right(full_text)
+            if(status === "valid") { return }
+
+            status = this.farther(full_text)
+            if(status === "valid") { return }
+
+            status = this.closer(full_text)
+            if(status === "valid") { return }
+
+            status = this.reverse(full_text)
+            if(status === "valid") { return }
+
+            status = this.forward(full_text)
+            if(status === "valid") { return }
+
+            status = this.faster(full_text)
+            if(status === "valid") { return }
+
+            status = this.slower(full_text)
+            if(status === "valid") { return }
+
+            status = this.define_place(full_text)
+            if(status === "valid") { return }
+
+            status = this.start_recording(full_text)
+            if(status === "valid") { return }
+
+            status = this.stop_recording(full_text)
+            if(status === "valid") { return }
+
+            status = this.edit_job(full_text)
+            if(status === "valid") { return }
+
+            status = this.main_menu(full_text)
+            if(status === "valid") { return }
+
+            this.move_menu_mode_misc(full_text)
+            return
+
+            //must go close to end
+            status = this.run_job(full_text)
+            if(status === "valid") {
+                console.log("handled run_job")
                 return
             }
 
@@ -2341,101 +2574,52 @@ class Talk {
 
             Talk.warning("Unrecognized command: " + full_text + ".")
             return
-        } //end of "main_menu" mode
-
-        if(this.mode === "move") {
-            status = this.stop(full_text)
-            if(status === "valid") {return}
-
-            status = this.straight_up(full_text, playing_a_recording_cmd, the_job)
-            if(status === "valid") { return }
-
-            status = this.up(full_text, playing_a_recording_cmd, the_job)
-            if(status === "valid") { return }
-
-            status = this.down(full_text, playing_a_recording_cmd, the_job)
-            if(status === "valid") { return }
-
-            status = this.left(full_text, playing_a_recording_cmd, the_job)
-            if(status === "valid") { return }
-
-            status = this.right(full_text, playing_a_recording_cmd, the_job)
-            if(status === "valid") { return }
-
-            status = this.farther(full_text, playing_a_recording_cmd, the_job)
-            if(status === "valid") { return }
-
-            status = this.closer(full_text, playing_a_recording_cmd, the_job)
-            if(status === "valid") { return }
-
-            //status = this.move_incrementally(full_text, playing_a_recording_cmd, the_job)
-            //if(status === "valid") { return }
-
-            status = this.reverse(full_text, playing_a_recording_cmd, the_job)
-            if(status === "valid") { return }
-
-            status = this.forward(full_text, playing_a_recording_cmd, the_job)
-            if(status === "valid") { return }
-
-            status = this.faster(full_text)
-            if(status === "valid") { return }
-
-            status = this.slower(full_text)
-            if(status === "valid") { return }
-
-            status = this.back(full_text)
-            if(status === "valid") { return }
-
-            Talk.warning("Unrecognized command: " + full_text + ".")
-            return
         }
 
-        if(this.mode === "waiting_for_recording_name"){
-
-            status = this.off(full_text)
-            if(status === "valid") {return}
-
+        else if(this.mode === "main_menu__note__params"){
             status = this.main_menu(full_text)
             if(status === "valid") {return}
 
-            status = this.define_recording(full_text)
+            status = this.run(full_text)
+            if(status === "valid") {return}
+
+            status = this.main_menu__note__params(full_text)
+            if(status === "valid") {return}
+
+            Talk.warning("Unrecognized command: " + full_text + " in mode: " + this.mode + ".")
+            return
+        }
+
+        else if(this.mode === "job_name"){
+
+            status = this.turn_on_mic(full_text)
+            if(status === "valid") { return }
+
+            status = this.move_menu(full_text)
+            if(status === "valid") {return}
+
+            //Talk.warning("Unrecognized command: " + full_text + ".")
+            //return
+            status = this.job_name_mode_misc(full_text) //handles the saying of the new job's name.
+            if(status === "valid") {return}
+        }
+
+        else if(this.mode === "waiting_for_place_name"){
+            status = this.turn_on_mic(full_text)
+            if(status === "valid") { return }
+
+            status = this.move_menu(full_text)
+            if(status === "valid") {return}
+
+            status = this.define_place_with_name(full_text)
             if(status === "valid") { return }
 
             Talk.warning("Unrecognized command: " + full_text + ".")
             return
         }
 
-        if(this.mode === "waiting_for_saying_name"){
 
-            status = this.off(full_text)
-            if(status === "valid") {return}
-
-            status = this.main_menu(full_text)
-            if(status === "valid") {return}
-
-            status = this.define_saying_name(full_text)
-            if(status === "valid") { return }
-
-            Talk.warning("Unrecognized command: " + full_text + ".")
-            return
-        }
-        if(this.mode === "waiting_for_position_name"){
-
-            status = this.off(full_text)
-            if(status === "valid") {return}
-
-            status = this.main_menu(full_text)
-            if(status === "valid") {return}
-
-            status = this.define_position_name(full_text)
-            if(status === "valid") { return }
-
-            Talk.warning("Unrecognized command: " + full_text + ".")
-            return
-        }
-
-
-        if(this.mode === "playing_recording"){
+        else if(this.mode === "playing_recording"){
 
             status = this.off(full_text)
             if(status === "valid") { return }
@@ -2447,9 +2631,69 @@ class Talk {
             return
         }
 
-        Talk.warning("Unrecognized mode: " + this.mode + ".") //shouldn't ever happen
+        else {
+            shouldnt("Talk Unrecognized mode: " + this.mode + " with full_text: " + full_text)
+        }
 
     } //end of handle_command
+    */
+
+    static handle_command(full_text){
+        console.log("handle_command passed: " + full_text)
+        let [parent_mode, cmd_str_from_mode, params_const] = Talk.mode.split("__")
+        let cmd_rows = this.cmd_rows_for_mode(Talk.mode) //cmd_rows_for_mode special cases for "__params" modes
+        if (!cmd_rows) {
+            shouldnt("handle_command can't find rows since mode is invalid: " + Talk.mode)
+        }
+        //mode is valid
+        for (let row of cmd_rows) {
+            for (let cmd_arr of row) {
+                let cmd_norm = cmd_arr[0]
+                if (typeof (cmd_norm) === "function") {
+                    cmd_norm = cmd_norm.call(Talk)
+                }
+                if (cmd_norm) { //will be undefined in the case of its inappropriate ie Turn mic on when its already on
+                    let cmd_meth_name = this.string_to_method_name(cmd_norm)
+                    let cmd_meth = Talk[cmd_meth_name]
+                    if (!cmd_meth) {
+                        shouldnt("handle_command can't find method for: Talk." + cmd_meth_name)
+                    }
+                    let alts = this.cmd_alternatives(cmd_norm, true)
+                    //all cmd_norm and alts are lower case
+                    let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text.toLowerCase(), alts, true)
+                    if(cmd_str) {
+                        let meth_call_result = cmd_meth.call(Talk, full_text, cmd_str, content)
+                        if (meth_call_result) {
+                            return
+                        }
+                    }
+                    ///else no match for full_text with the alts, as is usual, so loop around again
+                }
+            }
+        }
+        //no success with normal cmds so call the misc method.
+
+        let use_mode = Talk.mode
+        if(params_const){ //got a params dialog up.
+            //let meth_call_result = Talk.run.call(Talk, full_text)
+            use_mode = "params"
+        }
+        let misc_mode_name = use_mode + "_mode_misc" // ie "move_menu_mode_misc
+        let misc_meth = Talk[misc_mode_name]
+        if (!misc_meth) {
+            warning("Mode: " + Talk.mode + " doesn't have a matching command for: " + full_text + " (no misc method).")
+            return
+        }
+        let words = full_text.split(" ")
+        let cmd_str = words[0] //non multi-words here but its the best we can do. The misc method can test for initial multi-word first term if it likes
+        let content = full_text.substring(cmd_str.length + 1)
+        let meth_call_result = misc_meth.call(Talk, full_text, cmd_str, content)
+        if (meth_call_result) {
+            return true
+        }
+        warning("Mode: " + Talk.mode + " doesn't have a matching command for: " + full_text)
+        return false
+    }
 
 
 } //end of Talk
@@ -2459,7 +2703,7 @@ globalThis.Talk = Talk
 function simple(command){
     let a_simple_fn = function() {
         let the_job = this
-        Talk.handle_command(command, true, the_job) //"true" is for playing a recording, so I don't have to switch modes.
+        Talk.handle_command(command) //"true" is for playing a recording, so I don't have to switch modes.
     }
     a_simple_fn.simple_command = command //for debugging and generating src for editing
     return a_simple_fn //goes on the do_list

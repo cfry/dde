@@ -552,6 +552,14 @@ static to_fixed_smart(num, digits=0){
     else { return num } //presume its a string like "N/A" and leave it alone.
 }
 
+//returns the first of possible_starting_strings that's the same as a_string, or false
+static includes_one_of(a_string, possible_starting_strings){
+    for (let str of possible_starting_strings){
+        if (a_string.includes(str)) { return str }
+    }
+    return false
+}
+
 static starts_with_one_of_index(a_string, possible_starting_strings){
     for (let i = 0; i < possible_starting_strings.length; i++){
         let poss_str = possible_starting_strings[i]
@@ -560,18 +568,62 @@ static starts_with_one_of_index(a_string, possible_starting_strings){
     return false
 }
 
+/*
 static starts_with_one_of(a_string, possible_starting_strings){
     for (let str of possible_starting_strings){
         if (a_string.startsWith(str)) { return true }
     }
     return false
-}
+}*/
 
-static includes_one_of(a_string, possible_starting_strings){
-    for (let str of possible_starting_strings){
-        if (a_string.includes(str)) { return true }
+//returns the FIRST matched string from possible_starting_strings or false
+//beware, a possible_starting_strings of "" will match any a_string
+//GENERALLY useful is to have possible_starting_strings sorted by
+//longest strings first, but this is best done OUTSIDE
+//of this function as you usually have a fixed set of possible_starting_strings
+//you are matching against all the time.
+//plus its possible you don't want to match on longest first.
+static starts_with_one_of(a_string, possible_starting_strings){
+    for (let i = 0; i < possible_starting_strings.length; i++){
+        let poss_str = possible_starting_strings[i]
+        if (a_string.startsWith(poss_str)) { return possible_starting_strings[i] }
     }
     return false
+}
+
+//High level utility for parsing where the beginning of a sentence sets the
+//"context" for intepreting the end of the sentence. Used in DDE's Talk.
+//returns an array of the LONGEST of possible_starting_strings that matches (the initial command)
+// and the text after the matching possible_starting_string in a_string, (the tail)
+//OR [false, false] meaning no match.
+//If there is no tail, "" is returned for it which is easy to check for
+//an "exact match" of the command with no extra content.
+//set do_trim to true if you're matching words in sentences, esp if they have
+//variable amount of whitespace between words.
+//Makes a copy of possible_starting_strings internally so it doesn't
+// modify possible_starting_strings with sort.
+static starts_with_one_of_and_tail(a_string, possible_starting_strings, do_trim=false){
+    if(do_trim){
+        a_string = a_string.trim()
+    }
+    possible_starting_strings = possible_starting_strings.slice() //make a copy since sort is destructive
+    possible_starting_strings.sort(function(str1, str2) {
+        if(str1.length >= str2.length) { return  -1}
+        else if (str1.length === str2.length) { return  0}
+        else { return 1 }
+    })
+
+    let matching_string = Utils.starts_with_one_of(a_string, possible_starting_strings)
+    if(!matching_string) {
+        return [false, false]
+    }
+    else {
+        let tail = a_string.substring(matching_string.length)
+        if(do_trim){
+            tail = tail.trim()
+        }
+        return [matching_string, tail]
+    }
 }
 
 static ends_with_one_of(a_string, possible_starting_strings){

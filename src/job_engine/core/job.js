@@ -63,7 +63,11 @@ class Job{
                                                 //interrupted_by_stop_button: true
                                                 //},
                  callback_param = "start_object_callback"} = {}){
-    if (Job[name] && Job[name].is_active()) { //we're redefining the job so we want to make sure the
+    if(Job[name] && !(Job[name] instanceof Job)){
+        warning("You're attempting to name a Job with: " + name + " but that name is reserved for Job methods.")
+        return null
+    }
+        if (Job.is_job_name(name) && Job[name].is_active()) { //we're redefining the job so we want to make sure the
         /*//previous version is stopped.
         //if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
         Job[name].stop_for_reason("interrupted", "User is redefining this job.")
@@ -2163,7 +2167,7 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         //onsole.log("To stop debugging, Eval:   undebug_job()   and click the big blue arrow, ")
     }
     let ending_pc = this.instruction_location_to_id(this.ending_program_counter) //we end BEFORE executing the ending_pcm we don't execute the instr at the ending pc if any
-    //onsole.log("near top of do_next_item with status_code: " + this.status_code)
+    //onsole.log("near top of do_next_item with status_code: " + this.status_code + " ending_pc: " + ending_pc)
 
     if (["completed", "errored", "interrupted"].includes(this.status_code)){//put before the wait until instruction_id because interrupted is the user wanting to halt, regardless of pending instructions.
         //onsole.log("do_next_item about to call finish_job")

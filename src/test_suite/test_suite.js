@@ -1012,7 +1012,7 @@ class TestSuite{
             let prev_comma = full_src.lastIndexOf(",", insert_pos)
             let prev_close_square = full_src.lastIndexOf("]", insert_pos)
             let indent_spaces = ""
-            if (insert_pos_col < 4) { indent_spaces = spaces(4 - insert_pos_col) }
+            if (insert_pos_col < 4) { indent_spaces = Utils.spaces(4 - insert_pos_col) }
             let indented_new_text = indent_spaces + new_text
             let suffix = ""
             let next_open_square = full_src.indexOf("[", insert_pos)

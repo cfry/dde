@@ -7,6 +7,13 @@ from http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
         http://complexity.zone/cardboard_solarsystem/ //augmented reality usjing threejs and your phone's camera to mix palents and your reality.
             ttrhejs tutorial: http://content.udacity-data.com/cs291/notes/UdacityLesson6Lights.pdf
 
+Threejs and webxr
+https://www.youtube.com/watch?v=smvF0seF4XE  useless.
+references a mozilla Hello world app.
+https://mixedreality.mozilla.org/hello-webxr   but goes to a bad page.
+
+maybe: https://www.youtube.com/watch?v=slU0qKhegvk threejs and webxr
+
 */
 
 //import * as THREE from '../../node_modules/three/build/three.module.js'
@@ -127,6 +134,12 @@ globalThis.Simulate = class Simulate {
           catch(err){
                   console.log("init_simulation errored with: " + err.message + "\n" + err.stack)
           }
+
+          //from https://threejs.org/docs/index.html#manual/en/introduction/How-to-create-VR-content
+        this.sim.renderer.setAnimationLoop( function () {
+            //this.sim.renderer.render( scene, camera );
+            SimUtils.render_used_in_loop()
+        } )
     }
 
     //called by SimObj.refresh() and Simulate.init()
@@ -229,18 +242,18 @@ globalThis.Simulate = class Simulate {
         this.sim.container.appendChild(this.sim.renderer.domElement)
         this.VR_but_dom_elt = VRButton.createButton( this.sim.renderer )  //VR makes global dom elt "VRButton" odd. the orig class VRButton var is over-ridden??? Don't depend on it!
         // sim_pane_header_alignment_id.append(vr_but)           //VR //put right after the "Alignment: " buttons
-        this.sim.container.append(this.VR_but_dom_elt)
+        this.sim.container.append(this.VR_but_dom_elt)           //VR
         //but not the button doesn't actually appear here. It appears IN the real sim rendering pane,
         //at the bottom in an "overlay" which will usually say, in a box,  "VR NOT SUPPORTED"
         this.sim.renderer.xr.enabled = true;                     //VR
-        this.sim.renderer.xr.setReferenceSpaceType( 'local' ); //from threejs.org webxr_vr_rollercoaster.html
+        this.sim.renderer.xr.setReferenceSpaceType( 'local' );   //VR  from threejs.org webxr_vr_rollercoaster.html
         //this.init_vr()
     }
 
     static xrSession
     //from https://developer.mozilla.org/en-US/docs/Web/API/XRSystem/requestSession
     //with fry mods
-    static init_vr(){
+    static init_vr(){ //VR
         debugger;
         if (navigator.xr) {
             navigator.xr.isSessionSupported("immersive-vr").then((isSupported) => {
