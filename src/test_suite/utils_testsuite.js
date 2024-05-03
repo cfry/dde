@@ -64,6 +64,19 @@ new TestSuite("Utils.starts_with_one_of_and_tail",
     ['Utils.starts_with_one_of_and_tail(" this is a bust.", ["this", "this is"], true)', '["this is", "a bust."]']
 )
 
+new TestSuite("Utils.separate_head_and_tail",
+    ['Utils.separate_head_and_tail("")', "null"],
+    ['Utils.separate_head_and_tail("abc")', "null"],
+    ['Utils.separate_head_and_tail("first second")', '["first", "second", " "]'],
+    ['Utils.separate_head_and_tail("first  second")', '["first", " second", " "]'],
+    ['Utils.separate_head_and_tail("first  second", undefined, true)', '["first", "second", " "]'],
+    ['Utils.separate_head_and_tail("first ,second", [",", " "])', '["first", ",second", " "]'],
+    [`Utils.separate_head_and_tail("dark green, is not pretty", [",", " "], true, true)`, '["dark green", "is not pretty", ","]']
+    // errors but shouldnt ['Utils.separate_head_and_tail("first\nsecond", ["\n"])', '["first", "second", "\n"]']
+    // errors but shouldnt [`Utils.separate_head_and_tail("dark green ,is not pretty", [",", " "], true, true)` , `["dark green", "is not pretty", ","]`],
+
+)
+
 
 
 

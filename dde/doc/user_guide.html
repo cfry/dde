@@ -3,8 +3,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">4.2.0</span><br/>
-    released: <span id="dde_release_date_id">Mar 13, 2024</span>
+    version: <span id="dde_version_id">4.2.1</span><br/>
+    released: <span id="dde_release_date_id">May 2, 2024</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -1511,6 +1511,54 @@ SimObj.get_position(SimObj.my_object3d_1)</code> => <samp>[0.2, 0.3, 0.4]</samp>
     </details>
 
  </details> <!-- end user interface -->
+
+<details id="talk_doc_id" class="doc_details"><summary>Talk</summary>
+    Talk is a high level interface on top of DDE that
+    accepts a mix of speech, GUI and text.
+    It can output speech, GUI and text too.
+    Talk can:
+    <ul>
+        <li>Move the robot (in <b>simulate</b> or <b>real</b> depending on the Misc pane setting).</li>
+        <li>Define Jobs via programming by (talking) example.</li>
+        <li>Run any defined Job by saying its name.</li>
+        <li>Insert recognized speech into the editor.</li>
+        <li>Provide spoken prompts to GPT.</li>
+        <li>Perform additional functionalities visible in the interface.</li>
+    </ul>
+    Talk is entered by choosing <b>Talk to Dexter...</b> from the Dexter menu.
+    The dialog box that comes up tries hard to be self-explanatory.
+    There are tooltips, instructions, error messages and a status bar to help.
+    Valid commands for the current mode (context) are displayed.
+    You switch modes by clicking on a mode link or saying the link text
+    (such as "Move menu") to enter another mode, just like running
+    any other command. Some commands have parameters. Talk has a parameters
+    mode for handling their entry. Say the command name without any parameters
+    to switch to the parameters mode.
+    <br/><br/>
+    <i>Move Commands</i><br/>
+    The move commands: up, down, left, right, closer, farther, all
+    set the robot in motion moving in the indicated direction.
+    If you don't issue a "stop" command, they will eventually exceed the reach of
+    the robot and error.
+    <br/><br/>
+    When the robot is straight up, the only direction
+    you can move it is down. (Imagine standing on ypur tip toes and just barely
+    touching the ceiling. You can move your hand in only 1 rectilinear direction.)
+    <br/><br/>
+    You can speed up or slow down the robot with the "Faster" and "Slower" commands.
+    to hone in on a precise point, use "slower" repeatedly. See Talk's status bar for
+    the current <b>Step distance</b>. Smaller distances will move the robot slower
+    and give you a chance to hit the space-bar (stopping the robot) closer to
+    where you want the robot to end up.
+    <br/><br/>
+    Overall the speech recognition that DDE uses (built into Chrome),
+    is quite accurate. However usually, but not always,
+    <span style="color:red;">Chrome does not recognize "right".</span><br/>
+    Workarounds:<br/>
+    1. Click the link "Right" instead of saying it.<br/>
+    2. "Say "right turn" instead.<br/>
+    We have filed a bug report with Google (May 1, 2024).
+</details> <!-- end talk_doc_id -->
 
 <details id="JavaScript_guide_id" class="doc_details"><summary>JavaScript</summary>
     DDE allows you to control a Dexter robot with Javascript. You can execute all of JS.

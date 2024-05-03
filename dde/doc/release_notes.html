@@ -1,5 +1,55 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
+
+<details class="doc_details"><summary>v 4.2.1, May 2, 2024</summary>
+     Highlights: Talk to Dexter. speak improvements, DH processing, Defaults.make_ins
+    file retrieval.
+<ul>
+     <li>Extended Ref Man/GPT/Prompt Engineering/JavaScript for getting GPT responses
+         that are useful as JavaScript data structures.</li>
+     <li>Fixed <code>dde_window_width</code> to now be property saved in indexDB</li>
+     <li><code>Utils.value_to_percent_hex</code> and
+         <code>Utils.little_hex_to_integer</code> now defined.</li>
+     <li> <code>Utils.date_to_mmm_dd_yyyy</code> now has a default value
+           for its arg of <code>new Date()</code>
+          and removes an extra pace after the month in the returned string.</li>
+     <li><code>Utils.get_dom_elt_ancestors</code> now takes an optional
+         2nd arg of <code>include_dom_elt=true</code>.
+     Without passing the 2nd arg, behavior is the same as before this change,
+     i.e. the first arg is included in the result.</li>
+     <li><code>Utils.starts_with_one_of</code> bug fix about returning 0.</li>
+     <li><code>Utils.starts_with_one_of</code> now returns the matched alternative.</li>
+     <li><code>Utils.starts_with_one_of_and_tail</code>
+         New higher level parsing function used in Talk.</li>
+     <li><code>Utils.separate_head_and_tail</code> New higher level parsing function used in Talk.
+         Documented in the code.</li>
+
+    <li><code>globalThis.stop_speaking</code> new function. </li>
+    <li><code>globalThis.is_speaking</code> new function.</li>
+
+    <li>Talk to Dexter now uses Google Chrome speech reco and greatly extended.</li>
+    <li><code>PCA</code> is now a global variable of the pca-js npm package
+       for performing Pinciple Component Analysis.</li>
+
+
+    <li>For getting defaults.make_in from Dexter:
+        checks /s/s/s/Default.makeins first. If no file, check
+         s/s/s/make_ins/Defaults.make_ins,
+         and if none, use the default-defaults.</li>
+    <li>Related to above item, whole new def for <code>Dexter.prototype.defaults_read</code>.
+           Also added, same file, brand new method:
+        <code>Dexter.prototype.defaults_alt_url</code></li>
+
+    <li>In Job.constructor, replaced Job[name] with more accurate: Job.is_job_name(name).</li>
+    <li>In Job.constructor, protect against using an existing Job method name to
+        name a new Job. That would eliminiate the method and cause real confusion!</li>
+    <li>New file DH.js.</li>
+    <li> <code>mathjs</code>, <code>DH</code> and <code>HiMem</code> are now
+          global names.
+          You won't have to import these from now on.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 4.2.0, Mar 13, 2024</summary>
 Highlights: "M" oplet instructions now supported in Simulator.
     <code>Dexter.set_follow_me</code> extensions facilitates smoother make-instruction recording dialog

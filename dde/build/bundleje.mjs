@@ -8,14 +8,15 @@ import child_process from 'child_process';
 import { LongBits } from 'longbits';
 import * as Espree$1 from 'espree';
 import js_beautify from 'js-beautify';
-import { create, all } from 'mathjs';
+import mathjs$1, { create, all } from 'mathjs';
+import PCA from 'pca-js';
 import compareVersions from 'compare-versions';
 import require$$0 from 'domain';
 import path$1 from 'path';
 
 var name = "dde4";
-var version = "4.2.0";
-var release_date = "Mar 13, 2024, 2024";
+var version = "4.2.1";
+var release_date = "May 2, 2024";
 var description = "test rollup";
 var author = "Fry";
 var license = "GPL-3.0";
@@ -76,6 +77,7 @@ var dependencies = {
 	"opencv.js": "^1.2.1",
 	os: "^0.1.2",
 	path: "^0.12.7",
+	"pca-js": "^1.0.2",
 	pegjs: "^0.10.0",
 	"pegjs-backtrace": "^0.2.1",
 	ping: "^0.4.1",
@@ -560,6 +562,27 @@ static get_class_of_instance(instance){
     return instance.constructor
 }
 
+static value_to_percent_hex (num, size) {
+        let num_str = (num >>> 0).toString(16).toUpperCase();
+//the 0 bit shift tricks it into doing two's compliment for negative values
+        num_str = ("00000000"+num_str).substr(size*-2);
+        let str = "";
+        for(let i = size*2-2; i >= 0  ; i -= 2){
+            str += "%" + num_str.substr(i,2);
+        }
+        return str
+    }
+
+static little_hex_to_integer(hex) { //converts little endian hex string to int
+        let sum = 0;
+        hex = hex.split(' ').join(''); //normalize out spaces
+        for (let i=hex.length/2-1; i>=0; i--) { //console.log(i, sum)
+            sum *= 256;
+            sum += parseInt('0x'+hex.substr(i*2,2),16);
+        }
+        return sum
+    }
+
 
 
 //______color_______
@@ -633,6 +656,14 @@ static to_fixed_smart(num, digits=0){
     else { return num } //presume its a string like "N/A" and leave it alone.
 }
 
+//returns the first of possible_starting_strings that's the same as a_string, or false
+static includes_one_of(a_string, possible_starting_strings){
+    for (let str of possible_starting_strings){
+        if (a_string.includes(str)) { return str }
+    }
+    return false
+}
+
 static starts_with_one_of_index(a_string, possible_starting_strings){
     for (let i = 0; i < possible_starting_strings.length; i++){
         let poss_str = possible_starting_strings[i];
@@ -641,18 +672,62 @@ static starts_with_one_of_index(a_string, possible_starting_strings){
     return false
 }
 
+/*
 static starts_with_one_of(a_string, possible_starting_strings){
     for (let str of possible_starting_strings){
         if (a_string.startsWith(str)) { return true }
     }
     return false
-}
+}*/
 
-static includes_one_of(a_string, possible_starting_strings){
-    for (let str of possible_starting_strings){
-        if (a_string.includes(str)) { return true }
+//returns the FIRST matched string from possible_starting_strings or false
+//beware, a possible_starting_strings of "" will match any a_string
+//GENERALLY useful is to have possible_starting_strings sorted by
+//longest strings first, but this is best done OUTSIDE
+//of this function as you usually have a fixed set of possible_starting_strings
+//you are matching against all the time.
+//plus its possible you don't want to match on longest first.
+static starts_with_one_of(a_string, possible_starting_strings){
+    for (let i = 0; i < possible_starting_strings.length; i++){
+        let poss_str = possible_starting_strings[i];
+        if (a_string.startsWith(poss_str)) { return possible_starting_strings[i] }
     }
     return false
+}
+
+//High level utility for parsing where the beginning of a sentence sets the
+//"context" for intepreting the end of the sentence. Used in DDE's Talk.
+//returns an array of the LONGEST of possible_starting_strings that matches (the initial command)
+// and the text after the matching possible_starting_string in a_string, (the tail)
+//OR [false, false] meaning no match.
+//If there is no tail, "" is returned for it which is easy to check for
+//an "exact match" of the command with no extra content.
+//set do_trim to true if you're matching words in sentences, esp if they have
+//variable amount of whitespace between words.
+//Makes a copy of possible_starting_strings internally so it doesn't
+// modify possible_starting_strings with sort.
+static starts_with_one_of_and_tail(a_string, possible_starting_strings, do_trim=false){
+    if(do_trim){
+        a_string = a_string.trim();
+    }
+    possible_starting_strings = possible_starting_strings.slice(); //make a copy since sort is destructive
+    possible_starting_strings.sort(function(str1, str2) {
+        if(str1.length >= str2.length) { return  -1}
+        else if (str1.length === str2.length) { return  0}
+        else { return 1 }
+    });
+
+    let matching_string = Utils$1.starts_with_one_of(a_string, possible_starting_strings);
+    if(!matching_string) {
+        return [false, false]
+    }
+    else {
+        let tail = a_string.substring(matching_string.length);
+        if(do_trim){
+            tail = tail.trim();
+        }
+        return [matching_string, tail]
+    }
 }
 
 static ends_with_one_of(a_string, possible_starting_strings){
@@ -660,6 +735,65 @@ static ends_with_one_of(a_string, possible_starting_strings){
         if (a_string.endsWith(str)) { return true }
     }
     return false
+}
+
+/*
+Separates a_string into 2 strings, the part before the used_separator and the
+part after the used separator.
+The used_separator is the separator in separators that occurs first in a_string.
+IF there is a tie, ie if you have separators of " comma " and " ",
+the first one in the separators list wins, in the above case, " comma ".
+If a_string contains at least one of the separators,
+an array is returned of [head, tail, used_separator]
+If none of the separators is in a_string, null is returned.
+If do_trim === true, both head and tail are trimmed of whitespace on both ends
+before being returned.
+In any case, the used_separator is not included in either head or tail.
+separators defaults to [" "], just a space.
+If first_in_separators_array_wins === false, (the default) then
+whichever separator occurs first in a_string will win.
+This PREFERS early separators in the separators array.
+However, if first_in_separators_array_win === true,
+the separator used from separators array will be the one
+that occurs eariest in a_string, regardless of its position in the separators_array
+will be used to split the string.
+Note that if there is a tie such that 2 separators in the separators array
+both "start at" the same position in a_string.
+then the separator used will be the one that is first in the separators array.
+*/
+static separate_head_and_tail(a_string, separators=[" "], do_trim=false, first_in_separators_array_wins=false){
+    let min_sep_pos = null;
+    let used_sep = null;
+    for(let sep of separators){
+        let pos = a_string.indexOf(sep);
+        if(pos !== -1){
+            if (first_in_separators_array_wins) {
+                min_sep_pos = pos;
+                used_sep = sep;
+                break;
+            }
+            else if(min_sep_pos === null) {
+                min_sep_pos = pos;
+                used_sep = sep;
+            }
+            else if (pos < min_sep_pos) {
+                min_sep_pos = pos;
+                used_sep = sep;
+            }
+        }
+    }
+    if(min_sep_pos === null){
+        return null
+    }
+    else {
+        let head = a_string.substring(0, min_sep_pos);
+        let tail = a_string.substring(min_sep_pos + used_sep.length);
+        if(do_trim){
+            head = head.trim();
+            tail = tail.trim();
+        }
+        return [head, tail, used_sep]
+    }
 }
 
 //returns array of one of the strs in possible_matching_strings
@@ -2200,12 +2334,12 @@ static make_ins_arrays(default_oplet, instruction_arrays=[]){
     }
 
 //lots of inputs, returns "Mar 23, 2017" format
-    static date_to_mmm_dd_yyyy(date){ //can't give the default value here because on DDE launch,
+    static date_to_mmm_dd_yyyy(date=new Date()){ //can't give the default value here because on DDE launch,
 //this method is called and for some weird reason, that call errors, but doesn't
 //if I set an empty date below.
         if(!(date instanceof Date)) { date = new Date(date); }
         const d_string = date.toString();
-        const mmm = d_string.substring(4, 8);
+        const mmm      = d_string.substring(4, 7);
         return mmm + " " + date.getDate() + ", " + date.getFullYear()
     }
 
@@ -2314,10 +2448,14 @@ static string_to_seconds(dur){
    //see https://gomakethings.com/how-to-get-all-parent-elements-with-vanilla-javascript/
    //fry modified, but same core algorithm
    //used in DocCode.open_doc
-   static get_dom_elt_ancestors(dom_elt) {
+   static get_dom_elt_ancestors(dom_elt, include_dom_elt=true) {
         let result = [];
+        let orig_dom_elt = dom_elt;
         for ( ; dom_elt && dom_elt !== document; dom_elt = dom_elt.parentNode ) {
-            result.push(dom_elt);
+            if((dom_elt === orig_dom_elt) && (!include_dom_elt)) ; //don't add to the result
+            else {
+                result.push(dom_elt); //do add to the result
+            }
         }
         return result
     }
@@ -2414,7 +2552,9 @@ function out$1(val="", color="black", temp=false, code=null){
     }
     if(globalThis["document"]){
         let orig_focus_elt = document.activeElement;
-        orig_focus_elt.focus();
+        if(orig_focus_elt) {
+            orig_focus_elt.focus();
+        }
     }
     if (temp){
         return "dont_print"
@@ -2726,6 +2866,23 @@ class SW$1 { //stands for Show Window. These are the aux fns that the top level 
             dia_elt.style.height = "35px";
             elt.innerHTML = "&#8681;"; //"v"
         }
+    }
+
+    static sw_expand(elt){
+        let dia_elt = elt.closest(".show_window");
+        let content_elt = dia_elt.querySelector(".show_window_content");
+        content_elt.style.display = "block";
+        dia_elt.style.height = dia_elt["data-full-height"];
+        //elt.innerHTML = "&#8679;" //"^"
+    }
+
+    static sw_shrink(elt){
+        let dia_elt = elt.closest(".show_window");
+        let content_elt = dia_elt.querySelector(".show_window_content");
+        dia_elt["data-full-height"] = dia_elt.style.height;
+        content_elt.style.display = "none";
+        dia_elt.style.height = "35px";
+        //elt.innerHTML = "&#8681;" //"v"
     }
 
     static sw_allow_drop(event) {
@@ -15562,23 +15719,8 @@ globalThis.DXF = DXF$1;
 var DH$1 = {};
 globalThis.DH = DH$1;
 
-//J_angles, if it isn't already an array of 5 angles (in degrees)
-//will be converted to one, either truncating too long arrays,
-//or padding the end with zeros if its too short.
-//dh_mat is expected to be an array 6 long.
-//this fn does not modify either of its args.
+
 DH$1.forward_kinematics = function(J_angles, dh_mat){
-    if(!Array.isArray(J_angles)) { dde_error("DH.forward_kinematics called with first arg of:<br/>" +
-                                   J_angles + "<br/> which is not an array.");}
-    else if(J_angles.length === 6) ; //ok as is
-    else if (J_angles.length < 6) {
-        J_angles = J_angles.slice(); //make a copy
-        do { J_angles.push(0); }
-        while (J_angles.length < 6)
-    }
-    else { //J_angles length is > 6
-        J_angles = J_angles.slice(0, 6);
-    }
 	let T = [0, 0, 0, 0, 0, 0];
 	T[0] = Vector.make_pose();
     let dh = JSON.parse(JSON.stringify(dh_mat)); //deep copy
@@ -15611,6 +15753,7 @@ DH$1.forward_kinematics = function(J_angles, dh_mat){
 
 var folder = "C:/Users/james/Documents/dde_apps/2021/Code/MoveWithForce/data_set_HDI_000047/"
 var dh_mat = DH.parse_dh_mat_file(folder + "dh_mat.out")
+debugger
 var J_angles = [0, 0, 90, 0, 0, 0]
 var fk = DH.forward_kinematics(J_angles, dh_mat)
 inspect(fk[2][6])
@@ -15881,6 +16024,9 @@ DH.force_to_torque = function(force_vector, J_angles, dh_mat){
 DH$1.parse_dh_mat_file = function(fp, dist_units = _m, ang_units = _deg){
 	var dh_content = file_content(fp);
     var dh_mat = dh_content.split('\r\n');
+    if(dh_mat.length < 2){
+    	dh_mat = dh_content.split('\n');
+    }
     dh_mat.pop(); //last element is empty
     let units;
     for(let i = 0; i < dh_mat.length; i++){
@@ -16335,7 +16481,39 @@ DH$1.disps_to_torques = function(disps, lin_fits){
 
 //The following is here to patch a bug in some versions of DDE
 
-
+Vector.DCM_to_quaternion = function(DCM = Vector.make_DCM()){
+    	//Algorithm was found here:
+        //http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
+    	let trace = DCM[0][0] + DCM[1][1] + DCM[2][2];
+        let S, w, x, y, z, quaternion;
+        if(trace > 0){
+        	S = Math.sqrt(1.0 + trace) * 2;
+			w = .25 * S;
+            x = (DCM[2][1] - DCM[1][2]) / S;
+            y = (DCM[0][2] - DCM[2][0]) / S;
+            z = (DCM[1][0] - DCM[0][1]) / S;
+        }else if(DCM[0][0] > DCM[1][1] && DCM[0][0] > DCM[2][2]){
+        	S = 2 * Math.sqrt(1 + DCM[0][0] - DCM[1][1] - DCM[2][2]);
+            w = (DCM[2][1] - DCM[1][2]) / S;
+            x = .25 * S;
+            y = (DCM[0][1] + DCM[1][0]) / S;
+            z = (DCM[0][2] + DCM[2][0]) / S;
+        }else if(DCM[1][1] > DCM[2][2]){
+        	S = 2 * Math.sqrt(1 + DCM[1][1] - DCM[0][0] - DCM[2][2]);
+            w = (DCM[0][2] - DCM[2][0]) / S;
+            x = (DCM[0][1] + DCM[1][0]) / S;
+            y = .25 * S;
+            z = (DCM[1][2] + DCM[2][1]) / S;
+        }else if(DCM[1][1] > DCM[2][2]){
+        	S = 2 * Math.sqrt(1 + DCM[2][2] - DCM[0][0] - DCM[1][1]);
+            w = (DCM[1][0] - DCM[0][1]) / S;
+            x = (DCM[0][2] + DCM[2][0]) / S;
+            y = (DCM[1][2] + DCM[2][1]) / S;
+            z = .25 * S;
+        }
+    	quaternion = [w, x, y, z];
+        return quaternion
+    };
 /*
 
 var r_des = [
@@ -16357,6 +16535,88 @@ should return:
 
 
 */
+    
+//Patch:
+function angles_to_DCM(angles = [0, 0, 0], sequence = "XYZ"){
+    //default could be ZX'Z'
+
+    var result = [];
+    let elt = "";
+    for(let char of sequence){
+        if(elt.length == 1){
+            if(char == "'"){
+                elt += char;
+                result.push(elt);
+                elt = "";
+            }else {
+                result.push(elt);
+                elt = char;
+            }
+        }else {
+            elt = char;
+        } 
+    }
+    if((elt != "'") && (elt.length == 1)){
+        result.push(elt);
+    }
+
+    let DCM = Vector.identity_matrix(3);
+    if(result.length == 3){
+        for(var i = 0; i < 3; i++){
+            DCM = Vector.rotate_DCM(DCM, result[i], angles[i]); 
+        }
+    }
+    return Vector.transpose(DCM)
+}
+
+function quat_to_DCM(quaternion = [1, 0, 0, 0]){
+    //Algorithm was found here:
+    //http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/
+    let w = quaternion[0];
+    let x = quaternion[1];
+    let y = quaternion[2];
+    let z = quaternion[3];
+
+    let DCM = Vector.make_matrix(3,3);
+    DCM[0][0] = 1-2*y*y-2*z*z;
+    DCM[1][0] = 2*x*y+2*z*w;
+    DCM[2][0] = 2*x*z-2*y*w;
+    DCM[0][1] = 2*x*y-2*z*w;
+    DCM[1][1] = 1-2*x*x-2*z*z;
+    DCM[2][1] = 2*y*z+2*x*w;
+    DCM[0][2] = 2*x*z+2*y*w;
+    DCM[1][2] = 2*y*z-2*x*w;
+    DCM[2][2] = 1-2*x*x-2*y*y;
+    return DCM
+}
+
+Vector.make_pose = function(position = [0, 0, 0], orientation = [0, 0, 0], scale_factor = 1, sequence = "ZYX"){
+		let dim = Vector.matrix_dimensions(orientation);
+        let DCM;
+        let s = scale_factor;
+        if(dim[0] === 1 && dim[1] === 3){
+        	//Euler Angle
+            //DCM = Convert.angles_to_DCM(orientation, sequence)
+            DCM = angles_to_DCM(orientation, sequence);
+        }else if(dim[0] === 1 && dim[1] === 4){
+            //Quaternion
+            //DCM = Convert.quat_to_DCM(orientation)
+            DCM = quat_to_DCM(orientation);
+        }else if(dim[0] === 3 && dim[1] === 3){
+        	//DCM
+            DCM = orientation;
+        }else {
+        	dde_error("orientation is improperly formatted");
+        }
+        
+        //Please tell me there's a better way to do this:
+        let pose = [[s*DCM[0][0], s*DCM[0][1], s*DCM[0][2], position[0]],
+        			[s*DCM[1][0], s*DCM[1][1], s*DCM[1][2], position[1]],
+                    [s*DCM[2][0], s*DCM[2][1], s*DCM[2][2], position[2]],
+                    [0, 0, 0, 1]];
+        return pose
+	};
+
 
 /*
 
@@ -16400,6 +16660,617 @@ Vector.euler_angles_to_DCM = function(euler_angles = [0, 0, 0], euler_sequence =
     }
 
 */
+
+DH$1.scale_dh_mat = function(dh_mat, length_scale = 1, rotation_scale = 1){
+    for(let i = 0; i < dh_mat.length; i++){
+    	dh_mat[i][0] *= length_scale;
+        dh_mat[i][1] *= rotation_scale;
+        dh_mat[i][2] *= length_scale;
+        dh_mat[i][3] *= rotation_scale;
+    }
+    return dh_mat
+};
+
+
+
+//******************************* Acceleration Conversion *********************
+// Written by Josh Smith
+// Started: 3/1/2023
+// Updated: 3/28/2023
+
+
+DH$1.sub = {}; //all of the sub functions are put here to not polute DH
+
+DH$1.sub.to_radians = function (degrees) {
+  return degrees * (Math.PI / 180);
+};
+DH$1.sub.from_radians = function (radians) {
+  return radians * (180/Math.PI);
+};
+DH$1.sub.dh_to_T = function(dh_params){
+    //convert dh parameters to homogenous transformation
+	var [d, theta, r, alpha] = dh_params;
+    var alpha_c = Math.cos(DH$1.sub.to_radians(alpha));
+    var alpha_s = Math.sin(DH$1.sub.to_radians(alpha));
+    var theta_c = Math.cos(DH$1.sub.to_radians(theta));
+    var theta_s = Math.sin(DH$1.sub.to_radians(theta));
+    var result = [[theta_c,-theta_s*alpha_c,theta_s*alpha_s,r*theta_c],
+                  [theta_s,theta_c*alpha_c,-theta_c*alpha_s,r*theta_s],
+                  [0,alpha_s,alpha_c,d],
+                  [0,0,0,1]];
+    return result
+};
+DH$1.sub.T_to_Ad = function(T){
+    //convert homogenoeous matrix to SE3 adjoint
+	var R = mathjs$1.subset(T,mathjs$1.index([0,1,2],[0,1,2]));
+    var p_skew = [[0, -T[2][3], T[1][3]],
+                  [T[2][3], 0, -T[0][3]],
+                  [-T[1][3], T[0][3], 0]];
+    var Ad = mathjs$1.zeros(6,6);
+    Ad.subset(mathjs$1.index([0,1,2],[0,1,2]),R);
+    Ad.subset(mathjs$1.index([3,4,5],[3,4,5]),R);
+    Ad.subset(mathjs$1.index([0,1,2],[3,4,5]),mathjs$1.multiply(p_skew,R));
+    return Ad
+};
+DH$1.sub.qd_to_twist = function(qd, Ad){
+    //convert qd to the local twist for a link
+	var eta = [0,0,0,0,0,1]; // rotation around z axis only due to DH parameters
+    var twist = mathjs$1.multiply(mathjs$1.inv(Ad),mathjs$1.multiply(eta,qd));
+    return twist
+};
+DH$1.sub.twist_to_adj = function(twist){
+   //convert 6x1 twist into se3 6x6 adj
+   var adj = mathjs$1.zeros(6,6);
+   var v_skew = [[0, -twist[2], twist[1]],
+                 [twist[2],0,-twist[0]],
+                 [-twist[1],twist[0],0]];
+   var w_skew = [[0, -twist[5], twist[4]],
+                 [twist[5],0,-twist[3]],
+                 [-twist[4],twist[3],0]];
+   adj.subset(mathjs$1.index([0,1,2],[0,1,2]),w_skew);
+   adj.subset(mathjs$1.index([3,4,5],[3,4,5]),w_skew);
+   adj.subset(mathjs$1.index([0,1,2],[3,4,5]),v_skew);
+   return adj
+};
+DH$1.sub.compute_Jd_body = function(Ad, Adj, J){
+    // Jd_i+1 =  Ad_i^-1 * Jd_i - adj_i * Ad_i^-1 * J_i
+	var jacobian_dot_acc = (acc => (ad,i) => {acc = mathjs$1.add(mathjs$1.multiply(mathjs$1.inv(ad),acc), mathjs$1.unaryMinus(mathjs$1.multiply(Adj[i], mathjs$1.multiply(mathjs$1.inv(ad),i>=1?J[i-1]:mathjs$1.zeros(6,6))))); return acc})(mathjs$1.zeros(6,6));
+    return Ad.map(jacobian_dot_acc)
+};
+DH$1.sub.compute_J_body = function(Ad){
+    // J_i+1 = Ad_i^-1 * J_i + Ad_i^-1 * [0,0,0,0,0,1]
+	var jacobian_acc = (acc => (ad,i) => {acc = mathjs$1.multiply(mathjs$1.inv(ad),acc); acc.subset(mathjs$1.index([0,1,2,3,4,5],i),mathjs$1.multiply(mathjs$1.inv(ad),[0,0,0,0,0,1])); return acc})(mathjs$1.zeros(6,6));
+	return Ad.map(jacobian_acc)
+};
+    
+DH$1.sub.compute_J_wa = function(fk, J){
+	//compute body to world aligned frame conversion (no translation only rotation)
+    var ee = mathjs$1.clone(fk[5]);
+    ee.subset(mathjs$1.index([0,1,2],[3,4,5]),mathjs$1.zeros(3,3));
+    //convert body jacobian to world aligned
+    return mathjs$1.multiply(ee,J[5])
+};
+
+DH$1.sub.compute_Jd_wa = function(fk, twists, J_wa, Jd){
+    //compute body to world aligned frame conversion (no translation only rotation)
+    var ee = mathjs$1.clone(fk[5]);
+    ee.subset(mathjs$1.index([0,1,2],[3,4,5]),mathjs$1.zeros(3,3));
+    //compute derivative of conversion from body to world aligned
+    var twists_adj = DH$1.sub.twist_to_adj(mathjs$1.multiply(ee, twists[5])._data);
+    twists_adj.subset(mathjs$1.index([0,1,2],[3,4,5]),mathjs$1.zeros(3,3));
+    //convert body jacobian derivative to world aligned
+    return mathjs$1.add(mathjs$1.multiply(ee, Jd[5]), mathjs$1.multiply(twists_adj, J_wa))
+};
+
+DH$1.sub.compute_Jd = function(fk, twists, Ad, Adj, J, J_wa){
+    //compute the body jacobian first
+	var Jd = DH$1.sub.compute_Jd_body(Ad,Adj,J);
+    //convert the frame into world aligned
+    return DH$1.sub.compute_Jd_wa(fk,twists, J_wa, Jd)
+};
+
+DH$1.sub.compute_link_states = function(Q_rad, dh_mat){
+    //DH parameters to transformation matrices
+    var robot_fixed = dh_mat.map((dh_params) => DH$1.sub.dh_to_T(dh_params));
+    //Joint state to transformation matrix
+    var robot_joints = Q_rad.map((q,i) => mathjs$1.matrix([[Math.cos(q), -Math.sin(q),0,0],
+                                                         [Math.sin(q), Math.cos(q),0,0],
+                                                         [0,0,1,0],
+                                                         [0,0,0,1]]));
+    //Multiply joint state and dh parameters to get per link FK at robot state Q
+    var robot_state = robot_joints.map((T,i) => mathjs$1.multiply(T,robot_fixed[i]));
+    //Transformation matrices to SE3 spatial transform
+    var robot_ad = robot_state.map((T) => DH$1.sub.T_to_Ad(T._data));
+    return robot_ad
+};
+
+DH$1.sub.compute_link_twists = function(Q_dot_rad, Ad){
+    //convert Q_dot to spatial twists
+    var robot_twists = Ad.map((Ad,i) => DH$1.sub.qd_to_twist(Q_dot_rad[i],Ad));
+    //convert twist to se3 lie algebra
+    var robot_adj = robot_twists.map((twist) => DH$1.sub.twist_to_adj(twist._data));
+    return [robot_twists,robot_adj]
+};
+
+DH$1.J_accel_to_cart = function(Q, Q_dot, Q_dot_dot, dh_mat){
+    //Map Q to radians
+    var Q_rad = Vector.multiply(Q, DH$1.sign_swap).map((q)=>DH$1.sub.to_radians(q));
+    var Q_dot_rad = Vector.multiply(Q_dot, DH$1.sign_swap).map((q)=>DH$1.sub.to_radians(q));
+    var Q_dot_dot_rad = Vector.multiply(Q_dot_dot, DH$1.sign_swap).map((q)=>DH$1.sub.to_radians(q));
+    
+   	//compute SE3 adjoint and se3 adj
+    var Ad = DH$1.sub.compute_link_states(Q_rad,dh_mat);
+    var [twists,adj] = DH$1.sub.compute_link_twists(Q_dot_rad,Ad);
+    
+    //cumulatively add up adjoints to fk
+    var cumulative_ad = (acc => (ad,i) => {acc = mathjs$1.multiply(acc,ad);return acc})(mathjs$1.identity(6,6));
+    var fk = Ad.map(cumulative_ad);
+    //compute cumulative twist to end effector
+    var cumulative_twist = (acc => (twist,i) => {acc = mathjs$1.add(mathjs$1.multiply(mathjs$1.inv(Ad[i]),acc),twist); return acc})([0,0,0,0,0,0]);
+    var fk_twists = twists.map(cumulative_twist);
+    
+    //compute body jacobians
+	var J_body = DH$1.sub.compute_J_body(Ad);
+    //compute world aligned jacobian
+    var J = DH$1.sub.compute_J_wa(fk, J_body);
+    //compute world aligned jacobian derivative
+    var Jd = DH$1.sub.compute_Jd(fk, fk_twists, Ad, adj, J_body, J);
+    // xdd = Jqdd + Jd qd
+    
+    return [mathjs$1.multiply(J,Q_dot_rad)._data,mathjs$1.add(mathjs$1.multiply(J,Q_dot_dot_rad)._data, mathjs$1.multiply(Jd, Q_dot_rad)._data)]
+    //return [mathjs.multiply(J,Q_dot_rad),mathjs.add(mathjs.multiply(J,Q_dot_dot_rad), mathjs.multiply(Jd, Q_dot_rad))]
+};
+DH$1.cart_accel_to_J = function(cart_accel, cart_vel, Q, dh_mat){
+    //convert Q into radians
+    var Q_rad = Vector.multiply(Q, DH$1.sign_swap).map((q)=>DH$1.sub.to_radians(q));
+    //compute SE3 adjoints
+    var Ad = DH$1.sub.compute_link_states(Q_rad,dh_mat);
+    //compute body jacobians
+    var J_body = DH$1.sub.compute_J_body(Ad);
+    //cumulatively add up adjoints to fk
+    var cumulative_ad = (acc => (ad,i) => {acc = mathjs$1.multiply(acc,ad);return acc})(mathjs$1.identity(6,6));
+    var fk = Ad.map(cumulative_ad);
+    //convert body jacobian to world aligned jacobian
+    var J = DH$1.sub.compute_J_wa(fk, J_body);
+    //compute q dot from jacobian inverse (assumed world aligned)
+    var Q_dot_rad = mathjs$1.multiply(mathjs$1.inv(J), cart_vel);
+    
+    //compute the se3 adj
+    var [twists,adj] = DH$1.sub.compute_link_twists(Q_dot_rad._data,Ad);
+    
+    //compute cumulative twist to end effector
+    var cumulative_twist = (acc => (twist,i) => {acc = mathjs$1.add(mathjs$1.multiply(mathjs$1.inv(Ad[i]),acc),twist); return acc})([0,0,0,0,0,0]);
+    var fk_twists = twists.map(cumulative_twist);
+    
+    //compute the world aligned jacobian derivative
+    var Jd = DH$1.sub.compute_Jd(fk, fk_twists, Ad, adj, J_body, J);
+    // qdd = J^-1 (xdd - Jd qd)
+    Q_dot_dot_rad = mathjs$1.multiply(mathjs$1.inv(J),mathjs$1.add(cart_accel, mathjs$1.unaryMinus(mathjs$1.multiply(Jd, Q_dot_rad))));
+    
+    //map back to degrees
+    return [Vector.multiply(Q_dot_rad.map((qd)=>DH$1.sub.from_radians(qd))._data,DH$1.sign_swap),Vector.multiply(Q_dot_dot_rad.map((qdd)=>DH$1.sub.from_radians(qdd))._data,DH$1.sign_swap)]
+};
+
+var HiMem = {};
+globalThis.HiMem = HiMem;
+
+HiMem.bin_to_obj = function(hi_mem_bin, axis_cal = [-0.24691358024691357, -0.24691358024691357, -0.24691358024691357, -0.06666666666666667, -0.06666666666666667], n_eyes = [200, 180, 157, 113, 100]){
+	let hi_mem_array = HiMem.bin_to_array(hi_mem_bin);
+	let hi_mem_obj = HiMem.array_to_obj(hi_mem_array, axis_cal, n_eyes);
+    return hi_mem_obj
+};
+
+HiMem.obj_to_bin = function(hi_mem_obj, axis_cal = [-0.24691358024691357, -0.24691358024691357, -0.24691358024691357, -0.06666666666666667, -0.06666666666666667], n_eyes = [200, 180, 157, 113, 100]){
+	let hi_mem_array = HiMem.obj_to_array(hi_mem_obj, axis_cal, n_eyes);
+	let hi_mem_bin = HiMem.array_to_bin(hi_mem_array);
+    return hi_mem_bin
+};
+
+HiMem.array_to_obj = function(hi_mem_array, axis_cal = [-0.24691358024691357, -0.24691358024691357, -0.24691358024691357, -0.06666666666666667, -0.06666666666666667], n_eyes = [200, 180, 157, 113, 100]){
+    let r = Math.pow(2, 19);
+    let half_r = Math.round(r/2);
+	let ranges = [
+		[3*r, 4*r], //J1 = J1
+    	[5*r, 6*r], //J2 = J3
+        [4*r, 5*r], //J3 = J2
+    	[7*r, 8*r], //J5 = J4
+        [6*r, 7*r]  //J4 = J5
+	];
+
+    let js = [];
+    for(let i = 0; i < 5; i++){
+    	js.push({
+        	x: Vector.make_matrix(1, r)[0],
+            y: Vector.make_matrix(1, r)[0]
+        });
+    }
+    
+    let temp;
+    for(let i = 0; i < ranges.length; i++){
+    	temp = hi_mem_array.slice(ranges[i][0], ranges[i][1]);
+        for(let j = 0; j < half_r; j++){
+        	js[i].x[j] = (j - half_r) / (axis_cal[i] * 3600);
+        	js[i].y[j] = temp[j + half_r] / (40 * n_eyes[i] * 360 * 2);
+        }
+        for(let j = half_r; j < r; j++){
+        	js[i].x[j] = (j - half_r) / (axis_cal[i] * 3600);
+        	js[i].y[j] = temp[j - half_r] / (40 * n_eyes[i] * 360 * 2);
+        }
+    }
+    
+    return js
+};
+
+HiMem.bin_to_array = function hi_mem_bin_to_array(hi_mem_bin){
+	let addr, four;
+    let result = Vector.make_matrix(1, hi_mem_bin.length/4)[0];
+    for(let i = 0; i<hi_mem_bin.length/4;i++){
+  		addr = i * 4;
+  		four = hi_mem_bin.slice(addr, addr+4);
+  		result[i] = (four[0].charCodeAt(0)+four[1].charCodeAt(0)*256+four[2].charCodeAt(0)*256*256+four[3].charCodeAt(0)*256*256*256) >> 0;
+	}
+    return result
+};
+
+HiMem.obj_to_array = function(hi_mem_obj, axis_cal = [-0.24691358024691357, -0.24691358024691357, -0.24691358024691357, -0.06666666666666667, -0.06666666666666667], n_eyes = [200, 180, 157, 113, 100]){
+    let r = Math.pow(2, 19);
+    let half_r = Math.round(r/2);
+	let ranges = [
+		[3*r, 4*r], //J1 = J1
+    	[5*r, 6*r], //J2 = J3
+        [4*r, 5*r], //J3 = J2
+    	[7*r, 8*r], //J5 = J4
+        [6*r, 7*r]  //J4 = J5
+	];
+
+    let array = Vector.make_matrix(1, 8*r)[0];
+    let low, hi, enc_per_deg;
+    for(let i = 0; i < ranges.length; i++){
+    	low = ranges[i][0];
+        hi = ranges[i][1];
+        enc_per_deg = 40 * n_eyes[i] * 360 * 2;
+    	for(let j = low; j < low + half_r; j++){
+        	array[j] = Math.round(hi_mem_obj[i].y[j - low + half_r] * enc_per_deg);
+        }
+        for(let j = low + half_r; j < hi; j++){
+        	array[j] = Math.round(hi_mem_obj[i].y[j - low - half_r] * enc_per_deg);
+        }
+    }
+    
+    return array
+};
+
+HiMem.array_to_bin = function(hi_mem_array){
+	let num_array;
+    let bin = ""; //TODO pre-allocate
+    for(let i = 0; i< hi_mem_array.length;i++){
+    	num_array = [];
+    	for(let j = 0; j < 4; j++){
+        	num_array.push(Math.round(hi_mem_array[i]) >> (8 * j) & 255);
+    	}
+  		bin += String.fromCharCode(...num_array);
+    }
+    return bin
+};
+
+function scrolling_plot(x_data, y_data, title = "Plot", dim = [300, 300], color = "white", position = [200, 200]){
+	let show_window_id = window[title + "_id"];
+    
+    let points = [];
+    if(x_data === undefined){
+    	x_data = [];
+    	for(let i = 0; i < y_data.length; i++){
+        	x_data.push(i);
+        }
+    }
+    let lim = [Vector.max(x_data)-Vector.min(x_data), Vector.max(y_data)-Vector.min(y_data)];
+    
+    
+    let scale;
+    if(!show_window_id){
+    	scale = [dim[0]/lim[0], dim[1]/lim[1]];
+    }else {
+    	
+        scale = [dim[0]/lim[0], dim[1]/lim[1]];
+    }
+    let center = [-scale[0]*Vector.min(x_data), -scale[1]*Vector.min(y_data)];
+    for(let i = 0; i < x_data.length; i++){
+    	points.push([scale[0]*x_data[i] + center[0], -(scale[1]*y_data[i]+center[1])+dim[1]]);
+    }
+    
+    if(!show_window_id){
+    	show_window({
+        	title: title,
+      		content: svg_svg({
+            	id: title + "_id",
+                x: position[0],
+                y: position[1],
+                height: dim[1],
+                width: dim[0],
+                child_elements: [
+                	svg_line({
+                    	x1: 0,
+                        x2: dim[0],
+                        y1: -center[1]+dim[1],
+                        y2: -center[1]+dim[1],
+                        color: "#4f4f4f",
+                        width: 1,
+                        html_class: title + "_layer_id",
+                    }),
+                	svg_polyline({
+                    	points: points,
+                        color: color,
+                        width: 1,
+                        html_class: title + "_layer_id",
+                    })
+         		]
+            }),
+      		width: 10+dim[0],
+      		height: 50+dim[1],
+      		x: 1270-(10+dim[0]),
+      		y: 0,
+            background_color: "black"
+		});
+    }else {
+    	$("." + title + "_layer_id").remove();
+        append_in_ui(
+        	title + "_id",
+        	svg_line({
+            	x1: 0,
+                x2: dim[0],
+                y1: -center[1]+dim[1],
+                y2: -center[1]+dim[1],
+                color: "#4f4f4f",
+                width: 1,
+                html_class: title + "_layer_id",
+             })
+        );
+        append_in_ui(
+        	title + "_id",
+        	svg_polyline({
+                points: points,
+                color: color,
+                width: 1,
+                html_class: title + "_layer_id",
+            })
+        );
+        
+        
+    }
+}
+
+HiMem.plot_array = function(hi_mem_array){
+	scrolling_plot(undefined, hi_mem_array, "hi_mem_array", [1200, 400]);
+};
+
+HiMem.plot_obj = function(hi_mem_objs = [], J_num, names = []){
+	let color_array = [
+        "red",
+        "green",
+        "blue",
+        "magenta",
+        "cyan",
+        "black",
+        "brown",
+        "chartreuse",
+	];
+
+    let plot_data = [];
+    for(let i = 0; i < hi_mem_objs.length; i++){
+    	if(!names[i]){
+        	names[i] = "data_" + i;
+        }
+        plot_data.push({
+        	type: "scatter",
+  			name: names[i],
+  			mode: "lines",
+  			x: hi_mem_objs[i][J_num].x,
+  			y: hi_mem_objs[i][J_num].y,
+            marker: {
+           		color: color_array[i]
+            }
+  		});
+    }
+    
+    let title = "HiMem J" + (J_num + 1);
+    Plot.show(
+    	title,
+        plot_data,
+        {
+        	title:  title,
+            //xaxis:  {title: {text: 'Displacement (degrees)'}},
+            //yaxis:  {title: {text: 'Torque (Nm)'}}
+        },
+        undefined,
+        undefined,
+        {
+        	width: 1000,
+            hieght: 300
+        }
+    );
+};
+
+HiMem.save_obj = function(hi_mem_obj, file_path = "C:\\Users\\james\\Documents\\dde_apps\\2020\\Code\\MoveWithForce\\cal_table.json"){
+	let obj_content = JSON.stringify(hi_mem_obj);
+	write_file(file_path, obj_content);
+};
+
+HiMem.save_array = function(hi_mem_array, file_path = "C:\\Users\\james\\Documents\\dde_apps\\2020\\Code\\MoveWithForce\\HiMem_array.json"){
+	let obj_content = JSON.stringify(hi_mem_array);
+	write_file(file_path, obj_content);
+};
+
+HiMem.save_bin = function(hi_mem_bin, file_path = "C:\\Users\\james\\Documents\\dde_apps\\2020\\Code\\MoveWithForce\\Corrected_HiMem\\HiMem.dta"){
+	write_file(file_path, hi_mem_bin, "ascii");
+};
+
+HiMem.linear_transform = function(obj_axis, m, b, range = null){
+    if(range == null){
+    	range = {idx: [0, obj_axis.x.length]};
+    }
+    let x;
+	for(let i = range.idx[0]; i < range.idx[1]; i++){
+    	x = obj_axis.x[i];
+        obj_axis.y[i] = obj_axis.y[i] + (m*x + b);
+    }
+    return obj_axis
+};
+
+HiMem.linear_transforms = function(obj, ms, bs, ranges = null){
+	let result = [];
+    if(ranges == null){
+    	ranges = [];
+        for(let i = 0; i < obj.length; i++){ranges.push({idx: [0, obj[i].x.length]});}
+    }
+	for(let i = 0; i < obj.length; i++){
+    	result.push(HiMem.linear_transform(obj[i], ms[i], bs[i], ranges[i]));
+    }
+    return result
+};
+
+HiMem.get_range = function(obj_axis){
+	let chunks = [];
+	for(let i = 1; i < obj_axis.y.length; i++){
+    	if(Math.sign(obj_axis.y[i-1]) != Math.sign(obj_axis.y[i])){
+    		chunks.push(i);
+		}
+	}
+    let low = chunks[0];
+    let hi = chunks[chunks.length-1];
+    return {
+    	idx: [low, hi],
+        deg: [obj_axis.x[hi], obj_axis.x[low]], // hi and low are swapped because axis cal is negative
+        chunks: chunks
+    }
+};
+
+HiMem.get_ranges = function(obj){
+	let result = [];
+	for(let i = 0; i < obj.length; i++){
+    	result.push(HiMem.get_range(obj[i]));
+    }
+    return result
+};
+
+HiMem.linear_fits = function(obj, ranges = null){
+	let results = {ms: [], bs: []};
+    if(ranges == null){
+    	ranges = [];
+        for(let i = 0; i < obj.length; i++){ranges.push({idx: [0, obj[i].x.length]});}
+    }
+    let x, y, res;
+	for(let i = 0; i < obj.length; i++){
+    	x = obj[i].x.slice(ranges[i].idx[0], ranges[i].idx[1]);
+        y = obj[i].y.slice(ranges[i].idx[0], ranges[i].idx[1]);
+        res = Vector.transpose(Vector.poly_fit(x, y, 1));
+        results.ms.push(res[0]);
+        results.bs.push(res[1]);
+    }
+    return results
+};
+
+HiMem.horizontal_shift = function(obj_axis, shift_deg){
+	let idx_shift = Math.round(shift_deg / (obj_axis.x[1] - obj_axis.x[0]));
+    let temp = Vector.make_matrix(1, obj_axis.y.length)[0];
+    let idx;
+    for(let i = 0; i < obj_axis.y.length; i++){
+    	idx = i - idx_shift;
+    	if(0 <= idx && idx < obj_axis.y.length){
+        	temp[i] = obj_axis.y[idx];
+        }
+    }
+    return {
+    	x: obj_axis.x.slice(),
+    	y: temp
+    }
+};
+
+
+
+/*
+var hi_mem_bin = file_content("C:/Users/james/Documents/dde_apps/2020/Code/MoveWithForce/JamesW_1_9_21/HiMem.dta", "binary")
+var hi_mem_obj = HiMem.bin_to_obj(hi_mem_bin)
+var ranges = HiMem.get_ranges(hi_mem_obj)
+var lin_fits = HiMem.linear_fits(hi_mem_obj, ranges)
+*/
+
+
+
+//Correct Slope:
+/*
+var vertical_shifts = []
+var slope_changes = []
+for(let i = 0; i < 5; i++){
+	vertical_shifts.push(0)
+	slope_changes.push(1 - lin_fits.ms[i])
+}
+var hi_mem_obj = HiMem.linear_transforms(hi_mem_obj, slope_changes, vertical_shifts, ranges)
+var lin_fits = HiMem.linear_fits(hi_mem_obj, ranges)
+*/
+
+//var J = 2
+//hi_mem_obj[J] = HiMem.linear_transform(hi_mem_obj[J], 2 - lin_fits.ms[J], 0, ranges[J])
+
+/*
+//Vertical Shift (zeoring y intercept)
+vertical_shifts = []
+slope_changes = []
+for(let i = 0; i < 5; i++){
+	vertical_shifts.push(-lin_fits.bs[i])
+	slope_changes.push(0)
+}
+var hi_mem_obj = HiMem.linear_transforms(hi_mem_obj, slope_changes, vertical_shifts, ranges)
+var lin_fits = HiMem.linear_fits(hi_mem_obj, ranges) //inspect the values
+*/
+
+
+//Horizontal Shift (zeoring x intercept)
+//var deg_shift = -90
+//hi_mem_obj[2] = HiMem.horizontal_shift(hi_mem_obj[2], deg_shift)
+//hi_mem_obj[2] = HiMem.linear_transform(hi_mem_obj[2], 0, deg_shift, ranges[2])
+
+
+/*
+horizontal_shifts = []
+slope_changes = []
+for(let i = 0; i < 5; i++){
+	horizontal_shifts.push(-lin_fits.bs[i] / lin_fits.ms[i])
+	slope_changes.push(0)
+}
+*/
+//var hi_mem_obj = HiMem.linear_transforms(hi_mem_obj, slope_changes, vertical_shifts, ranges)
+//var lin_fits = HiMem.linear_fits(hi_mem_obj, ranges) //inspect the values
+
+
+//HiMem.plot_array(hi_mem_array_3)
+
+/*
+//Zero out Slope:
+var vertical_shifts = []
+var slope_changes = []
+for(let i = 0; i < 5; i++){
+	vertical_shifts.push(-lin_fits.bs[i])
+	slope_changes.push(-lin_fits.ms[i])
+}
+var hi_mem_obj = HiMem.linear_transforms(hi_mem_obj, slope_changes, vertical_shifts, ranges)
+var lin_fits = HiMem.linear_fits(hi_mem_obj, ranges)
+*/
+
+
+//Output:
+/*
+var hi_mem_bin = HiMem.obj_to_bin(hi_mem_obj)
+var hi_mem_array = HiMem.obj_to_array(hi_mem_obj)
+HiMem.save_obj(hi_mem_obj, "C:\\Users\\james\\Documents\\dde_apps\\2020\\Code\\MoveWithForce\\HiMem_array.json")
+var array_filename = "HiMem_array_0.json"
+HiMem.save_array(hi_mem_array, "C:\\Users\\james\\Documents\\dde_apps\\2020\\Code\\MoveWithForce\\data_dump\\" + array_filename)
+HiMem.save_bin(hi_mem_bin)
+*/
+
+//Testing:
+//var hi_mem_bin_2 = file_content("C:/Users/james/Documents/dde_apps/2020/Code/MoveWithForce/Corrected_HiMem/HiMem.dta", "binary")
+//var hi_mem_obj_2 = HiMem.bin_to_obj(hi_mem_bin_2)
+//HiMem.save_obj(hi_mem_obj_2, "C:\\Users\\james\\Documents\\dde_apps\\2020\\Code\\MoveWithForce\\HiMem_obj.json")
 
 /*
        outer_bound_factor = 1.1
@@ -16641,6 +17512,8 @@ function get_output(){ //rather uncommon op, used only in SW.append_to_output
 
 globalThis.get_output = get_output;
 
+//_______ speak and friends _________
+
 //value can either be some single random js type, or a literal object
 //with a field of speak_data, in which case we use that.
 function stringify_for_speak(value, recursing=false){
@@ -16721,6 +17594,19 @@ function speak$1({speak_data = "hello", volume = 1.0, rate = 1.0, pitch = 1.0, l
 }
 
 globalThis.speak = speak$1;
+
+function is_speaking(){
+    return window.speechSynthesis.speaking
+}
+globalThis.is_speaking = is_speaking;
+
+//stops ongoing speak and any queued speak.
+function stop_speaking() {
+    window.speechSynthesis.cancel(); //weird syntax. see: https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis/cancel
+}
+
+
+globalThis.stop_speaking = stop_speaking;
 
 //______show_window_____
 //output the "vals" to inspector or stdout.
@@ -17239,7 +18125,11 @@ class Job$1{
                                                 //interrupted_by_stop_button: true
                                                 //},
                  callback_param = "start_object_callback"} = {}){
-    if (Job$1[name] && Job$1[name].is_active()) { //we're redefining the job so we want to make sure the
+    if(Job$1[name] && !(Job$1[name] instanceof Job$1)){
+        warning("You're attempting to name a Job with: " + name + " but that name is reserved for Job methods.");
+        return null
+    }
+        if (Job$1.is_job_name(name) && Job$1[name].is_active()) { //we're redefining the job so we want to make sure the
         /*//previous version is stopped.
         //if (Job[name].robot instanceof Dexter) {Job[name].robot.empty_instruction_queue_now() }
         Job[name].stop_for_reason("interrupted", "User is redefining this job.")
@@ -19332,7 +20222,7 @@ Job$1.prototype.do_next_item = function(){ //user calls this when they want the 
         //onsole.log("To stop debugging, Eval:   undebug_job()   and click the big blue arrow, ")
     }
     let ending_pc = this.instruction_location_to_id(this.ending_program_counter); //we end BEFORE executing the ending_pcm we don't execute the instr at the ending pc if any
-    //onsole.log("near top of do_next_item with status_code: " + this.status_code)
+    //onsole.log("near top of do_next_item with status_code: " + this.status_code + " ending_pc: " + ending_pc)
 
     if (["completed", "errored", "interrupted"].includes(this.status_code)){//put before the wait until instruction_id because interrupted is the user wanting to halt, regardless of pending instructions.
         //onsole.log("do_next_item about to call finish_job")
@@ -24920,6 +25810,8 @@ Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
                  j7_angle    = [0],
                  robot
     ){
+        //console.log("Dexter.move_to passed xyz: " + xyz)
+        //console.log("in Dexter.move_to Array.isArray(xyz): " + Array.isArray(xyz))
         super();
         this.xyz            = xyz;
         this.J5_direction   = J5_direction;
@@ -30051,6 +30943,11 @@ Dexter.prototype.defaults_url = function(){
     return "Dexter." + this.name + ":/srv/samba/share/Defaults.make_ins"
 };
 
+Dexter.prototype.defaults_alt_url = function(){
+    return "Dexter." + this.name + ":/srv/samba/share/make_ins/Defaults.make_ins"
+};
+
+
 
 /*Gets the Defaults.make_ins file from Dexter and
 sets this.defaults_lines with an array of strings (1 string per line)
@@ -30058,42 +30955,120 @@ Dexter.dexter0.defaults_read()
 Dexter.dexter0.defaults_lines
 */
 
+/*Pre apr 4. 2024 version of defaults_read
 //the callback is optional.
 //when set_link_lengths called defaults_read,
 //it has the callback call Dexter.prototype.start_aux
 Dexter.prototype.defaults_read = function(callback = null){
-    let the_url = this.defaults_url();
-    let the_dex_inst = this;
+    let the_url = this.defaults_url()
+    let the_dex_inst = this
     let normal_defaults_read_cb = (function(err, content){
         if(err) { dde_error("Dexter." + the_dex_inst.name + ".defaults_read errored with url: " +
             the_url + "<br/>and error message: " +
             err.toString() +
-            "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.");
+            "<br/>You can set a Job's robot to the idealized defaults values by<br/>passing in a Job's 'get_dexter_defaults' to true.")
         }
         else {
             try {
-                the_dex_inst.defaults_set_lines_from_string(content);
-                the_dex_inst.defaults_lines_to_high_level();
+                the_dex_inst.defaults_set_lines_from_string(content)
+                the_dex_inst.defaults_lines_to_high_level()
                 if (callback) {
-                    callback.call(the_dex_inst, null);
+                    callback.call(the_dex_inst, null)
                 }
             }
             catch(err) {
-                let defaults_copy = JSON.parse(JSON.stringify(Dexter.defaults));
-                the_dex_inst.defaults = defaults_copy;
+                let defaults_copy = JSON.parse(JSON.stringify(Dexter.defaults))
+                the_dex_inst.defaults = defaults_copy
                 warning("Could not parse Defaults.make_ins due to:<br/>" +
                     err.message +
                     "<br/>so Dexter." + the_dex_inst.name +
                     ".defaults has been set to a copy of Dexter.defaults."
-                );
+                )
                 if (callback) {
-                    callback.call(the_dex_inst, null);
+                    callback.call(the_dex_inst, null)
                 }
             }
         }
-    });
-    DDEFile.read_file_async(the_url, normal_defaults_read_cb);
-};
+    })
+    DDEFile.read_file_async(the_url, normal_defaults_read_cb)
+}
+*/
+
+
+/* Apr 4, 2024 version
+   defaults_read: populate Dexter.defaults with the right values.
+   Never errors.
+   //Its signature is the same as pre apr 4, 2024 version
+   //except for the name of the arg.
+Algorithm:
+first try to get /s/s/s/Defaults.make_ins.
+If that doesn't exist, try to get /s/s/s/make_ins/Defaults.make_ins
+If that doesn't exist, use "default_defaults".
+If parsing one of the Defaults.make_ins files fails,
+  use the default_default.
+Once we finally set Dexter.defaults with the right values,
+call the callback to defaults_read with args: the_dex_inst, null.
+
+The 1 existing call to defaults_read is in robot.js line 2731 in
+set_link_lengths_using_node_server
+stays exactly the same: the_dexter.defaults_read(callback)
+*/
+Dexter.prototype.defaults_read = function(the_defaults_read_cb = null){
+    //the below 5 are all closed over in read_file_async_callback
+    out("Now attempting to read file: Defaults.make_ins for initializing Dexter.");
+    let make_ins_urls = [this.defaults_url(), this.defaults_alt_url()];
+    let orig_make_ins_urls = make_ins_urls.slice();//make a copy for warning messages
+    let the_dex_inst = this;
+    let read_file_async_callback_container = []; //for closure self reference
+    let now_trying_make_ins_url = null;
+
+    let read_file_async_callback = function(err, content) {
+        if(err){
+            warning("Failed to find: " + now_trying_make_ins_url + " due to: " + err);
+            if(make_ins_urls.length > 0){ //more urls to try
+                now_trying_make_ins_url = make_ins_urls.shift();
+                DDEFile.read_file_async(now_trying_make_ins_url, read_file_async_callback_container[0]);
+            }
+            else { //no more urls to try so use default_defaults
+                the_dex_inst.defaults = JSON.parse(JSON.stringify(Dexter.defaults));
+                warning("Could not read any of: " + orig_make_ins_urls +
+                    "<br/>so Dexter." + the_dex_inst.name +
+                    ".defaults has been set to a copy of Dexter.defaults, the 'default defaults'."
+                );
+                if (the_defaults_read_cb) {
+                    the_defaults_read_cb.call(the_dex_inst, null);
+                }
+            }
+        }
+        else { //got good content
+            out("Found: " + now_trying_make_ins_url, "green");
+            try{
+                the_dex_inst.defaults_set_lines_from_string(content);
+                the_dex_inst.defaults_lines_to_high_level();
+            }
+            catch(err){
+                let defaults_copy = JSON.parse(JSON.stringify(Dexter.defaults));
+                the_dex_inst.defaults = defaults_copy;
+                warning("Could not parse " + orig_make_ins_urls[0] +
+                    " due to:<br/>" + err.message +
+                    "<br/>so Dexter." + the_dex_inst.name +
+                    ".defaults has been set to a copy of Dexter.defaults."
+                );
+            }//end catch
+            if (the_defaults_read_cb) {
+                the_defaults_read_cb.call(the_dex_inst, null);
+            }
+        }//end else
+    }; //end of read_file_async_callback def.
+
+    read_file_async_callback_container[0] = read_file_async_callback;
+
+    //do the first call to read_file_async_callback
+    //the 2nd call is made within read_file_async_callback
+    now_trying_make_ins_url = make_ins_urls.shift();
+    DDEFile.read_file_async(now_trying_make_ins_url, read_file_async_callback);
+}; //end defaults_read
+
 
 Dexter.prototype.defaults_write_return_string = function(){
     this.defaults_high_level_to_defaults_lines();
@@ -35173,6 +36148,14 @@ class SimUtils$1{
     }*/
 
     static render(){
+        this.render_used_in_loop(); //if comment this out then comment in related code at bottom of Simulate.init_simulation
+        //but when I comment this out and leave in the use of render_used_in_loop
+        //bottom of Simulate.init_simulation, the rednering of Dexter in sim pane
+        //is all screwed up with missing pieces and alignment.
+        //So seems rendant to have both but that's what seems to work.
+    }
+
+    static render_used_in_loop(){
         if (this.is_simulator_showing()) {
             if(globalThis.interactionManager) {
                 interactionManager.update();
@@ -35180,6 +36163,7 @@ class SimUtils$1{
             Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
         }
     }
+
 
     /* apparently not called May 2, 2022 use SimUtils.is_simulator_showing() instead
     static is_shown(){
@@ -35215,7 +36199,7 @@ class SimUtils$1{
     static prev_joint_angles = [0, 0, 0, 0, 0, 0, 0]
     static prev_robot_status = null
     static prev_robot_name   = null
-    static ms_per_frame      = 33 //30 frames per second
+    static ms_per_frame      = 33 //1000 / 60//60 fps, what THREEEjs renders at  //33 //30 frames per second
 }
 
 
@@ -38706,6 +39690,7 @@ globalThis.Py = class Py {
             }
             else if (this.is_py_proxy(proxy_maybe)) { //(pyodide.isPyProxy(proxy_maybe)) {
                 let value = proxy_maybe.toJs();
+                console.log("Py.eval converted proxy to value: " + value);
                 //proxy_maybe.destroy() //get rid of the memory
                 return value
             }
@@ -39718,6 +40703,7 @@ globalThis.Espree = Espree$1;
 globalThis.js_beautify = js_beautify;
 const config = { };
 globalThis.mathjs = create(all, config);
+globalThis.PCA = PCA;
 globalThis.sind     = sind;
 globalThis.cosd     = cosd;
 globalThis.tand     = tand;

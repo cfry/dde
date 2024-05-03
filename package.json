@@ -1,7 +1,7 @@
 {
   "name": "dde4",
-  "version": "4.2.0",
-  "release_date": "Mar 13, 2024, 2024",
+  "version": "4.2.1",
+  "release_date": "May 2, 2024",
   "description": "test rollup",
   "author": "Fry",
   "license": "GPL-3.0",
@@ -62,6 +62,7 @@
     "opencv.js": "^1.2.1",
     "os": "^0.1.2",
     "path": "^0.12.7",
+    "pca-js": "^1.0.2",
     "pegjs": "^0.10.0",
     "pegjs-backtrace": "^0.2.1",
     "ping": "^0.4.1",

@@ -51,7 +51,7 @@ import { VRButton } from 'three/addons/webxr/VRButton.js'; //VR  search this fil
 globalThis.Simulate = class Simulate {
     static make_sim_html() {
         return `
-        <div style="white-space:nowrap;"> 
+        <div id="sim_pane_header_top_row_id" style="white-space:nowrap;"> 
         <b>Move Dur: </b><span id="sim_pane_move_dur_id"></span> s
         <button onclick="SimUtils.render_joints_smart()" 
             title="Grab the joint angles from the selection&#13;and change the simulator to show them.&#13;Works on arrays, comma separated arg lists,&#13;and whole instruction calls.&#13;With 3 numbers, treats them as XYZ if they are in range.">
@@ -59,7 +59,7 @@ globalThis.Simulate = class Simulate {
         <button onclick="SimBuild.show_dialog()" title="Make additional 3D objects in the Simulator pane.">SimBuild</button>
         <span title="Inspect simulator Details." 
         onclick="SimUtils.inspect_dexter_sim_instance()" 
-        style="margin-left:15px;color:blue;cursor:help;font-weight:bold;"> &#9432; </span>       
+        style="margin-left:5px;color:blue;cursor:help;font-weight:bold;"> &#9432; </span>       
         
         
         </div>
@@ -121,7 +121,7 @@ globalThis.Simulate = class Simulate {
             this.sim.container = sim_graphics_pane_id //a div that contains a canvas
             this.sim.scene  = new THREE.Scene();
             this.sim.scene.name = "scene"
-            this.sim.scene.background = new THREE.Color( 0x000000) //0xBBBBBB ) // 0x000000black is the default
+            this.sim.scene.background = new THREE.Color(0xFFF5E0) //0xFFF6C7) //0xFFFFFF) //0xBBBBBB ) // 0x000000black is the default
             this.createRenderer()
             this.createCamera()
             this.createLights()
@@ -135,9 +135,12 @@ globalThis.Simulate = class Simulate {
                   console.log("init_simulation errored with: " + err.message + "\n" + err.stack)
           }
 
+        //this.sim.renderer.render(this.sim.scene, this.sim.camera) //Sadly this didn't work so
+        // stil doing BOTH the below setAnimationLoop and in SimUtils, calling prime the pump to avoid bad rednering of Dexter
+
           //from https://threejs.org/docs/index.html#manual/en/introduction/How-to-create-VR-content
-        this.sim.renderer.setAnimationLoop( function () {
-            //this.sim.renderer.render( scene, camera );
+        this.sim.renderer.setAnimationLoop( function () { //VR
+            //Simulate.sim.renderer.render( Simulate.sim.scene, Simulate.sim.camera );
             SimUtils.render_used_in_loop()
         } )
     }
@@ -231,7 +234,9 @@ globalThis.Simulate = class Simulate {
             this.sim.scene.add ( light.target ); }
     */
     }
+
     static VR_but_dom_elt
+
     static createRenderer(){
         this.sim.renderer = new THREE.WebGLRenderer({ antialias:true });//antialias helps with drawing the table lines. //example: https://threejs.org/docs/#Manual/Introduction/Creating_a_scene
         this.sim.renderer.setSize( //this.sim.container.clientWidth, this.sim.container.clientHeight) //causes no canvas to appear
@@ -241,8 +246,11 @@ globalThis.Simulate = class Simulate {
         this.sim.renderer.shadowMap.enabled = true;
         this.sim.container.appendChild(this.sim.renderer.domElement)
         this.VR_but_dom_elt = VRButton.createButton( this.sim.renderer )  //VR makes global dom elt "VRButton" odd. the orig class VRButton var is over-ridden??? Don't depend on it!
+        this.VR_but_dom_elt.style.backgroundColor = "#ffd6c2"
+        this.VR_but_dom_elt.style.color = "black"
         // sim_pane_header_alignment_id.append(vr_but)           //VR //put right after the "Alignment: " buttons
         this.sim.container.append(this.VR_but_dom_elt)           //VR
+        //sim_pane_move_dur_id.append(this.VR_but_dom_elt) //even if I try to place the button outside of the canvas, it does their anyway.
         //but not the button doesn't actually appear here. It appears IN the real sim rendering pane,
         //at the bottom in an "overlay" which will usually say, in a box,  "VR NOT SUPPORTED"
         this.sim.renderer.xr.enabled = true;                     //VR
@@ -254,7 +262,6 @@ globalThis.Simulate = class Simulate {
     //from https://developer.mozilla.org/en-US/docs/Web/API/XRSystem/requestSession
     //with fry mods
     static init_vr(){ //VR
-        debugger;
         if (navigator.xr) {
             navigator.xr.isSessionSupported("immersive-vr").then((isSupported) => {
                 if (isSupported) {

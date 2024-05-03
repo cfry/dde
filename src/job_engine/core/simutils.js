@@ -611,7 +611,11 @@ class SimUtils{
     }*/
 
     static render(){
-        //this.render_used_in_loop()
+        this.render_used_in_loop() //if comment this out then comment in related code at bottom of Simulate.init_simulation
+        //but when I comment this out and leave in the use of render_used_in_loop
+        //bottom of Simulate.init_simulation, the rednering of Dexter in sim pane
+        //is all screwed up with missing pieces and alignment.
+        //So seems rendant to have both but that's what seems to work.
     }
 
     static render_used_in_loop(){
@@ -658,7 +662,7 @@ class SimUtils{
     static prev_joint_angles = [0, 0, 0, 0, 0, 0, 0]
     static prev_robot_status = null
     static prev_robot_name   = null
-    static ms_per_frame      = 33 //30 frames per second
+    static ms_per_frame      = 33 //1000 / 60//60 fps, what THREEEjs renders at  //33 //30 frames per second
 }
 
 

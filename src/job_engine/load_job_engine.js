@@ -46,6 +46,9 @@ import { create, all } from 'mathjs'
 const config = { }
 globalThis.mathjs = create(all, config)
 
+import PCA from 'pca-js'
+globalThis.PCA = PCA
+
 
 
 //import cv from "opencv.js"

@@ -633,6 +633,65 @@ static ends_with_one_of(a_string, possible_starting_strings){
     return false
 }
 
+/*
+Separates a_string into 2 strings, the part before the used_separator and the
+part after the used separator.
+The used_separator is the separator in separators that occurs first in a_string.
+IF there is a tie, ie if you have separators of " comma " and " ",
+the first one in the separators list wins, in the above case, " comma ".
+If a_string contains at least one of the separators,
+an array is returned of [head, tail, used_separator]
+If none of the separators is in a_string, null is returned.
+If do_trim === true, both head and tail are trimmed of whitespace on both ends
+before being returned.
+In any case, the used_separator is not included in either head or tail.
+separators defaults to [" "], just a space.
+If first_in_separators_array_wins === false, (the default) then
+whichever separator occurs first in a_string will win.
+This PREFERS early separators in the separators array.
+However, if first_in_separators_array_win === true,
+the separator used from separators array will be the one
+that occurs eariest in a_string, regardless of its position in the separators_array
+will be used to split the string.
+Note that if there is a tie such that 2 separators in the separators array
+both "start at" the same position in a_string.
+then the separator used will be the one that is first in the separators array.
+*/
+static separate_head_and_tail(a_string, separators=[" "], do_trim=false, first_in_separators_array_wins=false){
+    let min_sep_pos = null
+    let used_sep = null
+    for(let sep of separators){
+        let pos = a_string.indexOf(sep)
+        if(pos !== -1){
+            if (first_in_separators_array_wins) {
+                min_sep_pos = pos
+                used_sep = sep
+                break;
+            }
+            else if(min_sep_pos === null) {
+                min_sep_pos = pos
+                used_sep = sep
+            }
+            else if (pos < min_sep_pos) {
+                min_sep_pos = pos
+                used_sep = sep
+            }
+        }
+    }
+    if(min_sep_pos === null){
+        return null
+    }
+    else {
+        let head = a_string.substring(0, min_sep_pos)
+        let tail = a_string.substring(min_sep_pos + used_sep.length)
+        if(do_trim){
+            head = head.trim()
+            tail = tail.trim()
+        }
+        return [head, tail, used_sep]
+    }
+}
+
 //returns array of one of the strs in possible_matching_strings
 // and its starting index within a_string
 // if no matches, returns [null, -1]
