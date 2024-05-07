@@ -176,23 +176,22 @@ class DDEVideo {
                 Simulate.init_simulation()
                 //Simulate.sim.renderer.render(sim.scene, sim.camera)
                 setTimeout(function() {
-                             SimUtils.render()
                              DDEVideo.init_sim_in_process = false
                            },
                            100)
            //}
             content_is_good = true
         }
-        else if (content === "create_dexter_marker"){
-            sim_pane_content_id.innerHTML ='<div id="sim_graphics_pane_id"></div>'
-            Simulate.init_simulation_maybe()
-            let xyz = arg1
-            let rotzyz = (arg2 ? arg2 : [0, 0, 0])
-            Simulate.create_marker_mesh(xyz, rotzyz)
-            //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
-            SimUtils.render()
-            content_is_good = true
-        }
+        // else if (content === "create_dexter_marker"){
+        //     sim_pane_content_id.innerHTML ='<div id="sim_graphics_pane_id"></div>'
+        //     Simulate.init_simulation_maybe()
+        //     let xyz = arg1
+        //     let rotzyz = (arg2 ? arg2 : [0, 0, 0])
+        //     Simulate.create_marker_mesh(xyz, rotzyz)
+        //     //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+        //     SimUtils.render()
+        //     content_is_good = true
+        // }
         else if(content === "Dexter Photo"){
             let file_name = "./doc/HD+Robotics-8517.jpg"
                     //"../doc/HD+Robotics-8517.jpg"

@@ -68,7 +68,7 @@ var dependencies = {
 	longbits: "^1.1.0",
 	"mark.js": "^8.11.1",
 	mathjs: "^11.7.0",
-	minimist: "^1.2.6",
+	minimist: "^1.2.8",
 	"modbus-serial": "^8.0.16",
 	nouislider: "^15.5.0",
 	npm: "^8.1.0",

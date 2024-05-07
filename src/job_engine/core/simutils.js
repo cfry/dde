@@ -226,6 +226,7 @@ class SimUtils{
         this.render_joints(angle_degrees)
         return angle_degrees
     }
+    
 
     static render_joints_process_arg_list(src){
         let split_src = src.split(",")
@@ -299,7 +300,7 @@ class SimUtils{
         //if(this.is_simulator_showing()) {
         //    Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
         //}
-        SimUtils.render()
+        // SimUtils.render()
     }
 
     //joint number is 1 thru 7
@@ -553,7 +554,7 @@ class SimUtils{
             if (Simulate.sim.J6) {
                 Simulate.sim.J6.rotation.z = rads
                 //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
-                SimUtils.render()
+                // SimUtils.render()
             }
             sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
         }
@@ -571,7 +572,7 @@ class SimUtils{
                 //out("J7 j7_angle_degrees: " + j7_angle_degrees + " new xpos: " + new_xpos)
                 Simulate.sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
                 //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
-                SimUtils.render()
+                // SimUtils.render()
             }
             sim_pane_j7_id.innerHTML = j7_angle_degrees_rounded
             if (SimObj && SimObj.user_objects && SimObj.user_objects.length > 0) {
@@ -611,20 +612,13 @@ class SimUtils{
     }*/
 
     static render(){
-        this.render_used_in_loop() //if comment this out then comment in related code at bottom of Simulate.init_simulation
+        debugger;
+        console.log("WARNING: RENDER FUNCTION CALLED!")
+        //if comment this out then comment in related code at bottom of Simulate.init_simulation
         //but when I comment this out and leave in the use of render_used_in_loop
         //bottom of Simulate.init_simulation, the rednering of Dexter in sim pane
         //is all screwed up with missing pieces and alignment.
         //So seems rendant to have both but that's what seems to work.
-    }
-
-    static render_used_in_loop(){
-        if (this.is_simulator_showing()) {
-            if(globalThis.interactionManager) {
-                interactionManager.update();
-            }
-            Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
-        }
     }
 
 

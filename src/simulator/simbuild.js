@@ -573,7 +573,7 @@ globalThis.SimBuild = class SimBuild{
             }
         }
         if (old_obj || this.now_editing_object3d) {
-            SimUtils.render()
+            // SimUtils.render()
         }
     }
 
