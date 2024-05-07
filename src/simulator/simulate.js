@@ -51,8 +51,17 @@ import { VRButton } from 'three/addons/webxr/VRButton.js'; //VR  search this fil
 
 
 globalThis.Simulate = class Simulate {
-    static make_sim_html() {
-        return `
+    // Creates an div containing the simulator and it's UI
+    // This can be appended and removed from the main DOM while still remain intact
+    // This allows the simulator to be hidden and shown without it being reinitiallized
+    // NOTE: DO NOT RUN THIS OUTSIDE OF simulate.js! IT SHOULD ONLY EVER RUN ONCE DURING INIT!
+    static make_sim_ui() {
+        //Creates a template which the HTML is placed inside of
+
+        let sim_div = document.createElement("div");
+        sim_div.style="margin:0";
+        sim_div.innerHTML =
+        `
         <div id="sim_pane_header_top_row_id" style="white-space:nowrap;"> 
         <b>Move Dur: </b><span id="sim_pane_move_dur_id"></span> s
         <button onclick="SimUtils.render_joints_smart()" 
@@ -84,7 +93,9 @@ globalThis.Simulate = class Simulate {
         <b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>
         <b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>
         <div id="sim_graphics_pane_id" style="cursor:grab;"></div>
-        `
+        `;
+        
+        return sim_div;
     }
 
     static canSize;
@@ -95,56 +106,96 @@ globalThis.Simulate = class Simulate {
 
     static sim = {} //used to store sim "global" vars
 
+    static simulatorUI;
+
 //var THREE_font_loader = new THREE.FontLoader();
+    static simulation_initialized = false;
+    static update_in_progress = false;
+    // static init_simulation_done = false
 
-    static init_simulation_done = false
+    // static init_simulation_maybe(){
+    //     if(this.init_simulation_done) {}
+    //     else {
+    //         this.init_simulation_done = true //needs to be done first as if init_simulation has already started we don't
+    //          //dont want to start it again.
+    //         this.init_simulation()
 
-    static init_simulation_maybe(){
-        if(this.init_simulation_done) {}
-        else {
-            this.init_simulation_done = true //needs to be done first as if init_simulation has already started we don't
-             //dont want to start it again.
-            this.init_simulation()
-
+    //     }
+    // }
+    /*
+    Returns an documentation fragment containing the simulator which can be appended to the DOM directly with appendChild
+    If the simulator has not yet been initialized, this will initialize the simulator
+    It the simulator has been initialized already, this will resize the viewport to the correct size
+     */
+    static append_simulation(pane_id)
+    {
+        if(!this.update_in_progress)
+        {
+            this.update_in_progress = true;
+            // Create the UI if the simulator hasn't yet been initialized
+            if(!this.simulation_initialized)
+            {
+                this.simulatorUI  = this.make_sim_ui();
+            }
+    
+            // Append the simulator to the pane
+            pane_id.innerHTML = "";
+            pane_id.appendChild(this.simulatorUI);
+    
+            //Initialize the simulator if it has not been initialized already
+            if(!this.simulation_initialized)
+            {
+                this.init_simulation();
+                this.simulation_initialized = true;
+            }
+            else
+            {
+                this.resize();
+            }
+            this.update_in_progress = false;
         }
     }
 
     static init_simulation(){
-          this.canSize  =
-          {
-            width: misc_pane_id.clientWidth-50,
-            height: DDE_DB.persistent_get("dde_window_height") - DDE_DB.persistent_get("top_right_panel_height") - 220
-          };
+        if(!this.simulation_initialized)
+        {
+            this.updateCanSize();
+            try{
+                this.init_mouse()
+                this.sim.enable_rendering = false
+                //for organization: https://discoverthreejs.com/book/first-steps/lights-color-action/
+                this.sim.container = sim_graphics_pane_id //a div that contains a canvas
+                this.sim.scene  = new THREE.Scene();
+                this.sim.scene.name = "scene"
+                this.sim.scene.background = new THREE.Color(0xFFF5E0) //0xFFF6C7) //0xFFFFFF) //0xBBBBBB ) // 0x000000black is the default
+                this.createRenderer()
+                this.createCamera()
+                this.createLights()
+                this.createMeshGLTF() 
 
-          try{
-            this.init_mouse()
-            this.sim.enable_rendering = false
-            //for organization: https://discoverthreejs.com/book/first-steps/lights-color-action/
-            this.sim.container = sim_graphics_pane_id //a div that contains a canvas
-            this.sim.scene  = new THREE.Scene();
-            this.sim.scene.name = "scene"
-            this.sim.scene.background = new THREE.Color(0xFFF5E0) //0xFFF6C7) //0xFFFFFF) //0xBBBBBB ) // 0x000000black is the default
-            this.createRenderer()
-            this.createCamera()
-            this.createLights()
-            this.createMeshGLTF() 
+                SimBuild.init()
+                this.init_interaction_manager()
+                SimObj.refresh() //does nothing if no SimObjs. Otherwise makes sure they are in the scene and refreshes
+            }
+            catch(err){
+                    console.log("init_simulation errored with: " + err.message + "\n" + err.stack)
+            }
 
-            SimBuild.init()
-            this.init_interaction_manager()
-            SimObj.refresh() //does nothing if no SimObjs. Otherwise makes sure they are in the scene and refreshes
-          }
-          catch(err){
-                  console.log("init_simulation errored with: " + err.message + "\n" + err.stack)
-          }
+            //this.sim.renderer.render(this.sim.scene, this.sim.camera) //Sadly this didn't work so
+            // stil doing BOTH the below setAnimationLoop and inSimqueueJ  SimUtils, calling prime the pump to avoid bad rednering of Dexter
 
-        //this.sim.renderer.render(this.sim.scene, this.sim.camera) //Sadly this didn't work so
-        // stil doing BOTH the below setAnimationLoop and in SimUtils, calling prime the pump to avoid bad rednering of Dexter
-
-          //from https://threejs.org/docs/index.html#manual/en/introduction/How-to-create-VR-content
-        this.sim.renderer.setAnimationLoop( function () { //VR
-            //Simulate.sim.renderer.render( Simulate.sim.scene, Simulate.sim.camera );
-            SimUtils.render_used_in_loop()
-        } )
+            //from https://threejs.org/docs/index.html#manual/en/introduction/How-to-create-VR-content
+            this.sim.renderer.setAnimationLoop( function () { //VR
+                //Simulate.sim.renderer.render( Simulate.sim.scene, Simulate.sim.camera );
+                Simulate.do_animation_loop()
+            } )
+        }
+        else
+        {
+            console.warn("Warning: Simulation attempt was made after the simulator was initialized");
+            debugger;
+        }
+        
     }
 
     //called by SimObj.refresh() and Simulate.init()
@@ -343,7 +394,7 @@ globalThis.Simulate = class Simulate {
 
         //	Set link parent-child relationships.
         //
-        SimUtils.render_used_in_loop() ;
+        Simulate.do_animation_loop()
 
         //	Now link.
         this.chainLink ( objs[0].children, 7 );
@@ -411,7 +462,7 @@ globalThis.Simulate = class Simulate {
 
 
     static do_animation_loop(){
-        if (this.is_simulator_showing()) {
+        if (SimUtils.is_simulator_showing()) {
             if(globalThis.interactionManager) {
                 interactionManager.update();
             }
@@ -653,6 +704,91 @@ globalThis.Simulate = class Simulate {
         this.pPosition.x = this.sim.table.position.x;
         this.pPosition.y = this.sim.table.position.y;
         this.pPosition.z = this.sim.table.position.z;
+    }
+
+    static resize()
+    {
+        this.updateCanSize();
+        this.sim.renderer.domElement.width = this.canSize.width;
+        this.sim.renderer.domElement.height = this.canSize.height;
+        Simulate.sim.camera.aspect = this.canSize.width/this.canSize.height;
+        Simulate.sim.camera.updateProjectionMatrix();
+        this.sim.renderer.setSize(this.canSize.width,this.canSize.height);
+
+    }
+    static updateCanSize()
+    {
+        if(this.canSize == undefined)
+        {
+            this.canSize  =
+            {
+                width: 0,
+                height: 0
+            };
+        }
+        this.canSize.width = misc_pane_id.clientWidth-50;
+        this.canSize.height = DDE_DB.persistent_get("dde_window_height") - DDE_DB.persistent_get("top_right_panel_height") - 220;
+    }
+    static clearResourceTree(root)
+    {
+        if(root == undefined)
+        {
+            return;
+        }
+        if(root.material)
+        {
+            root.material.dispose();
+        }
+        if(root.geometry)
+        {
+            root.geometry.dispose();
+        }
+        if(root.children != undefined)
+        {
+            if(typeof(root.children.length) == "number")
+            {
+                for(let i = 0; i < root.children.length; i++)
+                {
+                    clearResourceTree(root.children[i]);
+                }
+            }
+        }
+
+        if(root.dispose != undefined)
+        {
+            try
+            {
+                root.dispose()
+            }
+            catch
+            {}
+        }
+    }
+    static destroySimulation()
+    {
+        init_simulation_done = false;
+        simKilled = true;
+        try
+        {
+            destroy_mouse();
+        }
+        catch
+        {
+
+        }
+        clear_out_sim_graphics_pane_id();
+        clearResourceTree(sim.scene);
+        let hi_rez = sim.hi_rez; 
+        sim = {};
+        sim.hi_rez = hi_rez;
+    }
+    static destroy_mouse()
+    {
+        sim_graphics_pane_id.removeEventListener("mousedown", simMouseDownListener, false);
+
+        sim_graphics_pane_id.removeEventListener('mousemove', simMouseMoveListener, false);
+
+        sim_graphics_pane_id.removeEventListener("mouseup", simMouseUpListener, false);
     }
 } //end class Simulate
 
