@@ -144,6 +144,11 @@ class DDEVideo {
         //content = content.replaceAll(content, "__dirname", __dirname)//dde4 todo comment in once file system works
 
         try {
+            // Allow scrolling in the pane if simulator isn't selected
+            if(content!= "Simulate Dexter")
+            {
+                sim_pane_content_id.style.overflow = "scroll";
+            }
             if (content === "Simulate Dexter") {
                     Simulate.append_simulation(sim_pane_content_id);
                     if(arg1) {

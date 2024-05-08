@@ -48,6 +48,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 //From https://threejs.org/docs/#manual/en/introduction/How-to-create-VR-content
 import { VRButton } from 'three/addons/webxr/VRButton.js'; //VR  search this file for "//VR" to see all Virtual Reality code
+import { e } from 'mathjs';
 
 
 globalThis.Simulate = class Simulate {
@@ -62,6 +63,7 @@ globalThis.Simulate = class Simulate {
         sim_div.style="margin:0";
         sim_div.innerHTML =
         `
+        <div id="sim_pane_header_id">
         <div id="sim_pane_header_top_row_id" style="white-space:nowrap;"> 
         <b>Move Dur: </b><span id="sim_pane_move_dur_id"></span> s
         <button onclick="SimUtils.render_joints_smart()" 
@@ -92,17 +94,27 @@ globalThis.Simulate = class Simulate {
         <b title="Joint 5 angle in degrees."> J5: </b><span id="sim_pane_j5_id" style="min-width:30px; text-align:left; display:inline-block"></span>
         <b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>
         <b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>
+        </div>
         <div id="sim_graphics_pane_id" style="cursor:grab;"></div>
         `;
         
         return sim_div;
     }
 
+
+    static mouse = {
+        x:0,
+        y:0,
+        mX:0,
+        mY:0,
+        down:false,
+        shiftDown:false,
+        ctrlDown:false
+    }
+
     static canSize;
-    static goalRotation = {x:Math.PI*0.25,y:Math.PI*0.25};
-    static goalPosition = {x:0,y:0,z:-1};
-    static pRotation = {x:Math.PI*0.25,y:Math.PI*0.25};
-    static pPosition = {x:0,y:0,z:-1};
+
+    
 
     static sim = {} //used to store sim "global" vars
 
@@ -111,6 +123,37 @@ globalThis.Simulate = class Simulate {
 //var THREE_font_loader = new THREE.FontLoader();
     static simulation_initialized = false;
     static update_in_progress = false;
+
+    static default_orbit = 
+    {
+        center_x:0.0,
+        center_y:0.306,
+        center_z:0.0 ,
+        rotation_yaw:   -0.25*Math.PI,
+        rotation_pitch: -0.25*Math.PI,
+        zoom:2.0,
+        radius:2
+    };
+    static orbit = 
+    {
+        center_x:this.default_orbit.center_x,
+        center_y:this.default_orbit.center_y,
+        center_z:this.default_orbit.center_z,
+        rotation_yaw  : this.default_orbit.rotation_yaw  ,
+        rotation_pitch: this.default_orbit.rotation_pitch,
+        zoom:this.default_orbit.zoom,
+        radius:2
+    }
+    static target_orbit = 
+    {
+        center_x:this.default_orbit.center_x,
+        center_y:this.default_orbit.center_y,
+        center_z:this.default_orbit.center_z,
+        rotation_yaw  : this.default_orbit.rotation_yaw  ,
+        rotation_pitch: this.default_orbit.rotation_pitch,
+        zoom:this.default_orbit.zoom,
+        radius:2
+    }
     // static init_simulation_done = false
 
     // static init_simulation_maybe(){
@@ -152,6 +195,7 @@ globalThis.Simulate = class Simulate {
             {
                 this.resize();
             }
+            pane_id.style.overflow="hidden";
             this.update_in_progress = false;
         }
     }
@@ -161,7 +205,7 @@ globalThis.Simulate = class Simulate {
         {
             this.updateCanSize();
             try{
-                this.init_mouse()
+                this.init_mouse();
                 this.sim.enable_rendering = false
                 //for organization: https://discoverthreejs.com/book/first-steps/lights-color-action/
                 this.sim.container = sim_graphics_pane_id //a div that contains a canvas
@@ -223,10 +267,8 @@ globalThis.Simulate = class Simulate {
               4 //4      // 3 is too small and clips the table. was: 1000   //distance between camera an far clipping plane. Must be > near.
               );
         this.sim.camera.name = "camera"
-        this.sim.camera.position.x = 0  //to the right of the screen.
-        this.sim.camera.position.y = 0  //up is positive
-        this.sim.camera.position.z = 1  //2; //toward the viewer (out of the screen) is positive. 2
-        this.sim.camera.zoom = 1        //1 is the default.  0.79 //has no effect.
+        this.sim.camera.rotation.order = "YXZ";
+        this.update_camera();
 
         //new(75, width/height, 0.1, 4) pos[0, 1, 2]
 
@@ -466,74 +508,154 @@ globalThis.Simulate = class Simulate {
             if(globalThis.interactionManager) {
                 interactionManager.update();
             }
-            Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
+
+            Simulate.update_camera();
+            Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
         }
     }
 
-    static sim_handle_mouse_move(){
-        var mouseX_diff =  this.sim.mouseX - this.sim.mouseX_at_mouseDown //positive if moving right, neg if moving left
-        var mouseY_diff =  this.sim.mouseY - this.sim.mouseY_at_mouseDown //positive if moving right, neg if moving left
-        if (this.sim.shiftDown){
-            //alert(camera.zoom)  //camera.zoom starts at 1
-            var zoom_increment = mouseX_diff / 100.0
-            this.sim.camera.zoom = this.sim.zoom_at_mouseDown + zoom_increment //(spdy * 0.1)
-            this.sim.camera.updateProjectionMatrix()
-        }
-        else if (this.sim.altDown || (this.sim.button == 1)){
-            var panX_inc = mouseX_diff / 100
-            var panY_inc = mouseY_diff / 100
-            this.sim.table.position.x =  this.sim.tableX_at_mouseDown + panX_inc
-            this.sim.table.position.y =  this.sim.tableY_at_mouseDown - panY_inc
-        }
-        else {
-            let newX = this.sim.rotationX_at_mouseDown + (mouseY_diff / 100);
-            if(newX<=Math.PI*0.5&&newX>=-Math.PI*0.5)this.sim.table.rotation.x = newX;
-            this.sim.table.rotation.y = this.sim.rotationY_at_mouseDown + (mouseX_diff / 100)
-        }
-    }
-
-
+    // static sim_handle_mouse_move(){
+    //     var mouseX_diff =  this.sim.mouseX - this.sim.mouseX_at_mouseDown //positive if moving right, neg if moving left
+    //     var mouseY_diff =  this.sim.mouseY - this.sim.mouseY_at_mouseDown //positive if moving right, neg if moving left
+    //     if (this.sim.shiftDown){
+    //         //alert(camera.zoom)  //camera.zoom starts at 1
+    //         var zoom_increment = mouseX_diff / 100.0
+    //         this.sim.camera.zoom = this.sim.zoom_at_mouseDown + zoom_increment //(spdy * 0.1)
+    //         this.sim.camera.updateProjectionMatrix()
+    //     }
+    //     else if (this.sim.altDown || (this.sim.button == 1)){
+    //         var panX_inc = mouseX_diff / 100
+    //         var panY_inc = mouseY_diff / 100
+    //         this.sim.table.position.x =  this.sim.tableX_at_mouseDown + panX_inc
+    //         this.sim.table.position.y =  this.sim.tableY_at_mouseDown - panY_inc
+    //     }
+    //     else {
+    //         let newX = this.sim.rotationX_at_mouseDown + (mouseY_diff / 100);
+    //         if(newX<=Math.PI*0.5&&newX>=-Math.PI*0.5)this.sim.table.rotation.x = newX;
+    //         this.sim.table.rotation.y = this.sim.rotationY_at_mouseDown + (mouseX_diff / 100)
+    //     }
+    // }
 
     //set up drag mouse to rotate table
-    static init_mouse(){
-        this.sim.mouseX_at_mouseDown    = 0
-        this.sim.mouseY_at_mouseDown    = 0
-        this.sim.tableX_at_mouseDown    = 0
-        this.sim.tableY_at_mouseDown    = 0
-        this.sim.zoom_at_mouseDown      = 1
-        this.sim.rotationX_at_mouseDown = 0
-        this.sim.rotationY_at_mouseDown = 0
 
-        sim_graphics_pane_id.addEventListener("mousedown", function(event) {
-            //must use Simulate, not "this" for referncing "sim".
-            Simulate.sim.button = event.button
-            Simulate.sim.mouseDown              = true
-            Simulate.sim.shiftDown              = event.shiftKey
-            Simulate.sim.altDown                = event.altKey
-            Simulate.sim.mouseX_at_mouseDown    = event.clientX
-            Simulate.sim.mouseY_at_mouseDown    = event.clientY
-            Simulate.sim.tableX_at_mouseDown    = Simulate.sim.table.position.x
-            Simulate.sim.tableY_at_mouseDown    = Simulate.sim.table.position.y
-            Simulate.sim.zoom_at_mouseDown      = Simulate.sim.camera.zoom
-            Simulate.sim.rotationX_at_mouseDown = Simulate.sim.table.rotation.x
-            Simulate.sim.rotationY_at_mouseDown = Simulate.sim.table.rotation.y
+    static orbit_speed = 5.0;
+    static   pan_speed = 2.5;
+    static init_mouse(){
+
+        sim_graphics_pane_id.addEventListener("mousedown", (event) => {
+            this.mouse.down = true;
+            this.mouse.shiftDown = event.shiftKey;
+            this.mouse.ctrlDown  = event.ctrlKey ;
         }, false);
 
-        sim_graphics_pane_id.addEventListener('mousemove', function(event) {
-            //must use Simulate, not "this" for referncing "sim".
-            if (Simulate.sim.mouseDown){
-                Simulate.sim.mouseX = event.clientX;
-                Simulate.sim.mouseY = event.clientY;
-                Simulate.sim_handle_mouse_move()
-                //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+        sim_graphics_pane_id.addEventListener("wheel",(event)=>{
+            Simulate.orbit.zoom *=1.05**(-event.deltaY*0.02);
+            this.target_orbit.zoom = this.orbit.zoom;
+        });
+
+        window.addEventListener('mousemove', (event) => {
+            event.preventDefault();
+            this.mouse.shiftDown = event.shiftKey;
+            this.mouse.ctrlDown  = event.ctrlKey ;
+            this.mouse.x  = event.offsetX;
+            this.mouse.y  = event.offsetY;
+            this.mouse.mX = -event.movementX;
+            this.mouse.mY = -event.movementY;
+
+            if(this.mouse.down && !this.mouse.shiftDown)
+            {
+                this.orbit.rotation_yaw   += this.orbit_speed*this.mouse.mX/this.canSize.height;
+                this.orbit.rotation_pitch += this.orbit_speed*this.mouse.mY/this.canSize.height;
+                this.orbit.rotation_pitch = Math.min(Math.max(this.orbit.rotation_pitch,-Math.PI/2),Math.PI/2);
+
+                this.target_orbit.rotation_yaw   = this.orbit.rotation_yaw   ;
+                this.target_orbit.rotation_pitch = this.orbit.rotation_pitch ;
+            }
+            else if(this.mouse.down && this.mouse.shiftDown)
+            {
+                this.pan_orbit(
+                     this.pan_speed*this.mouse.mX/(this.canSize.height*this.orbit.zoom),
+                    -this.pan_speed*this.mouse.mY/(this.canSize.height*this.orbit.zoom)
+                )
             }
         }, false);
 
-        sim_graphics_pane_id.addEventListener("mouseup", function(event) {
-            Simulate.sim.mouseDown = false
-            Simulate.sim.shiftDown = false
-            Simulate.sim.altDown   = false
+
+        window.addEventListener("mouseup", (event) => {
+            this.mouse.down = false;
         }, false);
+    }
+
+    static pan_orbit(x_movement,y_movement)
+    {
+        // Unit vector pointing to the right from the camera's point of view
+        let x_vec = {
+            x:  Math.cos(this.orbit.rotation_yaw),
+            y:  0,
+            z: -Math.sin(this.orbit.rotation_yaw)
+        };
+        // Unit vector pointing up from the camera's point of view
+        let y_vec = {
+            x: Math.sin(this.orbit.rotation_yaw)*Math.sin(this.orbit.rotation_pitch),
+            y:                               1.0*Math.cos(this.orbit.rotation_pitch),
+            z: Math.cos(this.orbit.rotation_yaw)*Math.sin(this.orbit.rotation_pitch)
+        };
+
+        this.orbit.center_x += x_movement * x_vec.x + y_movement * y_vec.x;
+        this.orbit.center_y += x_movement * x_vec.y + y_movement * y_vec.y;
+        this.orbit.center_z += x_movement * x_vec.z + y_movement * y_vec.z;
+
+        this.target_orbit.center_x = this.orbit.center_x;
+        this.target_orbit.center_y = this.orbit.center_y;
+        this.target_orbit.center_z = this.orbit.center_z;
+    }
+    
+    static update_camera()
+    {
+        this.update_camera_smooth_tracking();
+        this.sim.camera.rotation.y = this.orbit.rotation_yaw;
+        this.sim.camera.rotation.x = this.orbit.rotation_pitch;
+
+
+        this.sim.camera.position.x = this.orbit.center_x+this.orbit.radius*Math.cos(this.orbit.rotation_pitch)*Math.sin(this.orbit.rotation_yaw);
+        this.sim.camera.position.z = this.orbit.center_z+this.orbit.radius*Math.cos(this.orbit.rotation_pitch)*Math.cos(this.orbit.rotation_yaw);
+        this.sim.camera.position.y = this.orbit.center_y+this.orbit.radius*Math.sin(-this.orbit.rotation_pitch);
+
+
+        Simulate.sim.camera.zoom = Simulate.orbit.zoom;
+        Simulate.sim.camera.updateProjectionMatrix();
+    }
+    static camera_track_step = 0.05;
+    static camera_track_zoom_step = 0.05;
+    static update_camera_smooth_tracking()
+    {
+        let center_x_diff = this.target_orbit.center_x-this.orbit.center_x;
+        let center_x_speed = this.camera_track_step*Math.sqrt(Math.abs(center_x_diff));
+        this.orbit.center_x += Math.sign(center_x_diff)*Math.min(center_x_speed,Math.abs(center_x_diff));
+
+        let center_y_diff = this.target_orbit.center_y-this.orbit.center_y;
+        let center_y_speed = this.camera_track_step*Math.sqrt(Math.abs(center_y_diff));
+        this.orbit.center_y += Math.sign(center_y_diff)*Math.min(center_y_speed,Math.abs(center_y_diff));
+
+        let center_z_diff = this.target_orbit.center_z-this.orbit.center_z;
+        let center_z_speed = this.camera_track_step*Math.sqrt(Math.abs(center_z_diff));
+        this.orbit.center_z += Math.sign(center_z_diff)*Math.min(center_z_speed,Math.abs(center_z_diff));
+
+        let yaw_diff = this.target_orbit.rotation_yaw-this.orbit.rotation_yaw;
+        yaw_diff %= 2*Math.PI;
+        if(yaw_diff<0){yaw_diff+=2*Math.PI}
+        if(yaw_diff>Math.PI){yaw_diff-=2*Math.PI}
+
+        let yaw_speed = this.camera_track_step*Math.sqrt(Math.abs(yaw_diff));
+        this.orbit.rotation_yaw   += Math.sign(yaw_diff)*Math.min(yaw_speed,Math.abs(yaw_diff));
+        
+        let pitch_diff = this.target_orbit.rotation_pitch-this.orbit.rotation_pitch;
+        let pitch_speed = this.camera_track_step*Math.sqrt(Math.abs(pitch_diff));
+        this.orbit.rotation_pitch   += Math.sign(pitch_diff)*Math.min(pitch_speed,Math.abs(pitch_diff));
+
+        let zoom_diff = 1.0/this.target_orbit.zoom-1.0/this.orbit.zoom;
+        let zoom_speed = this.camera_track_step*Math.sqrt(Math.abs(zoom_diff));
+        this.orbit.zoom   = 1.0/(1.0/this.orbit.zoom+Math.sign(zoom_diff)*Math.min(zoom_speed,Math.abs(zoom_diff)));
     }
 
     static draw_table(parent, table_width, table_length, table_height){
@@ -545,11 +667,11 @@ globalThis.Simulate = class Simulate {
 
         this.sim.table.position.x = 0 //-3.85
         this.sim.table.position.y = 0 //2.47
-        this.sim.table.position.z = -1 //0
+        this.sim.table.position.z = 0 //0
 
-        this.sim.table.rotation.x = Math.PI*0.25 //0 //0.53
-        this.sim.table.rotation.y = Math.PI*0.25 //5 shows table with +x to right, and +y away from camera. 1.8 //0 //-0.44
-        this.sim.table.rotation.z = 0
+        this.sim.table.rotation.x = 0; //0 //0.53
+        this.sim.table.rotation.y = 0; //5 shows table with +x to right, and +y away from camera. 1.8 //0 //-0.44
+        this.sim.table.rotation.z = 0;
         parent.add(this.sim.table)
 
         //draw lines on table
@@ -652,58 +774,38 @@ globalThis.Simulate = class Simulate {
     }
 
     static align_cam(position) {
+        this.target_orbit.rotation_yaw = this.target_orbit.rotation_yaw  % (2*Math.PI);
+        if(this.target_orbit.rotation_yaw<0)
+        {
+            this.target_orbit.rotation_yaw+=Math.PI*2;
+        }
         switch(position)
         {
             case(0):
-                this.goalRotation.x = 0;
-                this.goalRotation.y = Math.PI;
+            this.target_orbit.rotation_pitch = 0.0;
+            this.target_orbit.rotation_yaw   = Math.round(this.orbit.rotation_yaw/Math.PI)*Math.PI;
             break;
 
             case(1):
-                this.goalRotation.x = 0;
-                this.goalRotation.y = Math.PI*0.5;
+                this.target_orbit.rotation_pitch = 0.0;
+                this.target_orbit.rotation_yaw   = Math.round((this.orbit.rotation_yaw-0.5*Math.PI)/Math.PI)*Math.PI+0.5*Math.PI;
             break;
 
             case(2):
-                this.goalRotation.x = Math.PI*0.5;
-                this.goalRotation.y = Math.PI*0.5;
+                this.target_orbit.rotation_pitch = -Math.PI/2;
+                this.target_orbit.rotation_yaw   = Math.round(2.0*this.orbit.rotation_yaw/Math.PI)*Math.PI/2.0;
             break;
 
             case(3):
-                this.goalRotation.x = Math.PI*0.25;
-                this.goalRotation.y = Math.PI*0.25;
-                this.goalPosition.x = 0;
-                this.goalPosition.y = 0;
-                this.goalPosition.z = -1;
+            radius:2
+                this.target_orbit.rotation_pitch = this.default_orbit.rotation_pitch ;
+                this.target_orbit.rotation_yaw   = this.default_orbit.rotation_yaw   ;
+                this.target_orbit.center_x = this.default_orbit.center_x;
+                this.target_orbit.center_y = this.default_orbit.center_y;
+                this.target_orbit.center_z = this.default_orbit.center_z;
+                this.target_orbit.zoom = this.default_orbit.zoom;;
             break;
         }
-    }
-
-    static updateRotation() {
-        if(this.pRotation.x != this.sim.table.rotation.x || this.pRotation.y != this.sim.table.rotation.y)
-        {
-            this.goalRotation.x = this.sim.table.rotation.x;
-            this.goalRotation.y = this.sim.table.rotation.y;
-        }
-        this.sim.table.rotation.x -= (this.sim.table.rotation.x - this.goalRotation.x)*0.04;
-        this.sim.table.rotation.y -= (this.sim.table.rotation.y - this.goalRotation.y)*0.04;
-        this.pRotation.x = this.sim.table.rotation.x;
-        this.pRotation.y = this.sim.table.rotation.y;
-    }
-
-    static updatePosition() {
-        if(this.pPosition.x != this.sim.table.position.x || this.pPosition.y != this.sim.table.position.y || this.pPosition.z != this.sim.table.position.z)
-        {
-            this.goalPosition.x = this.sim.table.position.x;
-            this.goalPosition.y = this.sim.table.position.y;
-            this.goalPosition.z = this.sim.table.position.z;
-        }
-        this.sim.table.position.x -= (this.sim.table.position.x - this.goalPosition.x)*0.04;
-        this.sim.table.position.y -= (this.sim.table.position.y - this.goalPosition.y)*0.04;
-        this.sim.table.position.z -= (this.sim.table.position.z - this.goalPosition.z)*0.04;
-        this.pPosition.x = this.sim.table.position.x;
-        this.pPosition.y = this.sim.table.position.y;
-        this.pPosition.z = this.sim.table.position.z;
     }
 
     static resize()
@@ -727,8 +829,11 @@ globalThis.Simulate = class Simulate {
             };
         }
         this.canSize.width = misc_pane_id.clientWidth-50;
-        this.canSize.height = DDE_DB.persistent_get("dde_window_height") - DDE_DB.persistent_get("top_right_panel_height") - 220;
+        this.canSize.height = sim_pane_content_id.clientHeight-sim_pane_header_id.clientHeight;
+        // this.canSize.height = DDE_DB.persistent_get("dde_window_height") - DDE_DB.persistent_get("top_right_panel_height") - 220;
     }
+
+    //Can be used to free simulator memory
     static clearResourceTree(root)
     {
         if(root == undefined)
