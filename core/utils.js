@@ -344,6 +344,32 @@ function get_class_of_instance(instance){
 
 module.exports.get_class_of_instance = get_class_of_instance
 
+function value_to_percent_hex (num, size) {
+    let num_str = (num >>> 0).toString(16).toUpperCase()
+//the 0 bit shift tricks it into doing two's compliment for negative values
+    num_str = ("00000000"+num_str).substr(size*-2)
+    let str = ""
+    for(let i = size*2-2; i >= 0  ; i -= 2){
+        str += "%" + num_str.substr(i,2)
+    }
+    return str
+}
+
+module.exports.value_to_percent_hex = value_to_percent_hex
+
+function little_hex_to_integer(hex) { //converts little endian hex string to int
+    let sum = 0;
+    hex = hex.split(' ').join(''); //normalize out spaces
+    for (let i=hex.length/2-1; i>=0; i--) { //console.log(i, sum)
+        sum *= 256
+        sum += parseInt('0x'+hex.substr(i*2,2),16)
+    }
+    return sum
+}
+
+module.exports.little_hex_to_integer = little_hex_to_integer
+
+
 
 //______color_______
 function rgb(r, g, b){return "rgb("+r+", "+g+", "+b+")"} //this string used in css

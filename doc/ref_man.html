@@ -6,8 +6,6 @@
     .doc_details summary { font-weight: 600; }
 </style>
 
-
-
 <details id="i/o_doc_id" class="doc_details"><summary>I/O</summary>
         <details class="doc_details"><summary>CSV</summary>
         CSV stands for "Comma Separated Value". It is a file format for spreadsheets
@@ -91,13 +89,20 @@
             Pops up a dialog box allowing you to navigate the file system to choose a file.
             Returns a string of the full path of the file.
             <br/>
-            <i>Parameter:</i><br/>
+            <i>Parameters:</i><br/>
             <b>show_dialog_options</b> A JS literal object of name-value pairs, all of which
             are optional. See the options under "showOpenDialog" in <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/dialog.md">showOpenDialog</a>
             for details.<br/>
+            <b>callback</b> a function of 2 argumets:<br/>
+               err: if true, there was an error in choosing or the user canceled.<br/>
+                    if false or null, the user chose a file.<br/>
+               path: A string of the full path of the chosen file.<br/>
+            <br/>
             <i>Example:</i><br/>
-            <code title="not in TestSuite"> choose_file({buttonLabel: "pick the best"})</code> Just lets you choose files.<br/>
-            If the user chooses "cancel" in the dialog box, this function returns <code>null</code>.
+            <pre><code title="not in TestSuite"> choose_file({buttonLabel: "pick the best"},
+                function(err, path){ if(err) {warning("No file chosen")}
+                                     else { out("you chose: " + path) }
+                })</code></pre>
             If the options indicate that the user can choose more than one path, and they do,
             (using shift-click)
             an array of paths is returned. Otherwise (the default) just one path (a string) is returned.<br/>
@@ -111,24 +116,40 @@
             Does not actualy <i>save</i> the contents of the file. Use
             <code>write_file</code> for that.
             <br/>
-            <i>Parameter:</i><br/>
+            <i>Parameterss:</i><br/>
             <b>show_dialog_options</b> A JS literal object of name-value pairs, all of which
             are optional. See the options under showSaveDialog in <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/dialog.md">showSaveDialog</a>
             for details.<br/>
+            <b>callback</b> a function of 2 argumets:<br/>
+            err: if true, there was an error in choosing or the user canceled.<br/>
+            if false or null, the user chose a file.<br/>
+            path: A string of the full path of the chosen file.<br/>
+            <br/>
             <i>Example:</i><br/>
-            <code title="not in TestSuite"> choose_save_file({buttonLabel: "save the best"})</code>
-        </details>
+            <pre><code title="not in TestSuite"> choose_save_file({buttonLabel: "pick the best"},
+                function(err, path){ if(err) {warning("No file chosen")}
+                                     else { out("you chose: " + path) }
+                })</code></pre>        </details>
 
         <details id="choose_folder_doc_id" class="doc_details"><summary>choose_folder</summary>
             Pops up a dialog box allowing you to navigate the file system to choose a folder.
             Returns a string of the full path of the folder.
             <br/>
-            <i>Parameter:</i><br/>
+            <i>Parameters:</i><br/>
             <b>show_dialog_options</b> A JS literal object of name-value pairs, all of which
             are optional. See the options under "showOpenDialog" in <a target="_blank" href="https://github.com/electron/electron/blob/master/docs/api/dialog.md">showOpenDialog</a>
             for details.<br/>
+            <b>callback</b> a function of 2 argumets:<br/>
+            err: if true, there was an error in choosing or the user canceled.<br/>
+            if false or null, the user chose a file.<br/>
+            path: A string of the full path of the chosen file.<br/>
+            <br/>
             <i>Example:</i><br/>
-            <code title="not in TestSuite"> choose_folder()</code> Just lets you choose folders.<br/>
+            <pre><code title="not in TestSuite"> choose_folder({buttonLabel: "pick the best"},
+                function(err, path){ if(err) {warning("No folder chosen")}
+                                     else { out("you chose: " + path) }
+                })</code></pre>
+
             If the user chooses "cancel" in the dialog box, this function returns <code>null</code>.
             If the options indicate that the user can choose more than one path, and they do,
             (using shift-click)
@@ -413,7 +434,7 @@
             Please use <code>read_file</code> instead.
         </details> <!-- end read_file -->
 
-        <details id="read_file_async_doc_id" class="doc_details"><summary>read_file_async</summary>
+     <details id="read_file_async_doc_id" class="doc_details"><summary>read_file_async</summary>
            Similar to <a href="#" onclick="open_doc(read_file_doc_id)">read_file</a>
            but does not return the
            file contents. Instead, it takes an additional argument
@@ -428,6 +449,23 @@
                function(err, content){
                    out("read_file_async got err: " + err + " content: " + content)
                })    </code></pre>
+     </details>
+
+        <details id="FileTransfer.unzip_id" class="doc_details"><summary>unzip</summary>
+            Creates a folder of the contents of the passed in zip file.<br/>
+            <i>Parameters:</i><br/>
+            <b>zip_file_path</b> String of full path. Required
+            <br/>
+            <b>unzip_into_folder</b> String. Name of the folder to be created containing
+            the contents of the zip_file_path.
+            <br/></br/>
+            <i>Example:</i><br/>
+            <code tooltip="not in TestSuite">FileTransfer.unzip("/Users/Fry/Documents/dde_apps/dexchat.zip")</code><br/>
+            Makes folder: <code>"/Users/Fry/Documents/dde_apps/dexchat"</code><br/>
+            <span style="color:red;">Warning:</span> this will overwrite an existing folder if any.
+            <br/><br/>
+            See also: <a href="#" onclick="open_doc('FileTransfer.zip_folder_id')">FileTransfer.zip_folder</a>
+
         </details>
 
 
@@ -485,25 +523,42 @@
             <code>"/srv/samba/share/dde_apps/junk.js"</code> file.
      </details>
 
+    <details id="FileTransfer.zip_folder_id" class="doc_details"><summary>zip_folder</summary>
+        Creates a zip file of the contents of the passed in folder.<br/>
+        <i>Parameter:</i><br/>
+        <b>path_to_folder_to_zip</b> String of full path. Required
+        <br/><br/>
+        <i>Example:</i><br/>
+        <code tooltip="not in TestSuite">FileTransfer.zip_folder("/Users/Fry/Documents/dde_apps/dexchat")</code><br/>
+        Makes file: <code>"/Users/Fry/Documents/dde_apps/dexchat.zip"</code>
+        <br/><br/>
+        See also: <a href="#" onclick="open_doc('FileTransfer.unzip_id')">FileTransfer.unzip</a>
+    </details>
 
-        <!-- removed for security reasons
-        <details id="folder_listing_doc_id" style="margin-left:40px;"><summary>folder_listing</summary>
-          <code>folder_listing</code> retrieves an array of filenames and/or folder names that are somewhere
-              beneath the <b>dde_apps</b> folder. This function only works if you have
-              <i>Web Server for Chrome</i> installed. (See the doc for <b>load_files</b>.)<br/>
-          Arguments:<br/>
-          <b>folder</b> Default: <code>"/"</code>. The name of the folder to retreive the listing of.
-                    A folder of "/" finds the files and/or folders immediately below the <b>dde_apps</b> folder.
-                    Folder should begin and end with a slash, but if it doesn't, it will be added.<br/>
-          <b>include_folders</b> Default: <code>true</code>. Retrieved folder names end in slash.<br/>
-          <b>include_files</b> Default: <code>true</code>.<br/>
-          <b>callback</b> Default: <code>out</code> A function of one argument. It is passed the
-              array of file and/or folder names determined by the other arguments.<br/>
-          Examples:<br/>
-          <code>folder_listing()</code> Retrieves the files and folders immediately under <code>dde_apps</code>.<br/>
-          <code>folder_listing("/test_folder/", true, false)</code> Retrieves only the folder names immediately under <code>test_folder</code>.<br/>
-          <code>folder_listing("/whatever/", false, false)</code> Retrieves nothing. An empty array will be passed to the callback.
-        </details> -->
+
+
+
+
+
+
+            <!-- removed for security reasons
+            <details id="folder_listing_doc_id" style="margin-left:40px;"><summary>folder_listing</summary>
+              <code>folder_listing</code> retrieves an array of filenames and/or folder names that are somewhere
+                  beneath the <b>dde_apps</b> folder. This function only works if you have
+                  <i>Web Server for Chrome</i> installed. (See the doc for <b>load_files</b>.)<br/>
+              Arguments:<br/>
+              <b>folder</b> Default: <code>"/"</code>. The name of the folder to retreive the listing of.
+                        A folder of "/" finds the files and/or folders immediately below the <b>dde_apps</b> folder.
+                        Folder should begin and end with a slash, but if it doesn't, it will be added.<br/>
+              <b>include_folders</b> Default: <code>true</code>. Retrieved folder names end in slash.<br/>
+              <b>include_files</b> Default: <code>true</code>.<br/>
+              <b>callback</b> Default: <code>out</code> A function of one argument. It is passed the
+                  array of file and/or folder names determined by the other arguments.<br/>
+              Examples:<br/>
+              <code>folder_listing()</code> Retrieves the files and folders immediately under <code>dde_apps</code>.<br/>
+              <code>folder_listing("/test_folder/", true, false)</code> Retrieves only the folder names immediately under <code>test_folder</code>.<br/>
+              <code>folder_listing("/whatever/", false, false)</code> Retrieves nothing. An empty array will be passed to the callback.
+            </details> -->
 </details> <!-- end File Access -->
 
 <details class="doc_details"><summary>Gamepad & Keyboard</summary>
@@ -6445,6 +6500,75 @@ You might want to do this in an emergency situation or if the environment unexpe
 See also the instruction: <code>IO.grab_robot_status</code>
 </details>
 
+    <details id="j_move_instructions_doc_id" class="doc_details"><summary>j_move_instructions</summary>
+        The j_move instructions control Dexter precisely in velocity, acceleration,
+        and jerk, providing for smooth motions.
+        <details id="j_move_doc_id" class="doc_details"><summary>j_move</summary>
+            <code>Dexter.j_move</code> allows very precise Dexter motions.<br/>
+            <span style="color:red">Warning: this documentation is incomplete.</span><br/>
+            j_move is implemented using the "j" oplet. There
+            are three sub-oplets that provide attributes ("j", "a", and "v").
+            The "high level" j_move instruction sends a combination of lower-level
+            oplet instructions to Dexter.<br/>
+            <i>Parameters:</i><br/>
+            <b>j_angles</b> Required. An array of 6 numbers indicating degrees for
+            joints 1 through 6. The goal angles to be reached at the end of the j_move.<br/>
+            <b>options</b> Default: <code>{}</code> Tweaks to the motion of Dexter during the j_move.
+            <ul>
+                <li><b>end_velocity</b> default: <code>[0, 0, 0, 0, 0, 0]</code> An array of 6 numbers, one for each of joints 1 through 6.</li>
+                <li><b>end_acceleration:</b> default: <code> [0, 0, 0, 0, 0, 0]</code></li> An array of 6 numbers, one for each of joints 1 through 6.</li>
+                <li><b>duration:</b> default: <code> "?"</code></li>
+                <li><b>async:</b> Boolean. default: <code>false</code><br/>
+                    If <code>true</code>, after the  j_move instruction is sent to Dexter,
+                    the Job is immediately told to continue sending instructions
+                    to Dexter.<br/>
+                    If <code>false</code>, the Job waits until the j_move is complete
+                    before running any more instructions.<br/>
+                    See the example for <code>Dexter.j_reset</code>.
+                </li>
+                <li><b>sync_delay:</b> default: <code> 0.05</code></li>
+                <li><b>peak_velocity:</b> default: <code> undefined</code> An array of 6 numbers, one for each of joints 1 through 6.</li>
+                <li><b>peak_acceleration:</b> default: <code> undefined</code> An array of 6 numbers, one for each of joints 1 through 6.</li>
+                <li><b>peak_jerk:</b> default: <code> undefined</code> An array of 6 numbers, one for each of joints 1 through 6.</li>
+                <li><b>monitor_callback:</b> default: <code> function(){}</code></li>
+            </ul>
+            <i>Example:</i>
+            <pre><code title="not in Testsuite.">new Job({
+    name: "j_move_example_0",
+    show_instructions: false,
+    do_list: [
+    Dexter.j_move([0, -45, 0, 0, 0]),
+    Dexter.j_move([0, 45, 0, 0, 0], {})
+    ]
+})</code></pre>
+        </details>
+
+        <details id="j_reset_doc_id" class="doc_details"><summary>j_reset</summary>
+            <code>Dexter.j_reset</code> Stops the robot in the middle of a j_move
+            and empties the j_move queue.
+            <p></p>
+            In the below example, the <code>{async: true}</code>
+            causes the j_move instruction to be sent to Dexter and Dexter immediately
+            returns, telling the job to send the next instruction.
+            The next instruction causes a wait for 1 second until the the
+            next instruction on the do_list is run, which is <code>Dexter.j_reset()</code>
+            At this time the j_move instruction is ongoing, having completed the initial
+            second of its movement. But the j_reset halts that instruction in the middle,
+            and clears any other instructions in the j_move queue (in this case none).
+            <p></p>
+            <i>Example:</i>
+            <pre><code title="not in Testsuite.">new Job({
+    name: "j_reset_example",
+    show_instructions: false,
+    do_list: [
+         Dexter.j_move([0, -45, 0, 0, 0], {async: true}),
+         Control.wait_until(1),
+         Dexter.j_reset()
+    ]
+})</code></pre>
+        </details>
+    </details> <!-- end of j_move_instructions -->
+
 <details id="make_ins_doc_id" class="doc_details"><summary>make_ins</summary>
     Normally you should make instructions for Dexter using one of the high level method calls,
     ie <code>Dexter.move_all_joints</code>. However, we provide the function <code>make_ins</code>,
@@ -6759,6 +6883,38 @@ Dexter.move_to([0.1, 0.2, 0.3],      // xyz position
 )  </code></pre>
 </details> <!--end move_to -->
 
+<details id="Dexter.move_to_DHdoc_id" class="doc_details"><summary>move_to_DH</summary>
+    Like <code>Dexter.move_to</code> in functionality but more acccurate since its
+    customized to the particular Dexter used.
+    <br/>
+    <i>Parameters</i><br/>
+    <b>xyz</b> An array of 3 numbers, x, y and z in meters. Required.
+    The numbers are floating point, can be negative or positive.
+    The possible range of each number depends on the other numbers.
+    The numbers will generally be > -1 and < 1.<br/>
+    <b>orientation</b> An array of length 3 whose elements are also an
+      array of length 3. The inner arrays contain elements that are either
+      -1, 0, or 1. Default:<br>
+    <code>[[-1, 0, 0],[0, 0, 1],[0, 1, 0]]</code><br/>
+    <b>dh_mat</b> An array of length 6. The elements are each arrays
+      of length 4 of floating point numbers. Normally this is automatically
+      retrieved from the Defaults.make_ins file for the specific robot.
+      This matrix is made during the calibration of the robot. It differs
+      from Dexter to Dexter because Dexters differ (very slightly) in their
+      link lengths and joint positions.<br/>
+    <i>Examples:</i>
+    <pre><code>
+new Job({name: "my_job",
+         do_list: [
+           Dexter.move_to_DH([0.1, 0.2, 0.2])
+       ]}) </code></pre>
+    <pre><code>
+new Job({name: "my_job",
+         do_list: [
+           Dexter.dexter0.move_to_DH([0.1, 0.2, 0.2])
+       ]}) </code></pre>
+</details>
+
 <details id="Dexter.move_to_relative_doc_id" class="doc_details"><summary>move_to_relative</summary>
     This instruction is similar to <code>Dexter.move_to</code> except that the passed in
     xyz array values (in meters) that are ADDED to Dexter's
@@ -6859,7 +7015,79 @@ proportional–integral–derivative controller</a>.<br/>
     <code>Dexter.pid_move_to([0, 0.1, 0.2])</code>
 </details>
 
-<details id="Dexter.read_file_doc_id" class="doc_details"><summary>read_file</summary>
+<details id="end_effector_instructions_doc_id" class="doc_details"><summary>End Effector Instructions</summary>
+Dexter's Joint 6 is typically a "twist wrist". Joint 7 is typically a gripper.
+The motors for these joints can be tweaked using the <a href="#" onclick="open_doc(servo_doc_id)">Servo class</a>.
+But for the common gross motions, use the below Job instructions.
+<p></p>
+    Like most Dexter instructions, you can prefix these with "Dexter." to use the
+    robot of the Job, or "Dexter.dexter0." to send the instructions to a particular Dexter.
+
+    <details id="Dexter.move_until_torque_doc_id" class="doc_details"><summary>move_until_torque</summary>
+    Causes joint 6 or 7 to move until it reaches a certain torque, at which point motion stops.<br/>
+       <i>Parameters:</i><br/>
+       <b>goal_degrees</b> A number. Default: <code>90</code><br/>
+       <b>joint_number</b> 6 or 7.   Default: <code>7</code><br/>
+       <b>torque_limit</b> A number. Default: <code>500</code><br/>
+      <i>Example:</i>
+<pre><code>new Job({name: "move_ee",
+         do_list: [Dexter.move_until_torque(45, 6, 450)]
+}) </code></pre>
+    </details>
+
+    <details id="Dexter.move_until_static_doc_id" class="doc_details"><summary>move_until_static</summary>
+     Like move_until_torque but doesn't take a torque argument.
+     This instruction stops trying to move the joint when the joint is blocked from moving.
+     If joint 6 or 7 is blocked from moving, it will overheat if it continues to try to
+     move for several seconds. This can happen when j7 gripper is closed as it can be,
+     or joint 6 is trying to twist a bolt that's frozen.
+    This is often more convenient to use than move_until_torque.
+    <i>Parameters:</i><br/>
+        <b>goal_degrees</b>     A number. Default: <code>20</code><br/>
+        <b>joint_number</b>     A number. Default: <code>7</code><br/>
+        <b>degree_tolerance</b> A number. Default: <code>0.01</code><br/>
+        <i>Example:</i>
+<pre><code>new Job({name: "move_ee",
+         do_list: [Dexter.move_until_static(100, 7)]
+}) </code></pre>
+    </details>
+
+    <details id="Dexter.twist" class="doc_details"><summary>twist</summary>
+        Twist the wrist (joint 6).
+     <i>Parameter:</i><br/>
+        <b>goal_degrees</b> A number. Default: <code>0</code>
+        Range <code>Dexter.J6_ANGLE_MIN</code> to <code>Dexter.J6_ANGLE_MAX</code><br/>
+        <i>Example:</i>
+<pre><code>new Job({name: "move_ee",
+         do_list: [Dexter.twist(45)]
+}) </code></pre>
+    </details>
+
+    <details id="Dexter.grasp" class="doc_details"><summary>grasp</summary>
+        Close the gripper (Joint 7) until it can't move due to gripping an object,
+        or reaches 20 degrees, whichever occurs first.<br/>
+        <i>Parameter:</i><br/>
+        <b>min_degrees</b> A number. Default: <code>20</code><br/>
+        <i>Example:</i>
+<pre><code>new Job({name: "move_ee",
+         do_list: [Dexter.grasp()]
+}) </code></pre>
+    </details>
+    <details id="Dexter.ungrasp" class="doc_details"><summary>ungrasp</summary>
+        Open the gripper (Joint 7) until it can't move due to touching something
+        or reaches max_degrees. whichever occurs first.<br/>
+        <i>Parameter:</i><br/>
+        <b>max_degrees</b>  Default: <code>270</code><br/>
+        The theoretical max_degrees is 296 but without perfect calibration,
+        its best to set it lower.<br/>
+        <i>Example:</i><br/>
+<pre><code>new Job({name: "move_ee",
+         do_list: [Dexter.ungrasp()]
+}) </code></pre>
+    </details>
+</details> <!-- end of end effector instructions -->
+
+        <details id="Dexter.read_file_doc_id" class="doc_details"><summary>read_file</summary>
     This instruction allows you to transfer the content of a file on Dexter into
     a user_data variable in the enclosing Job.
     <p></p>
@@ -6952,7 +7180,28 @@ the number of a joint to reboot. The only permissible numbers as of March, 2021 
 })    </code></pre>
 </details>
 
-<details id="Dexter.run_gcode_doc_id" class="doc_details"><summary>run_gcode</summary>
+<details id="Dexter.reboot_robot_doc_id" class="doc_details"><summary>reboot_robot</summary>
+    It is rare when you want to programmatically reboot a robot, but we provide
+    an instruction for doing that, just in case. Its the software equivalent of
+    power-cycling the robot. This instruction works in the simulator too.
+    <br/></br/>
+    There is an exception to the power-cycle functionality.
+    The <code>Dexter.reboot_robot</code> instruction will allow the robot
+    to complete the instructions in its queue,
+    but will not allow DDE to add new instructions to the queue after the instruction
+    is run. So this is not "immediately stop everything". But no more instructions in the
+    containing Job will be run, though the job will "complete" without an error.
+    The Job button will turn purple because this is the designed behavior.
+    However, a warning message is printing in the Output pane to let you know that
+    this is not a <i>normal</i> way to end a job, though it is valid.
+    <br/></br/>
+    <i>Examples:</i><br/>
+    <code>Dexter.reboot_robot()</code>
+    Reboot's the Job's default Dexter. To reboot a different robot, for example:<br/>
+    <code title="not in TestSuite.">Dexter.dexter1.reboot_robot()</code>
+</details>
+
+        <details id="Dexter.run_gcode_doc_id" class="doc_details"><summary>run_gcode</summary>
 This instruction accepts the name of a file as input and creates additional instructions 
 to move Dexter to "draw the lines" indicated by the gcode file. Most of
 the instructions created are <code>Dexter.move_to</code> instructions.
@@ -8608,7 +8857,97 @@ For documentation, see
 <a target="_blank" href="https://www.npmjs.com/package/modbus-serial">modbus_serial</a>.
 </details>
 
+<details id="servo_doc_id" class="doc_details"><summary>Servo</summary>
+    Dexter's, as of March 2024, typically have 7 joints, each with its own motor.
+    Joints 6 and 7 are different than the others. They use Dynamixel servos whereas
+    the other joints use stepper motors paired with Haddongton's own optical encorders.
+    The Servo class helps control the fine points of Dynamixel servos.<br/>
+    For more typical control via Job instructions, see
+    <a href="#" onclick="open_doc(end_effector_instructions_doc_id)">End Effector Instructions</a>
+   <!-- Here's an article comparing the two:
+    <a target="_blank" href="https://www.machinedesign.com/automation-iiot/article/21836868/stepper-and-servo-motor-tradeoffs">
+      stepper vs servo motors</a>
+    The article implies that only servo motors have encoders and thus are more accurate than
+    stepper motors. However, Dexter's stepper motors have encoders and are highly accurately.
+    <p></p>
+    Normal Dexters have stepper motors for joints 1 through 5 and servos for joints 6 and 7.
+    Joint 6 is a "wrist for twist" of the end effector. Joint 7 is usually used for
+    opening and closing the fingers of a gripper.
+    Joints 6 and 7 are much quieter than the other joints.
+    <p></p>
+    Because the control of Dexter's servo motors has lots of sublties, DDE has a special
+    class for controlling them called <code>Servo</code>. Below is the documentation for
+    the Servo class's terminology, data and methods.-->
+    <p></p>
+    <h3>Terminology</h3>
+    <b>servo_firmware_type</b> A positive integer representing the low level type of a motor on Dexter<br>
+       &nbsp;&nbsp;<i>Examples: </i>
+       <ul>
+           <li>1 (nothing: doesn't exist)</li>
+           <li>8 (steppers, joint 1 thru 5)</li>
+           <li>320 (possibly for j6 & j7)</li>
+           <li>430 (possibly for j6 & j7)</li>
+        </ul>
+    <b>servo_model_class_name</b> A string.   <i>Examples: </i> "XL320", "XL330", "XC430" "XC430_LOAD"<br/>
+    <b>servo_model_number</b>     An Integer. <i>Examples: </i> 350,     1200,           1240,          1080 <br/>
+    <b>servo_model_name</b>       A string.   <i>Examples: </i> "XL320", "XL330-M288-T", "XC330-M288-T" "XC430-W240-T" (one to one with servo_model_number) <br/>
+    <b>servo_id</b>  An integer designating a servo on a Dexter.<br/>
+    &nbsp;&nbsp;<i>Examples: </i>3 for J6, 1 for j7, (j1 thru 5 not in this category because are not servos, they are steppers) <br/>
 
+    <h3>Data</h3>
+    <code>Servo.models</code> Name-value pairs where the name is a <i>servo_model_class_name</i>
+    and the value is lots of data about that model class. Use DDE's inspector to see it.<br/>
+    <code>Servo.default_servos</code> An array of actual servos data for testing purposes.
+    The indexes of the array are servo_id's.
+    <b>servo_status</b>  A json object containing the status of a servo on a Dexter.
+    Used in <code title="not in testsuite">a_job.user_data.servo_status</code><br/>
+
+    <h3>Methods</h3>
+    <b>Servo.set_servo_id_model</b> Set values in a servo object.<br/>
+    <i>Parameters:</i><br/>
+    <b>servo_id</b><br/>
+    <b>model_or_servo_model_class_name</b><br/>
+    <b>robot</b>
+    <p></p>
+    <b>Servo.servo_id_to_servo</b> Returns the servo data.<br/>
+    <i>Parameters:</i><br/>
+    <b>servo_id</b><br/>
+    <b>a_dexter</b>
+    <p></p>
+    <b>Servo.servo_property</b> Return the value of property_name in the servo data table.<br/>
+    <i>Parameters:</i><br/>
+    <b>servo</b> The servo data.<br/>
+    <b>property_name</b> A string.
+
+
+    <h3>Example uses in a Job</h3>
+    <pre><code>
+new Job({ //test
+    name: "test_servos", user_data: {count: 0},
+    do_list: [ IO.out("starting at "+Date())
+        //,Dexter.read_from_robot("#Servo 3 0 2", "servo_status")
+        //,function() { out("servo returned:"+this.user_data.servo_status+" good luck with that") }
+        ,Dexter.servo_get(3, "MODEL") //instead of the above, just do this
+        ,function() {
+            let servo = this.user_data.servo_status;
+            out(servo.id+" is a "+servo.type);
+            out(Servo.servo_id_to_servo(3, this) === this.robot.servos[3]) //test that we did learn it
+        }
+        //,Dexter.dexter1.servo_get(3, "MODEL")() //as expected, fails; there is no dexter1 robot. move to doc example for servo-get
+        //,Dexter.servo_get(2, "MODEL") //as expected, fails; there is no servo id 2.  ,,, move as above
+        ,Dexter.servo_detect(1) //just calls servo_get(id, "MODEL"), if found, servo is added to the robot.
+        //,"S ServoSetX 1, 116, 12, %01%00%00%00" //only if it's a 430  ,, move to doc  for servp_set
+        //,"S ServoSetX 1, 30, 6, %01%00" //only if it's a 320
+        //,"S ServoSet2X 1, 30, 1" //only if it's a 320, can't support a 430's 4 byte position
+        ,Dexter.servo_set(1, "GOAL_POSITION", 400)
+        ,Dexter.servo_set(Dexter.dexter0.servos.roll, "TORQUE", 0) //must specify robot to use named servos. sigh.
+
+        ,function() {inspect(this.user_data.servo_status)}
+    ]
+})</code></pre>
+
+
+</details> <!-- end of Servo-->
 </details> <!-- end Robots -->
 
 <details id="Dex" class="doc_details"><summary>Dex (Jobless instructions)</summary>

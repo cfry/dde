@@ -14,7 +14,8 @@ new TestSuite("file_system",
          }
         )`]
     )
-    
+
+//in order for these tests to pass on multiple
 new TestSuite("folder_name_version_extension",
     ['folder_name_version_extension("foo")',        '[dde_apps_folder, "foo", null, null]'],
     ['folder_name_version_extension("foo.txt")',    '[dde_apps_folder, "foo", null, "txt"]'],

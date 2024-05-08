@@ -372,6 +372,60 @@ Instruction.Dexter.move_to = class move_to extends Instruction.Dexter{
     }
 }
 
+Dexter.prototype.get_dh_last_angles = function() {
+    if (!this.dh_last_angles){
+        this.dh_last_angles = [0, 0, 90, 0, 0, 0] //the default initial angles
+    }
+    return this.dh_last_angles
+}
+
+Dexter.prototype.set_dh_last_angles = function(new_last_angles) {
+    this.dh_last_angles = new_last_angles
+}
+
+Instruction.Dexter.move_to_DH = class move_to_DH extends Instruction.Dexter{
+    constructor (xyz           = [],
+                 orientation  = [
+                             [-1, 0, 0],
+                             [0, 0, 1],
+                             [0, 1, 0]
+                            ],
+                 dh_mat,
+                 robot
+    ){
+        super()
+        this.xyz         = xyz
+        this.orientation = orientation
+        this.dh_mat      = dh_mat
+        this.robot       = robot
+    }
+    do_item (job_instance){
+        if(!this.robot) { this.set_instruction_robot_from_job(job_instance) }
+        if(!this.dh_mat){
+            //total hack to make my code work:
+            //var folder = "C:/Users/james/Documents/dde_apps/2021/Code/MoveWithForce/data_set_HDI_000047/"
+            //var dh_mat = DH.parse_dh_mat_file(folder + "dh_mat.out")
+            if(this.robot.defaults && this.robot.defaults.dh_mat) {
+                this.dh_mat = this.robot.defaults.dh_mat
+            }
+            else {
+                this.dh_mat = Dexter.defaults.dh_mat
+            }
+        }
+        let old_last_angles = this.robot.get_dh_last_angles()
+        let new_last_angles = DH.inverse_kinematics(this.xyz, this.orientation, this.dh_mat, old_last_angles) //Also kind of a hack to get the code to work
+        if(Vector.max(Vector.abs(new_last_angles)) > 180){
+           //Vector.max(Vector.abs(old_last_angles))){  //in place of 180, this returns something more than Vector.max(Vector.abs(new_last_angles)) so it cauess an error. Asj James W.
+            dde_error("Dexter.move_to_DH: Kinematics Failure")
+        }
+        else {
+            this.robot.set_dh_last_angles(new_last_angles)
+            //return this.robot.move_all_joints(new_last_angles)
+            job_instance.send(make_ins("a", ...new_last_angles), this.robot)
+        }
+    }
+}
+
 Instruction.Dexter.pid_move_to = class pid_move_to extends Instruction.Dexter{
     constructor (xyz           = [],
                  J5_direction  = [0, 0, -1],

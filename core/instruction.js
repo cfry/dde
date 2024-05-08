@@ -233,7 +233,7 @@ var Instruction = class Instruction {
         else { return parseInt(str) }
     }
 
-    static extract_instruction_type(oplet_array_or_string){
+    static extract_instruction_type(oplet_array_or_string){ //oplet single letter
         if(typeof(oplet_array_or_string) == "string") {
             oplet_array_or_string = oplet_array_or_string.substring(0, oplet_array_or_string.length - 1) //cut the ending semicolon
             oplet_array_or_string = oplet_array_or_string.split(" ")
@@ -3047,6 +3047,7 @@ Instruction.wait_until = class wait_until extends Instruction{
         else if (typeof(fn_date_dur) == "number")  {}
         else if (fn_date_dur instanceof Duration)  { this.fn_date_dur = fn_date_dur.to_seconds() }
         else if (this.fn_date_dur == "new_instruction"){}
+        else if (this.fn_date_dur instanceof Job) {}
         else if (Array.isArray(this.fn_date_dur) ||
                  (typeof(this.fn_date_dur) == "object")){
                  if(!Job.instruction_location_to_job(this.fn_date_dur, false)){

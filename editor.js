@@ -452,10 +452,22 @@ Editor.get_javascript = function(use_selection=false){
     }
 }
 
-Editor.set_javascript = function(text){
+Editor.set_javascript = function(text) {
     //$("#js_textarea_id").val(text)
-    myCodeMirror.doc.setValue(text)
+    if (typeof (text) === "string") {
+        try {
+            myCodeMirror.doc.setValue(text)
+        } catch (err) {
+        }
+        //probably an error thrown by the linter which we don't want
+        //to actually throw an error, so catch it.
+        //started happening after 3.8.11
+    }
+    else {
+      shouldnt("Editor.set_javscript passed non-string: " + text)
+    }
 }
+
 
 Editor.selection_start = function(){
     return myCodeMirror.indexFromPos(myCodeMirror.getCursor("start"))
@@ -620,10 +632,14 @@ Editor.open_from_dexter_computer = function(){
 }
 
 Editor.open_on_dde_computer = function(){
-    const path = choose_file({title: "Choose a file to edit", properties: ['openFile']})
-    if (path){
-        Editor.edit_file(path)
-    }
+    choose_file({title: "Choose a file to edit", properties: ['openFile']},
+        function(err, path) {
+            if (err) {
+                warning("Editor.open_on_dde_computer canceled")
+            } else {
+                Editor.edit_file(path)
+            }
+        })
 }
 
 //can't be a closure, can't be in a class'es namespace. yuck.
@@ -660,7 +676,6 @@ handle_open_system_file = function(vals){
     else if (vals.clicked_button_value == "show dde_persistent.json"){
         let content = read_file("dde_persistent.json")
         content = replace_substrings(content, "\n", "<br/>")
-        out(content)
     }
     else if (vals.clicked_button_value.endsWith("Defaults.make_ins")){
         let path = vals.clicked_button_value.split(" ")[1]
@@ -1136,19 +1151,25 @@ function save_as_cb(vals){
     )
 }*/
 
-Editor.save_as = function(){
-    const title     = 'save "' + Editor.current_file_path + '" as'
+Editor.save_as = function() {
+    const title = 'save "' + Editor.current_file_path + '" as'
     const default_path = ((Editor.current_file_path == "new buffer") ? dde_apps_folder : Editor.current_file_path)
-    const path = choose_save_file({title: title, defaultPath: default_path}) //sychronous! good
-    if(path) { //path will be undefined IF user canceled the dialog
-        let content = Editor.get_javascript()
-        write_file_async(path, content)
-        Editor.add_path_to_files_menu(path)
-        Editor.current_file_path = path
-        Editor.remove("new buffer") //if any
-        myCodeMirror.focus()
-        Editor.unmark_as_changed()
-    }
+    choose_save_file({title: title, defaultPath: default_path},
+                function (err, path){
+                    if(err){
+                        warning("Could not save as " + path)
+                    }
+                    else { //path will be undefined IF user canceled the dialog
+                        let content = Editor.get_javascript()
+                        write_file_async(path, content)
+                        Editor.add_path_to_files_menu(path)
+                        Editor.current_file_path = path
+                        Editor.remove("new buffer") //if any
+                        myCodeMirror.focus()
+                        Editor.unmark_as_changed()
+                    }
+                }
+    )
 }
 
 //can't be a closure, can't be in a class'es namespace. yuck.

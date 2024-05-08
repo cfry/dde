@@ -50,7 +50,10 @@ var Robot = class Robot {
     }
 
     static get_simulate_actual(simulate_val){
-        if      (simulate_val === true)   { return true   }
+        if(platform === "node") {
+             return false //because now when in job engine, never attempt to run simulator
+        }
+        else if      (simulate_val === true)   { return true   }
         else if (simulate_val === false)  { return false  }
         else if (simulate_val === "both") { return "both" }
         else if (simulate_val === null)   { return persistent_get("default_dexter_simulate") }
@@ -110,7 +113,7 @@ var Robot = class Robot {
                 }
                 else { return false }
             }
-            else { return true }
+            else { return !is_digit(oplet) } //ie its not a letter or puncutation, so probably a digit was when we have variable-length instructions, If so, return false
         }
         else { return false }
     }
@@ -1047,6 +1050,9 @@ Dexter = class Dexter extends Robot {
         this.pid_angles = [0, 0, 0, 0, 0, 0, 0]
         //this.processing_flush = false //primarily used as a check. a_robot.send shouldn't get called while this var is true
         this.busy_job_array = []
+
+        this.servos = Servo.make_servos_for_dexter()
+
         Robot.set_robot_name(this.name, this)
          //ensures the last name on the list is the latest with no redundancy
         let i = Dexter.all_names.indexOf(this.name)
@@ -1438,6 +1444,16 @@ Dexter = class Dexter extends Robot {
         else if((error_code !== 0) && (oplet !== "r")){ //we've got an error
                 //job_instance.stop_for_reason("errored", "Robot status got error: " + error_code)
             job_instance.wait_until_instruction_id_has_run = null //but don't increment PC
+            let busy_job_array_copy = rob.busy_job_array.slice()
+            rob.clear_busy_job_array() //so that the other jobs that I call set_up_next_do, won't hang up because they are busy,
+            //because they no longer should be busy, because we got back our ack from Dexter that was keeping them busy,
+            for(let busy_job of busy_job_array_copy){
+                if(busy_job === job_instance) {} //let this pass through to the below as the passed in robot_status is from this instrr and this job_instance
+                else {
+                    busy_job.set_up_next_do(0) //now execute the instr at the PC in an OTHER job, without advancing it.
+                    return
+                }
+            }
             let instruction_to_run_when_error = job_instance.if_robot_status_error //.call(job_instance, robot_status)
             if(instruction_to_run_when_error){
                 //note instruction_to_run_when_error can be a single instruction or an array
@@ -1519,7 +1535,7 @@ Dexter = class Dexter extends Robot {
     clean_up_busy_job_array(){
        let result = []
        for(let a_job of this.busy_job_array){
-            if(a_job.is_active()) { //remove inactive jobs from busy_job_array by preserviong the still active ones
+            if(a_job.is_active()) { //remove inactive jobs from busy_job_array by preserving the still active ones
                 if(!result.includes(a_job)) { //remove duplicates
                     result.push(a_job)
                 }
@@ -1766,8 +1782,10 @@ Dexter.empty_instruction_queue_immediately = function(){
 }
 Dexter.prototype.empty_instruction_queue_immediately = function(...args){ args.push(this); return Dexter.empty_instruction_queue_immediately(...args) }
 
-Dexter.empty_instruction_queue           = function() { return make_ins("F") }
-Dexter.prototype.empty_instruction_queue = function(...args){ args.push(this); return Dexter.empty_instruction_queue(...args) }
+Dexter.empty_instruction_queue = function(...args) {
+        return make_ins("F", ...args)
+}
+Dexter.prototype.empty_instruction_queue = function(){  return Dexter.empty_instruction_queue(this) }
 
 Dexter.find_index           = function(...args){ return make_ins("n", ...args) }
 Dexter.prototype.find_index = function(...args){ args.push(this); return Dexter.find_index(...args) }
@@ -2044,18 +2062,43 @@ Dexter.prototype.move_to = function(xyz            = [],
                          j7_angle,
                          this)
 }
-
-//note that a workspace_pose = null, will default to the job's default workspace_pose
 Dexter.move_to = function(xyz            = [],
-                          J5_direction   = [0, 0, -1],
-                          config         = Dexter.RIGHT_UP_OUT,
-                          workspace_pose = null,
-                          j6_angle       = [0],
-                          j7_angle       = [0],
-                          robot
-                         ){
-       return new Instruction.Dexter.move_to(xyz, J5_direction, config, workspace_pose, j6_angle, j7_angle, robot)
+                             J5_direction   = [0, 0, -1],
+                             config         = Dexter.RIGHT_UP_OUT,
+                             workspace_pose = null,
+                             j6_angle       = [0],
+                             j7_angle       = [0],
+                             robot
+){
+    return new Instruction.Dexter.move_to(xyz, J5_direction, config, workspace_pose, j6_angle, j7_angle, robot)
 }
+
+
+Dexter.prototype.move_to_DH = function(xyz              = [],
+                                       orientation = [[-1, 0, 0],
+                                                                 [0, 0, 1],
+                                                                 [0, 1, 0]
+                                                                ],
+                                       dh_mat,
+                                       robot
+                                    ) {
+    return Dexter.move_to_DH(xyz,
+        orientation,
+        dh_mat,
+        this)
+}
+
+Dexter.move_to_DH = function(xyz   = [],
+                             orientation = [[-1, 0, 0],
+                                 [0, 0, 1],
+                                 [0, 1, 0]
+                             ],
+                             dh_mat,
+                             robot
+){
+    return new Instruction.Dexter.move_to_DH(xyz, orientation, dh_mat, robot)
+}
+
 
 //the same as move_to but generates a "P" oplet
 Dexter.prototype.pid_move_to = function(xyz        = [],
@@ -2134,6 +2177,17 @@ Dexter.move_to_straight = function({xyz          = "required",
                                                     j7_angle: j7_angle,
                                                     single_instruction: single_instruction,
                                                     robot: robot})
+}
+
+Dexter.reboot_robot           = function(){ return make_ins("r", 0, "`reboot") }
+Dexter.prototype.reboot_robot = function(){ return make_ins("r", 0, "`reboot", this) }
+Dexter.is_reboot_instruction  = function (inst){
+    return Array.isArray(inst) &&
+        inst.length === 7 &&
+        inst[Instruction.INSTRUCTION_TYPE] === "r" &&
+        inst[Instruction.INSTRUCTION_ARG0] === 0 &&
+        inst[Instruction.INSTRUCTION_ARG1].endsWith("reboot") &&
+        inst[Instruction.INSTRUCTION_ARG1].startsWith("`")
 }
 
 Dexter.record_movement           = function(...args){ return make_ins("m", ...args) }
@@ -2315,27 +2369,44 @@ Dexter.prototype.turn_on_j6_and_j7_torque  = function(){
             this.set_parameter("ServoSet", 1, 24, 1)] //J7, for XL-320 motors
 }
 
+Dexter.set_follow_me                = function(){
+    return [make_ins("S", "RunFile", "setFollowMeMode.make_ins"),
+        Dexter.turn_off_j6_and_j7_torque(),
+        Dexter.set_parameter("MotorEnable", 0)
+    ]
+}
+
+Dexter.prototype.set_follow_me      = function(){
+    return [make_ins("S", "RunFile", "setFollowMeMode.make_ins", this),
+        this.turn_off_j6_and_j7_torque(),
+        this.set_parameter("MotorEnable", 0)]}
+
+
 
 //from Dexter_Modes.js (these are instructions. The fns return an array of instructions
-Dexter.set_follow_me                = function(){ return [make_ins("S", "RunFile", "setFollowMeMode.make_ins"),
-                                                          Dexter.turn_off_j6_and_j7_torque()]}
-Dexter.prototype.set_follow_me      = function(){ return [make_ins("S", "RunFile", "setFollowMeMode.make_ins", this),
-                                                          this.turn_off_j6_and_j7_torque()]}
+Dexter.set_keep_position            = function(){
+    return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins"),
+        Dexter.turn_on_j6_and_j7_torque(),
+        Dexter.set_parameter("MotorEnable", 1)]}
 
-Dexter.set_force_protect            = function(){ return [make_ins("S", "RunFile", "setForceProtectMode.make_ins"),
-                                                          Dexter.turn_on_j6_and_j7_torque()]}
-Dexter.prototype.set_force_protect  = function(){ return [make_ins("S", "RunFile", "setForceProtectMode.make_ins", this),
-                                                          this.turn_on_j6_and_j7_torque()]}
+Dexter.prototype.set_keep_position  = function(){
+    return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins", this),
+        this.turn_on_j6_and_j7_torque(),
+        this.set_parameter("MotorEnable", 1)]}
 
-Dexter.set_keep_position            = function(){ return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins"),
-                                                          Dexter.turn_on_j6_and_j7_torque()]}
-Dexter.prototype.set_keep_position  = function(){ return [make_ins("S", "RunFile", "setKeepPositionMode.make_ins", this),
-                                                          this.turn_on_j6_and_j7_torque()]}
+Dexter.set_force_protect            = function(){ return make_ins("S", "RunFile", "setForceProtectMode.make_ins")
+                                                          //Dexter.turn_on_j6_and_j7_torque()]
+                                      }
+Dexter.prototype.set_force_protect  = function(){ return make_ins("S", "RunFile", "setForceProtectMode.make_ins", this)
+                                                          //this.turn_on_j6_and_j7_torque()]
+                                      }
 
-Dexter.set_open_loop                = function(){ return [make_ins("S", "RunFile", "setOpenLoopMode.make_ins"),
-                                                          Dexter.turn_on_j6_and_j7_torque()]}
-Dexter.prototype.set_open_loop      = function(){ return [make_ins("S", "RunFile", "setOpenLoopMode.make_ins", this),
-                                                          this.turn_on_j6_and_j7_torque()]}
+Dexter.set_open_loop                = function(){ return make_ins("S", "RunFile", "setOpenLoopMode.make_ins")
+                                                         // Dexter.turn_on_j6_and_j7_torque()] //use to be in before Nov 3, 2022 but James N says shouldn't be there
+                                      }
+Dexter.prototype.set_open_loop      = function(){ return make_ins("S", "RunFile", "setOpenLoopMode.make_ins", this)
+                                                        // this.turn_on_j6_and_j7_torque()] //use to be in before Nov 3, 2022 but James N says shouldn't be there
+                                      }
 
 
 //End Dexter Instructions
@@ -2561,18 +2632,26 @@ Dexter.prototype.set_link_lengths = function(job_to_start_when_done = null) {
     let sim_actual = Robot.get_simulate_actual(this.simulate)
     if (job_to_start_when_done && (job_to_start_when_done.name === "set_link_lengths")) {
         this.start_aux(job_to_start_when_done)
-    } else if (job_to_start_when_done.get_dexter_defaults) {
+    }
+    else if (job_to_start_when_done.get_dexter_defaults) {
         if (sim_actual !== true) { //ie "real"
-            if (node_server_supports_editor(this)) {
+            if (globalThis.platform == "node") {
+                //just get the file.
                 this.set_link_lengths_using_node_server(job_to_start_when_done)
-            } else {
+
+            }
+            else if (node_server_supports_editor(this)) {
+                this.set_link_lengths_using_node_server(job_to_start_when_done)
+            }
+            else {
+                /*replaced Apr 3, 2024 with the below 2 lines. Requested by James W to help with
+                   his proxy server.
                 job_to_start_when_done.stop_for_reason("errored_from_dexter_connect",
                     "While attempting to set_link_lengths, " +
                            " can't connect to Dexter." + this.name)
-                //dde_error("Dexter." + this.name + "'s node server is not responding.<br/>" +
-                //    "Set the Job's 'get_dexter_defaults' param to false to avoid looking for Defaults.makeins file and<br/>" +
-                //    "initialize Dexter defaults to their idealized values.")
-                //this.set_link_lengths_using_job(job_to_start_when_done)
+                */
+                this.defaults = Dexter.defaults
+                this.start_aux(job_to_start_when_done)
             }
         } else { //simulating, so set to idealized values
             this.defaults = Dexter.defaults
@@ -2711,7 +2790,7 @@ Dexter.prototype.set_link_lengths_using_job = function(job_to_start){
     ssl_job.start()
 }
 */
-
+/* no longer callaed
 Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
     let path = dde_apps_folder + "/dexter_file_systems/"  + this.name + "/Defaults.make_ins"
     if(file_exists(path)) {
@@ -2731,7 +2810,7 @@ Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
         this.J3_angle_min = Dexter.J3_ANGLE_MIN
         this.J4_angle_min = Dexter.J4_ANGLE_MIN
         this.J5_angle_min = Dexter.J5_ANGLE_MIN
-        this.J6_angle_min = Dexter.J6_ANGLE_MIN
+        this.J6_angle_min = ƒ
         this.J7_angle_min = Dexter.J7_ANGLE_MIN
 
         this.J1_angle_max = Dexter.J1_ANGLE_MAX
@@ -2748,6 +2827,8 @@ Dexter.prototype.set_link_lengths_using_dde_db = function(job_to_start){
     }
 }
 
+
+ */
 //content is the content of a Defaults.make_ins file
 //sets link lengths as well as any other params in the file.
 Dexter.prototype.set_link_lengths_from_file_content = function(content) {

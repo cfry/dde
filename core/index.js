@@ -1,6 +1,5 @@
-global.dde_version = "3.8.7" //require("../package.json").version
-global.dde_release_date = "Jun 22, 2022" //require("../package.json").release_date
-
+global.dde_version = "3.9.2" //require("../package.json").version
+global.dde_release_date = "Apr 5, 2024" //require("../package.json").release_dat9
 console.log("dde_version: " + global.dde_version + " dde_release_date: " + global.dde_release_date +
             "\nRead electron_dde/core/job_engine_doc.txt for how to use the Job Engine.\n")
 
@@ -17,6 +16,7 @@ function node_on_ready() {
         global.dde_apps_folder = "/srv/samba/share/dde_apps" //process.env.HOME //ie  /Users/Fry
                                                              //+ "/Documents/dde_apps"
     }
+    init_storage()
     //not needed for node version
     //var pckg         = require('../package.json');
     //global.dde_version      = pckg.version
@@ -118,14 +118,22 @@ function run_shell_cmd_default_cb (error, stdout, stderr){
 function run_shell_cmd(cmd_string, options={}, cb=run_shell_cmd_default_cb){
     exec(cmd_string, options, cb)
 }
+var child_process = require("child_process")
+var WebSocket = require('ws')
+var fs = require('fs')
+var mathjs = require('mathjs')
+
+var Socket = require("./socket.js")
+
+var {to_source_code} = require("./to_source_code.js")
 
 var {adjust_path_to_os, append_to_file,
     choose_file, choose_save_file, choose_file_and_get_content, choose_folder,
     copy_file_async, copy_folder_async,
     dde_init_dot_js_initialize, file_content, //file_content is deprecated
     file_exists, folder_listing, folder_separator, folder_name_version_extension,
-    get_latest_path, get_page_async,
-    is_folder, load_files,
+    get_latest_path, get_page, get_page_async,
+    init_storage, is_folder, load_files,
     make_folder, make_full_path, make_unique_path,
     persistent_get, persistent_initialize, persistent_remove, persistent_save,
     read_file, read_file_async, write_file, write_file_async} = require('./storage.js')
@@ -134,6 +142,8 @@ var {Root} = require("./object_system.js")
 var Coor   = require("../math/Coor.js")
 var Kin    = require("../math/Kin.js")
 var Vector = require("../math/Vector.js")
+var DH     = require("../math/DH.js")
+
 var {sind, cosd, tand, asind, acosd, atand, atan2d} = require("../math/Trig_in_Degrees.js")
 var Job    = require("./job.js")
 
@@ -158,7 +168,7 @@ var calibrate_build_tables = require("../low_level_dexter/calibrate_build_tables
 var DXF    = require("../math/DXF.js")
 var {init_units} = require("./units.js")
 var {FPGA} = require("./fpga.js")
-require('./core/dexter_defaults.js')
+require('./dexter_defaults.js') //bug: needed to  take out /core from the path
 
 var {convertArrayBufferToString, convertStringToArrayBuffer,
      SerialPort, serial_connect, serial_connect_low_level,
@@ -166,6 +176,8 @@ var {convertArrayBufferToString, convertStringToArrayBuffer,
      serial_disconnect, serial_disconnect_all,  serial_flush,
      serial_get_or_make_port, serial_path_to_port_map,
      serial_port_path_to_info_map, serial_port_init, serial_send, serial_send_low_level} = require("./serial.js")
+require("./servo.js") //defines globalThis.Servo
+
 
 var {close_readline, set_keep_alive_value, write_to_stdout} = require("./stdio.js")
 
@@ -176,6 +188,12 @@ var {Messaging, MessStat} =  require("./messaging.js")
 var {Py} = require("./py.js")
 
 // see also je_and_browser_code.js for global vars.
+global.child_process = child_process
+global.WebSocket = WebSocket
+global.fs       = fs
+global.mathjs   = mathjs
+global.Socket   = Socket
+global.to_source_code = to_source_code
 global.keep_alive_value = false
 global.Brain    = Brain
 global.Dexter   = Dexter
@@ -208,6 +226,7 @@ global.Control  = Control
 global.IO       = IO
 global.Job      = Job
 global.Vector   = Vector
+global.DH       = DH
 global.Kin      = Kin
 global.FPGA     = FPGA
 
@@ -229,6 +248,7 @@ global.folder_listing = folder_listing
 global.folder_separator = folder_separator
 global.folder_name_version_extension = folder_name_version_extension
 global.get_latest_path = get_latest_path
+global.get_page = get_page
 global.get_page_async = get_page_async
 global.is_folder = is_folder
 global.load_files = load_files
@@ -238,7 +258,10 @@ global.persistent_get = persistent_get
 global.persistent_remove = persistent_remove
 global.persistent_save = persistent_save
 global.read_file = read_file
+global.read_file_async = read_file_async
 global.write_file = write_file
+global.write_file_async = read_file_async
+
 
 
 global.close_readline = close_readline

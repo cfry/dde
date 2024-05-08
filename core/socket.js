@@ -1,4 +1,7 @@
 /* Created by Fry on 2/4/16. */
+console.log("top of socket.js")
+globalThis.WebSocketServer = require('ws').Server
+
 //https://www.hacksparrow.com/tcp-socket-programming-in-node-js.html
 const net = require("net")
 globalThis.net = net
@@ -121,7 +124,10 @@ var Socket = class Socket{
                                                      "\n failed after 2 seconds.")
                     }
                 }, 2000)
-                net_soc_inst.connect(rob.port, rob.ip_address)
+                let ip_addr = rob.ip_address
+                if (ip_addr == "localhost") ip_addr = "127.0.0.1" // net.connect wants a number as a string
+                console.log("Socket.init trying to connect to port:"+rob.port+" ip:"+ip_addr)
+                net_soc_inst.connect(rob.port, ip_addr)
             } //ending the case where we need to make a new net_soc_inst
 
             /*out(job_instance.name + "Socket.init before connect, net_soc_inst.readyState: " + net_soc_inst.readyState)
@@ -170,10 +176,10 @@ var Socket = class Socket{
         }
     }
 
-    static oplet_array_or_string_to_array_buffer(oplet_array_or_string){
+    /*static oplet_array_or_string_to_array_buffer(oplet_array_or_string){
         let str = this.oplet_array_or_string_to_string(oplet_array_or_string)
         return this.string_to_array_buffer(str)
-    }
+    }*/
 
     static oplet_array_or_string_to_string(oplet_array_or_string) {
         if (typeof(oplet_array_or_string) == "string") { return oplet_array_or_string }
@@ -193,10 +199,49 @@ var Socket = class Socket{
         }
     }
 
+    //the below should replace oplet_array_or_string_to_string once its proved to work
+    static oplet_array_or_string_to_variable_length_string(oplet_array_or_string){
+        if (typeof(oplet_array_or_string) === "string") {
+            return oplet_array_or_string
+        }
+        else {
+            let op_arr = oplet_array_or_string
+            let prefix_str = ""
+            for(let i = 0; i < Instruction.INSTRUCTION_TYPE; i++){ //Instruction.INSTRUCTION_TYPE is 4. We put the LENGTH of the text including the oplet and the space before it into the resulting string
+                let elt = op_arr[i]
+                prefix_str += elt + " "
+            }
+            //prefix_str ends in a space. and contains up to but not including the oplet
+            let postfix_str = ""
+            for (let i = Instruction.INSTRUCTION_TYPE; i < op_arr.length; i++){
+                let elt = op_arr[i]
+                if (Number.isNaN(elt)) { elt = "NaN" }
+                postfix_str +=  " " + elt
+            }
+            postfix_str += ";"
+            //postfix_str starts with space and ends with semicolon
+            let len = postfix_str.length
+            let str = prefix_str + len + postfix_str
+            return str
+        }
+    }
+
     static string_to_array_buffer(str){
-        var arr_buff = Buffer.alloc(128) //dexter code expecting fixed length buf of 128
+        var arr_buff = Buffer.alloc(256) //was 128 but no reason not to have it 256
         //var view1    = new Uint8Array(arr_buff)
         for(var i = 0; i < str.length; i++){
+            let char = str[i]
+            let code = char.charCodeAt(0)
+            arr_buff[i] = code
+        }
+        return arr_buff
+    }
+
+    static string_to_variable_length_array_buffer(str){
+        let len = str.length
+        var arr_buff = Buffer.alloc(len) //was 128 but no reason not to have it 256
+        //var view1    = new Uint8Array(arr_buff)
+        for(var i = 0; i < len; i++){
             let char = str[i]
             let code = char.charCodeAt(0)
             arr_buff[i] = code
@@ -262,6 +307,13 @@ var Socket = class Socket{
                 let converted_val = this.degrees_to_dexter_units(arg_val, i + 1)
                 instruction_array_copy[index] = converted_val
             }
+            return instruction_array_copy
+        }
+        else if (oplet === "M"){ //Move to
+            let instruction_array_copy = instruction_array.slice()
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] = instruction_array_copy[Instruction.INSTRUCTION_ARG0] * 1000000 //convert meters to microns
+            instruction_array_copy[Instruction.INSTRUCTION_ARG1] = instruction_array_copy[Instruction.INSTRUCTION_ARG1] * 1000000 //convert meters to microns
+            instruction_array_copy[Instruction.INSTRUCTION_ARG2] = instruction_array_copy[Instruction.INSTRUCTION_ARG2] * 1000000 //convert meters to microns
             return instruction_array_copy
         }
         else if (oplet === "S") {
@@ -331,6 +383,13 @@ var Socket = class Socket{
                     Math.round(instruction_array_copy[Instruction.INSTRUCTION_ARG5] * 3600)
                 return instruction_array_copy
             }
+            else if (name.startsWith("Joint")){ //JointSpeed, JointAcceleration
+                let instruction_array_copy = instruction_array.slice()
+                let old_val = instruction_array_copy[Instruction.INSTRUCTION_ARG2]
+                let new_val = old_val * 3600
+                instruction_array_copy[Instruction.INSTRUCTION_ARG2] = new_val
+                return instruction_array_copy
+            }
             else { return instruction_array }
         }
         else if (oplet == "T") { //move_to_straight
@@ -374,6 +433,13 @@ var Socket = class Socket{
                 let converted_val = this.dexter_units_to_degrees(arg_val, i + 1)
                 instruction_array_copy[index] = converted_val
             }
+            return instruction_array_copy
+        }
+        else if (oplet === "M"){ //Move to
+            let instruction_array_copy = instruction_array.slice()
+            instruction_array_copy[Instruction.INSTRUCTION_ARG0] = instruction_array_copy[Instruction.INSTRUCTION_ARG0] / 1000000 //convert microns to meters
+            instruction_array_copy[Instruction.INSTRUCTION_ARG1] = instruction_array_copy[Instruction.INSTRUCTION_ARG1] / 1000000 //convert microns to meters
+            instruction_array_copy[Instruction.INSTRUCTION_ARG2] = instruction_array_copy[Instruction.INSTRUCTION_ARG2] / 1000000 //convert microns to meters
             return instruction_array_copy
         }
         else if (oplet === "S") {
@@ -443,6 +509,13 @@ var Socket = class Socket{
                     instruction_array_copy[Instruction.INSTRUCTION_ARG5] / 3600    //orig in arcsecs
                 return instruction_array_copy
             }
+            else if (name.startsWith("Joint")){ //JointSpeed, JointAcceleration
+                let instruction_array_copy = instruction_array.slice()
+                let old_val = instruction_array_copy[Instruction.INSTRUCTION_ARG2]
+                let new_val = old_val / 3600
+                instruction_array_copy[Instruction.INSTRUCTION_ARG2] = new_val
+                return instruction_array_copy
+            }
             else { return instruction_array }
         }
         else if (oplet == "T") { //move_to_straight
@@ -469,6 +542,7 @@ var Socket = class Socket{
     }
 
     static send(robot_name, oplet_array_or_string){ //can't name a class method and instance method the same thing
+        let is_reboot_inst = Dexter.is_reboot_instruction(oplet_array_or_string)
         let rob = Robot[robot_name]
         let oplet_array_or_string_du = Socket.instruction_array_degrees_to_arcseconds_maybe(oplet_array_or_string, rob)
         let job_id = Instruction.extract_job_id(oplet_array_or_string)
@@ -478,21 +552,26 @@ var Socket = class Socket{
                      "<br/>extracted job_id:" + job_id + " but no defined Job with that ID.")
         }
         //out(job_instance.name + " " + robot_name + " Socket.send passed oplet_array_or_string: " + oplet_array_or_string)
+        const str =  Socket.oplet_array_or_string_to_string(oplet_array_or_string_du) //will be replaced with oplet_array_or_string_to_variable_length_string
+        const arr_buff = Socket.string_to_array_buffer(str)
 
-        const str =  Socket.oplet_array_or_string_to_string(oplet_array_or_string_du)
         if(Instruction.is_F_instruction_string(str)) {
             rob.waiting_for_flush_ack = true
         }
         if(job_instance.keep_history) {
             job_instance.sent_instructions_strings.push(str)
         }
-        const arr_buff = Socket.string_to_array_buffer(str)
-        const sim_actual = Robot.get_simulate_actual(rob.simulate)
+
+        var sim_actual = Robot.get_simulate_actual(rob.simulate)
         if((sim_actual === true) || (sim_actual === "both")){
             let sim_inst = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
             if(sim_inst) {
                 setTimeout( function() { //eqiv to net_soc_inst.write(arr_buff) below.
                     DexterSim.send(robot_name, arr_buff)
+                    if(is_reboot_inst) {
+                        job_instance.stop_for_reason("completed", "Dexter.reboot_robot instruction sent.")
+                        DexterSim.uninit(robot_name)
+                    }
                 }, 1)}
             else {
                 Socket.close(robot_name, true) //both are send args
@@ -505,10 +584,12 @@ var Socket = class Socket{
             let net_soc_inst = Socket.robot_name_to_soc_instance_map[robot_name]
             if(net_soc_inst && (net_soc_inst.readyState === "open")) {
                 try {
-                    //console.log("Socket.send about to send: " + str)
                     net_soc_inst.write(arr_buff) //if doesn't error, success and we're done with send
-                    //console.log("Socket.send just sent:     " + str)
-                    //this.stop_job_if_socket_dead(job_id, robot_name)
+                    if(is_reboot_inst){
+                        job_instance.stop_for_reason("completed", "Dexter.reboot_robot instruction sent.")
+                        warning("Rebooting Dexter." + robot_name + " due to running reboot instruction.")
+                        delete Socket.robot_name_to_soc_instance_map.robot_name
+                    }
                     return
                 }
                 catch(err) {
@@ -617,6 +698,11 @@ var Socket = class Socket{
         let job_id = robot_status[Dexter.JOB_ID]
         let job_instance = Job.job_id_to_job_instance(job_id)
         //out(job_instance.name + " " + rob.name + " bottom of Socket.on_receive with: " + robot_status)
+
+        //if(oplet === "M"){ //todo just temporary for testing. remove.
+        //    robot_status[Dexter.ERROR_CODE] = 9
+        //}
+
         dexter_instance.robot_done_with_instruction(robot_status) //robot_status ERROR_CODE *might* be 1
     }
 

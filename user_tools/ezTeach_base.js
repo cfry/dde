@@ -595,7 +595,11 @@ function Init_Run(){
 	
     // Load in saved points file
     if(points_filepath == "choose_file"){
-		points_filepath = choose_file({buttonLabel: "Open"})
+		points_filepath = choose_file({buttonLabel: "Open"}) //feb 2024: this will error because
+        //we needed to make all choose_file calls take a callback to do their work with
+        //the chosen path. BUT given that Init_Run is used as a do_list item
+        //that is supposed to return an array of instruction at Job run time,
+        //that's quite hard to figure out how to make it work. So I didn't do it.
     	if(points_filepath === undefined){
     		return Control.stop_job
     	}

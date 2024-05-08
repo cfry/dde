@@ -5,7 +5,8 @@ var Convert = require("./math/Convert.js")
 var Coor    = require("./math/Coor.js")
 var Kin     = require("./math/Kin.js")
 var Vector  = require("./math/Vector.js")
-require("./math/dh.js")     //makes DH global
+require("./math/DH.js")     //makes DH global
+require("./math/HiMem.js")  //makes HiMem global
 var txt     = require("./math/txt.js")
 var calibrate_build_tables = require("./low_level_dexter/calibrate_build_tables.js")
 
@@ -15,6 +16,7 @@ var {convertArrayBufferToString, convertStringToArrayBuffer,
     serial_connect_low_level,
     serial_send_low_level, serial_connect, serial_send, serial_flush, serial_disconnect,
     serial_disconnect_all} = require("./core/serial.js")
+require("./core/serial.js") //defines globalThis.Servo
 
 
 var {array_to_html_table, array_to_csv, csv_to_array,
@@ -32,7 +34,7 @@ var {adjust_path_to_os, append_to_file,
      choose_file, choose_save_file, choose_file_and_get_content, choose_folder,
      copy_file_async, copy_folder_async,
      file_exists, folder_listing, folder_separator, folder_name_version_extension,
-     get_latest_path, get_page_async,
+     get_latest_path, get_page, get_page_async,
      is_folder, load_files,
      make_folder, make_full_path, make_unique_path,
      persistent_get, persistent_remove, persistent_save,
@@ -60,15 +62,18 @@ var {Instruction, make_ins, human_task_handler, human_enter_choice_handler,
 var {FPGA} = require('./core/fpga.js')
 var {Robot, Brain, Dexter, Human, Serial} = require('./core/robot.js')
 
+
 //Brain.brain0 = new Brain({name: "brain0"})
 
 var {RobotStatus} = require('./core/robot_status.js')
 
 var {Control} = require('./core/instruction_control.js')
 var {IO} = require('./core/instruction_io.js')
+require('./core/instruction_j_move.js')
 require('./core/dexter_defaults.js')
 var Job  = require('./core/job.js')
-require('./core/dex.js') //makes Dex global
+require('./core/dex.js')   //makes Dex global
+require('./core/servo.js') //makes Servo global
 var {Messaging, MessStat} = require('./core/messaging.js')
 var {linux_error_message} = require('./core/linux_error_message.js')
 

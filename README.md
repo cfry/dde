@@ -1,7 +1,9 @@
 # Dexter Development Environment
 DDE allows user to develop and run software on the Dexter 5 axis robot arm made by: http://hdrobotic.com \
 DDE is fundamentally a JavaScript development environment with lots of extensions.\
-Most users will simply want to download the appropriate application file for their operating system.\
+This branch is for DDE 3.x which is an Electron App which installs on your PC. DDE 4 has been ported to a cloud application on the DDE4 branch and is available at \
+https://cfry.github.io/dde4/dde/
+To install DDE3, most users will simply want to download the appropriate application file for their operating system.\
 Start by clicking on the **releases** word near the top of this window (github main DDE) page\
 or browse https://github.com/cfry/dde/releases .\
 The "doc" folder above contains a lot of documenation on DDE.\

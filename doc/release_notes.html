@@ -5,8 +5,327 @@
     }
     .doc_details summary { font-weight: 600; }
 </style>
+
+<details class="doc_details"><summary>v 3.9.2, Apr 5, 2024</summary>
+Highlights: New, no-error process for getting Defaults.makeins file from Dexter.
+    New Job instruction: Dexter.move_to_DH.
+    New HiMem class.
+<ul>
+    <li>Ref Man Robot/Dexter/Servo extended to describe J6 and 7 motors
+        as Dynamixel servos.</li>
+    <li> When getting the Defaults.makeins from Dexter, now does, in order:
+        <ol><li>Check for the file /srv/samba/share/Defaults.make_ins.
+            If it is not present...</li>
+            <li>Check for the file /srv/samba/share/make_ins/Defaults.make_ins
+                If it is not present...</li>
+            <li>use the "default default" values from <code>Dexter.defaults</code></li>
+        </ol>
+    </li>
+    <li>If there is no server on Dexter, or some other errors parsing a found Defaults.make_ins,
+        prints a warning instead of erroring and uses the "default default" values.</li>
+    <li>Slight increase in height of the Output pane header to reduce the
+        likelyhood of a vertical scroll bar showing up in the Output pane header.</li>
+    <li>New Job instruction <code>Dexter.move_to_DH</code>. See Ref Man for details.</li>
+    <li><code>DH</code> and <code>mathjs</code> are now global variables.
+        You should not have to require these from now on.</li>
+    <li>New algorithm for using DH parameters.</li>
+    <li>HiMem class now contains utility methods for dealing with "Hi Mem" on Dexter.
+        <code>HiMem</code> is a global variable.</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.9.1, Mar 23, 2024</summary>
+    Highlights: new Servo class.
+    5 new end-effector Job instructions.
+    "M" oplet supported in the simulator.
+    No error with non-existent Defaults.make_ins file.
+<ul>
+    <li>Missing function <code>Gamepad.button_number_to_name</code> is now defined.</li>
+    <li>In function <code>init_view_eye</code>, removed setting of boundaries.</code></li>
+    <li><code>Job.prototype.if_robot_status_error_default</code> no longer
+        sets errors.log to empty content.</li>
+    <li><code>Job.prototype.if_robot_status_error_default</code> now prints out
+        only the last line of errors.log.</li>
+    <li><code>Job.prototype.rs_to_error_message</code>: extended error message.</li>
+    <li><code>"M" oplet now supported in the simulator.</code></li>
+    <li><code>Socket.instruction_array_degrees_to_arcseconds_maybe</code> added "M" oplet support.</li>
+    <li><code>Socket.instruction_array_arcseconds_to_degrees_maybe</code> added "M" oplet support.</li>
+    <li><code>Job.prototype.if_robot_status_error_default</code>: improved error message.</li>
+    <li><code>Job.prototype.rs_to_error_message</code> improved error message</li>
+    <li>Utils fns: <code>value_to_percent_hex</code> and <code>little_hex_to_integer</code> now defined.</li>
+    <li>Robustified function <code>out</code> so it doesn't error when called before
+        DDE window is up.</li>
+
+    <li>New <code>Servo</code> class. Documented in Ref Man/Robot/Servo.
+        Test Suite extended to test some of this new functionality.
+    </li>
+    <li> New end effector Dexter instructions:
+        <ul>
+            <li><code>Dexter.move_until_torque</code></li>
+            <li><code>Dexter.move_until_static</code></li>
+            <li><code>Dexter.twist</code></li>
+            <li><code>Dexter.grasp</code></li>
+            <li><code>Dexter.ungrasp</code></li>
+         </ul>
+          Documented in RefMan/Robot/Dexter/Dexter Instructions/End Effector Instructions.
+    </li>
+
+    <li>When /serve/samba/share/Default.make_ins doesn't exist on Dexter,
+        running a job no longer errors.
+        A warning message is printed, "default" versions of
+        the setting in Defaults.make_ins are used, and the job proceeds.
+    </li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.9.0, Feb 9, 2024</summary>
+Highlights: File menu items requiring choosing a file fixed.
+            New Dexter.j_move instuction
+<ul>
+    <li>Variable lengthed instructions now working in simulator.</li>
+    <li>Fixed bug in opencv examples:<br/>
+      dde menu Insert/machine Vision/Process WebCam, Face Recognition, Locate Object</li>
+      Now all Insert/Machine Vision/ examples working.
+    </li>
+
+    <li><code>choose_file</code>, <code>choose_folder</code>, <code>choose_save_file</code>, <code>choose_file_and_get_content</code>,
+        and the File menu items that
+        depend on them fixed, using new asnchronous function calling
+        required by the lastest Electron release.
+        Note that if you are calling choose_file or choose_folder,
+        you will have to extend your calls to take a callback of 2 arguments,
+        an "err" and a "path".
+        The following menn items have changed:
+    open<br/>
+    load file<br/>
+    insert file content<br/>
+    load and start job<br/>
+    insert file path into editor<br/>
+    insert file path into command line<br/>
+    save as<br/>
+    TestSuite.run_ts_in_file_ui<br/>
+    show_in_misc_pane  --- choose file.<br/>
+    Caution: EZTeach_base.js, Init_Run() has not been updated yet as this
+        is tricky. It is accessible from DDE menu/Insert/ezTeach,
+        but is now broken<br/></li>
+    <li>Added LICENSE file to source code.</li>
+    </ul>
+</details>
+
+<details class="doc_details"><summary>v 3.8.19, Jan 11, 2024</summary>
+    Highlights: Now works on new Apple Silicon Macs (M1 thru M3)
+    <ul>
+        <li> Upgraded Electron platform from version 5 to version 28
+            and made several "incompatible" fixes to underlying DDE code
+            to work under the new Election.</li>
+        <li>Defined (but am not calling) two functions to enable DDE3 to send to dexrun,
+            variable lengthed strings, which include the number of chars in the string
+            as an integer. This will help long instructions such as j oplet instructions.<br/>
+            To experiment with these new definitions, eval:<pre><code>
+    Socket.string_to_array_buffer =
+    Socket.string_to_variable_length_array_buffer
+    Socket.oplet_array_or_string_to_string =
+    Socket.oplet_array_or_string_to_variable_length_string</code></pre>
+     Note that this requires a newer version of dexrun on Dexter to process
+     this new instruction format.<br/>
+    Note that once these are proven to work, they'll become
+    the default definitions for string_to_array_buffer & oplet_array_or_string_to_string
+    in a later DDE3 release.
+    </li>
+
+    <li>For the OpenCV "blur" example under Insert menu/Machine Vision/blur,
+        improved the documentation from
+        <i>digested & displayed</i> to <i>blurred & displayed</i></li>
+    <li>Removed support for 32 bit WinOS computers. Sadly we can no longer
+        make releases including the serialpport npm package that work
+        for 32 bit WinOS.</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.8.18, Dec 15, 2023</summary>
+<ul>
+    <li>Fixed bug in Vector.DCM_to_quaternian.</li>
+
+</ul>
+</details>
+<details class="doc_details"><summary>v 3.8.17, Dec 6, 2023</summary>
+  <ul>
+       <li>Added <code>Dexter.j_move</code>, <code>Dexter.j_reset</code> instructions.</li>
+       <li>Added ref man entries for Dexter.j_move, Dexter.j_reset instructions.</li>
+       <li>Did not add support for j_move and j_reset in the simulator.</li>
+  </ul>
+</details>
+
+<details class="doc_details"><summary>v 3.8.16, Sep 12, 2023</summary>
+    Highlights: Bug fixes to the Calibration dialog box.
+<ul>
+    <li>In calibrate_ui.js, removed the first def of init_calibrate as that was
+        just getting overwritten with the 2nd.</li>
+    <li>In calibrate_ui.js, increased the window height to 660 to get rid of the vertical scroll bar
+        in some situations.</li>
+    <li>New version of function: <code>init_view_eye</code> in file: ViewEyeRealTime.js
+        and other fixes for the new number widgets at the bottom of the dialog involving
+        "Number("</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.8.15, Sep 8, 2023</summary>
+Highlights: defaults.makeins and Calibrate Dexter dialog improved.
+    <ul>
+        <li>Its now possible to close the dde window if you've replace
+            the whole ui (the body_id dom element).</li>
+        <li>The packet size for sending instructions to Dexter has been increased from 128 to 256 bytes.</li>
+        <li> defaults.makeins handling has been improved, including support for
+            S params: <code>JointSpeed</code>, <code>JointAcceleration</code>,
+            <code>MotorMode</code>.</li>
+        <li>Calibrate Dexter dialog has been updated with a new footer legend
+            and 5 properties across the bottom.</li>
+    </ul>
+</details>
+
+<details class="doc_details"><summary>v 3.8.14, Mar 24, 2023</summary>
+Highlights mathjs installed, fixes and extensions for class Vector that uses mathjs.
+    Fix and extension for Defaults.make_ins processing.
+<ul>
+    <li>Fixed bug in Jobs menu Show Robot Status whereby,
+        if the last job run had a robot that was not a Dexter,
+        it would not display the dialog box.</li>
+    <li>Fixed bug in <code>to_source_code</code> in the argument when calling to_source_code_lit_obj.</li>
+    <li>Fix for <code>Dexter.prototype.defaults_high_level_to_defaults_lines_ServoSetup_line</code>
+        about duplicate RebootServo written out to defaults.make_ins</li>
+    <li>Extended <code>Defaults.make_ins</code> parsing and writing back out to accomadate <code>CmdXor</code> processing.</li>
+    <li><code>Vector.rotate</code> fixed for "term3"</li>
+    <li>Fixed doc eval_after_changing_dde-init</li>
+    <li><code>mathjs</code> is now installed in DDE3. To use it: for example, <code>mathjs.eigs(...)</code></li>
+    <li>Vector.js new methods on <code>Vector</code> class: <code>circle_fit_3D</code>,
+       <code>circle_fit_2D</code>, <code>plane_fit</code>. plane_fit calls <code>mathjs.eigs</code></li>
+    <li><code>Dexter.robot_done_with_instruction</code> extended to better handle errors.</li>
+</ul>
+</details>
+<details class="doc_details"><summary>v 3.8.13, Nov 24, 2022</summary>
+Highlights: Big fixes to Dexter.defaults, zip file support
+<ul>
+    <li>Fix to <code>Dexter.prototype.defaults_write</code></li>
+    <li>Fixes to <code>Dexter.prototype.default_high_level_to_defaults_lines</code></li>
+    <li><code>FileTransfer.zip_folder</code> and <code>FileTransfer.unzip</code>
+        defined and documented under Ref Man/IO/File Access</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.8.12, Nov 12, 2022</summary>
+Highlights: Many fixes for Job Engine to make it more compatible with DDE IDE.
+            Fixes for Dexter instructions: set_follow_me, set_force_protect
+            set_keep_position, set_open_loop.
+<ul>
+    <li>Fixed <code>window.</code> , <code>global.</code> and no subject for
+        global variables to now have <code>globalThis.</code> so that it will work
+        correctly in IDE and Job Engine, in storage.js:</li>
+    <li><code>default_default_dexter_ip_address</code> now is set to <code>"192.168.1.142"</code>
+        when running in the IDE (as before) but now when running in Job Engine,
+        it is set to <code>"localhost"</code>. This causes the default dde_init.js file to be
+        generated with the right values for the platform its running on.</li>
+    <li>Extended <code>get_persistent_values_defaults</code> to now define
+        <code>"default_dexter_ip_address": default_default_dexter_ip_address</code> in storage.js</li>
+    <li>Fixed Editor reference on line 261 to be <code>globalThis.Editor</code>
+        so that in job engine, it doesn't error trying to eval <code>Editor</code>, in storage.js</li>
+    <li>out.js near bottom changed<br/>
+         <code>var {persistent_get} = require("./storage")</code>  to<br/>
+        <code>var {persistent_get} = require("./storage.js")</code>
+         but that doesn't appear to fix or break anything.</li>
+    <li>In Editor, when switching to js code content that has a linting error,
+        and you have the chrome debugger open, this no longer actually errors,
+        but will still show the red dot where the lint error happens.
+        This is a catch of the error thrown to <code>Editor.set_javascript</code>.</li>
+    <li>In <code>make_calibrate_joint_buttons_html()</code>,
+        removed the special tooltip for joint 5.</li>
+    <li>For the Dexter instructions:
+        <ul>
+            <li><code>set_follow_me</code></li>
+            <li><code>set_force_protect</code></li>
+            <li><code>set_keep_position</code></li>
+            <li><code>set_open_loop</code></li>
+        </ul>
+        we have removed the <code>Dexter.turn_on_j6_and_j7_torque()</code>
+        at the end of each instruction. This makes the instruction not dependent
+        on the kind of motor used for J6 and J7.</li>
+    <li>Fix to inspector for rare cases of <code>hasOwnProperty</code> not being defined.</li>
+    <li><code>fs</code> now globally defined</li>
+    <li>In Job Engine index.js made <code>to_source_code</code> function globally defined.</li>
+    <li>Fixed <code>read_file_async_from_dexter_using_node_server</code>
+        to use <code>url</code> not <code>uri</code> in storage.js </li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.8.11, Oct 24, 2022</summary>
+Highlights: bug fixes for Job Engine
+<ul>
+    <li>Fixed the initial defaulting of simulate at first launch to be:
+        If in the job_engine: <code>false</code>, else <code>true</code>.</li>
+    <li><code>get_simulate_actual</code> now will always return false if we're running the job engine.
+       While running Jobs in the Job engine, you can't simulate them.</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.8.10, Oct 22, 2022</summary>
+    Highlights: Job Engine Improvements, Dexter UI tutorial Improvements.
+<ul>
+    <li>The Job Engine now has global variables:
+        <ul><li><code>read_file_async</code></li>
+            <li><code>write_file_async</code></li>
+            <li><code>Socket</code></li>
+            <li><code>child_process</code></li>
+            <li><code>WebSocket</code></li>
+        </ul>
+    </li>
+    <li>Additional fixes for Job Engine
+    <li>In Dexter User Interface dialog, clicking the Job button now inserts
+        new job source code WITHOUT the <code>keep_history</code> and
+        <code>show_instructions</code> params.</li>
+    <li>Numerous improvements to the Dexter UI tutorial.</li>
+    <li><code>Dexter.dexter0.empty_instruction_queue</code> fixed.</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.8.9, Sep 30, 2022</summary>
+Highlights: Bug fixes.
+<ul>
+    <li>Fixed bug in Simulator whereby if you redefined a Dexter that was previously
+        simulated in the current DDE session, that redefinition wasn't reflexed in the simulator,
+        causing problems.</li>
+    <li>robot_status.js now properly usesDexter.J1_MEASURED_ANGLE_G1 instead of 10.
+        This does not change functionality.</li>
+    <li>Inspector: 4 "extra info" infinite loop bugs fixed.</li>
+    <li>Fixed bug in core/index.js for the folder of the require statement that loads dexter_defaults.js</li>
+    <li>Fixed bug in storage.js of the default value for outerWidth and outerHeight.</li>
+</ul>
+</details>
+
+<details class="doc_details"><summary>v 3.8.8, Jul 26, 2022</summary>
+    Highlights: Fixes and robustification of parsing the Defaults.make_ins file.
+    New Instruction: Dexter.reboot_robot.
+<ul>
+    <li><code>WebSocketServer</code> is now a global variable.</li>
+    <li>Misc pane header now has check boxes for slowing down the simulator's frame rate.</li>
+    <li>Parsing of <code>Defaults.make_ins</code> file bug fixed
+        for when a key is given but no value as happened with <code>Manufacture Location</code>
+    Now such missing values default to the corresponding values in Dexter.defaults.
+    A warning is printed so you know that Defaults.make_ins should probably be updated.</li>
+    <li>Parsing of <code>Defaults.make_ins</code> file protection against erroring and
+        defaulting to <code>Dexter.defaults</code> if you do get an error. </li>
+        Shows warning to user if the defaults are used.
+    <li>Removed incorrect warning when <code>Control.wait_until</code>
+        is called with a Job argument.</li>
+    <li>When editing the command line, if you delete the last char,
+    the "pointer" into the history is moved to a new last position so
+    that you're ready to add a new item into the history.
+    This makes it less likely that you lose items that you type in.</li>
+    <li>New Instruction: <code>Dexter.reboot_robot</code> is a way that a job can
+        programmatically power-cycle the robot.</li>
+</ul>
+</details>
+
 <details class="doc_details"><summary>v 3.8.7, Jun 22, 2022</summary>
-    Please see release notes for v 3.8.6 
+    Please see release notes for v 3.8.6
 </details>
 
 <details class="doc_details"><summary>v 3.8.6, Jun 22, 2022</summary>

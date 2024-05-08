@@ -66,9 +66,10 @@ function eval_button_action(step=false){ //used by both clicking on the eval but
 }
 function eval_button_action_aux(step){
     eval_js_part1(step)
-    //if (Editor.view == "Blocks") {
-    eval_id.blur()
-    //} //to get rid of the Eval button being "selected" when we're evaling in blocks view
+    if(globalThis.eval_id) { //in case user replaces all of dde ui, eval_id won't be defined,
+        //then that bug stops dde from quiting, so with this trick, it quits ok.
+        eval_id.blur() //to get rid of the Eval button being "selected" when we're evaling in blocks view
+    }
 }
 
 function play_simulation_demo(){
@@ -100,7 +101,7 @@ function on_ready() {
 
     if      (operating_system == "darwin")       { operating_system = "mac" }
     else if (operating_system.startsWith("win")) { operating_system = "win" }
-    const remote = require("electron").remote
+    const remote = require('@electron/remote')
     window.dde_apps_folder = convert_backslashes_to_slashes(remote.getGlobal("dde_apps_folder"))
     console.log("In renderer dde_apps_folder: " + window.dde_apps_folder)
     console.log("In renderer appPath: "      + remote.app.getAppPath())
@@ -279,6 +280,11 @@ $("#cmd_input_id").keyup(function(event){ //output pane  type in
             js_cmds_index = js_cmds_index + 1
             var new_src = js_cmds_array[js_cmds_index]
             cmd_input_id.value = new_src
+        }
+    }
+    else if (event.keyCode === 8){ //delete key
+        if (js_cmds_index < js_cmds_array.length) {
+            js_cmds_index = js_cmds_array.length
         }
     }
     cmd_input_id.focus()
@@ -518,51 +524,75 @@ open_from_dexter_id.onclick = Editor.open_from_dexter_computer
 
 open_system_file_id.onclick = Editor.open_system_file
 
-load_file_id.onclick=function(e) {
+
+load_file_id.onclick=function() {
     if (window.HCA && (Editor.view === "HCA")){
         HCA.load_node_definition()
     }
-    else { //presume JS
-        const path = choose_file({title: "Choose a file to load"})
-        if (path){
-            if(path.endsWith(".py")){
-               Py.load_file_ask_for_as_name(path)
-            }
-            else {
-                out(load_files(path))
-            }
-        }
+    else { //presume JS for this clause
+        choose_file({title: "Choose a file to load"},
+                    function(err, path){
+                        if(err){
+                            warning("Could not load: " + path)
+                        }
+                        else {
+                            if (path.endsWith(".py")) {
+                                Py.load_file_ask_for_as_name(path)
+                            } else {
+                                out(load_files(path))
+                            }
+                        }
+                    }
+        )
     }
 }
 
 load_and_start_job_id.onclick = function(){
-    const path = choose_file({title: "Choose a file to load"})
-    if (path){
-        Job.define_and_start_job(path)
-    }
+    const path = choose_file({title: "Choose a file to load"},
+        function(err, path){
+           if(err){
+               warning("Could not load and start jub " + path)
+           }
+           else {
+               Job.define_and_start_job(path)
+           }
+        })
 }
 
 DDE_NPM.init()
 install_npm_pkg_id.onclick = DDE_NPM.show_ui
 
 insert_file_content_id.onclick=function(e) {
-    const path = choose_file({title: "Choose a file to insert into DDE's editor"})
-    if (path){
-        const content = read_file(path)
-        Editor.insert(content)
-    }
+    choose_file({title: "Choose a file to insert into DDE's editor"},
+                function(err, path) {
+                    if (err) {
+                        warning("could not insert file content " + path)
+                    } else {
+                        const content = read_file(path)
+                        Editor.insert(content)
+                    }
+                })
 }
 insert_file_path_into_editor_id.onclick=function(e){
-    const path = choose_file({title: "Choose a file to insert into DDE's editor"})
-    if (path){
-        Editor.insert('"' + path + '"')
-    }
+    choose_file({title: "Choose a file to insert into DDE's editor"},
+        function(err, path){
+            if(err){
+                warning("Could not insert file path " + path)
+            }
+            else {
+                Editor.insert('"' + path + '"')
+            }
+        })
 }
 insert_file_path_into_cmd_input_id.onclick=function(e){
-const path = choose_file({title: "Choose a file to insert into DDE's editor"})
-if (path){
-    Editor.insert_into_cmd_input('"' + path + '"')
-}
+    choose_file({title: "Choose a file to insert into DDE's editor"},
+        function(err, path) {
+            if (err) {
+                warning("Could not insert file path " + path)
+            } else {
+                Editor.insert_into_cmd_input('"' + path + '"')
+            }
+        })
 }
 
 save_id.onclick = function() {
@@ -1819,7 +1849,7 @@ return result
 
 
 function quit_dde(){
-require('electron').remote.getCurrentWindow().close()
+    require('@electron/remote').getCurrentWindow().close()
 }
 
 //misc fns called in ready.js
@@ -1829,11 +1859,13 @@ bod = encodeURIComponent(make_dde_status_report())
 window.open("mailto:cfry@hdrobotic.com?subject=" + subj + "&body=" + bod)
 }
 const {google} = require('googleapis');
+var mathjs = require(/*DDE_NPM.folder + */ "mathjs")
 
 var {get_output} = require("./core/out.js")
 //var {Root} = require("./core/object_system.js") //should work but doesn't jan 13, 2019
 var {convert_backslashes_to_slashes} = require("./core/storage.js")
 var Coor  = require("./math/Coor.js")
+var DH    = require("./math/DH.js")
 var calibrate_build_tables = require("./low_level_dexter/calibrate_build_tables.js")
 var Job   = require("./core/job.js")
 var Gcode = require("./core/gcode.js")
@@ -1842,6 +1874,9 @@ var {date_to_human_string, date_to_mmm_dd_yyyy, is_digit} = require("./core/util
 var {FPGA} = require("./core/fpga.js")
 var {Simqueue} = require("./core/simqueue.js")
 require('./core/dexter_defaults.js')
+
+
+
 
 
 

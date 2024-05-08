@@ -1,13 +1,16 @@
 name: Build
 
-on: [push]
+on:
+  push:
+    tags:
+      - '**'
 
 env:
   NODE_VERSION: 16
 
 jobs:
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
     - uses: actions/checkout@v2
@@ -59,7 +62,7 @@ jobs:
         EP_PRE_RELEASE: "true"
 
   build-windows:
-    runs-on: windows-2019
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2

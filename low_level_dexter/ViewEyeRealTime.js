@@ -28,6 +28,19 @@ function smLinex(run_backwards = false){
     result.push (make_ins("F"))
 	//out(run_backwards)
     for (let j = 0;j < size;j++){
+        if(j === 0){
+            result.push([
+                make_ins("S", "MaxSpeed", Number(RapidSpeed_id.value)),
+                make_ins("S", "Acceleration",0.0001),
+                make_ins("S", "StartSpeed",0),
+            ])
+        }else if(j === 1){
+            result.push([
+                make_ins("S", "MaxSpeed", Number(MaxSpeed_id.value)),
+                make_ins("S", "Acceleration",Number(Accel_id.value)),
+                make_ins("S", "StartSpeed",Number(StartSpeed_id.value)),
+            ])
+        }
     	let i = j
     	if(run_backwards){
         	i = size - j
@@ -201,23 +214,93 @@ function display_center_guess(){
     append_in_ui("svg_id", thehtml)
 }
 
+function update_step_size(){
+    let step_size = Number(StepSize_id.value)
+    out("Setting Step Size: " + step_size)
+    AxisTable = [
+        [[step_size, 0, 0, 0, 0], Dexter.J1_A2D_SIN, Dexter.J1_A2D_COS, [-648000*_arcsec, 0, 0, 0, 0], 1240 / 2, [0, 0, 0, 0, 0]],
+        [[0, step_size, 0, 0, 0], Dexter.J2_A2D_SIN, Dexter.J2_A2D_COS, [0, -324000*_arcsec, 0, 0, 0], 1900 / 2, [0, 0, 0, 0, 0]],
+        [[0, 0, step_size, 0, 0], Dexter.J3_A2D_SIN, Dexter.J3_A2D_COS, [0, 0, -500000*_arcsec, 0, 0], 1500 / 2, [0, 0, 0, 0, 0]],
+        [[0, 0, 0, step_size, 0], Dexter.J4_A2D_SIN, Dexter.J4_A2D_COS, [0, 0, 0, -190000*_arcsec, 0], 1800 / 2, [0, 0, 0, 0, 0]],
+        [[0, 0, 0, 0, step_size], Dexter.J5_A2D_SIN, Dexter.J5_A2D_COS, [0, 0, 0, 0, -148000*_arcsec], 4240 / 2, [0, 0, 0, 0, 0]]
+    ]
+    //TODO: this will fail if the joint is looping and the sign of step size in negative
+}
+
+var old_point_color = "#dedede"
+
+var cal_saved_points_old
+
+function DisplayOldEyePoints(J_num)
+{
+    let thehtml = ""
+
+    read_file_async("Dexter.default:/srv/samba/share/cal_data/OldEyeData.json", "utf-8",
+        function(err, data)
+        {
+            if(err) { //only call the callback for the read IF there's a read error.
+                out("No previous eye to read from! This is normal if this robot is new or was last calibrated before May 5, 2022.")
+            }
+            else {
+                out("DisplayOldEyePoints(): " + data)
+                if (!data.startsWith("Error"))
+                {
+                    cal_saved_points_old = JSON.parse(data)
+
+
+                    if (cal_saved_points_old) // Noah: Need to officially define cal_saved_points_old from exported file
+                    {
+                        let points_old = cal_saved_points_old[J_num-1]
+                        if (points_old[0]) //Plots old points from last calibration
+                        {
+                            let num_points_old = points_old[0].length
+                            for(let i = 0; i < num_points_old; i++)
+                            {
+                                thehtml = (svg_circle({html_class: "cal_svg_circle", cx: points_old[0][i], cy: flip_point_y(points_old[1][i]), r: 1, border_color: old_point_color, color: old_point_color}))
+                                append_in_ui("svg_id", thehtml)
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    out("No previous eye to read from! This is normal if this robot is new or was last calibrated before May 5, 2022.")
+                }
+            }
+        }
+    )
+}
+
 function init_view_eye(){
     //this table has to be here rather than top level in the file even though it is static,
     //because _nbits_cf and the other units cause errors if referenced at top level.
-    AxisTable = [[[800/_nbits_cf, 0, 0, 0, 0], Dexter.J1_A2D_SIN, Dexter.J1_A2D_COS, [-648000*_arcsec, 0, 0, 0, 0], 1240 / 2, [0, 0, 0, 0, 0]],
-        [[0, 800/_nbits_cf, 0, 0, 0], Dexter.J2_A2D_SIN, Dexter.J2_A2D_COS, [0, -324000*_arcsec, 0, 0, 0], 1900 / 2, [0, 0, 0, 0, 0]],
-        [[0, 0, 800/_nbits_cf, 0, 0], Dexter.J3_A2D_SIN, Dexter.J3_A2D_COS, [0, 0, -500000*_arcsec, 0, 0], 1500 / 2, [0, 0, 0, 0, 0]],
-        [[0, 0, 0, 800/_nbits_cf, 0], Dexter.J4_A2D_SIN, Dexter.J4_A2D_COS, [0, 0, 0, -190000*_arcsec, 0], 1800 / 2, [0, 0, 0, 0, 0]],
-        [[0, 0, 0, 0, 800/_nbits_cf], Dexter.J5_A2D_SIN, Dexter.J5_A2D_COS, [0, 0, 0, 0, -148000*_arcsec], 4240 / 2, [0, 0, 0, 0, 0]]]
+    //let step_size = 800/_nbits_cf
+
+
+    update_step_size()
+    /*
+    let step_size =
+    AxisTable = [[[step_size, 0, 0, 0, 0], Dexter.J1_A2D_SIN, Dexter.J1_A2D_COS, [-648000*_arcsec, 0, 0, 0, 0], 1240 / 2, [0, 0, 0, 0, 0]],
+        [[0, step_size, 0, 0, 0], Dexter.J2_A2D_SIN, Dexter.J2_A2D_COS, [0, -324000*_arcsec, 0, 0, 0], 1900 / 2, [0, 0, 0, 0, 0]],
+        [[0, 0, step_size, 0, 0], Dexter.J3_A2D_SIN, Dexter.J3_A2D_COS, [0, 0, -500000*_arcsec, 0, 0], 1500 / 2, [0, 0, 0, 0, 0]],
+        [[0, 0, 0, step_size, 0], Dexter.J4_A2D_SIN, Dexter.J4_A2D_COS, [0, 0, 0, -190000*_arcsec, 0], 1800 / 2, [0, 0, 0, 0, 0]],
+        [[0, 0, 0, 0, step_size], Dexter.J5_A2D_SIN, Dexter.J5_A2D_COS, [0, 0, 0, 0, -148000*_arcsec], 4240 / 2, [0, 0, 0, 0, 0]]]
+	*/
+
 
     window.cal_working_axis = undefined //global needed by calibrate_ui.js
 
     new Job({name: "CalSensors", keep_history: true, show_instructions: false,
         inter_do_item_dur: .5 * _ms,
         robot: cal_get_robot(),
-        do_list: [ Dexter.move_all_joints(0, 0, 0, 0, 0),
+        do_list: [
+            make_ins("S", "MaxSpeed", Number(RapidSpeed_id.value)),
+            make_ins("S", "Acceleration",0.0001),
+            make_ins("S", "StartSpeed",0),
+            Dexter.move_all_joints(0, 0, 0, 0, 0),
             Robot.label("loop_start"),
             make_ins("w", 42, 64),
+           /* These should only be set in defaults.make_ins file
             make_ins("S", "J1BoundryHigh",648000*_arcsec),
             make_ins("S", "J1BoundryLow",-648000*_arcsec),
             make_ins("S", "J2BoundryLow",-350000*_arcsec),
@@ -228,16 +311,26 @@ function init_view_eye(){
             make_ins("S", "J4BoundryHigh",490000*_arcsec),
             make_ins("S", "J5BoundryLow",-648000*_arcsec),
             make_ins("S", "J5BoundryHigh",648000*_arcsec),
+           */
+            make_ins("S", "MaxSpeed", Number(MaxSpeed_id.value)),
+            make_ins("S", "Acceleration",Number(Accel_id.value)),
+            make_ins("S", "StartSpeed",Number(StartSpeed_id.value)),
 
+            /*
             make_ins("S", "MaxSpeed", 25*_deg/_s),
             make_ins("S", "Acceleration",0.00129),
             make_ins("S", "StartSpeed",5),
+            */
+
+
             //scan_axis(),
             smLinex,
             display_center_guess,
+            /*
             make_ins("S", "MaxSpeed",40),
             make_ins("S", "Acceleration",0.00129),
             make_ins("S", "StartSpeed",5),
+            */
             function(){
                 if(cal_is_loop_checked(window.cal_working_axis+1)){ //if looping
                     return [
@@ -248,6 +341,11 @@ function init_view_eye(){
                     ]
                 }
             },
+            make_ins("S", "MaxSpeed", Number(RapidSpeed_id.value)),
+            make_ins("S", "Acceleration",0.0001),
+            make_ins("S", "StartSpeed",0),
+            Dexter.empty_instruction_queue,
+            Robot.wait_until(1),
             Dexter.move_all_joints(0, 0, 0, 0, 0),
             Dexter.empty_instruction_queue,
             function() {
@@ -255,7 +353,9 @@ function init_view_eye(){
                 let start_button_dom_elt = window["Start_J_" + J_num + "_id"]
                 start_button_dom_elt.style.backgroundColor = "rgb(230, 179, 255)"
                 cal_instructions_id.innerHTML =
-                    "Click in the center of the dot_pattern circle.<br/>"}
+                    "Click in the center of the dot_pattern circle.<br/>"
+            },
+            Dexter.set_parameter("RunFile", "Defaults.make_ins")
         ]})
     cal_init_view_eye_state = false
 }

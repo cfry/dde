@@ -1,8 +1,8 @@
 {
   "name": "dexter_dev_env",
   "productName": "dexter_dev_env",
-  "version": "3.8.7",
-  "release_date": "Jun 22 2022",
+  "version": "3.9.2",
+  "release_date": "Apr 5, 2024",
   "description": "Dexter Development Environment for programming the Dexter robot.",
   "author": "Fry",
   "license": "GPL-3.0",
@@ -30,11 +30,13 @@
     "Haddington"
   ],
   "dependencies": {
+    "@electron/remote": "^2.1.1",
     "adm-zip": "^0.5.5",
     "asap": "^2.0.6",
     "awesomplete": "^1.1.2",
+    "capture-website": "^3.2.0",
     "dat.gui": "^0.7.7",
-    "dom-to-image": "^2.6.0",
+    "dom-to-image-update": "^2.7.0",
     "electron-context-menu": "^0.8.0",
     "eslint": "^5.16.0",
     "esprima": "^3.1.3",
@@ -46,8 +48,7 @@
     "js-beautify": "^1.13.13",
     "litegraph.js": "^0.7.9",
     "mark.js": "^8.11.1",
-    "mathjs": "^5.3.1",
-    "modbus-serial": "^7.8.1",
+    "mathjs": "^5.10.3",
     "multicast-dns": "^7.2.0",
     "nano-time": "^1.0.0",
     "nouislider": "^13.1.1",
@@ -61,7 +62,7 @@
     "request": "^2.79.0",
     "rotating-calipers": "0.0.0",
     "semver": "^5.4.1",
-    "serialport": "^8.0.0",
+    "serialport": "^12.0.0",
     "shepherd.js": "^8.0.2",
     "simple-get": "^3.1.0",
     "ssh2-promise": "^0.1.5",
@@ -71,11 +72,12 @@
     "three-orbitcontrols": "^2.110.3",
     "three-stl-loader": "^1.0.6",
     "three-text2d": "^0.6.0",
-    "webmidi": "^2.2.0"
+    "webmidi": "^2.2.0",
+    "ws": "^8.8.1"
   },
   "devDependencies": {
-    "electron": "^5.0.0",
-    "electron-builder": "^22.7.0",
+    "electron": "^28.1.0",
+    "electron-builder": "^23.6.0",
     "rimraf": "^2.6.1"
   },
   "build": {
@@ -91,8 +93,7 @@
         {
           "target": "nsis",
           "arch": [
-            "x64",
-            "ia32"
+            "x64"
           ]
         }
       ]

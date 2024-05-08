@@ -55,6 +55,10 @@ DexterSim = class DexterSim{
             sim_inst.init(sim_actual)
         }
         else {
+            let cur_dex_inst_of_name = Dexter[robot_name]
+            sim_inst.robot = cur_dex_inst_of_name //because if the user redefined the robot of that name
+            //since the last time they made a DexterSim instance, sim_inst will have the old dexter inst,
+            //so we need to update it.
             sim_inst.sim_actual = sim_actual
         }
         //if (sim_actual === true) { //do not call new_socket_callback if simulate is "both" because we don't want to call it twice
@@ -65,6 +69,22 @@ DexterSim = class DexterSim{
     static init_all(){ //called once per DDE session (normally)
         DexterSim.robot_name_to_dextersim_instance_map = {}
         //DexterSim.set_interval_id = setInterval(DexterSim.process_next_instructions, 10)
+    }
+
+    //called by Socket.send when reboot_robot sent
+    //After Dexter is sent a reboot instruction, it continues to run the items in its queue,
+    //but does not accept new instructions, so simulate that.
+    static uninit(robot_name, tries=0){
+        let dexsim = DexterSim.robot_name_to_dextersim_instance_map[robot_name]
+       if(dexsim.queue_instance.is_queue_empty() || (tries === 80)) { //80 * 200 = 16 secs. If the queue hasn't empied by that time, kill it anyway
+           setTimeout(function() {
+               delete DexterSim.robot_name_to_dextersim_instance_map[robot_name]
+           }, 4000) //Give the last instruction in  the queue a chance to finish, then kill it
+       }
+       else {
+           setTimeout(function(){DexterSim.uninit(robot_name, tries + 1)},
+                      200)
+       }
     }
 
     init(sim_actual){
@@ -97,7 +117,15 @@ DexterSim = class DexterSim{
 
     static array_buffer_to_oplet_array(arr_buff){
         let str = this.array_buffer_to_string(arr_buff)
-        let split_str = str.split(" ")
+        if(str.endsWith(";")) {
+            str = str.substring(0, str.length - 1) //cut off the semicolon on the end
+        }
+        let split_str = str.split(/[ ,]+/)//separator can be space, comma, or any combination of them, was: " " which didn't handle commas
+        //if its a var length instruction, then an integer is in place of the oplet and the oplet is one later
+        let orig_oplet_maybe = split_str[Instruction.INSTRUCTION_TYPE]
+        if(!Robot.is_oplet(orig_oplet_maybe)) { //assume its an integer for a variable-length instruction
+            split_str.splice(Instruction.INSTRUCTION_TYPE, 1) //removes integer from var length array. makign it 1 shorter
+        }
         let oplet_array = []
         let oplet
         for(let i = 0; i <  split_str.length; i++) {
@@ -181,6 +209,37 @@ DexterSim = class DexterSim{
             case "h": //doesn't go on instruction queue, just immediate ack
                 ds_instance.ack_reply(instruction_array)
                 break;
+            case "j":
+                console.log("DexterSim.send passed 'j' oplet: " + instruction_array)
+                ds_instance.queuej_instance.add_to_queue(instruction_array)
+                ds_instance.ack_reply_maybe(instruction_array) //send back the original
+                break;
+            case "M": //move to.  convert to an "a" array and use that.
+                //note: doesn't encode j6 and j7.
+                //see: https://github.com/HaddingtonDynamics/OCADO/wiki/Command-oplet-instruction
+                let ins_arr_a = instruction_array.slice(0, Instruction.INSTRUCTION_ARG0)
+                ins_arr_a[Instruction.INSTRUCTION_TYPE] = "a"
+                let xyz_meters = [instruction_array[Instruction.INSTRUCTION_ARG0] / 1000000,  //x
+                                  instruction_array[Instruction.INSTRUCTION_ARG1] / 1000000,  //y
+                                  instruction_array[Instruction.INSTRUCTION_ARG2] / 1000000]  //z
+
+                let direction  = [instruction_array[Instruction.INSTRUCTION_ARG3],
+                                 instruction_array[Instruction.INSTRUCTION_ARG4],
+                                 instruction_array[Instruction.INSTRUCTION_ARG5]]
+
+                let config     = [instruction_array[Instruction.INSTRUCTION_ARG6],
+                                  instruction_array[Instruction.INSTRUCTION_ARG7],
+                                  instruction_array[Instruction.INSTRUCTION_ARG8]]
+
+                let new_angles_deg = Kin.xyz_to_J_angles(xyz_meters, direction, config)
+                for(let i = 0; i < 5; i++) {
+                    let deg = new_angles_deg[i]
+                    let arcsec = deg * 3600
+                    ins_arr_a.push(arcsec)
+                }
+                ds_instance.queue_instance.add_to_queue(ins_arr_a)
+                ds_instance.ack_reply_maybe(instruction_array) //return the orig "M" array
+                break;
             case "P": //does not go on queue  //ds_instance.queue_instance.add_to_queue(instruction_array)
                 //pid_move_all_joints for j6 and 7 are handled diffrently than J1 thru 5.
                 //IF we get a pid_maj for j6 and/or j7, just treat it like
@@ -213,8 +272,15 @@ DexterSim = class DexterSim{
                 ds_instance.ack_reply(instruction_array)
                 break;
             case "r": //Dexter.read_file. does not go on queue
-                let payload_string_maybe = ds_instance.process_next_instruction_r(instruction_array)
-                ds_instance.ack_reply(instruction_array, payload_string_maybe)
+                let is_reboot_inst = Dexter.is_reboot_instruction(instruction_array)
+                if (is_reboot_inst) { //don't do ack_reply as the actual robot doesn't send back a robot status
+                    DexterSim.uninit(robot_name) //its over for this Dexter.
+                    warning("Rebooting simulated Dexter." + robot_name + " due to running reboot instruction.")
+                }
+                else {
+                    let payload_string_maybe = ds_instance.process_next_instruction_r(instruction_array)
+                    ds_instance.ack_reply(instruction_array, payload_string_maybe)
+                }
                 break;
             case "S":
                 let param_name = ins_args[0]
@@ -348,7 +414,11 @@ DexterSim = class DexterSim{
            robot_status_array[Dexter.J4_SENT] = j1_5_arcsecs[3]
            robot_status_array[Dexter.J5_SENT] = j1_5_arcsecs[4]
            //unfortunately g0 doesn't support J6_SENT or J7_SENT
-        } 
+        }
+
+        else if(this.status_mode === 1){
+            //needs work
+        }
          
         if (this.sim_actual === true){
             let dexter_instance = this.robot  //for closure variable

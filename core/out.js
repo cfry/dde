@@ -309,7 +309,7 @@ function show_window({content = `<input type="submit" value="Done"/>`,
     }
     else {
         //onsole.log("bottom of show_window writing to stdout")
-        write_to_stdout("<for_server>" + JSON.stringify(props) + "</for_server>")
+        write_to_stdout("<for_server>" + JSON.stringify(props) + "</for_server>\n")
     }
     return SW.window_index
 }
@@ -386,7 +386,7 @@ function beep({dur = 0.5, frequency = 440, volume = 1, waveform = "triangle", ca
 }
 module.exports.beep = beep
 
-var {persistent_get} = require("./storage")
+var {persistent_get} = require("./storage.js")
 var {replace_substrings, starts_with_one_of, stringify_value} = require("./utils.js")
 var {exec} = require("child_process")
 var {month_names} = require("./utils")

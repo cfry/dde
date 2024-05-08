@@ -124,7 +124,7 @@ function out(val="", color="black", temp=false, code=null){
     }
     if(window.platform == "node") { //console.log(val)
         let out_obj = {kind: "out_call", val: text, color: color, temp: temp, code: code} //code isn't actually used in the browser
-        write_to_stdout("<for_server>" + JSON.stringify(out_obj) + "</for_server>")
+        write_to_stdout("<for_server>" + JSON.stringify(out_obj) + "</for_server>\n")
         return val
     }
 
@@ -169,7 +169,9 @@ function out(val="", color="black", temp=false, code=null){
     }
     if(window["document"]){
         let orig_focus_elt = document.activeElement
-        orig_focus_elt.focus()
+        if(orig_focus_elt) {
+            orig_focus_elt.focus()
+        }
     }
     if (temp){
         return "dont_print"
@@ -1010,7 +1012,7 @@ SW.window_index = null // The window_index of the last show_window made, or null
 function selector_set_in_ui(path_string, value=null){
     if(window.platform == "node") { //console.log(val)
         let obj = {kind: "selector_set_in_ui_call", path_string: path_string, value: value}
-        write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>")
+        write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>\n")
     }
     else {
         if(value === -0) { value = 0 } //in some weird raoujnding situations, we get a negative zero.
@@ -1100,7 +1102,7 @@ function selector_set_in_ui(path_string, value=null){
 function append_in_ui(path_string, new_html){
     if(window.platform == "node") { //console.log(val)
         let obj = {kind: "append_in_ui_call", path_string: path_string, new_html: new_html}
-        write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>")
+        write_to_stdout("<for_server>" + JSON.stringify(obj) + "</for_server>\n")
     }
     else {
         let elt = value_of_path(path_string)
