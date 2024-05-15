@@ -16,9 +16,22 @@ class DexterSim{
         this.robot_name = robot_name
         this.robot      = Robot[robot_name] //mostly used by predict_move_dur
         DexterSim.robot_name_to_dextersim_instance_map[robot_name] = this
-        this.angles_dexter_units = [0,0,0,0,0,
+        this._angles_dexter_units = [0,0,0,0,0,
                                    Socket.degrees_to_dexter_units(0, 6), //different from the others because for the others, 0 deg is also 0 dexter units, but not for j6
-                                   50]  //50 which is the new HOME angle so that j7 doesn't overtorque.
+                                   50];  //50 which is the new HOME angle so that j7 doesn't overtorque.
+        
+        this.angles_dexter_units = new Proxy(this._angles_dexter_units,{
+            set(obj, prop, value) {
+                if(isNaN(value))
+                {
+                    debugger;
+                    return false;
+                }
+                obj[prop] = value;
+                return true;
+            }
+        });
+        
         this.pid_angles_dexter_units = [0,0,0,0,0,0,0]  //last 2 angles are always zero.
         this.parameters = {} //record latest set_parameter values for simulator, esp for AngularSpeed
     }

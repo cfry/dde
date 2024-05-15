@@ -67,32 +67,36 @@ class SimUtils{
         //onsole.log("Dexter.default: " + Dexter.default)
         //onsole.log("Dexter.dexter0: " + Dexter.dexter0)
         if (Dexter.default.name === robot_name){
-            let dur_to_show = Math.round(dur_in_ms / 100) //in 10ths of seconds, rounded
-            dur_to_show = "" + dur_to_show
-            if (dur_to_show.length > 1) {
-                let dur_to_show_secs = dur_to_show.substring(0, dur_to_show.length - 1)
-                dur_to_show = dur_to_show_secs + "." + last(dur_to_show)
+            if(move_kind === "a") {
+                //do stuff
+                Simulate.dexter_sim_instance = ds_instance;
+                for(let i = 0; i < new_angles_dexter_units.length; i++)
+                {
+                    if(!isNaN(new_angles_dexter_units[i]))
+                    {
+                        if(i < 5) // Joints 1-5
+                        {
+                            Simulate.jointsTarget[i] = this.arc_seconds_to_radians(new_angles_dexter_units[i]);
+                        }
+                        else if(i == 5) // Joint 6
+                        {
+                            Simulate.jointsTarget[i] = this.degrees_to_radians((new_angles_dexter_units[i] - Socket.J6_OFFSET_SERVO_UNITS)* Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+                        }
+                        else // Joint 7
+                        {
+                            Simulate.jointsTarget[i] = this.degrees_to_radians(new_angles_dexter_units[i] *  Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+                        }
+                    }
+                }
+                Simulate.atTarget = false;
             }
-            else { dur_to_show = "0." + dur_to_show }
-            if(this.is_simulator_showing()) {
-                sim_pane_move_dur_id.innerHTML = dur_to_show
+            else
+            {
+                ds_instance.queuej_instance.stop_ongoing = false
+                ds_instance.queuej_instance.done_with_instruction()
             }
-            let total_frames = Math.ceil(dur_in_ms / SimUtils.ms_per_frame) //total_frames might be 0. that's ok.
-            let js_inc_per_frame = []
-            for(let joint = 0; joint < new_angles_dexter_units.length; joint++){
-                let j_diff = new_angles_dexter_units[joint] - this.prev_joint_angles[joint]
-                js_inc_per_frame.push(j_diff / total_frames)
-            }
-            //let prev_js = this.prev_joint_angles.slice(0)
-            let rob = Dexter[robot_name]
-            let prev_js = ds_instance.angles_dexter_units.slice() //must copy because render_multi is going to continuous update mesured_angels per frame and we want to capture the prev_js and keep it constant
-            //console.log("calling render_multi_frame first time with new_angles as: " + new_angles_dexter_units + " prev_js: " + prev_js + " js_inc_per_frame: " + js_inc_per_frame)
-            SimUtils.render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, total_frames, 0, rob, move_kind) //beginning an all but last rendering
 
-            //used by render_once_but_only_if_have_prev_args\
-            this.prev_joint_angles     = new_angles_dexter_units
-            //SimUtils.prev_robot_status = robot_status //not use by  render_multi or render_multi_frame
-            SimUtils.prev_robot_name   = robot_name
+
         }
         else {
             setTimeout(function(){

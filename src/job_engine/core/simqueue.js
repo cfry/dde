@@ -129,14 +129,14 @@ class Simqueue{
             if(queue_was_empty) {
                 this.start_running_instruction_if_any()
             }
-            let j6_du = instruction_array[Instruction.INSTRUCTION_ARG5]
-            if(j6_du !== undefined) { //if it is undefined, no change so do nothing
-                this.start_running_j6_plus_instruction(6, j6_du)
-            }
-            let j7_du = instruction_array[Instruction.INSTRUCTION_ARG6]
-            if(j7_du !== undefined) {
-                this.start_running_j6_plus_instruction(7, j7_du)
-            }
+            // let j6_du = instruction_array[Instruction.INSTRUCTION_ARG5]
+            // if(j6_du !== undefined) { //if it is undefined, no change so do nothing
+            //     this.start_running_j6_plus_instruction(6, j6_du)
+            // }
+            // let j7_du = instruction_array[Instruction.INSTRUCTION_ARG6]
+            // if(j7_du !== undefined) {
+            //     this.start_running_j6_plus_instruction(7, j7_du)
+            // }
         }
     }
 

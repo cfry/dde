@@ -509,32 +509,133 @@ globalThis.Simulate = class Simulate {
                 interactionManager.update();
             }
 
+            Simulate.update_joints();
             Simulate.update_camera();
             Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
         }
     }
 
-    // static sim_handle_mouse_move(){
-    //     var mouseX_diff =  this.sim.mouseX - this.sim.mouseX_at_mouseDown //positive if moving right, neg if moving left
-    //     var mouseY_diff =  this.sim.mouseY - this.sim.mouseY_at_mouseDown //positive if moving right, neg if moving left
-    //     if (this.sim.shiftDown){
-    //         //alert(camera.zoom)  //camera.zoom starts at 1
-    //         var zoom_increment = mouseX_diff / 100.0
-    //         this.sim.camera.zoom = this.sim.zoom_at_mouseDown + zoom_increment //(spdy * 0.1)
-    //         this.sim.camera.updateProjectionMatrix()
-    //     }
-    //     else if (this.sim.altDown || (this.sim.button == 1)){
-    //         var panX_inc = mouseX_diff / 100
-    //         var panY_inc = mouseY_diff / 100
-    //         this.sim.table.position.x =  this.sim.tableX_at_mouseDown + panX_inc
-    //         this.sim.table.position.y =  this.sim.tableY_at_mouseDown - panY_inc
-    //     }
-    //     else {
-    //         let newX = this.sim.rotationX_at_mouseDown + (mouseY_diff / 100);
-    //         if(newX<=Math.PI*0.5&&newX>=-Math.PI*0.5)this.sim.table.rotation.x = newX;
-    //         this.sim.table.rotation.y = this.sim.rotationY_at_mouseDown + (mouseX_diff / 100)
-    //     }
-    // }
+
+    static jointsTarget = [0,0,0,0,0,0,0];
+    static atTarget = true;
+
+    static dexter_sim_instance;
+    static target_dT = 1000/60;
+
+    static update_joints()
+    {
+        if(this.dexter_sim_instance != undefined)
+        {
+            let max_speed_rad = Math.PI*this.dexter_sim_instance.parameters["AngularSpeed"] / (3600*180);
+            let joint_diffs = [];
+            let max_diff = 0;
+            // Get the differences between the current arm angles and target arm angles and also save the highest difference in a variable
+            for(let i = 0; i < 7; i++)
+            {
+                let current_angle_rads = Math.PI*this.dexter_sim_instance.angles_dexter_units[i]/ (3600*180);
+                let joint_diff = this.jointsTarget[i]-current_angle_rads;
+                if(isNaN(joint_diff))
+                {
+                    joint_diff = 0;
+                }
+                joint_diffs.push(joint_diff);
+                if(Math.abs(joint_diff) > max_diff)
+                {
+                    max_diff = Math.abs(joint_diff);
+                }
+            }
+
+            // If the arm is within 2 times the minimum possible step size then consider it to be at the target
+            if(max_diff < max_speed_rad * (this.target_dT/1000) * 2)
+            {
+                // Set the current angle to the target angle to eliminate any remaining error
+                for(let i = 0; i < 7; i++)
+                {
+                    this.dexter_sim_instance.angles_dexter_units[i] = this.jointsTarget[i] * (3600*180) / Math.PI;
+                }
+                // If it wasn't at the target position before but it is now, tell the queue that the action is done
+                if(!this.atTarget)
+                {
+                    this.dexter_sim_instance.queue_instance.done_with_instruction();
+                    this.atTarget = true;
+                }
+            }
+            // Stop the movement if told to stop
+            if(this.dexter_sim_instance.queue_instance.stop_ongoing && !this.atTarget)
+            {
+                // Set target angle to the current angle so that the arm stays in place
+                for(let i = 0; i < 7; i++)
+                {
+                    this.jointsTarget[i] = Math.PI * this.dexter_sim_instance.angles_dexter_units[i] / (3600*180);
+                    this.dexter_sim_instance.queue_instance.done_with_instruction();
+                    this.atTarget = true;
+                }
+            }
+
+            // Update the arm
+            for(let i = 0; i < 7; i++)
+            {
+                // Calculate how far the arm needs to move this frame
+                let joint_step_rad = (this.target_dT/1000) * max_speed_rad * joint_diffs[i] / max_diff;
+
+                // If it is not already at the target position, move the arm by the step calculated above
+                if(!this.atTarget)
+                {
+                    this.dexter_sim_instance.angles_dexter_units[i] += joint_step_rad * (3600*180) / Math.PI;
+                }
+
+                // Get the new joint angle in radians
+                let updated_angle_rad = Math.PI*this.dexter_sim_instance.angles_dexter_units[i]/ (3600*180);
+
+                // Update the joint in the sim
+                let y_or_z = (((i === 0) || (i === 4)) ? "y" : "z");
+                if(i < 5) // Joints 1 - 5
+                {
+                    this.sim["J"+(i+1)].rotation[y_or_z] = -updated_angle_rad;
+                }
+                else if(i == 5) // Joint 6
+                {
+                    this.sim["J"+(i+1)].rotation[y_or_z] = updated_angle_rad;
+                }
+                else // Joint 7
+                {
+                    let angle_deg = updated_angle_rad*180/Math.PI;
+                    let new_xpos = ((angle_deg * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
+                    new_xpos *= 10;
+                    Simulate.sim.J7.position.setX(new_xpos);
+                }
+                
+
+                // Update the text value in the sim header
+                globalThis["sim_pane_j" + (i+1) + "_id"].innerHTML = Math.round(updated_angle_rad*180/Math.PI);
+            }
+        }
+    }
+
+    static update_xyz_in_sim_pane()
+    {
+        let xyz = Kin.J_angles_to_xyz(angle_degrees_array, rob_pose)[0]
+
+        let str_length
+        let x = xyz[0]
+        if(x < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
+        else      { str_length = 5}
+        if(SimUtils.is_simulator_showing()) {
+            sim_pane_x_id.innerHTML = ("" + x).substring(0, str_length)
+        }
+        let y = xyz[1]
+        if(y < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
+        else      { str_length = 5}
+        if(SimUtils.is_simulator_showing()) {
+            sim_pane_y_id.innerHTML = ("" + y).substring(0, str_length)
+        }
+        let z = xyz[2]
+        if(z < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
+        else      { str_length = 5}
+        if(SimUtils.is_simulator_showing()) {
+            sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length)
+        }
+    }
 
     //set up drag mouse to rotate table
 
