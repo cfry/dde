@@ -522,24 +522,57 @@ globalThis.Simulate = class Simulate {
     static dexter_sim_instance;
     static target_dT = 1000/60;
 
+    static dynamixel_320_to_rad(steps)
+    {
+        let out = (Math.PI*Socket.DEGREES_PER_DYNAMIXEL_320_UNIT*steps/180) % (Math.PI*2);
+        if(out<0)
+        {
+            out = Math.PI*2 + out;
+        }
+        return out;
+    }
+
+    static rad_to_dynamixel_320(rads)
+    {
+        return 180*rads/(Math.PI*Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+    }
+
+    /* List of places that reference this:
+    simqueue.js 119 add_to_queue; Updates target position for J6 and J7 as this happens as soon as an a command is added to the queue
+    simutils.js 65 render_multi; Updates joints 1-5 when an a command is actually run
+    */
     static update_joints()
     {
         if(this.dexter_sim_instance != undefined)
         {
             let max_speed_rad = Math.PI*this.dexter_sim_instance.parameters["AngularSpeed"] / (3600*180);
+            let max_speed_rad_servo = Kin.dynamixel_320_degrees_per_second * Math.PI/180;
+            
+            
             let joint_diffs = [];
             let max_diff = 0;
             // Get the differences between the current arm angles and target arm angles and also save the highest difference in a variable
             for(let i = 0; i < 7; i++)
             {
                 let current_angle_rads = Math.PI*this.dexter_sim_instance.angles_dexter_units[i]/ (3600*180);
+                if(i == 5)
+                {
+                    current_angle_rads = this.dynamixel_320_to_rad(this.dexter_sim_instance.angles_dexter_units[i]- Socket.J6_OFFSET_SERVO_UNITS);
+                }
+                if(i == 6)
+                {
+                    current_angle_rads = this.dynamixel_320_to_rad(this.dexter_sim_instance.angles_dexter_units[i]);
+                }
+
+                
                 let joint_diff = this.jointsTarget[i]-current_angle_rads;
                 if(isNaN(joint_diff))
                 {
                     joint_diff = 0;
                 }
                 joint_diffs.push(joint_diff);
-                if(Math.abs(joint_diff) > max_diff)
+                
+                if(Math.abs(joint_diff) > max_diff && i < 5)
                 {
                     max_diff = Math.abs(joint_diff);
                 }
@@ -549,7 +582,7 @@ globalThis.Simulate = class Simulate {
             if(max_diff < max_speed_rad * (this.target_dT/1000) * 2)
             {
                 // Set the current angle to the target angle to eliminate any remaining error
-                for(let i = 0; i < 7; i++)
+                for(let i = 0; i < 5; i++)
                 {
                     this.dexter_sim_instance.angles_dexter_units[i] = this.jointsTarget[i] * (3600*180) / Math.PI;
                 }
@@ -560,11 +593,27 @@ globalThis.Simulate = class Simulate {
                     this.atTarget = true;
                 }
             }
+
+            let j6_at_target = false;
+            if(Math.abs(joint_diffs[5]) < max_speed_rad_servo * (this.target_dT/1000) * 1.01)
+            {
+                j6_at_target = true;
+                this.dexter_sim_instance.angles_dexter_units[5] =  Simulate.rad_to_dynamixel_320(this.jointsTarget[5]) + Socket.J6_OFFSET_SERVO_UNITS;
+            }
+
+            let j7_at_target = false;
+            if(Math.abs(joint_diffs[6]) < max_speed_rad_servo * (this.target_dT/1000) * 1.01)
+            {
+                j7_at_target = true;
+                this.dexter_sim_instance.angles_dexter_units[6] =  Simulate.rad_to_dynamixel_320(this.jointsTarget[6]);
+            }
+
+
             // Stop the movement if told to stop
             if(this.dexter_sim_instance.queue_instance.stop_ongoing && !this.atTarget)
             {
                 // Set target angle to the current angle so that the arm stays in place
-                for(let i = 0; i < 7; i++)
+                for(let i = 0; i < 5; i++)
                 {
                     this.jointsTarget[i] = Math.PI * this.dexter_sim_instance.angles_dexter_units[i] / (3600*180);
                     this.dexter_sim_instance.queue_instance.done_with_instruction();
@@ -579,13 +628,21 @@ globalThis.Simulate = class Simulate {
                 let joint_step_rad = (this.target_dT/1000) * max_speed_rad * joint_diffs[i] / max_diff;
 
                 // If it is not already at the target position, move the arm by the step calculated above
-                if(!this.atTarget)
+                if(!this.atTarget && i < 5)
                 {
                     this.dexter_sim_instance.angles_dexter_units[i] += joint_step_rad * (3600*180) / Math.PI;
                 }
-
                 // Get the new joint angle in radians
                 let updated_angle_rad = Math.PI*this.dexter_sim_instance.angles_dexter_units[i]/ (3600*180);
+
+                if(i == 5)
+                {
+                    updated_angle_rad = this.dynamixel_320_to_rad(this.dexter_sim_instance.angles_dexter_units[i]- Socket.J6_OFFSET_SERVO_UNITS);
+                }
+                if(i == 6)
+                {
+                    updated_angle_rad = this.dynamixel_320_to_rad(this.dexter_sim_instance.angles_dexter_units[i]);
+                }
 
                 // Update the joint in the sim
                 let y_or_z = (((i === 0) || (i === 4)) ? "y" : "z");
@@ -609,6 +666,19 @@ globalThis.Simulate = class Simulate {
                 // Update the text value in the sim header
                 globalThis["sim_pane_j" + (i+1) + "_id"].innerHTML = Math.round(updated_angle_rad*180/Math.PI);
             }
+
+            let servo_step_rad = (this.target_dT/1000) * max_speed_rad_servo * (180) / (Math.PI*Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+            if(!j6_at_target)
+            {
+                this.dexter_sim_instance.angles_dexter_units[5] += Math.sign( joint_diffs[5]) * servo_step_rad ;
+            }
+            if(!j7_at_target)
+            {
+                this.dexter_sim_instance.angles_dexter_units[6] += Math.sign( joint_diffs[6]) * servo_step_rad ;
+            }
+    
+
+
         }
     }
 

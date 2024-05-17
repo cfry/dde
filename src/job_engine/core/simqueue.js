@@ -129,14 +129,14 @@ class Simqueue{
             if(queue_was_empty) {
                 this.start_running_instruction_if_any()
             }
-            // let j6_du = instruction_array[Instruction.INSTRUCTION_ARG5]
-            // if(j6_du !== undefined) { //if it is undefined, no change so do nothing
-            //     this.start_running_j6_plus_instruction(6, j6_du)
-            // }
-            // let j7_du = instruction_array[Instruction.INSTRUCTION_ARG6]
-            // if(j7_du !== undefined) {
-            //     this.start_running_j6_plus_instruction(7, j7_du)
-            // }
+            let j6_du = instruction_array[Instruction.INSTRUCTION_ARG5]
+            if(!isNaN(j6_du)) { //if it is undefined, no change so do nothing
+                Simulate.jointsTarget[5] = SimUtils.degrees_to_radians((j6_du - Socket.J6_OFFSET_SERVO_UNITS)* Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+            }
+            let j7_du = instruction_array[Instruction.INSTRUCTION_ARG6]
+            if(!isNaN(j7_du)) {
+                Simulate.jointsTarget[6] = SimUtils.degrees_to_radians((j7_du)* Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+            }
         }
     }
 
