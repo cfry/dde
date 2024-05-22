@@ -474,10 +474,10 @@ globalThis.Simulate = class Simulate {
 //fusion 360 exporter of FBX, then converting that to .gltf, then
 //processing in video.js to clean it up.
     static createMeshGLTF(){
-        Simulate.sim.table_width  = 0.447675,  //width was 1
-        Simulate.sim.table_length = 0.6985,    //length was 2
-        Simulate.sim.table_height = 0.01905    //height (thickness of Dexcell surface). Simulate is 3/4 of an inch. was:  0.1)
-        Simulate.sim.table = Simulate.draw_table(Simulate.sim.scene, Simulate.sim.table_width, Simulate.sim.table_length, Simulate.sim.table_height)
+        Simulate.sim.table_width = 1.0 //= 0.447675,  //width was 1
+        Simulate.sim.table_length = 1.0//0.6985,    //length was 2
+        Simulate.sim.table_height = 0.02//0.01905    //height (thickness of Dexcell surface). Simulate is 3/4 of an inch. was:  0.1)
+        Simulate.sim.table = Simulate.new_draw_table(Simulate.sim.table_width, Simulate.sim.table_length, Simulate.sim.table_height)
 
 
 
@@ -485,7 +485,7 @@ globalThis.Simulate = class Simulate {
         Simulate.sim.J0.rotation.y = Math.PI //radians for 180 degrees
         Simulate.sim.J0.name = "J0"
         Simulate.sim.J0.position.y = (Simulate.sim.table_height / 2) //+ (leg_height / 2) //0.06 //for orig boxes model, leg)height was positive, but for legless dexter mounted on table, its probably 0
-        Simulate.sim.J0.position.x = (Simulate.sim.table_length / 2)  //the edge of the table
+        Simulate.sim.J0.position.x = (Simulate.sim.table_length / 3)  //the edge of the table
                                  //- 0.12425 the distance from the edge of the table that Dexter is placed
         Simulate.sim.scene.add(Simulate.sim.J0)
 
@@ -927,11 +927,21 @@ globalThis.Simulate = class Simulate {
         let zoom_speed = Simulate.camera_track_step*Math.sqrt(Math.abs(zoom_diff));
         Simulate.orbit.zoom   = 1.0/(1.0/Simulate.orbit.zoom+Math.sign(zoom_diff)*Math.min(zoom_speed,Math.abs(zoom_diff)));
     }
-
-    static draw_table(parent, table_width, table_length, table_height){
-        let table = new PhysicsObject({x:table_length,y:table_height,z:table_width},{x:0,y:0,z:0},0,0xFFFFFF).mesh;
+    static new_draw_table(width,length,height)
+    {
+        let physTable = new PhysicsObject(PhysicsObject.Shape.BOX,{x:width,y:height,z:length},{x:0,y:0,z:0},0,0xFFFFFF);
+        physTable.rigid_body.setFriction(0.7);
+        let table = physTable.mesh;
         table.name = "table";
         Simulate.sim.table = table;
+
+        let tableTex = new THREE.TextureLoader().load( "assets/DexterGrid.png" );
+        physTable.mesh.material.map = tableTex;
+        
+
+    }
+
+    static draw_table(parent, table_width, table_length, table_height){
         // draw lines on table
         var sizew = table_width
         let step = 0.05 //dexcell holes are 0.25 apart and 0,0 is in the CENTER of one of the cells
