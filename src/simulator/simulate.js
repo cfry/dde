@@ -220,8 +220,18 @@ globalThis.Simulate = class Simulate {
 
                 Simulate.initPhysicsWorld();
 
-                Simulate.createMeshGLTF() 
-
+                Simulate.createMeshGLTF() ;
+                
+                // let joints = [Simulate.sim.J0,Simulate.sim.J1,Simulate.sim.J2,Simulate.sim.J3,Simulate.sim.J4];
+                // for(let j of joints)
+                // {
+                //     let meshes = Simulate.getMeshes(j);
+                //     for(let mesh of meshes)
+                //     {
+                //         let obj = new PhysicsObject(mesh,0,PhysicsObject.Shape.BOX);
+                //         obj.makeKinematic();
+                //     }
+                // }
                 
 
                 SimBuild.init()
@@ -249,6 +259,35 @@ globalThis.Simulate = class Simulate {
             debugger;
         }
         
+    }
+    static enableArmPhysics()
+    {
+        let meshes = Simulate.getMeshes(Simulate.sim.J0);
+        for(let mesh of meshes)
+        {
+            let obj = new PhysicsObject(mesh,0,PhysicsObject.Shape.BOX);
+            obj.makeKinematic();
+        }
+    }
+    static getMeshes(obj3d){
+        let out = [];
+        for(let i = 0; i < obj3d.children.length; i++)
+        {
+            let child = obj3d.children[i];
+            if(child.isMesh)
+            {
+                out.push(child);
+            }
+            if(child.children.length > 0 && child != Simulate.sim.J6)
+            {
+                let subMeshes = Simulate.getMeshes(child);
+                for(let j = 0; j < subMeshes.length; j++)
+                {
+                    out.push(subMeshes[j]);
+                }
+            }
+        }
+        return out;
     }
 
     static physicsWorld;
@@ -473,6 +512,7 @@ globalThis.Simulate = class Simulate {
 //simulator using actual Dexter CAD. the GLTF was created by using the
 //fusion 360 exporter of FBX, then converting that to .gltf, then
 //processing in video.js to clean it up.
+    static gltfLoader;
     static createMeshGLTF(){
         Simulate.sim.table_width = 1.0 //= 0.447675,  //width was 1
         Simulate.sim.table_length = 1.0//0.6985,    //length was 2
@@ -490,6 +530,7 @@ globalThis.Simulate = class Simulate {
         Simulate.sim.scene.add(Simulate.sim.J0)
 
         let loader = new GLTFLoader //THREE_GLTFLoader()
+        Simulate.gltfLoader = loader;
         console.log("cur file simulate.js: " + globalThis.location.pathname)
         loader.load(//__dirname + "/HDIMeterModel.gltf", //select_val, //fails
                     //"./HDIMeterModel.gltf", //fails
@@ -929,7 +970,7 @@ globalThis.Simulate = class Simulate {
     }
     static new_draw_table(width,length,height)
     {
-        let physTable = new PhysicsObject(PhysicsObject.Shape.BOX,{x:width,y:height,z:length},{x:0,y:0,z:0},0,0xFFFFFF);
+        let physTable = PhysicsObject.createBox({x:width,y:height,z:length},{x:0,y:0,z:0},0,0xFFFFFF);
         physTable.rigid_body.setFriction(0.7);
         let table = physTable.mesh;
         table.name = "table";
