@@ -1,5 +1,5 @@
 import { max, re } from "mathjs";
-import { BoxGeometry, CylinderGeometry, MeshPhongMaterial, SphereGeometry } from "three";
+import { AmbientLight, BoxGeometry, CylinderGeometry, MeshPhongMaterial, SphereGeometry } from "three";
 
 globalThis.PhysicsObject = class PhysicsObject
 {
@@ -10,8 +10,13 @@ globalThis.PhysicsObject = class PhysicsObject
         CYLINDER:2
     }
     
-    // If set to true, a frame will be drawn around each physics object representing its collider.
+    // If set to true, a box will be drawn around each physics object representing its collider.
     static showColliders = false;
+
+
+    // If set to true, the bounding box around each object that is used for object pickup will be shown
+    static showGripperBox = false;
+    
 
     // Create a box
     static createBox(size,pos,mass,color)
@@ -42,10 +47,18 @@ globalThis.PhysicsObject = class PhysicsObject
      */
     constructor(mesh,mass=1,colliderType)
     {
+        //List of all ammo objects for memory management purposes
+        
+        this.ammoObjects = [];
         //Variable init
         this.zeroVec = new Ammo.btVector3(0,0,0);
         this.tempAmmoPos =  new Ammo.btVector3();
         this.tempAmmoQuat =  new Ammo.btQuaternion();
+        this.tempAmmoTrans =  new Ammo.btTransform();;
+
+        this.ammoObjects.push(this.zeroVec);
+        this.ammoObjects.push(this.tempAmmoPos);
+        this.ammoObjects.push(this.tempAmmoQuat);
 
         this.tempThreePosition0 = new THREE.Vector3();
         this.tempThreePosition1 = new THREE.Vector3();
@@ -53,6 +66,7 @@ globalThis.PhysicsObject = class PhysicsObject
 
         this.mesh = mesh;
         this.mass = mass;
+
 
 
         //Compute the dimensions of the collider
@@ -121,6 +135,10 @@ globalThis.PhysicsObject = class PhysicsObject
             //Create a lines segments object. This object is what is added to the scene and corresponds with the physics object. Note: this is purely for debug and does not affect the operation of anything else in any way
             this.colliderLines = new THREE.LineSegments(colliderFrameEdges, new THREE.LineBasicMaterial( { color: 0x00ff00 } ) ); 
             Simulate.sim.scene.add(this.colliderLines );
+            this.clawIntersectTriangle = new THREE.Triangle();
+            
+            colliderFrameGeometry.dispose();
+            colliderFrameEdges.dispose();
         }
         
 
@@ -130,14 +148,22 @@ globalThis.PhysicsObject = class PhysicsObject
 
         // Create a transform representing the position and rotation of the physical object
         let transform = new Ammo.btTransform();
+        let ammoOrigin =  new Ammo.btVector3(Simulate.physicsScale *  meshPostion.x, Simulate.physicsScale * meshPostion.y, Simulate.physicsScale * meshPostion.z );
+        let ammoQuat = new Ammo.btQuaternion( meshQuaternion.x, meshQuaternion.y, meshQuaternion.z, meshQuaternion.w ) ;
 
-        // Set the position and rotation of the object based on the meshes WORLD coordinates
+        this.ammoObjects.push(transform);
+        this.ammoObjects.push(ammoOrigin);
+        this.ammoObjects.push(ammoQuat);
+
+        // Set the position and rotation of the object based on the mesh's WORLD coordinates
         transform.setIdentity();
-        transform.setOrigin( new Ammo.btVector3(Simulate.physicsScale *  meshPostion.x, Simulate.physicsScale * meshPostion.y, Simulate.physicsScale * meshPostion.z ) )
-        transform.setRotation( new Ammo.btQuaternion( meshQuaternion.x, meshQuaternion.y, meshQuaternion.z, meshQuaternion.w ) );
+        transform.setOrigin(ammoOrigin)
+        transform.setRotation(ammoQuat);
 
         // Create a motion state to initialize the rigidBody from the above transform. The motionState represents the state of the object in physical space (position, orientation, velocity etc)
         let motionState = new Ammo.btDefaultMotionState( transform );
+        this.ammoObjects.push(motionState);
+        
     
         // Create the collider. This collider is just the shape that is used to compute collisions. It is used to initialize the rigidBody so that it knows what shape it is
         switch(this.colliderInfo.type)
@@ -176,6 +202,7 @@ globalThis.PhysicsObject = class PhysicsObject
                 }
                 break;
         }
+        this.ammoObjects.push(this.colShape);
         
 
         // Set the margin for error that is used when calculating collisions
@@ -184,6 +211,7 @@ globalThis.PhysicsObject = class PhysicsObject
         //Calculate the inertia of the object. Note: YOU CANNOT SET MASS WITHOUT THIS STEP. 
         this.localInertia = new Ammo.btVector3( 0, 0, 0 );
         this.colShape.calculateLocalInertia( mass, this.localInertia );
+        this.ammoObjects.push(this.localInertia);
     
         // Create the rigidbody. This is what represents the physical object in the scene.
         let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, this.colShape, this.localInertia );
@@ -191,10 +219,62 @@ globalThis.PhysicsObject = class PhysicsObject
         this.rigid_body.setFriction(0.9);
         this.rigid_body.setRollingFriction(0.01);
 
+        this.ammoObjects.push(rbInfo);
+        this.ammoObjects.push(this.rigid_body);
+
     
         // Add the rigidbody to the world, and add this object to the list of physicsBodies in Simulate
         Simulate.physicsWorld.addRigidBody( this.rigid_body );
+        this.index = Simulate.physicsBodies.length
         Simulate.physicsBodies.push(this);
+
+
+        // Bounding box used for object pickup
+        this.pickupBox = new THREE.Box3();
+
+        //Object to show where the pickupBox is to make debugging easier
+        this.pickupHelper = new THREE.Box3Helper(this.pickupBox,0xff00ff);
+        Simulate.sim.scene.add(this.pickupHelper);
+
+        // Theshold for the claw to be closed to pickup the object
+        this.gripperThreshold = 200;
+
+        this.held = false;
+    }
+
+    /** Remove the object from the scene and remove it
+     * @param {boolean} [disposeGeometry=true] Will remove the mesh from its parent and dispose of its geometry
+     * @param {boolean} [disposeMaterial=true] Will remove the mesh from its parent and dispose of its material
+    */
+    destroy(disposeGeometry = true, disposeMaterial = true)
+    {
+        Simulate.physicsBodies.splice(this.index,1);
+        Simulate.physicsWorld.removeRigidBody(this.rigid_body);
+        for(let obj of this.ammoObjects)
+        {
+            Ammo.destroy(obj);
+        }
+
+        
+        this.colliderLines.parent.remove(this.colliderLines);
+        this.colliderLines.geometry.dispose();
+        this.colliderLines.material.dispose();
+        
+        this.pickupHelper.parent.remove(this.pickupHelper);
+        this.pickupHelper.dispose();
+
+        if(disposeGeometry || disposeMaterial)
+        {
+            this.mesh.parent.remove(this.mesh);
+            if(disposeGeometry)
+            {
+                this.mesh.geometry.dispose();
+            }
+            if(disposeMaterial)
+            {
+                this.mesh.material.dispose();
+            }
+        }
     }
 
     // Compute the best collider to use for a given mesh
@@ -446,20 +526,20 @@ globalThis.PhysicsObject = class PhysicsObject
                     this.tempAmmoQuat.setValue(this.tempThreeQuat.x,this.tempThreeQuat.y,this.tempThreeQuat.z,this.tempThreeQuat.w);
     
                     // Turn the ammo vector and ammo quaternion into an ammo transform
-                    Simulate.tmpTrans.setIdentity(); 
-                    Simulate.tmpTrans.setOrigin( this.tempAmmoPos ); 
-                    Simulate.tmpTrans.setRotation( this.tempAmmoQuat ); 
+                    this.tempAmmoTrans.setIdentity(); 
+                    this.tempAmmoTrans.setOrigin( this.tempAmmoPos ); 
+                    this.tempAmmoTrans.setRotation( this.tempAmmoQuat ); 
     
                     // Set the world transform of the mesh
-                    motionState.setWorldTransform(Simulate.tmpTrans);
+                    motionState.setWorldTransform(Sthis.tempAmmoTrans);
     
                 }
                 else { // The object is dynamic; update the mesh using the rigidBody
 
                     // Get the position and rotation of the rigid body
-                    motionState.getWorldTransform( Simulate.tmpTrans );
-                    let p = Simulate.tmpTrans.getOrigin();
-                    let q = Simulate.tmpTrans.getRotation();
+                    motionState.getWorldTransform( this.tempAmmoTrans);
+                    let p = this.tempAmmoTrans.getOrigin();
+                    let q = this.tempAmmoTrans.getRotation();
     
     
                     // Set the rotation of the mesh
@@ -488,33 +568,60 @@ globalThis.PhysicsObject = class PhysicsObject
         }
         
 
-        // this.helper.update();
 
-        // this.boundingBox.setFromObject(this.mesh);
-        // let gripperInside = this.boundingBox.containsPoint(Simulate.gripperLocation);
-        // if(gripperInside)
-        // {
+        //Update the pickup box 
+        this.mesh.geometry.computeBoundingBox();
+        this.pickupBox.setFromObject(this.mesh,true);
 
-        //     let aboveThresh = Simulate.currentJ7Pos <= this.gripperThreshold ;
+        this.pickupHelper.visible = PhysicsObject.showGripperBox && (!this.kinematic || this.held);
 
-        //     if(aboveThresh)
-        //     {
-        //         if(!(Simulate.lastJ7Pos <= this.gripperThreshold))
-        //         {
-        //             // this.helper.material.color.set(0x00FF00);
-        //             this.grab();
-        //         }
-        //         else
-        //         {
-        //             // this.helper.material.color.set(0xFF8000);
-        //         }
-        //     }
-        //     else if(!this.held)
-        //     {
-        //         // this.helper.material.color.set(0xFFFF00);
-        //     }  
-        // }
+        let gripperInside = false;
+        if(Simulate.gripperBox != undefined)
+        {
+            for(let i = 0; i < 3; i++)
+            {
+                let y = (i-1)*0.5;
+                this.clawIntersectTriangle.a.set(-0.5, y ,-0.5);
+                this.clawIntersectTriangle.b.set( 0.0, y , 0.5);
+                this.clawIntersectTriangle.c.set( 0.5, y ,-0.5);
+    
+                this.clawIntersectTriangle.a.applyMatrix4(Simulate.gripperBox.matrixWorld);
+                this.clawIntersectTriangle.b.applyMatrix4(Simulate.gripperBox.matrixWorld);
+                this.clawIntersectTriangle.c.applyMatrix4(Simulate.gripperBox.matrixWorld);
+    
+                if(this.pickupBox.intersectsTriangle(this.clawIntersectTriangle)){
+                    gripperInside = true;
+                }
+            }
+        }
 
+        let aboveThresh = Simulate.currentJ7Pos <= this.gripperThreshold ;
+        if(gripperInside && aboveThresh && !(Simulate.lastJ7Pos <= this.gripperThreshold) && !this.kinematic)
+        {
+            this.grab();
+        }
+        
+        if(this.held && !aboveThresh)
+        {
+            this.release();
+        }
+
+        if(this.held)
+        {
+            this.pickupHelper.material.color.set(0xff00ff);
+        }
+        else if(gripperInside && aboveThresh)
+        {
+            this.pickupHelper.material.color.set(0xFF8000);
+        }
+        else if(gripperInside)
+        {
+            this.pickupHelper.material.color.set(0xFFFF00);
+        }
+        else
+        {
+            this.pickupHelper.material.color.set(0x00ffff);
+        }
 
     }
 
@@ -543,7 +650,10 @@ globalThis.PhysicsObject = class PhysicsObject
     grab()
     {
         // Make the object kinematic so that we can move it using the arm
-        this.makeKinematic(); 
+        this.makeKinematic();
+
+        // Mark the object as held
+        this.held = true;
 
         // Attach the mesh to J6 so that it moves with the arm
         Simulate.sim.J6.attach(this.mesh);
@@ -596,6 +706,9 @@ globalThis.PhysicsObject = class PhysicsObject
 
         // Put the mesh back in the scene because removing it from it's parent removed it from the scene
         Simulate.sim.scene.add(this.mesh);
+
+        // Mark the object as not held
+        this.held = false;
 
         // Enable physics for the object again
         this.makeDynamic();

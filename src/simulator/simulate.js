@@ -204,8 +204,7 @@ globalThis.Simulate = class Simulate {
         {
             Simulate.updateCanSize();
             try{
-                
-                Simulate.gripperLocation = new THREE.Vector3();
+
                 Simulate.init_mouse();
                 Simulate.sim.enable_rendering = false
                 //for organization: https://discoverthreejs.com/book/first-steps/lights-color-action/
@@ -293,10 +292,8 @@ globalThis.Simulate = class Simulate {
     static physicsWorld;
     static physicsScale = 10.0;
     static physicsBodies = [];
-    static tmpTrans;
     static initPhysicsWorld()
     {
-        Simulate.tmpTrans = new Ammo.btTransform();
         let collisionConfiguration  = new Ammo.btDefaultCollisionConfiguration(),
         dispatcher              = new Ammo.btCollisionDispatcher(collisionConfiguration),
         overlappingPairCache    = new Ammo.btDbvtBroadphase(),
@@ -304,41 +301,6 @@ globalThis.Simulate = class Simulate {
     
         Simulate.physicsWorld           = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
         Simulate.physicsWorld.setGravity(new Ammo.btVector3(0, -10, 0));
-    }
-
-    static createPhysicsBlock(size,pos,mass,color=0xa0afa4)
-    {
-        let quat = {x: 0, y: 0, z: 0, w: 1};
-    
-        //Create Three.js Block
-        let blockMesh = new THREE.Mesh(new THREE.BoxGeometry( 1, 1, 1 ), new THREE.MeshPhongMaterial({color: color}));
-    
-        blockMesh.position.set(pos.x, pos.y, pos.z);
-        blockMesh.scale.set(size.x, size.y, size.z);
-
-        Simulate.sim.scene.add(blockMesh);
-    
-        let transform = new Ammo.btTransform();
-        transform.setIdentity();
-        transform.setOrigin( new Ammo.btVector3(Simulate.physicsScale *  pos.x, Simulate.physicsScale * pos.y, Simulate.physicsScale * pos.z ) )
-        transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
-        let motionState = new Ammo.btDefaultMotionState( transform );
-    
-        let colShape = new Ammo.btBoxShape( new Ammo.btVector3( Simulate.physicsScale * size.x * 0.5, Simulate.physicsScale * size.y * 0.5, Simulate.physicsScale * size.z * 0.5 ) );
-        colShape.setMargin( 0.05 );
-    
-        let localInertia = new Ammo.btVector3( 0, 0, 0 );
-        colShape.calculateLocalInertia( mass, localInertia );
-    
-        let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
-        let body = new Ammo.btRigidBody( rbInfo );
-    
-    
-        Simulate.physicsWorld.addRigidBody( body );
-    
-        blockMesh.userData.physicsBody = body;
-        Simulate.physicsBodies.push(blockMesh);
-        return blockMesh
     }
     
     static updatePhysics( deltaTime ){
@@ -349,20 +311,6 @@ globalThis.Simulate = class Simulate {
         // Update rigid bodies
         for ( let i = 0; i < Simulate.physicsBodies.length; i++ ) {
             Simulate.physicsBodies[i].update();
-            // let objThree = Simulate.physicsBodies[ i ];
-            // let objAmmo = objThree.userData.physicsBody;
-            // let ms = objAmmo.getMotionState();
-            // if ( ms ) {
-
-            //     ms.getWorldTransform( Simulate.tmpTrans );
-            //     let p = Simulate.tmpTrans.getOrigin();
-
-            //     let q = Simulate.tmpTrans.getRotation();
-            //     objThree.position.set( p.x()/Simulate.physicsScale, p.y()/Simulate.physicsScale, p.z()/Simulate.physicsScale );
-            //     objThree.quaternion.set( q.x(), q.y(), q.z(), q.w() );
-
-            // }
-
         }
 
     }
@@ -628,7 +576,7 @@ globalThis.Simulate = class Simulate {
         Simulate.sim.J7 = Simulate.sim.LINK7
     }
 
-    static gripperLocation;
+    static gripperBox;
 
     static do_animation_loop(){
         if (SimUtils.is_simulator_showing()) {
@@ -636,13 +584,19 @@ globalThis.Simulate = class Simulate {
                 interactionManager.update();
             }
 
-            if(Simulate.sim.J6)
+            if(Simulate.sim.J6 != undefined)
             {
-                Simulate.gripperLocation.set(0,0,0);
-                Simulate.gripperLocation.z-=1;
-                Simulate.gripperLocation.applyMatrix4(Simulate.sim.J6.matrixWorld);
+                if(Simulate.gripperBox == undefined)
+                {
+                    Simulate.gripperBox = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)), new THREE.LineBasicMaterial( { color: 0xff0000 }));
+                    Simulate.gripperBox.scale.set(0.0,0.25,0.6);
+                    Simulate.gripperBox.position.set(0,0,-0.65);
+                    Simulate.sim.J6.add(Simulate.gripperBox);
+                    Simulate.gripperBox.visible = false;
+                }
+
+                Simulate.update_joints();
             }
-            Simulate.update_joints();
             Simulate.update_camera();
             Simulate.updatePhysics(1/60);
             Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
@@ -797,6 +751,8 @@ globalThis.Simulate = class Simulate {
                     let angle_deg = updated_angle_rad*180/Math.PI;
                     let new_xpos = ((angle_deg * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
                     new_xpos *= 10;
+                    Simulate.gripperBox.scale.x = (new_xpos-0.018);
+                    Simulate.gripperBox.position.x = (new_xpos-0.018)/2;
                     Simulate.sim.J7.position.setX(new_xpos);
                 }
                 
