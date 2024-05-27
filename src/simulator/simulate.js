@@ -264,7 +264,7 @@ globalThis.Simulate = class Simulate {
         let meshes = Simulate.getMeshes(Simulate.sim.J0);
         for(let mesh of meshes)
         {
-            let obj = new PhysicsObject(mesh,0,PhysicsObject.Shape.BOX);
+            let obj = new PhysicsObject(mesh,0);
             obj.makeKinematic();
         }
     }

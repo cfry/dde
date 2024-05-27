@@ -531,7 +531,7 @@ globalThis.PhysicsObject = class PhysicsObject
                     this.tempAmmoTrans.setRotation( this.tempAmmoQuat ); 
     
                     // Set the world transform of the mesh
-                    motionState.setWorldTransform(Sthis.tempAmmoTrans);
+                    motionState.setWorldTransform(this.tempAmmoTrans);
     
                 }
                 else { // The object is dynamic; update the mesh using the rigidBody
@@ -568,60 +568,63 @@ globalThis.PhysicsObject = class PhysicsObject
         }
         
 
-
-        //Update the pickup box 
-        this.mesh.geometry.computeBoundingBox();
-        this.pickupBox.setFromObject(this.mesh,true);
-
         this.pickupHelper.visible = PhysicsObject.showGripperBox && (!this.kinematic || this.held);
-
-        let gripperInside = false;
-        if(Simulate.gripperBox != undefined)
+        if(!this.kinematic || this.held)
         {
-            for(let i = 0; i < 3; i++)
+            //Update the pickup box 
+            this.mesh.geometry.computeBoundingBox();
+            this.pickupBox.setFromObject(this.mesh,true);
+
+
+            let gripperInside = false;
+            if(Simulate.gripperBox != undefined)
             {
-                let y = (i-1)*0.5;
-                this.clawIntersectTriangle.a.set(-0.5, y ,-0.5);
-                this.clawIntersectTriangle.b.set( 0.0, y , 0.5);
-                this.clawIntersectTriangle.c.set( 0.5, y ,-0.5);
-    
-                this.clawIntersectTriangle.a.applyMatrix4(Simulate.gripperBox.matrixWorld);
-                this.clawIntersectTriangle.b.applyMatrix4(Simulate.gripperBox.matrixWorld);
-                this.clawIntersectTriangle.c.applyMatrix4(Simulate.gripperBox.matrixWorld);
-    
-                if(this.pickupBox.intersectsTriangle(this.clawIntersectTriangle)){
-                    gripperInside = true;
+                for(let i = 0; i < 3; i++)
+                {
+                    let y = (i-1)*0.5;
+                    this.clawIntersectTriangle.a.set(-0.5, y ,-0.5);
+                    this.clawIntersectTriangle.b.set( 0.0, y , 0.5);
+                    this.clawIntersectTriangle.c.set( 0.5, y ,-0.5);
+        
+                    this.clawIntersectTriangle.a.applyMatrix4(Simulate.gripperBox.matrixWorld);
+                    this.clawIntersectTriangle.b.applyMatrix4(Simulate.gripperBox.matrixWorld);
+                    this.clawIntersectTriangle.c.applyMatrix4(Simulate.gripperBox.matrixWorld);
+        
+                    if(this.pickupBox.intersectsTriangle(this.clawIntersectTriangle)){
+                        gripperInside = true;
+                    }
                 }
             }
-        }
 
-        let aboveThresh = Simulate.currentJ7Pos <= this.gripperThreshold ;
-        if(gripperInside && aboveThresh && !(Simulate.lastJ7Pos <= this.gripperThreshold) && !this.kinematic)
-        {
-            this.grab();
+            let aboveThresh = Simulate.currentJ7Pos <= this.gripperThreshold ;
+            if(gripperInside && aboveThresh && !(Simulate.lastJ7Pos <= this.gripperThreshold) && !this.kinematic)
+            {
+                this.grab();
+            }
+            if(this.held && !aboveThresh)
+            {
+                this.release();
+            }
+    
+            if(this.held)
+            {
+                this.pickupHelper.material.color.set(0xff00ff);
+            }
+            else if(gripperInside && aboveThresh)
+            {
+                this.pickupHelper.material.color.set(0xFF8000);
+            }
+            else if(gripperInside)
+            {
+                this.pickupHelper.material.color.set(0xFFFF00);
+            }
+            else
+            {
+                this.pickupHelper.material.color.set(0x00ffff);
+            }
         }
         
-        if(this.held && !aboveThresh)
-        {
-            this.release();
-        }
-
-        if(this.held)
-        {
-            this.pickupHelper.material.color.set(0xff00ff);
-        }
-        else if(gripperInside && aboveThresh)
-        {
-            this.pickupHelper.material.color.set(0xFF8000);
-        }
-        else if(gripperInside)
-        {
-            this.pickupHelper.material.color.set(0xFFFF00);
-        }
-        else
-        {
-            this.pickupHelper.material.color.set(0x00ffff);
-        }
+        
 
     }
 
