@@ -616,11 +616,11 @@ globalThis.Simulate = class Simulate {
 
     static dynamixel_320_to_rad(steps)
     {
-        let out = (Math.PI*Socket.DEGREES_PER_DYNAMIXEL_320_UNIT*steps/180) % (Math.PI*2);
-        if(out<0)
-        {
-            out = Math.PI*2 + out;
-        }
+        let out = (Math.PI*Socket.DEGREES_PER_DYNAMIXEL_320_UNIT*steps/180) ;
+        // if(out<0)
+        // {
+        //     out = Math.PI*2 + out;
+        // }
         return out;
     }
 
