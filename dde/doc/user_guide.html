@@ -710,6 +710,22 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             behind the scenes, the Job will be defined, and started.
             Such Jobs will use the Dexter.default robot, chosen in the Misc pane header.
         </details>
+        <details class="doc_details"><summary>Auto-Completion</summary>
+            Type in the beginning of a word and type Cntl-/ (hold down control and type slash).
+            If the preceeding text begins a word that is:
+            <ul>
+                <li>Part of basic JavaScript.</li>
+                <li>Defined in DDE including any loaded packages.</li>
+                <li>Defined by your code.</li>
+                <li>In the current editor buffer <i>above</i> the cursor
+                    and is in JavaScript syntax (but doesn't have to be evaled).</li>
+            </ul>
+            You have a good chance it can be completed.<br/>
+            If there is just one possible completion, it is inserted into the editor.<br/>
+            If there is more than one possible completion, a little menu comes up
+            with the possibilities. Click on one or use the down arrow key and Enter
+            to choose one.
+        </details> <!-- end auto completion -->
     </details> <!-- end Editor pane -->
     <details id="output_pane_doc_id" class="doc_details"><summary>Output Pane</summary>
         DDE prints information in the Output pane that will be useful in your current context.
@@ -1525,15 +1541,20 @@ SimObj.get_position(SimObj.my_object3d_1)</code> => <samp>[0.2, 0.3, 0.4]</samp>
         <li>Provide spoken prompts to GPT.</li>
         <li>Perform additional functionalities visible in the interface.</li>
     </ul>
+    <details class="doc_details"><summary>How to use Talk</summary>
     Talk is entered by choosing <b>Talk to Dexter...</b> from the Dexter menu.
     The dialog box that comes up tries hard to be self-explanatory.
     There are tooltips, instructions, error messages and a status bar to help.
     Valid commands for the current mode (context) are displayed.
+    <br/><br/>
     You switch modes by clicking on a mode link or saying the link text
     (such as "Move menu") to enter another mode, just like running
-    any other command. Some commands have parameters. Talk has a parameters
+    any other command.
+    <br/><br/>
+    Some commands have parameters. Talk has a parameters
     mode for handling their entry. Say the command name without any parameters
-    to switch to the parameters mode.
+    to switch to the parameters mode. This will allow you to clearly see
+    all parameters and allow you to type in their values or say them.
     <br/><br/>
     <i>Move Commands</i><br/>
     The move commands: up, down, left, right, closer, farther, all
@@ -1552,13 +1573,35 @@ SimObj.get_position(SimObj.my_object3d_1)</code> => <samp>[0.2, 0.3, 0.4]</samp>
     where you want the robot to end up.
     <br/><br/>
     Overall the speech recognition that DDE uses (built into Chrome),
-    is quite accurate. However usually, but not always,
+    is quite accurate. However, sometimes speech recognition completely ignores
+    your utterance or gets it wrong. If the status of "Last Command"
+    doesn't show the text you intended, try it again.
+    If that still fails, click on the command, and  type in its parameter
+    values.
+    <p/>
     <span style="color:red;">Chrome does not recognize "right".</span><br/>
     Workarounds:<br/>
     1. Click the link "Right" instead of saying it.<br/>
     2. "Say "right turn" instead.<br/>
     We have filed a bug report with Google (May 1, 2024).
-</details> <!-- end talk_doc_id -->
+   </details>
+
+   <details class="doc_details"><summary>Tell others about Talk</summary>
+        Emailing these instructions should enable others to use Talk, even if they've
+        never heard of DDE.<pre>
+1. In Chrome, browse: https://cfry.github.io/
+2. Click on: Use DDE4
+3. Under the Dexter menu, choose: "Talk to Dexter"
+
+If this is the first time you're using DDE4 on your computer
+with Chrome, and you want to drive an actual Dexter with DDE4,
+(not just the simulator)
+please follow the directions in
+DDE4/Doc Pane/User Guide/Configure Browser for DDE4 Cloud.
+</pre>
+    </details>
+
+    </details> <!-- end talk_doc_id -->
 
 <details id="JavaScript_guide_id" class="doc_details"><summary>JavaScript</summary>
     DDE allows you to control a Dexter robot with Javascript. You can execute all of JS.

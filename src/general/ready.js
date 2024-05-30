@@ -55,6 +55,15 @@ import "codemirror/addon/fold/foldgutter.js"
 import "codemirror/addon/fold/brace-fold.js"
 import "codemirror/addon/fold/comment-fold.js"
 
+import "codemirror/addon/hint/show-hint.css"
+import "codemirror/addon/hint/show-hint.js"
+import "codemirror/addon/hint/javascript-hint.js"
+import "codemirror/addon/hint/anyword-hint.js"  //note: is supposed to look nearby in the editor buffer
+ //and complete using any matching string it finds, but not the case.
+ //only matches JAVASCRIPT code.
+ //see fry dscription at: [discuss.CodeMirror] [v5] show_hint demo appears to do nothing
+
+
 import "shepherd.js/dist/css/shepherd.css"
 
 import nlp from "compromise"
@@ -174,8 +183,9 @@ import "../HCA/make_ipg.js"      //defines global Make_ipg class
 import "../HCA/litegraph_patches.js"
 
 import "../blocksde/init.js" //needed for making the menu of different "views" of DDE's editor, including HCA
-import "./talk.js"       //defines global Speechly
-import "./openai.js"    //defines globalThis.chatgpt
+import "./talk.js"       //defines global Talk
+import "./talktype.js"   //defines global TalkType
+import "./openai.js"     //defines globalThis.OpenAI
 
 
 
@@ -1120,34 +1130,41 @@ window_modify_id.onclick=function(){Editor.insert(
 
    // build_window_id.onclick=ab.launch //todo dde4 revive this?
 
-    opencv_gray_id.onclick= async function(){
-        const code = await DDEFile.read_file_async("dde/examples/opencv_gray.js")
+    opencv_gray_id.onclick= function(){
+        //const code = await DDEFile.read_file_async("dde/examples/opencv_gray.js")
+        const code = DDEFile.get_page("examples/opencv_gray.js")
+        //const code = DDEFile.get_page("https://cfry.github.io/dde4/dde/examples/opencv_gray.js") //works but always goes after github.io server, not localhost when running dde from laptop.
         Editor.insert(code)
     }
     opencv_blur_id.onclick= async function (){
-        const code = await DDEFile.read_file_async("dde/examples/opencv_blur.js")
+        //const code = await DDEFile.read_file_async("dde/examples/opencv_blur.js")
+        const code = DDEFile.get_page("examples/opencv_blur.js")
         Editor.insert(code)
     }
 
     opencv_in_range_id.onclick= async function(){
-        const code = await DDEFile.read_file_async("dde/examples/opencv_in_range.js")
+        //const code = await DDEFile.read_file_async("dde/examples/opencv_in_range.js")
+        const code = DDEFile.get_page("examples/opencv_in_range.js")
         Editor.insert(code)
     }
 
     opencv_blob_detector_id.onclick= async function(){
-        const code = await DDEFile.read_file_async("dde/examples/opencv_blob_detector.js")
+        //const code = await DDEFile.read_file_async("dde/examples/opencv_blob_detector.js")
+        const code = DDEFile.get_page("examples/opencv_blob_detector.js")
         Editor.insert(code)
         DocCode.open_doc("Picture.detect_blobs_doc_id")
     }
 
     opencv_process_webcam_id.onclick= async function(){
-        const code = await DDEFile.read_file_async("dde/examples/opencv_process_webcam.js")
+        //const code = await DDEFile.read_file_async("dde/examples/opencv_process_webcam.js")
+        const code = DDEFile.get_page("examples/opencv_process_webcam.js")
         Editor.insert(code)
     }
 
     /* can't work see dde/examples/opencv_face_reco.js for details
     opencv_face_reco_id.onclick= async function(){
-        const code = await DDEFile.read_file_async("dde/examples/opencv_face_reco.js")
+        //const code = await DDEFile.read_file_async("dde/examples/opencv_face_reco.js")
+        const code = DDEFile.get_page("examples/opencv_process_webcam.js")
         Editor.insert(code)
     }*/
 
@@ -1755,6 +1772,7 @@ window_modify_id.onclick=function(){Editor.insert(
 } //end of on_ready definition.
 
    async function on_ready_after_db_init() {
+       Servo.init()
        //set_dde_window_size_to_persistent_values() //todd dde4 (can work now) obsolete now that main.js does this
 
        let val = DDE_DB.persistent_get("save_on_eval")

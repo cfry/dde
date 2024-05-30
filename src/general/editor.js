@@ -32,8 +32,8 @@ class Editor {
         this.myCodeMirror = CodeMirror.fromTextArea(js_textarea_id, //myCodeMirror declared as global in ready.js
             {lineNumbers: true,
             //lineWrapping: true,
-             mode: "javascript",
-             matchBrackets: true,
+             mode: {name: "javascript", globalVars: true}, //use javascript lang, and allow automcomplete to work on global js vars.
+             chBrackets: true,
              foldGutter: true,
              //extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }}, works ony when on line that can be folded
              gutters: ["CodeMirror-linenumbers", "CodeMirror-lint-markers", "CodeMirror-foldgutter"],
@@ -54,8 +54,11 @@ class Editor {
                              "Cmd-O": Editor.open_on_dde_computer,
                              "Cmd-R": Editor.move_to_instruction,
                              "Cmd-S": Editor.save, //mac
-                             "Shift-Cmd-S": Editor.save_as  //this keystroke is usurped by tab_suspender Chrome extension.
-                           }:  //"win" and "linux"
+                             "Shift-Cmd-S": Editor.save_as,  //this keystroke is usurped by tab_suspender Chrome extension.
+                             "Ctrl-/": "autocomplete" //Ctrl-Space is the recommended Codemirror keystroke, but the Mac apparently uses this for autocompletion, and even though that doesn't work in codemirror, it screws up using Ctrl-Space, so I switched it to Cntr-/
+                              //node codemirror 6 has https://codemirror.net/examples/autocompletion/
+                            }:
+                               //"win" and "linux"
                             {"Alt-Left":   Series.ts_or_replace_sel_left,
                              "Alt-Right":  Series.ts_or_replace_sel_right,
                              "Shift-Alt-Right": Series.ts_sel_shift_right, //no non ts semantics decided to cut this as is uncommonly used and shift right is "continue selection" in normal test editor and conde mirror AND alt_shift_right too hairy to remember.
@@ -67,7 +70,8 @@ class Editor {
                              "Ctrl-O": Editor.open_on_dde_computer,
                              "Ctrl-R": Editor.move_to_instruction,
                              "Ctrl-S": Editor.save, //windows
-                             "Shift-Ctrl-S": Editor.save_as
+                             "Shift-Ctrl-S": Editor.save_as,
+                             "Ctrl-/": "autocomplete"
                          }
                         )
         })

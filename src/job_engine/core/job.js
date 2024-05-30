@@ -214,18 +214,15 @@ class Job{
         this.set_status_code("not_started")//see Job.status_codes for the legal values
                                            //if no button yet, this call doesn't errur
         this.add_job_button_maybe() //always calls color_job_button, even if a button isn't added
+        if(this.is_recursive_job()){
+            dde_error("Job: " + name + " has a do_list item of a Job instance or Control.start_job call<br/>" +
+                "with the same name as the Job being defined (or one of its sub-jobs does).<br/>" +
+                "Recursive Jobs are not allowed.")
+        }
     }
     } //end constructor
 
 
-
-    static generate_default_name(){
-        for(let i = 2; i < 1000000; i++){
-            let candidate = "job" + i
-            if (!Job[candidate])  { return candidate }
-        }
-        dde_error("Job.generate_default_name has found a million job names in use. Seems unlikely.")
-    }
 
     static class_init(){ //inits the Job class as a whole. called by ready
         this.job_default_params =
@@ -250,6 +247,49 @@ class Job{
                 when_stopped: "stop", //also can be any do_list item
                 when_stopped_conditions: true,
                 callback_param: "start_object_callback"}
+    }
+
+    static generate_default_name(){
+        for(let i = 2; i < 1000000; i++){
+            let candidate = "job" + i
+            if (!Job[candidate])  { return candidate }
+        }
+        dde_error("Job.generate_default_name has found a million job names in use. Seems unlikely.")
+    }
+
+    is_recursive_job(job_name){
+        if(!job_name){ //only hits at top level
+            job_name = this.name
+        }
+        //look thru the subjobs recursively on down
+        for(let instr of this.orig_args.do_list){
+            if(instr instanceof Job) {
+                if(instr.name === job_name){
+                    return true
+                }
+                else {
+                    let result = instr.is_recursive_job(job_name)
+                    if(result) {
+                        return true
+                    }
+                }
+            }
+            else if (instr instanceof Instruction.start_job) {
+                if(instr.job_name === job_name) {
+                    return true
+                }
+                else {
+                    let sub_job = Job[instr.job_name]
+                    if(sub_job){
+                        let result = sub_job.is_recursive_job(job_name)
+                        if(result) {
+                            return true
+                        }
+                    }
+                }
+            }
+        }
+        return false
     }
 
     //return an array of job instances that are defined in path_name.
@@ -326,7 +366,7 @@ class Job{
             "' max='" + this.do_list.length + "'></progress>" +
             " of " +  this.do_list.length + ". " +
             cur_instr +
-            "&nbsp;&nbsp;<button onclick='inspect_out(Job." + this.name + ")'>Inspect</button>" +
+            //"&nbsp;&nbsp;<button onclick='inspect_out(Job." + this.name + ")'>Inspect</button>" + //since the job button has the cicle-i for inspected it, remove this button to reduce the clutter in the Output pane
             "<br/>"
         let has_user_data = false
         for(let prop_name in this.user_data){
@@ -461,7 +501,7 @@ class Job{
 
     //Called by user to start the job and "reinitialize" a stopped job
     start(options={}){  //sent_from_job = null
-        out("Top of Job." + this.name + ".start()")
+        //out("Top of Job." + this.name + ".start()")
         /* commented out due to new Waiting scheme
         let the_active_job_with_robot_maybe = Job.active_job_with_robot(this.robot) //could be null.
             //must do this before setting status_code to "starting".
@@ -1943,8 +1983,10 @@ Job.prototype.finish_job = function(){
           //Dexter.remove_from_busy_job_arrays(this) //remove from ALL Dexters' busy_job_arrays.
           this.color_job_button() //possibly redundant but maybe not and just called on finishing job so leave it in
           this.show_progress_maybe()
-          out("Done with Job." + this.name + ", for reason: " + this.stop_reason +
-              " platform: " + globalThis.platform + " keep_alive: " + globalThis.keep_alive_value)
+          if(this.status_code == "errored") {
+              warning("Done with Job." + this.name + ", for reason: " + this.stop_reason +
+                  " platform: " + globalThis.platform + " keep_alive: " + globalThis.keep_alive_value)
+          }
           if(globalThis.platform === "node") { //only calls close_readline to end process, or doesn't
             if(globalThis.keep_alive_value) {} //keep the process alive
             else {
@@ -2261,6 +2303,16 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         this.show_progress_maybe()
         this.select_instruction_maybe(cur_do_item)
         if (this.program_counter >= this.added_items_count.length) { this.added_items_count.push(0)} //might be overwritten further down in this method
+        else if ((cur_do_item instanceof Instruction.wait_until) &&   //using Control.wait_until errors here
+                 (cur_do_item.fn_date_dur === "new_instruction")) {} //Complex! Because we don't
+            //want the next else_if cause to trigger which it will IF we have
+            //added an instrution below the PC (that should cause the Control.wait_until
+            //to stop waiting. BUT if the next else_if triggers, it will
+            //call remove_sub_instructions_from_do_list which will REMOVE the
+            //new instruction we (may have) just added (user programmatically calls insert_instruction)
+            //thus that remove_sub_instructions_from_do_list will delete that newly added instruction
+            //and thus the wait_until "new_instruction" won't stop waiting as it shopuld have,
+            //because that newly added instruction was deleted.
         else if (this.added_items_count[this.program_counter] > 0) { //will only happen if we go_to backwards,
            //in which case we *might* call an instruction twice that makes some items that it adds to the to_do list.
            //so we want to get rid of those items and "start over" with that instruction.

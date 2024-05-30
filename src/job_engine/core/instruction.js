@@ -677,6 +677,38 @@ Instruction.eval_python = class eval_python extends Instruction{
 
 }
 
+Instruction.if = class If extends Instruction{
+    constructor (clauses) { super()
+        if((clauses.length % 2) !== 0) {
+            dde_error("The Job item: If contains " + clauses.length +
+                " clauses but it should be an even number.")
+        }
+       this.clauses = clauses //an even lengthened array alernating fns and do_list_items.
+    }
+    do_item(job_instance){
+        for (let i = 0; i < this.clauses.length; i +=2){
+            let condition = this.clauses[i]
+            if(typeof(condition) === "function"){
+               condition = condition.call(job_instance)
+            }
+            //else  just leave condion be whatever was evaled at
+            //job definition time ie false, null, undefined, (usual JS falsey)
+            // or anything else (usual truthy)
+            if(condition){
+                let do_list_item = this.clauses[i + 1]
+                Job.insert_instruction(do_list_item,
+                    {job: job_instance,
+                     offset: "after_program_counter"})
+                job_instance.set_up_next_do(1)
+                return
+            }
+        }
+        job_instance.set_up_next_do(1)  //only if no clauses hit, will this be run, including when clauses is the empty array.
+        //in thouse cases Control.if does nothing.
+        //warning("Control.if ran no instructions.")
+    }
+}
+
 Instruction.break = class Break extends Instruction{ //class name must be upper case because lower case conflicts with js break
     constructor () { super() }
     do_item (job_instance){

@@ -473,7 +473,7 @@ DDEFile.load_file("two_plus_three.js",
                   First try such paths in a browser. If that works,
                   you have a <i>chance</i> of getting the page's HTML, but certainly not
                   guarenteed. Different websites have different policies, which may change.
-                <pre><code>DDEFile.read_file_async(
+                <pre><code title="not in TestSuite">DDEFile.read_file_async(
      "https://www.cnn.com",
      function(err, content){
          out("read_file got err: " + err + " and content: " + content)})</code></pre>
@@ -5324,6 +5324,77 @@ where within the job to insert the given instruction as does the method
     <a href="#" onclick="DocCode.open_doc('Control.loop_doc_id', event)">Control.loop</a> is better.
 </details>
 
+<details id="Control.if" class="doc_details"><summary>if</summary>
+    You can put function definitions on the do_list containing any JavaScript code
+    including "if", but <code>Control.if</code> makes it even easier to conditionally add
+    instructions to the do_list.<br/>
+    Control.if has a lot of similarities to JavaScript's "if", but differs in important
+    details.<br/>
+    <i>Parameter:</i><br/>
+    <b>clauses</b> An array of an even length.
+                   Every even numbered item in the array is the <i>condition</i> for
+                   a clause. Each odd_numbered item is the <i>action</i> of that clause.<br/>
+                   A <i>condition</i> is evaluated at Job Definition time. If its result
+                   is a function, that function is called
+                   (at Job run time when the <code>Control.if</code> instruction is run)
+                   with the Job as its "this".
+                   If the return value from that function call is "falsey" (
+                   <code>0</code>, <code>false</code>, <code>null</code>,
+                       <code>undefined</code>, <code>""</code>, <code>NaN</code>, the same as JavaScript's "if")
+                   the succeeding action is <i>not</i> used and Control.if moves on
+                   to process the next clause.
+                   If the <i>condition</i> is not a function, but is none-the-less, falsey,
+                   <code>Control.if</code> behaves in the same way.
+                   <p></p> However, if the <i>condition</i> is a function that returns truthy
+                   (any value that is not falsey),
+                   or is not a function but is truthy anyway,
+                   then the <i>action</i>, which can be any do_list item, is placed on the
+                   do_list right after this <code>Control.if</code> and run before any other
+                   items on the do_list.
+    <p></p>
+    <i>Examples:</i><br/>
+    Below, a simple Job that always prints<br/>
+    "Control.if works!"<br/>
+    in the Output pane.
+    <pre><code>new Job({
+    name: "my_job",
+    do_list: [
+        Control.if(true, IO.out("Control.if works!"))
+    ]
+})</code></pre>
+    Below is a more complex job that calls a function that checks the existence of<br/>
+    <code title="unevalable">this.user_data.no_exist</code>.<br/>
+    Since this variable does not exist, the function returns
+    <code>undefined</code>, which is falsey, causing this clause to be skipped.<br/>
+    The next clause is like the "else" in JavaScript's "if".
+    If none of the clauses before it hit, this one will, because its <i>condition</i>
+    is <code>true</code>.<br/>
+    The <i>action</i> is a do_list item of an array containing
+    two <code>IO.out</code> instructions, both of which are put on
+    the do_list and run.
+    <pre><code>new Job({
+    name: "my_job",
+    do_list: [
+        Control.if(function(){ return this.user_data.no_exist },
+                   IO.out("Control.if doesn't work."),
+                   true,
+                   [IO.out("Control.if does so work."),
+                    IO.out("... and with multiple instructions!")
+                   ])
+    ]
+}) </code></pre>
+    Below we have a Job with no claues, making the <code>Control.if</code>
+    instruction effectively a no-op. This isn't something you're likely to
+    do explicitly in a Job's source code, but might happen if you're writing
+    functions that compute a <code>Control.if</code> instruction.
+    <pre><code>new Job({
+    name: "my_job",
+    do_list: [
+        Control.if()
+    ]
+}) </code></pre>
+</details> <!-- end of Control.if -->
+
 <details id="Control.if_any_errors_doc_id" class="doc_details"><summary>if_any_errors</summary>
     <code>Control.if_any_errors</code> checks to see if any of the supplied jobs have errored.
     If so, it inserts the supplied instruction into the do_list on the job
@@ -5897,6 +5968,7 @@ you call start with no argument.
 <details id="Control.wait_until_doc_id" class="doc_details"><summary>wait_until</summary>
 This instruction causes a job to pause until the supplied condition is met.<br/>
 Example:<code>Control.wait_until(2)</code><br/>
+    will cause the job to pause for 2 seconds before proceeding to its next instruction.
 <i>Parameter:</i><br/>
 <b>fn_date_dur</b> Default: <code>1</code> This argument can be one of:
 <ul><li><b>an integer</b> The number of seconds for the wait. </li>
@@ -5915,31 +5987,47 @@ Example:<code>Control.wait_until(2)</code><br/>
           If the passed in Job Instance, errors or is interrupted then
           this job also errors or is interrupted.
     </li>
-    <li><b>"new_instruction"</b> Causes a wait_until instruction to be added
-    just below this instruction on the do_list. If this is the last instruction
-    on the do_list, then this job waits until a new instruction is added on the
-    end of a do list.<br/>
-    <i>Example</i>:<pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
+    <li><b>"new_instruction"</b> This argument causes a Job to be paused
+        on the wait_until instruction until an outside-of-job call to add
+        a do_list item immediately after this wait_until instruction.
+        When that instruction is added, the Job resumes, running the new instruction first
+        before the rest of the Job's instructions.
+        <p></p>
+        This gives other Jobs the ability to control this Job.
+        It is more flexible than a Job's
+        initialization parameter <i>when_do_list_done</i> set to <code>"wait"</code> because
+        it allows waiting in the MIDDLE of a job, not just at the very end.
+        The instrution added can be:
+        <ul>
+            <li> <code>Control.stop_job</code> to end the job early.</li>
+            <li> An array of instructions to execute lots of instructions.</li>
+            <li> <code>null</code>, a no-op permitting just continuation of the Job.</li>
+            <li> Another <code>Control.wait_until</code> instruction, perhaps waiting for something else.</li>
+            <li> Or any other valid do_list item.</li>
+        </ul>
+    <i>Example</i>:<pre><code title="not in TestSuite"> new Job({name: "my_job_wait",
          do_list: [IO.out("first instruction"),
                    Control.wait_until("new_instruction")]})
-    </code></pre>
-        Evaling <code title="unEVALable code fragment"> Job.my_job.start()</code><br/>
-        causes "first instruction" to be printed out, then the
+    </code title="not in TestSuite"></pre>
+        Starting this job, either by clicking its button, or evaling:
+            <code title="not in TestSuite"> Job.my_job_wait.start()</code><br/>
+        causes "first instruction" to be printed into the Output pane, then the
         job pauses until an instruction is inserted into the do_list right after this "wait_until" instruction.<pre>
-<code title="unEVALable code fragment"> Job.insert_instruction(IO.out("the end"),
-                       {job: "my_job",
-                        offset: "after_program_counter"})</code></pre>
-        Causes wait_until to stop waiting, "the end" is printed and the job completes successfully.<br/>
-        If instead of that argument to <code>Job.insert_instruction</code>, we had instead used:<pre>
-<code title="unEVALable code fragment"> Job.insert_instruction([IO.out("the middle"),
-                        Control.wait_until("new_instruction")],
-                        {job: "my_job",
-                         offset: "after_program_counter"})</code></pre>
+<code title="not in TestSuite">Job.insert_instruction(IO.out("done waiting"),
+       {job: "my_job_wait",
+        offset: "after_program_counter"})</code></pre>
+        Causes the Job to stop waiting. "done waiting" is printed and the job completes successfully.<br/>
+        If instead of the above call to <code>Job.insert_instruction</code>, we had instead evaled:
+<pre><code title="not in TestSuite"> Job.insert_instruction([IO.out("the middle"),
+    Control.wait_until("new_instruction")],
+    {job: "my_job_wait",
+     offset: "after_program_counter"})</code></pre>
         then each time we eval that code, it prints "the middle" and
-        <code title="unEVALable code fragment"> Job.my_job</code> pauses again.
+        <code> Job.my_job_wait</code> pauses again.
         We can end the pause by inserting an instruction after the program counter
-        that doesn't contain a wait_until,
-        such as our first call to <code>Job.insert_instruction</code> above.
+        that <i>doesn't</i> contain a wait_until,
+        such as:<br/>
+        <code>IO.out("done waiting")</code>.
     </li>
     <li><b>instruction_location</b> <i>Only applies to instruction_locations that
          are arrays or literal objects.</i> Waits for the instruction location
@@ -6158,7 +6246,7 @@ Example:<code>Control.wait_until(2)</code><br/>
     <a href="#" onclick="DocCode.open_doc('Picture.show_picture_doc_id', event)">Picture.show_picture</a>
     except that it doesn't take a callback argument.<br/>
     <i>Example:</i>
-        <pre><code>new Job({name: "my_job",
+        <pre><code>new Job({name: "my_job_show_pic",
          do_list: [IO.show_picture()]})
       </code></pre>
     </details>
@@ -6167,7 +6255,7 @@ Example:<code>Control.wait_until(2)</code><br/>
         <a href="#" onclick="DocCode.open_doc('Picture.show_video_doc_id', event)">Picture.show_video</a>
         except that it doesn't take a callback argument.<br/>
         <i>Example:</i>
-        <pre><code>new Job({name: "my_job",
+        <pre><code>new Job({name: "my_job_show_video",
      do_list: [IO.show_video()]})
       </code></pre>
     </details>
@@ -6185,7 +6273,7 @@ Example:<code>Control.wait_until(2)</code><br/>
         with take_picture. You can then use this mat in further instructions.
         <br/>
         <i>Example:</i>
-        <pre><code>new Job({name: "my_job",
+        <pre><code>new Job({name: "my_job_take_pic",
          do_list: [IO.take_picture({callback: "my_pic"})]})
   </code></pre>
         <code>Job.my_job.user_data.my_pic</code><br/>
@@ -7024,6 +7112,78 @@ proportional–integral–derivative controller</a>.<br/>
     <code>Dexter.pid_move_to([0, 0.1, 0.2])</code>
 </details>
 
+<details id="end_effector_instructions_doc_id" class="doc_details"><summary>End Effector Instructions</summary>
+        Dexter's Joint 6 is typically a "twist wrist". Joint 7 is typically a gripper.
+        The motors for these joints can be tweaked using the <a href="#" onclick="DocCode.open_doc(servo_doc_id)">Servo class</a>.
+        But for the common gross motions, use the below Job instructions.
+        <p></p>
+        Like most Dexter instructions, you can prefix these with "Dexter." to use the
+        robot of the Job, or "Dexter.dexter0." to send the instructions to a particular Dexter.
+
+        <details id="Dexter.move_until_torque_doc_id" class="doc_details"><summary>move_until_torque</summary>
+            Causes joint 6 or 7 to move until it reaches a certain torque, at which point motion stops.<br/>
+            <i>Parameters:</i><br/>
+            <b>goal_degrees</b> A number. Default: <code>90</code><br/>
+            <b>joint_number</b> 6 or 7.   Default: <code>7</code><br/>
+            <b>torque_limit</b> A number. Default: <code>500</code><br/>
+            <i>Example:</i>
+            <pre><code>new Job({name: "move_ee",
+         do_list: [Dexter.move_until_torque(45, 6, 450)]
+}) </code></pre>
+        </details>
+
+        <details id="Dexter.move_until_static_doc_id" class="doc_details"><summary>move_until_static</summary>
+            Like move_until_torque but doesn't take a torque argument.
+            This instruction stops trying to move the joint when the joint is blocked from moving.
+            If joint 6 or 7 is blocked from moving, it will overheat if it continues to try to
+            move for several seconds. This can happen when j7 gripper is closed as it can be,
+            or joint 6 is trying to twist a bolt that's frozen.
+            This is often more convenient to use than move_until_torque.
+            <i>Parameters:</i><br/>
+            <b>goal_degrees</b>     A number. Default: <code>20</code><br/>
+            <b>joint_number</b>     A number. Default: <code>7</code><br/>
+            <b>degree_tolerance</b> A number. Default: <code>0.01</code><br/>
+            <i>Example:</i>
+            <pre><code>new Job({name: "move_ee",
+         do_list: [Dexter.move_until_static(100, 7)]
+}) </code></pre>
+        </details>
+
+        <details id="Dexter.twist" class="doc_details"><summary>twist</summary>
+            Twist the wrist (joint 6).
+            <i>Parameter:</i><br/>
+            <b>goal_degrees</b> A number. Default: <code>0</code>
+            Range <code>Dexter.J6_ANGLE_MIN</code> to <code>Dexter.J6_ANGLE_MAX</code><br/>
+            <i>Example:</i>
+            <pre><code>new Job({name: "move_ee",
+         do_list: [Dexter.twist(45)]
+}) </code></pre>
+        </details>
+
+        <details id="Dexter.grasp" class="doc_details"><summary>grasp</summary>
+            Close the gripper (Joint 7) until it can't move due to gripping an object,
+            or reaches 20 degrees, whichever occurs first.<br/>
+            <i>Parameter:</i><br/>
+            <b>min_degrees</b> A number. Default: <code>20</code><br/>
+            <i>Example:</i>
+            <pre><code>new Job({name: "move_ee",
+         do_list: [Dexter.grasp()]
+}) </code></pre>
+        </details>
+        <details id="Dexter.ungrasp" class="doc_details"><summary>ungrasp</summary>
+            Open the gripper (Joint 7) until it can't move due to touching something
+            or reaches max_degrees. whichever occurs first.<br/>
+            <i>Parameter:</i><br/>
+            <b>max_degrees</b>  Default: <code>270</code><br/>
+            The theoretical max_degrees is 296 but without perfect calibration,
+            its best to set it lower.<br/>
+            <i>Example:</i><br/>
+            <pre><code>new Job({name: "move_ee",
+         do_list: [Dexter.ungrasp()]
+}) </code></pre>
+        </details>
+</details> <!-- end of end effector instructions -->
+
 <details id="Dexter.read_file_doc_id" class="doc_details"><summary>read_file</summary>
     This instruction allows you to transfer the content of a file on Dexter into
     a user_data variable in the enclosing Job.
@@ -7167,7 +7327,7 @@ the instructions created are <code>Dexter.move_to</code> instructions.
 </ul>
     <i>Example:</i><br/>
     <pre><code>new Job({
-    name: "my_job",
+    name: "my_job_gcode",
     do_list: [
         Dexter.run_gcode({gcode:
 `G1 X0.3 Y0.3 Z0.3
@@ -7417,7 +7577,7 @@ If it is passed, the instruction will be sent to that robot.
     to access various robot status values.<br/>
     <i>Examples:</i><br/>
     <code>Dexter.dexter0.rs.job_id()</code><br/>
-    <pre><code>new Job({name: "my_job",
+    <pre><code>new Job({name: "my_job_rs",
          do_list:[function(){out(this.robot.rs.measured_angle(1))}]
          })     </code></pre>
     <details id="RobotStatus.job_id_doc_id" class="doc_details"><summary>job_id</summary>
@@ -7781,10 +7941,13 @@ Although the "home" of human instructions is in the <i>Human</i> robot, you can 
 these instructions in a job with <i>any</i> type of robot. They do not attempt to
 access robot hardware.
 <p></p>
-<i>Parameters:</i>
+<i>Parameters:</i><br/>
 Nearly all Human instructions take the following parameters.
 Note the overlap with <code>show_window</code> parameters, because
 Human Instructions that pop up a dialog are implemented with <code>show_window</code>.<br/>
+Most of the Human instructions use a small subset of show_window functionality,
+but the <code>Human.show_window</code> instruction let you make the full set of input controls
+as the <code>show_window</code> function.<br/>
 <b>task</b> Default: <code>""</code> Instructions to the user on how to perform this instruction.<br/>
 <b>user_data_variable_name</b> A string. Default: depends on what type of human instruction.
 For instance, enter_number's default is <code>"a_number"</code>.<br/>
@@ -7806,7 +7969,7 @@ with this name. Then a subsequent instruction can get that value and do somethin
 <b>background_color</b> Default: <code>"rgb(238, 238, 238)"</code>, a light gray.
 <p></p>
 <i>Example:</i>
-<pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
+<pre><code title="unstartable in TestSuite"> new Job({name: "my_job_enter_choice",
       do_list: [Human.enter_choice({task: "Please choose your favorite.",
                                     choices: ["AAA", "BBB", "CCC"],
                                     user_data_variable_name: "the_tla",
@@ -7873,11 +8036,11 @@ is a video describing most of the Human instructions.
       <code title="unEVALable code fragment"> dependent_job_names</code>.
     <p></p>
     <i>Examples:</i>
-    <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
+    <pre><code title="unstartable in TestSuite"> new Job({name: "my_job_task",
     do_list: [Human.task({task: "Load filament now."}),
               IO.out("We're done.")]})
               </code></pre>
-    <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
+    <pre><code title="unstartable in TestSuite"> new Job({name: "my_job_task2",
     do_list: [Human.task({title: "&lt;b>Attention&lt;/b> Operator!",
                           task:  "Load filament &lt;i>now&lt;/i>.",
                           add_stop_button: false,
@@ -7950,7 +8113,7 @@ is a video describing most of the Human instructions.
   <code title="unEVALable code fragment"> job.some-job-name.user_data.my_color = 'green'</code>.
   <p></p>
   <i>Examples:</i>
-  <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
+  <pre><code title="unstartable in TestSuite"> new Job({name: "my_job_choice2",
           do_list: [Human.enter_choice({task: "Please pick one.",
                                          choices: ["aa", "bb", "cc"]}),
                     function(){out("You chose: " + this.user_data.choice)}
@@ -7961,7 +8124,7 @@ is a video describing most of the Human instructions.
   because it will be overwritten by a subsequent Human.enter_choice instruction
   (though that <i>might</i> be what you want).
 
-  <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
+  <pre><code title="unstartable in TestSuite"> new Job({name: "my_job_choice3",
           do_list: [Human.enter_choice({task: "Ready?",
                                         choices: [["Yes", true], ["No", false]],
                                         show_choices_as_buttons: true}),
@@ -7972,7 +8135,7 @@ is a video describing most of the Human instructions.
 
   <pre><code title="unstartable in TestSuite">
   function myfn() {out("The job name is: " + this.name)}
-  new Job({name: "my_job",
+  new Job({name: "my_job_choice4",
            show_instructions: Job.prototype.show_progress_and_user_data,
            do_list:
   [Human.enter_choice({
@@ -8024,7 +8187,7 @@ to set to the chosen file.
 If no file is chosen, the variable is bound to <code>null</code>
 <p></p>
 <i>Example:</i><br/>
-<pre><code title="unstartable in TestSuite">new Job({name: "my_job",
+<pre><code title="unstartable in TestSuite">new Job({name: "my_job_filepath",
          do_list: [Human.enter_filepath(
                      {task: "Pick a file.",
                       user_data_variable_name: "my_file",
@@ -8047,11 +8210,11 @@ If no file is chosen, the variable is bound to <code>null</code>
     Set's the dialog's default instruction args.
   <p></p>
   <i>Examples:</i><br/>
-  <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
+  <pre><code title="unstartable in TestSuite"> new Job({name: "my_job_enter_inst",
     do_list: [Human.enter_instruction({task: "do it"})]})
         </code></pre>
 
-  <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
+  <pre><code title="unstartable in TestSuite"> new Job({name: "my_job_enter_inst2",
     do_list: [Human.enter_instruction(
               {task: "do it",
                instruction_type: "Dexter.sleep",
@@ -8079,7 +8242,7 @@ If no file is chosen, the variable is bound to <code>null</code>
        Where the chosen number is stored.
   <p></p>
   <i>Examples:</i>
-  <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
+  <pre><code title="unstartable in TestSuite"> new Job({name: "my_job_number",
   do_list: [Human.enter_number({task: "How much?"}),
             function(){ out("Amount: " +
                         this.user_data.a_number)}]})
@@ -8099,7 +8262,7 @@ If no file is chosen, the variable is bound to <code>null</code>
     the code. This is important because you might want to change its name and
     don't want the code to break if you do.
 
-    <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
+    <pre><code title="unstartable in TestSuite"> new Job({name: "my_job_number2",
   do_list: [Human.enter_number({task: "length to cut?",
                                 min: 40,
                                 max: 75,
@@ -8127,7 +8290,7 @@ If no file is chosen, the variable is bound to <code>null</code>
               function(){out("The message: " + this.user_data.a_text) }]})
               </code></pre>
 
-    <pre><code title="unstartable in TestSuite"> new Job({name: "my_job",
+    <pre><code title="unstartable in TestSuite"> new Job({name: "my_job_text",
     do_list: [Human.enter_text({task: "Enter message.",
                                 initial_value: "SOS",
                                 line_count: 3,
@@ -8159,12 +8322,12 @@ If no file is chosen, the variable is bound to <code>null</code>
      in which case you should pass in a close_same_titled_windows of <code>true</code>.
    <p></p>
    <i>Examples:</i>
-    <pre><code> new Job({name: "my_job",
+    <pre><code> new Job({name: "my_job_notify",
     do_list: [Human.notify({task: "do it"}),
               Human.notify({task: "do more"})]})
         </code></pre>
 
-    <pre><code> new Job({name: "my_job",
+    <pre><code> new Job({name: "my_job_notify2",
           do_list: [Human.notify({task: "do it",
           window: true,
           output_pane: false,
@@ -8220,7 +8383,7 @@ Similar to other Human instructions, this is the place that values from
 input elements are stored when the dialog is closed.
 <p></p>
 <i>Example:</i><br/>
-<pre><code title="unstartable in TestSuite">new Job({name: "my_job",
+<pre><code title="unstartable in TestSuite">new Job({name: "my_job_show_window",
          do_list:
            [Human.show_window({content:
 &#96;First name: &lt;input type="text" name="first_name"/>&lt;br/>
@@ -8577,6 +8740,97 @@ For documentation, see
 <a target="_blank" href="https://www.npmjs.com/package/modbus-serial">modbus_serial</a>.
 </details>
 -->
+<details id="servo_doc_id" class="doc_details"><summary>Servo</summary>
+        Dexter's, as of March 2024, typically have 7 joints, each with its own motor.
+        Joints 6 and 7 are different than the others. They use Dynamixel servos whereas
+        the other joints use stepper motors paired with Haddongton's own optical encorders.
+        The Servo class helps control the fine points of Dynamixel servos.<br/>
+        For more typical control via Job instructions, see
+        <a href="#" onclick="DocCode.open_doc(end_effector_instructions_doc_id)">End Effector Instructions</a>
+        <!-- Here's an article comparing the two:
+         <a target="_blank" href="https://www.machinedesign.com/automation-iiot/article/21836868/stepper-and-servo-motor-tradeoffs">
+           stepper vs servo motors</a>
+         The article implies that only servo motors have encoders and thus are more accurate than
+         stepper motors. However, Dexter's stepper motors have encoders and are highly accurately.
+         <p></p>
+         Normal Dexters have stepper motors for joints 1 through 5 and servos for joints 6 and 7.
+         Joint 6 is a "wrist for twist" of the end effector. Joint 7 is usually used for
+         opening and closing the fingers of a gripper.
+         Joints 6 and 7 are much quieter than the other joints.
+         <p></p>
+         Because the control of Dexter's servo motors has lots of sublties, DDE has a special
+         class for controlling them called <code>Servo</code>. Below is the documentation for
+         the Servo class's terminology, data and methods.-->
+        <p></p>
+        <h3>Terminology</h3>
+        <b>servo_firmware_type</b> A positive integer representing the low level type of a motor on Dexter<br>
+        &nbsp;&nbsp;<i>Examples: </i>
+        <ul>
+            <li>1 (nothing: doesn't exist)</li>
+            <li>8 (steppers, joint 1 thru 5)</li>
+            <li>320 (possibly for j6 & j7)</li>
+            <li>430 (possibly for j6 & j7)</li>
+        </ul>
+        <b>servo_model_class_name</b> A string.   <i>Examples: </i> "XL320", "XL330", "XC430" "XC430_LOAD"<br/>
+        <b>servo_model_number</b>     An Integer. <i>Examples: </i> 350,     1200,           1240,          1080 <br/>
+        <b>servo_model_name</b>       A string.   <i>Examples: </i> "XL320", "XL330-M288-T", "XC330-M288-T" "XC430-W240-T" (one to one with servo_model_number) <br/>
+        <b>servo_id</b>  An integer designating a servo on a Dexter.<br/>
+        &nbsp;&nbsp;<i>Examples: </i>3 for J6, 1 for j7, (j1 thru 5 not in this category because are not servos, they are steppers) <br/>
+
+        <h3>Data</h3>
+        <code>Servo.models</code> Name-value pairs where the name is a <i>servo_model_class_name</i>
+        and the value is lots of data about that model class. Use DDE's inspector to see it.<br/>
+        <code>Servo.default_servos</code> An array of actual servos data for testing purposes.
+        The indexes of the array are servo_id's.
+        <b>servo_status</b>  A json object containing the status of a servo on a Dexter.
+        Used in <code title="not in testsuite">a_job.user_data.servo_status</code><br/>
+
+        <h3>Methods</h3>
+        <b>Servo.set_servo_id_model</b> Set values in a servo object.<br/>
+        <i>Parameters:</i><br/>
+        <b>servo_id</b><br/>
+        <b>model_or_servo_model_class_name</b><br/>
+        <b>robot</b>
+        <p></p>
+        <b>Servo.servo_id_to_servo</b> Returns the servo data.<br/>
+        <i>Parameters:</i><br/>
+        <b>servo_id</b><br/>
+        <b>a_dexter</b>
+        <p></p>
+        <b>Servo.servo_property</b> Return the value of property_name in the servo data table.<br/>
+        <i>Parameters:</i><br/>
+        <b>servo</b> The servo data.<br/>
+        <b>property_name</b> A string.
+
+
+        <h3>Example uses in a Job</h3>
+        <pre><code>
+new Job({ //test
+    name: "test_servos", user_data: {count: 0},
+    do_list: [ IO.out("starting at "+Date())
+        //,Dexter.read_from_robot("#Servo 3 0 2", "servo_status")
+        //,function() { out("servo returned:"+this.user_data.servo_status+" good luck with that") }
+        ,Dexter.servo_get(3, "MODEL") //instead of the above, just do this
+        ,function() {
+            let servo = this.user_data.servo_status;
+            out(servo.id+" is a "+servo.type);
+            out(Servo.servo_id_to_servo(3, this) === this.robot.servos[3]) //test that we did learn it
+        }
+        //,Dexter.dexter1.servo_get(3, "MODEL")() //as expected, fails; there is no dexter1 robot. move to doc example for servo-get
+        //,Dexter.servo_get(2, "MODEL") //as expected, fails; there is no servo id 2.  ,,, move as above
+        ,Dexter.servo_detect(1) //just calls servo_get(id, "MODEL"), if found, servo is added to the robot.
+        //,"S ServoSetX 1, 116, 12, %01%00%00%00" //only if it's a 430  ,, move to doc  for servp_set
+        //,"S ServoSetX 1, 30, 6, %01%00" //only if it's a 320
+        //,"S ServoSet2X 1, 30, 1" //only if it's a 320, can't support a 430's 4 byte position
+        ,Dexter.servo_set(1, "GOAL_POSITION", 400)
+        ,Dexter.servo_set(Dexter.dexter0.servos.roll, "TORQUE", 0) //must specify robot to use named servos. sigh.
+
+        ,function() {inspect(this.user_data.servo_status)}
+    ]
+})</code></pre>
+
+
+    </details> <!-- end of Servo-->
 
 
 </details> <!-- end Robots -->
@@ -10141,8 +10395,10 @@ set_css_properties('.CodeMirror { background:#CCCCCC;}') //background color of t
 
 <details id="show_window_doc_id" class="doc_details"><summary>show_window</summary>
         A call to <code>show_window</code> creates a dialog box using HTML and JavaScript.<br/>
-        For a video presentation of much of this content, please watch
-        <a href="http://hdrobotic.com/webinar#show_window" target="_blank">show_window (and friends)</a><br/>
+        If you want to use the show_window-like capabilities in a Job to pause it and
+        collect information from the user, it is easier to use
+       <a href="#" onclick="DocCode.open_doc(Human_doc_id, event)">Human Instructions</a>.
+       <p></p>
         <i>Parameters</i><br/>
         <b>title</b> A string of the HTML displayed in the window's title bar.
                      Default: <code>"DDE Information"</code><br/>
@@ -13385,7 +13641,7 @@ OpenAI.make_text(`role:named entities from:
                     Some examples:<br/>
                     <code class="gpt">cat isa mammal</code>
                     <p></p>
-                    <code class="gpt">cat is a mammal</code><br/>
+                    <code class="gpt">cat has fur</code><br/>
                     We can think of the above examples as "hypotheses" that can be validated
                     (or not) by GPT. GPT <i>sometimes</i> does a great job here.<br/>
                     When the result starts with <b>yes</b> as in:

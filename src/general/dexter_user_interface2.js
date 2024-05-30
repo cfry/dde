@@ -231,7 +231,7 @@ class dui2 {
 
         show_window({title: "Dexter." + dui_instance.dexter_instance.name + " User Interface",
             width: xy_width_in_px + 80, //380,
-            height: xy_width_in_px + 333 + ((operating_system === "win") ? 60 : 0), //windows needs more vert space than mac for some strange reason.
+            height: xy_width_in_px + 340 + ((operating_system === "win") ? 60 : 0), //windows needs more vert space than mac for some strange reason.
             x: 320,
             y: 0,
             background_color: "#d5d5d5",
@@ -293,10 +293,9 @@ class dui2 {
             'style="stroke:black; stroke-width:1;"><title>This white donut represents the X,Y locations that the Dexter end effector can reach at the current Z location.</title></circle>'
         let inner_circle_html = '<circle id="inner_circle" cx="0" cy="0" r="100" fill="' + dui2.xy_background_color + '" ' +
             'style="stroke:black; stroke-width:1;"/>'
+
+        let y_label_html = '<b style="margin-right:5px; vertical-align:850%;">Y</b>'
         let svg_html =
-            //'<div style="display:inline-block;vertical-align:900%;">
-            '<b style="margin-right:5px; vertical-align:850%;">Y</b>' +
-            //'</div>' +
             '<svg tabindex="0" onkeydown="dui2.keydown_on_xy_square_action(event)"  onkeyup="dui2.keyup_on_xy_square_action(event)"' +
             'style="display:inline-block; border:2px solid black;background-color:' + dui2.xy_background_color + ';margin-bottom:0px;" ' +
             'width="'  + xy_width_in_px + 'px" ' +
@@ -322,16 +321,25 @@ class dui2 {
             'style="width:' + xy_width_in_px + 'px; height:20px;margin:0px;' +
             '"/>' +
             '</div>'
+       // let z_slider_html =
+            //'<div style="border:4px solid ' + dui2.xy_background_color + '; display:inline-block; margin:0px; background-color:white; >' +
+            /* mozilla thinks this works in chrome but they're wrong jun 26, 2023 'appearance:slider-vertical;">' + */
+            //'transform-origin:' + (xy_width_in_px / 2) + 'px; transform: translate(185px, -170px) rotate(-90deg);">' +  writing-mode:vertical-lr; direction:rtl;
+        //    '<input type="range" name="z_slider" step="0.01" value="0" min="0" max="' + max_z + '" data-oninput="true" ' +
+        //           'style="height:' + xy_width_in_px + 'px; width:20px !important; margin:0px; writing-mode:vertical-lr; direction:rtl;"></input>'
+            //'</div>'
+
+
         let xyz_num_html =
             'X: <input name="x_num" type="number" data-onchange="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
             'Y: <input name="y_num" type="number" data-onchange="true" style="width:55px;margin-top:0px;" min="' + min_x + '" max="' + max_x + '" value="0" step="0.01" ' + '"/><span style="margin-right:15px;margin-top:0px;">m</span>' +
             'Z: <input name="z_num" type="number" data-onchange="true" style="width:55px;margin-top:0px;" min="' + min_z + '" max="' + max_z + '" value="0" step="0.01" ' + '"/>m<br/>'
 
-        let z_slider_restriction_html = '<div style="position:absolute; top:60px; right:25px; width:20px; height:40px; background-color:' + dui2.xy_background_color + ';"></div>'
         let the_html =
-            svg_html +
-            "<b style='vertical-align:top;margin-left:15px;'>Z</b>" + z_slider_html +
-            //z_slider_restriction_html +
+            y_label_html +   //inline
+            svg_html +       //inline
+            z_slider_html +  //inline
+            //"<br/>" +
             '<div style=" margin-top:-28px;margin-bottom:0px;left:10px;top:365px;"><b>X</b>' +
             //'<div margin-top:0px;margin-bottom:0px;left:20px;"><b>X</b>' +
 
@@ -404,7 +412,7 @@ class dui2 {
                                '<option>move_to</option>' +
                                '<option>pid_move_to</option></select>' +
                 `<input type="button" name="insert_job"         value="Job"         style="margin-left:15px" title="Insert, into the editor,&#013;a Job definition with no instructions.&#013;Do before 'insert instruction'."/>` +
-                `<input type="button" name="insert_instruction" value="instruction" style="margin-left:15px" title="Insert, into the editor,&#013;an instruction of the current location.&#013;Do after 'insert job'."/>`
+                `<input type="button" name="insert_instruction" value="Instruction" style="margin-left:2px"  title="Insert, into the editor,&#013;an instruction of the current location.&#013;Do after 'insert job'."/>`
             return insert_html
         }
         else { return "" }
@@ -737,7 +745,7 @@ class dui2 {
         let continue_running
         for(var i = 0; i < 100000; i++){
             continue_running = dui2.step_backward_button_click_action(dui_instance) //dui2.run_forward_button_click_action(dui_instance)
-            if(!continue_running) { return } //error in processing next instr, perhaps syntactic, perhaps already did last instruction
+            if(!continue_running) { return } //error in processing next instr, perhaps syntactic, perhaps already did last instruction, perhaps no instructions at all, ie no "job" that cursor is in the do_list of.
             else if (continue_running == "already_inserted_instruction"){ //instruction was a valid instr but not a move instruction
             }
             else { //got a move instruction, keep going to bottom of this method for the instruction selection and insertion

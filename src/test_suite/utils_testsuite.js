@@ -65,16 +65,22 @@ new TestSuite("Utils.starts_with_one_of_and_tail",
 )
 
 new TestSuite("Utils.separate_head_and_tail",
-    ['Utils.separate_head_and_tail("")', "null"],
-    ['Utils.separate_head_and_tail("abc")', "null"],
+    ['Utils.separate_head_and_tail("")', '["", "", ""]'],
+    ['Utils.separate_head_and_tail("abc")', '["abc", "", ""]'],
     ['Utils.separate_head_and_tail("first second")', '["first", "second", " "]'],
     ['Utils.separate_head_and_tail("first  second")', '["first", " second", " "]'],
     ['Utils.separate_head_and_tail("first  second", undefined, true)', '["first", "second", " "]'],
     ['Utils.separate_head_and_tail("first ,second", [",", " "])', '["first", ",second", " "]'],
-    [`Utils.separate_head_and_tail("dark green, is not pretty", [",", " "], true, true)`, '["dark green", "is not pretty", ","]']
-    // errors but shouldnt ['Utils.separate_head_and_tail("first\nsecond", ["\n"])', '["first", "second", "\n"]']
-    // errors but shouldnt [`Utils.separate_head_and_tail("dark green ,is not pretty", [",", " "], true, true)` , `["dark green", "is not pretty", ","]`],
-
+    ['Utils.separate_head_and_tail(`first\nsecond`, [`\n`])', '["first", "second", `\n`]'],
+    [`Utils.separate_head_and_tail("dark green ,is not pretty", [",", " "], true, true)` , `["dark green", "is not pretty", ","]`]
+)
+new TestSuite("Utils.has_first_word",
+    ['Utils.has_first_word("xy", "abc")', "false"],
+    ['Utils.has_first_word("abcdef", "abc")', "false"],
+    ['Utils.has_first_word("abc def", "abc")', "true"],
+    ['Utils.has_first_word(`abc\ndef`, "abc")', "true"],
+    ['Utils.has_first_word(`abc\ndef`, ["junk", "abc"])', "true"],
+    ['Utils.has_first_word("xy", "abc")', "false"]
 )
 
 

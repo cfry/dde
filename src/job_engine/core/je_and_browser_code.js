@@ -468,7 +468,7 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
             // this.submit_window. neither works
             //inp.removeEventListener("click", SW.submit_window) //just in case there already is one, we don't want to get multiple
             //inp.addEventListener("click", SW.submit_window)  //fails for spans
-            if(!inp.name){ //something screwy is removing the "name" property. looks like electron or below bug
+            if(!inp.name){ //something screwy is removing the "name" property, in both dde3 and dde4. So restore the name property
                 let outer_html = inp.outerHTML
                 let name_pos = outer_html.indexOf(" name=")
                 if(name_pos != -1) {
@@ -479,6 +479,7 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
                     }
                 }
             }
+            inp.onclick = this.submit_window
         }
         ins = show_window_elt.querySelectorAll("[data-onchange='true']")
         for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.

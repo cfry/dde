@@ -149,6 +149,7 @@ import Vector from "../math/Vector.js"
 import {sind, cosd, tand, asind, acosd, atand, atan2d} from "../math/Trig_in_Degrees.js"
 import "../math/DH.js"    //declares DH as a global
 import "../math/HiMem.js" //declares HiMem as a global
+import "./servo.js" //declares Servo as a global
 import Job    from "./job.js"
 
 import {Robot, Brain, Dexter, Human, Serial} from "./robot.js"

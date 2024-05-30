@@ -49,6 +49,7 @@ class Control{
 Control.instruction_classes_in_control = null
 
 //Methods that result in an instance of a Control class
+Control.if = Robot.if
 Control.break = Robot.break
 Control.continue = Robot.continue
 Control.go_to = Robot.go_to

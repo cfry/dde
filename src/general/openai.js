@@ -132,12 +132,14 @@ globalThis.OpenAI = class OpenAI{
         if(envelope.data) { //good for most models
             let model = envelope.data.model
             if(model) {
-                if (model.startsWith("gpt-4")) {
+                if(model === "gpt-4o") {  //that last char is a lower case, letter "oh"
+                    return "gpt-4o"
+                }
+                else if (model.startsWith("gpt-4")) {
                     return "gpt-4"
-                } else if (model.startsWith("gpt-3.5-turbo")) {
+                }
+                else if (model.startsWith("gpt-3.5-turbo")) {
                     return "gpt-3.5-turbo"
-                } else if (model.startsWith("text-davinci-003")) {
-                    return "text-davinci-003"
                 }
                 else {
                     shouldnt("OpenAI.envelope_to_model got invalid model: " + model)
@@ -160,12 +162,6 @@ globalThis.OpenAI = class OpenAI{
         let data_str = envelope.config.data
         let data = JSON.parse(data_str)
         let prompt
-        if(model === "text-davinci-003"){
-            return data.prompt
-        }
-        if(model === "code_davinci_002"){
-            return data.prompt
-        }
         if(model === "image") {
             return data.prompt
         }
@@ -183,9 +179,7 @@ globalThis.OpenAI = class OpenAI{
 
     static envelope_to_response(envelope) {
         let model = this.envelope_to_model(envelope)
-        if(model === "text-davinci-003") {
-               return envelope.data.choices[0].text }
-        else if (model === "image") {
+        if (model === "image") {
                return this.envelope_to_url(envelope)
         }
         else { return envelope.data.choices[0].message.content}
@@ -207,22 +201,13 @@ globalThis.OpenAI = class OpenAI{
         let temperature = DDE_DB.persistent_get("gpt_temperature")
         let envelope
         try {
-            if (model === "text-davinci-003") {
-                envelope = await this.openai.createCompletion({
-                    model: model, //"text-davinci-003", //"text-davinci-003" //gpt-3.5-turbo errors, maybe because I haven't paid, or because it streams the response
-                    prompt: prompt,
-                    max_tokens: max_tokens,
-                    temperature: temperature
-                })
-            }
-            else if (["gpt-4", "gpt-3.5-turbo"].includes(model)) { //see https://platform.openai.com/docs/api-reference/chat/create
+            //see https://platform.openai.com/docs/api-reference/chat/create
                 envelope = await this.openai.createChatCompletion({
                     model: model,
                     messages: [{role: "user", content: prompt}],
                     max_tokens: max_tokens,
                     temperature: temperature
                 });
-            }
         }
         catch(err){
             dde_error("OpenAI could not complete your prompt:<br/><code>" + prompt +
@@ -375,9 +360,9 @@ globalThis.OpenAI = class OpenAI{
 
         let model = DDE_DB.persistent_get("gpt_model")
         if(!model) { model = "gpt-3.5-turbo" }
+        let gpt_4o_checked  =      ((model === "gpt-4o")           ?  " checked" : "")
         let gpt_4_checked   =      ((model === "gpt-4")            ?  " checked" : "")
         let gpt_3_5_checked =      ((model === "gpt-3.5-turbo")    ?  " checked" : "")
-        let davinci_checked =      ((model === "text-davinci-003") ?  " checked" : "")
 
         let max_tokens = DDE_DB.persistent_get("gpt_completion_max_tokens")
         if(!max_tokens || Number.isNaN(max_tokens)) { max_tokens = "200" }
@@ -403,9 +388,9 @@ globalThis.OpenAI = class OpenAI{
                          '<input type="button" value="Update Organization ID and API Key" style="margin:4px;"></input>' +
                      '</fieldset>' +
                      "<fieldset style='margin-top:10px;'><legend><i>Model used to compute the response</i> </legend>" +
-                         '<span title="Best but new and not everyone has access to the API." style="margin-left:5px";> <input type="radio" name="model" value="gpt-4" '            + gpt_4_checked        + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>gpt-4</span> ' +
-                         '<span title="Cheaper and faster.&#13;The default.">                 <input type="radio" name="model" value="gpt-3.5-turbo" '    + gpt_3_5_checked      + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>gpt-3.5-turbo</span> ' +
-                         '<span title="Good for specialized cases.">                          <input type="radio" name="model" value="text-davinci-003" ' + davinci_checked      + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>text-davinci-003</span> ' +
+                         '<span title="gpt-4o that last character is a lower case letter o.&#13;The latest that DDE supports." style="margin-left:5px";> <input type="radio" name="model" value="gpt-4o" '         + gpt_4o_checked       + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>gpt-4o</span> ' +
+                         '<span title="Not everyone has access to the API." style="margin-left:5px";> <input type="radio" name="model" value="gpt-4" '          + gpt_4_checked        + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>gpt-4</span> ' +
+                         '<span title="Cheaper and faster.&#13;The old default.">                 <input type="radio" name="model" value="gpt-3.5-turbo" '    + gpt_3_5_checked      + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>gpt-3.5-turbo</span> ' +
                          '&nbsp; <a target="_blank" href="https://scale.com/blog/chatgpt-vs-davinci">How to choose</a><br/>' +
 
                          '<span title="max_tokens is roughly equivalent to the number of words in the response.&#13;Default: 200&#13;Click regenerate to store the new value." style="margin-left:22px;">max_tokens: <input name="max_tokens"  type="number" min="1"         step="1"   value="' + max_tokens  + '" style="width:50px;"/></span>' +

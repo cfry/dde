@@ -262,10 +262,9 @@ class TestSuite{
         load_files(__dirname + "/test_suite/when_stopped_testsuite.js")
         */
         //import('./math_testsuite.js').then(module => {"just loaded math testsuite"})
+        if (!TestSuite["how_to_think_id"])     { TestSuite.make_test_suites_from_doc(how_to_think_id) }
         if (!TestSuite["user_guide_id"])       { TestSuite.make_test_suites_from_doc(user_guide_id) }
-        if (!TestSuite["reference_manual_id"]) {
-            TestSuite.make_test_suites_from_doc(reference_manual_id)
-        }
+        if (!TestSuite["reference_manual_id"]) { TestSuite.make_test_suites_from_doc(reference_manual_id) }
         let report_prefix = '<b style="font-size:20px;">All Test Suites Report</b><br/>' +
             '<span style="color:magenta;">test_suite_reporting *should* indicate<br/>"failures: unknown=2, known=1"</span><br/>'
         this.set_state_and_resume({reports: report_prefix, suites: TestSuite.suites})
@@ -374,12 +373,16 @@ class TestSuite{
 
     static async run_ts_in_file(path){
         let ts_array
-        if(path.endsWith("guide.html")) {
+        if(path.endsWith("how_to_think.html")) {
+            ts_array = TestSuite.make_test_suites_from_doc(how_to_think_id)
+        }
+        else if(path.endsWith("guide.html")) {
             ts_array = TestSuite.make_test_suites_from_doc(user_guide_id)
         }
         else if(path.endsWith("ref_man.html")) {
             ts_array = TestSuite.make_test_suites_from_doc(reference_manual_id)
         }
+
         else {
             let ts_src = await DDEFile.read_file_async(path)
             ts_src = ts_src.trim()
@@ -397,7 +400,7 @@ class TestSuite{
             ts_src = ts_src.substring(0, initial_comma_pos) +
                      ts_src.substring(initial_comma_pos + 1)
             ts_src = "[\n" + ts_src + "\n]" //need the newlines in case last line in ts_src has a // comment in it
-            ts_array = eval(ts_src)
+            ts_array = globalThis.eval(ts_src)
         }
         let report_prefix = '<b style="font-size:20px;">Test Suites Report for ' + path + '</b><br/>'
         this.set_state_and_resume({reports: report_prefix, suites: ts_array})
@@ -563,7 +566,7 @@ class TestSuite{
         //}
         for(let test_number = starting_test_index; test_number < this_suite.tests.length; test_number++){
             var test     = this_suite.tests[test_number]
-            if((name === "reference_manual_id") || (name === "user_guide_id")){
+            if((name === "how_to_think") || (name === "reference_manual_id") || (name === "user_guide_id")){
                 let src = test[0]
                 if(typeof(src) !== "string") {
                     src = "" + src
@@ -1110,6 +1113,7 @@ class TestSuite{
     // (but not documented either).
     static compute_globals_array(){
         this.globals = []
+        this.run_ts_in_file(__dirname + "/doc/how_to_think.html")
         this.run_ts_in_file(__dirname + "/doc/guide.html")
         this.run_ts_in_file(__dirname + "/doc/ref_man.html")
         return this.globals
@@ -1143,6 +1147,7 @@ class TestSuite{
             for (let code_elt of code_elts){
                 let src = code_elt.innerHTML //innerText use to work, but Chrome changed around 2021 and now I must use innerHTML
                 let fixed_src = src
+
                 if (code_elt.title.startsWith("unstartable")) {//we expect src to have "new Job" in it, probably
                     //at the beginning. But 7 of such src's  will have 2 "new Job" s in it for the ref man of Dec 2018.
                     //so if we wrap it in square brackets, it will error unless we stick
@@ -1159,10 +1164,16 @@ class TestSuite{
                     //but below we will still EVAL the job so that we can at least test
                     //that the job gets defined without error.
                 }
+
+                //because in how_to_think.html, the defs of eval0 has embedded <samp> tags that indicate what part of the body of eval0 has changed, \
+                //we need to get these tags out for the testsuite. Without doing so, about 50 errors in testsuite.
+                //none of the defs of eval0 have useful html in them.
+                if(fixed_src.includes("eval0")){
+                    fixed_src = Utils.remove_html_from_string(fixed_src)
+                }
                 if ((!code_elt.title ||
-                     code_elt.title.startsWith("unstartable")) &&
-                    (code_elt.className !== "gpt")  //since user might not be connected to internet, or might not have an OPenAI account, or we jst don't wnat to make the testsuite take so much longer, and clling gpt doesn't error anyway, don't include gpt prompts in the TestSuite
-                    ){
+                        code_elt.title.startsWith("unstartable")) &&
+                    (code_elt.className !== "gpt")){ //since user might not be connected to internet, or might not have an OPenAI account, or we jst don't wnat to make the testsuite take so much longer, and clling gpt doesn't error anyway, don't include gpt prompts in the TestSuite
                     //because we now have to use innerHTML to get the code out of code_elt,
                     //and if that has any less than signs in it, they will automagically
                     //get converted to &lt; which will break if its evaled.
@@ -1171,10 +1182,11 @@ class TestSuite{
                     //that is allowed to be evaled (according to the CODE's title attribute.
                     fixed_src = fixed_src.replaceAll("&lt;", "<")
                     fixed_src = fixed_src.replaceAll("&gt;", ">")
+
                     var a_test = [fixed_src]
                     var next_elt = code_elt.nextElementSibling
                     if (next_elt && (next_elt.tagName == "SAMP") && (!next_elt.title || next_elt.title.startsWith("unstartable"))){
-                        a_test.push(next_elt.innerHTML)
+                        a_test.push(next_elt.innerHTML) //will remove the outer <samp> and </samp> but not inner tags which is normally what we want.
                     }
                     a_test_suite_tests.push(a_test)
                 }

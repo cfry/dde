@@ -270,6 +270,12 @@ dui_tour.addSteps([
           Observe the data structure representing the Job in the inspector.`,
         popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 10] } }]}
     },
+    {attachTo: {element: '.dui_dialog [name=home]', on: 'bottom'},
+        text: `To get ready for running the Job we have just created, we need to click
+               the highlighted <b>home</b> button. This should be done the first time you want to run a Job
+               AFTER you have used the Dexter UI to move Dexter.`,
+        popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 10] } }]}
+    },
     {attachTo: {element: '#jobs_button_bar_id', on: 'bottom'},
         text: `Defining the Job created a button for it.<br/>
           Run the Job by clicking the new <b>my_job</b> button.<br/>
@@ -309,7 +315,7 @@ dui_tour.addSteps([
           that describes the Dexter UI dialog.<br/>
           There's more to it than this tutorial covers.`
     },
-    {attachTo: { element: '#help_system_id', on: 'left'},
+    {attachTo:  { element: '#editor_pane_id', on: 'left'},
         text: `Clicking the <b>Help</b> button, in the Editor pane's
                menu bar, will bring back the
                "Welcome to DDE" dialog box containing the tutorials menu.`

@@ -12,7 +12,7 @@
   and any new cmds under it.
   Mode names are all lower case, no spaces.
   Note that a cmd row can appear in more than one mode,
-   but it needs to have the same behaivor OR its method needs to banch on the Talk.mode to
+   but it needs to have the same behavior OR its method needs to banch on the Talk.mode to
    accomodate the different functionality.
 
 - modes *should* also have a "misc" method named MODENAME_mode_misc  that takes full_text (string from reco),
@@ -45,14 +45,17 @@ class Talk {
     static is_recording  //true or false
     static recording_name_now_playing //string
 
-    static step_distance  //float in meters
+    static step_size  //float in meters
     static is_moving      //true or false. Automatically set to true when Dexter is moving due to user invoking a normal
                           //move command like "down". 
                           //To stop such a command as its running, set is_moving to false.
     static current_command_for_display_in_status
     static current_move_command //initially null, then when moving: "down", up, left, right, farther, closer, reverse, forward
     static last_move_command // a string
-    static xyz_arrays_being_recorded //null or an array of xyz arrays when is_recording is true.
+    static current_move_joint_number //only for joint moves
+    static current_move_direction
+
+    static instructions_being_recorded //null or an array of xyz arrays when is_recording is true.
 
     static last_reverse_forward_index  //int
     static forward_limit_index //int
@@ -73,12 +76,15 @@ class Talk {
         this.is_recording   = false
         this.recording_name_now_playing = null
 
-        this.step_distance   = 0.005
+        this.step_size   = 0.005
         this.is_moving       = false
         this.current_command_for_display_in_status = "none yet"
-        this.current_move_command = null
-        this.last_move_command = null
-        this.xyz_arrays_being_recorded = null
+        this.current_move_command        = null
+        this.last_move_command           = null
+        this.current_move_joint_number   = null //only for joint moves
+        this.current_move_direction      = null   //only for joint moves
+
+        this.instructions_being_recorded = null
 
         this.last_reverse_forward_index  = null
         this.forward_limit_index         = null
@@ -139,7 +145,10 @@ class Talk {
             Talk.turn_off_mic_aux()
             let full_text = event.results[0][0].transcript
             console.log("got onresult of text: " + full_text)
+            full_text = Talk.replace_reco_words(full_text)
+            console.log("onresult replaced text: " + full_text)
             console.log('Confidence: ' + event.results[0][0].confidence);
+
             Talk.handle_command(full_text) //the main call to handle_command
         }
 
@@ -156,7 +165,11 @@ class Talk {
         //we need to NOT call a warning since maybe onresult was called.
         //if onresult was called, Talk.listening will be false and we don't
         //then want to issue the warning.
-        this.recognition.onspeechend = function() { //seems to be called AFTER onresult which doesn't match the spec
+
+        //if onresult is called (by google) onspeechend will be called AFTER it.
+        //but if onresult is not called, onspeechend is still called.
+        //the "event" arg has no useful info in it other than maybe a timestamp.
+        this.recognition.onspeechend = function(event) { //seems to be called AFTER onresult which doesn't match the spec
             console.log("got onspeechend")
             //Talk.recognition.stop();
             if (Talk.listening) {
@@ -172,28 +185,55 @@ class Talk {
             Talk.turn_off_mic_aux()
             console.log("got onerror of " + event.error) //"no-speech" after about 5 secs of quiet.// "network" immediately after click and no net connection
             if(event.error === "no-speech") {
-                Talk.display_warning("Talk did not hear you say anything.<br/>After tapping the space-bar you must say a command.")
+                Talk.display_warning("Talk did not hear you say anything.<br/>After tapping the space-bar briefly you must say a command.")
             }
             Talk.listening = false
             Talk.display_status()
         }
+        if(!Dexter.check_joint_limits) {
+            Dexter.check_joint_limits = true
+            warning("Dexter.check_joint_limits has been set to true during Talk init.<br/>" +
+                    "To turn it off, eval: <code> Dexter.check_joint_limits = false </code>.")
+        }
     }
 
-
-    static segment_to_text(segment){
-        let text = ""
-        for(let word of segment.words){
-            let str = word.value
-            text += str + " "
+    static replace_reco_words(full_text){
+        full_text = full_text.trim()
+        let result = ""
+        let word_array = full_text.split(" ")
+        for(let word of word_array){
+            let new_word = this.word_replacements[word]
+            if(new_word){
+                result += new_word + " "
+            }
+            else { result += word + " " }
         }
-        return text.trim() //take off final space
+        return result.trim()
     }
-    static segment_to_array_of_words(segment){
-        let arr = []
-        for(let word of segment.words){
-            arr.push(word.value)
-        }
-        return arr
+
+    static word_replacements = {
+        //"poor": "pour", //as in "pour water"
+        fu:   "foo",
+        fubar: "foo bar",
+        apostrohe:   "'", //also single-quote
+        asterisk:    "*",
+        Asterix:     "*",
+        ampersand:   "&",
+        //back quote is recoed as 2 works
+        backslash:   "\\",
+        circumflex:  "^",
+        colon:       ":",
+        comma:       ",",
+        //"exclamation": "!", //use exclamation point instead
+        dash:        "-",  //shorter than hyphen. meaning of hypehn is for multi-word terms nad 2 different kinds of dash for esparating caulses, but dash would be ok to separate words.
+        hyphen:      "-",
+        period:      ".",
+        //"quote":       "quote" //use double quote instead. Todo multi-word term replacements
+        semicolon:   ";",
+        slash:       "/",
+        tilde:       "~",
+        Tilda:       "~",
+        underscore:  "_"
     }
 
     static display_ui(){
@@ -207,7 +247,7 @@ class Talk {
             x: 200, y:7, width: 570, height: 390,
             content: `<fieldset style="padding:2px;"><legend><i>Status</i></legend>
                             <div id="display_status_id"></div>
-                            <div id="talk_out_id" style="background-color:white;font-size:20px;padding:5px;min-height:50px;"></div>
+                            <div id="talk_out_id" style="background-color:white;font-size:20px;padding:5px;height:60px;"></div>
                       </fieldset>
                       <fieldset style="padding:2px;"><legend><i>Valid Commands</i></legend>
                             <ul id='valid_commands_id' style="font-size:22px;margin:0px 0px 0px 20px; padding:0px;"></ul>
@@ -221,8 +261,8 @@ class Talk {
                     if (event.key === " ") { //when talk dialog is up, and user hits space, turn on the mic.
                         console.log("talk whole dialog got space char")
                         //Talk.stop_except_speaking()
-                        Talk.stop_except_speaking_aux() //fast as possible to set is_moving to false
-                        globalThis.stop_speaking()
+                        Talk.stop_aux() //fast as possible to set is_moving to false
+                        //globalThis.stop_speaking()
 
                         event.stopPropagation()
                         event.preventDefault()
@@ -268,11 +308,15 @@ class Talk {
                     Talk.display_color()
                 }
             }
-            Talk.set_mode("main_menu")
+            let content_obj = Talk.content_str_to_content_obj("main menu", "main menu", "", "main menu", "main_menu")
+            let mess = "Tap the space-bar briefly and say a command<br/>" +
+                       "or click on one.<br/>" +
+                       "If you're a new user, try <b>Note</b>. Please read tooltips."
+            Talk.set_mode("main_menu", content_obj, mess)
             }, //need "Talk" here, not "this"
             200
         )
-        Talk.display_message(Talk.say_or_click())
+        //Talk.display_message(Talk.say_or_click())
     }
 
     static sw_callback(vals){
@@ -286,45 +330,62 @@ class Talk {
         }
     }
 
-    static set_mode(mode, message){
+    static set_params_mode(content_obj, message){
+        let cmd_norm = content_obj._cmd_norm
+        let cmd_meth_name = this.string_to_method_name(cmd_norm)
+        let the_new_mode = content_obj._cmd_norm_mode + "__" + cmd_meth_name + "__params"
+        this.set_mode(the_new_mode, content_obj)
+    }
+
+    static set_mode(mode, content_obj, message){
         Talk.mode = mode //must use "Talk", not "this" due to setTimeout call
-        Talk.display_all(message)
+                         //oneof main_menu, move_menu, or param like: "main_menu__define_term__params"
+        Talk.display_all(content_obj, message)
     }
-
-    static set_params_mode(cmd_str){
-        this.set_mode(this.mode + "__" + cmd_str + "__params",
-            "For <b>" + cmd_str + "</b>, say or enter a param_name and its new value.")
-    }
-
 
     //shows status including valid cmds
     //not passing in a message displays the default message.
-    static display_all(message, related_target=document.activeElement){ //display_all
+    static display_all(content_obj, message, related_target=document.activeElement){ //display_all
         //out("top of display_all")
         this.display_status()
         this.display_color(related_target)
-        this.display_commands()
-        if(message){
-            Talk.display_message(message)
-        }
+        this.display_commands(content_obj)
+        this.display_message(message, content_obj)
     }
 
     static display_status(){
         if (globalThis.display_status_id) { //show_window is shown
+            let step_value_color = "black"
+            if      (this.step_size < 0.005) { step_value_color = "blue"}
+            else if (this.step_size > 0.005) { step_value_color = "red"}
             display_status_id.innerHTML =
                 "<i>Mic:           </i><b>" + (this.is_mic_on()    ? "<span style='color:rgb(0, 220, 0);'>on</span>" : "off") + "</b> &nbsp;" +
                 "<i>Speaker:       </i><b>" + (this.enable_speaker ? "<span style='color:rgb(0, 220, 0);'>on</span>" : "off") + "</b> &nbsp;" +
                 "<i>Recording:     </i><b>" + (this.is_recording   ? "<span style='color:rgb(0, 220, 0);'>on</span>" : "off") + "</b> &nbsp;" +
                 "<i>Moving:        </i><b>" + (this.is_moving      ? "<span style='color:rgb(0, 220, 0);'>on</span>" : "off") + "</b> &nbsp;" +
-                "<i>Step distance: </i><b>" + this.step_distance + "</b><br/>" +
+                "<i>Step size: </i><b title='The default step size is: 0.005m (5 millimeters).' style='color:" + step_value_color + ";'>" + this.step_size + "m</b><br/>" +
                 "<i>Mode:          </i><b>" + this.mode + (Talk.recording_name_now_playing ? " " + Talk.recording_name_now_playing : "") + "</b> &nbsp;" +
                 "<i>Last command:  </i><b>" + this.current_command_for_display_in_status + "</b>"
         }
     }
 
-    static display_message(html){ //display_message
-        if(globalThis.talk_out_id) {
-            talk_out_id.innerHTML = html
+    static display_message(message, content_obj){ //display_message
+       if (message){} //just use it below
+        else if (content_obj) {
+            let param_names = content_obj._param_names
+            if (param_names.length === 1) {
+                message = "For <b>" + content_obj._cmd_norm + "</b>, tap space-bar and say the value for: " + param_names[0] +
+                    "<br/>or type it in."
+            } else {
+                message = "For <b>" + content_obj._cmd_norm + "</b>, say a param_name and its new value<br/>" +
+                    "or type in a new value."
+            }
+        }
+        else {
+           shouldnt("Talk.display_message passed no message and no content_obj.")
+       }
+        if(globalThis.talk_out_id) { //the dialog is up.
+            talk_out_id.innerHTML = message
         }
     }
 
@@ -333,10 +394,13 @@ class Talk {
         //console.log(related_target)
         //console.log("and activeElement")
         //console.log(document.activeElement)
-        let in_focus_color = "#ffd6c2" //"#ffd9ad" //tan  rgb(255, 253, 208) //cream
+        let color = "#ffd6c2"
+       /* probably best to always keep tan. out-of-focus shrinks the pane so we *should* never
+         see the out-of-focus gray, but occassionally it shows up and is annoying.
+       let in_focus_color = "#ffd6c2" //"#ffd9ad" //tan  rgb(255, 253, 208) //cream
         let out_focus_color = "gray"
         //let bg_color=  ((document.activeElement === this.dialog_dom_elt) ? in_focus_color : out_focus_color)
-        let color
+
         let ancests = []
         if(related_target) {
             ancests = Utils.get_dom_elt_ancestors(related_target) //document.activeElement)
@@ -352,18 +416,18 @@ class Talk {
         }
         else {
             color = out_focus_color
-        }
+        } */
         display_status_id.style["background-color"] = color
         talk_out_id.style["background-color"] = color
         this.dialog_dom_elt.style["background-color"] = color
-        console.log("just set color to: " + color + " with activeElement: ")
+        //console.log("just set color to: " + color + " with activeElement: ")
         //console.log(document.activeElement)
         //console.log("document.activeElement: " + document.activeElement)
         console.log("_________end of display_color")
     }
 
-    static display_commands(){
-        valid_commands_id.innerHTML = this.cmds_html_for_current_mode()
+    static display_commands(content_obj){
+        valid_commands_id.innerHTML = this.cmds_html_for_current_mode(content_obj)
     }
 
  //_______command Utilities_______
@@ -397,21 +461,29 @@ class Talk {
         }
     }
 
-    static cmds_html_for_current_mode() {
+    //ok if content_obj is undefined. That just means display all the fields without
+    //getting any previous values, just use defaults.
+    static cmds_html_for_current_mode(content_obj) {
         if (this.mode.endsWith("__params")) {
-            let [parent_mode, cmd] = this.mode.split("__")
+            let [parent_mode, cmd_norm_with_underscores] = this.mode.split("__")
             let params = this.cmd_params_for_current_params_mode()
             let html = ""
-            let tooltip = "A parameter for the " + cmd + " command."
+            let tooltip = "A parameter for the " + content_obj._cmd_norm + " command."
             for (let param of params) {
                 let [param_name, def_val] = param
                 if(typeof(def_val) === "function"){
                     def_val = def_val.call(Talk)
                 }
+                if(content_obj && content_obj[param_name]){
+                    let prev_val = content_obj[param_name]
+                    if(![undefined, ""].includes(prev_val)) {
+                        def_val = content_obj[param_name]
+                    }
+                }
                 let id = this.mode + "__" + param_name + "__id"
                 html += "<li style='height:30px;' title='" + tooltip + "' >" + param_name + ": " +
-                    "<input id='" + id + "' value='" + def_val +
-                    "' onkeydown='Talk.onkeydown_for_arg_input(event)' " +
+                    '<input style="width:300px;" id="' + id + '" value="' + def_val + '"' + //must have singlue quote on outise,d double on inside because def_val might be "it's raining" and we need to capture that snglue quote inside the string for def_value.
+                    " onkeydown='Talk.onkeydown_for_arg_input(event)' " +
                     "' onkeyup='Talk.onkeyup_for_arg_input(event)' " +
                     "'/></li>\n"
             }
@@ -420,7 +492,7 @@ class Talk {
             let click_source = "Talk.handle_command('run')"
             //we want to bypass the handle_command call because it would call the cmd table but it can't handle the params dialog
             //Talk.handle_command('" + norm_cmd + "')"
-            tooltip = "Run the " + cmd + " command with the param values in this dialog box."
+            tooltip = "Run the " + content_obj._cmd_norm + " command with the param values in this dialog box."
             let display_prose = "Run"
             let li_body_html = '<span class="talk_cmd" onclick="' + click_source + '"' + //performing span onclick doesn't trigger onblur for dialog box as a whole and since these links change after dialog creation, doesn't need the fancy SW processing to call the sw callback upon click
                 ' title="' + tooltip +
@@ -430,7 +502,7 @@ class Talk {
             html += li_menu_item
 
             //html that, when clicked on will go back to the parent mode menu
-            click_source = "Talk.set_mode('" + parent_mode + "', Talk.say_or_click())"
+            click_source = "Talk.set_mode('" + parent_mode + "', undefined, Talk.say_or_click())"
                   //we want to bypass the handle_command call because it would call the cmd table but it can't handle the params dialog
                   //Talk.handle_command('" + norm_cmd + "')"
             tooltip = "Change the menu of commands back to the main menu."
@@ -441,7 +513,6 @@ class Talk {
                             display_prose + '</span>\n'
             li_menu_item = "<li style='height:30px;'>" + li_body_html + "</li>\n"
             html += li_menu_item
-
             return html
         }
         else {//regular mode
@@ -494,7 +565,7 @@ class Talk {
     }
 
     //presents collecting an argument to a command for user to "fill in"
-    static show_command_parameter(cmd_meth_name) {
+    /*obsolete static show_command_parameter(cmd_meth_name) {
         let callback_name = cmd_meth_name + "_from_type_in"
         let param_name = this.cmd_param_name(cmd_meth_name)
         let callback_callback = Talk[cmd_meth_name + "_action"]
@@ -530,36 +601,18 @@ class Talk {
             }
         }
     }
-
-    static replace_reco_words(full_text){
-        full_text = full_text.trim()
-        let result = ""
-        let word_array = full_text.split(" ")
-        for(let word of word_array){
-            let new_word = this.word_replacements[word]
-            if(new_word){
-                result.push(new_word + " ")
-            }
-            else { result += word + " " }
-        }
-        return result.trim()
-    }
-
-    static word_replacements = {
-        "poor": "pour", //as in "pour water"
-        "fu":   "foo",
-        "fubar": "foo bar"
-    }
+    */
 
     //static modes = ["main_menu", "move_menu", "waiting_for_job_name", "waiting_for_place_name", "playing_recording"]
 
     //used in cmd_props_table
+    /*
     static display_turn_on_mic(){
         return (this.speech_reco_possible && !this.is_mic_on())
     }
     static display_turn_off_mic() {
         return (this.speech_reco_possible && this.is_mic_on())
-    }
+    }*/
 
     static display_turn_on_speaker(){
        return !this.is_speaker_on()
@@ -580,36 +633,41 @@ class Talk {
     static cmd_props_table = {
         //0 cmd_normalized_prose,   1 cmd_display_prose,       2 cmd_method_name,  3 cmd_can_be_  4 cmd_alternatives                       5 cmd_tooltip
         //aka utterance from reco                              aka recording_name, in_recording,
-        //                             1 cmd_alternatives                         2 params        3 cmd_tooltip         4 cmd_props_display (boolean or fn returning boolean, default: true)
-        main_menu: [
-       [ ["turn on mic",               ["turn on mike",  "turn on microphone"],  [], "To turn on the mic, press the space-bar,&#013;then say a command.",     Talk.display_turn_on_mic],
-         ["turn off mic",              ["turn off mike", "turn off microphone"], [], "Turn off the mic (or just pause speaking for auto-off)",             Talk.display_turn_off_mic],
+        //                             1 cmd_alternatives                         2 params        3 cmd_tooltip         4 cmd_display (boolean or fn returning boolean,  default: true)
+      main_menu: [   //                                                            only lc chars in name                  on weather or not to have this item appear in vali_cmds at all.
+       [ //["turn on mic",               ["turn on mike",  "turn on microphone"],  [], "To turn on the mic, press the space-bar,&#013;then say a command.",     Talk.display_turn_on_mic],
+         //["turn off mic",              ["turn off mike", "turn off microphone"], [], "Turn off the mic (or just pause speaking for auto-off)",             Talk.display_turn_off_mic],
          ["turn on speaker",           ["turn speaker on"],                      [], "Enables the speaker to work when Talk tries to, um, talk.",          Talk.display_turn_on_speaker],
          ["turn off speaker",          ["turn speaker off", "quiet", "be quiet", "shut up"], [], "Disables speaker so that Talk will (usually) be quiet.", Talk.display_turn_off_speaker],
        ],
-       [ ["insert",                    [],                                       [["text", ""]], "Inserts text into the current position of the editor without timestamp."], //don't have alternatives
-         ["note",                      [],                                       [["text", ""]], "Inserts text into the end of the editor with a timestamp."  ] //don't have alternatives
+       [ ["insert",                    [],                                       [["words", ""]], "Inserts text into the current position of the editor.&#13;Example: say: insert buy milk on way home."], //don't have alternatives
+         ["note",                      [],                                       [["words", ""]], 'Inserts text into the end of the editor with a timestamp.&#13;Example: say: note read bio chapter 3.' ] //don't have alternatives
        ],
        [ ["say selection",             [],                                       [], "Select some text in the editor and &#13;say or click 'Say selection' to have it spoken."],
-         ["define saying",             ["defined saying", "dine saying"],        [["name", ""], ["saying", ""]],
-             "The 1st word of a saying is its name,&#13;the 2nd + is its body.&#13;Ex: Say 'define saying green is good'.&#13;Or select 'green is good' in the editor and&#13;click the menu item.&#13;Tap the space-bar and say 'green',&#13;or click Job button 'green' to hear 'is good'."],
+         ["define name",              ["defined name", "dine name", "define named"], [["name", ""], ["meaning", ""]],
+             "Example: Say 'define name green comma is good'.&#13;Or select 'green is good' in the editor and&#13;click the menu item.&#13;Tap the space-bar briefly and say 'green',&#13;or click Job button 'green' to hear 'is good'."],
        ],
-       [ ["gpt",                      ["GPT"],                                   [["prompt", ""]], "Passes the spoken text as a prompt to GPT.&#13;The response appears in the Output pane. "],
+       [ ["gpt",                      ["GPT"],                                   [["prompt", ""]], "Passes the spoken text or selected text&#13;as a prompt to GPT.&#13;The response appears in the Output pane."],
        ],
        [ ["stop",                     [],                                        [], "Stop Dexter and other ongoing activities."],  //on both main and move menus
          ["quit",                     [],                                        [], "Stop activities and close the Talk dialog box."],
        ],
-       [ ["move menu",                ["move"],                                 [], "Displays a menu of robot movement commands." ],
+       [ ["move menu",                ["move"],                                  [], "Displays a menu of robot movement commands." ],
        ]
      ], //end main_menu
      move_menu: [
-      [ ["straight up",               [],                                        [], "Move Dexter until its straight up and stop."],
+      [["simulate",                  ["simulator"],                              [], "Causes robot commands to be simulated."],
+       ["real",                      [],                                         [], "Causes robot commands to go to the real robot."],
+       ["both",                      [],                                         [], "Causes robot commands to be simulated and&#13;go to the real robot."],
+      ],
+      [ ["straight up",              [],                                         [], "Move Dexter until its straight up and stop."],
+        ["joint",                    [],                                         [["joint_number", "1"], ["direction", "clockwise"]], "Move one of Dexter's joints,&#131 thru 7,&#13clockwise or counter clockwise."],
       ],
       [ ["up",                        [],                                        [], "Move Dexter up."],
         ["down",                      [],                                        [], "Move Dexter down.&#13;If Dexter is straight up (as it is initially)&#13;you must move it down&#13;before moving it in any other direction."],
 
         ["left",                      [],                                        [], "Move Dexter left."],
-        ["right",                     ["right turn"],                            [], "Move Dexter right."],
+        ["right",                     ["right turn", "write"],                   [], "Move Dexter right."],
 
         ["closer",                    [],                                        [], "Move Dexter closer to its base."],
         ["farther",                   ["further"],                               [], "Move Dexter farther from its base."],
@@ -627,7 +685,7 @@ class Talk {
         ["start recording",          ["started recording"],                      [], "Begin the recording of Dexter move commands into a Job.", Talk.display_start_recording],
         ["stop recording",           [],                                         [["job_name", ""]], "Stop the recording of Dexter move commands into a Job.",  Talk.display_stop_recording],
       ],
-      [ ["run job",                  ["run jobe"],                               [["job_name", Talk.default_job_name]], "Say 'Run Job [job name] or&#13;just the Job name to&#13;start the Job."],
+      [ ["run job",                  ["run jobe", "ron job"],                               [["job_name", Talk.default_job_name]], "Say 'Run Job [job name] or&#13;just the Job name to&#13;start the Job."],
         ["edit job",                 [],                                         [["job_name", Talk.default_job_name]], "Say 'Edit [job name] to&#13;insert the Job definition into the editor."], //don't have alternatives
       ],
       [
@@ -635,30 +693,10 @@ class Talk {
       ],
    ], //end move_menu
    params: [ //the constant cmds for all params valid cmds. Dynamically the "back" menu gets added by cmd_rows_for_mode and a row for each param will get added by cmds_html_for_current_mode
-      [ ["run",                      [],                                         [], "Run the current command with the values for each param."]
-
+      [ ["main menu",                ["main", "maine"],                          [], "Change the menu of commands back to the main menu."],
+        ["run",                      [],                                         [], "Run the current command with the values for each param."]
       ]
    ]
-        /*
-   job_name: [
-      [ [Talk.turn_on_mic_maybe,     "Turn on mic",              "turn_on_mic",     true,  ["turn on mike",  "turn on microphone"],  "Turn on the mic (or press space-bar),&#013;then say a command."],
-        [Talk.turn_off_mic_maybe,    "Turn off mic",             "turn_off_mic",    true,  ["turn off mike", "turn off microphone"], "Turn off the mic (or just pause speaking for auto-off)"],
-      ],
-      [ ["move menu",  "Move menu&#9660; (cancel recording)",    "move_menu",       false, ["move"], "Displays a menu of robot movement commands." ]
-      ],
-   ], //end job_name
-   waiting_for_place_name: [
-      [ [Talk.turn_on_mic_maybe,     "Turn on mic",              "turn_on_mic",     true,  ["turn on mike",  "turn on microphone"],  "Turn on the mic (or press space-bar),&#013;then say a command."],
-        [Talk.turn_off_mic_maybe,    "Turn off mic",             "turn_off_mic",    true,  ["turn off mike", "turn off microphone"], "Turn off the mic (or just pause speaking for auto-off)"],
-      ],
-      [ ["move menu",  "Move menu&#9660; (cancel defining place)", "move_menu",  false, ["move"], "Stops recording and displays a menu of robot movement commands." ],
-      ],
-   ],
-   playing_recording: [
-      [ ["stop playing",             "Stop playing",           "stop_playing",      false, [], "Stop the Job now running."],
-      ]
-   ] // end playing_recording
-   */
 } //end cmd_props_table
     //not called Apr 22 whuich is good because excludes params mode if any.
     static is_mode(a_string){
@@ -676,13 +714,15 @@ class Talk {
             string = string.substring(0, paren_index) //open paren means the close paran ends the whole cmd, so we don't have to check for it.
                                                       //an open paren signifies a comment to the end of the string
         }
-        string = string.replaceAll(",", "")
         string = Utils.trim_all(string) //trim off begin and ending witespace. replace multiple whitespace with one space.
         string = string.toLowerCase()
+        string = string.replaceAll(",", "")
+        string = string.replaceAll("'", "")
         string = string.replaceAll("_", " ")
         return string
     }
 
+    //does not check if method actually exists for the returned string.
     static string_to_method_name(string) { //also returns proper spelling for recording_name
         string = this.string_to_cmd_normalized_prose(string)
         string = string.replaceAll(" ", "_")
@@ -690,13 +730,17 @@ class Talk {
         return string
     }
 
+    //returns null or an actual define job name.
     static job_name_prose_to_existing_job_name(job_name_prose){
+        job_name_prose = job_name_prose.replaceAll(" ", "_").toLowerCase()
+        job_name_prose = job_name_prose.replaceAll("'", "")
+        job_name_prose = job_name_prose.toLowerCase()
+
         let job_names = Job.defined_job_names() //this.array_of_recording_names()
-        let job_name_prose_name = job_name_prose.replaceAll(" ", "_").toLowerCase()
-        for(let maybe_upper_case_job_name of job_names){
-            let now_lower_case_job_name = maybe_upper_case_job_name.toLowerCase()
-            if(now_lower_case_job_name === job_name_prose_name){
-                return maybe_upper_case_job_name //the name of an actual job
+        for(let existing_job_name of job_names){
+            let now_lower_case_job_name = existing_job_name.toLowerCase()
+            if(now_lower_case_job_name === job_name_prose){
+                return existing_job_name //the name of an actual job
             }
         }
         return null //no jobs of that name
@@ -743,10 +787,10 @@ class Talk {
             let [parent_mode, cmd_str, params_const] = a_mode.split("__")
             if(params_const){
               let rows = this.cmd_props_table["params"].slice()
-              let norm_prose = this.cmd_normalized_prose_from_current_mode()
-              let tooltip = "Change the menu of commands back to the " + norm_prose + "."
-              let menu_row = [norm_prose, [], [], tooltip]
-              rows.push([menu_row])
+              //let norm_prose = this.cmd_normalized_prose_from_current_mode()
+              //let tooltip = "Change the menu of commands back to the " + norm_prose + "."
+              //let menu_row = [norm_prose, [], [], tooltip]
+              //rows.push([menu_row])
               return rows
             }
             else {
@@ -757,23 +801,23 @@ class Talk {
 
 
     //returns true for regular Talk cmds only
-    static is_known_cmd(cmd){
-        let cmd_props = this.get_cmd_props(cmd)
+    static is_known_cmd(cmd, a_mode=Talk.mode){
+        let cmd_props = this.get_cmd_props(cmd, a_mode)
         if(cmd_props){ return true }
         else         { return false }
     }
 
     //returns cmd_props but with no function as the first elt of the array
-    //OR null if cmd is not in the current mode
-    static get_cmd_props(cmd){ //ex: cmd === "print", returns ["print", "Print (text)", ...]
+    //OR null if cmd is not in a_mode
+    static get_cmd_props(cmd, a_mode=Talk.mode){ //ex: cmd === "print", returns ["print", "Print (text)", ...]
+        if(!cmd) { return null }
         cmd = cmd.toLowerCase()
         cmd = cmd.replaceAll("_", " ")
-        let use_mode = this.mode
-        if(use_mode.endsWith("__params")){
+        if(a_mode.endsWith("__params")){
             //use_mode = parent_mode
-            use_mode = "params"
+            a_mode = "params"
         }
-        let cmds_for_mode = this.cmd_props_table[use_mode]
+        let cmds_for_mode = this.cmd_props_table[a_mode]
         for(let cmd_row of cmds_for_mode){  //cmd_arr ex: ["print", "Print (text)", ...]
             for(let cmd_props of cmd_row) {
                 let normalized_cmd = cmd_props[0]
@@ -786,8 +830,8 @@ class Talk {
         //also could happen if cmd is just never legit and the whole utterance is going to the default (gpt)
     }
 
-    static cmd_display(cmd){
-        let cmd_props = this.get_cmd_props(cmd)
+    static cmd_display(cmd, a_mode=Talk.mode){
+        let cmd_props = this.get_cmd_props(cmd, a_mode)
         let raw = cmd_props[4]
         if(raw === undefined)              { return true } //the default
         else if(typeof(raw) === "boolean") { return raw }
@@ -795,16 +839,16 @@ class Talk {
             return raw.call(Talk)
         }
         else {
-            shouldnt("Talk.cmd_props_display called with cmd_props: " + cmd_props +
+            shouldnt("Talk.cmd_display called with cmd_props: " + cmd_props +
                      " with invalid value: " + raw)
         }
     }
 
 //called at top of handle_command. all lower case, spaces between words
-    static cmd_normalized_prose(cmd){
+    static cmd_normalized_prose(cmd, a_mode=Talk.mode){
        cmd = cmd.toLowerCase()
        cmd = cmd.replaceAll("_", " ")
-       let cmd_props = this.get_cmd_props(cmd)
+       let cmd_props = this.get_cmd_props(cmd, a_mode)
        if(cmd_props){
            let norm_cmd = cmd_props[0]
            return norm_cmd
@@ -814,15 +858,19 @@ class Talk {
        }
     }
 
-    static cmd_display_prose(cmd){
+    static cmd_display_prose(cmd, a_mode=Talk.mode){
         let result = cmd.replaceAll("_", " ")
         result = Utils.make_first_char_upper_case(result)
-        let params = this.cmd_params(cmd)
+        let params = this.cmd_params(cmd, a_mode)
         if(!params) { shouldnt("cmd_display_prosep passed unknown cmd: " + cmd) }
         else if (params.length === 0) {}
         else {
             let first_param_name = params[0][0]
-            result += " (" + first_param_name + ")"
+            result += " (" + first_param_name
+            if (params.length > 1) {
+                result += ", ..."
+            }
+            result += ")"
         }
         return result
     }
@@ -846,14 +894,14 @@ class Talk {
         } //not found
     }
 
-    static cmd_params(cmd){
-        let cmd_props = this.get_cmd_props(cmd)
+    static cmd_params(cmd, a_mode=Talk.mode){
+        let cmd_props = this.get_cmd_props(cmd, a_mode)
         if(!cmd_props) { shouldnt("In Talk.cmd_params, passed unknown cmd: " + cmd)}
         return cmd_props[2]
     }
 
-    static cmd_param_names(cmd){
-        let params = this.cmd_params(cmd)
+    static cmd_param_names(cmd, a_mode=Talk.mode){
+        let params = this.cmd_params(cmd, a_mode)
         let param_names = []
         for(let param of params){
             param_names.push(param[0])
@@ -862,13 +910,15 @@ class Talk {
     }
 
     //returns an array of elements of [param_name, default_value]
-    static cmd_params_for_current_params_mode(){
-        let [parent_mode, cmd_str] = this.mode.split("__")
-        if(!cmd_str){
+    //Talk.mode is expectect to be a string with suffix "__params"
+    /*static cmd_params_for_current_params_mode(){
+        let [parent_mode, cmd_str_with_underscores, params] = this.mode.split("__")
+        if(!params){
             shouldnt("Talk.cmd_params_for_current_params_mode called with mode: " + this.mode +
             " which isn't a __params__ mode.")
         }
         else {
+            let cmd_str = cmd_str_with_underscores.replaceAll("_", " ")
             let rows = this.cmd_props_table[parent_mode]
             for (let row of rows) {
                 for (let cmd_arr of row) {
@@ -881,6 +931,18 @@ class Talk {
             shouldnt("cmd_param_names_for_current_params_mode couldn't find the cmd: " +
                 cmd_str + " in mode: " + parent_mode)
         }
+    }*/
+
+    static cmd_params_for_current_params_mode() {
+        let [parent_mode, cmd_str_with_underscores, params] = this.mode.split("__")
+        if (!params) {
+            shouldnt("Talk.cmd_params_for_current_params_mode called with mode: " + this.mode +
+                " which isn't a __params__ mode.")
+        } else {
+            let cmd_norm = cmd_str_with_underscores.replaceAll("_", " ")
+            let cmd_props = this.get_cmd_props(cmd_norm, parent_mode)
+            return cmd_props[2]
+        }
     }
 
     static cmd_param_names_for_current_params_mode(){
@@ -892,8 +954,8 @@ class Talk {
         return param_names
     }
 
-    static is_param(cmd, param_name){
-        let params = this.cmd_param_names(cmd)
+    static is_param(cmd, param_name, a_mode=Talk.mode){
+        let params = this.cmd_param_names(cmd, a_mode)
         if(params.length === 0) { shouldnt("In Talk.cmd_param_default_value, passed unknown cmd: " + cmd)}
         for(let a_param of params) {
             if(a_param === param_name) {
@@ -903,8 +965,8 @@ class Talk {
         return false
     }
 
-    static cmd_param_default_value(cmd, param_name){
-        let params = this.cmd_params(cmd)
+    static cmd_param_default_value(cmd, param_name, a_mode=Talk.mode){
+        let params = this.cmd_params(cmd, a_mode)
         if(!params) { shouldnt("In Talk.cmd_param_default_value, passed unknown cmd: " + cmd)}
         for(let a_param of params) {
            if(a_param === param_name) {
@@ -923,8 +985,8 @@ class Talk {
     //with the normalized prose as the first elt.
     //else if include_normalized_prose is false, and there are no alternatives in the table,
     //returns the empty array.
-    static cmd_alternatives(cmd, include_normalized_prose=true){
-        let cmd_props = this.get_cmd_props(cmd)
+    static cmd_alternatives(cmd, include_normalized_prose=true, a_mode=Talk.mode){
+        let cmd_props = this.get_cmd_props(cmd, a_mode)
         let alts
         if(!cmd_props){ //hits when say cmd is "turn speaker off" when the speaker is already off, so "turn speaker_off" is not on the menu.
             return []   //so saying it has no alteratives is literally true.
@@ -947,8 +1009,8 @@ class Talk {
         return alts
     }
 
-    static cmd_tooltip(cmd){
-        let cmd_props = this.get_cmd_props(cmd)
+    static cmd_tooltip(cmd, a_mode=Talk.mode){
+        let cmd_props = this.get_cmd_props(cmd, a_mode)
         if(cmd_props){ return cmd_props[3] }
         return ""  //don't return null as I use the result in a title dom elt.
     }
@@ -965,8 +1027,15 @@ class Talk {
         return str
     }
 
+    static before_first_message = true
+
     static say_or_click(){
-        return "Tap the space-bar and say a command, or click on one."
+        let mess = "Tap the space-bar briefly and say a command, or click one."
+        if(this.before_first_message){
+            mess += '<br/>A good first command to try is <b>Note</b>.'
+            this.before_first_message = false
+        }
+        return mess
     }
 
     //_______speak methods_______
@@ -1065,21 +1134,18 @@ class Talk {
 // others can get the content after the cmd is recognized with a type-in field, saying it,
 //or sometimes from selection in the editor.
 
-    static quit(full_text="quit", cmd_str, content){
-        if(cmd_str){
-            if(content === "") {
-                Talk.stop() //stop speaking, turn_off_mic, etc.
-                Talk.set_mode("main_menu")
-                setTimeout(function () {  //not sure why this is needed but clicking "Off" doesn't close the show_window without it
-                    SW.close_window(Talk.sw_index)
-                }, 100)
-                if (Job.talk_internal) {
-                    Job.talk_internal.when_do_list_done = "run_when_stopped"
-                    //change from "wait" so that stop_for_reason will stop the job.
-                    Job.talk_internal.stop_for_reason("completed", "user stopped job")
-                    Job.talk_internal.undefine_job()
-                }
-                return true
+    static quit(content_obj){
+        if(content_obj._content_str === "") {
+            Talk.stop_aux() //stop speaking, turn_off_mic, etc.
+            //Talk.set_mode("main_menu")
+            setTimeout(function () {  //not sure why this is needed but clicking "Off" doesn't close the show_window without it
+                SW.close_window(Talk.sw_index)
+            }, 100)
+            if (Job.talk_internal) {
+                Job.talk_internal.when_do_list_done = "run_when_stopped"
+                //change from "wait" so that stop_for_reason will stop the job.
+                Job.talk_internal.stop_for_reason("completed", "user stopped job")
+                Job.talk_internal.undefine_job()
             }
         }
     }
@@ -1090,18 +1156,18 @@ class Talk {
         return this.listening === true
     }
 
-    static turn_on_mic(full_text="turn on mic", cmd_str="turn on mic", content=""){
+    /*static turn_on_mic(full_text="turn on mic", cmd_str="turn on mic", content=""){
         if(cmd_str && !this.listening) { //don't do if we're already listening.
             if (content === "") {
                 //return this.turn_on_mic_aux()
-                this.display_warning("To turn on the mic, tap the space-bar and<br/>say a command.")
+                this.display_warning("To turn on the mic, tap the space-bar briefly and<br/>say a command.")
                 return true
             }
             else {
                 return false  //turn_on_mic takes no arguments
             }
         }
-    }
+    }*/
 
     //this is also called by onkeydown for the whole dialog
     //since turn_on_mic isn't a cmd in mode: move_menu, we need
@@ -1115,7 +1181,7 @@ class Talk {
         return true
     }
 
-    static turn_off_mic(full_text="turn off mic"){
+    /*static turn_off_mic(full_text="turn off mic"){
         let alts = this.cmd_alternatives("turn off mic", true)
         let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text, alts, true)
         if(cmd_str){
@@ -1124,14 +1190,14 @@ class Talk {
                 return true
             }
         }
-    }
+    }*/
 
     //also called by
     static turn_off_mic_aux(){
         if(this.listening) {
             //this.recognition.abort();
             this.listening = false
-            let mess = "Tap the space-bar then say a command."
+            let mess = "Tap the space-bar briefly then say a command."
             if (talk_out_id.innerText.startsWith("Unrecognized")) {
                 mess = null
             }
@@ -1144,68 +1210,71 @@ class Talk {
         return this.enable_speaker
     }
 
-    static turn_on_speaker(full_text = "turn on speaker", cmd_str, content) {
-        if (cmd_str && !this.listening) {
-            if (content === "") {
+    static turn_on_speaker(content_obj) {
+        if ((content_obj._content_str === "") && !this.listening) {
                 this.enable_speaker = true
-                this.display_all("The speaker is now on.")
+                let mess = "The speaker is now on.<br/>" + this.say_or_click()
+                this.display_all(content_obj,mess)
                 speak("The speaker is now on.")
-                return true
             }
-        }
     }
 
-    static turn_off_speaker(full_text = "turn off speaker", cmd_str, content) {
-        if (cmd_str) {
-            if (content === "") {
+    static turn_off_speaker(content_obj) {
+        if ((content_obj._content_str === "")) {
                 this.enable_speaker = false
-                this.display_all(this.say_or_click())
-                return true
-            }
+                let mess = "The speaker is now off.<br/>" + this.say_or_click()
+                this.display_all(content_obj, mess)
         }
     }
 
-    static note(full_text="note", cmd_str, content){
-        if (content === "") {
-            this.set_params_mode(cmd_str)
+    static note(content_obj){
+        if (content_obj._content_str === "") {
+            this.set_params_mode(content_obj)
             return true
         }
         else {
-            let text = content
-            let arg_obj = this.string_to_data(content)
+            let text = content_obj._content_str
+            let arg_obj = this.string_to_data(text)
             if(typeof(arg_obj) === "object") {
-                text = arg_obj.text
+                text = arg_obj.words
             }
+            let text_sans_date = text
             text = "\n" + new Date() + "\n" + text + "\n"
             Editor.insert(text, "end")
             Talk.dialog_dom_elt.focus() //we don't want to leave focus in the editor pane.
-            Talk.display_message("Inserted text into the editor.")
-            return true
+            let text_for_message = text_sans_date.substring(0, 40)
+            if(text_for_message.length < text_sans_date.length){
+                text_for_message += "..."
+            }
+            let mess = 'A note of "<i>' + text_for_message + '</i>"<br/>has been inserted into the editor.'
+            Talk.display_message(mess)
         }
     }
 
-    static insert(full_text="insert", cmd_str="insert", content){
-        if (content === "") {
-            this.set_params_mode(cmd_str)
-            return true
+    static insert(content_obj){
+        if (content_obj._content_str === "") {
+            this.set_params_mode(content_obj)
         }
         else {
-            let text = content
-            let arg_obj = this.string_to_data(content)
+            let text = content_obj._content_str
+            let arg_obj = this.string_to_data(text)
             if(typeof(arg_obj) === "object") {
-                text = arg_obj.text
+                text = arg_obj.words
             }
             Editor.insert(text, "end")
             Talk.dialog_dom_elt.focus() //we don't want to leave focus in the editor pane.
-            Talk.display_message("Inserted text into the editor.")
-            return true
+            let text_for_message = text.substring(0, 40)
+            if(text_for_message.length < text.length){
+                text_for_message += "..."
+            }
+            let mess = '"<i>' + text_for_message + ' </i>"<br/>has been inserted into the editor.'
+            Talk.display_message(mess)
         }
     }
 
     //always speaks regardles of Talk.enable_speaker
-    static say_selection(full_text="say selection", cmd_str="say selection", content=""){
-        if(cmd_str){
-            if(content === "") {
+    static say_selection(content_obj){
+        if(content_obj._content_str === "") {
                 let sel = Editor.get_javascript(true)
                 if (sel.length === 0) {
                     Talk.warning("There is no selected text to speak.")
@@ -1214,60 +1283,100 @@ class Talk {
                 else { //the main case.
                     speak({speak_data: sel})
                 }
+        }
+        else {
+            speak({speak_data: content_obj._content_str})
+        }
+    }
+
+    static define_name(content_obj) {
+        if (!content_obj._has_args) {
+            let content_from_selection = Editor.get_javascript(true).trim()
+            if (content_from_selection === "") {
+                this.set_params_mode(content_obj)
                 return true
             }
             else {
-                speak({speak_data: content})
-                return true
+                let content_obj = this.define_name_handle_content_from_selection(content_from_selection)
+                this.define_name_handle_content(content_obj)
             }
+        }
+        else {//we've passed in at least some content
+            this.define_name_handle_content(content_obj)
         }
     }
 
-    static define_saying(full_text="define saying",  cmd_str="define saying", content) {
-        if(cmd_str) {
-            if (content === "") {
-                content = Editor.get_javascript(true).trim()
-                if (content === "") {
-                    this.set_params_mode(cmd_str)
-                    return true
-                }
-                else {
-                    return this.define_saying_handle_content(content)
-                }
-            }
-            else {//we've passed in at least some content
-                return this.define_saying_handle_content(content)
+    static define_name_handle_content_from_selection(content_from_selection) {
+        content_from_selection = content_from_selection.trim()
+        let words = content_from_selection.split(/\s/) //if content == "", first word will be "" with only one array elt
+        let meaning = content_from_selection.substring(words[0].length + 1).trim()
+        let content_obj
+        let [parent_mode, cmd_str_from_mode, params_const] = Talk.mode.split("__")
+        let cmd_norm_mode = ((params_const) ? parent_mode : Talk.mode)
+        if (content_from_selection === "") {
+            content_obj = {
+                name: words[0],
+                meaning: "",
+                _cmd_norm_mode: cmd_norm_mode,
+                _cmd_norm_with_underscores: "define_name",
+                _has_args: false,
+                _content_str: content_from_selection,
+                _unused_param_names: ["name", "meaning"]
             }
         }
+        else if (meaning.length > 0) {
+            content_obj = {
+                name: words[0],
+                meaning: meaning,
+                _cmd_norm_mode: cmd_str_mode,
+                _cmd_norm_with_underscores: "define_name",
+                _has_args: true,
+                _content_str: content_from_selection,
+                _unused_param_names: []
+            }
+        }
+        else { //we have a first word, but not a meaning
+            content_obj = {
+                name: words[0],
+                meaning: "",
+                _cmd_str_mode: cmd_str_mode,
+                _cmd_str: "define_name",
+                _has_args: true,
+                _content_str: content_from_selection,
+                _unused_param_names: ["meaning"]
+            }
+        }
+        return content_obj
     }
 
-    //content does not start with "define saying" but is not ""
-    //The name can be only 1 word. IFF needed this can be extended by
-    //having a newline separate the name and the body.
-    //but careful, only the FIRST newline does this so that we
-    //can have multiple lines in the body.
-    //when saying the content, no way to separate name from body
-    //without saying something extra so multi-word terms could work best
-    //with text content.
-    static define_saying_handle_content(content){
-        let [name, body] = Utils.separate_head_and_tail(content, [" comma ", ",", ":", "=", "\n", " "],
-            true, //trim head and tail
-            true) // if " comma " is in content, use it, else use comma, ... last resort is space.
-        if (name === null) { //probably this won't hit, but its protection
-            Talk.display_warning("To define a saying, you must have words to say<br/> after the name of the saying.")
-            return true
+    static define_name_handle_content(content_obj) {
+        let name   = content_obj.name
+        let meaning = content_obj.meaning
+        if (!name || !meaning) {
+            this.set_params_mode(content_obj)
+            return
         }
-        else {
-            name = this.string_to_method_name(name)
-            let the_job_src =   '\nnew Job({name: "' + name + '",\n' +
-                                '         do_list: [\n' +
-                                '           function () {\n' +
-                                '             speak(`' + body + '`)}\n' +
-                                "]})\n"
-            eval(the_job_src)
-            //Editor.insert(the_job_src) //let user use "edit job" instead.
-            Talk.dialog_dom_elt.focus() //we don't want to leave focus in the editor pane.
-            return true
+        name = this.string_to_job_name(name)
+        if (this.is_known_cmd(name)) { //we want to exclude known recording names
+            let mess = '"' + name + '" is a command, so it can&apos;t be used to name a Job.'
+            this.set_params_mode(content_obj, mess)
+            return
+        }
+        else { //got all the params so just do it.
+            let the_job_src = '\nnew Job({name: "' + name + '",\n' +
+                '         do_list: [\n' +
+                '           function () {\n' +
+                '             speak(`' + meaning + '`)}\n' +
+                "]})\n"
+
+            let mess
+            if (this.is_existing_job_name(name)) {
+                mess = 'The Job: "' + name + '" has been over-written with your new recording.'
+            } else {
+                mess = 'Say or click the Job button for: <b>' + name + '</b> to start it.'
+            }
+            eval(the_job_src) //put AFTER capturing the mess to say in case a Job of that name is not yet defined, but will be
+            this.display_message(mess)
         }
     }
 
@@ -1278,21 +1387,19 @@ class Talk {
         Talk.dialog_dom_elt.focus()
     }
 
-    static gpt(full_text="gpt", cmd_str, content) {
-        if(cmd_str){
-            if(content === "") {
-                content = Editor.get_javascript(true).trim()
-                if (content === "") {
-                    Talk.display_warning("If you don't say a GPT prompt,<br/>you must select text in the editor for the prompt.")
-                    return true
-                }
-                else {
-                    return this.gpt_aux(content)
-                }
+    static gpt(content_obj) {
+        let content_str = content_obj._content_str
+        if(content_str === "") {
+            content_str = Editor.get_javascript(true).trim()
+            if (content_str === "") {
+                this.set_params_mode(content_obj)
             }
             else {
-                return this.gpt_aux(content)
+                return this.gpt_aux(content_str)
             }
+        }
+        else {
+            return this.gpt_aux(content_str)
         }
     }
 
@@ -1304,12 +1411,11 @@ class Talk {
             Talk.speak_if_enabled(response)
             Talk.dialog_dom_elt.focus()
         })
-        return true
    }
 
     //not now called or needed.
     //run as gpt cmd, maybe. Only call after normal cmd's all checked and didn't hit.
-    static convert_to_gpt_cmd_maybe(full_text){
+    /*static convert_to_gpt_cmd_maybe(full_text){
         let words = full_text.split(" ")
         if(Utils.is_digit(full_text[0])) { //captures full_text like "2 + 3"
             return Talk.gpt("gpt " + full_text)
@@ -1321,7 +1427,7 @@ class Talk {
         else if(words.length > 3){
             return Talk.gpt("gpt " + full_text)
         }
-    }
+    }*/
 
 //_______RECORDING_________
 
@@ -1342,107 +1448,88 @@ class Talk {
         return (Job[cmd_str] && (Job[cmd_str] instanceof Job) && (cmd_str !== "talk_internal"))
     }
 
-    static start_recording(full_text="start recording", cmd_str, content){
-       if(cmd_str) {
-           if(content === ""){
-               Talk.is_recording = true
-               this.xyz_arrays_being_recorded = [] //clear out the previous recording
-               this.display_all("To record a command, click it or<br/>tap the space-bar and say it.") //needed to change "start_recording" to "stop_recording
-               return true
-            }
+    static start_recording(content_obj){
+       if(content_obj._content_str === ""){
+           Talk.is_recording = true
+           this.instructions_being_recorded = [] //clear out the previous recording
+           this.display_all("To record a command, click it or<br/>tap the space-bar briefly and say it.") //needed to change "start_recording" to "stop_recording
         }
     }
 
     //called internally. Not Now top level cmd
-    static stop_recording(full_text="stop recording", cmd_str="stop recording", content=""){
-        if(cmd_str){ // && this.is_recording) {
-            this.is_recording = false //must go before set_mode
+    static stop_recording(content_obj) {
+        this.is_recording = false //must go before set_mode
+        if (content_obj._content_str === "") {
             this.stop() //does not call stop_recording, on purpose.
-              //necessary because if we click on stop_recording during a move,.
-              // then switch to the param screen to fill in
-              //the job_name, we don't want the robot to keep moving
-              //as it will just run out of bounds.
-              //Also a user seeing "Stop ...." will probably expect the
-              //robot to stop, EVEN THOUGH stopping a tape recroder doesn't
-              //stop reality!
-            if (content === "") { //should be harmless doing this cause a 2nd time
-                if (this.xyz_arrays_being_recorded.length === 0) {
-                    this.xyz_arrays_being_recorded = null
-                    this.set_mode("move_menu") //changes the "stop recording" button to "start recording"
-                    this.display_warning("No commands have been recorded.")
-                }
-                else {
-                    this.set_params_mode(cmd_str) //present a dialog to allow user to fill in the job name
-                }
-                return true
-            }
-            else { //content is the new job name.
-                return this.define_recording(full_text, cmd_str, content)
-            }
-        }
-    }
-
-    static define_recording(full_text, cmd_str, content){
-        let arg_obj = this.string_to_data(content)
-        let recording_name = arg_obj.job_name
-        if(!recording_name) {
-            this.display_warning("Stop recording didn't get a job_name for the recording.")
-        }
-        recording_name = this.string_to_job_name(recording_name)
-        if(this.is_known_cmd(recording_name)) { //we want to exclude known recording names
-            this.display_message('"' + full_text + '" is a command, so it can&apos;t be used to name a recording.')
-            return true
-        }
-        let mess
-        if(this.is_existing_job_name(recording_name)) {
-            mess = '"' + recording_name + '" has been over-written with your new recording.'
+            //necessary because if we click on stop_recording during a move,.
+            // then switch to the param screen to fill in
+            //the job_name, we don't want the robot to keep moving
+            //as it will just run out of bounds.
+            //Also a user seeing "Stop ...." will probably expect the
+            //robot to stop, EVEN THOUGH stopping a tape recroder doesn't
+            //stop reality!
+            this.set_params_mode(content_obj)
         }
         else {
-            mess = 'Say or click the Job button for: "' + recording_name + '" to start it.'
+            return this.define_recording(content_obj)
         }
-        this.define_job(recording_name, this.xyz_arrays_being_recorded)
-        this.set_mode("move_menu", mess)
-        setTimeout(function() { Talk.dialog_dom_elt.focus() }, 100)
-        return true
     }
 
-
-    //instruction_strings example: ["down", "straight up"], ie cmd_normalized_prose
-    static define_job(job_name, xyz_arrays){
-        let do_list = []
-        for(let xyz of xyz_arrays){
-            do_list.push(Dexter.move_to(xyz))
-            do_list.push(Dexter.empty_instruction_queue()) //so that when we issue a stop cmd, there will be no queue, so it will stop quickly.
+    static define_recording(content_obj){
+        if (this.instructions_being_recorded.length === 0) {
+            this.instructions_being_recorded = null
+            let mess = "No commands have been recorded."
+            this.set_mode("move_menu", content_obj, mess) //changes the "stop recording" button to "start recording"
         }
-        new Job({name: job_name,
-                 do_list: do_list})
-        this.xyz_arrays_being_recorded = null
-        return Job[job_name]
+        else {
+            //let arg_obj = this.string_to_data(content_obj._content_str)
+            //let recording_name = arg_obj.job_name
+            let recording_name = content_obj.job_name
+            if (!recording_name) {
+                this.display_warning("Stop recording didn't get a job_name for the recording.")
+            }
+            else {
+                recording_name = this.string_to_job_name(recording_name)
+                if (this.is_known_cmd(recording_name)) { //we want to exclude known recording names
+                    this.display_message('"' + recording_name + '" is a command, so it can&apos;t be used to name a recording.')
+                }
+                else { //finally, good to make the recording.
+                    let mess
+                    if (this.is_existing_job_name(recording_name)) {
+                        mess = '"' + recording_name + '" has been over-written with your new recording.'
+                    } else {
+                        mess = 'Say or click the Job button for: "' + recording_name + '" to start it.'
+                    }
+                    new Job({name: recording_name, do_list: this.instructions_being_recorded})
+                    this.instructions_being_recorded = null
+                    this.set_mode("move_menu", content_obj, mess)
+                    //setTimeout(function () {Talk.dialog_dom_elt.focus()}, 100)
+                }
+            }
+        }
     }
 
     //_____define place_______
     //expects full_text of "define postion", "define place foo"
-    static define_place(full_text="define place", cmd_str, content) {
-        if (cmd_str) {
+    static define_place(content_obj){
+        if(content_obj._content_str === ""){
+            this.set_params_mode(content_obj)
+        }
+        else {
             if (!Dexter.default.rs) {
                 Talk.display_warning("To name a Dexter place, you have to move Dexter first.")
-                return true
-            }
-            else if(content === ""){
-                this.set_params_mode(cmd_str)
-                return true
             }
             else {
-                return this.define_place_with_name(content)
+                return this.define_place_with_name(content_obj)
             }
         }
     }
 
-    static define_place_with_name(content){
-        let arg_obj = this.string_to_data(content)
+    static define_place_with_name(content_obj){
+        let arg_obj = this.string_to_data(content_obj._content_str)
         let recording_name = arg_obj.job_name
         if(!recording_name) {
-            recording_name = content
+            recording_name = content_obj._content_str
         }
         recording_name = this.string_to_job_name(recording_name)
         //ok we've got a valid recording_name, good to go
@@ -1454,78 +1541,70 @@ class Talk {
         Talk.dialog_dom_elt.focus()
         let mess = 'Tap space-bar and say: "' + recording_name + '" or<br/>click the "' +
             recording_name + '" button to move Dexter to its current position.'
-        Talk.set_mode("move_menu", mess)
-        return true
+        Talk.set_mode("move_menu", content_obj, mess)
     }
 
     //used near the end of main_mode and menu_mode.
     //Called by a regular cmd and by mode_misc methods which prepend "run job " to full_text first.
-    /*static run_job(full_text = "run_job", cmd_str, content){
-        if(cmd_str){
-            if(content){
-                let job_name = this.string_to_job_name(content)
-                if(this.is_existing_job_name(job_name)){
-                    Job[job_name].start()
-                    return true
-                }
-                else {
-                    Talk.display_warning('The <b>run job</b> command was passed: "' + job_name + '",<br/>which does not name a defined Job.')
-                    return true
-                }
-            }
-            else {
-                Talk.display_warning('You must say "Run Job a_name" or just the Job name to start it.')
-                return true
-            }
+    static run_job(content_obj){
+        if(content_obj._content_str === "") {
+            this.set_params_mode(content_obj)
+            return
         }
-    }*/
-
-    static run_job(full_text = "run_job", cmd_str="run_job", content=""){
-        if(cmd_str){
-            if(content === "") {
-                this.set_params_mode(cmd_str)
-                return true
+        else {
+           // let arg_obj = this.string_to_data(content_obj._content_str)
+           // let recording_name = arg_obj.job_name //will return undefined if arg_obj is a string
+            let recording_name = content_obj.job_name
+            if(!recording_name) {
+                recording_name = content_obj._content_str
             }
-            else {
-                let arg_obj = this.string_to_data(content)
-                let recording_name = arg_obj.job_name
-                if(!recording_name) {
-                    recording_name = content
-                }
-                recording_name = this.string_to_job_name(recording_name)
-                if(this.is_existing_job_name(recording_name)){
-                    Job[recording_name].start()
-                    return true
+            recording_name = this.string_to_job_name(recording_name)
+            if(this.is_existing_job_name(recording_name)){
+                /*if(this.is_recording) {
+                    let instr = Control.start_job(recording_name, undefined, undefined, true) //run this embedded job until it completes, THEN move to the next instruction in Talk.job_for_normal_moves
+                    this.instructions_being_recorded.push(instr)
+                    this.send_instruction_to_dexter(instr) //will cause Job[recording_name] to run
+                    this.display_message('Wait until job: <b>' + recording_name + '</b> has completed<br/>' +
+                                         "before running the next command to record.")
                 }
                 else {
-                    Talk.display_warning('The <b>run job</b> command was passed: "' + recording_name + '",<br/>which does not name a defined Job.')
-                    return true
+                    Job[recording_name].start()
+                }*/
+                let instr = Control.start_job(recording_name, undefined, undefined, true) //run this embedded job until it completes, THEN move to the next instruction in Talk.job_for_normal_moves
+                this.send_instruction_to_dexter(instr) //will cause Job[recording_name] to run
+                if(this.is_recording) {
+                    this.instructions_being_recorded.push(instr)
+                    this.display_message('Wait until job: <b>' + recording_name + '</b> has completed<br/>' +
+                                          "before running the next command to record.")
                 }
+                return
+            }
+            else {
+                Talk.display_warning('The <b>run job</b> command was passed: "' + recording_name + '",<br/>which does not name a defined Job.')
+                return
             }
         }
     }
 
-    static edit_job(full_text="edit job", cmd_str, content){ //ex: "edit job my job"
-        if(cmd_str) {
+    static edit_job(content_obj){
+        if(content_obj._content_str === "") {
+            his.set_params_mode(content_obj)
+        }
+        else {
             if (this.default_job_name() === "") {
                 Talk.display_warning("There are no defined Jobs to edit.")
-                return true
-            }
-            if (content === "") {
-                this.set_params_mode(cmd_str)
-                return true
             }
             else {
-                return this.edit_job_action(content)
+                this.edit_job_action(content_obj)
             }
         }
     }
 
-    static edit_job_action(content){
-        let arg_obj = this.string_to_data(content)
-        let recording_name = arg_obj.job_name
+    static edit_job_action(content_obj){
+        let arg_obj = this.string_to_data(content_obj._content_str)
+        let recording_name = content_obj.job_name //arg_obj.job_name
         if(!recording_name) {
-            recording_name = content
+            recording_name = content_obj._content_str
         }
         recording_name = this.string_to_job_name(recording_name)
         if (!Talk.is_existing_job_name(recording_name)){
@@ -1546,7 +1625,7 @@ class Talk {
     }
 
     //not now a command or otherwise called
-    static play_recording(full_text="play recording", cmd_str, content){
+    /*static play_recording(full_text="play recording", cmd_str, content){
         if(cmd_str){
             if (this.array_of_recording_names().length === 0) {
                 this.display_message('There are no recordings to play.<br/>' + this.say_or_click() + ' on "Start recording"" to make one.')
@@ -1563,7 +1642,7 @@ class Talk {
                     the_job.start()
                     this.recording_name_now_playing = recording_name //do before set_mode
                     let mess = "Now playing recording: " + recording_name
-                    this.set_mode("playing_recording", mess)
+                    this.set_mode("playing_recording", content_obj, mess)
                     setTimeout(function(){ Talk.finished_playing_maybe(recording_name)},
                                 500)
                     return true
@@ -1574,6 +1653,7 @@ class Talk {
             }
         }
     }
+
 
     static finished_playing_maybe(recording_name) {
         //out("top of finished_playing_maybe with: " + recording_name + " mode: " + Talk.mode)
@@ -1607,14 +1687,15 @@ class Talk {
                     }
                 }
                 let mess = "Finished playing: " + rec_name + ", with status: " + the_job.status_code + "."
-                Talk.set_mode("main_menu", mess)
+                Talk.set_mode("main_menu", content_obj, mess)
                 return true
             }
         }
-    }
+    } */
 
-    static run(full_text="run", cmd_str="run", content=""){
-        if(content === "") {
+    /* makes new full_cmd (full_text) like "define name object name green meaning "is a cool color"
+    static run(full_text="run", cmd_str="run", content){
+        if(!content._has_args) {
             let [parent_mode, cmd_str] = this.mode.split("__")
             let param_names = this.cmd_param_names_for_current_params_mode()
             let full_cmd = cmd_str + " object"
@@ -1624,7 +1705,7 @@ class Talk {
                 let val = dom_elt.value
                 full_cmd += " " + param_name + " " + val //TODO: if a non-last param value has a space in it,
                 if(param_name !== Utils.last(param_names)){
-                    full_cmd += " comma"
+                    full_cmd += "," //don't stick in trailing space. Already added above
                 }
                 //we can't know that its a 2 or more word value. Bad, but for
                 //single param cmds ok, but not fully general.
@@ -1638,20 +1719,141 @@ class Talk {
             this.handle_command(full_cmd)
             return true
         }
+    }*/
+
+    //makes new full_cmd (full_text) like "define name green, is a cool color" (ie no param names or "object" identifier
+    //then handle_command transforms "content" into an object with param names in it and a bit more
+    //to send to the actual cmd action fn.
+    static run(content_obj){
+        if(!content_obj._has_args) {
+            let [parent_mode, cmd_str_with_underscores] = this.mode.split("__")
+            let param_names = this.cmd_param_names_for_current_params_mode()
+            let cmd_norm = cmd_str_with_underscores.replaceAll("_", " ")
+            let new_full_text = cmd_norm
+            for (let i = 0; i < param_names.length; i++) {
+                let param_name = param_names[i]
+                let id_str = parent_mode + "__" + cmd_str_with_underscores + "__params__" + param_name + "__id"
+                let dom_elt = globalThis[id_str]
+                let val = dom_elt.value
+                if([undefined, ""].includes(val)) { //no real value. Stop trying because the format for full_cmd is "define name green, the meaning" ie no keywords,
+                    //because that's easiest for people to say. If the dialog happens to have other later values,
+                    //too bad, we lose them and user has to put them in again.
+                    //we presume that the user is putting in values IN ORDER as they must do in spoken cmds.
+                    break;
+                }
+                else {
+                    if (i !== 0) {
+                        new_full_text += ","
+                    }
+                    new_full_text += " " + val //param_name + " " + val
+                }
+            }
+            this.set_mode(parent_mode, content_obj) //or the "cmd" won't be recognized as valid.
+            //don't pass in content_obj here as we're going to redisplay when that
+            //set_mode gets called again. duplicate display but not so bad.
+            this.handle_command(new_full_text)
+            return
+        }
+    }
+
+    //if content_str starts with one of the params of cmd_str, then the returned content_obj
+    //wil; contain a field of that param name whose value is the content_str AFTER the
+    //param_name (spaces trimmed from both param_name and what's after it.
+    //The value of the param_name has string_to_data called on it.
+    //If content_str does NOT start with a param_name, then
+    //split content_str on comma or "," and treat each resulting ele as a value
+    //of successive param names from the array of param_names for cmd_str.
+    static content_str_to_content_obj(full_text, cmd_norm_with_underscores, content_str, cmd_norm, cmd_norm_mode=Talk.mode){
+        this.mode   //for debugging
+        let has_args = false
+        let the_param_names = []
+        let unused_param_names = []
+        let is_cmd = this.is_known_cmd(cmd_norm, cmd_norm_mode)
+        let result = {}
+        if(is_cmd) {
+            the_param_names = this.cmd_param_names(cmd_norm, cmd_norm_mode)
+            unused_param_names = the_param_names.slice()
+            let [parent_mode, cmd_str_from_mode, params_const] = Talk.mode.split("__")
+            if(params_const) {
+                //populate result with existing values from params dialog box
+                for (let param_name of the_param_names) {
+                    let id_str = parent_mode + "__" + cmd_norm_with_underscores + "__params__" + param_name + "__id"
+                    let dom_elt = globalThis[id_str]
+                    let val = dom_elt.value
+                    if ([undefined, ""].includes(val)) {}
+                    else {
+                        result[param_name] = this.string_to_data(val)
+                        Utils.remove_value_from_array(param_name, unused_param_names)
+                        has_args = (unused_param_names.length !== 0)
+                    }
+                }
+            }
+            if(the_param_names.length > 1) {
+                content_str = content_str.replaceAll(" comma ", ",") //when in parma dialog, if user hits space, they can say more than one arg and fill in the first such args tghey say, by separating them with commas.
+            }
+            let args = ((content_str === "") ? [] : content_str.split(","))
+            //sometimes Chrome reco upper cases the first letter. No param names have upper case chars.
+            let content_str_with_lower_case_first_letter = ((content_str.length === 0) ? "" : content_str[0].toLowerCase() + content_str.substring(1))
+            let [param_name_in_content_str, value_src] = Utils.starts_with_one_of_and_tail(content_str_with_lower_case_first_letter, the_param_names, true)
+            if(param_name_in_content_str){
+                let val = this.string_to_data(value_src)
+                result[param_name_in_content_str] = val
+                Utils.remove_value_from_array(param_name_in_content_str, unused_param_names)
+                if(unused_param_names.length === 0) { has_args = false }
+            }
+            else { //first word of content_str is NOT a param name so presume we
+                   //start with the first param name and go down the list of args to match.
+                for (let i = 0; i < args.length; i++) {
+                    let the_param = the_param_names[i]
+                    let arg = args[i].trim()
+                    if (!the_param) {
+                        warning("<b>" + cmd_norm + "</b> got more content than the params allow of: " + arg +
+                            "<br/>so ignoring it.")
+                    } else if (!arg || (arg === "")) {
+                    } //no arg so nothing to add to result
+                    else {
+                        result[the_param] = this.string_to_data(arg)
+                        unused_param_names.shift() //remove param name from the front of the array.
+                        has_args = true
+                    }
+                }
+            }
+        }
+        else {
+            cmd_norm_with_underscores = false //the former cmd_str is not a known cmd, so forget it.
+        }
+        //result already has param name-value pairs in it, if any
+        result._full_text = full_text
+        result._cmd_norm_with_underscores = cmd_norm_with_underscores //could be false, if the passed in cmd is not a known cmd
+        result._content_str = content_str
+        result._cmd_norm = cmd_norm
+        result._cmd_norm_mode = cmd_norm_mode
+        result._has_args = has_args
+        result._param_names = the_param_names
+        result._unused_param_names = unused_param_names
+        return result
     }
 
     //string is usually the content arg to a normal top level cmd.
-    //does not return null.
+    //Effectively, Talk's eval
+    //converts "zero" thru "nine" to 0  thru 9.
+    // Google speech reco:
+    //    - returns string of digits, and minus sign for numbers not "zero" thru "nine",
+    //    - returns string of digits for "one point two"
+    //    - for isolated words, returns "two" and "four", but may return "to" or "for " in context.
+    //    - input "for dollars" returns "$4"
     static string_to_data(string) {
         if     (string === "true")      { return true      }
         else if(string === "false")     { return false     }
         else if(string === "null")      { return null      }
         else if(string === "undefined") { return undefined }
+        else if (Utils.is_string_a_number(string)) { return parseFloat(string) }
         else if (string.startsWith("array ")){
             let array_elts_str = string.substring(6).trim()
-            let array_elts = array_elts_str.split(" comma ")
+            let array_elts = array_elts_str.split(",")
             let result = []
             for(let arr_elt_str of array_elts){
+                arr_elt_str = arr_elt_str.trim() //just ins case real sep is ", "
                 let arr_val = this.string_to_data(arr_elt_str)
                 result.push(arr_val)
             }
@@ -1659,9 +1861,10 @@ class Talk {
         }
         else if(string.startsWith("object ")){
             let obj_elts_str = string.substring(7).trim()
-            let obj_pairs_str = obj_elts_str.split(" comma ")
+            let obj_pairs_str = obj_elts_str.split(",")
             let result = {}
             for(let obj_pair_str of obj_pairs_str){
+                obj_pair_str = obj_pair_str.trim() //just in csae the separator was ", "
                 let space_pos = obj_pair_str.indexOf(" ") //todo only allows 1 word long names
                 let name = obj_pair_str.substring(0, space_pos).trim()
                 let val_str = obj_pair_str.substring(space_pos + 1).trim()
@@ -1671,7 +1874,70 @@ class Talk {
             return result
         }
         else {
-            return string //could be the empty string
+            let integer_maybe = this.string_to_small_integer(string)
+            if(integer_maybe === false) {
+                return string //could be the empty string
+            }
+            else { return integer_maybe}
+        }
+    }
+
+    //only converts "zero" thru "nine" to 0 thru 9 or returns false
+    static string_to_small_integer(a_string){
+        let integer = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"].indexOf(a_string)
+        if(integer === -1) {
+            return false
+        }
+        else {
+            return integer
+        }
+    }
+
+    static simulate(content_obj){
+        if(content_obj._content_str === "") {
+            let sim = Robot.get_simulate_actual(Dexter.default.simulate)
+            if (globalThis.simulate_radio_true_id.checked) {
+                this.display_warning("Dexter is already in <b>simulate</b> mode.<br/>" +
+                    "See the radio buttons in the Misc pane header.")
+            } else {
+                globalThis.simulate_radio_true_id.checked = true
+                DDE_DB.persistent_set("default_dexter_simulate", true)
+                let mess = "Dexter is now in <b>simulate</b> mode.<br/>" +
+                    "The real robot won't move when you run these commands."
+                this.display_message(mess)
+            }
+        }
+    }
+
+    static real(content_obj){
+        if(content_obj._content_str === "") {
+            let sim = Robot.get_simulate_actual(Dexter.default.simulate)
+            if (globalThis.simulate_radio_false_id.checked) {
+                this.display_warning("Dexter is already in <b>real</b> mode.<br/>" +
+                    "See the radio buttons in the Misc pane header.")
+            } else {
+                globalThis.simulate_radio_false_id.checked = true
+                DDE_DB.persistent_set("default_dexter_simulate", "false")
+                let mess = "Dexter is now in <b>real</b> mode.<br/>" +
+                    "The real robot will move when you run these commands."
+                this.display_message(mess)
+            }
+        }
+    }
+
+    static both(content_obj){
+        if(content_obj._content_str === "") {
+            let sim = Robot.get_simulate_actual(Dexter.default.simulate)
+            if (globalThis.simulate_radio_both_id.checked) {
+                this.display_warning("Dexter is already in <b>both</b> (simulate & real) mode.<br/>" +
+                    "See the radio buttons in the Misc pane header.")
+            } else {
+                globalThis.simulate_radio_both_id.checked = true
+                DDE_DB.persistent_set("default_dexter_simulate", "both")
+                let mess = "Dexter is now in <b>both</b> mode.<br/>" +
+                    "The simulator and real robot will move when you run these commands."
+                this.display_message(mess)
+            }
         }
     }
 
@@ -1779,25 +2045,21 @@ class Talk {
         else { return null }
     }
 
-    static set_step_distance(dist){
-        this.step_distance = dist
+    static set_step_size(dist){
+        this.step_size = dist
         this.display_status()
     }
 
-    static stop(full_text="stop", cmd_str="stop", content=""){
-        if(cmd_str) {
-            if (content === "") {
+    static stop(content_obj){
+            if (content_obj._content_str === "") {
                 Talk.stop_aux() //calls turn_off_mic which does display_all
-                Talk.display_message(this.say_or_click())
-                return true
             }
-        }
     }
 
 
     //called from both stop and as a job instruction, where we DON'T want it to return
     //anything, including "valid" as that will be interpreted by a job as an instruction
-    static stop_aux(){
+    static stop_aux(message = this.say_or_click()){
         //don't stop recording. stop is to stop the current motion.
         //then we might want to start another motion, stop it, etc
         //and only THEN user explicitly stops the recording.
@@ -1808,20 +2070,28 @@ class Talk {
         //    this.stop_recording()
         //}
         Talk.is_moving = false
-        Talk.display_status()
         this.recognition.abort()
         globalThis.stop_speaking()
-        this.enable_speaker = false
+        //this.enable_speaker = false
         this.turn_off_mic_aux()
+        let did_stop_a_job = false
         for(let job_inst of Job.active_jobs()){
             if(job_inst !== Talk.job_for_normal_moves){
                 job_inst.stop_for_reason("interrupted", 'Talk user said "Stop"')
+                did_stop_a_job = true
             }
         }
-        return true
+
+        Talk.display_status()
+
+        if (did_stop_a_job) {
+            message += "<br/>Job(s) were stopped but will continue to move until their queue is empty."
+        }
+        Talk.display_message(message)
     }
 
     // not used as a top level cmd.
+    /*
     static stop_except_speaking(full_text="stop except speaking"){
         if(full_text === "stop except speaking"){
             try {
@@ -1830,35 +2100,34 @@ class Talk {
             catch(err) {} //we don't want any errors during stop, lke if the Talk dialog box is down and we try to write to it
             return true
         }
-    }
+    }*/
 
 
     //called from both stop and as a job instruction, where we DON'T want it to return
     //anything, including "valid" as that will be interpreted by a job as an instruction
+    /*
     static stop_except_speaking_aux(){
         this.is_moving = false
         Talk.display_status()
         this.recognition.abort()
-        //globalThis.stop_speaking() //bad idea if speaking a define saying as it will cut it off prematurely
+        //globalThis.stop_speaking() //bad idea if speaking a define name as it will cut it off prematurely
         //this.enable_speaker = false //don't change this
         this.turn_off_mic_aux() //calls display_status
         for(let job_inst of Job.active_jobs()){
             if((job_inst.name !== "talk_internal") &&
-                !is_speaking()){ //because define_saying uses a job and we don't
+                !is_speaking()){ //because define_name uses a job and we don't
                 //want to cut off a job if its speaking
                 job_inst.stop_for_reason("interrupted", "user said stop")
             }
         }
         Talk.display_message(this.say_or_click())
-    }
+    }*/
 
     //same as former "back"
-    static main_menu(full_text="main menu", cmd_str, content){
-        if(cmd_str){
-            if(content === "") {
-                this.set_mode("main_menu", this.say_or_click())
+    static main_menu(content_obj){
+        if(content_obj._content_str === ""){
+                this.set_mode("main_menu", undefined, this.say_or_click())
                 return true
-            }
         }
     }
 
@@ -1871,114 +2140,102 @@ class Talk {
         }
     }*/
 
-    static move_menu(full_text="move menu", cmd_str, content){
-        if(cmd_str){
-            if(content === "") {
-                this.set_mode("move_menu", this.say_or_click())
-                this.dialog_dom_elt.focus()
-                return true
+    static move_menu(content_obj){
+        if(content_obj._content_str === "") {
+            let mess
+            if(globalThis.simulate_radio_true_id.checked){
+                mess = "Dexter is in <b>simulate</b> mode.<br/>" +
+                       "(See Misc Pane header radio buttons.)<br/>" +
+                       "The real robot won't move when you run these commands."
             }
+            else if(globalThis.simulate_radio_false_id.checked){
+                mess = "Dexter is in <b>real</b> mode.<br/>" +
+                       "(See Misc Pane header radio buttons.)<br/>" +
+                       "The real robot will move when you run these commands."
+            }
+            else{
+                mess = "Dexter is in <b>both</b> mode.<br/>" +
+                       "(See Misc Pane header radio buttons.)<br/>" +
+                       "The simulator and real robot will move when you run these commands."
+            }
+            this.set_mode("move_menu", content_obj, mess)
+            this.dialog_dom_elt.focus()
         }
     }
 
 //_______Move commands_________
 
-    static straight_up(full_text = "straight up", cmd_str, content){
-        if(cmd_str) {
-            if (content === "") {
+    static straight_up(content_obj){
+        if(content_obj._content_str === "") {
                 this.display_color()
                 let dex = this.job_for_normal_moves.robot
                 this.is_moving = true
                 this.display_status()
-                this.send_instruction_to_dexter([
-                        Talk.start_moving_aux,
-                        dex.move_all_joints(Talk.straight_up_angles()),
-                        dex.empty_instruction_queue(),
-                        function () {
-                            Talk.stop_aux() //changes status color back to white
-                        },
-                        function () {
-                            Talk.display_message("Dexter is straight up.")
-                        }]
-                )
-                Talk.display_message("Dexter is moving straight up...")
-                return true
-            }
+                let instr = [
+                    dex.move_all_joints(Talk.straight_up_angles()),
+                    dex.empty_instruction_queue()
+                    //function () { Talk.display_message("Dexter is straight up.")}
+                    ]
+                this.send_instruction_to_dexter(instr) //will cause Job[recording_name] to run
+                let mess_suffix = ""
+                if(this.is_recording) {
+                    this.instructions_being_recorded.push(instr)
+                    mess_suffix = "<br/>Wait until Dexter stops moving<br/>before running the next command to record."
+                }
+                this.display_message("Dexter is moving straight up..." + mess_suffix)
         }
     }
 
-    static left(full_text="left", cmd_str, content){
-        if(cmd_str) {
-            if (content === "") {
-                Talk.start_normal_move_cmd(cmd_str)
-                return true
-            }
+    static left(content_obj){
+        if(content_obj._content_str === "") {
+            this.start_normal_move_cmd(content_obj._cmd_norm)
         }
     }
 
-    static right(full_text="right", cmd_str, content){
-        if(cmd_str) {
-            if (content === "") {
-                Talk.start_normal_move_cmd(cmd_str)
-                return true
-            }
+    static right(content_obj){
+        if(content_obj._content_str === "") {
+            this.start_normal_move_cmd(content_obj._cmd_norm)
         }
     }
 
-    static farther(full_text="farther", cmd_str, content){
-        if(cmd_str) {
-            if (content === "") {
-                Talk.start_normal_move_cmd(cmd_str)
-                return true
-            }
+    static farther(content_obj){
+        if(content_obj._content_str === "") {
+            this.start_normal_move_cmd(content_obj._cmd_norm)
         }
     }
 
-    static closer(full_text="closer", cmd_str, content){
-        if(cmd_str) {
-            if (content === "") {
-                Talk.start_normal_move_cmd(cmd_str)
-                return true
-            }
+    static closer(content_obj){
+        if(content_obj._content_str === "") {
+            this.start_normal_move_cmd(content_obj._cmd_norm)
         }
     }
 
-    static up(full_text="up", cmd_str, content){
-        if(cmd_str) {
-            if (content === "") {
-                Talk.start_normal_move_cmd(cmd_str)
-                return true
-            }
+
+    static up(content_obj){
+        if(content_obj._content_str === "") {
+            this.start_normal_move_cmd(content_obj._cmd_norm)
         }
     }
 
-    static down(full_text="down", cmd_str, content){
-        if(cmd_str) {
-            if (content === "") {
-                Talk.start_normal_move_cmd(cmd_str)
-                return true
-            }
+    static down(content_obj){
+        if(content_obj._content_str === "") {
+            this.start_normal_move_cmd(content_obj._cmd_norm)
         }
     }
 
-    static reverse(full_text="reverse", cmd_str="reverse", content="") {
-        if(cmd_str) {
-            if (content === "") {
-                Talk.start_normal_move_cmd(cmd_str)
-                return true
-            }
+    static reverse(content_obj){
+        if(content_obj._content_str === "") {
+            this.start_normal_move_cmd(content_obj._cmd_norm)
         }
     }
 
-    static forward(full_text="forward", cmd_str="forward", content="") {
-        if(cmd_str) {
-            if (content === "") {
-                Talk.start_normal_move_cmd(cmd_str)
-                return true
-            }
+    static forward(content_obj){
+        if(content_obj._content_str === "") {
+            this.start_normal_move_cmd(content_obj._cmd_norm)
         }
     }
 
+    //returns an instruction or a string to display indicating its done.
     static compute_reverse_instruction(the_job){
         let dex = this.job_for_normal_moves.robot
         let hist_arr   = the_job.rs_history
@@ -1988,8 +2245,7 @@ class Talk {
         }  //skip past the latest one
 
         if(this.last_reverse_forward_index === 0){
-            Talk.display_message("There are no more commands to reverse to.")
-            return null //get out of loop
+            return "There are no more commands to reverse to." //get out of loop
         }
         else {
             let RS_inst = new RobotStatus({})
@@ -2005,11 +2261,11 @@ class Talk {
                     return instr
                 }
             }
-            Talk.display_message("There are no more commands to reverse to.")
-            return null
+            return "There are no more commands to reverse to."
         }
     }
 
+    //returns an instruction or a string to display indicating its done.
     static compute_forward_instruction(the_job){
         let dex = this.job_for_normal_moves.robot
         let hist_arr   = the_job.rs_history
@@ -2019,8 +2275,7 @@ class Talk {
         }  //skip past the latest one
 
         if(this.last_reverse_forward_index >= this.forward_limit_index){
-            Talk.display_message("There are no more commands to go forward to.")
-            return null //get out of loop
+            return "There are no more commands to go forward to." //get out of loop
         }
         else {
             let RS_inst = new RobotStatus({})
@@ -2036,29 +2291,57 @@ class Talk {
                     return instr
                 }
             }
-            Talk.display_message("There are no more commands to reverse to.")
-            return null
+            return "There are no more commands to reverse to."
         }
     }
 
-    static faster(full_text="faster", cmd_str, content){
-        if(cmd_str) {
-            if (content === "") {
-                this.set_step_distance(this.step_distance * 2)
-                this.display_message("Step distance has been increased to: " + this.step_distance + " meters.")
+    static faster(content_obj){
+        if(content_obj._content_str === "") {
+                this.set_step_size(this.step_size * 2)
+                this.display_message("Step distance has been increased to: " + this.step_size + " meters.")
                 return true
-            }
         }
     }
 
-    static slower(full_text="slower", cmd_str, content){
-        if(cmd_str) {
-            if (content === "") {
-                this.set_step_distance(this.step_distance / 2)
-                this.display_message("Step distance has been decreased to: " + this.step_distance + " meters.")
+    static slower(content_obj){
+        if(content_obj._content_str === "") {
+                this.set_step_size(this.step_size / 2)
+                this.display_message("Step distance has been decreased to: " + this.step_size + " meters.")
                 return true
+        }
+    }
+ //_________Joint cmd______________
+   /* static joint(content_obj){
+        if(content_obj._content_str === "") {
+                    this.set_params_mode(content_obj)
+        }
+        else {
+            this.joint_handle_content(content_obj)
+        }
+    }
+
+    static joint_handle_content(content_obj){
+        let content = content_obj._content_str
+        if(content.startsWith("object ")) {
+            out("joint_handle_content passed content: " + content)
+            let arg_obj = this.string_to_data(content)
+            let joint_number = arg_obj.joint_number
+            let direction = arg_obj.direction
+            if (!content_obj.joint_number) {
+                this.display_warning("Joint didn't get a joint_number. It should be between 1 and 7 inclusive.")
+            } else if (!content_obj.direction) {
+                this.display_warning("Joint didn't get a direction.")
+            } else {
+                this.start_normal_move_cmd("joint", content_obj.joint_number, content_obj.direction)
             }
         }
+        else {
+            this.run(content_obj) //put arg values into content_obj.
+        }
+    } */
+
+    static joint(content_obj){
+        this.start_normal_move_cmd("joint", content_obj.joint_number, content_obj.direction)
     }
 //______End move commands _______
 
@@ -2076,9 +2359,11 @@ class Talk {
     }*/
 
     //don't use "this"
-    static start_normal_move_cmd(cmd_str){
+    static start_normal_move_cmd(cmd_str, joint_number=null, direction=null){
         if(cmd_str) {
-            Talk.current_move_command = cmd_str //used inside of move_incrmentally only.
+            Talk.current_move_command      = cmd_str //used inside of move_incrmentally only.
+            Talk.current_move_joint_number = joint_number //will be null for xyz move
+            Talk.current_move_direction    = direction //will be null for xyz move
         }
         //else this is the setTimeout call from below with no arg passed so
         //don't change the Talk.current_move_command
@@ -2143,7 +2428,7 @@ class Talk {
             //misses a bunch of details and is hard to fix.
         }
         catch(err) { //happens when xyz is out of range
-            out("out of reach angles: " + angles)
+            //out("out of reach angles: " + xyz)
             return false
         }
         //out("in reach angles: " + angles)
@@ -2158,11 +2443,14 @@ class Talk {
             return //Control.break()
         }
         if (Talk.current_move_command !== Talk.last_move_command){
-            Talk.display_message("Moving Dexter " + Talk.current_move_command +
-                           '...<br/>Click "Stop" to stop.')
-            Talk.last_move_command = Talk.current_move_command
+            let mess_suffix = "..."
+            if(Talk.current_move_command === "joint"){
+                mess_suffix = " " + Talk.current_move_joint_number + " " + Talk.current_move_direction + "."
+            }
+            Talk.display_message("Moving Dexter " + Talk.current_move_command + mess_suffix +
+                           '<br/>Click "Stop" to stop.')
         }
-        let dex = this.robot //"this" is the running job
+        let dexter_instance = this.robot //"this" is the running job
 
         if((Talk.current_move_command === "forward") || (Talk.current_move_command === "reverse")) {
            let inst
@@ -2173,15 +2461,48 @@ class Talk {
 
            if(inst === null) {
                 Talk.stop_aux()
+                Talk.last_move_command = Talk.current_move_command
                 return //Control.break()
            }
+            if(typeof(inst) === "string") {
+                Talk.stop_aux(inst)
+                Talk.last_move_command = Talk.current_move_command
+                return //Control.break()
+            }
            else {
                 return [inst,
-                        dex.empty_instruction_queue(),
+                        dexter_instance.empty_instruction_queue(),
                         Talk.move_incrementally] //"recursive" call on the do list.]
            }
         }
-        else { //regular move
+        else if (Talk.current_move_command === "joint"){
+            let dir_sign = (["clockwise", "up", "wider"].includes(Talk.current_move_direction) ? 1 : -1)
+            let degrees_incr =  Talk.step_size //default 0.005
+                                * (1 / 0.005)  //so that with default step_size, the degrees_inc will be 1 degrees.
+                                               //and doubling Talk.step_size will double the degrees_inc
+                                * dir_sign
+            let ma = Talk.current_or_straight_up_angles()
+            let new_angles = ma.slice()
+            let old_ang = ma[Talk.current_move_joint_number - 1]
+            let new_ang = old_ang + degrees_incr
+            new_angles[Talk.current_move_joint_number - 1] = new_ang
+            let false_or_error_mess = Dexter.joints_out_of_range(new_angles) //TODO: doesn't now check j6 and j7. Also doesn't check dexter specific so don't pass in the dexter intance so thagt it will at least check the default values of min and max for joints.
+            if(false_or_error_mess){
+                let num_arr_str = Utils.array_of_numbers_to_string(new_xyz, 8) //shows micron rez
+                let mess = false_or_error_mess
+                Talk.stop_aux(false_or_error_mess)
+                Talk.last_move_command = Talk.current_move_command
+                //Talk.display_warning(mess)
+                return
+            }
+            else {
+                return [dexter_instance.move_all_joints(new_angles),
+                        dexter_instance.empty_instruction_queue(),
+                        Talk.move_incrementally //"recursive" call on the do list.
+                ]
+            }
+        }
+        else { //regular xyz move like left, down, etc.
             let [axis_index, axis_direction] = Talk.word_to_axis_index_and_direction(Talk.current_move_command)
             let ma = Talk.current_or_straight_up_angles()
             let orig_xyz = Kin.J_angles_to_xyz(ma)[0]
@@ -2189,94 +2510,108 @@ class Talk {
             let [new_x, new_y, new_z] = orig_xyz
             let new_xyz = [new_x, new_y, new_z]
             if (axis_index === 0) {  //x
-                new_x = orig_xyz[axis_index] + (axis_direction * Talk.step_distance)
+                new_x = orig_xyz[axis_index] + (axis_direction * Talk.step_size)
                 new_xyz[0] = new_x
             }
             else if (axis_index === 1) {  //y
-                new_y = orig_xyz[axis_index] + (axis_direction * Talk.step_distance)
+                new_y = orig_xyz[axis_index] + (axis_direction * Talk.step_size)
                 new_xyz[1] = new_y
                 if (new_y < 0) {
-                    Talk.display_message("This installation of Dexter prevents Dexter from going behind itself: " + to_source_code(new_xyz))
-                    Talk.stop_aux()
+                    let mess ="This installation of Dexter prevents Dexter from going behind itself: " + to_source_code(new_xyz)
+                    Talk.stop_aux(mess)
+                    Talk.last_move_command = Talk.current_move_command
                     return //Control.break()
                 }
             }
             else if (axis_index === 2) {  //z
-                new_z = orig_xyz[axis_index] + (axis_direction * Talk.step_distance)
+                new_z = orig_xyz[axis_index] + (axis_direction * Talk.step_size)
                 new_xyz[2] = new_z
                 if (new_z < 0) {
-                    Talk.display_message("This installation of Dexter prevents Dexter from going below it base: " + to_source_code(new_xyz))
-                    Talk.stop_aux()
+                    let mess = "This installation of Dexter prevents Dexter from going below it base: " + to_source_code(new_xyz)
+                    Talk.stop_aux(mess)
+                    Talk.last_move_command = Talk.current_move_command
                     return //Control.break()
                 }
             }
             else if (axis_index === 5) {  //pitch up j6 clockwise/counterclockwide
                 //TODO
                 if (new_z < 0) {
-                    Talk.display_message("This installation of Dexter prevents Dexter from going below it base: " + to_source_code(new_xyz))
-                    Talk.stop_aux()
+                    let mess ="This installation of Dexter prevents Dexter from going below it base: " + to_source_code(new_xyz)
+                    Talk.stop_aux(mess)
+                    Talk.last_move_command = Talk.current_move_command
                     return //Control.break()
                 }
             }
 
             //let orig_angles2 = Kin.xyz_to_J_angles(orig_xyz)
-            if (Talk.is_in_reach(new_xyz, undefined, undefined, dex)) { //bug in Kin.is_in_reach so use my special one.
+            if (Talk.is_in_reach(new_xyz, undefined, undefined, dexter_instance)) { //bug in Kin.is_in_reach so use my special one.
                 if(Talk.is_recording) {
-                    Talk.xyz_arrays_being_recorded.push(new_xyz)
+                    let instr = dexter_instance.move_to(new_xyz)
+                    Talk.instructions_being_recorded.push(instr)
                 }
                 //out("move_incrementally, in reach: " + new_xyz)
-                return [dex.move_to(new_xyz),
-                        dex.empty_instruction_queue(),
+                //move_incrementally is a fn that's pushed onto the do_list, so
+                //the fn is called when the job is run and whatever it returns is put on the do_list.
+                return [dexter_instance.move_to(new_xyz),
+                        dexter_instance.empty_instruction_queue(),
                         Talk.move_incrementally //"recursive" call on the do list.
                        ]
             }
             else {
-                out("bottom of Talk.move_incrementally, out of reach: " + new_xyz)
-                let mess = "Moving to xyz: <br/>" + to_source_code(new_xyz) + "<br/>is out of Dexter's reach."
+                //out("bottom of Talk.move_incrementally, out of reach: " + new_xyz)
+                let num_arr_str = Utils.array_of_numbers_to_string(new_xyz, 8) //shows micron rez
+                let mess = "Moving to xyz: " + num_arr_str + "<br/>is out of Dexter's reach."
                 Talk.stop_aux(mess)
+                Talk.last_move_command = Talk.current_move_command
+                //Talk.display_warning(mess)
                 return //Control.break()
             }
         }
     }
+
 //______  mode_misc commands_______
 
     //called from handle_command
-    static main_menu_mode_misc(full_text, cmd_str, content) {
-        let new_cmd_str = "run job"
-        let new_content = full_text //hopefully a job name
-        let new_full_text = new_cmd_str + " " + new_content
-        if(this.is_existing_job_name(new_content)) { //we don't want to get the warning message from run_job about a non-existend job name so catch this here
-            if (this.run_job(new_full_text, new_cmd_str, new_content)) { //will always return true
-                return true
-            }
+    static main_menu_mode_misc(content_obj) {
+        let new_cmd_norm = "run job"
+        let new_content = content_obj._full_text //hopefully a job name
+        let new_full_text = new_cmd_norm + " " + new_content
+        if(this.job_name_prose_to_existing_job_name(new_content)) { //we don't want to get the warning message from run_job about a non-existend job name so catch this here
+            let new_content_obj = this.content_str_to_content_obj(new_full_text, new_cmd_norm, new_content, new_cmd_norm)
+            this.run_job(new_content_obj)
+            return
         }
         else {
-            new_cmd_str = "gpt"
-            new_full_text = new_cmd_str + " " + new_content
-            if (this.gpt(new_full_text, new_cmd_str, new_content)) {
-                return true
+            new_cmd_norm = "gpt"
+            new_full_text = new_cmd_norm + " " + new_content
+            let new_content_obj = this.content_str_to_content_obj(new_full_text, new_cmd_norm, new_content, new_cmd_norm)
+            if (this.gpt(new_content_obj)) {
+                return
             }
         }
     }
 
     //called from handle_command
-    static move_menu_mode_misc(full_text, cmd_str, content) {
+    static move_menu_mode_misc(content_obj) {
         //note cmd_str will just be the first word, ie "run"
         //and content will be the remaining ie "job blue" so neither are helpful.
         //but if "full_job" is a job_name, we can win
-        let job_name = this.string_to_method_name(full_text)
-        if(this.is_existing_job_name(job_name)) {
-            if (this.run_job("run job " + full_text, "run job", job_name)) {
+        let new_content = content_obj._full_text
+        if(this.job_name_prose_to_existing_job_name(new_content)) {
+            let new_cmd_norm  = "run_job"
+            let new_full_text =  new_cmd_norm + content_obj._full_text
+            let new_content_obj = this.content_str_to_content_obj(new_full_text, new_cmd_norm, new_content, new_cmd_norm)
+            if (this.run_job(new_content_obj)) {
                 return true
             }
         }
     }
 
     //called from handle_command only when Talk.mode is a "__params" mode.
-    static params_mode_misc(full_text){
-        let [parent_mode, cmd_str] = this.mode.split("__")
-        let param_names = this.cmd_param_names_for_current_params_mode()
-        let [param_name, param_val] = Utils.starts_with_one_of_and_tail(full_text, param_names, true)
+    //but note, a dynamically generated call, not in Talk src code.
+    static params_mode_misc(content_obj){
+        let param_names = content_obj._param_names //this.cmd_param_names_for_current_params_mode()
+        let [param_name, param_val] = Utils.starts_with_one_of_and_tail(content_obj._full_text, param_names, true)
         if(param_name){
             if(param_val === ""){ //ie the new param value
                 this.display_message("After saying the name of the param (i.e. " + param_name + "), say its new value.")
@@ -2286,243 +2621,50 @@ class Talk {
                     "__" + param_name + "__id"
                 globalThis[id].value = param_val
                 if(param_names.length === 1) {
-                    this.run() //gets us out of the params dialog and pops back up.
+                    this.run(content_obj) //gets us out of the params dialog and pops back up.
                     //observe that we don't really need to set the field in the type in box,
-                    //but just in case someething goes wrong, etc.
+                    //but just in case something goes wrong, etc.
                     //its not a bad thing to do, even if not seen by the user.
                 }
                 return true
             }
         }
-        else { //no param name at beginning of full_text, so assume full_text is the value of the first param
-            //if user wants to fill in other param values, they have to say the param name first.
-            let first_param = param_names[0]
-            let id_str = parent_mode + "__" + cmd_str + "__params__" + first_param + "__id"
-            let dom_elt = globalThis[id_str]
-            dom_elt.value = full_text
-            if(param_names.length === 1){ //only 1 param so just do it!
-                this.run()
+        else { //no param name at beginning of full_text, so assume content_obj has fields of param_name bound to arg
+            let cmd_str_with_underscores = content_obj._cmd_norm.replaceAll(" ", "_")
+            for(let param_name of param_names) {
+                /*let first_param = param_names[0]
+                let cmd_str_with_underscores = content_obj._cmd_norm.replaceAll(" ", "_")
+                let id_str = content_obj._cmd_norm_mode + "__" + cmd_str_with_underscores + "__params__" + first_param + "__id"
+                let dom_elt = globalThis[id_str]
+                dom_elt.value =  content_obj._full_text
+                if(param_names.length === 1){ //only 1 param so just do it!
+                    this.run(content_obj)
+                }*/
+                let arg = content_obj[param_name]
+                if(arg !== undefined){
+                    let id_str = content_obj._cmd_norm_mode + "__" + cmd_str_with_underscores + "__params__" + param_name + "__id"
+                    let dom_elt = globalThis[id_str]
+                    dom_elt.value = arg
+                }
             }
-            return true
+            if(content_obj._unused_param_names.length === 0){ //just do it.
+                this.run(content_obj)
+            }
         }
     }
 
-
-    /*
     static handle_command(full_text){
         console.log("handle_command passed: " + full_text)
-        Talk.stop_except_speaking() //when starting a cmd before doing anything else, stop robot and mic
-        let status = "invalid"
-        //full_text is a valid, normalized command
-        //the main_menu mode needs to be first, See the below comment on "initial" mode.
-        if(this.mode === "main_menu") {
-
-            status = this.turn_on_mic(full_text)
-            if(status === "valid") { return }
-
-            status = this.turn_off_mic(full_text)
-            if(status === "valid") { return }
-
-            status = this.turn_on_speaker(full_text)
-            if(status === "valid") { return } //speechly_out already called.
-
-            status = this.turn_off_speaker(full_text)
-            if(status === "valid") { return }
-
-            status = this.note(full_text)
-            if(status === "valid") { return }
-
-            status = this.print(full_text)
-            if(status === "valid") { return }
-
-            status = this.say_selection(full_text)
-            if(status === "valid") { return }
-
-            status = this.define_saying(full_text)
-            if(status === "valid") {
-                console.log("handled define_saying")
-                return
-            }
-
-            //status = this.list_recordings(full_text)
-            //if(status === "valid") { return }
-
-            status = this.move_menu(full_text)
-            if(status === "valid") { return }
-
-            status = this.stop(full_text)
-            if(status === "valid") {return}
-
-            status = this.off(full_text)
-            if(status === "valid") {return}
-
-            status = this.gpt(full_text) //expects full_text to start with "gpt" or alternative.
-            if(status === "valid") { return }
-
-            //do I still need this?
-            //this should be last because full_text can be a user made up name of recording.
-            //status = this.play_recording(full_text)
-            //if(status === "valid") { return }
-
-            this.main_menu_mode_misc(full_text)
-            return
-
-            //must go close to end
-            status = this.run_job(full_text)
-            if(status === "valid") {
-                console.log("handled run_job")
-                return
-            }
-
-            //must go at very end.
-            status = this.convert_to_gpt_cmd_maybe(full_text) //full text can be any phrase of > 3 words and a few others
-            if(status === "valid") {return}
-
-            Talk.display_warning("Unrecognized command: " + full_text + ".")
-            return
-        } //end of "main_menu" mode
-
-        else if(this.mode === "move_menu") {
-            status = this.stop(full_text)
-            if(status === "valid") {return}
-
-            status = this.straight_up(full_text)
-            if(status === "valid") { return }
-
-            status = this.up(full_text)
-            if(status === "valid") { return }
-
-            status = this.down(full_text)
-            if(status === "valid") { return }
-
-            status = this.left(full_text)
-            if(status === "valid") { return }
-
-            status = this.right(full_text)
-            if(status === "valid") { return }
-
-            status = this.farther(full_text)
-            if(status === "valid") { return }
-
-            status = this.closer(full_text)
-            if(status === "valid") { return }
-
-            status = this.reverse(full_text)
-            if(status === "valid") { return }
-
-            status = this.forward(full_text)
-            if(status === "valid") { return }
-
-            status = this.faster(full_text)
-            if(status === "valid") { return }
-
-            status = this.slower(full_text)
-            if(status === "valid") { return }
-
-            status = this.define_place(full_text)
-            if(status === "valid") { return }
-
-            status = this.start_recording(full_text)
-            if(status === "valid") { return }
-
-            status = this.stop_recording(full_text)
-            if(status === "valid") { return }
-
-            status = this.edit_job(full_text)
-            if(status === "valid") { return }
-
-            status = this.main_menu(full_text)
-            if(status === "valid") { return }
-
-            this.move_menu_mode_misc(full_text)
-            return
-
-            //must go close to end
-            status = this.run_job(full_text)
-            if(status === "valid") {
-                console.log("handled run_job")
-                return
-            }
-
-            //must go at very end.
-            status = this.convert_to_gpt_cmd_maybe(full_text)
-            if(status === "valid") {return}
-
-            Talk.display_warning("Unrecognized command: " + full_text + ".")
-            return
-        }
-
-        else if(this.mode === "main_menu__note__params"){
-            status = this.main_menu(full_text)
-            if(status === "valid") {return}
-
-            status = this.run(full_text)
-            if(status === "valid") {return}
-
-            status = this.main_menu__note__params(full_text)
-            if(status === "valid") {return}
-
-            Talk.display_warning("Unrecognized command: " + full_text + " in mode: " + this.mode + ".")
-            return
-        }
-
-        else if(this.mode === "job_name"){
-
-            status = this.turn_on_mic(full_text)
-            if(status === "valid") { return }
-
-            status = this.move_menu(full_text)
-            if(status === "valid") {return}
-
-            //Talk.display_warning("Unrecognized command: " + full_text + ".")
-            //return
-            status = this.job_name_mode_misc(full_text) //handles the saying of the new job's name.
-            if(status === "valid") {return}
-        }
-
-        else if(this.mode === "waiting_for_place_name"){
-            status = this.turn_on_mic(full_text)
-            if(status === "valid") { return }
-
-            status = this.move_menu(full_text)
-            if(status === "valid") {return}
-
-            status = this.define_place_with_name(full_text)
-            if(status === "valid") { return }
-
-            Talk.display_warning("Unrecognized command: " + full_text + ".")
-            return
-        }
-
-
-        else if(this.mode === "playing_recording"){
-
-            status = this.off(full_text)
-            if(status === "valid") { return }
-
-            status = this.stop_playing(full_text)
-            if(status === "valid") { return }
-
-            Talk.display_warning("Unrecognized command: " + full_text + ".")
-            return
-        }
-
-        else {
-            shouldnt("Talk Unrecognized mode: " + this.mode + " with full_text: " + full_text)
-        }
-
-    } //end of handle_command
-    */
-
-    static handle_command(full_text){
-        console.log("handle_command passed: " + full_text)
+        this.stop_aux() // this is called by space-bar down. So it *might* be redundant,
+        //but in the case where the user clicks a menu item instead, we shoudl do it.
+        //one reason is for the cmd stop_recording, but in general. makes clickng space bar and
+        //clicking a menu item more similar.
         let cur_cmd = full_text.substring(0, 20).trim()
         if (full_text.length > 20) {
             cur_cmd += "..."
         }
         Talk.current_command_for_display_in_status = cur_cmd
         Talk.display_status()
-        let [parent_mode, cmd_str_from_mode, params_const] = Talk.mode.split("__")
         let cmd_rows = this.cmd_rows_for_mode(Talk.mode) //cmd_rows_for_mode special cases for "__params" modes
         if (!cmd_rows) {
             shouldnt("handle_command can't find rows since mode is invalid: " + Talk.mode)
@@ -2539,11 +2681,19 @@ class Talk {
                     }
                     let alts = this.cmd_alternatives(cmd_norm, true)
                     //all cmd_norm and alts are lower case
-                    let [cmd_str, content] = Utils.starts_with_one_of_and_tail(full_text.toLowerCase(), alts, true)
+                    let [cmd_str, content_str] = Utils.starts_with_one_of_and_tail(full_text.toLowerCase(), alts, true)
                     if(cmd_str) { //good at least one of the alts is valid. But use the cmd_meth generated from cmd_norm NOT this cmd_str which might be an alt.
-                        let meth_call_result = cmd_meth.call(Talk, full_text, cmd_norm, //use cmd_norm here NOT cmd_str because cmd_str is the alternate that matched. But we want the official cmd name here.
-                                                              content)
-                        if (meth_call_result) {
+                        if((this.cmd_params(cmd_norm, Talk.mode).length === 0) && (content_str.length > 0)) {} //no match. cmd_norm might be "stop" but content_str is "recording", so loop around again until we find cmd_norm is "step recording"
+                        else { //positive identification that full_text is for cmd_norm.
+                            let [parent_mode, cmd_norm_from_mode_with_underscores, params_const] = Talk.mode.split("__")
+                            //let cmd_norm_mode = (params_const ? parent_mode : Talk.mode)
+                            let cmd_norm_with_underscores = cmd_norm.replaceAll(" ", "_")
+                            let content_obj = this.content_str_to_content_obj(full_text, cmd_norm_with_underscores, content_str, cmd_norm, Talk.mode)
+                            if (content_obj._unused_param_names.length > 0) {
+                                this.set_params_mode(content_obj)
+                            } else {
+                                cmd_meth.call(Talk, content_obj)
+                            }
                             return
                         }
                     }
@@ -2551,27 +2701,42 @@ class Talk {
                 }
             }
         }
-        //no success with normal cmds so call the misc method.
+        //no success with normal cmds so call the misc method for the mode, including, perhaps "params_mode_misc"
 
-        let use_mode = Talk.mode
+        let use_mode_for_making_mode_misc
+        let cmd_norm
+        let cmd_norm_with_underscores
+        let content_str
+        let cmd_norm_mode
+        let [parent_mode, cmd_norm_from_mode_with_underscores, params_const] = Talk.mode.split("__")
         if(params_const){ //got a params dialog up.
-            use_mode = "params"
+            use_mode_for_making_mode_misc = "params"
+            cmd_norm = cmd_norm_from_mode_with_underscores.replaceAll("_", " ")
+            cmd_norm_with_underscores = cmd_norm_from_mode_with_underscores
+            content_str  = full_text //"" //full_text.substring(cmd_norm.length).trim()
+            cmd_norm_mode = parent_mode
         }
-        let misc_mode_name = use_mode + "_mode_misc" // ie "main_menu_mode_misc", "move_menu_mode_misc", "params_mode_misc"
+        else { //not a params mode
+            use_mode_for_making_mode_misc = Talk.mode
+            cmd_norm = false
+            cmd_norm_with_underscores = false //no known cmd in the mode so cmd_str is false.
+            content_str = ""
+            cmd_norm_mode = Talk.mode
+        }
+        let misc_mode_name = use_mode_for_making_mode_misc + "_mode_misc" // ie "main_menu_mode_misc", "move_menu_mode_misc", "params_mode_misc"
         let misc_meth = Talk[misc_mode_name]
         if (!misc_meth) {
-            this.display_warning('Mode: ' + Talk.mode + ` doesn't have a matching command for:<br/>"` + full_text + '" (no misc method).')
+            this.display_warning('Mode: <b>' + Talk.mode + `</b> doesn't have a matching command for:<br/>"` + full_text + '" (no misc method).')
             return
         }
-        let words = full_text.split(" ")
-        let cmd_str = words[0] //non multi-words here but its the best we can do. The misc method can test for initial multi-word first term if it likes
-        let content = full_text.substring(cmd_str.length + 1)
-        let meth_call_result = misc_meth.call(Talk, full_text, cmd_str, content)
-        if (meth_call_result) {
-            return true
+
+        let content_obj = this.content_str_to_content_obj(full_text, cmd_norm_with_underscores, content_str, cmd_norm, cmd_norm_mode)
+        if(content_obj._unused_param_names.length > 0){
+            this.set_params_mode(content_obj)
         }
-        this.display_warning("Mode: " + Talk.mode + ` doesn't have a matching command for:<br/>"` + full_text + '".')
-        return false
+        else {
+            misc_meth.call(Talk, content_obj)
+        }
     }
 
 

@@ -85,7 +85,6 @@ import "../job_engine/math/DH.js"      //DH is now global
 import "../job_engine/math/HiMem.js"   //DH is now global
 
 import "../job_engine/low_level_dexter/calibrate_build_tables.js"
-
 import "../job_engine/core/out.js" //makes get_output, show_window, beep, etc global
 import "../job_engine/core/job.js" //globally defines Job
 import "../job_engine/core/linux_error_message.js" //used by Job, makes linux_error_message global
@@ -104,6 +103,8 @@ import "../job_engine/core/dexter_defaults.js"      //just extends the Dexter cl
 import "../job_engine/core/DexDefaults.js"  //nov 2023 new. defines globalThis.DexDefaults class
 
 import "../job_engine/core/waiting.js"              //defines globalThis.Waiting
+import "../job_engine/core/servo.js" //males Servo global
+
 
 
 import "../job_engine/core/socket.js"       //defines class Socket as global

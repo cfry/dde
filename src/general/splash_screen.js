@@ -114,11 +114,13 @@ class SplashScreen {
         for(let name_and_tooltip of this.splash_screen_tutorial_names_and_tooltips){
            let name = name_and_tooltip[0]
            let label = null
-           for(let a_label of labels) {
-               if(a_label.endsWith(name)){
-                   label = a_label //might have a checkmark
-                   break;
-               }
+           if(Array.isArray(labels)) { //if labels comes back with something screwing from persistent_get,(like in Safari Vision Pro) we don't want it to screw up the tutorial pane. Just show all tutorails with no checkmarks.
+                for (let a_label of labels) {
+                    if (a_label.endsWith(name)) {
+                        label = a_label //might have a checkmark
+                        break;
+                    }
+                }
            }
            if(!label) { label = "&nbsp;&nbsp;&nbsp;" + name } //default is no checkmark
            result += "<option class='splash_screen_item' " +

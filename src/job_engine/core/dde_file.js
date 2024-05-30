@@ -283,6 +283,16 @@ class DDEFile {
     //from https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests
     //scynchronous, bypasses htttpd server. Often fails due to CORS, but
     //will work when requesting pages from server that served DDE4.
+    //when looking at the url ending in index.html of runn ing dde4 in the browser,
+    //such as https://cfry.github.io/dde4/dde/index.html or
+    //http://localhost/dde/index.html#.
+    //if we pass in to get_page a url that does NOT begin with a slash,
+    // the full url of the page that will be retrieved is
+    //the part of the url sans "index.html"
+    //and appended with the passed in url.
+    //example: pass in "examples/opencv_blur.js" and get page at:
+    //  "https://cfry.github.io/dde4/dde/examples/opencv_blur.js" or
+    //  "http://localhost/dde/dde/examples/opencv_blur.js"
     static get_page(url){
         let request = new XMLHttpRequest()
         request.open('GET', url, false)  // `false` makes the request synchronous
@@ -341,7 +351,7 @@ class DDEFile {
 
     //callback is optional. If not passed, return a promise
     //if passed, the callback is called with 2 args,
-    //err (default null meaning no error, and content (ie the string of the content of the file
+    //err (default null meaning no error), and content (ie the string of the content of the file)
     //note: assumes Node_server is up and working (unlike DDE3 which has to check with get_page)
     static async read_file_async(path, callback){
         if (path === undefined) {

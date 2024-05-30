@@ -636,12 +636,14 @@ static ends_with_one_of(a_string, possible_starting_strings){
 /*
 Separates a_string into 2 strings, the part before the used_separator and the
 part after the used separator.
+If separators is NOT an array, its made into a one element array.
 The used_separator is the separator in separators that occurs first in a_string.
 IF there is a tie, ie if you have separators of " comma " and " ",
 the first one in the separators list wins, in the above case, " comma ".
 If a_string contains at least one of the separators,
 an array is returned of [head, tail, used_separator]
-If none of the separators is in a_string, null is returned.
+If none of the separators is in a_string, the "head" is the whole a_string with
+empty string for the tail and separator.
 If do_trim === true, both head and tail are trimmed of whitespace on both ends
 before being returned.
 In any case, the used_separator is not included in either head or tail.
@@ -656,13 +658,28 @@ will be used to split the string.
 Note that if there is a tie such that 2 separators in the separators array
 both "start at" the same position in a_string.
 then the separator used will be the one that is first in the separators array.
+If none of the separators are present in the string,
+the whole string is the head, there's no tail, and no sep matched.
 */
 static separate_head_and_tail(a_string, separators=[" "], do_trim=false, first_in_separators_array_wins=false){
+    if(!Array.isArray(separators)){
+        separators = [separators]
+    }
     let min_sep_pos = null
     let used_sep = null
     for(let sep of separators){
         let pos = a_string.indexOf(sep)
-        if(pos !== -1){
+        if(pos === -1) {
+            if((sep === Utils.last(separators)) && (used_sep === null)){
+                //none of the separators are present in the string,
+                //so the whole string is the head, there's no tail, and no sep matched.
+                if(do_trim){
+                    a_string = a_string.trim()
+                }
+                return [a_string, "", ""]
+            }
+        }
+        else {
             if (first_in_separators_array_wins) {
                 min_sep_pos = pos
                 used_sep = sep
@@ -690,6 +707,23 @@ static separate_head_and_tail(a_string, separators=[" "], do_trim=false, first_i
         }
         return [head, tail, used_sep]
     }
+}
+
+//If a_string has its first word be possible_first_word, return true, else false.
+//If  possible_first_word is, instead an array of possible first words,
+//then if one of them is the first word in _string, return true, else false.
+static has_first_word(a_string, possible_first_word){
+    let parts = a_string.split(/\s/)
+    let a_string_first_word = parts[0]
+    if (Array.isArray(possible_first_word)){
+        for(let poss of possible_first_word){
+           if(poss === a_string_first_word) {
+               return true
+           }
+        }
+        return false
+    }
+    else return (a_string_first_word === possible_first_word)
 }
 
 //returns array of one of the strs in possible_matching_strings
@@ -720,6 +754,15 @@ static ends_with_one_of(a_string, possible_ending_strings){
         if (a_string.endsWith(str)) return true
     }
     return false
+}
+
+
+//from https://stackoverflow.com/questions/5002111/how-to-strip-html-tags-from-string-in-javascript
+//Utils.remove_html_from_string("foo<b>bar</b>baz") => "foobarbaz"
+//using the technique of makign a dom elt and extracting its innerText won't work in nodejs with no browser.
+static remove_html_from_string(a_string){
+    //return a_string.replace(/<\/[^>]+(>|$)/g, "") //from https://stackoverflow.com/questions/5002111/how-to-strip-html-tags-from-string-in-javascript BUT only handles strings with first char of "<"
+    return a_string.replace(/<(?:.|\s)*?>/g, "") //https://stackoverflow.com/questions/822452/strip-html-tags-from-text-using-plain-javascript more flexible
 }
 
 
@@ -839,6 +882,29 @@ static arrays_have_same_elements(arr1, arr2){
         return true
     }
     else { return false }
+}
+
+//if value is already in an_array, do nothing and return false.
+//else push value onto end of array (an_array is now 1 longer) and return true
+static add_value_to_array(value, an_array){
+    for(let old_val of an_array){
+        if(value === old_val) { return false }
+    }
+    an_array.push(value)
+    return true
+}
+
+//if value is not in array, just return false
+//else remove it from an_array (an_array is now one shorter) and return true
+static remove_value_from_array(value, an_array){
+    for(let i = 0; i < an_array.length; i++){
+        let old_val = an_array[i]
+        if(old_val === value){
+            an_array.splice(i, i)
+            return true
+        }
+    }
+   return false
 }
 
 //_____ set operations______
@@ -1094,6 +1160,21 @@ insert_string("abc", "def")
 insert_string("abc", "def", 100)
 insert_string("abc", "def", 1)
 */
+
+static array_of_numbers_to_string(arr, length_of_number_strings = 8){
+    let result = "["
+    let on_first = true
+    for(let num of arr){
+        let str = num.toString()
+        str = str.substring(0, length_of_number_strings) //when num is in meters and less than 10 meters
+        //8 is enough res to show microns.
+        result += (on_first? " " : ", ") + str
+        on_first = false
+    }
+    result += "]"
+    return result
+}
+
     //used by OpenAI text_to_data for "code"
 static insert_outs_after_logs(base_string){
     let result = base_string

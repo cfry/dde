@@ -4,10 +4,7 @@
 <summary class="doc_articles_level_summary">How to Think Like a Computer</summary>
 <div style='font-size:16px;'>
 <h3 id="how_to_think_like_a_computer_doc_id">How to Think Like a Computer</h3>
-<i>Fry Sep 13, 2017</i><br/>
-<i>Note: most of this content is available in video format at
-<a href="http://hdrobotic.com/webinar#how_to_think_like_a_computer" target="_blank">How To Think Like A Computer</a></i><br/>
-
+<i>Fry May 24, 2024</i><br/>
 <b>Prerequisites:</b> A bit of JavaScript programming
 (which you can get with a few hours of playing with Dexter Development Environment)
 and a thirst for understanding how software works.
@@ -53,8 +50,7 @@ into another format (a Boolean, number, array, object, or possibly
 a different, or even the same, string)
 Both the input and output are representations
 of the same data.<br/>
-<i>Example:</i> <code title="unEVALable">"2 + 3"</code> means the same thing as <samp>5</samp>,
-more or less.
+<i>Example:</i> <code>2 + 3</code> means the same thing as <samp>5</samp>.
 <p></p>
 <b>Definition 4:</b> <i>Conceptual</i><br/>
 Eval is a process for manipulating information.
@@ -94,14 +90,16 @@ JavaScript's eval, like all other JS function calls,
 has its arguments evaluated, then those values are passed into the function body.
 For arguments of most types, eval just returns the argument.<br/>
 <code>eval(true)</code> => <samp>true</samp> (returns the input <code>true</code>)<br/>
-<code>eval(2 + 3)</code> => <samp>5</samp> (returns the input <code>5</code>)
+<code>eval("2 + 3")</code> => <samp>5</samp> (returns the input <code>5</code>)
 <p></p>
 But if the argument is a string, it is treated as source code and executed.<br/>
 <code>eval("true")</code> => <samp>true</samp> (the Boolean symbol)<br/>
 <code>eval("123")</code>  => <samp>123</samp>  (an integer)<br/>
 <code>eval("'123'")</code> => <samp>"123"</samp> (a string of 3 characters, all of which happen to be digits.)<br/>
-<code>eval("12" + "3")</code> => <samp>123</samp> (an integer)<br/>
-<code>eval("12 + 3")</code>   => <samp>15</samp> (an integer)<br/>
+<code>eval("12" + "3")</code> => <samp>123</samp> (an integer) because what's passed in to eval is the string "123",
+    and that evalus to the integer 123.<br/>
+<code>eval("12 + 3")</code>   => <samp>15</samp> (an integer) because what's passed in to eval is 15 (integer)
+    and eval evaluates numbers to themselves.<br/>
 <code>eval("'12' + '3'")</code> => <samp>"123"</samp> (a string)<br/>
 <code>eval("Math.min(2, 3)")</code> => <samp>2</samp> (an integer)<br/>
 <br/>
@@ -178,9 +176,9 @@ Next we handle strings containing numbers:
 
 <i>Example:</i> <code>eval0("123")</code> => <samp>123</samp>
 <p></p>
-Now let's implement <code>+</code> . This is a bit harder because
+Now let's implement <code title="unevalable">+</code> . This is a bit harder because
 we can't just assume <i>If its not true or false, it must be a number</i>
-like we did above. Our extra work for <code>+</code> will come in
+like we did above. Our extra work for <code title="unevalable">+</code> will come in
 handy for numerous other features as well.
 
 <pre><code>function eval0(arg) {
@@ -201,8 +199,8 @@ handy for numerous other features as well.
 
 <i>Example:</i> <code>eval0("2 + 3")</code> => <samp>5</samp>
 <p></p>
-Above we use <code>split</code> to divide up <code title="unEVALable">arg</code> into the 3 smaller strings
-that are separated by spaces in <code title="unEVALable">arg</code>. <code>split</code> returns an array
+Above we use <code title="unevalable">split</code> to divide up <code title="unEVALable">arg</code> into the 3 smaller strings
+that are separated by spaces in <code title="unEVALable">arg</code>. <code  title="unevalable">split</code> returns an array
 (a sequence of items) accessible by their positions within the array.
 We're also (recursively) calling eval0 to process the two strings of digits
 on either side of "+" into numbers before adding them together
@@ -212,18 +210,17 @@ Its fair to complain we're not implementing all the features of JS + here.
 True. We don't handle string arguments or <code>1 + 2 + 3</code> .
 Like mentioned above, we're cutting corners to simplify understanding.
 <p></p>
-A more serious critique is that we're not implementing <code>+</code> at all,
+A more serious critique is that we're not implementing <code title="unevalable">+</code> at all,
 we're passing off the real work to JS's +. Sure, but if we like,
-we could replace that call to <code>+</code> with <code>*</code> i.e.<br/>
-<code>eval0(an_array[0]) * eval0(an_array[2])</code><br/>
-or even:<br/>
+we could replace that call to <code  title="unevalable">+</code> with <br/>
 <code title="unEVALable">eval0(new_plus(an_array[0]), eval0(an_array[2]))</code><br/>
+    and implement new_pus with bit-twiddling.
 eval doesn't do all the work itself, it farms it out to utility functions
-like <code>+</code>. Think of eval as a manager, not a worker-bee.
-Or think of <code>+</code> as a modular extension of eval used to
+like <code title="unevalable">+</code>. Think of eval as a manager, not a worker-bee.
+Or think of <code title="unevalable">+</code> as a modular extension of eval used to
 decrease the complexity of implementing the core "traffic directing" of eval.
 <p></p>
-<code>if</code> is JS's low-level traffic director. We nest ifs
+<code title="unevalable">if</code> is JS's low-level traffic director. We nest ifs
 to get hierarchical traffic directing. You can even think of eval as
 just packaging up a bunch of ifs.
 <p></p>
@@ -240,7 +237,7 @@ for side-effects like setting a variable value.
         }
         if(an_array.length === 3){
             if(an_array[1] === "+") { return eval0(an_array[0])  + eval0(an_array[2]) }
-            <samp class="new_code">if(an_array[1] === "=") { return globalThis.[an_array[0]] = eval0(an_array[2]) }</samp>
+            <samp class="new_code">if(an_array[1] === "=") { return globalThis[an_array[0]] = eval0(an_array[2]) }</samp>
         }
     }
     return arg
@@ -257,14 +254,14 @@ We can get back the value by handling variable references with:
         if (arg === "false"){return false}
         let an_array = arg.split(" ")
         if (an_array.length === 1){
-            <samp class="new_code">if(window[arg] === undefined){</samp>
+            <samp class="new_code">if(globalThis[arg] === undefined){</samp>
                 return parseFloat(arg)
             <samp class="new_code">}
-            return window[arg]</samp>
+            return globalThis[arg]</samp>
         }
         if(an_array.length === 3){
              if(an_array[1] === "+") { return eval0(an_array[0]) + eval0(an_array[2]) }
-             if(an_array[1] === "=") { return window[an_array[0]] = eval0(an_array[2]) }
+             if(an_array[1] === "=") { return globalThis[an_array[0]] = eval0(an_array[2]) }
         }
     }
     return arg
@@ -272,25 +269,25 @@ We can get back the value by handling variable references with:
 
 <i>Example:</i> <code>eval0("foo")</code> => <samp>2</samp>
 <p></p>
-Above, if <code title="unEVALable">arg</code> doesn't have spaces and is in <code>window</code>,
+Above, if <code title="unEVALable">arg</code> doesn't have spaces and is in <code>globalThis</code>,
 we assume its a global variable and return its value.
 <p></p>
 We're using <code title="unEVALable">===</code> a bunch for comparison, so let's implement it.
-<pre><code>eval0(arg) {
+<pre><code>function eval0(arg) {
     let the_type = typeof(arg)
     if(the_type === "string"){
         if (arg === "true") {return true}
         if (arg === "false"){return false}
         let an_array = arg.split(" ")
         if (an_array.length === 1){
-            if(window[arg] === undefined){
+            if(globalThis[arg] === undefined){
                 return parseFloat(arg)
             }
-            return window[arg]
+            return globalThis[arg]
         }
         if(an_array.length === 3){
              if(an_array[1] === "+")  { return eval0(an_array[0]) + eval0(an_array[2]) }
-             if(an_array[1] === "=")  { return window[an_array[0]] = eval0(an_array[2]) }
+             if(an_array[1] === "=")  { return globalThis[an_array[0]] = eval0(an_array[2]) }
              <samp class="new_code">if(an_array[1] === "==="){ return eval0(an_array[0]) === eval0(an_array[2])}</samp>
         }
    }
@@ -309,14 +306,14 @@ Here's a poor man's implementation of return
         <samp class="new_code">if(arg.startsWith("return")){return eval0(arg.substring(7))}</samp>
         let an_array = arg.split(" ")
         if (an_array.length === 1){
-            if(window[arg] === undefined){
+            if(globalThis[arg] === undefined){
                 return parseFloat(arg)
             }
-            return window[arg]
+            return globalThis[arg]
         }
         if(an_array.length === 3){
              if(an_array[1] === "+")  {return eval0(an_array[0]) + eval0(an_array[2])}
-             if(an_array[1] === "=")  {return window[an_array[0]] = eval0(an_array[2])}
+             if(an_array[1] === "=")  {return globalThis[an_array[0]] = eval0(an_array[2])}
              if(an_array[1] === "==="){return eval0(an_array[0]) === eval0(an_array[2])}
         }
     }
@@ -328,7 +325,7 @@ Here's a poor man's implementation of return
 Note the above doesn't work in JS eval. 
 But for our cheap eval0, it will come in handy soon.
 <p></p>
-Now let's tackle the principle control-flow functionality of <code>if</code>.
+Now let's tackle the principle control-flow functionality of <code title="unevalable">if</code>.
 <pre><code>function eval0(arg) {
     let the_type = typeof(arg)
     if(the_type === "string"){
@@ -344,14 +341,14 @@ Now let's tackle the principle control-flow functionality of <code>if</code>.
         }</samp>
         let an_array = arg.split(" ")
         if(an_array.length === 1){
-            if(window[arg] === undefined){
+            if(globalThis[arg] === undefined){
                 return parseFloat(arg)
             }
-            return window[arg]
+            return globalThis[arg]
         }
         if(an_array.length === 3){
              if(an_array[1] === "+")  {return eval0(an_array[0]) + eval0(an_array[2])}
-             if(an_array[1] === "=")  {return window[an_array[0]] = eval0(an_array[2])}
+             if(an_array[1] === "=")  {return globalThis[an_array[0]] = eval0(an_array[2])}
              if(an_array[1] === "==="){return eval0(an_array[0]) === eval0(an_array[2])}
         }
     }
@@ -382,26 +379,27 @@ Here's a cheap implementation of defining zero-argument functions:
            let name = arg.substring(9, open_pos)
            let open_brace = arg.indexOf("{")
            let body = arg.substring(open_brace + 1, arg.length - 1)
-           window[name] = body
+           globalThis[name] = body
            return undefined
         }</samp>
         let an_array = arg.split(" ")
         if(an_array.length === 1){
-            if(window[arg] === undefined){
+            if(globalThis[arg] === undefined){
                 return parseFloat(arg)
             }
-            return window[arg]
+            return globalThis[arg]
         }
         if(an_array.length === 3){
              if(an_array[1] === "+")  {return eval0(an_array[0]) + eval0(an_array[2])}
-             if(an_array[1] === "=")  {return window[an_array[0]] = eval0(an_array[2])}
+             if(an_array[1] === "=")  {return globalThis[an_array[0]] = eval0(an_array[2])}
              if(an_array[1] === "==="){return eval0(an_array[0]) === eval0(an_array[2])}
         }
     }
     return arg
 }</code></pre>
 
-<i>Example:</i> <code>eval0("function bar(){return 6 + 7}")</code><br/>
+<i>Example:</i> <code>eval0("function bar(){return 6 + 7}")</code> => <samp>undefined</samp><br/>
+Note: It would be better if Js returned the function definition, but that's what JS actually does.<br/>
 <i>Example:</i> <code>eval0("bar")</code> => <samp>"return 6 + 7"</samp><br/>
 Above the definition of our function is just the string of its body. Cheap, incomplete,
 but adequate for a first pass.
@@ -427,7 +425,7 @@ We tackle such zero-argument function calls with the below:
            let name = arg.substring(9, open_pos)
            let open_brace = arg.indexOf("{")
            let body = arg.substring(open_brace + 1, arg.length - 1)
-           window[name] = body
+           globalThis[name] = body
            return undefined
         }
         <samp class="new_code">if(arg.endsWith(")")){
@@ -436,14 +434,14 @@ We tackle such zero-argument function calls with the below:
         }</samp>
         let an_array = arg.split(" ")
         if(an_array.length === 1){
-            if(window[arg] === undefined){
+            if(globalThis[arg] === undefined){
                 return parseFloat(arg)
             }
-            return window[arg]
+            return globalThis[arg]
         }
         if(an_array.length === 3){
              if(an_array[1] === "+")  {return eval0(an_array[0]) + eval0(an_array[2])}
-             if(an_array[1] === "=")  {return window[an_array[0]] = eval0(an_array[2])}
+             if(an_array[1] === "=")  {return globalThis[an_array[0]] = eval0(an_array[2])}
              if(an_array[1] === "==="){return eval0(an_array[0]) === eval0(an_array[2])}
         }
     }
@@ -494,7 +492,7 @@ Here's handling <code>null</code>, <code>undefined</code> and string literals.
            let name = arg.substring(9, open_pos)
            let open_brace = arg.indexOf("{")
            let body = arg.substring(open_brace + 1, arg.length - 1)
-           window[name] = body
+           globalThis[name] = body
            return undefined
         }
         if(arg.endsWith(")")){
@@ -503,14 +501,14 @@ Here's handling <code>null</code>, <code>undefined</code> and string literals.
         }
         let an_array = arg.split(" ")
         if(an_array.length === 1){
-            if(window[arg] === undefined){
+            if(globalThis[arg] === undefined){
                 return parseFloat(arg)
             }
-            return window[arg]
+            return globalThis[arg]
         }
         if(an_array.length === 3){
              if(an_array[1] === "+")  {return eval0(an_array[0]) + eval0(an_array[2])}
-             if(an_array[1] === "=")  {return window[an_array[0]] = eval0(an_array[2])}
+             if(an_array[1] === "=")  {return globalThis[an_array[0]] = eval0(an_array[2])}
              if(an_array[1] === "==="){return eval0(an_array[0]) === eval0(an_array[2])}
         }
     }
@@ -537,11 +535,11 @@ helping to customize a function to be applicable to myriads of additional
 uses.
 <p></p>
 <i>Hint:</i> Local variables are implemented with name-value pair data structures
-just like the <code>window</code> data structure we use above for global variables.
+just like the <code>globalThis</code> data structure we use above for global variables.
 At function call time, such a data structure is populated with the names
 of the arguments and their values, then passed into eval so that references
 to local variables can be looked up in it. A helper function for eval that is defined in
-JS named <code>apply</code> takes a function as a subject, a value for
+JS named <code title="unevalable">apply</code> takes a function as a subject, a value for
 <code title="unEVALable">this</code> and an array of argument values.
 <p></p>
 Despite all these deficiencies, let's celebrate our victories.
@@ -579,8 +577,7 @@ and formats the result of calling eval into the Output pane.
 
 <h4>Files</h4>
 A file is just a big string of source code.
-"Loading" the file passes the string to eval.
-DDE has a function named <code>load_files</code> that performs this.
+DDE's File menu item <b>Load...</b> just gets the file's content as a string and passes it to  <code>eval</code>.
 It can load large files provided the JS source code is valid.
 <p></p>
 In JavaScript there's no explicit compiler or compiled representation
@@ -600,13 +597,13 @@ One of the ways that data structure is represented is as a button
 in the Output pane header named by the Job's name.
 Clicking that button automatically constructs the string
 <code>"Job.my_job.start()"</code> and then passes that string to eval.
-<code>start</code> starts DDE's special "do_list eval" that picks the
+<code title="not in Testsuite">start</code> starts DDE's special "do_list eval" that picks the
 instructions, one by one, off the do_list and
 "evals" them with the special evaluator.
 Here's some of the most important rules of DDE's do_list evaluator:
 <ul>
 <li>If the instruction
-is a <code>Dexter.move_all_joints</code> instruction, the 5 joint degrees are
+is a <code>Dexter.move_all_joints</code> instruction, the first 5 joint degrees are
 translated into arc-seconds (which the precise Dexter likes)
 and sent to Dexter. </li>
 
@@ -657,7 +654,7 @@ Designing a good foundational language is a special skill
 not taught in even the best universities in 2017.
 Understanding eval is on the easiest path to knowing how to design languages.
 <p></p>
-If your underlying language is good enough (like JS)
+If your underlying language is good enough (like JS),
 leverage it so you don't have to
 re-implement the low_level stuff.
 Think of a well written function definition or Job in a library

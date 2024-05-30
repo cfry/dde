@@ -71,7 +71,7 @@ class Robot {
         if(platform === "node") {
             return false //because now when in job engine, never attempt to run simulator
         }
-        else if      (simulate_val === true)   { return true   }
+        else if (simulate_val === true)   { return true   }
         else if (simulate_val === false)  { return false  }
         else if (simulate_val === "both") { return "both" }
         else if (simulate_val === null)   {
@@ -147,6 +147,9 @@ class Robot {
     }
 
     //Control Instructions
+    static if(...clauses) {
+        return new Instruction.if(clauses)
+    }
     static break(){ //stop a Control.loop
         return new Instruction.break()
     }
@@ -1116,6 +1119,7 @@ class Dexter extends Robot {
         this.pid_angles = [0, 0, 0, 0, 0, 0, 0]
         //this.processing_flush = false //primarily used as a check. a_robot.send shouldn't get called while this var is true
         //this.busy_job_array = []
+        this.servos = Servo.make_servos_for_dexter()
         Robot.set_robot_name(this.name, this)
         Dexter[this.name] = this //see comment in Robot.set_robot_name
          //ensures the last name on the list is the latest with no redundancy

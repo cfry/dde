@@ -388,3 +388,47 @@ new TestSuite("Kin.predict_move_dur",
     ["Kin.predict_move_dur([0,0,0,0,0], [20,30,40,0,0])", "1.3333333333333333"],
     ["Kin.predict_move_dur([-10,0,0,0,0], [-60,30,40,0,0])", "1.6666666666666667"]
 )
+
+new TestSuite("servo_interpret_job_get",
+	['Servo.servo_set(Servo.roll, "GOAL_POSITION", 10)',
+		"[undefined, undefined, undefined, undefined, 'S', 'ServoSetX', 3, 30, 6, '%0A%00', undefined]"
+	],
+	[`similar(make_ins("S", "ServoSetX", Dexter.dexter0.servos.roll.table.LED.addr, 1),
+        [undefined, undefined, undefined, undefined, "S", "ServoSetX", 25, 1])`,
+		"true"
+	],
+	[`similar(Servo.interpret_job_get({"user_data": {"servo_status":""}}, 1, 0, 2)
+    	, {"error":"NO RESPONSE"})`
+		, "true"
+		, "failed to detect empty reply"
+	]
+	,[`similar(Servo.interpret_job_get({"user_data": {"servo_status":"FF FF FD 00"}}, 1, 0, 2)
+    	, {error: "INCOMPLETE RESPONSE:11 bytes"})`
+		, "true"
+	]
+	,[`similar(
+    	Servo.interpret_job_get({"user_data": {"servo_status":"FF FF FD AB                      "}}, 1, 0, 2)
+    	, {error: "BAD HEADER:FF FF FD AB                      "})`
+		, "true"
+	]
+	,[`similar(
+    	Servo.interpret_job_get({"user_data": {"servo_status":"FF FF FD 00                      "}}, 1, 0, 2)
+        ,{error:"NOT A STATUS:   "})`
+		, "true"
+	]
+	,[`similar(
+    	Servo.interpret_job_get({"user_data": {"servo_status":"FF FF FD 00 01 08 00 55 00           "}}, 1, 0, 2)
+        ,{error: "INCOMPLETE RESPONSE:37 bytes"})`
+		, "true"
+	]
+	,[`similar(
+    	Servo.interpret_job_get({"user_data": {"servo_status":"FF FF FD 00 01 08 00 55 80 5E 01 00 00 "}}, 1, 0, 2).type
+        ,"XL320")`
+		, "true"
+	]
+	,[`similar(
+    	Servo.interpret_job_get({"user_data": {"servo_status":"FF FF FD 00 01 08 00 55 80 08 04 02 00 "}}, 1, 2, 2).error
+        ,"ERROR: hardware fault.")`
+		, "true"
+	]
+)
