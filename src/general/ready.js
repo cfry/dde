@@ -106,6 +106,7 @@ import "./series.js"    //now Series is global
 //import {PatchDDE}   from "./patch_dde.js" //todo still needed?
 
 import "./dde_video"  //makes DDEVideo global
+import "../simulator/physicsObject.js"
 import "../simulator/simulate.js" //makes class Simulate global
 //import "../simulator/simutils.js" //makes class SimUtils global
 import "../simulator/SimObj.js" //makes class SimObj global. Should be before importing simbuild

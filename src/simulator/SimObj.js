@@ -72,7 +72,7 @@ globalThis.SimObj = class SimObj{
         object3d.position.y = Simulate.sim.J0.position.y // = (this.sim.table_height / 2) //+ (leg_height / 2) //0.06 //for orig boxes model, leg height was positive, but for legless dexter mounted on table, its probably 0
         object3d.position.x = Simulate.sim.J0.position.x // = (this.sim.table_length / 2)  //the edge of the table
         //- 0.12425 the distance from the edge of the table that Dexter is placed
-        Simulate.sim.table.add(object3d)
+        Simulate.sim.scene.add(object3d)
 
         //see make_object3d_given_object
         SimObj.user_origin = object3d

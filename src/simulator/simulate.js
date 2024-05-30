@@ -16,6 +16,8 @@ maybe: https://www.youtube.com/watch?v=slU0qKhegvk threejs and webxr
 
 */
 
+console.log("is it building?")
+
 //import * as THREE from '../../node_modules/three/build/three.module.js'
 //import * as THREE from 'three/build/three.module.js'
 import * as THREE from 'three'
@@ -29,10 +31,10 @@ globalThis.InteractionManager
 import { FontLoader } from 'three/addons/loaders/FontLoader.js'
 const a_font_loader = new FontLoader();
 //globalThis.hel_font = null
-a_font_loader.load(//'node_modules/three/examples/fonts/helvetiker_bold.typeface.json', //THREE doc on this path is woefully insufficient. I patterned this after https://www.youtube.com/watch?v=l7K9AMnesJQ Without "node_modules/" on the front, it doesn't work
+a_font_loader.load(//'node_modules/three/examples/fonts/helvetiker_bold.typeface.json', //THREE doc on Simulate path is woefully insufficient. I patterned Simulate after https://www.youtube.com/watch?v=l7K9AMnesJQ Without "node_modules/" on the front, it doesn't work
                    './third_party/helvetiker_bold.typeface.json',
                    //'../../third_party/helvetiker_bold.typeface',
-                   //'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', //todo make this not depend on a web connection
+                   //'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', //todo make Simulate not depend on a web connection
     function(font) {
            globalThis.hel_font = font
        }
@@ -40,17 +42,28 @@ a_font_loader.load(//'node_modules/three/examples/fonts/helvetiker_bold.typeface
 
 //import THREE_Text2D from 'three-text2d'
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-//import THREE_GLTFLoader from 'three-gltf-loader' //using the examples folder like this is depricated three/examples/js/loaders/GLTFLoader.js')
+//import THREE_GLTFLoader from 'three-gltf-loader' //using the examples folder like Simulate is depricated three/examples/js/loaders/GLTFLoader.js')
 //see: https://github.com/johh/three-gltf-loader
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 //From https://threejs.org/docs/#manual/en/introduction/How-to-create-VR-content
-import { VRButton } from 'three/addons/webxr/VRButton.js'; //VR  search this file for "//VR" to see all Virtual Reality code
+import { VRButton } from 'three/addons/webxr/VRButton.js'; //VR  search Simulate file for "//VR" to see all Virtual Reality code
+import { e } from 'mathjs';
 
 
 globalThis.Simulate = class Simulate {
-    static make_sim_html() {
-        return `
+    // Creates an div containing the simulator and it's UI
+    // Simulate can be appended and removed from the main DOM while still remain intact
+    // Simulate allows the simulator to be hidden and shown without it being reinitiallized
+    // NOTE: DO NOT RUN Simulate OUTSIDE OF simulate.js! IT SHOULD ONLY EVER RUN ONCE DURING INIT!
+    static make_sim_ui() {
+        //Creates a template which the HTML is placed inside of
+
+        let sim_div = document.createElement("div");
+        sim_div.style="margin:0";
+        sim_div.innerHTML =
+        `
+        <div id="sim_pane_header_id">
         <div id="sim_pane_header_top_row_id" style="white-space:nowrap;"> 
         <b>Move Dur: </b><span id="sim_pane_move_dur_id"></span> s
         <button onclick="SimUtils.render_joints_smart()" 
@@ -81,70 +94,226 @@ globalThis.Simulate = class Simulate {
         <b title="Joint 5 angle in degrees."> J5: </b><span id="sim_pane_j5_id" style="min-width:30px; text-align:left; display:inline-block"></span>
         <b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>
         <b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>
+        </div>
         <div id="sim_graphics_pane_id" style="cursor:grab;"></div>
-        `
+        `;
+        
+        return sim_div;
+    }
+
+
+    static mouse = {
+        x:0,
+        y:0,
+        mX:0,
+        mY:0,
+        down:false,
+        shiftDown:false,
+        ctrlDown:false
     }
 
     static canSize;
-    static goalRotation = {x:Math.PI*0.25,y:Math.PI*0.25};
-    static goalPosition = {x:0,y:0,z:-1};
-    static pRotation = {x:Math.PI*0.25,y:Math.PI*0.25};
-    static pPosition = {x:0,y:0,z:-1};
 
-    static sim = {hi_rez: true} //used to store sim "global" vars
+    
+
+    static sim = {} //used to store sim "global" vars
+
+    static simulatorUI;
 
 //var THREE_font_loader = new THREE.FontLoader();
+    static simulation_initialized = false;
+    static update_in_progress = false;
 
-    static init_simulation_done = false
+    static default_orbit = 
+    {
+        center_x:0.0,
+        center_y:0.306,
+        center_z:0.0 ,
+        rotation_yaw:   -0.25*Math.PI,
+        rotation_pitch: -0.25*Math.PI,
+        zoom:2.0,
+        radius:2
+    };
+    static orbit = 
+    {
+        center_x:Simulate.default_orbit.center_x,
+        center_y:Simulate.default_orbit.center_y,
+        center_z:Simulate.default_orbit.center_z,
+        rotation_yaw  : Simulate.default_orbit.rotation_yaw  ,
+        rotation_pitch: Simulate.default_orbit.rotation_pitch,
+        zoom:Simulate.default_orbit.zoom,
+        radius:2
+    }
+    static target_orbit = 
+    {
+        center_x:Simulate.default_orbit.center_x,
+        center_y:Simulate.default_orbit.center_y,
+        center_z:Simulate.default_orbit.center_z,
+        rotation_yaw  : Simulate.default_orbit.rotation_yaw  ,
+        rotation_pitch: Simulate.default_orbit.rotation_pitch,
+        zoom:Simulate.default_orbit.zoom,
+        radius:2
+    }
+    // static init_simulation_done = false
 
-    static init_simulation_maybe(){
-        if(this.init_simulation_done) {}
-        else {
-            this.init_simulation_done = true //needs to be done first as if init_simulation has already started we don't
-             //dont want to start it again.
-            this.init_simulation()
+    // static init_simulation_maybe(){
+    //     if(Simulate.init_simulation_done) {}
+    //     else {
+    //         Simulate.init_simulation_done = true //needs to be done first as if init_simulation has already started we don't
+    //          //dont want to start it again.
+    //         Simulate.init_simulation()
 
+    //     }
+    // }
+    /*
+    Returns an documentation fragment containing the simulator which can be appended to the DOM directly with appendChild
+    If the simulator has not yet been initialized, Simulate will initialize the simulator
+    It the simulator has been initialized already, Simulate will resize the viewport to the correct size
+     */
+    static append_simulation(pane_id)
+    {
+        if(!Simulate.update_in_progress)
+        {
+            Simulate.update_in_progress = true;
+            // Create the UI if the simulator hasn't yet been initialized
+            if(!Simulate.simulation_initialized)
+            {
+                Simulate.simulatorUI  = Simulate.make_sim_ui();
+            }
+    
+            // Append the simulator to the pane
+            pane_id.innerHTML = "";
+            pane_id.appendChild(Simulate.simulatorUI);
+    
+            //Initialize the simulator if it has not been initialized already
+            if(!Simulate.simulation_initialized)
+            {
+                Ammo().then( Simulate.init_simulation );
+            }
+            else
+            {
+                Simulate.resize();
+            }
+            pane_id.style.overflow="hidden";
+            Simulate.update_in_progress = false;
         }
     }
 
     static init_simulation(){
-          this.canSize  =
-          {
-            width: misc_pane_id.clientWidth-50,
-            height: DDE_DB.persistent_get("dde_window_height") - DDE_DB.persistent_get("top_right_panel_height") - 220
-          };
+        if(!Simulate.simulation_initialized)
+        {
+            Simulate.updateCanSize();
+            try{
 
-          try{
-            this.init_mouse()
-            this.sim.enable_rendering = false
-            //for organization: https://discoverthreejs.com/book/first-steps/lights-color-action/
-            this.sim.container = sim_graphics_pane_id //a div that contains a canvas
-            this.sim.scene  = new THREE.Scene();
-            this.sim.scene.name = "scene"
-            this.sim.scene.background = new THREE.Color(0xFFF5E0) //0xFFF6C7) //0xFFFFFF) //0xBBBBBB ) // 0x000000black is the default
-            this.createRenderer()
-            this.createCamera()
-            this.createLights()
-            if(this.sim.hi_rez) { this.createMeshGLTF() }
-            else                { this.createMeshBoxes() }
-            SimBuild.init()
-            this.init_interaction_manager()
-            SimObj.refresh() //does nothing if no SimObjs. Otherwise makes sure they are in the scene and refreshes
-          }
-          catch(err){
-                  console.log("init_simulation errored with: " + err.message + "\n" + err.stack)
-          }
+                Simulate.init_mouse();
+                Simulate.sim.enable_rendering = false
+                //for organization: https://discoverthreejs.com/book/first-steps/lights-color-action/
+                Simulate.sim.container = sim_graphics_pane_id //a div that contains a canvas
+                Simulate.sim.scene  = new THREE.Scene();
+                Simulate.sim.scene.name = "scene"
+                Simulate.sim.scene.background = new THREE.Color(0xFFF5E0) //0xFFF6C7) //0xFFFFFF) //0xBBBBBB ) // 0x000000black is the default
+                Simulate.createRenderer()
+                Simulate.createCamera()
+                Simulate.createLights()
 
-        //this.sim.renderer.render(this.sim.scene, this.sim.camera) //Sadly this didn't work so
-        // stil doing BOTH the below setAnimationLoop and in SimUtils, calling prime the pump to avoid bad rednering of Dexter
 
-          //from https://threejs.org/docs/index.html#manual/en/introduction/How-to-create-VR-content
-        this.sim.renderer.setAnimationLoop( function () { //VR
-            //Simulate.sim.renderer.render( Simulate.sim.scene, Simulate.sim.camera );
-            SimUtils.render_used_in_loop()
-        } )
+                Simulate.initPhysicsWorld();
+
+                Simulate.createMeshGLTF() ;
+                
+                // let joints = [Simulate.sim.J0,Simulate.sim.J1,Simulate.sim.J2,Simulate.sim.J3,Simulate.sim.J4];
+                // for(let j of joints)
+                // {
+                //     let meshes = Simulate.getMeshes(j);
+                //     for(let mesh of meshes)
+                //     {
+                //         let obj = new PhysicsObject(mesh,0,PhysicsObject.Shape.BOX);
+                //         obj.makeKinematic();
+                //     }
+                // }
+                
+
+                SimBuild.init()
+                Simulate.init_interaction_manager()
+                SimObj.refresh() //does nothing if no SimObjs. Otherwise makes sure they are in the scene and refreshes
+            }
+            catch(err){
+                    console.log("init_simulation errored with: " + err.message + "\n" + err.stack)
+            }
+
+            //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera) //Sadly Simulate didn't work so
+            // stil doing BOTH the below setAnimationLoop and inSimqueueJ  SimUtils, calling prime the pump to avoid bad rednering of Dexter
+
+            //from https://threejs.org/docs/index.html#manual/en/introduction/How-to-create-VR-content
+            Simulate.sim.renderer.setAnimationLoop( function () { //VR
+                //Simulate.sim.renderer.render( Simulate.sim.scene, Simulate.sim.camera );
+                Simulate.do_animation_loop()
+            } );
+
+            Simulate.simulation_initialized = true;
+        }
+        else
+        {
+            console.warn("Warning: Simulation attempt was made after the simulator was initialized");
+            debugger;
+        }
+        
+    }
+    static enableArmPhysics()
+    {
+        let meshes = Simulate.getMeshes(Simulate.sim.J0);
+        for(let mesh of meshes)
+        {
+            let obj = new PhysicsObject(mesh,0);
+            obj.makeKinematic();
+        }
+    }
+    static getMeshes(obj3d){
+        let out = [];
+        for(let i = 0; i < obj3d.children.length; i++)
+        {
+            let child = obj3d.children[i];
+            if(child.isMesh)
+            {
+                out.push(child);
+            }
+            if(child.children.length > 0 && child != Simulate.sim.J6)
+            {
+                let subMeshes = Simulate.getMeshes(child);
+                for(let j = 0; j < subMeshes.length; j++)
+                {
+                    out.push(subMeshes[j]);
+                }
+            }
+        }
+        return out;
     }
 
+    static physicsWorld;
+    static physicsScale = 10.0;
+    static physicsBodies = [];
+    static initPhysicsWorld()
+    {
+        let collisionConfiguration  = new Ammo.btDefaultCollisionConfiguration(),
+        dispatcher              = new Ammo.btCollisionDispatcher(collisionConfiguration),
+        overlappingPairCache    = new Ammo.btDbvtBroadphase(),
+        solver                  = new Ammo.btSequentialImpulseConstraintSolver();
+    
+        Simulate.physicsWorld           = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+        Simulate.physicsWorld.setGravity(new Ammo.btVector3(0, -10, 0));
+    }
+    
+    static updatePhysics( deltaTime ){
+
+        // Step world
+        Simulate.physicsWorld.stepSimulation( deltaTime, 10 );
+
+        // Update rigid bodies
+        for ( let i = 0; i < Simulate.physicsBodies.length; i++ ) {
+            Simulate.physicsBodies[i].update();
+        }
+
+    }
     //called by SimObj.refresh() and Simulate.init()
     static init_interaction_manager(){
         if(globalThis.interactionManager) {
@@ -153,27 +322,25 @@ globalThis.Simulate = class Simulate {
         }
         //see https://github.com/markuslerner/THREE.Interactive/blob/master/examples/auto-add.html
         globalThis.interactionManager = new InteractionManager(
-            this.sim.renderer,
-            this.sim.camera,
-            this.sim.renderer.domElement
-            //{ autoAdd: true, scene: this.sim.scene} //autoAdd seems not to word
+            Simulate.sim.renderer,
+            Simulate.sim.camera,
+            Simulate.sim.renderer.domElement
+            //{ autoAdd: true, scene: Simulate.sim.scene} //autoAdd seems not to word
         )
     }
 
     static createCamera(){
         //https://discoverthreejs.com/book/first-steps/first-scene/
-        this.sim.camera = new THREE.PerspectiveCamera(
+        Simulate.sim.camera = new THREE.PerspectiveCamera(
               75, //field of view in degrees. determines ratio of far clipping region is to near clipping region
-            this.canSize.width / this.canSize.height, //aspect ratio, If not same as canvas width and height,
+            Simulate.canSize.width / Simulate.canSize.height, //aspect ratio, If not same as canvas width and height,
                                                       //the image will be distorted.
               0.1, //1, //0.1,   //distance between camera and near clipping plane. Must be > 0.
               4 //4      // 3 is too small and clips the table. was: 1000   //distance between camera an far clipping plane. Must be > near.
               );
-        this.sim.camera.name = "camera"
-        this.sim.camera.position.x = 0  //to the right of the screen.
-        this.sim.camera.position.y = 0  //up is positive
-        this.sim.camera.position.z = 1  //2; //toward the viewer (out of the screen) is positive. 2
-        this.sim.camera.zoom = 1        //1 is the default.  0.79 //has no effect.
+        Simulate.sim.camera.name = "camera"
+        Simulate.sim.camera.rotation.order = "YXZ";
+        Simulate.update_camera();
 
         //new(75, width/height, 0.1, 4) pos[0, 1, 2]
 
@@ -193,7 +360,7 @@ globalThis.Simulate = class Simulate {
         const color = 0xFFFFFF;
         const intensity = 1 //0.75;
         const light = new THREE.AmbientLight ( color, intensity );
-        this.sim.scene.add ( light );
+        Simulate.sim.scene.add ( light );
 
       //directional light
         const dcolor = 0xFFFFFF;
@@ -204,8 +371,8 @@ globalThis.Simulate = class Simulate {
         dlight.target.name = "directional_light_target"
         dlight.target.position.set ( 0, 0, 0 );
         dlight.castShadow = true;
-        this.sim.scene.add ( dlight );
-        this.sim.scene.add ( dlight.target );
+        Simulate.sim.scene.add ( dlight );
+        Simulate.sim.scene.add ( dlight.target );
 
         dlight.shadow.camera.left	= -1.5;
         dlight.shadow.camera.right	=  1.5;
@@ -220,7 +387,7 @@ globalThis.Simulate = class Simulate {
         {	const color = 0xFFFFFF;
             const intensity = 0.75;
             const light = new THREE.AmbientLight ( color, intensity );
-            this.sim.scene.add ( light ); }
+            Simulate.sim.scene.add ( light ); }
 
         //	Directional Light
         //
@@ -230,32 +397,32 @@ globalThis.Simulate = class Simulate {
             light.position.set ( 4, 4, 2 );
             light.target.position.set ( 0, 0, 0 );
         //	light.castShadow = true;
-            this.sim.scene.add ( light );
-            this.sim.scene.add ( light.target ); }
+            Simulate.sim.scene.add ( light );
+            Simulate.sim.scene.add ( light.target ); }
     */
     }
 
     static VR_but_dom_elt
 
     static createRenderer(){
-        this.sim.renderer = new THREE.WebGLRenderer({ antialias:true });//antialias helps with drawing the table lines. //example: https://threejs.org/docs/#Manual/Introduction/Creating_a_scene
-        this.sim.renderer.setSize( //this.sim.container.clientWidth, this.sim.container.clientHeight) //causes no canvas to appear
-        this.canSize.width, this.canSize.height);
+        Simulate.sim.renderer = new THREE.WebGLRenderer({ antialias:true });//antialias helps with drawing the table lines. //example: https://threejs.org/docs/#Manual/Introduction/Creating_a_scene
+        Simulate.sim.renderer.setSize( //Simulate.sim.container.clientWidth, Simulate.sim.container.clientHeight) //causes no canvas to appear
+        Simulate.canSize.width, Simulate.canSize.height);
         //renderer.setPixelRatio( globalThis.devicePixelRatio );  //causes no canvas to appear
         //sim_graphics_pane_id.innerHTML = "" //done in video.js
-        this.sim.renderer.shadowMap.enabled = true;
-        this.sim.container.appendChild(this.sim.renderer.domElement)
-        this.VR_but_dom_elt = VRButton.createButton( this.sim.renderer )  //VR makes global dom elt "VRButton" odd. the orig class VRButton var is over-ridden??? Don't depend on it!
-        this.VR_but_dom_elt.style.backgroundColor = "#ffd6c2"
-        this.VR_but_dom_elt.style.color = "black"
+        Simulate.sim.renderer.shadowMap.enabled = true;
+        Simulate.sim.container.appendChild(Simulate.sim.renderer.domElement)
+        Simulate.VR_but_dom_elt = VRButton.createButton( Simulate.sim.renderer )  //VR makes global dom elt "VRButton" odd. the orig class VRButton var is over-ridden??? Don't depend on it!
+        Simulate.VR_but_dom_elt.style.backgroundColor = "#ffd6c2"
+        Simulate.VR_but_dom_elt.style.color = "black"
         // sim_pane_header_alignment_id.append(vr_but)           //VR //put right after the "Alignment: " buttons
-        this.sim.container.append(this.VR_but_dom_elt)           //VR
-        //sim_pane_move_dur_id.append(this.VR_but_dom_elt) //even if I try to place the button outside of the canvas, it does their anyway.
+        Simulate.sim.container.append(Simulate.VR_but_dom_elt)           //VR
+        //sim_pane_move_dur_id.append(Simulate.VR_but_dom_elt) //even if I try to place the button outside of the canvas, it does their anyway.
         //but not the button doesn't actually appear here. It appears IN the real sim rendering pane,
         //at the bottom in an "overlay" which will usually say, in a box,  "VR NOT SUPPORTED"
-        this.sim.renderer.xr.enabled = true;                     //VR
-        this.sim.renderer.xr.setReferenceSpaceType( 'local' );   //VR  from threejs.org webxr_vr_rollercoaster.html
-        //this.init_vr()
+        Simulate.sim.renderer.xr.enabled = true;                     //VR
+        Simulate.sim.renderer.xr.setReferenceSpaceType( 'local' );   //VR  from threejs.org webxr_vr_rollercoaster.html
+        //Simulate.init_vr()
     }
 
     static xrSession
@@ -293,29 +460,31 @@ globalThis.Simulate = class Simulate {
 //simulator using actual Dexter CAD. the GLTF was created by using the
 //fusion 360 exporter of FBX, then converting that to .gltf, then
 //processing in video.js to clean it up.
+    static gltfLoader;
     static createMeshGLTF(){
-        this.sim.table_width  = 0.447675,  //width was 1
-        this.sim.table_length = 0.6985,    //length was 2
-        this.sim.table_height = 0.01905    //height (thickness of Dexcell surface). This is 3/4 of an inch. was:  0.1)
-        this.sim.table = this.draw_table(this.sim.scene, this.sim.table_width, this.sim.table_length, this.sim.table_height)
+        Simulate.sim.table_width = 1.0 //= 0.447675,  //width was 1
+        Simulate.sim.table_length = 1.0//0.6985,    //length was 2
+        Simulate.sim.table_height = 0.02//0.01905    //height (thickness of Dexcell surface). Simulate is 3/4 of an inch. was:  0.1)
+        Simulate.sim.table = Simulate.new_draw_table(Simulate.sim.table_width, Simulate.sim.table_length, Simulate.sim.table_height)
 
 
 
-        this.sim.J0 = new THREE.Object3D(); //0,0,0 //does not move w.r.t table.
-        this.sim.J0.rotation.y = Math.PI //radians for 180 degrees
-        this.sim.J0.name = "J0"
-        this.sim.J0.position.y = (this.sim.table_height / 2) //+ (leg_height / 2) //0.06 //for orig boxes model, leg)height was positive, but for legless dexter mounted on table, its probably 0
-        this.sim.J0.position.x = (this.sim.table_length / 2)  //the edge of the table
+        Simulate.sim.J0 = new THREE.Object3D(); //0,0,0 //does not move w.r.t table.
+        Simulate.sim.J0.rotation.y = Math.PI //radians for 180 degrees
+        Simulate.sim.J0.name = "J0"
+        Simulate.sim.J0.position.y = (Simulate.sim.table_height / 2) //+ (leg_height / 2) //0.06 //for orig boxes model, leg)height was positive, but for legless dexter mounted on table, its probably 0
+        Simulate.sim.J0.position.x = (Simulate.sim.table_length / 3)  //the edge of the table
                                  //- 0.12425 the distance from the edge of the table that Dexter is placed
-        this.sim.table.add(this.sim.J0)
+        Simulate.sim.scene.add(Simulate.sim.J0)
 
         let loader = new GLTFLoader //THREE_GLTFLoader()
+        Simulate.gltfLoader = loader;
         console.log("cur file simulate.js: " + globalThis.location.pathname)
         loader.load(//__dirname + "/HDIMeterModel.gltf", //select_val, //fails
                     //"./HDIMeterModel.gltf", //fails
                     "simulator_server_files/HDIMeterModel.gltf",
                     function(gltf_object3D) { Simulate.fix_up_gltf_and_add(gltf_object3D) }, //modified for dde4
-                    this.undefined,
+                    Simulate.undefined,
                     function (err) {
                         console.error( err );
                     }
@@ -325,7 +494,7 @@ globalThis.Simulate = class Simulate {
 
 //copied from video_js with slight mods
     static fix_up_gltf_and_add(gltf_object3D) {
-    //              this.sim.scene.add(gltf.scene)
+    //              Simulate.sim.scene.add(gltf.scene)
         let root = gltf_object3D.scene;
         let c0 = root.children[0]
         c0.scale.set(0.001, 0.001, 0.001);
@@ -336,23 +505,23 @@ globalThis.Simulate = class Simulate {
                ) {
                 objs.push(c); } } );
         c0.children = objs;
-        //	this.sim.scene.add(root)
-        this.sim.J0.add(root) //fry added in J0 to shift dexter to back of the table.
+        //	Simulate.sim.scene.add(root)
+        Simulate.sim.J0.add(root) //fry added in J0 to shift dexter to back of the table.
 
         //	Set link parent-child relationships.
         //
-        this.gltf_render();		 //	One render here to set the matrices.
+        Simulate.do_animation_loop()
 
         //	Now link.
-        this.chainLink ( objs[0].children, 7 );
-        this.chainLink ( objs[0].children, 6 );
-        this.chainLink ( objs[0].children, 5 );
-        this.chainLink ( objs[0].children, 4 );
-        this.chainLink ( objs[0].children, 3 );
-        this.chainLink ( objs[0].children, 2 );
-        this.chainLink ( objs[0].children, 1 );
+        Simulate.chainLink ( objs[0].children, 7 );
+        Simulate.chainLink ( objs[0].children, 6 );
+        Simulate.chainLink ( objs[0].children, 5 );
+        Simulate.chainLink ( objs[0].children, 4 );
+        Simulate.chainLink ( objs[0].children, 3 );
+        Simulate.chainLink ( objs[0].children, 2 );
+        Simulate.chainLink ( objs[0].children, 1 );
 
-        this.set_joints_in_sim()
+        Simulate.set_joints_in_sim()
     }
 
     //copied from video.js. for fixing gltf child-parent relationships.
@@ -390,284 +559,387 @@ globalThis.Simulate = class Simulate {
     }
 
     static set_joints_in_sim(){
-        this.sim.LINK1 = this.sim.scene.getObjectByName("DexterHDI_MainPivot_KinematicAssembly_v21")
-        this.sim.LINK2 = this.sim.scene.getObjectByName("DexterHDI_Link2_KinematicAssembly_v51")
-        this.sim.LINK3 = this.sim.scene.getObjectByName("DexterHDI_Link3_KinematicAssembly_v21")
-        this.sim.LINK4 = this.sim.scene.getObjectByName("DexterHDI_Link4_KinematicAssembly_v31")
-        this.sim.LINK5 = this.sim.scene.getObjectByName("DexterHDI_Link5_KinematicAssembly_v21")
-        this.sim.LINK6 = this.sim.scene.getObjectByName("DexterHDI_Link6_KinematicAssembly_v31")
-        this.sim.LINK7 = this.sim.scene.getObjectByName("DexterHDI_Link7_KinematicAssembly_v21")
+        Simulate.sim.LINK1 = Simulate.sim.scene.getObjectByName("DexterHDI_MainPivot_KinematicAssembly_v21")
+        Simulate.sim.LINK2 = Simulate.sim.scene.getObjectByName("DexterHDI_Link2_KinematicAssembly_v51")
+        Simulate.sim.LINK3 = Simulate.sim.scene.getObjectByName("DexterHDI_Link3_KinematicAssembly_v21")
+        Simulate.sim.LINK4 = Simulate.sim.scene.getObjectByName("DexterHDI_Link4_KinematicAssembly_v31")
+        Simulate.sim.LINK5 = Simulate.sim.scene.getObjectByName("DexterHDI_Link5_KinematicAssembly_v21")
+        Simulate.sim.LINK6 = Simulate.sim.scene.getObjectByName("DexterHDI_Link6_KinematicAssembly_v31")
+        Simulate.sim.LINK7 = Simulate.sim.scene.getObjectByName("DexterHDI_Link7_KinematicAssembly_v21")
 
-        this.sim.J1 = this.sim.LINK1
-        this.sim.J2 = this.sim.LINK2
-        this.sim.J3 = this.sim.LINK3
-        this.sim.J4 = this.sim.LINK4
-        this.sim.J5 = this.sim.LINK5
-        this.sim.J6 = this.sim.LINK6
-        this.sim.J7 = this.sim.LINK7
+        Simulate.sim.J1 = Simulate.sim.LINK1
+        Simulate.sim.J2 = Simulate.sim.LINK2
+        Simulate.sim.J3 = Simulate.sim.LINK3
+        Simulate.sim.J4 = Simulate.sim.LINK4
+        Simulate.sim.J5 = Simulate.sim.LINK5
+        Simulate.sim.J6 = Simulate.sim.LINK6
+        Simulate.sim.J7 = Simulate.sim.LINK7
     }
 
-    //xyz is in dexter coords, ie z is UP
-    static create_marker_mesh(xyz, rotxyz) { //radius, length, sides
-       let geom = new THREE.ConeGeometry( 0.05,    0.2,     8)
-       let mat  = new THREE.MeshPhongMaterial( { color: 0xFF0000} ); //normal material shows different color for each cube face, easier to see the 3d shape.
-       let the_mesh = new THREE.Mesh(geom, mat)
-       the_mesh.name = "marker"
-       the_mesh.position.x = xyz[1] * -1
-       the_mesh.position.y = xyz[2]   //input z goes to Y in Three. in THREE is up, so grab the z from the input
-       the_mesh.position.z = xyz[0] * -1
-       the_mesh.rotation.x = SimUtils.degrees_to_radians(rotxyz[1]) * -1
-       the_mesh.rotation.y = SimUtils.degrees_to_radians(rotxyz[2])
-       the_mesh.rotation.z = SimUtils.degrees_to_radians(rotxyz[0])
-       this.sim.table.add(the_mesh)
-    }
+    static gripperBox;
 
-//the orig simulator with crude geometry boxes.
-    static createMeshBoxes(){
-                         //Dexcell dimensions
-        this.sim.table_width  = 0.447675,  //width was 1
-        this.sim.table_length = 0.6985,  //length was 2
-        this.sim.table_height = 0.01905  //height (thickness of Dexcell surface). This is 3/4 of an inch. was:  0.1)
-        this.sim.table = this.draw_table(this.sim.scene, this.sim.table_width, this.sim.table_length, this.sim.table_height)
+    static do_animation_loop(){
+        if (SimUtils.is_simulator_showing()) {
+            if(globalThis.interactionManager) {
+                interactionManager.update();
+            }
 
-        //this.draw_tool_rack(this.sim.table, 0.1, 0.3, 0.6) //gets in the way of >>> +Y text
-        //this.draw_caption(this.sim.table, "Dexter 5-axis Robot Simulation")
-        /*this.draw_help("To rotate table, mouse-down then drag.<br/>" +
-                  "To zoom, shift-down then mouse-down then drag.<br/>" +
-                  "To pan, alt or option down, then mouse-down, then drag.")
-                  his is now in the Documentation under Simulate.
-        */
-        let leg_length = Dexter.LEG_LENGTH //m / 1000000 //(Dexter.LINK1 / 1000000) / 0.8 //2
-        let leg_width  = leg_length / 6 //8
-        let leg_height = leg_width
-
-        this.sim.J0 = new THREE.Object3D(); //0,0,0 //does not move w.r.t table.
-        this.sim.J0.name = "J0"
-        this.sim.J0.position.y = (this.sim.table_height / 2) + (leg_height / 2) //0.06
-        this.sim.J0.position.x = (this.sim.table_length / 2)  //the edge of the table
-                             - 0.12425 //the distance from the edge of the table that Dexter is placed
-        this.sim.table.add(this.sim.J0)
-
-
-        this.draw_legs(this.sim.J0, leg_width, leg_length, leg_height)         //0.04, 0.4)
-
-        this.sim.J1 = new THREE.Object3D();
-        this.sim.J1.name = "J1"
-        this.sim.J1.position.y  = 0.05 //0.1
-        this.sim.J0.add(this.sim.J1)
-
-        //this.sim.table.add(this.sim.J1) //scene.add(J1)
-
-        this.sim.LINK1_height  = Dexter.LINK1 //m / 1000000 //0.5
-        this.sim.LINK1_width   = Dexter.LINK1_AVERAGE_DIAMETER //m / 1000000 //this.sim.LINK1_height / 1  //0.3
-        this.sim.LINK1         = this.draw_link(this.sim.J1, this.sim.LINK1_width, this.sim.LINK1_height)
-        this.sim.LINK1.name = "LINK1"
-        this.sim.J2            = new THREE.Object3D()
-        this.sim.J2.name = "J2"
-        this.sim.J2.position.y = this.sim.LINK1_height / 2.0
-        //this.sim.J2.position.z = this.sim.LINK1_width  / 2.0
-        this.sim.LINK1.add(this.sim.J2)
-
-        //this.sim.J2 = new THREE.Object3D();
-        //this.sim.J1.add(this.sim.J2);
-
-        this.sim.LINK2_height  = Dexter.LINK2 //m / 1000000 // 1.0
-        this.sim.LINK2_width   = Dexter.LINK2_AVERAGE_DIAMETER //m / 1000000 //this.sim.LINK2_height / 4, //0.2,
-        this.sim.LINK2         = draw_link(this.sim.J2, this.sim.LINK2_width, this.sim.LINK2_height)
-        this.sim.LINK2.name = "LINK2"
-        let circuit_board = this.draw_circuit_board(this.sim.LINK2, this.sim.LINK2_width, this.sim.LINK2_height)
-        //LINK2.position.y += 0.12 //extra rise to arm0 to get it to appear to sit on top of the legs.
-        this.sim.J3            = new THREE.Object3D();
-        this.sim.J3.name = "J3"
-        this.sim.J3.position.y = this.sim.LINK2_height / 2.0
-        this.sim.LINK2.add(this.sim.J3)
-
-        this.sim.LINK3_height  = Dexter.LINK3 //m / 1000000 //0.9
-        this.sim.LINK3_width   = Dexter.LINK3_AVERAGE_DIAMETER //m / 1000000 //this.sim.LINK3_height / 6 // 0.1
-        this.sim.LINK3         = this.draw_link(this.sim.J3, this.sim.LINK3_width, this.sim.LINK3_height)
-        this.sim.LINK3.name = "LINK3"
-        this.sim.J4            = new THREE.Object3D();
-        this.sim.J4.name = "J4"
-        this.sim.J4.position.y = this.sim.LINK3_height / 2.0
-        this.sim.LINK3.add(this.sim.J4)
-
-        this.sim.LINK4_height  = Dexter.LINK4 //m / 1000000 //0.8
-        this.sim.LINK4_width   = Dexter.LINK4_AVERAGE_DIAMETER //m / 1000000 //this.sim.LINK4_height / 4 // 0.05
-        this.sim.LINK4         = this.draw_link(this.sim.J4, this.sim.LINK4_width, this.sim.LINK4_height)
-        this.sim.LINK4.name = "LINK4"
-        this.sim.J5            = new THREE.Object3D();
-        this.sim.J5.name = "J5"
-        this.sim.J5.position.y = this.sim.LINK4_height / 2.0
-        this.sim.J5.rotation.z = Math.PI / 2
-        this.sim.LINK4.add(this.sim.J5)
-
-        this.sim.LINK5_height = Dexter.LINK5 //m / 1000000 //0.125
-        this.sim.LINK5_width  = Dexter.LINK5_AVERAGE_DIAMETER //m / 1000000 //this.sim.LINK5_height / 4 //0.05
-        this.sim.LINK5        = this.draw_link(this.sim.J5, this.sim.LINK5_width, this.sim.LINK5_height)
-        this.sim.LINK5.name = "LINK5"
-        //below only for the "random flailing demo"
-    }
-
-
-    static render_demo = function () {
-        if(!this.sim.LINK2_bending) { //initialize demo
-            this.sim.LINK2_bending = "+" //start out increasing link2 bending
-            this.sim.LINK3_bending = "+"
-            this.sim.LINK3_bending = "+"
-            this.sim.LINK4_bending = "+"
-        }
-        if (this.sim.enable_rendering){
-            requestAnimationFrame( this.render_demo );
-            this.sim.J1.rotation.y += 0.001 //twisting the base.
-            //ossolate arm0 bending
-            if (this.sim.LINK2_bending == "+") {
-                if (this.sim.J2.rotation.z > 0.5) {
-                    this.sim.LINK2_bending = "-"
-                    this.sim.J2.rotation.z -= 0.01
+            if(Simulate.sim.J6 != undefined)
+            {
+                if(Simulate.gripperBox == undefined)
+                {
+                    Simulate.gripperBox = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)), new THREE.LineBasicMaterial( { color: 0xff0000 }));
+                    Simulate.gripperBox.scale.set(0.0,0.25,0.6);
+                    Simulate.gripperBox.position.set(0,0,-0.65);
+                    Simulate.sim.J6.add(Simulate.gripperBox);
+                    Simulate.gripperBox.visible = false;
                 }
-                else {
-                    this.sim.J2.rotation.z += 0.01
-                }
-            }
-            //we are in "-" bend mode
-            else if(this.sim.J2.rotation.z < -0.5){
-                this.sim.LINK2_bending = "+"
-                this.sim.J2.rotation.z += 0.01
-            }
-            else {
-                this.sim.J2.rotation.z -= 0.01
-            }
 
-            if (this.sim.LINK3_bending == "+") {
-                if (this.sim.J3.rotation.z > 2.5) {
-                    this.sim.LINK3_bending = "-"
-                    this.sim.J3.rotation.z -= 0.01
-                }
-                else {
-                    this.sim.J3.rotation.z += 0.01
-                }
+                Simulate.update_joints();
             }
-            //we are in "-" bend mode
-            else if(this.sim.J3.rotation.z < -2.5){
-                this.sim.LINK3_bending = "+"
-                this.sim.J3.rotation.z += 0.01
-            }
-            else {
-                this.sim.J3.rotation.z -= 0.01
-            }
-
-            if (this.sim.LINK4_bending == "+") {
-                if (this.sim.J4.rotation.z > 2.5) {
-                    this.sim.LINK4_bending = "-"
-                    this.sim.J4.rotation.z -= 0.01
-                }
-                else {
-                    this.sim.J4.rotation.z += 0.01
-                }
-            }
-            //we are in "-" bend mode
-            else if(this.sim.J4.rotation.z < -2.5){
-                this.sim.LINK4_bending = "+"
-                this.sim.J4.rotation.z += 0.01
-            }
-            else {
-                this.sim.J4.rotation.z -= 0.01
-            }
-
-            this.sim.J5.rotation.x += 0.02 //5th axis end effector twist
-
-            //rotate table when user clicks down and drags.
-            /*if (this.sim.mouseDown){
-                this.sim_handle_mouse_move()
-            }*/
-            //this.sim.renderer.render(this.sim.scene, this.sim.camera);
-        }
-    };
-
-    static sim_handle_mouse_move(){
-        var mouseX_diff =  this.sim.mouseX - this.sim.mouseX_at_mouseDown //positive if moving right, neg if moving left
-        var mouseY_diff =  this.sim.mouseY - this.sim.mouseY_at_mouseDown //positive if moving right, neg if moving left
-        if (this.sim.shiftDown){
-            //alert(camera.zoom)  //camera.zoom starts at 1
-            var zoom_increment = mouseX_diff / 100.0
-            this.sim.camera.zoom = this.sim.zoom_at_mouseDown + zoom_increment //(spdy * 0.1)
-            this.sim.camera.updateProjectionMatrix()
-        }
-        else if (this.sim.altDown || (this.sim.button == 1)){
-            var panX_inc = mouseX_diff / 100
-            var panY_inc = mouseY_diff / 100
-            this.sim.table.position.x =  this.sim.tableX_at_mouseDown + panX_inc
-            this.sim.table.position.y =  this.sim.tableY_at_mouseDown - panY_inc
-        }
-        else {
-            let newX = this.sim.rotationX_at_mouseDown + (mouseY_diff / 100);
-            if(newX<=Math.PI*0.5&&newX>=-Math.PI*0.5)this.sim.table.rotation.x = newX;
-            this.sim.table.rotation.y = this.sim.rotationY_at_mouseDown + (mouseX_diff / 100)
+            Simulate.update_camera();
+            Simulate.updatePhysics(1/60);
+            Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
+            Simulate.lastJ7Pos = Simulate.currentJ7Pos;
         }
     }
 
 
+    static jointsTarget = [0,0,0,0,0,0,0];
+    static atTarget = true;
+
+    static dexter_sim_instance;
+    static target_dT = 1000/60;
+
+    static lastJ7Pos = 180;
+    static currentJ7Pos = 180;
+
+    static dynamixel_320_to_rad(steps)
+    {
+        let out = (Math.PI*Socket.DEGREES_PER_DYNAMIXEL_320_UNIT*steps/180) ;
+        // if(out<0)
+        // {
+        //     out = Math.PI*2 + out;
+        // }
+        return out;
+    }
+
+    static rad_to_dynamixel_320(rads)
+    {
+        return 180*rads/(Math.PI*Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+    }
+
+    /* List of places that reference Simulate:
+    simqueue.js 119 add_to_queue; Updates target position for J6 and J7 as Simulate happens as soon as an a command is added to the queue
+    simutils.js 65 render_multi; Updates joints 1-5 when an a command is actually run
+    */
+    static update_joints()
+    {
+        if(Simulate.dexter_sim_instance != undefined)
+        {
+            let max_speed_rad = Math.PI*Simulate.dexter_sim_instance.parameters["AngularSpeed"] / (3600*180);
+            let max_speed_rad_servo = Kin.dynamixel_320_degrees_per_second * Math.PI/180;
+            
+            
+            let joint_diffs = [];
+            let max_diff = 0;
+            // Get the differences between the current arm angles and target arm angles and also save the highest difference in a variable
+            for(let i = 0; i < 7; i++)
+            {
+                let current_angle_rads = Math.PI*Simulate.dexter_sim_instance.angles_dexter_units[i]/ (3600*180);
+                if(i == 5)
+                {
+                    current_angle_rads = Simulate.dynamixel_320_to_rad(Simulate.dexter_sim_instance.angles_dexter_units[i]- Socket.J6_OFFSET_SERVO_UNITS);
+                }
+                if(i == 6)
+                {
+                    current_angle_rads = Simulate.dynamixel_320_to_rad(Simulate.dexter_sim_instance.angles_dexter_units[i]);
+                }
+
+                
+                let joint_diff = Simulate.jointsTarget[i]-current_angle_rads;
+                if(isNaN(joint_diff))
+                {
+                    joint_diff = 0;
+                }
+                joint_diffs.push(joint_diff);
+                
+                if(Math.abs(joint_diff) > max_diff && i < 5)
+                {
+                    max_diff = Math.abs(joint_diff);
+                }
+            }
+
+            // If the arm is within 2 times the minimum possible step size then consider it to be at the target
+            if(max_diff < max_speed_rad * (Simulate.target_dT/1000) * 2)
+            {
+                // Set the current angle to the target angle to eliminate any remaining error
+                for(let i = 0; i < 5; i++)
+                {
+                    Simulate.dexter_sim_instance.angles_dexter_units[i] = Simulate.jointsTarget[i] * (3600*180) / Math.PI;
+                }
+                // If it wasn't at the target position before but it is now, tell the queue that the action is done
+                if(!Simulate.atTarget)
+                {
+                    Simulate.dexter_sim_instance.queue_instance.done_with_instruction();
+                    Simulate.atTarget = true;
+                }
+            }
+
+            let j6_at_target = false;
+            if(Math.abs(joint_diffs[5]) < max_speed_rad_servo * (Simulate.target_dT/1000) * 1.01)
+            {
+                j6_at_target = true;
+                Simulate.dexter_sim_instance.angles_dexter_units[5] =  Simulate.rad_to_dynamixel_320(Simulate.jointsTarget[5]) + Socket.J6_OFFSET_SERVO_UNITS;
+            }
+
+            let j7_at_target = false;
+            if(Math.abs(joint_diffs[6]) < max_speed_rad_servo * (Simulate.target_dT/1000) * 1.01)
+            {
+                j7_at_target = true;
+                Simulate.dexter_sim_instance.angles_dexter_units[6] =  Simulate.rad_to_dynamixel_320(Simulate.jointsTarget[6]);
+            }
+
+
+            // Stop the movement if told to stop
+            if(Simulate.dexter_sim_instance.queue_instance.stop_ongoing && !Simulate.atTarget)
+            {
+                // Set target angle to the current angle so that the arm stays in place
+                for(let i = 0; i < 5; i++)
+                {
+                    Simulate.jointsTarget[i] = Math.PI * Simulate.dexter_sim_instance.angles_dexter_units[i] / (3600*180);
+                    Simulate.dexter_sim_instance.queue_instance.done_with_instruction();
+                    Simulate.atTarget = true;
+                }
+            }
+
+            // Update the arm
+            for(let i = 0; i < 7; i++)
+            {
+                // Calculate how far the arm needs to move Simulate frame
+                let joint_step_rad = (Simulate.target_dT/1000) * max_speed_rad * joint_diffs[i] / max_diff;
+
+                // If it is not already at the target position, move the arm by the step calculated above
+                if(!Simulate.atTarget && i < 5)
+                {
+                    Simulate.dexter_sim_instance.angles_dexter_units[i] += joint_step_rad * (3600*180) / Math.PI;
+                }
+                // Get the new joint angle in radians
+                let updated_angle_rad = Math.PI*Simulate.dexter_sim_instance.angles_dexter_units[i]/ (3600*180);
+
+                if(i == 5)
+                {
+                    updated_angle_rad = Simulate.dynamixel_320_to_rad(Simulate.dexter_sim_instance.angles_dexter_units[i]- Socket.J6_OFFSET_SERVO_UNITS);
+                }
+                if(i == 6)
+                {
+                    updated_angle_rad = Simulate.dynamixel_320_to_rad(Simulate.dexter_sim_instance.angles_dexter_units[i]);
+                }
+
+                // Update the joint in the sim
+                let y_or_z = (((i === 0) || (i === 4)) ? "y" : "z");
+                if(i < 5) // Joints 1 - 5
+                {
+                    Simulate.sim["J"+(i+1)].rotation[y_or_z] = -updated_angle_rad;
+                }
+                else if(i == 5) // Joint 6
+                {
+                    Simulate.sim["J"+(i+1)].rotation[y_or_z] = updated_angle_rad;
+                }
+                else // Joint 7
+                {
+                    let angle_deg = updated_angle_rad*180/Math.PI;
+                    let new_xpos = ((angle_deg * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
+                    new_xpos *= 10;
+                    Simulate.gripperBox.scale.x = (new_xpos-0.018);
+                    Simulate.gripperBox.position.x = (new_xpos-0.018)/2;
+                    Simulate.sim.J7.position.setX(new_xpos);
+                }
+                
+
+                // Update the text value in the sim header
+                globalThis["sim_pane_j" + (i+1) + "_id"].innerHTML = Math.round(updated_angle_rad*180/Math.PI);
+
+                if(i==6)
+                {
+                    Simulate.currentJ7Pos = updated_angle_rad*180/Math.PI;
+                }
+            }
+
+            let servo_step_rad = (Simulate.target_dT/1000) * max_speed_rad_servo * (180) / (Math.PI*Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+            if(!j6_at_target)
+            {
+                Simulate.dexter_sim_instance.angles_dexter_units[5] += Math.sign( joint_diffs[5]) * servo_step_rad ;
+            }
+            if(!j7_at_target)
+            {
+                Simulate.dexter_sim_instance.angles_dexter_units[6] += Math.sign( joint_diffs[6]) * servo_step_rad ;
+            }
+
+        }
+    }
+
+    static update_xyz_in_sim_pane()
+    {
+        let xyz = Kin.J_angles_to_xyz(angle_degrees_array, rob_pose)[0]
+
+        let str_length
+        let x = xyz[0]
+        if(x < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
+        else      { str_length = 5}
+        if(SimUtils.is_simulator_showing()) {
+            sim_pane_x_id.innerHTML = ("" + x).substring(0, str_length)
+        }
+        let y = xyz[1]
+        if(y < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
+        else      { str_length = 5}
+        if(SimUtils.is_simulator_showing()) {
+            sim_pane_y_id.innerHTML = ("" + y).substring(0, str_length)
+        }
+        let z = xyz[2]
+        if(z < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
+        else      { str_length = 5}
+        if(SimUtils.is_simulator_showing()) {
+            sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length)
+        }
+    }
 
     //set up drag mouse to rotate table
-    static init_mouse(){
-        this.sim.mouseX_at_mouseDown    = 0
-        this.sim.mouseY_at_mouseDown    = 0
-        this.sim.tableX_at_mouseDown    = 0
-        this.sim.tableY_at_mouseDown    = 0
-        this.sim.zoom_at_mouseDown      = 1
-        this.sim.rotationX_at_mouseDown = 0
-        this.sim.rotationY_at_mouseDown = 0
 
-        sim_graphics_pane_id.addEventListener("mousedown", function(event) {
-            //must use Simulate, not "this" for referncing "sim".
-            Simulate.sim.button = event.button
-            Simulate.sim.mouseDown              = true
-            Simulate.sim.shiftDown              = event.shiftKey
-            Simulate.sim.altDown                = event.altKey
-            Simulate.sim.mouseX_at_mouseDown    = event.clientX
-            Simulate.sim.mouseY_at_mouseDown    = event.clientY
-            Simulate.sim.tableX_at_mouseDown    = Simulate.sim.table.position.x
-            Simulate.sim.tableY_at_mouseDown    = Simulate.sim.table.position.y
-            Simulate.sim.zoom_at_mouseDown      = Simulate.sim.camera.zoom
-            Simulate.sim.rotationX_at_mouseDown = Simulate.sim.table.rotation.x
-            Simulate.sim.rotationY_at_mouseDown = Simulate.sim.table.rotation.y
+    static orbit_speed = 5.0;
+    static   pan_speed = 2.5;
+    static init_mouse(){
+
+        sim_graphics_pane_id.addEventListener("mousedown", (event) => {
+            Simulate.mouse.down = true;
+            Simulate.mouse.shiftDown = event.shiftKey;
+            Simulate.mouse.ctrlDown  = event.ctrlKey ;
         }, false);
 
-        sim_graphics_pane_id.addEventListener('mousemove', function(event) {
-            //must use Simulate, not "this" for referncing "sim".
-            if (Simulate.sim.mouseDown){
-                Simulate.sim.mouseX = event.clientX;
-                Simulate.sim.mouseY = event.clientY;
-                Simulate.sim_handle_mouse_move()
-                //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
-                SimUtils.render()
+        sim_graphics_pane_id.addEventListener("wheel",(event)=>{
+            Simulate.orbit.zoom *=1.05**(-event.deltaY*0.02);
+            Simulate.target_orbit.zoom = Simulate.orbit.zoom;
+        });
+
+        window.addEventListener('mousemove', (event) => {
+            Simulate.mouse.shiftDown = event.shiftKey;
+            Simulate.mouse.ctrlDown  = event.ctrlKey ;
+            Simulate.mouse.x  = event.offsetX;
+            Simulate.mouse.y  = event.offsetY;
+            Simulate.mouse.mX = -event.movementX;
+            Simulate.mouse.mY = -event.movementY;
+
+            if(Simulate.mouse.down && !Simulate.mouse.shiftDown)
+            {
+                Simulate.orbit.rotation_yaw   += Simulate.orbit_speed*Simulate.mouse.mX/Simulate.canSize.height;
+                Simulate.orbit.rotation_pitch += Simulate.orbit_speed*Simulate.mouse.mY/Simulate.canSize.height;
+                Simulate.orbit.rotation_pitch = Math.min(Math.max(Simulate.orbit.rotation_pitch,-Math.PI/2),Math.PI/2);
+
+                Simulate.target_orbit.rotation_yaw   = Simulate.orbit.rotation_yaw   ;
+                Simulate.target_orbit.rotation_pitch = Simulate.orbit.rotation_pitch ;
+            }
+            else if(Simulate.mouse.down && Simulate.mouse.shiftDown)
+            {
+                Simulate.pan_orbit(
+                     Simulate.pan_speed*Simulate.mouse.mX/(Simulate.canSize.height*Simulate.orbit.zoom),
+                    -Simulate.pan_speed*Simulate.mouse.mY/(Simulate.canSize.height*Simulate.orbit.zoom)
+                )
             }
         }, false);
 
-        sim_graphics_pane_id.addEventListener("mouseup", function(event) {
-            Simulate.sim.mouseDown = false
-            Simulate.sim.shiftDown = false
-            Simulate.sim.altDown   = false
+
+        window.addEventListener("mouseup", (event) => {
+            Simulate.mouse.down = false;
         }, false);
+    }
+
+    static pan_orbit(x_movement,y_movement)
+    {
+        // Unit vector pointing to the right from the camera's point of view
+        let x_vec = {
+            x:  Math.cos(Simulate.orbit.rotation_yaw),
+            y:  0,
+            z: -Math.sin(Simulate.orbit.rotation_yaw)
+        };
+        // Unit vector pointing up from the camera's point of view
+        let y_vec = {
+            x: Math.sin(Simulate.orbit.rotation_yaw)*Math.sin(Simulate.orbit.rotation_pitch),
+            y:                               1.0*Math.cos(Simulate.orbit.rotation_pitch),
+            z: Math.cos(Simulate.orbit.rotation_yaw)*Math.sin(Simulate.orbit.rotation_pitch)
+        };
+
+        Simulate.orbit.center_x += x_movement * x_vec.x + y_movement * y_vec.x;
+        Simulate.orbit.center_y += x_movement * x_vec.y + y_movement * y_vec.y;
+        Simulate.orbit.center_z += x_movement * x_vec.z + y_movement * y_vec.z;
+
+        Simulate.target_orbit.center_x = Simulate.orbit.center_x;
+        Simulate.target_orbit.center_y = Simulate.orbit.center_y;
+        Simulate.target_orbit.center_z = Simulate.orbit.center_z;
+    }
+    
+    static update_camera()
+    {
+        Simulate.update_camera_smooth_tracking();
+        Simulate.sim.camera.rotation.y = Simulate.orbit.rotation_yaw;
+        Simulate.sim.camera.rotation.x = Simulate.orbit.rotation_pitch;
+
+
+        Simulate.sim.camera.position.x = Simulate.orbit.center_x+Simulate.orbit.radius*Math.cos(Simulate.orbit.rotation_pitch)*Math.sin(Simulate.orbit.rotation_yaw);
+        Simulate.sim.camera.position.z = Simulate.orbit.center_z+Simulate.orbit.radius*Math.cos(Simulate.orbit.rotation_pitch)*Math.cos(Simulate.orbit.rotation_yaw);
+        Simulate.sim.camera.position.y = Simulate.orbit.center_y+Simulate.orbit.radius*Math.sin(-Simulate.orbit.rotation_pitch);
+
+
+        Simulate.sim.camera.zoom = Simulate.orbit.zoom;
+        Simulate.sim.camera.updateProjectionMatrix();
+    }
+    static camera_track_step = 0.05;
+    static camera_track_zoom_step = 0.05;
+    static update_camera_smooth_tracking()
+    {
+        let center_x_diff = Simulate.target_orbit.center_x-Simulate.orbit.center_x;
+        let center_x_speed = Simulate.camera_track_step*Math.sqrt(Math.abs(center_x_diff));
+        Simulate.orbit.center_x += Math.sign(center_x_diff)*Math.min(center_x_speed,Math.abs(center_x_diff));
+
+        let center_y_diff = Simulate.target_orbit.center_y-Simulate.orbit.center_y;
+        let center_y_speed = Simulate.camera_track_step*Math.sqrt(Math.abs(center_y_diff));
+        Simulate.orbit.center_y += Math.sign(center_y_diff)*Math.min(center_y_speed,Math.abs(center_y_diff));
+
+        let center_z_diff = Simulate.target_orbit.center_z-Simulate.orbit.center_z;
+        let center_z_speed = Simulate.camera_track_step*Math.sqrt(Math.abs(center_z_diff));
+        Simulate.orbit.center_z += Math.sign(center_z_diff)*Math.min(center_z_speed,Math.abs(center_z_diff));
+
+        let yaw_diff = Simulate.target_orbit.rotation_yaw-Simulate.orbit.rotation_yaw;
+        yaw_diff %= 2*Math.PI;
+        if(yaw_diff<0){yaw_diff+=2*Math.PI}
+        if(yaw_diff>Math.PI){yaw_diff-=2*Math.PI}
+
+        let yaw_speed = Simulate.camera_track_step*Math.sqrt(Math.abs(yaw_diff));
+        Simulate.orbit.rotation_yaw   += Math.sign(yaw_diff)*Math.min(yaw_speed,Math.abs(yaw_diff));
+        
+        let pitch_diff = Simulate.target_orbit.rotation_pitch-Simulate.orbit.rotation_pitch;
+        let pitch_speed = Simulate.camera_track_step*Math.sqrt(Math.abs(pitch_diff));
+        Simulate.orbit.rotation_pitch   += Math.sign(pitch_diff)*Math.min(pitch_speed,Math.abs(pitch_diff));
+
+        let zoom_diff = 1.0/Simulate.target_orbit.zoom-1.0/Simulate.orbit.zoom;
+        let zoom_speed = Simulate.camera_track_step*Math.sqrt(Math.abs(zoom_diff));
+        Simulate.orbit.zoom   = 1.0/(1.0/Simulate.orbit.zoom+Math.sign(zoom_diff)*Math.min(zoom_speed,Math.abs(zoom_diff)));
+    }
+    static new_draw_table(width,length,height)
+    {
+        let physTable = PhysicsObject.createBox({x:width,y:height,z:length},{x:0,y:0,z:0},0,0xFFFFFF);
+        physTable.rigid_body.setFriction(0.7);
+        let table = physTable.mesh;
+        table.name = "table";
+        Simulate.sim.table = table;
+
+        let tableTex = new THREE.TextureLoader().load( "assets/DexterGrid.png" );
+        physTable.mesh.material.map = tableTex;
+        
+
     }
 
     static draw_table(parent, table_width, table_length, table_height){
-        var geometryt    = new THREE.BoxGeometry(table_length, table_height, table_width);
-        var materialt    = new THREE.MeshPhongMaterial( { color: 0xFFFFFF} ); //normal material shows different color for each cube face, easier to see the 3d shape.
-        this.sim.table   = new THREE.Mesh(geometryt, materialt)
-        this.sim.table.name = "table"
-        this.sim.table.receiveShadow = true;
-
-        this.sim.table.position.x = 0 //-3.85
-        this.sim.table.position.y = 0 //2.47
-        this.sim.table.position.z = -1 //0
-
-        this.sim.table.rotation.x = Math.PI*0.25 //0 //0.53
-        this.sim.table.rotation.y = Math.PI*0.25 //5 shows table with +x to right, and +y away from camera. 1.8 //0 //-0.44
-        this.sim.table.rotation.z = 0
-        parent.add(this.sim.table)
-
-        //draw lines on table
+        // draw lines on table
         var sizew = table_width
         let step = 0.05 //dexcell holes are 0.25 apart and 0,0 is in the CENTER of one of the cells
                         // that has 4 holes as corners 0.2;
@@ -688,7 +960,7 @@ globalThis.Simulate = class Simulate {
         var material = new THREE.LineBasicMaterial({color: 'gray'});
         var line = new THREE.LineSegments( geometry, material ); //new THREE.Line( geometry, material, THREE.LinePieces);
         line.name = "table_line_segments"
-        this.sim.table.add(line);
+        Simulate.sim.table.add(line);
 
         //let x_text_mesh = new THREE_Text2D.MeshText2D(">> +X", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true })
         if(globalThis.hel_font) { //protect against failure to load the font. Don't do the below if no font as it will error in the console, but rest of code will still run
@@ -715,30 +987,10 @@ globalThis.Simulate = class Simulate {
             text_material = new THREE.MeshPhongMaterial()
             text_material.color.set("#00FF00")
             text_mesh = new THREE.Mesh(text_geo, text_material)
-            //this.sim.table.add(x_text_mesh)
-            this.sim.table.add(text_mesh)
+            //Simulate.sim.table.add(x_text_mesh)
+            Simulate.sim.table.add(text_mesh)
 
-           /* //______Y label______
-            text_geo = new TextGeometry(">> +Y", //, {font: globalThis.hel_font})
-                {  font: hel_font,
-                    size:  20, //100 is the default
-                    height: 5 //50 is the default
-                })
-            text_geo.name = "y_axis_label"
-            text_material = new THREE.MeshPhongMaterial()
-            text_material.color.set("#00FF00")
-            text_mesh = new THREE.Mesh(text_geo, text_material)
-            text_mesh.rotateX(1.5708) //0) //1.5708)
-            text_mesh.rotateY(0) //1.5708)
-            text_mesh.rotateZ(Math.PI)//1.5708)
-            text_mesh.scale.x = 0.007
-            text_mesh.scale.y = 0.007
-            text_mesh.scale.z = 0.007
-            text_mesh.translateX(0.4) //0.22) //0.11, //moves in dde y axis
-            text_mesh.translateY(0) //-0.28, //0,    //0.055, //moves in dde x axis
-            text_mesh.translateZ(0)     //-0.2
-            this.sim.table.add(text_mesh)
-            */
+        
             //______Y label______
             text_geo = new TextGeometry(">> +Y", //, {font: globalThis.hel_font})
                 {  font: hel_font,
@@ -758,7 +1010,7 @@ globalThis.Simulate = class Simulate {
             text_mesh.translateX(0.4) //0.22) //0.11, //moves in dde y axis
             text_mesh.translateY(0) //-0.28, //0,    //0.055, //moves in dde x axis
             text_mesh.translateZ(0)//______Y label______
-            this.sim.table.add(text_mesh)
+            Simulate.sim.table.add(text_mesh)
 
             //________Z Label
             text_geo = new TextGeometry(">> +Z", //, {font: globalThis.hel_font})
@@ -779,357 +1031,134 @@ globalThis.Simulate = class Simulate {
             text_mesh.translateX(0) //dde z axis 0.4) //0.22) //0.11, //moves in dde y axis
             text_mesh.translateY(0)   //dde x axis -0.8) //-0.28, //0,    //0.055, //moves in dde x axis
             text_mesh.translateZ(0.5) //dde y axis 0)
-            this.sim.table.add(text_mesh)
+            Simulate.sim.table.add(text_mesh)
 
         }
-        /*let y_text_mesh = new THREE_Text2D.MeshText2D(">> +Y", { align: THREE_Text2D.textAlign.left, font: '30px Arial', fillStyle: '#00FF00', antialias: true })
-        y_text_mesh.name = "y_axis_label"
-        y_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
-        y_text_mesh.position.set(-0.2, 0.055, 0.11) //= THREE.Vector3(20, 8, -10)
-                            //For the XYZ in THREE (not in dde & robot)
-                            //Three +x is further away from the tool rack in the horiz plane
-                            // Three +y is up on the screen, DDE Z. the 0.05 val is just barely above the table surface
-                            //+z is in horiz plane towards the camera, orthogonal to x
-                            //dexter has +z pointing up
-        //text_mesh.position.y = 8 //0, -1
-        //text_mesh.position.z = -10
-        y_text_mesh.rotation.x = Math.PI / -2 //-1.5708 //90 degrees, now parallel to plane of table with the letters readable from the top
-        y_text_mesh.rotation.z = Math.PI
-        this.sim.table.add(y_text_mesh)
 
-        let z_text_mesh = new THREE_Text2D.MeshText2D(">> +Z", { align: THREE_Text2D.textAlign.left, font: '20px Arial', fillStyle: '#00FF00', antialias: true })
-        z_text_mesh.name = "z_axis_label"
-        z_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
-        z_text_mesh.position.set(0.4, //1,
-                                 0.055,
-                                 0.2 //0 //-0.3) //= THREE.Vector3(20, 8, -10)
-                                 )
-        //For the XYZ in THREE (not in dde & robot)
-        //+x is further away from the tool rack in the horiz plane
-        // y is up and down on the screen
-        //+z is in horiz plane towards the camera, orthogonal to x
-        //text_mesh.position.y = 8 //0, -1
-        //text_mesh.position.z = -10
-        z_text_mesh.rotation.x = Math.PI //0 //-1.5708 //90 degrees, now parallel to plane of table with the letters readable from the top
-        z_text_mesh.rotation.z = Math.PI / -2 //-1.5708
-        z_text_mesh.rotation.y = -Math.PI / -2 //was +Math
-        this.sim.table.add(z_text_mesh)
-
-        let table_bottom_text_mesh = new THREE_Text2D.MeshText2D("Dexcell", { align: THREE_Text2D.textAlign.left, font: '20px Arial', fillStyle: '#FF0000', antialias: true })
-        table_bottom_text_mesh.name = "table_bottom_label"
-        table_bottom_text_mesh.scale.set(0.007, 0.007, 0.007) // = THREE.Vector3(0.1, 0.1, 0.1)
-        table_bottom_text_mesh.position.set(0.35, //0.4  1,
-            0.01, //0.055,
-            0.22 //0.2 //0 //-0.3) //= THREE.Vector3(20, 8, -10)
-        )
-        table_bottom_text_mesh.rotation.x = 0 //Math.PI //0 //-1.5708 //90 degrees, now parallel to plane of table with the letters readable from the top
-        table_bottom_text_mesh.rotation.z = 0 //Math.PI / -2 //-1.5708
-        table_bottom_text_mesh.rotation.y = -Math.PI / -2 //was +Math
-        this.sim.table.add(table_bottom_text_mesh)
-*/
-        //todo dde4 something like the below applied to the labels of text above
-        //might work for dde4
-        //see https://threejs.org/docs/#examples/en/geometries/TextGeometry
-        //note that helvetiker_regular.typeface.json is in
-        //dde4 node_modules/three/examples/fonts/helvetiker_regular.typeface.json
-        /*THREE_font_loader.load( 'user_tools/helvetiker_regular.typeface.json', function ( font ) {
-            let text_geometry = new THREE.TextGeometry( 'Hello three.js and something much longer to see!', {
-                font: font,
-                size: 80,
-                height: 5,
-                curveSegments: 12,
-                bevelEnabled: true,
-                bevelThickness: 10,
-                bevelSize: 8,
-                bevelOffset: 0,
-                bevelSegments: 5
-            } )
-            let text_materialt    = new THREE.MeshBasicMaterial( { color: 0xFFFFFF} );
-            let table_text_mesh  = new THREE.Mesh(text_geometry, text_materialt)
-            //this.sim.table.add(table_text);
-            table_text_mesh.position.y  = 0 //-0.4
-            table_text_mesh.position.x  = 0 //-0.8
-            parent.add(table_text_mesh);
-        } )*/
-
-        return this.sim.table
+        return Simulate.sim.table
     }
-
-    //now not used
-    static draw_tool_rack(parent, width, height, depth){
-        var geometryt    = new THREE.BoxGeometry(width, height, depth);
-        var materialt    = new THREE.MeshNormalMaterial({}); //normal material shows differnt color for each cube fface, easier to see the 3d shape.
-        this.sim.rack         = new THREE.Mesh(geometryt, materialt)
-        this.sim.rack.position.y  = 0.2
-        this.sim.rack.position.x  = -0.9
-        this.sim.rack.name = "rack"
-        parent.add(this.sim.rack)
-        var text2 = document.createElement('div');
-        text2.style.position = 'absolute';
-        text2.style.color = "white"
-        text2.style.fontSize = "20px"
-        text2.style.backgroundColor = "black";
-        text2.innerHTML  = "Tool<br/>Rack";
-        text2.style.top  = 500 + 'px';
-        text2.style.left = text2.style.left = ((globalThis.innerWidth / 2) - 330) + 'px' //keeps text just to left of took rack even if width of window is resized.
-        sim_graphics_pane_id.appendChild(text2);
-        return this.sim.rack
-    }
-
-    static draw_legs(parent, leg_width, leg_length, leg_height) {
-        var geometryleg = new THREE.BoxGeometry(leg_length, leg_width, leg_height);
-        var materialleg = new THREE.MeshNormalMaterial({}); //normal material shows differnt color for each cube face, easier to see the 3d shape.
-        var angle_between_legs_in_rad = (2 * Math.PI) / 6  //360 / 6 = 60 degrees //angles are in radians. 2PI rad = 360 degrees
-        for (var i = 0; i < 6; i++) {
-            var leg = new THREE.Mesh(geometryleg, materialleg);
-            leg.name = "leg" + i
-            leg.position.x = leg_length / 2.0
-            var pivotleg = new THREE.Object3D();
-            pivotleg.name = "pivotleg" + i
-            pivotleg.rotation.y = angle_between_legs_in_rad * i
-            pivotleg.add(leg)
-            parent.add(pivotleg)
-        }
-    }
-
-    static draw_link (parent, width, height){
-        var geometry = new THREE.BoxGeometry(width, height, width);
-        var material = new THREE.MeshNormalMaterial({}); //normal material shows different color for each cube face, easier to see the 3d shape.
-        //var material = THREE.MeshLambertMaterial( { color: 0xFF0000 } ); errors in threejs code :this.setValues is not a funciton"
-        //var material    = new THREE.MeshBasicMaterial( { color: 0xAAFFAA} ); //doesn't error but just shows 1 color for whole object and no change with directional lighting.
-
-        var arm = new THREE.Mesh(geometry, material);
-        arm.position.y = (height / 2.0) - (width / 2.0)
-        parent.add(arm)
-        return arm
-    }
-
-    //oarent in Link2
-    static draw_circuit_board (parent, link2_width, link_2_height){
-        var geometry = new THREE.BoxGeometry(link2_width, link_2_height / 2, link2_width / 2);
-        var material = new THREE.MeshBasicMaterial( { color: 0x941100} ) //maroon color of the circuit board
-        //var material = THREE.MeshLambertMaterial( { color: 0xFF0000 } ); errors in threejs code :this.setValues is not a funciton"
-        //var material    = new THREE.MeshBasicMaterial( { color: 0xAAFFAA} ); //doesn't error but just shows 1 color for whole object and no change with directional lighting.
-
-        var circuit_board = new THREE.Mesh(geometry, material);
-        circuit_board.position.y = 0 //(link_2_height / 8.0) //- (link2_width / 2.0)
-        circuit_board.position.x = 0 //link2_width * 2  //this should probably be 0
-        circuit_board.position.z = link2_width * -0.7
-        parent.add(circuit_board)
-        return circuit_board
-    }
-
-
-
-    static draw_caption(parent, text){
-        var text2 = document.createElement('div');
-        text2.style.position = 'absolute';
-        //text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
-        //text2.style.width = 100;
-        //text2.style.height = 100;
-        text2.style.color = "white"
-        text2.style.fontSize = "36px"
-        text2.style.backgroundColor = "black";
-        text2.innerHTML = text;
-        text2.style.top = 675 + 'px';
-        text2.style.left = ((globalThis.innerWidth / 2) - 200) + 'px'  //keeps teh caption centerd under the table despite differnt window widths. //140 + 'px';
-        sim_graphics_pane_id.appendChild(text2);
-
-        /* uysing 3d text is busted. Maybe becuse the size ahd height are less than 1?
-         var geometry = new THREE.TextGeometry(text, {size:0.1, height:0.4});  //doc at http://threejs.org/docs/#Reference/Extras.Geometries/TextGeometry
-         var material = new THREE.MeshNormalMaterial({}); //normal material shows differnt color for each cube face, easier to see the 3d shape.
-         var textobj = new THREE.Mesh(geometry, material);
-         textobj.position.y = -0.05 //(height / 2.0) - (width / 2.0)
-         parent.add(textobj)
-         return textobj
-         */
-    }
-
-    static draw_help(text) {
-        var text2 = document.createElement('div');
-        text2.style.position = 'absolute';
-        text2.style.color = "white"
-        text2.style.fontSize = "14px"
-        text2.style.backgroundColor = "black";
-        text2.innerHTML = text;
-        text2.style.top = 45 + 'px';
-        text2.style.left = 10 + 'px' //((globalThis.innerWidth / 2) - 200) + 'px'  //keeps teh caption centerd under the table despite differnt window widths. //140 + 'px';
-        sim_graphics_pane_id.appendChild(text2);
-    }
-
-
-    //_________STL VIEWER ________
-    static stl_init_viewer(){
-            this.stl_init_mouse()
-            this.sim.enable_rendering = false
-            this.sim.scene  = new THREE.Scene();
-            this.sim.camera = new THREE.PerspectiveCamera(75, //75,
-                globalThis.innerWidth / globalThis.innerHeight, 0.1, 1000);
-            this.sim.camera.position.z = 2; //2
-            this.sim.camera.position.y = 1
-            this.sim.camera.zoom.zoom = 4 //0.79 //has no effect.
-
-            //camera.position.set( -15, 10, 15 );
-            //camera.lookAt( scene.position );
-
-            this.sim.renderer = new THREE.WebGLRenderer();
-            this.sim.renderer.setSize( globalThis.innerWidth, globalThis.innerHeight );
-            sim_graphics_pane_id.innerHTML = "" //clear out the previous contents
-            sim_graphics_pane_id.appendChild(this.sim.renderer.domElement);
-    }
-
-    static stl_render(){
-        requestAnimationFrame(this.stl_render)
-        if (this.sim.mouseDown){
-            this.stl_sim_handle_mouse_move()
-        }
-        this.sim.renderer.render(this.sim.scene, this.sim.camera);
-
-    }
-
-    static fbx_render(){
-        requestAnimationFrame(this.fbx_render)
-        if (this.sim.mouseDown){
-            this.stl_sim_handle_mouse_move()
-        }
-        this.sim.renderer.render(this.sim.scene, this.sim.camera) //don't pass camera as 2nd arg because the fbx file already has a camera in it.
-    }
-
-    static gltf_render(){
-        console.log("top gltf_render")
-    //  requestAnimationFrame(this.gltf_render)
-    //  if (this.sim.mouseDown){
-    //      this.stl_sim_handle_mouse_move()
-    //  }
-        //Must use Simulate. and not this.  below because requestAnimationFrame
-        //calls its arg fn without a "this" of Simulate
-        //so must make gltf_render not need a "this".
-        Simulate.updateRotation(); //unnecessary jul 26. 2023
-        Simulate.updatePosition(); //unnecessary jul 26. 2023
-        //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
-        SimUtils.render()
-        //requestAnimationFrame(Simulate.gltf_render)
-    }
-
-    static stl_init_mouse(){
-        this.sim.mouseX_at_mouseDown    = 0
-        this.sim.mouseY_at_mouseDown    = 0
-        //this.sim.tableX_at_mouseDown    = 0
-        //this.sim.tableY_at_mouseDown    = 0
-        this.sim.zoom_at_mouseDown      = 1
-        this.sim.rotationX_at_mouseDown = 0
-        this.sim.rotationY_at_mouseDown = 0
-
-        sim_graphics_pane_id.addEventListener("mousedown", function(event) {
-            Simulate.sim.mouseDown              = true
-            Simulate.sim.shiftDown              = event.shiftKey
-            Simulate.sim.altDown                = event.altKey
-            Simulate.sim.mouseX_at_mouseDown    = event.clientX
-            Simulate.sim.mouseY_at_mouseDown    = event.clientY
-            //Simulate.sim.tableX_at_mouseDown    = this.sim.table.position.x
-            //Simulate.sim.tableY_at_mouseDown    = this.sim.table.position.y
-            Simulate.sim.zoom_at_mouseDown      = Simulate.sim.camera.zoom
-            Simulate.sim.rotationX_at_mouseDown = Simulate.sim.table.rotation.x
-            Simulate.sim.rotationY_at_mouseDown = Simulate.sim.table.rotation.y
-        }, false);
-
-        sim_graphics_pane_id.addEventListener('mousemove', function(event) {
-            if (Simulate.sim.mouseDown){
-                Simulate.sim.mouseX = event.clientX;
-                Simulate.sim.mouseY = event.clientY;
-                Simulate.stl_sim_handle_mouse_move()
-                //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
-                SimUtils.render()
-            }
-        }, false);
-
-        sim_graphics_pane_id.addEventListener("mouseup", function(event) {
-            Simulate.sim.mouseDown = false
-            Simulate.sim.shiftDown = false
-            Simulate.sim.altDown   = false
-        }, false);
-    }
-//from https://stackoverflow.com/questions/27095251/how-to-rotate-a-three-perspectivecamera-around-on-object
-    static stl_camera_angle = 0;
-    static stl_camera_radius = 500;
-    static stl_sim_handle_mouse_move(){
-        var mouseX_diff =  this.sim.mouseX - this.sim.mouseX_at_mouseDown //positive if moving right, neg if moving left
-        var mouseY_diff =  this.sim.mouseY - this.sim.mouseY_at_mouseDown //positive if moving right, neg if moving left
-        if (this.sim.shiftDown){ //zoom
-            //alert(camera.zoom)  //camera.zoom starts at 1
-            let zoom_increment = mouseX_diff / 100.0
-            this.sim.camera.zoom = this.sim.zoom_at_mouseDown + zoom_increment //(spdy * 0.1)
-            this.sim.camera.updateProjectionMatrix()
-        }
-        else if (this.sim.altDown){ //pan
-            let panX_inc = mouseX_diff / 100
-            let panY_inc = mouseY_diff / 100
-            this.sim.camera.position.x =  this.sim.camera.position.x + panX_inc
-            this.sim.camera.position.y =  this.sim.camera.position.y - panY_inc
-        }
-        else { //rotate
-            //this.sim.table.rotation.x = this.sim.rotationX_at_mouseDown + (mouseY_diff / 100)
-            //this.sim.table.rotation.y = this.sim.rotationY_at_mouseDown + (mouseX_diff / 100)
-            this.sim.camera.position.x = this.stl_camera_radius * Math.cos( this.stl_camera_angle );
-            this.sim.camera.position.z = this.stl_camera_radius * Math.sin( this.stl_camera_angle );
-            this.stl_camera_angle += 0.01;
-        }
-    }
-
-
+ 
     static align_cam(position) {
+        Simulate.target_orbit.rotation_yaw = Simulate.target_orbit.rotation_yaw  % (2*Math.PI);
+        if(Simulate.target_orbit.rotation_yaw<0)
+        {
+            Simulate.target_orbit.rotation_yaw+=Math.PI*2;
+        }
         switch(position)
         {
             case(0):
-                this.goalRotation.x = 0;
-                this.goalRotation.y = Math.PI;
+            Simulate.target_orbit.rotation_pitch = 0.0;
+            Simulate.target_orbit.rotation_yaw   = Math.round(Simulate.orbit.rotation_yaw/Math.PI)*Math.PI;
             break;
 
             case(1):
-                this.goalRotation.x = 0;
-                this.goalRotation.y = Math.PI*0.5;
+                Simulate.target_orbit.rotation_pitch = 0.0;
+                Simulate.target_orbit.rotation_yaw   = Math.round((Simulate.orbit.rotation_yaw-0.5*Math.PI)/Math.PI)*Math.PI+0.5*Math.PI;
             break;
 
             case(2):
-                this.goalRotation.x = Math.PI*0.5;
-                this.goalRotation.y = Math.PI*0.5;
+                Simulate.target_orbit.rotation_pitch = -Math.PI/2;
+                Simulate.target_orbit.rotation_yaw   = Math.round(2.0*Simulate.orbit.rotation_yaw/Math.PI)*Math.PI/2.0;
             break;
 
             case(3):
-                this.goalRotation.x = Math.PI*0.25;
-                this.goalRotation.y = Math.PI*0.25;
-                this.goalPosition.x = 0;
-                this.goalPosition.y = 0;
-                this.goalPosition.z = -1;
+            radius:2
+                Simulate.target_orbit.rotation_pitch = Simulate.default_orbit.rotation_pitch ;
+                Simulate.target_orbit.rotation_yaw   = Simulate.default_orbit.rotation_yaw   ;
+                Simulate.target_orbit.center_x = Simulate.default_orbit.center_x;
+                Simulate.target_orbit.center_y = Simulate.default_orbit.center_y;
+                Simulate.target_orbit.center_z = Simulate.default_orbit.center_z;
+                Simulate.target_orbit.zoom = Simulate.default_orbit.zoom;;
             break;
         }
     }
 
-    static updateRotation() {
-        if(this.pRotation.x != this.sim.table.rotation.x || this.pRotation.y != this.sim.table.rotation.y)
+    static resize()
+    {
+        Simulate.updateCanSize();
+        Simulate.sim.renderer.domElement.width = Simulate.canSize.width;
+        Simulate.sim.renderer.domElement.height = Simulate.canSize.height;
+        Simulate.sim.camera.aspect = Simulate.canSize.width/Simulate.canSize.height;
+        Simulate.sim.camera.updateProjectionMatrix();
+        Simulate.sim.renderer.setSize(Simulate.canSize.width,Simulate.canSize.height);
+
+    }
+    static updateCanSize()
+    {
+        if(Simulate.canSize == undefined)
         {
-            this.goalRotation.x = this.sim.table.rotation.x;
-            this.goalRotation.y = this.sim.table.rotation.y;
+            Simulate.canSize  =
+            {
+                width: 0,
+                height: 0
+            };
         }
-        this.sim.table.rotation.x -= (this.sim.table.rotation.x - this.goalRotation.x)*0.04;
-        this.sim.table.rotation.y -= (this.sim.table.rotation.y - this.goalRotation.y)*0.04;
-        this.pRotation.x = this.sim.table.rotation.x;
-        this.pRotation.y = this.sim.table.rotation.y;
+        Simulate.canSize.width = misc_pane_id.clientWidth-50;
+        Simulate.canSize.height = sim_pane_content_id.clientHeight-sim_pane_header_id.clientHeight;
+        // Simulate.canSize.height = DDE_DB.persistent_get("dde_window_height") - DDE_DB.persistent_get("top_right_panel_height") - 220;
     }
 
-    static updatePosition() {
-        if(this.pPosition.x != this.sim.table.position.x || this.pPosition.y != this.sim.table.position.y || this.pPosition.z != this.sim.table.position.z)
+    //Can be used to free simulator memory
+    static clearResourceTree(root)
+    {
+        if(root == undefined)
         {
-            this.goalPosition.x = this.sim.table.position.x;
-            this.goalPosition.y = this.sim.table.position.y;
-            this.goalPosition.z = this.sim.table.position.z;
+            return;
         }
-        this.sim.table.position.x -= (this.sim.table.position.x - this.goalPosition.x)*0.04;
-        this.sim.table.position.y -= (this.sim.table.position.y - this.goalPosition.y)*0.04;
-        this.sim.table.position.z -= (this.sim.table.position.z - this.goalPosition.z)*0.04;
-        this.pPosition.x = this.sim.table.position.x;
-        this.pPosition.y = this.sim.table.position.y;
-        this.pPosition.z = this.sim.table.position.z;
+        if(root.material)
+        {
+            root.material.dispose();
+        }
+        if(root.geometry)
+        {
+            root.geometry.dispose();
+        }
+        if(root.children != undefined)
+        {
+            if(typeof(root.children.length) == "number")
+            {
+                for(let i = 0; i < root.children.length; i++)
+                {
+                    clearResourceTree(root.children[i]);
+                }
+            }
+        }
+
+        if(root.dispose != undefined)
+        {
+            try
+            {
+                root.dispose()
+            }
+            catch
+            {}
+        }
+    }
+    static destroySimulation()
+    {
+        init_simulation_done = false;
+        simKilled = true;
+        try
+        {
+            destroy_mouse();
+        }
+        catch
+        {
+
+        }
+        clear_out_sim_graphics_pane_id();
+        clearResourceTree(sim.scene);
+        let hi_rez = sim.hi_rez; 
+        sim = {};
+        sim.hi_rez = hi_rez;
+    }
+    static destroy_mouse()
+    {
+        sim_graphics_pane_id.removeEventListener("mousedown", simMouseDownListener, false);
+
+        sim_graphics_pane_id.removeEventListener('mousemove', simMouseMoveListener, false);
+
+        sim_graphics_pane_id.removeEventListener("mouseup", simMouseUpListener, false);
     }
 } //end class Simulate
 
