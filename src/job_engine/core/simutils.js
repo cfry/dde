@@ -67,7 +67,7 @@ class SimUtils{
         //onsole.log("Dexter.default: " + Dexter.default)
         //onsole.log("Dexter.dexter0: " + Dexter.dexter0)
         if (Dexter.default.name === robot_name){
-            if(move_kind === "a") {
+            if(move_kind === "a" || move_kind == "P") {
                 //do stuff
                 Simulate.dexter_sim_instance = ds_instance;
                 for(let i = 0; i < new_angles_dexter_units.length; i++)
@@ -87,6 +87,10 @@ class SimUtils{
                             Simulate.jointsTarget[i] = this.degrees_to_radians(new_angles_dexter_units[i] *  Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
                         }
                     }
+                }
+                if(move_kind == "a")
+                {
+                    Simulate.endIntructionOnTargetReached = true;
                 }
                 Simulate.atTarget = false;
             }

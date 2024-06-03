@@ -615,6 +615,7 @@ globalThis.Simulate = class Simulate {
 
     static jointsTarget = [0,0,0,0,0,0,0];
     static atTarget = true;
+    static endIntructionOnTargetReached = false;
 
     static dexter_sim_instance;
     static targetFramerate = 60;
@@ -717,7 +718,10 @@ globalThis.Simulate = class Simulate {
                 for(let i = 0; i < 5; i++)
                 {
                     Simulate.jointsTarget[i] = Math.PI * Simulate.dexter_sim_instance.angles_dexter_units[i] / (3600*180);
-                    Simulate.dexter_sim_instance.queue_instance.done_with_instruction();
+                    if(Simulate.endIntructionOnTargetReached)
+                    {
+                        Simulate.dexter_sim_instance.queue_instance.done_with_instruction();
+                    }
                     Simulate.atTarget = true;
                 }
             }

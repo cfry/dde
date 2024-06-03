@@ -239,6 +239,11 @@ class DexterSim{
                 ds_instance.queue_instance.add_to_queue(instruction_array)
                 ds_instance.ack_reply_maybe(instruction_array)
                 break;
+            case "P":
+                let ins_args  = instruction_array.slice(Instruction.INSTRUCTION_ARG0, Instruction.INSTRUCTION_ARG7)
+                SimUtils.render_multi(ds_instance, ins_args, robot_name, 0,"P");
+                ds_instance.ack_reply_maybe(instruction_array)
+                break;
             case "e": //cause an error. Used for testing only
                 //not needed as ack_reply pulls the error_code out of instruction_array for "e" oplets. let the_error_code = instruction_array[Instruction.INSTRUCTION_ARG0]
                 ds_instance.ack_reply_maybe(instruction_array)
@@ -297,36 +302,6 @@ class DexterSim{
                 }
                 ds_instance.queue_instance.add_to_queue(ins_arr_a)
                 ds_instance.ack_reply_maybe(instruction_array) //return the orig "M" array
-                break;
-            case "P": //does not go on queue  //ds_instance.queue_instance.add_to_queue(instruction_array)
-                //pid_move_all_joints for j6 and 7 are handled diffrently than J1 thru 5.
-                //IF we get a pid_maj for j6 and/or j7, just treat it like
-                // an maj for j6 and j7, ie just more the joints to those locations.
-                //pid_move_all_joints can construct an istruction array that has less than 7 joint angles.
-                //IF a j6 or j7 is NOT present, then don't do anything with j6 and j7 ie don't set it to zero.
-                let pid_ang_du = Instruction.extract_args(instruction_array) //probably will be 5 long but could be 7
-                for (let i = 0; i < pid_ang_du.length; i++) {
-                    let new_ang = pid_ang_du[i]
-                    if (i < 5) {
-                        ds_instance.pid_angles_dexter_units[i] = new_ang
-                    } else {
-                        ds_instance.angles_dexter_units[i] = new_ang //j6 & J7.
-                    }
-                }
-                let ma_deg = ds_instance.compute_measured_angles_degrees()
-                //let angle_degrees_array = Socket.dexter_units_to_degrees_array(ds_instance.angles_dexter_units)
-                //let pid_angle_degrees_array = Socket.dexter_units_to_degrees_array(ds_instance.pid_angles_dexter_units)
-                //let sum_degrees_array = Vector.add(angle_degrees_array, pid_angle_degrees_array).slice(0, 5)
-                if (SimUtils.is_simulator_showing()) {
-                    SimUtils.render_j1_thru_j5(ds_instance) //todo this just jumps to the new angles, not move smoothly as it should
-                    if (pid_ang_du.length > 5) {
-                        SimUtils.render_j6(ds_instance)
-                    }
-                    if (pid_ang_du.length > 6) {
-                        SimUtils.render_j7(ds_instance) //don't bother to pass xyz and robot.pose as that's only used by simBuild.
-                    }
-                }
-                ds_instance.ack_reply(instruction_array)
                 break;
             case "r": //Dexter.read_file. does not go on queue
                 let is_reboot_inst = Dexter.is_reboot_instruction(instruction_array)
