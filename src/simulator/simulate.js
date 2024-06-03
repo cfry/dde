@@ -220,6 +220,8 @@ globalThis.Simulate = class Simulate {
                 Simulate.initPhysicsWorld();
 
                 Simulate.createMeshGLTF() ;
+                Simulate.sim.axes = Simulate.createAxisHelper(new THREE.Vector3(0.3,0.3,0.0));
+                Simulate.sim.axes.position.set(1.0,0.075,1.0);
                 
                 // let joints = [Simulate.sim.J0,Simulate.sim.J1,Simulate.sim.J2,Simulate.sim.J3,Simulate.sim.J4];
                 // for(let j of joints)
@@ -336,7 +338,7 @@ globalThis.Simulate = class Simulate {
             Simulate.canSize.width / Simulate.canSize.height, //aspect ratio, If not same as canvas width and height,
                                                       //the image will be distorted.
               0.1, //1, //0.1,   //distance between camera and near clipping plane. Must be > 0.
-              4 //4      // 3 is too small and clips the table. was: 1000   //distance between camera an far clipping plane. Must be > near.
+              10 //4      // 3 is too small and clips the table. was: 1000   //distance between camera an far clipping plane. Must be > near.
               );
         Simulate.sim.camera.name = "camera"
         Simulate.sim.camera.rotation.order = "YXZ";
@@ -462,18 +464,20 @@ globalThis.Simulate = class Simulate {
 //processing in video.js to clean it up.
     static gltfLoader;
     static createMeshGLTF(){
-        Simulate.sim.table_width = 1.0 //= 0.447675,  //width was 1
-        Simulate.sim.table_length = 1.0//0.6985,    //length was 2
+        Simulate.sim.table_width = 2.0 //= 0.447675,  //width was 1
+        Simulate.sim.table_length = 2.0//0.6985,    //length was 2
         Simulate.sim.table_height = 0.02//0.01905    //height (thickness of Dexcell surface). Simulate is 3/4 of an inch. was:  0.1)
-        Simulate.sim.table = Simulate.new_draw_table(Simulate.sim.table_width, Simulate.sim.table_length, Simulate.sim.table_height)
+        Simulate.new_draw_table(Simulate.sim.table_width, Simulate.sim.table_length, Simulate.sim.table_height)
+        // Simulate.sim.table.position.x = -(Simulate.sim.table_width / 4);
+        Simulate.sim.table.position.y = -(Simulate.sim.table_height / 2);
+        Simulate.sim.table.position.z = 0;
 
 
 
         Simulate.sim.J0 = new THREE.Object3D(); //0,0,0 //does not move w.r.t table.
         Simulate.sim.J0.rotation.y = Math.PI //radians for 180 degrees
         Simulate.sim.J0.name = "J0"
-        Simulate.sim.J0.position.y = (Simulate.sim.table_height / 2) //+ (leg_height / 2) //0.06 //for orig boxes model, leg)height was positive, but for legless dexter mounted on table, its probably 0
-        Simulate.sim.J0.position.x = (Simulate.sim.table_length / 3)  //the edge of the table
+
                                  //- 0.12425 the distance from the edge of the table that Dexter is placed
         Simulate.sim.scene.add(Simulate.sim.J0)
 
@@ -578,6 +582,9 @@ globalThis.Simulate = class Simulate {
 
     static gripperBox;
 
+    // Change this variable to speed up or slow down the simulation
+    static simulationRate = 1.0;
+
     static do_animation_loop(){
         if (SimUtils.is_simulator_showing()) {
             if(globalThis.interactionManager) {
@@ -598,7 +605,8 @@ globalThis.Simulate = class Simulate {
                 Simulate.update_joints();
             }
             Simulate.update_camera();
-            Simulate.updatePhysics(1/60);
+            Simulate.updateText();
+            Simulate.updatePhysics((Simulate.simulationRate/Simulate.targetFramerate));
             Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
             Simulate.lastJ7Pos = Simulate.currentJ7Pos;
         }
@@ -609,7 +617,7 @@ globalThis.Simulate = class Simulate {
     static atTarget = true;
 
     static dexter_sim_instance;
-    static target_dT = 1000/60;
+    static targetFramerate = 60;
 
     static lastJ7Pos = 180;
     static currentJ7Pos = 180;
@@ -669,9 +677,10 @@ globalThis.Simulate = class Simulate {
                     max_diff = Math.abs(joint_diff);
                 }
             }
-
+            
+            
             // If the arm is within 2 times the minimum possible step size then consider it to be at the target
-            if(max_diff < max_speed_rad * (Simulate.target_dT/1000) * 2)
+            if(max_diff < max_speed_rad *(Simulate.simulationRate/Simulate.targetFramerate) * 2)
             {
                 // Set the current angle to the target angle to eliminate any remaining error
                 for(let i = 0; i < 5; i++)
@@ -687,14 +696,14 @@ globalThis.Simulate = class Simulate {
             }
 
             let j6_at_target = false;
-            if(Math.abs(joint_diffs[5]) < max_speed_rad_servo * (Simulate.target_dT/1000) * 1.01)
+            if(Math.abs(joint_diffs[5]) < max_speed_rad_servo * (Simulate.simulationRate/Simulate.targetFramerate) * 1.01)
             {
                 j6_at_target = true;
                 Simulate.dexter_sim_instance.angles_dexter_units[5] =  Simulate.rad_to_dynamixel_320(Simulate.jointsTarget[5]) + Socket.J6_OFFSET_SERVO_UNITS;
             }
 
             let j7_at_target = false;
-            if(Math.abs(joint_diffs[6]) < max_speed_rad_servo * (Simulate.target_dT/1000) * 1.01)
+            if(Math.abs(joint_diffs[6]) < max_speed_rad_servo * (Simulate.simulationRate/Simulate.targetFramerate) * 1.01)
             {
                 j7_at_target = true;
                 Simulate.dexter_sim_instance.angles_dexter_units[6] =  Simulate.rad_to_dynamixel_320(Simulate.jointsTarget[6]);
@@ -717,7 +726,7 @@ globalThis.Simulate = class Simulate {
             for(let i = 0; i < 7; i++)
             {
                 // Calculate how far the arm needs to move Simulate frame
-                let joint_step_rad = (Simulate.target_dT/1000) * max_speed_rad * joint_diffs[i] / max_diff;
+                let joint_step_rad = (Simulate.simulationRate/Simulate.targetFramerate) * max_speed_rad * joint_diffs[i] / max_diff;
 
                 // If it is not already at the target position, move the arm by the step calculated above
                 if(!Simulate.atTarget && i < 5)
@@ -766,7 +775,7 @@ globalThis.Simulate = class Simulate {
                 }
             }
 
-            let servo_step_rad = (Simulate.target_dT/1000) * max_speed_rad_servo * (180) / (Math.PI*Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+            let servo_step_rad = (Simulate.simulationRate/Simulate.targetFramerate) * max_speed_rad_servo * (180) / (Math.PI*Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
             if(!j6_at_target)
             {
                 Simulate.dexter_sim_instance.angles_dexter_units[5] += Math.sign( joint_diffs[5]) * servo_step_rad ;
@@ -824,12 +833,13 @@ globalThis.Simulate = class Simulate {
         window.addEventListener('mousemove', (event) => {
             Simulate.mouse.shiftDown = event.shiftKey;
             Simulate.mouse.ctrlDown  = event.ctrlKey ;
+            Simulate.mouse.altDown   = event.altKey ;
             Simulate.mouse.x  = event.offsetX;
             Simulate.mouse.y  = event.offsetY;
             Simulate.mouse.mX = -event.movementX;
             Simulate.mouse.mY = -event.movementY;
 
-            if(Simulate.mouse.down && !Simulate.mouse.shiftDown)
+            if(Simulate.mouse.down && !Simulate.mouse.shiftDown && !Simulate.mouse.altDown)
             {
                 Simulate.orbit.rotation_yaw   += Simulate.orbit_speed*Simulate.mouse.mX/Simulate.canSize.height;
                 Simulate.orbit.rotation_pitch += Simulate.orbit_speed*Simulate.mouse.mY/Simulate.canSize.height;
@@ -844,6 +854,10 @@ globalThis.Simulate = class Simulate {
                      Simulate.pan_speed*Simulate.mouse.mX/(Simulate.canSize.height*Simulate.orbit.zoom),
                     -Simulate.pan_speed*Simulate.mouse.mY/(Simulate.canSize.height*Simulate.orbit.zoom)
                 )
+            }
+            else if(Simulate.mouse.down && Simulate.mouse.altDown){
+                Simulate.orbit.zoom *=1.05**(-Simulate.mouse.mY*-0.04);  //should be drag up makes dexter bigger.
+                Simulate.target_orbit.zoom = Simulate.orbit.zoom;
             }
         }, false);
 
@@ -927,15 +941,118 @@ globalThis.Simulate = class Simulate {
     static new_draw_table(width,length,height)
     {
         let physTable = PhysicsObject.createBox({x:width,y:height,z:length},{x:0,y:0,z:0},0,0xFFFFFF);
+        physTable.makeKinematic();
         physTable.rigid_body.setFriction(0.7);
         let table = physTable.mesh;
         table.name = "table";
         Simulate.sim.table = table;
 
         let tableTex = new THREE.TextureLoader().load( "assets/DexterGrid.png" );
+        tableTex.wrapS = THREE.RepeatWrapping;
+        tableTex.wrapT = THREE.RepeatWrapping;
+        tableTex.repeat.set(1,1);
         physTable.mesh.material.map = tableTex;
-        
+    }
 
+    static createAxisHelper(position)
+    {
+        let xArrow = Simulate.createArrowMesh(new THREE.Vector3( 0.0, 0.0, -0.5),0xff0000);
+        let yArrow = Simulate.createArrowMesh(new THREE.Vector3(-0.5, 0.0,  0.0),0x00ff00);
+        let zArrow = Simulate.createArrowMesh(new THREE.Vector3( 0.0, 0.5,  0.0),0x0000ff);
+
+        let xText = Simulate.createCameraFacingText("X",0xff0000,0.1);
+        let yText = Simulate.createCameraFacingText("Y",0x00ff00,0.1);
+        let zText = Simulate.createCameraFacingText("Z",0x0000ff,0.1);
+
+        let axes = new THREE.Group();
+
+        axes.add(xArrow);
+        axes.add(yArrow);
+        axes.add(zArrow);
+
+        axes.add(xText);
+        axes.add(yText);
+        axes.add(zText);
+
+        xText.geometry.translate(-0.05,-0.05,-0.05)
+        yText.geometry.translate(-0.05,-0.05,-0.05)
+        zText.geometry.translate(-0.05,-0.05,-0.05)
+
+        xText.position.set(  0.0,  0.0, -0.5);
+        yText.position.set(-0.5,  0.0,   0.0);
+        zText.position.set(  0.0, 0.55,   0.0);
+
+        axes.position.set(position.x,position.y,position.z);
+        Simulate.sim.scene.add(axes);
+        return axes;
+    }
+
+    static cameraFacingText = [];
+    static updateText()
+    {
+        for(let text of Simulate.cameraFacingText)
+        {
+            text.quaternion.copy(Simulate.sim.camera.quaternion);
+        }
+    }
+    static createCameraFacingText(text,color,size)
+    {
+        let geometry = new TextGeometry(text,
+            {
+                font:hel_font
+            }
+        );
+        geometry.scale(size/100,size/100,0.05*1/1000);
+        let textMesh = new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({color:color}));
+        Simulate.sim.scene.add(textMesh);
+        Simulate.cameraFacingText.push(textMesh);
+        return textMesh;
+    }
+
+    /**
+     * @param {THREE.Vector3} direction Vector representing the direction (and magnitude) of the arrow
+     * @param {Number} color Color of the arrow in hex
+     * @param {Number} thickness Diameter of the arrow base
+     * @param {Number} endDiameter Diameter of the base of the cone at the end of the arrow
+     * @param {Number} endLength Length of the cone at the end of the arrow
+     */
+    static createArrowMesh(direction,color=0x0000ff,thickness=0.03,endDiameter=thickness+0.05,endLength=0.1)
+    {
+        let length = direction.length()-endLength;
+
+        let cylinderGeo = new THREE.CylinderGeometry(thickness/2,thickness/2,length);
+        cylinderGeo.translate(0,length/2,0);
+        let cylinder = new THREE.Mesh(cylinderGeo,new THREE.MeshPhongMaterial({color:color}));
+
+        let coneGeo = new THREE.ConeGeometry(endDiameter/2,endLength);
+        let cone = new THREE.Mesh(coneGeo,new THREE.MeshPhongMaterial({color:color}));
+        cone.position.y = length;
+        cylinder.add(cone);
+        Simulate.setArrowDirection(cylinder,direction);
+        
+        Simulate.sim.scene.add(cylinder);
+        // cylinderGeo.translate(0,-0.25/2,0)
+        return cylinder;
+    }
+    static setArrowDirection(arrow,direction)
+    {
+        let normDirection = direction.clone();
+        normDirection.normalize();
+        
+        
+        let r = Math.hypot(normDirection.x,normDirection.z);
+        let azimuth = Math.atan2(r,normDirection.y);
+    
+        let quatX = Math.sin(azimuth/2);
+        let quatY = Math.cos(azimuth/2);
+    
+        arrow.quaternion.set(0,0,0,0);    
+        if(r!=0)
+        {
+            arrow.quaternion.x =  quatX*normDirection.z/r;
+            arrow.quaternion.z = -quatX*normDirection.x/r;
+        }
+        arrow.quaternion.w = quatY;
     }
 
     static draw_table(parent, table_width, table_length, table_height){
