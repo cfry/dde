@@ -89,7 +89,7 @@ class dui2 {
         commanded_angles.push(0)
       }
       let angles_to_use = Vector.subtract(slider_angles, commanded_angles)
-      let instr = dui2.the_dexter.pid_move_all_joints(slider_angles)
+      let instr = dui2.the_dexter.pid_move_all_joints(angles_to_use)
       return instr
     }
 

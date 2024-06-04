@@ -601,7 +601,6 @@ globalThis.Simulate = class Simulate {
                     Simulate.sim.J6.add(Simulate.gripperBox);
                     Simulate.gripperBox.visible = false;
                 }
-
                 Simulate.update_joints();
             }
             Simulate.update_camera();
@@ -613,7 +612,20 @@ globalThis.Simulate = class Simulate {
     }
 
 
-    static jointsTarget = [0,0,0,0,0,0,0];
+    static    aMoveTargetAngles = [0,0,0,0,0,0,0]; // Goal position of the current a move
+
+    // Whenever aMoveAnimationAngles is update it automatically updates measuredAngles
+    static aMoveAnimationAngles = new Proxy([0,0,0,0,0,0,0],{
+        set(obj, prop, value) {
+            Simulate.measuredAngles[prop] += value - obj[prop];
+            obj[prop] = value;
+            return true;
+        }
+    }); // Current intermediate step in the a move. On the real arm this would be determined by a motion profile.
+    static  PIDGoalOffsetAngles = [0,0,0,0,0,0,0]; // Offset of the PIDs target position from aMoveAnimation
+    static  PIDCorrectionAngles = [0,0,0,0,0,0,0]; // Amount that the PID is currently correcting the position by
+    static       measuredAngles = [0,0,0,0,0,0,0]; // Final measured position of the robot
+
     static atTarget = true;
     static endIntructionOnTargetReached = false;
 
@@ -638,11 +650,78 @@ globalThis.Simulate = class Simulate {
         return 180*rads/(Math.PI*Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
     }
 
+    static rads_to_arc_seconds(rads)
+    {
+        return rads / 0.00000484813681109536;
+    }
+
+    static rad_to_dexter_units(rads,joint)
+    {
+        let out = 0;
+        if(joint < 5) // Joints 1-5
+        {
+            out = Simulate.rads_to_arc_seconds(rads);
+        }
+        else if(joint == 5) // Joint 6
+        {
+            out = Simulate.rad_to_dynamixel_320(rads)+Socket.J6_OFFSET_SERVO_UNITS;
+        }
+        else // Joint 7
+        {
+            out = Simulate.rad_to_dynamixel_320(rads);
+        }
+        return out;
+    }
     /* List of places that reference Simulate:
     simqueue.js 119 add_to_queue; Updates target position for J6 and J7 as Simulate happens as soon as an a command is added to the queue
     simutils.js 65 render_multi; Updates joints 1-5 when an a command is actually run
     */
     static update_joints()
+    {
+        if(Simulate.dexter_sim_instance != undefined)
+        {
+            Simulate.updateAMove();
+            Simulate.updatePID();
+            // Update the arm in the simulator
+            for(let i = 0; i < 7; i++)
+            {
+                // Get the new joint angle in radians
+                // Update the joint in the sim
+                let y_or_z = (((i === 0) || (i === 4)) ? "y" : "z");
+                if(i < 5) // Joints 1 - 5
+                {
+                    Simulate.sim["J"+(i+1)].rotation[y_or_z] = -Simulate.measuredAngles[i];
+                }
+                else if(i == 5) // Joint 6
+                {
+                    Simulate.sim["J"+(i+1)].rotation[y_or_z] = Simulate.measuredAngles[i];
+                }
+                else // Joint 7
+                {
+                    let angle_deg = Simulate.measuredAngles[i]*180/Math.PI;
+                    let new_xpos = ((angle_deg * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
+                    new_xpos *= 10;
+                    Simulate.gripperBox.scale.x = (new_xpos-0.018);
+                    Simulate.gripperBox.position.x = (new_xpos-0.018)/2;
+                    Simulate.sim.J7.position.setX(new_xpos);
+                }
+                
+
+                // Update the text value in the sim header
+                globalThis["sim_pane_j" + (i+1) + "_id"].innerHTML = Math.round(Simulate.measuredAngles[i]*180/Math.PI);
+
+                if(i==6)
+                {
+                    Simulate.currentJ7Pos = Simulate.measuredAngles[i]*180/Math.PI;
+                }
+
+                Simulate.dexter_sim_instance.angles_dexter_units[i] = Simulate.rad_to_dexter_units(Simulate.aMoveAnimationAngles[i],i);
+                Simulate.dexter_sim_instance.pid_angles_dexter_units[i] = Simulate.rad_to_dexter_units(Simulate.PIDCorrectionAngles[i],i);
+            }
+        }
+    }
+
+    static updateAMove()
     {
         if(Simulate.dexter_sim_instance != undefined)
         {
@@ -655,18 +734,7 @@ globalThis.Simulate = class Simulate {
             // Get the differences between the current arm angles and target arm angles and also save the highest difference in a variable
             for(let i = 0; i < 7; i++)
             {
-                let current_angle_rads = Math.PI*Simulate.dexter_sim_instance.angles_dexter_units[i]/ (3600*180);
-                if(i == 5)
-                {
-                    current_angle_rads = Simulate.dynamixel_320_to_rad(Simulate.dexter_sim_instance.angles_dexter_units[i]- Socket.J6_OFFSET_SERVO_UNITS);
-                }
-                if(i == 6)
-                {
-                    current_angle_rads = Simulate.dynamixel_320_to_rad(Simulate.dexter_sim_instance.angles_dexter_units[i]);
-                }
-
-                
-                let joint_diff = Simulate.jointsTarget[i]-current_angle_rads;
+                let joint_diff = Simulate.aMoveTargetAngles[i]- Simulate.aMoveAnimationAngles[i];
                 if(isNaN(joint_diff))
                 {
                     joint_diff = 0;
@@ -686,12 +754,15 @@ globalThis.Simulate = class Simulate {
                 // Set the current angle to the target angle to eliminate any remaining error
                 for(let i = 0; i < 5; i++)
                 {
-                    Simulate.dexter_sim_instance.angles_dexter_units[i] = Simulate.jointsTarget[i] * (3600*180) / Math.PI;
+                    Simulate.aMoveAnimationAngles[i] = Simulate.aMoveTargetAngles[i];
                 }
                 // If it wasn't at the target position before but it is now, tell the queue that the action is done
-                if(!Simulate.atTarget)
+                if(!Simulate.atTarget )
                 {
-                    Simulate.dexter_sim_instance.queue_instance.done_with_instruction();
+                    if( Simulate.endIntructionOnTargetReached)
+                    {
+                        Simulate.dexter_sim_instance.queue_instance.done_with_instruction();
+                    }
                     Simulate.atTarget = true;
                 }
             }
@@ -700,14 +771,14 @@ globalThis.Simulate = class Simulate {
             if(Math.abs(joint_diffs[5]) < max_speed_rad_servo * (Simulate.simulationRate/Simulate.targetFramerate) * 1.01)
             {
                 j6_at_target = true;
-                Simulate.dexter_sim_instance.angles_dexter_units[5] =  Simulate.rad_to_dynamixel_320(Simulate.jointsTarget[5]) + Socket.J6_OFFSET_SERVO_UNITS;
+                Simulate.aMoveAnimationAngles[5] = Simulate.aMoveTargetAngles[5];
             }
 
             let j7_at_target = false;
             if(Math.abs(joint_diffs[6]) < max_speed_rad_servo * (Simulate.simulationRate/Simulate.targetFramerate) * 1.01)
             {
                 j7_at_target = true;
-                Simulate.dexter_sim_instance.angles_dexter_units[6] =  Simulate.rad_to_dynamixel_320(Simulate.jointsTarget[6]);
+                Simulate.aMoveAnimationAngles[6] =  Simulate.aMoveTargetAngles[6];
             }
 
 
@@ -717,78 +788,66 @@ globalThis.Simulate = class Simulate {
                 // Set target angle to the current angle so that the arm stays in place
                 for(let i = 0; i < 5; i++)
                 {
-                    Simulate.jointsTarget[i] = Math.PI * Simulate.dexter_sim_instance.angles_dexter_units[i] / (3600*180);
-                    if(Simulate.endIntructionOnTargetReached)
-                    {
-                        Simulate.dexter_sim_instance.queue_instance.done_with_instruction();
-                    }
+                    Simulate.aMoveTargetAngles[i] = Simulate.aMoveAnimationAngles[i];
                     Simulate.atTarget = true;
+                }
+                if(Simulate.endIntructionOnTargetReached)
+                {
+                    Simulate.dexter_sim_instance.queue_instance.done_with_instruction();
                 }
             }
 
-            // Update the arm
+            // Update the animationAngles
             for(let i = 0; i < 7; i++)
             {
                 // Calculate how far the arm needs to move Simulate frame
-                let joint_step_rad = (Simulate.simulationRate/Simulate.targetFramerate) * max_speed_rad * joint_diffs[i] / max_diff;
+                let joint_step_rad = (Simulate.simulationRate/Simulate.targetFramerate) * max_speed_rad * (joint_diffs[i] / max_diff);
 
                 // If it is not already at the target position, move the arm by the step calculated above
                 if(!Simulate.atTarget && i < 5)
                 {
-                    Simulate.dexter_sim_instance.angles_dexter_units[i] += joint_step_rad * (3600*180) / Math.PI;
-                }
-                // Get the new joint angle in radians
-                let updated_angle_rad = Math.PI*Simulate.dexter_sim_instance.angles_dexter_units[i]/ (3600*180);
-
-                if(i == 5)
-                {
-                    updated_angle_rad = Simulate.dynamixel_320_to_rad(Simulate.dexter_sim_instance.angles_dexter_units[i]- Socket.J6_OFFSET_SERVO_UNITS);
-                }
-                if(i == 6)
-                {
-                    updated_angle_rad = Simulate.dynamixel_320_to_rad(Simulate.dexter_sim_instance.angles_dexter_units[i]);
-                }
-
-                // Update the joint in the sim
-                let y_or_z = (((i === 0) || (i === 4)) ? "y" : "z");
-                if(i < 5) // Joints 1 - 5
-                {
-                    Simulate.sim["J"+(i+1)].rotation[y_or_z] = -updated_angle_rad;
-                }
-                else if(i == 5) // Joint 6
-                {
-                    Simulate.sim["J"+(i+1)].rotation[y_or_z] = updated_angle_rad;
-                }
-                else // Joint 7
-                {
-                    let angle_deg = updated_angle_rad*180/Math.PI;
-                    let new_xpos = ((angle_deg * 0.05424483315198377) / 296) * -1 //more precise version from James W aug 25.
-                    new_xpos *= 10;
-                    Simulate.gripperBox.scale.x = (new_xpos-0.018);
-                    Simulate.gripperBox.position.x = (new_xpos-0.018)/2;
-                    Simulate.sim.J7.position.setX(new_xpos);
-                }
-                
-
-                // Update the text value in the sim header
-                globalThis["sim_pane_j" + (i+1) + "_id"].innerHTML = Math.round(updated_angle_rad*180/Math.PI);
-
-                if(i==6)
-                {
-                    Simulate.currentJ7Pos = updated_angle_rad*180/Math.PI;
+                    Simulate.aMoveAnimationAngles[i] += joint_step_rad;
                 }
             }
 
-            let servo_step_rad = (Simulate.simulationRate/Simulate.targetFramerate) * max_speed_rad_servo * (180) / (Math.PI*Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+            let servo_step_rad = (Simulate.simulationRate/Simulate.targetFramerate) * max_speed_rad_servo;
             if(!j6_at_target)
             {
-                Simulate.dexter_sim_instance.angles_dexter_units[5] += Math.sign( joint_diffs[5]) * servo_step_rad ;
+                Simulate.aMoveAnimationAngles[5] += Math.sign( joint_diffs[5]) * servo_step_rad ;
             }
             if(!j7_at_target)
             {
-                Simulate.dexter_sim_instance.angles_dexter_units[6] += Math.sign( joint_diffs[6]) * servo_step_rad ;
+                Simulate.aMoveAnimationAngles[6] += Math.sign( joint_diffs[6]) * servo_step_rad ;
             }
 
+        }
+    }
+    static PIDConstant = 3.0;
+    static updatePID()
+    {
+        let max_speed_rad = Math.PI*Simulate.dexter_sim_instance.parameters["AngularSpeed"] / (3600*180);
+        
+        
+
+        // Get the differences between the current arm angles and target arm angles and also save the highest difference in a variable
+        for(let i = 0; i < 5; i++)
+        {
+            let current_angle_rads = Simulate.measuredAngles[i];
+            
+            let joint_diff = Simulate.aMoveAnimationAngles[i]-current_angle_rads+Simulate.PIDGoalOffsetAngles[i];
+            if(isNaN(joint_diff))
+            {
+                joint_diff = 0;
+            }
+            Simulate.PIDCorrectionAngles[i] = joint_diff;
+
+            let jointPIDSpeed = Math.max(Math.min(joint_diff*Simulate.PIDConstant,max_speed_rad),-max_speed_rad);
+            
+            let maxStepSize = Math.abs(joint_diff);
+            let step = jointPIDSpeed * (Simulate.simulationRate/Simulate.targetFramerate);
+            step = Math.max(Math.min(step,maxStepSize),-maxStepSize);
+            
+            Simulate.measuredAngles[i] += step;
         }
     }
 
