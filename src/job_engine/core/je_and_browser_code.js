@@ -593,7 +593,9 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
             return //so don't do stopPropagation, let its normal processing happen
         }
         event.stopPropagation();
-        let result = {offsetX:event.offsetX,  offsetY:event.offsetY, //relative to the elt clocked on
+        let result = {
+            clicked_dom_elt: subject_elt,
+            offsetX:event.offsetX,  offsetY:event.offsetY, //relative to the elt clocked on
             x:event.x,              y:event.y, //relative to the parent of the elt clicked on
             clientX:event.clientX,  clientY:event.clientY, //Relative to the upper left edge of the content area (the viewport) of the browser window. This point does not move even if the user moves a scrollbar from within the browser.
             pageX:event.pageX,      pageY:event.pageY, //Relative to the top left of the fully rendered content area in the browser.
@@ -761,6 +763,9 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
             if (in_name){
                 var val = inp.value
                 result[in_name] = val
+                if(inp === subject_elt){
+                   result.clicked_option_dom_elt = SW.find_option_dom_elt_selected(inp) //could possibly be null, but usually not.
+                }
             }
         }
         var combo_boxes = window_content_elt.querySelectorAll(".combo_box")  //should be a div tag a la <div class="combo_box><option>one</option><option selected="selected">two</option></div>
@@ -867,6 +872,25 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
                 }
             }, 10)
         }
+    }
+
+    //if select_dom_elt is the one that the user selected the option in,
+    //(as this fn is used above)
+    //then this fn will return the option_elt the user chose.
+    //but it could be passed any SELECT dom elt.
+    static find_option_dom_elt_selected(select_dom_elt){
+        let val_selected = select_dom_elt.value
+        for(let opt_elt of select_dom_elt.children){
+            if(opt_elt.value) {
+                if(opt_elt.value === val_selected) {
+                    return opt_elt
+                }
+                else if(opt_elt.innerText === val_selected){
+                    return opt_elt
+                }
+            }
+        }
+        return null
     }
 
     //called by dex.js and app_builder.js

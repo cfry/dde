@@ -209,11 +209,6 @@ function undebug_job() {
     js_debugger_checkbox_id.checked = false
 }
 
-function play_simulation_demo(){
-    Simulate.sim.enable_rendering = true;
-    //out("Demo just moves Dexter randomly.")
-}
-
 //call this on startup after peristent loaded AND after user clicks the menu item checkbox
 function adjust_animation(){
     let animate_dur = (DDE_DB.persistent_get("animate_ui") ? 300 : 0)
@@ -1709,17 +1704,7 @@ window_modify_id.onclick=function(){Editor.insert(
       misc_pane_help_id.onclick          = function(){ DocCode.open_doc(misc_pane_doc_id)  }
 
       //simulate pane
-      demo_id.onclick          = function() {
-                                      if (demo_id.innerHTML == "Demo") {
-                                          demo_id.innerHTML = "Stop"
-                                          DDEVideo.show_in_misc_pane("Simulate Dexter")
-                                          play_simulation_demo()
-                                      }
-                                      else {
-                                          Simulate.sim.enable_rendering = false;
-                                            demo_id.innerHTML = "Demo"
-                                      }
-                                 }
+
       inspect_dexter_details_id.onclick = function() { inspect(Dexter.default) }
 
       pause_id.onclick         = function (){

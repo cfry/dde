@@ -259,7 +259,7 @@ globalThis.SimBuild = class SimBuild{
            </label>`
 
        let show_html = '<select name="simobj_show" data-onchange="true">'
-        for(let kind of ["show_all", "hide_all", "show_this", "hide_this", "show_only_this", "hide_only_this", "show_dexter", "hide_dexter"]){
+        for(let kind of ["show_all", "hide_all", "show_this", "hide_this", "show_only_this", "hide_only_this", "show_colliders", "hide_colliders", "show_dexter", "hide_dexter"]){
             show_html += ' <option>' + kind + '</option>'
         }
        show_html += "</select>"

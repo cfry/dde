@@ -28,15 +28,6 @@ globalThis.SimObj = class SimObj{
        this.table   = Simulate.sim.table
        this.dexter  = Simulate.sim.J0
 
-        //kludge until Simulate.sim.table is set.
-       if(!this.table){
-            for(let a_po of Simulate.physicsBodies){
-                if(a_po.mesh.name === "table"){
-                    this.table = a_po.mesh
-                }
-            }
-        }
-
        //this.user_origin.setAttribute("radius", 0.5)
        //this.table.add(this.user_origin)
        this.make_user_origin_object3d()
@@ -973,8 +964,18 @@ globalThis.SimObj = class SimObj{
 
     static show(object3d_or_name, kind=""){
         let object3d = SimObj.get_object3d(object3d_or_name)
-        if     (kind === "show_this")    { object3d.visible = true }
-        else if(kind === "hide_this")    { object3d.visible = false }
+        if      (kind === "show_all") {
+            for(let obj of this.user_objects){
+                obj.visible = true
+            }
+        }
+        else if (kind === "hide_all") {
+            for(let obj of this.user_objects){
+                obj.visible = false
+            }
+        }
+        else if (kind === "show_this")    { object3d.visible = true }
+        else if (kind === "hide_this")    { object3d.visible = false }
         else if (kind === "show_only_this"){
             for(let obj of this.user_objects){
                 if(obj === object3d){ obj.visible = true }
@@ -987,18 +988,14 @@ globalThis.SimObj = class SimObj{
                 else {obj.visible = true  }
             }
         }
-        else if (kind === "show_all") {
-            for(let obj of this.user_objects){
-                obj.visible = true
-            }
+        else if(kind === "show_colliders") {
+            PhysicsObject.showColliders = true
         }
-        else if (kind === "hide_all") {
-            for(let obj of this.user_objects){
-                obj.visible = false
-            }
+        else if(kind === "hide_colliders") {
+            PhysicsObject.showColliders = false
         }
-        if     (kind === "show_dexter")    { this.dexter.visible = true }
-        else if(kind === "hide_dexter")    { this.dexter.visible = false }
+        else if (kind === "show_dexter")    { this.dexter.visible = true }
+        else if (kind === "hide_dexter")    { this.dexter.visible = false }
         else { shouldnt("SimObj.show passed invalid kind: " + kind) }
 
         //SimUtils.render()
