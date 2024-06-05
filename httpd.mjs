@@ -979,7 +979,7 @@ var http_server = http.createServer(async function (req, res) {
   }
 })
 
-http_server.listen(8080)
+http_server.listen(80)
 console.log("listening on port 80")
 
 /* orig james N code

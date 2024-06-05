@@ -67,7 +67,7 @@ class SimUtils{
         //onsole.log("Dexter.default: " + Dexter.default)
         //onsole.log("Dexter.dexter0: " + Dexter.dexter0)
         if (Dexter.default.name === robot_name){
-            if(move_kind === "a") {
+            if(move_kind === "a" || move_kind == "P") {
                 //do stuff
                 Simulate.dexter_sim_instance = ds_instance;
                 for(let i = 0; i < new_angles_dexter_units.length; i++)
@@ -76,17 +76,28 @@ class SimUtils{
                     {
                         if(i < 5) // Joints 1-5
                         {
-                            Simulate.jointsTarget[i] = this.arc_seconds_to_radians(new_angles_dexter_units[i]);
+                            if(move_kind == "a")
+                            {
+                                Simulate.aMoveTargetAngles[i] = this.arc_seconds_to_radians(new_angles_dexter_units[i]);
+                            }
+                            else if (move_kind == "P")
+                            {
+                                Simulate.PIDGoalOffsetAngles[i] = this.arc_seconds_to_radians(new_angles_dexter_units[i]);
+                            }
                         }
                         else if(i == 5) // Joint 6
                         {
-                            Simulate.jointsTarget[i] = this.degrees_to_radians((new_angles_dexter_units[i] - Socket.J6_OFFSET_SERVO_UNITS)* Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+                            Simulate.aMoveTargetAngles[i] = this.degrees_to_radians((new_angles_dexter_units[i] - Socket.J6_OFFSET_SERVO_UNITS)* Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
                         }
                         else // Joint 7
                         {
-                            Simulate.jointsTarget[i] = this.degrees_to_radians(new_angles_dexter_units[i] *  Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+                            Simulate.aMoveTargetAngles[i] = this.degrees_to_radians(new_angles_dexter_units[i] *  Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
                         }
                     }
+                }
+                if(move_kind == "a")
+                {
+                    Simulate.endIntructionOnTargetReached = true;
                 }
                 Simulate.atTarget = false;
             }

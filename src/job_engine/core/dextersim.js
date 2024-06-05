@@ -18,7 +18,7 @@ class DexterSim{
         DexterSim.robot_name_to_dextersim_instance_map[robot_name] = this
         this._angles_dexter_units = [0,0,0,0,0,
                                    Socket.degrees_to_dexter_units(0, 6), //different from the others because for the others, 0 deg is also 0 dexter units, but not for j6
-                                   50];  //50 which is the new HOME angle so that j7 doesn't overtorque.
+                                   50];  //50 which is the new HOME angle so that j7 doesn't overtorque. Animated A move
         
         this.angles_dexter_units = new Proxy(this._angles_dexter_units,{
             set(obj, prop, value) {
@@ -32,23 +32,30 @@ class DexterSim{
             }
         });
         
-        this.pid_angles_dexter_units = [0,0,0,0,0,0,0]  //last 2 angles are always zero.
+        this.pid_angles_dexter_units = [0,0,0,0,0,0,0]  //last 2 angles are always zero. animated PID
         this.parameters = {} //record latest set_parameter values for simulator, esp for AngularSpeed
     }
 
     compute_measured_angles_dexter_units(){
-        return Vector.add(this.angles_dexter_units, this.pid_angles_dexter_units)
+        let out = [];
+        for(let i = 0; i < 7; i++)
+        {
+            out.push(Simulate.rad_to_dexter_units(Simulate.measuredAngles[i]));
+        }
+        return out;
     }
 
     compute_measured_angles_degrees(){
-        let ma_du = this.compute_measured_angles_dexter_units()
-        return Socket.dexter_units_to_degrees_array(ma_du)
+        let out = [];
+        for(let i = 0; i < 7; i++)
+        {
+            out.push(Simulate.measuredAngles[i]*180/Math.PI);
+        }
+        return out;
     }
 
     compute_measured_angle_degrees(joint_number){ //joint is 1 thru 7
-        let ma_du = this.angles_dexter_units[joint_number - 1]
-        let ma_deg = Socket.dexter_units_to_degrees(ma_du, joint_number)
-        return ma_deg
+        return Simulate.measuredAngles[joint_number]*180/Math.PI
     }
 
     static is_simulator_running(){
@@ -239,6 +246,11 @@ class DexterSim{
                 ds_instance.queue_instance.add_to_queue(instruction_array)
                 ds_instance.ack_reply_maybe(instruction_array)
                 break;
+            case "P":
+                let ins_args  = instruction_array.slice(Instruction.INSTRUCTION_ARG0, Instruction.INSTRUCTION_ARG7);
+                SimUtils.render_multi(ds_instance, ins_args, robot_name, 0,"P");
+                ds_instance.ack_reply_maybe(instruction_array)
+                break;
             case "e": //cause an error. Used for testing only
                 //not needed as ack_reply pulls the error_code out of instruction_array for "e" oplets. let the_error_code = instruction_array[Instruction.INSTRUCTION_ARG0]
                 ds_instance.ack_reply_maybe(instruction_array)
@@ -298,7 +310,7 @@ class DexterSim{
                 ds_instance.queue_instance.add_to_queue(ins_arr_a)
                 ds_instance.ack_reply_maybe(instruction_array) //return the orig "M" array
                 break;
-            case "P": //does not go on queue  //ds_instance.queue_instance.add_to_queue(instruction_array)
+            case "P_old": //does not go on queue  //ds_instance.queue_instance.add_to_queue(instruction_array)
                 //pid_move_all_joints for j6 and 7 are handled diffrently than J1 thru 5.
                 //IF we get a pid_maj for j6 and/or j7, just treat it like
                 // an maj for j6 and j7, ie just move the joints to those locations.

@@ -265,7 +265,7 @@ globalThis.PhysicsObject = class PhysicsObject
 
         if(disposeGeometry || disposeMaterial)
         {
-            this.mesh.parent.remove(this.mesh);
+            if(this.mesh.parent) { this.mesh.parent.remove(this.mesh); }
             if(disposeGeometry)
             {
                 this.mesh.geometry.dispose();
