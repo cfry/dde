@@ -47,59 +47,13 @@ globalThis.PhysicsObject = class PhysicsObject
      */
     constructor(mesh,mass=1,colliderType)
     {
-        //List of all ammo objects for memory management purposes
-        
-        this.ammoObjects = [];
-        //Variable init
-        this.zeroVec = new Ammo.btVector3(0,0,0);
-        this.tempAmmoPos =  new Ammo.btVector3();
-        this.tempAmmoQuat =  new Ammo.btQuaternion();
-        this.tempAmmoTrans =  new Ammo.btTransform();;
-
-        this.ammoObjects.push(this.zeroVec);
-        this.ammoObjects.push(this.tempAmmoPos);
-        this.ammoObjects.push(this.tempAmmoQuat);
-
         this.tempThreePosition0 = new THREE.Vector3();
         this.tempThreePosition1 = new THREE.Vector3();
         this.tempThreeQuat = new THREE.Quaternion();
 
         this.mesh = mesh;
         this.mass = mass;
-
-
-
-        //Compute the dimensions of the collider
-        if(colliderType != undefined)
-        {
-            switch(colliderType)
-            {
-                case PhysicsObject.Shape.BOX:
-                    this.colliderInfo = PhysicsObject.computeBoxCollider(mesh);
-                    break;
-                case PhysicsObject.Shape.SPHERE:
-                    this.colliderInfo = PhysicsObject.computeSphereCollider(mesh);
-                    break;
-                case PhysicsObject.Shape.CYLINDER:
-                    this.colliderInfo = PhysicsObject.computeCylinderCollider(mesh);
-                    break;
-            }
-        }
-        else
-        {
-            this.colliderInfo = PhysicsObject.computeBestCollider(mesh);
-        }
-        
-
-
-        // Get the position and rotation of the mesh in world coordinates. Getting the .position or .quaternion parameter of the mesh will not work, as it is relative to the position of it's parent
-        let meshPostion = new THREE.Vector3();
-        let meshQuaternion = new THREE.Quaternion();
-        this.mesh.getWorldPosition(meshPostion);
-        this.mesh.getWorldQuaternion(meshQuaternion);
-
-        meshPostion.add(this.colliderInfo.offset);
-
+        this._initAmmo();
 
 
         //Create a wireframe to show bounding box for debug
@@ -140,7 +94,85 @@ globalThis.PhysicsObject = class PhysicsObject
             colliderFrameGeometry.dispose();
             colliderFrameEdges.dispose();
         }
-        
+
+
+        // Bounding box used for object pickup
+        this.pickupBox = new THREE.Box3();
+
+        //Object to show where the pickupBox is to make debugging easier
+        this.pickupHelper = new THREE.Box3Helper(this.pickupBox,0xff00ff);
+        Simulate.sim.scene.add(this.pickupHelper);
+
+        // Theshold for the claw to be closed to pickup the object
+        this.gripperThreshold = 200;
+
+        this.held = false;
+
+        this.mesh.userData.physObj = this;
+    }
+
+    updateCollider()
+    {
+        this._destroyAmmo();
+        this._initAmmo();
+        // switch(this.colliderInfo.type)
+        // {
+        //     case PhysicsObject.Shape.BOX:
+        //         Simulate.physicsWorld.removeRigidBody(this.rigid_body);
+        //         this.colliderInfo = PhysicsObject.computeBoxCollider(this.mesh);
+        //         this.colScaleVec.setValue(Simulate.physicsScale * this.colliderInfo.size.x, Simulate.physicsScale * this.colliderInfo.size.y, Simulate.physicsScale * this.colliderInfo.size.z)
+        //         this.colShape.setLocalScaling(this.colScaleVec);
+        //         this.colShape.setMargin( 0.05 );
+        //         this.colShape.calculateLocalInertia( mass, this.localInertia );
+        //         Simulate.physicsWorld.addRigidBody(this.rigid_body);
+        //     break;
+                
+
+        // }
+    }
+
+    _initAmmo(colliderType)
+    {
+        //List of all ammo objects for memory management purposes
+        this.ammoObjects = [];
+        //Variable init
+        this.zeroVec = new Ammo.btVector3(0,0,0);
+        this.tempAmmoPos =  new Ammo.btVector3();
+        this.tempAmmoQuat =  new Ammo.btQuaternion();
+        this.tempAmmoTrans =  new Ammo.btTransform();;
+
+        this.ammoObjects.push(this.zeroVec);
+        this.ammoObjects.push(this.tempAmmoPos);
+        this.ammoObjects.push(this.tempAmmoQuat);
+        this.ammoObjects.push(this.tempAmmoTrans);
+        //Compute the dimensions of the collider
+        if(colliderType != undefined)
+        {
+            switch(colliderType)
+            {
+                case PhysicsObject.Shape.BOX:
+                    this.colliderInfo = PhysicsObject.computeBoxCollider(this.mesh);
+                    break;
+                case PhysicsObject.Shape.SPHERE:
+                    this.colliderInfo = PhysicsObject.computeSphereCollider(this.mesh);
+                    break;
+                case PhysicsObject.Shape.CYLINDER:
+                    this.colliderInfo = PhysicsObject.computeCylinderCollider(this.mesh);
+                    break;
+            }
+        }
+        else
+        {
+            this.colliderInfo = PhysicsObject.computeBestCollider(this.mesh);
+        }
+    
+        // Get the position and rotation of the mesh in world coordinates. Getting the .position or .quaternion parameter of the mesh will not work, as it is relative to the position of it's parent
+        let meshPostion = new THREE.Vector3();
+        let meshQuaternion = new THREE.Quaternion();
+        this.mesh.getWorldPosition(meshPostion);
+        this.mesh.getWorldQuaternion(meshQuaternion);
+
+        meshPostion.add(this.colliderInfo.offset);
 
         // Create Rigidbody
 
@@ -163,13 +195,16 @@ globalThis.PhysicsObject = class PhysicsObject
         // Create a motion state to initialize the rigidBody from the above transform. The motionState represents the state of the object in physical space (position, orientation, velocity etc)
         let motionState = new Ammo.btDefaultMotionState( transform );
         this.ammoObjects.push(motionState);
+
+
+        this.colScaleVec = new Ammo.btVector3(); 
         
     
         // Create the collider. This collider is just the shape that is used to compute collisions. It is used to initialize the rigidBody so that it knows what shape it is
         switch(this.colliderInfo.type)
         {
             case PhysicsObject.Shape.BOX:
-                this.colShape = new Ammo.btBoxShape( new Ammo.btVector3( Simulate.physicsScale * this.colliderInfo.size.x * 0.5, Simulate.physicsScale * this.colliderInfo.size.y * 0.5, Simulate.physicsScale * this.colliderInfo.size.z * 0.5 ) );
+                this.colShape = new Ammo.btBoxShape( new Ammo.btVector3(0.5,0.5,0.5) );
                 break;
             case PhysicsObject.Shape.SPHERE:
                 this.colShape = new Ammo.btSphereShape( Simulate.physicsScale * this.colliderInfo.radius);
@@ -201,20 +236,24 @@ globalThis.PhysicsObject = class PhysicsObject
                         break;
                 }
                 break;
-        }
+        } 
+        this.colScaleVec.setValue(Simulate.physicsScale * this.colliderInfo.size.x, Simulate.physicsScale * this.colliderInfo.size.y, Simulate.physicsScale * this.colliderInfo.size.z)
+        this.colShape.setLocalScaling(this.colScaleVec);
         this.ammoObjects.push(this.colShape);
+        
         
 
         // Set the margin for error that is used when calculating collisions
         this.colShape.setMargin( 0.05 );
+        
     
         //Calculate the inertia of the object. Note: YOU CANNOT SET MASS WITHOUT THIS STEP. 
         this.localInertia = new Ammo.btVector3( 0, 0, 0 );
-        this.colShape.calculateLocalInertia( mass, this.localInertia );
+        this.colShape.calculateLocalInertia( this.mass, this.localInertia );
         this.ammoObjects.push(this.localInertia);
     
         // Create the rigidbody. This is what represents the physical object in the scene.
-        let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, this.colShape, this.localInertia );
+        let rbInfo = new Ammo.btRigidBodyConstructionInfo( this.mass, motionState, this.colShape, this.localInertia );
         this.rigid_body = new Ammo.btRigidBody( rbInfo );
         this.rigid_body.setFriction(0.9);
         this.rigid_body.setRollingFriction(0.01);
@@ -227,19 +266,17 @@ globalThis.PhysicsObject = class PhysicsObject
         Simulate.physicsWorld.addRigidBody( this.rigid_body );
         this.index = Simulate.physicsBodies.length
         Simulate.physicsBodies.push(this);
+    }
 
-
-        // Bounding box used for object pickup
-        this.pickupBox = new THREE.Box3();
-
-        //Object to show where the pickupBox is to make debugging easier
-        this.pickupHelper = new THREE.Box3Helper(this.pickupBox,0xff00ff);
-        Simulate.sim.scene.add(this.pickupHelper);
-
-        // Theshold for the claw to be closed to pickup the object
-        this.gripperThreshold = 200;
-
-        this.held = false;
+    _destroyAmmo()
+    {
+        Simulate.physicsBodies.splice(this.index,1);
+        Simulate.physicsWorld.removeRigidBody(this.rigid_body);
+        for(let obj of this.ammoObjects)
+        {
+            Ammo.destroy(obj);
+        }
+        this.ammoObjects = [];
     }
 
     /** Remove the object from the scene and remove it
@@ -248,12 +285,8 @@ globalThis.PhysicsObject = class PhysicsObject
     */
     destroy(disposeGeometry = true, disposeMaterial = true)
     {
-        Simulate.physicsBodies.splice(this.index,1);
-        Simulate.physicsWorld.removeRigidBody(this.rigid_body);
-        for(let obj of this.ammoObjects)
-        {
-            Ammo.destroy(obj);
-        }
+        this._destroyAmmo();
+        delete this.mesh.userData.physObj;
 
         
         this.colliderLines.parent.remove(this.colliderLines);

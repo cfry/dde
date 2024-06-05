@@ -360,26 +360,48 @@ globalThis.Simulate = class Simulate {
       //from Brad, App.js
       //ambient light
         const color = 0xFFFFFF;
-        const intensity = 1 //0.75;
+        const intensity = 1.3//0.75;
         const light = new THREE.AmbientLight ( color, intensity );
         Simulate.sim.scene.add ( light );
 
-      //directional light
-        const dcolor = 0xFFFFFF;
-        const dintensity = 1 //0.5;
-        //	const intensity = 0.35;		//	To see the helpers easier.
-        const dlight = new THREE.DirectionalLight ( dcolor, dintensity );
-        dlight.position.set ( 4, 4, 2 );
-        dlight.target.name = "directional_light_target"
-        dlight.target.position.set ( 0, 0, 0 );
-        dlight.castShadow = true;
-        Simulate.sim.scene.add ( dlight );
-        Simulate.sim.scene.add ( dlight.target );
 
-        dlight.shadow.camera.left	= -1.5;
-        dlight.shadow.camera.right	=  1.5;
-        dlight.shadow.camera.top	=  1.5;
-        dlight.shadow.camera.bottom	= -1.5;
+        //directional light 1
+        {
+            const dcolor = 0xFFFFFF;
+            const dintensity = 1.0//0.5;
+            //	const intensity = 0.35;		//	To see the helpers easier.
+            const dlight = new THREE.DirectionalLight ( dcolor, dintensity );
+            dlight.position.set ( 4, 4, 2 );
+            dlight.target.name = "directional_light_target"
+            dlight.target.position.set ( 0, 0, 0 );
+            dlight.castShadow = true;
+            Simulate.sim.scene.add ( dlight );
+            Simulate.sim.scene.add ( dlight.target );
+
+            dlight.shadow.camera.left	= -1.5;
+            dlight.shadow.camera.right	=  1.5;
+            dlight.shadow.camera.top	=  1.5;
+            dlight.shadow.camera.bottom	= -1.5;
+        }
+        //directional light 2
+        {
+            const dcolor = 0xFFFFFF;
+            const dintensity = 1.5//0.5;
+            //	const intensity = 0.35;		//	To see the helpers easier.
+            const dlight = new THREE.DirectionalLight ( dcolor, dintensity );
+            dlight.position.set ( -4, 4, -2 );
+            dlight.target.name = "directional_light_target"
+            dlight.target.position.set ( 0, 0, 0 );
+            dlight.castShadow = true;
+            Simulate.sim.scene.add ( dlight );
+            Simulate.sim.scene.add ( dlight.target );
+
+            dlight.shadow.camera.left	= -1.5;
+            dlight.shadow.camera.right	=  1.5;
+            dlight.shadow.camera.top	=  1.5;
+            dlight.shadow.camera.bottom	= -1.5;
+        }
+
     /* Brad's version aug 22, 2020  semantically the same as above except fry has
         dlight.castShadow = true;
         and the extra 4 last lines of "dlight.shadow.camera.left	= -1.5;" , etc.
@@ -602,6 +624,10 @@ globalThis.Simulate = class Simulate {
                     Simulate.gripperBox.visible = false;
                 }
                 Simulate.update_joints();
+            }
+            if(SimObj.refresh)
+            {
+                SimObj.refresh();
             }
             Simulate.update_camera();
             Simulate.updateText();
@@ -1020,7 +1046,7 @@ globalThis.Simulate = class Simulate {
     static createAxisHelper(position)
     {
         let xArrow = Simulate.createArrowMesh(new THREE.Vector3( 0.0, 0.0, -0.5),0xff0000);
-        let yArrow = Simulate.createArrowMesh(new THREE.Vector3(-0.5, 0.0,  0.0),0x00ff00);
+        let yArrow = Simulate.createArrowMesh(new THREE.Vector3(-0.5, 0.0,  0.0),0x00ff00)
         let zArrow = Simulate.createArrowMesh(new THREE.Vector3( 0.0, 0.5,  0.0),0x0000ff);
 
         let xText = Simulate.createCameraFacingText("X",0xff0000,0.1);
