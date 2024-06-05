@@ -981,7 +981,8 @@ class Editor {
         if(Editor.current_buffer_needs_saving){
             let confirm_message = "The editor buffer has unsaved changes.\n" +
                 "Click OK to save it before editing the other file.\n" +
-                "Click Cancel to not save it before editing the other file."
+                "Click Cancel to not save it before editing the other file.\n" +
+                "Then redo opening the file."
             if(confirm(confirm_message)) {
                 await Editor.save_local_file()
             }

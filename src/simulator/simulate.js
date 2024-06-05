@@ -235,7 +235,7 @@ globalThis.Simulate = class Simulate {
 
                 SimBuild.init()
                 Simulate.init_interaction_manager()
-                SimObj.refresh() //does nothing if no SimObjs. Otherwise makes sure they are in the scene and refreshes
+                SimObj.refresh() //does nothing if no SimObjs, otherwise makes sure they are in the scene and refreshes
             }
             catch(err){
                     console.log("init_simulation errored with: " + err.message + "\n" + err.stack)
@@ -824,12 +824,13 @@ globalThis.Simulate = class Simulate {
         window.addEventListener('mousemove', (event) => {
             Simulate.mouse.shiftDown = event.shiftKey;
             Simulate.mouse.ctrlDown  = event.ctrlKey ;
+            Simulate.mouse.altDown   = event.altKey ;
             Simulate.mouse.x  = event.offsetX;
             Simulate.mouse.y  = event.offsetY;
             Simulate.mouse.mX = -event.movementX;
             Simulate.mouse.mY = -event.movementY;
 
-            if(Simulate.mouse.down && !Simulate.mouse.shiftDown)
+            if(Simulate.mouse.down && !Simulate.mouse.shiftDown && !Simulate.mouse.altDown)
             {
                 Simulate.orbit.rotation_yaw   += Simulate.orbit_speed*Simulate.mouse.mX/Simulate.canSize.height;
                 Simulate.orbit.rotation_pitch += Simulate.orbit_speed*Simulate.mouse.mY/Simulate.canSize.height;
@@ -844,6 +845,10 @@ globalThis.Simulate = class Simulate {
                      Simulate.pan_speed*Simulate.mouse.mX/(Simulate.canSize.height*Simulate.orbit.zoom),
                     -Simulate.pan_speed*Simulate.mouse.mY/(Simulate.canSize.height*Simulate.orbit.zoom)
                 )
+            }
+            else if(Simulate.mouse.down && Simulate.mouse.altDown){
+                Simulate.orbit.zoom *=1.05**(-Simulate.mouse.mY*-0.04);  //should be drag up makes dexter bigger.
+                Simulate.target_orbit.zoom = Simulate.orbit.zoom;
             }
         }, false);
 

@@ -113,7 +113,8 @@ globalThis.BrowserFile = class BrowserFile{
         if (BrowserFile.current_buffer_needs_saving()) {
             let confirm_message = "The editor buffer has unsaved changes.\n" +
                 "Click OK if you want to save before editing the other file.\n" +
-                "Click Cancel to not save it before editing the other file."
+                "Click Cancel to not save it before editing the other file.\n" +
+                "Then redo opening the file."
             if (confirm(confirm_message)) {
                 alert('Please choose "Save" from the file menu\n' +
                     "(Sorry, browser security restrictions make this cumbersome.)"
@@ -172,7 +173,8 @@ globalThis.BrowserFile = class BrowserFile{
         if (BrowserFile.current_buffer_needs_saving()) {
             let confirm_message = "The editor buffer has unsaved changes.\n" +
                 "Click OK if you want to save before editing the other file.\n" +
-                "Click Cancel to not save it before editing the other file."
+                "Click Cancel to not save it before editing the other file.\n" +
+                "Then redo opening the file."
             if (confirm(confirm_message)) {
                 alert('Please choose "Save" from the file menu\n' +
                     "(Sorry, browser security restrictions make this cumbersome.)"

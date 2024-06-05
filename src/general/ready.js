@@ -1966,8 +1966,8 @@ window_modify_id.onclick=function(){Editor.insert(
           setTimeout(function(){ //dde4 todo needs file system
               DDEVideo.show_in_misc_pane(DDE_DB.persistent_get("misc_pane_content"))
           }, 200)
+         setTimeout(function(){loading_screen_id.style.display = "none"}, 1000)
          console.log("END OF on_ready_after_db_init")
-
 } //end of on_ready
 
 function set_left_panel_width(width=700){

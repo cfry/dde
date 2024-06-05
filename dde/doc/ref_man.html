@@ -3913,6 +3913,15 @@ new Job({name: "my_job1",
     for a print statement. But if it returns something that is not a valid instruction,
     the Job will error.
     <p></p>
+    Job's can thus be self-modifying. In computer science, this is called <i>self-modifying code</i>
+    because the code changes itself while it is running. Other Jobs and JavaSctript code
+    can also add instructions to a Job's do_list while it is running.
+    <p></p>
+    Because a Job that's just been run can have a different do_list than when it started,
+    each time we start a job, we make a copy of the <i>original</i> do_list to install
+    in the Job. This way the Job always starts off with its original instructions,
+    regarless of how the previous running of the Job modified them.
+    <p></p>
     <b>Job Instance Access</b><br/>
     If you want to access the running Job instance at run time, use a
     function definition on the do_list, and reference <code>this</code> in
@@ -5820,9 +5829,22 @@ new Job({name: "job2",
   <b>perform_when_stopped</b> A boolean. When <code>true</code> (the default)
   the job will behave as if the do_list is completed normally,
   i.e. the job's when_stopped action will be performed.<br/>
-  If it is false, the when_stopped action won't be run.
-  Example:<code>Control.stop_job({job: "my_job", offset: "label1"})</code>
-  <code title="unEVALable code fragment"> Job.my_job</code> will stop when it reaches the instruction named "label1".
+  If it is false, the when_stopped action won't be run.<br/>
+  <i>Examples:</i><br/>
+    <code>Control.stop_job({job: "my_job", offset: "label1"})</code><br/>
+    Job.my_job will stop when it reaches the instruction named "label1".
+    <p></p>
+    Below, we use <code>Control.stop_job</code> to prevent the Job from running the
+    2nd <code>Dexter.move_all_joints</code> instruction. You can comment out
+    the <code>Control.stop_job</code> and have the robot end the Job straight up.
+    <pre><code>new Job({
+    name: "my_job",
+    do_list: [
+        Dexter.move_all_joints(10, 20, 30, 40, 50),
+        Control.stop_job(),
+        Dexter.move_all_joints(0, 0, 0, 0, 0),
+    ]
+})</code></pre>
 </details>
 
 <details id="Control.suspend_doc_id" class="doc_details"><summary>suspend</summary>

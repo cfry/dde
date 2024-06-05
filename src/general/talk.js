@@ -2188,50 +2188,50 @@ class Talk {
 
     static left(content_obj){
         if(content_obj._content_str === "") {
-            this.start_normal_move_cmd(content_obj._cmd_norm)
+            this.start_normal_move_cmd(content_obj)
         }
     }
 
     static right(content_obj){
         if(content_obj._content_str === "") {
-            this.start_normal_move_cmd(content_obj._cmd_norm)
+            this.start_normal_move_cmd(content_obj)
         }
     }
 
     static farther(content_obj){
         if(content_obj._content_str === "") {
-            this.start_normal_move_cmd(content_obj._cmd_norm)
+            this.start_normal_move_cmd(content_obj)
         }
     }
 
     static closer(content_obj){
         if(content_obj._content_str === "") {
-            this.start_normal_move_cmd(content_obj._cmd_norm)
+            this.start_normal_move_cmd(content_obj)
         }
     }
 
 
     static up(content_obj){
         if(content_obj._content_str === "") {
-            this.start_normal_move_cmd(content_obj._cmd_norm)
+            this.start_normal_move_cmd(content_obj)
         }
     }
 
     static down(content_obj){
         if(content_obj._content_str === "") {
-            this.start_normal_move_cmd(content_obj._cmd_norm)
+            this.start_normal_move_cmd(content_obj)
         }
     }
 
     static reverse(content_obj){
         if(content_obj._content_str === "") {
-            this.start_normal_move_cmd(content_obj._cmd_norm)
+            this.start_normal_move_cmd(content_obj)
         }
     }
 
     static forward(content_obj){
         if(content_obj._content_str === "") {
-            this.start_normal_move_cmd(content_obj._cmd_norm)
+            this.start_normal_move_cmd(content_obj)
         }
     }
 
@@ -2341,7 +2341,7 @@ class Talk {
     } */
 
     static joint(content_obj){
-        this.start_normal_move_cmd("joint", content_obj.joint_number, content_obj.direction)
+        this.start_normal_move_cmd(content_obj)
     }
 //______End move commands _______
 
@@ -2359,11 +2359,11 @@ class Talk {
     }*/
 
     //don't use "this"
-    static start_normal_move_cmd(cmd_str, joint_number=null, direction=null){
-        if(cmd_str) {
-            Talk.current_move_command      = cmd_str //used inside of move_incrmentally only.
-            Talk.current_move_joint_number = joint_number //will be null for xyz move
-            Talk.current_move_direction    = direction //will be null for xyz move
+    static start_normal_move_cmd(content_obj){
+        if(content_obj) {
+            Talk.current_move_command      = content_obj.cmd_norm //used inside of move_incrmentally only.
+            Talk.current_move_joint_number = content_obj.joint_number //will be null for xyz move
+            Talk.current_move_direction    = content_obj.direction //will be null for xyz move
         }
         //else this is the setTimeout call from below with no arg passed so
         //don't change the Talk.current_move_command
