@@ -280,11 +280,11 @@ export function on_ready() {
     })
 
     $('#outer_splitter_id').on('resize',
-        function (event) {
-            let new_size = event.args.panels[0].size
+        function (event_var) {
+            let new_size = event_var.args.panels[0].size
             DDE_DB.persistent_set("left_panel_width", new_size)
             DDEVideo.refresh_misc_pane(false) //false means don't change content of Editor pane
-            event.stopPropagation()
+            event_var.stopPropagation()
         })
 
     DocCode.init_outer_splitter_expand_event()
@@ -295,10 +295,10 @@ export function on_ready() {
     })
 
     $('#left_splitter_id').on('resize',
-        function (event) {
-            let new_size = event.args.panels[0].size
+        function (event_var) {
+            let new_size = event_var.args.panels[0].size
             DDE_DB.persistent_set("top_left_panel_height", new_size)
-            event.stopPropagation() //must have or outer_splitter_id on resize is called
+            event_var.stopPropagation() //must have or outer_splitter_id on resize is called
         })
 
 
@@ -307,11 +307,11 @@ export function on_ready() {
     })
 
     $('#right_splitter_id').on('resize',
-        function (event) {
-            let new_size = event.args.panels[0].size
+        function (event_var) {
+            let new_size = event_var.args.panels[0].size
             DDE_DB.persistent_set("top_right_panel_height", new_size)
             DDEVideo.refresh_misc_pane(false) //false means don't change content of Editor pane
-            event.stopPropagation() //must have or outer_splitter_id on resize is called
+            event_var.stopPropagation() //must have or outer_splitter_id on resize is called
         })
 
     setTimeout(function(){
@@ -337,9 +337,9 @@ export function on_ready() {
     //$('#jqxwindow').jqxWindow('hide');
 
     //also look in eval.js eval_part1 for js_cmds_array extension.
-   // $("#cmd_input_id").keyup(function(event){ //output pane  type in
-    cmd_input_id.onkeyup = function(event){
-        if(event.keyCode == 13){ //ENTER key
+   // $("#cmd_input_id").keyup(function(event_var){ //output pane  type in
+    cmd_input_id.onkeyup = function(event_var){
+        if(event_var.keyCode == 13){ //ENTER key
             let src = Editor.get_cmd_selection() //will return "" if no selection
             if(src.length == 0) { src = cmd_input_id.value} //get full src if no selection
             src = src.trim()
@@ -366,7 +366,7 @@ export function on_ready() {
             //    /call_cmd_service_custom(src) /ROS selected
             //}
         }
-        else if(event.keyCode == 38){ //up arrow
+        else if(event_var.keyCode == 38){ //up arrow
             /*if      (js_cmds_index == -1 ) { out("No JavaScript commands in history") }
             else if (js_cmds_index == 0 )  { out("No more JavaScript command history.") }
             else {
@@ -389,7 +389,7 @@ export function on_ready() {
             }
         }
 
-        else if(event.keyCode == 40){ //down arrow
+        else if(event_var.keyCode == 40){ //down arrow
             if      (js_cmds_array.length === 0) { out("No JavaScript commands in history") }
             else if (js_cmds_index === -1) { //probably first time using down arrow, but
                 //user might have added items to the js_cmds_array via the EVAL button)
@@ -412,7 +412,7 @@ export function on_ready() {
                 cmd_input_id.value = new_src
             }
         }
-        else if (event.keyCode === 8){ //delete key
+        else if (event_var.keyCode === 8){ //delete key
             if (js_cmds_index < js_cmds_array.length) {
                 js_cmds_index = js_cmds_array.length
             }
@@ -425,19 +425,19 @@ export function on_ready() {
 
     ////cmd_input_clicked_on_last = false //todo probably remove as not read anywhere global var. Also set below and by Editor.init_editor
 
-    cmd_input_id.onclick = function(event) {
-        var full_src = event.target.value
+    cmd_input_id.onclick = function(event_var) {
+        var full_src = event_var.target.value
         if (full_src) {
             if(full_src.length > 0){
-                let pos = event.target.selectionStart
+                let pos = event_var.target.selectionStart
                 if(pos < (full_src.length - 1)){
                     if(cmd_lang_id.value == "JS"){
-                        DocCode.onclick_for_click_help(event)
+                        DocCode.onclick_for_click_help(event_var)
                     }
                     else if(cmd_lang_id.value == "SSH"){
                         let space_pos = full_src.indexOf(" ")
                         if((space_pos == -1) || (pos < space_pos)){
-                            DocCode.onclick_for_click_help(event)
+                            DocCode.onclick_for_click_help(event_var)
                         }
                         //else don't do click help because clicking on the args of a bash cmd
                         //doesn't yield meaningful man help
@@ -447,7 +447,7 @@ export function on_ready() {
                             undefined, true)
                     }
                     else if(cmd_lang_id.value == "GPT"){
-                        DocCode.onclick_for_click_help(event)
+                        DocCode.onclick_for_click_help(event_var)
                     }
                     else {
                         shouldnt("cmd_input_id got menu item: " + cmd_lang_id.value +
@@ -517,12 +517,12 @@ export function on_ready() {
         DocCode.previous_active_element = document.activeElement
         DocCode.selected_text_when_eval_button_clicked = Editor.get_any_selection()
     };
-    find_doc_button_id.onclick = function(event) {
+    find_doc_button_id.onclick = function(event_var) {
             DocCode.find_doc()
-            event.target.blur()
+            event_var.target.blur()
     }
-    find_doc_input_id.onclick = function(event) {
-        DocCode.onclick_for_click_help(event)
+    find_doc_input_id.onclick = function(event_var) {
+        DocCode.onclick_for_click_help(event_var)
     }
     find_doc_input_id.onchange = function() {
         DocCode.find_doc()
@@ -531,20 +531,20 @@ export function on_ready() {
 
 
     //click help for all text inside the code tag (white).
-    $('code').click(function(event) {
+    $('code').click(function(event_var) {
                          const full_src = globalThis.getSelection().focusNode.data
                          const pos      = globalThis.getSelection().focusOffset
                          Editor.show_identifier_info(full_src, pos)
                     })
         //for results of code examples.
-    $('samp').click(function(event) {
+    $('samp').click(function(event_var) {
                         const full_src = globalThis.getSelection().focusNode.data
                         const pos      = globalThis.getSelection().focusOffset
                         Editor.show_identifier_info(full_src, pos)
     })
 
-    output_div_id.onclick = function(event) {
-        DocCode.onclick_for_click_help(event)
+    output_div_id.onclick = function(event_var) {
+        DocCode.onclick_for_click_help(event_var)
     }
 
    //handles the button clicks and menu selects that chrome Apps prevent in HTML where they belong
@@ -554,13 +554,13 @@ export function on_ready() {
            DocCode.selected_text_when_eval_button_clicked = Editor.get_any_selection()
     };
 
-   eval_id.onclick = function(event){
-                       event.stopPropagation()
+   eval_id.onclick = function(event_var){
+                       event_var.stopPropagation()
                        Editor.eval_button_action()
                      }
 
-   step_button_id.onclick = function(event){
-                               event.stopPropagation()
+   step_button_id.onclick = function(event_var){
+                               event_var.stopPropagation()
                                //open_dev_tools() //can't work in dde4 from browser.
                                warning('If the Chrome dev tools window is not open,<br/>click right in the editor pane and choose "Inspect",<br/>then click "Step" again.')
                                setTimeout(function(){
@@ -582,9 +582,9 @@ export function on_ready() {
        Dex.wrap_instruction_handler()
    }
 
-   js_debugger_checkbox_id.onclick = function(event) {
-       event.stopPropagation()
-       if(event.target.checked) {
+   js_debugger_checkbox_id.onclick = function(event_var) {
+       event_var.stopPropagation()
+       if(event_var.target.checked) {
            open_dev_tools() //todo dde4 test
        }
        else {
@@ -611,7 +611,7 @@ export function on_ready() {
  }
  Editor.set_menu_string(new_id, "New", "n")
 
- file_name_id.onchange = function(event){ //similar to open
+ file_name_id.onchange = function(event_var){ //similar to open
      /*let orig_path = Editor.current_file_path
      const inner_path = e.target.value //could be "new buffer" or an actual file
      const path = Editor.files_menu_path_to_path(inner_path)
@@ -627,7 +627,7 @@ export function on_ready() {
      else { */ //presume JS, but if its .idl, that's ok we just edit the idl in the text editor
          //Editor.edit_file(path)
      //} */
-     BrowserFile.open_local_file_from_menu(event)
+     BrowserFile.open_local_file_from_menu(event_var)
  }
 
  /*not used now jul 6, 2023
@@ -642,7 +642,7 @@ export function on_ready() {
 
  Editor.set_menu_string(open_local_id, "Open...", "o")
 
- open_local_id.onclick = function () { BrowserFile.open_local_file.call(this) } //needs "this" of the user event to work
+ open_local_id.onclick = function () { BrowserFile.open_local_file.call(this) } //needs "this" of the user event_var to work
 
  //open_from_dexter_id.onclick = Editor.open_from_dexter_computer
 
@@ -746,8 +746,8 @@ export function on_ready() {
  } //was: Editor.save_on_dde_computer //only for saving on dde computer
 */
 
- save_local_id.onclick    = function(event) { BrowserFile.save_local_file() }
- save_local_as_id.onclick = function(event) { BrowserFile.save_local_file_as() }
+ save_local_id.onclick    = function(event_var) { BrowserFile.save_local_file() }
+ save_local_as_id.onclick = function(event_var) { BrowserFile.save_local_file_as() }
 
 
     //obsolete with dde4
@@ -1220,7 +1220,7 @@ window_modify_id.onclick=function(){Editor.insert(
         pitch: 1.0,    //default=1.0   0 to 2,
         lang: "en-US", //default="en-US"
         voice: 0,      //default=0     0, 1, 2, or 3
-        callback: function(event) {out('Dur in nsecs: ' + event.elapsedTime)}  //default=null  called when speech is done.
+        callback: function(event_var) {out('Dur in nsecs: ' + event_var.elapsedTime)}  //default=null  called when speech is done.
     })\n`, '[true, "It is", new Date()]'
             )
             DocCode.open_doc(speak_doc_id)}
@@ -1489,9 +1489,9 @@ window_modify_id.onclick=function(){Editor.insert(
                                                TestSuite.immediate_stop = true
                                            }
                                        }
-      undefine_jobs_id.onclick       = function(event){
+      undefine_jobs_id.onclick       = function(event_var){
           Job.clear_stopped_jobs()
-          event.target.blur()
+          event_var.target.blur()
       } //use individual X (close) marks instead
 
       insert_new_job_id.onclick = Editor.insert_new_job
@@ -1729,14 +1729,14 @@ window_modify_id.onclick=function(){Editor.insert(
                          'Choose File',
                          'Reward Board']
        $("#misc_pane_menu_id").jqxComboBox({ source: misc_items, width: '85%', height: '20px', dropDownHeight: '235px'});
-       $('#misc_pane_menu_id').on('keypress', function (event) {
-           if(event.code == "Enter"){
-               var val = event.target.value
+       $('#misc_pane_menu_id').on('keypress', function (event_var) {
+           if(event_var.code == "Enter"){
+               var val = event_var.target.value
                DDEVideo.show_in_misc_pane(val, true)
            }
        })
-       $('#misc_pane_menu_id').on('select', function (event) { //fired when user types a char, or chooses a menu item
-           let args = event.args;
+       $('#misc_pane_menu_id').on('select', function (event_var) { //fired when user types a char, or chooses a menu item
+           let args = event_var.args;
            if(args) {
                let item = $('#misc_pane_menu_id').jqxComboBox('getItem', args.index)
                if(item) {
@@ -1769,29 +1769,29 @@ window_modify_id.onclick=function(){Editor.insert(
        //    save_on_eval_id.setAttribute("checked", val)
        //}
        //similar to animate ui
-       save_on_eval_id.onclick = function (event) {
+       save_on_eval_id.onclick = function (event_var) {
            let val = $("#save_on_eval_id").val()
            DDE_DB.persistent_set("save_on_eval", val)
-           event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
+           event_var.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
        }
 
-       save_on_eval_wrapper_id.onclick = function (event) {
+       save_on_eval_wrapper_id.onclick = function (event_var) {
            let old_val = $("#save_on_eval_id").val()
            let new_val = !old_val
            $("#save_on_eval_id").val(new_val)
            DDE_DB.persistent_set("save_on_eval", new_val)
-           event.stopPropagation()
+           event_var.stopPropagation()
        }
 
-       view_hca_id.onclick = function (event) {
-           //let checked = event.args.checked;
+       view_hca_id.onclick = function (event_var) {
+           //let checked = event_var.args.checked;
            // var checked = $("#jqxRadioButton").jqxRadioButton('checked'); see: https://www.jqwidgets.com/jquery-widgets-documentation/documentation/jqxcheckandradio/jquery-radiobutton-getting-started.htm
            //DDE_DB.persistent_set("save_on_eval", val)
-           //event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
+           //event_var.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
            change_code_view_kind("HCA")
        }
 
-       view_js_id.onclick = function (event) {
+       view_js_id.onclick = function (event_var) {
            change_code_view_kind("JS")
        }
 
@@ -1800,7 +1800,7 @@ window_modify_id.onclick=function(){Editor.insert(
            format_as_code_id.setAttribute("checked", val)
        }
        format_as_code_id.onclick =
-           function (event) {
+           function (event_var) {
                let val = format_as_code_id.checked
                DDE_DB.persistent_set("default_out_code", val)
                //automatically re-render the last output
@@ -1839,21 +1839,21 @@ window_modify_id.onclick=function(){Editor.insert(
          //initialize the checkbox state
          $("#animate_ui_checkbox_id").jqxCheckBox({ checked: DDE_DB.persistent_get("animate_ui")})
 
-         animate_ui_checkbox_id.onclick = function(event) {
+         animate_ui_checkbox_id.onclick = function(event_var) {
              let val = $("#animate_ui_checkbox_id").val()
              DDE_DB.persistent_set("animate_ui", val)
-             event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
+             event_var.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
              //AND causes the onclick for simulate_id to NOT be run.
              adjust_animation()
          }
          //so that you don't have to hit the checkbox, just anywhere in the menu item to check/uncheck it
-         animate_ui_checkbox_wrapper_id.onclick = function(event){
+         animate_ui_checkbox_wrapper_id.onclick = function(event_var){
              let old_val = $("#animate_ui_checkbox_id").val()
              let new_val = !old_val
              $("#animate_ui_checkbox_id").val(new_val)
              DDE_DB.persistent_set("animate_ui", new_val)
 
-             event.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
+             event_var.stopPropagation() //causes menu to not shrink up, so you can see the effect of your click
              //AND causes the onclick for simulate_id to NOT be run.
              adjust_animation()
          }
@@ -1872,9 +1872,9 @@ window_modify_id.onclick=function(){Editor.insert(
               $(".CodeMirror").css("font-size", this.value + "px")
               DDE_DB.persistent_set("editor_font_size", this.value)
          }
-         // $("#font_size_id").keyup(function(event){ //in dde3
-         font_size_id.onkeyup = function(event){
-           if(event.keyCode == 13){
+         // $("#font_size_id").keyup(function(event_var){ //in dde3
+         font_size_id.onkeyup = function(event_var){
+           if(event_var.keyCode == 13){
                $(".CodeMirror").css("font-size", this.value + "px")
                DDE_DB.persistent_set("editor_font_size", this.value)
            }
@@ -1894,10 +1894,10 @@ window_modify_id.onclick=function(){Editor.insert(
 
 
          simulate_radio_true_id.onclick  = function(){ //todo dde4 needs file system
-               DDE_DB.persistent_set("default_dexter_simulate", true);   event.stopPropagation()
+               DDE_DB.persistent_set("default_dexter_simulate", true);   event_var.stopPropagation()
           }
-          simulate_radio_false_id.onclick = function(){ DDE_DB.persistent_set("default_dexter_simulate", false);  event.stopPropagation()}
-          simulate_radio_both_id.onclick  = function(){ DDE_DB.persistent_set("default_dexter_simulate", "both"); event.stopPropagation()}
+          simulate_radio_false_id.onclick = function(){ DDE_DB.persistent_set("default_dexter_simulate", false);  event_var.stopPropagation()}
+          simulate_radio_both_id.onclick  = function(){ DDE_DB.persistent_set("default_dexter_simulate", "both"); event_var.stopPropagation()}
 
           default_dexter_name_id.oninput=RobotStatusDialog.robot_name_changed //todo needs testing
 
