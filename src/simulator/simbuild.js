@@ -581,6 +581,7 @@ globalThis.SimBuild = class SimBuild{
     static refresh(){
         this.populate_dialog_from_object_if_now_editing(this.now_editing_object3d)
     }
+
     static populate_dialog_from_object_if_now_editing(object3d){
         if(this.dialog_is_showing() && (object3d === this.now_editing_object3d)) {
             this.populate_dialog_from_object (object3d)
@@ -624,13 +625,18 @@ globalThis.SimBuild = class SimBuild{
     //but if no arg passed in and no objects made, do nothing.
     //This method expects the <option> tag for the name of object3d to
     //already be in the_name select tag.
+    static show_to_make_a_new_object3d_message = true
     static populate_dialog_from_object(object3d){
         SimBuild.set_now_editing_object3d(object3d) //do even if object3d is null
         let dialog_dom_elt = SimBuild.dialog_dom_elt()
         if(!dialog_dom_elt) {  return }
         else if (!object3d || (SimObj.user_objects.length === 0)) {
             this.disable_inputs()
-            out("To make a new object3d in the simulator pane,<br/>click the <b>Make Object</b> button.", "green")
+            if(this.show_to_make_a_new_object3d_message) {
+                out("To make a new object3d in the simulator pane,<br/>click the <b>Make Object</b> button.", "green")
+                this.show_to_make_a_new_object3d_message = false //only show once because this gets called
+                //every frame when first open dialog and it overwhelmes the output pane.
+            }
             return
         }
         else {

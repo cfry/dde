@@ -394,7 +394,7 @@ globalThis.SimObj = class SimObj{
         //if(parent === SimObj.user_origin) { parent = SimObj.dexter } //todo get rid of this line!
         //parent.add(object3d)
         this[object3d.name] = object3d
-        SimObj.set_parent(object3d, parent)
+        SimObj.set_parent(object3d, parent) //adds object3d to the scene since its adding it to the parent which should already be in the scene
         let adding_first_object = !SimObj.has_user_objects()
         let new_name = SimObj.get_name(object3d)
         if(!SimObj.dde_object_names.includes(new_name)) {
@@ -414,6 +414,8 @@ globalThis.SimObj = class SimObj{
         return object3d
     }
 
+    //patterned after simple example at: https://github.com/markuslerner/THREE.Interactive/blob/master/examples/simple.html
+    //init code also in Simulate.js, method: static init_interaction_manager()
     static interaction_add(object3d){
         globalThis.interactionManager.add(object3d); //can be done twice on same object3d without a "duplicate" interaction
         if(object3d._listeners && object3d._listeners.click) { } //we don't want to add interactions or listeners twice when refreshing the simulator
@@ -900,12 +902,15 @@ globalThis.SimObj = class SimObj{
     //PhysicsObject methods
     static get_physics_object(object3d_or_name){
         let object3d = SimObj.get_object3d(object3d_or_name)
+        /* Should work, but is unreliable.
         for(let a_po of Simulate.physicsBodies){
             if(a_po.mesh === object3d) {
                 return a_po
             }
         }
-        return null
+        return null*/
+        let a_po = object3d.userData.physObj
+        return a_po
     }
     static set_physics_object(object3d_or_name,
                               is_dynamic= false,

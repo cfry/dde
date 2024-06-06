@@ -625,9 +625,9 @@ globalThis.Simulate = class Simulate {
                 }
                 Simulate.update_joints();
             }
-            if(SimObj.refresh)
+            if(SimBuild.refresh)
             {
-                SimObj.refresh();
+                SimBuild.refresh();
             }
             Simulate.update_camera();
             Simulate.updateText();
