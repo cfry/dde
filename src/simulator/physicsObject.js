@@ -95,6 +95,7 @@ globalThis.PhysicsObject = class PhysicsObject
             colliderFrameEdges.dispose();
         }
 
+        this._createColliderHelper();
 
         // Bounding box used for object pickup
         this.pickupBox = new THREE.Box3();
@@ -111,10 +112,21 @@ globalThis.PhysicsObject = class PhysicsObject
         this.mesh.userData.physObj = this;
     }
 
+    
+
     updateCollider()
     {
         this._destroyAmmo();
         this._initAmmo();
+
+        if(this.colliderLines.parent)
+        {
+            this.colliderLines.parent.remove(this.colliderLines);
+        }
+        this.colliderLines.geometry.dispose();
+        this.colliderLines.material.dispose();
+        this._createColliderHelper();
+
         // switch(this.colliderInfo.type)
         // {
         //     case PhysicsObject.Shape.BOX:
@@ -129,6 +141,46 @@ globalThis.PhysicsObject = class PhysicsObject
                 
 
         // }
+    }
+
+    //Create a wireframe to show bounding box for debug
+    _createColliderHelper()
+    {
+        let colliderFrameGeometry;
+
+        // Create a geometry of the correct shape and size
+        switch(this.colliderInfo.type)
+        {
+            case PhysicsObject.Shape.BOX:
+                colliderFrameGeometry = new BoxGeometry(this.colliderInfo.size.x,this.colliderInfo.size.y,this.colliderInfo.size.z);
+                break;
+            case PhysicsObject.Shape.SPHERE:
+                colliderFrameGeometry = new SphereGeometry(this.colliderInfo.radius);
+                break;
+            case PhysicsObject.Shape.CYLINDER:
+                colliderFrameGeometry = new CylinderGeometry(this.colliderInfo.radius,this.colliderInfo.radius,this.colliderInfo.height);
+                switch(this.colliderInfo.axis)
+                {
+                    case 0:
+                        colliderFrameGeometry.rotateZ(0.5*Math.PI);
+                        break;
+                    case 2:
+                        colliderFrameGeometry.rotateX(0.5*Math.PI);
+                        break;
+                }
+            break;
+        }
+        
+        //Create a geometry that just represents the edges of the collider
+        let colliderFrameEdges = new THREE.EdgesGeometry( colliderFrameGeometry ); 
+
+        //Create a lines segments object. This object is what is added to the scene and corresponds with the physics object. Note: this is purely for debug and does not affect the operation of anything else in any way
+        this.colliderLines = new THREE.LineSegments(colliderFrameEdges, new THREE.LineBasicMaterial( { color: 0x00ff00 } ) ); 
+        Simulate.sim.scene.add(this.colliderLines );
+        this.clawIntersectTriangle = new THREE.Triangle();
+        
+        colliderFrameGeometry.dispose();
+        colliderFrameEdges.dispose();
     }
 
     _initAmmo(colliderType)
@@ -205,6 +257,8 @@ globalThis.PhysicsObject = class PhysicsObject
         {
             case PhysicsObject.Shape.BOX:
                 this.colShape = new Ammo.btBoxShape( new Ammo.btVector3(0.5,0.5,0.5) );
+                this.colScaleVec.setValue(Simulate.physicsScale * this.colliderInfo.size.x, Simulate.physicsScale * this.colliderInfo.size.y, Simulate.physicsScale * this.colliderInfo.size.z)
+                this.colShape.setLocalScaling(this.colScaleVec);
                 break;
             case PhysicsObject.Shape.SPHERE:
                 this.colShape = new Ammo.btSphereShape( Simulate.physicsScale * this.colliderInfo.radius);
@@ -237,8 +291,6 @@ globalThis.PhysicsObject = class PhysicsObject
                 }
                 break;
         } 
-        this.colScaleVec.setValue(Simulate.physicsScale * this.colliderInfo.size.x, Simulate.physicsScale * this.colliderInfo.size.y, Simulate.physicsScale * this.colliderInfo.size.z)
-        this.colShape.setLocalScaling(this.colScaleVec);
         this.ammoObjects.push(this.colShape);
         
         
