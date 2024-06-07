@@ -63,6 +63,7 @@ import "codemirror/addon/hint/anyword-hint.js"  //note: is supposed to look near
  //only matches JAVASCRIPT code.
  //see fry dscription at: [discuss.CodeMirror] [v5] show_hint demo appears to do nothing
 
+import {grab_text_for_eval_button} from "./eval.js"
 
 import "shepherd.js/dist/css/shepherd.css"
 
@@ -575,7 +576,9 @@ export function on_ready() {
    };
 
    run_button_id.onclick = function(){
-       Dex.run_button_handler()
+       //let [src, src_comes_from_editor] =  grab_text_for_eval_button() // bebause sometimes get prev editor code, not current selected
+       let src = Editor.get_selection_text(true)
+       Dex.run_button_handler(src)
    }
 
    wrap_instruction_id.onclick = function() {

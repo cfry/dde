@@ -15,16 +15,83 @@ class Dex {
             Job.DexJob.start()
         }
     }
+
+
+    //tries hard to consert src (or the selection) into an instruction and run it.
+    //or warn user htey don't have an instruction
     static run_button_handler(src=null){
-        DocCode.open_doc(Dex_doc_id)
-        if (!src) {
-            src = Editor.get_javascript("auto").trim()
+        //DocCode.open_doc(Dex_doc_id)
+        src = src.trim()
+        if(Utils.last(src) === "!") { src = src.substring(0, src.length - 1)} //trim off the common
+        if(src.length === 0){
+            warning("No source code selected to turn into a do_list item.")
+            return
         }
-        src = Dex.transform_source_to_async(src)
-        src = "(" + src + ")()"
-        out("evaling: " + src)
-        eval_js_part2(src)
-        //eval(src) //errors due to "strict mode".
+        if(Utils.is_digit(src[0])) {
+           src = "[" + src + "]"
+        }
+        try{
+            let eval_result = eval(src) //could be an array
+            let move_instr_maybe = this.array_to_move_instruction_maybe(eval_result)
+            if(move_instr_maybe){
+                Dex.run(move_instr_maybe)
+                return
+            }
+            else if(Instruction.is_do_list_item(eval_result)){
+                Dex.run(eval_result)
+                return
+            }
+            else { //didn't error but isn't an instruction either
+                let evaL_result_str = "" + eval_result
+                let short_eval_result_str = evaL_result_str.substring(0, 50)
+                if (short_eval_result_str.length < evaL_result_str.length){
+                    short_eval_result_str += "..."
+                }
+                warning("The source code: <code>" + src + " </code> evaled to:<br/><code>" +
+                    short_eval_result_str + "</code><br/>which is not a valid do_list item,<br/>" +
+                    "nor is it a sequence of numbers (of length 1 thru 7)<br/>" +
+                    "which can be turned into arguments for<br/>" +
+                    "<code>Dexter.move_all_joints</code> or <code>Dexter.move_to</code>.")
+                return
+            }
+        }
+        catch(err){
+            warning("The source code: <code>" + src + " </code> errored when evaling with:<br/><b>" +
+                err.message + "</b><br/>which means the source can't be used as a do_list item.")
+            return
+        }
+    }
+
+    //return false or an instance of move_all_joints or move_to
+    static array_to_move_instruction_maybe(arr){
+        if(!Array.isArray(arr)) { return false }
+        if((arr.length > 7) || arr.length === 0) {
+            return false
+        }
+        for(let elt of arr) {
+            if ((typeof (elt) !== "number") || (elt < -200) || (elt > 200)) {
+                return false
+            }
+        }
+        if(this.array_looks_like_xyz(arr)){
+            return Dexter.move_to(arr)
+        }
+        else {
+            return Dexter.move_all_joints(arr)
+        }
+    }
+
+    static array_looks_like_xyz(arr) {
+        if (arr.length !== 3) {
+            return false
+        } else {
+            for (let elt of arr) {
+                if ((elt < -1) || (elt > 1)) {
+                    return false
+                }
+            }
+            return true
+        }
     }
 
     static wrap_instruction_handler(){

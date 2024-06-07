@@ -542,6 +542,20 @@ class Editor {
         else { return "" }
     }
 
+    //used for RUN button. rarely, this is better than grab_text_for_eval_button
+    static get_selection_text(maybe_get_full_editor_text = true) {
+        let text = "";
+        if (window.getSelection) {
+            text = window.getSelection().toString();
+        } else if (document.selection && document.selection.type != "Control") {
+            text = document.selection.createRange().text;
+        }
+        if((text === "") && maybe_get_full_editor_text){
+            text = Editor.get_javascript()
+        }
+        return text;
+    }
+
     //gets text editor content regardless of the "view" that DDE is now showing
     //used directly in HCA editor when saving.
     static get_text_editor_content(use_selection = false){

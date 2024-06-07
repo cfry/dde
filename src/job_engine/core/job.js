@@ -2436,9 +2436,14 @@ Job.prototype.do_next_item = function(){ //user calls this when they want the jo
         }
         else if (cur_do_item instanceof Promise){
             let the_job = this //for the closure
-            cur_do_item.then(function() { //called when the prmise resolves
+            cur_do_item.then(function(instr) { //called when the promise resolves
                 //is_resolved = true
-                the_job.set_up_next_do(1) //we're done waiting for the promise ot resolve so move on to the next do_list_item
+                //we're done waiting for the promise
+                if (Instruction.is_do_list_item(instr)){
+                    the_job.insert_single_instruction(instr) //insert right below the promise fn def.
+                }
+                else {} //if not an instruction, do nothing
+                the_job.set_up_next_do(1)
             })
         }
         else {

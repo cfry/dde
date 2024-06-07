@@ -734,17 +734,17 @@ globalThis.SimObj = class SimObj{
         return Utils.starts_with_one_of(geo_name, this.two_d_shape_names)
     }
 
-    static set_geometry(object3d_or_name="MeshNormal", geometry){
+    static set_geometry(object3d_or_name="Box", geometry){
         let object3d = SimObj.get_object3d(object3d_or_name)
         if(!(geometry.endsWith("Geometry"))){
                 geometry = geometry + "Geometry"
         }
         let geometry_obj = new THREE[geometry]()
         object3d.geometry = geometry_obj
-        //if (this.is_geometry_a_2d_shape(object3d.geometry)){
+        if (this.is_geometry_a_2d_shape(object3d.geometry)){
             object3d.material.side = THREE.DoubleSide
             object3d.material.depthWrite = false
-       // }
+        }
         let val = SimObj.get_geometry_short_name(object3d)
         SimBuild.populate_dialog_property(object3d, "geometry", val)
         //SimUtils.render()
@@ -929,17 +929,14 @@ globalThis.SimObj = class SimObj{
     static get_is_dynamic(object3d_or_name) {
         let object3d = SimObj.get_object3d(object3d_or_name)
         let a_po = this.get_physics_object(object3d)
-        if(!a_po){
-            debugger;
-            shouldnt("In SimObj.get_is_dynamic, passed object3d: " + object3d.name + " a_po is: " + a_po)
-        }
-        if(a_po.kinematic) {
+        if(!a_po || a_po.kinematic) { //if no phsyObj, then it can't be dynamic.
             return false
         }
         else {
             return true
         }
     }
+
     static set_is_dynamic(object3d_or_name, bool) {
         let object3d = SimObj.get_object3d(object3d_or_name)
         let a_po = this.get_physics_object(object3d)

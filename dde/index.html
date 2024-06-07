@@ -81,8 +81,9 @@
     text-align: center;
     vertical-align: middle;
     line-height: 100vh;
-    font-size:30px;
+    font-size:30px !important;
     font-weight: 500 !important;
+    font-family: Arial;
 ">Loading Dexter Development Environment ...</div>
 <div id="outer_splitter_id">
         <div>
@@ -609,7 +610,7 @@
                         <span id="output_pane_help_id" class='pane_header' title="Click for help."><u style="cursor:help;">Output</u></span>
                         <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS in any pane&#013;or, if none, all the JavaScript in the Editor pane.&#013;HTML is rendered in the Output pane.&#013;JSON is inspected.&#013;Can also be invoked by typing &#8984;e">Eval</button>
                         <button id="step_button_id" style="vertical-align:middle;" title="Step through the evaluation of the selected code.">Step</button>
-                        <button id="run_button_id" style="vertical-align:middle;" title="Run Dex Instructions.">Run</button>
+                        <button id="run_button_id" style="vertical-align:middle;" title="The selected source code is:&#13;1. turned into a do_list_item&#13;2. placed on an internal Job's do_list&#13;3. run.">Run</button>
                         <button id="gpt_id"        style="margin-right:0px; vertical-align:middle;" title="Use the selection as a prompt to ChatGPT.&#013;Results will be printed in the Output pane.">GPT</button><button id="gpt_config_id" title="Show the GPT configuration dialog box." style="vertical-align:middle; margin-left:0px;padding-left:2px; padding-right:2px;">&#9660;</button>
 
                         <!--<div style="vertical-align:middle;display:inline-block;margin:0px;padding:0px;"> -->

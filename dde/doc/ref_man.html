@@ -4846,9 +4846,20 @@ for code examples. Related Job facilities are:
     A promise is a JavaScript object which contains code "to be run later".
     If a promise is on the do_list, it pauses the Job until the
     promise's code has completed running, i.e. the promise is resolved.
-    Once it is resolved, the next item on the
-    do_list is allowed to run.<br/>
-    <i>Example:</i>
+    <p></p>
+    If the promise resolves to a do_list item, that item is stuck on the do_list
+    right below the promise and continue the Job.
+    If it does not resolve to a promise, just continue the job.
+    <br/>
+    <i>Examples:</i>
+    <pre><code>
+async function run_ins(){
+    return Dexter.move_all_joints(10, 20, 30)
+}
+new Job({
+    name: "my_job",
+    do_list: [run_ins ]
+})</code></pre>
     <pre><code>new Job({name: "a_py_job",
         do_list: [
             Py.init(),
@@ -6511,6 +6522,11 @@ Following that should be a space, and the arguments to that oplet,
 separated by a space.
 The string should end in a semicolon.
 <p></p>
+    <i>Example:</i><br/>
+    The below represents a move_all_joints instruction with joint 1 moving to
+    36000 arcsectons (10 degrees) and<br/>
+    joint 2 moving to 72000 arcseconds (20 degrees)<br/>
+    <code>"a, 0, 36000, 72000;"</code><br/>
 Before the string is sent to Dexter, it is given a prefix of values for:<br/>
 <code title="unEVALable">job_id instruction_id start_time stop_time </code>.<br/>
 Example of the whole string sent to Dexter for move_all_joints functionality:<br/>

@@ -221,7 +221,7 @@ class Instruction {
                 Instruction.is_oplet_array(item) ||
                 Utils.is_iterator(item) ||
                 (typeof(item) === "string") ||
-                (typeof(item) === "function") ||
+                ((typeof(item) === "function") && !Utils.is_class(item)) ||
                 Instruction.is_start_object(item) ||
                 (item instanceof Promise)
                 )
@@ -230,9 +230,17 @@ class Instruction {
     //a valid item to put on a do_list
     //mirrors Job.do_next_item ordering
     static is_do_list_item(item){
-        return ( Array.isArray(item) ||   //accept data_arrays too. //Instruction.is_instructions_array(item)
-                 Instruction.is_non_instructions_array_do_list_item(item)
-               )
+        if(Array.isArray(item)){
+            for(let elt of item){
+                if(!this.is_do_list_item(elt)){
+                    return false
+                }
+            }
+            return true
+        }
+        else {
+            return Instruction.is_non_instructions_array_do_list_item(item)
+        }
     }
 
     static is_F_instruction_string(str){
