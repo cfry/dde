@@ -751,22 +751,22 @@ class DexterSim{
     static robot_name_to_dextersim_instance_map = {}
     static set_interval_id = null
 
-    static change_speed(){
-        /*if(!Job.change_dexter_speed){
-            new Job ({name: "change_dexter_speed",
-                      do_list: [function() {
+    /*static change_speed(){
+        //if(!Job.change_dexter_speed){
+         //   new Job ({name: "change_dexter_speed",
+         //             do_list: [function() {
                           let speed_str = change_dexter_speed_id.value
                           //let index = selected_label.indexOf(" ")
                           //let new_speed_str = selected_label.substring(index + 1)
-                          let new_speed = parseFloat(speed_str)
-                          out("Dexter." + Dexter.default.name + " AngularSpeed set to " + new_speed + " degrees per second.", "green")
-                          change_dexter_speed_id.value = 0 //set back to the "header" so can change to any speed next time. Note any job can change the speed during it.
-                          return Dexter.set_parameter("AngularSpeed", new_speed)
-                      }
-                      ]})
-        }
-        Job.change_dexter_speed.start()
-         */
+         //                 let new_speed = parseFloat(speed_str)
+         //                 out("Dexter." + Dexter.default.name + " AngularSpeed set to " + new_speed + " degrees per second.", "green")
+        //                  change_dexter_speed_id.value = 0 //set back to the "header" so can change to any speed next time. Note any job can change the speed during it.
+         //                 return Dexter.set_parameter("AngularSpeed", new_speed)
+        //              }
+        //              ]})
+        //}
+        //Job.change_dexter_speed.start()
+
         let speed_str = change_dexter_speed_id.value
         //let index = selected_label.indexOf(" ")
         //let new_speed_str = selected_label.substring(index + 1)
@@ -777,7 +777,12 @@ class DexterSim{
         let robot_name = Dexter.default.name
         let ds_instance =  DexterSim.robot_name_to_dextersim_instance_map[robot_name]
         ds_instance.parameters["AngularSpeed"] = new_speed_arcsecs
-    }
+    }*/
+   static change_speed() {
+       let speed_str = change_dexter_speed_id.value
+       let speed = parseFloat(speed_str)
+       Simulate.simulationRate = speed
+   }
     
 }
 

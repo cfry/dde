@@ -66,9 +66,6 @@ globalThis.Simulate = class Simulate {
         <div id="sim_pane_header_id">
         <div id="sim_pane_header_top_row_id" style="white-space:nowrap;"> 
         <b>Move Dur: </b><span id="sim_pane_move_dur_id"></span> s
-        <button onclick="SimUtils.render_joints_smart()" 
-            title="Grab the joint angles from the selection&#13;and change the simulator to show them.&#13;Works on arrays, comma separated arg lists,&#13;and whole instruction calls.&#13;With 3 numbers, treats them as XYZ if they are in range.">
-            Render selected joints</button>
         <button onclick="SimBuild.show_dialog()" title="Make additional 3D objects in the Simulator pane.">SimBuild</button>
         <span title="Inspect simulator Details." 
         onclick="SimUtils.inspect_dexter_sim_instance()" 
@@ -95,6 +92,7 @@ globalThis.Simulate = class Simulate {
         <b title="Joint 6 angle in degrees."> J6: </b><span id="sim_pane_j6_id" style="min-width:30px; text-align:left; display:inline-block"></span>
         <b title="Joint 7 angle in degrees."> J7: </b><span id="sim_pane_j7_id" style="min-width:30px; text-align:left; display:inline-block"></span></div>
         </div>
+        </div> <!-- closes sim_pane_header_id -->
         <div id="sim_graphics_pane_id" style="cursor:grab;"></div>
         `;
         

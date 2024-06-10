@@ -20,7 +20,7 @@ globalThis.SimObj = class SimObj{
         }
     }
 
-    static dde_object_names = ["scene", "table", "dexter", "user_origin"]
+    static dde_object_names = ["scene", "table", "dexter"]
 
     static init_dde_objects() {
        //SimObj.remove_all()
@@ -28,22 +28,22 @@ globalThis.SimObj = class SimObj{
        this.table   = Simulate.sim.table
        this.dexter  = Simulate.sim.J0
 
-       //this.user_origin.setAttribute("radius", 0.5)
-       //this.table.add(this.user_origin)
-       this.make_user_origin_object3d()
        this.dde_objects = []
         //below is kludge for this.table not be available in first draft of physics sim
-        for (let object3d of [this.scene, this.table, this.dexter, this.user_origin]){ //beware, user_origin starts out at same pos as J0, but can change.
+        for (let object3d of [this.scene, this.table, this.dexter]){
              if(object3d) {
                 this.dde_objects.push(object3d)
              }
         }
     }
 
-    //includes self and user_object
+    //Returns an array who's first elt is "scene" and who's
+    //last elt is the initially passed object3d.name
+    //when called from the outside, don't pass in result.
+    //recursively calls itself to build up the returned array
     static ancestor_names(object3d, result=[]){
         result.unshift(object3d.name)
-        if(object3d.name === "user_origin"){
+        if(object3d.name === "scene"){
             return result
         }
         else if (!object3d.parent){ //unlikely to hit but just in case
@@ -55,9 +55,18 @@ globalThis.SimObj = class SimObj{
     }
 
     //returns a copy of object3d.children, without BoxHelper, if any
-    static get_children(object3d_or_name){
+    static get_children(object3d_or_name, include_non_user_objects=false){
         let object3d = this.get_object3d(object3d_or_name)
         if(object3d.children.length === 0) { return [] }
+        else if(!include_non_user_objects && (object3d === this.scene)) {
+            let kids = []
+            for(let a_object3d of this.user_objects){
+                if(this.get_parent(a_object3d) === this.scene){
+                    kids.push(a_object3d)
+                }
+            }
+            return kids
+        }
         else {
             let children_sans_helper = []
             for(let child of object3d.children){
@@ -67,21 +76,6 @@ globalThis.SimObj = class SimObj{
             }
             return children_sans_helper
         }
-    }
-
-    static make_user_origin_object3d(){
-        //see Simulate.js
-        let object3d        = new THREE.Object3D(); //0,0,0 //does not move w.r.t table.
-        object3d.name       = "user_origin" //this.sim.J0.name = "J0"
-        object3d.rotation.y = Simulate.sim.scene.rotation.y //= Math.PI //radians for 180 degrees
-        object3d.position.y = Simulate.sim.scene.position.y // = (this.sim.table_height / 2) //+ (leg_height / 2) //0.06 //for orig boxes model, leg height was positive, but for legless dexter mounted on table, its probably 0
-        object3d.position.x = Simulate.sim.scene.position.x // = (this.sim.table_length / 2)  //the edge of the table
-        //- 0.12425 the distance from the edge of the table that Dexter is placed
-        Simulate.sim.scene.add(object3d)
-
-        //see make_object3d_given_object
-        SimObj.user_origin = object3d
-        SimBuild.add_object3d_to_the_name_menu(object3d)
     }
 
     static has_user_objects(){
@@ -104,17 +98,18 @@ globalThis.SimObj = class SimObj{
         let object3d = this.get_object3d(object3d_or_name)
         if(!object3d) { return false }
         else {
-            return !this.is_dde_object3d(object3d)
+            //return !this.is_dde_object3d(object3d)
+            return this.user_objects.includes(object3d)
         }
     }
 
 
-    static dde_and_user_objects(){
-        return this.dde_objects.concat(this.user_objects)
+    static scene_and_user_objects(){
+        return [SimObj.scene].concat(this.user_objects)
     }
-    static dde_and_user_objects_names(){
-        let result = []
-        for(let object3d of this.dde_and_user_objects()){
+    static scene_and_user_objects_names(){
+        let result = ["scene"]
+        for(let object3d of this.user_objects){
             let name = SimObj.get_name(object3d)
             result.push(name)
         }
@@ -127,12 +122,15 @@ globalThis.SimObj = class SimObj{
     //setting y moves it to z pos
     //setting z moves it to x neg
     static position_dde_to_three(array_of_3){
-        return [array_of_3[1], array_of_3[2], array_of_3[0] ]
+        return [array_of_3[1] * -1, //fixes dde y positioning
+                array_of_3[2],
+                array_of_3[0] * -1 //fixes dde x positionng
+        ]
     }
     static position_three_to_dde(array_of_3){
-        let dde_x = array_of_3[2]
+        let dde_x = array_of_3[2] * -1 //fixes dde x positionng
         //dde_x = ((dde_x === 0) ? 0 : dde_x * -1) //ensure that we don't get any JS -0's
-        let dde_y = array_of_3[0]
+        let dde_y = array_of_3[0]  * -1 //fixes dde y positioning
         //dde_y = ((dde_y === 0) ? 0 : dde_y * -1)
         let dde_z = array_of_3[1]
         //dde_z = ((dde_z === 0) ? 0 : dde_z * -1)
@@ -141,7 +139,17 @@ globalThis.SimObj = class SimObj{
     }
 
     static orientation_dde_to_three(array_of_3){
-        return [array_of_3[1], array_of_3[2], array_of_3[0] ]
+        return [array_of_3[1] / globalThis._rad,
+                array_of_3[2] / globalThis._rad  * -1, //dde's z axis
+                array_of_3[0] / globalThis._rad
+              ]
+    }
+
+    static orientation_three_to_dde(array_of_3){
+        return [array_of_3[2] * globalThis._rad,
+                array_of_3[0] * globalThis._rad,
+                array_of_3[1] * globalThis._rad  * -1, //dde's z axis
+        ]
     }
 
     static vector3_to_dde(vec3){
@@ -350,7 +358,7 @@ globalThis.SimObj = class SimObj{
     //see https://threejs.org/docs/#api/en/geometries for 20 or so geometries.
 
     static make_object3d({name="my_object3d",
-                          parent = "user_origin",
+                          parent = "scene",
                           geometry="Box", //must be a string
                           scale= [0.2, 0.2, 0.2],
                           position=[0, 0.3, 0.1],
@@ -373,26 +381,25 @@ globalThis.SimObj = class SimObj{
         else {
             let object3d = new THREE.Mesh()
             object3d.name = name
-            this.set_geometry(object3d, geometry)
+            this.set_geometry(object3d, geometry, true)  //true for is_new_object3d
             this.set_material(object3d, material)
             this.set_color(object3d, color) //creates and sets the material property of the Mesh
             this.set_wire_frame(object3d, wire_frame)
-            this.set_scale(object3d, scale)
-            this.set_position(object3d, position) //keep as dde_coordinates
-            this.set_orientation(object3d, orientation) //keep as dde_coordinates
-
-            return this.make_object3d_given_object(object3d, parent, is_dynamic, mass)
+            this.set_scale(object3d, scale, true) //true for is_new_object3d
+            this.set_position(object3d, position, true) //keep as dde_coordinates
+            this.set_orientation(object3d, orientation, true) //keep as dde_coordinates
+            this.make_object3d_given_object(object3d, parent, is_dynamic, mass)
+            let a_pos = this.get_physics_object(object3d) //needs to be done after set_scale, but cant' be done first time we call set_scale on this object3d
+            a_pos.updateCollider()
+            return object3d
         }
     }
 
     //called by both make_object3d and  make_copy_of_object3d
-    static make_object3d_given_object(object3d, parent= "user_origin",
+    static make_object3d_given_object(object3d, parent= "scene",
                                       is_dynamic = false,
                                       mass = 1 //in grams
                                      ){
-        //Simulate.sim.J0.add(object3d) //sim.table.add(obj)
-        //if(parent === SimObj.user_origin) { parent = SimObj.dexter } //todo get rid of this line!
-        //parent.add(object3d)
         this[object3d.name] = object3d
         SimObj.set_parent(object3d, parent) //adds object3d to the scene since its adding it to the parent which should already be in the scene
         let adding_first_object = !SimObj.has_user_objects()
@@ -551,6 +558,7 @@ globalThis.SimObj = class SimObj{
             if(object3d.parent) { //just in case we deleted the parent.
                 object3d.removeFromParent() //  THREE js method to remove the object
             }
+            globalThis.interactionManager.remove(object3d)
         }
         //else apparently object3d_or_name is already gone, so do nothing.
     }
@@ -573,29 +581,13 @@ globalThis.SimObj = class SimObj{
         return object3d.parent
     }
 
-    static set_parent(object3d_or_name, new_parent="user_origin") {
+    static set_parent(object3d_or_name, new_parent="scene") {
         let object3d = SimObj.get_object3d(object3d_or_name)
         new_parent = SimObj.get_object3d(new_parent)
-        //if(parent === SimObj.user_origin){ parent.add(object3d) }
         if(object3d === new_parent){
             dde_error("In SimObj.set_parent, attempt to set the parent of: " + object3d.name + " to itself.")
         }
         else if (new_parent.children.includes(object3d)) {} //nothing to do.
-        else if(this.is_descendent_of(object3d, new_parent)){ //object3d is a descendent but NOT a child, so make it so
-            //often such action would be illegal, but here we just swap the
-            //object3d with the parent
-            //be careful such that we don't mess up the "moving" of any object in global position
-            //during this transformation
-            //"parent" is now a descendent of object3d, so
-            //First we change the "parent"s parent to be the same as the
-            //object3d's parent, making object3d and parent siblings.
-            //Second we move the object3d to be a child of parent
-            //object3d.new_parent.attach(new_parent)
-            new_parent.attach(object3d)
-        }
-        else if(!object3d.new_parent){
-            new_parent.add(object3d)
-        }
         else {
             new_parent.attach(object3d)
         }
@@ -628,7 +620,7 @@ globalThis.SimObj = class SimObj{
     }
 
     //array_of_3 in dde_coords
-    static set_position(object3d_or_name, array_of_3 = [0, 0, 0]){
+    static set_position(object3d_or_name, array_of_3 = [0, 0, 0], is_new_object3d = false){
         let object3d = SimObj.get_object3d(object3d_or_name)
         let three_pos = this.position_dde_to_three(array_of_3)
         object3d.position.x = three_pos[0]
@@ -637,7 +629,10 @@ globalThis.SimObj = class SimObj{
         SimBuild.populate_dialog_property(object3d, "position_x", array_of_3[0])
         SimBuild.populate_dialog_property(object3d, "position_y", array_of_3[1])
         SimBuild.populate_dialog_property(object3d, "position_z", array_of_3[2])
-
+        if(!is_new_object3d){  //we don't want to do when we are first creating object3d as it will error as there will be no physicsobj but DO what to do if we are just changing the scale
+            let a_pos = this.get_physics_object(object3d)
+            a_pos.updateCollider()
+        }
         //SimUtils.render()
     }
 
@@ -652,12 +647,19 @@ globalThis.SimObj = class SimObj{
         return this.position_three_to_dde(three_orientation)
     }
 
-    static set_orientation(object3d_or_name, orientation = [0, 0, 0]){
+    static get_orientation(object3d_or_name){
         let object3d = SimObj.get_object3d(object3d_or_name)
-        let rads_in_dde = [orientation[0] / globalThis._rad,
-                           orientation[1] / globalThis._rad,
-                           orientation[2] / globalThis._rad]
-        let rads_in_three = this.orientation_dde_to_three(rads_in_dde)
+        let rads_in_three = [object3d.rotation._x, object3d.rotation._y, object3d.rotation._z]
+        let dde_orientation = this.orientation_three_to_dde(rads_in_three)
+        return dde_orientation
+    }
+
+    static set_orientation(object3d_or_name, orientation = [0, 0, 0], is_new_object3d = false){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        //let rads_in_dde = [orientation[0] / globalThis._rad,
+        //                   orientation[1] / globalThis._rad,
+        //                   orientation[2] / globalThis._rad]
+        let rads_in_three = this.orientation_dde_to_three(orientation)
         //obj.rotateX(rads_in_three[0]) //todo find set rotations
         //obj.rotateY(rads_in_three[1])
         //obj.rotateZ(rads_in_three[2])
@@ -666,6 +668,11 @@ globalThis.SimObj = class SimObj{
         object3d.rotation.x = rads_in_three[0]
         object3d.rotation.y = rads_in_three[1]
         object3d.rotation.z = rads_in_three[2]
+
+        if(!is_new_object3d){  //we don't want to do when we are first creating object3d as it will error as there will be no physicsobj but DO what to do if we are just changing the scale
+            let a_pos = this.get_physics_object(object3d)
+            a_pos.updateCollider()
+        }
 
         /*the below 2 lines fail on rotation personal factory write just like the above 3 lines,
         //by skewing instead of rotataing
@@ -692,7 +699,7 @@ globalThis.SimObj = class SimObj{
     }
 
     //scale in dde_coords
-    static set_scale(object3d_or_name, scale = [1, 1, 1]){
+    static set_scale(object3d_or_name, scale = [1, 1, 1], is_new_object3d=false){
         let object3d = SimObj.get_object3d(object3d_or_name)
         let three_scale = this.scale_dde_to_three(scale)
         object3d.scale.x = three_scale[0]
@@ -701,7 +708,10 @@ globalThis.SimObj = class SimObj{
         SimBuild.populate_dialog_property(object3d, "scale_x", scale[0])
         SimBuild.populate_dialog_property(object3d, "scale_y", scale[1])
         SimBuild.populate_dialog_property(object3d, "scale_z", scale[2])
-
+        if(!is_new_object3d){  //we don't want to do when we are first creating object3d as it will error as there will be no physicsobj but DO what to do if we are just changing the scale
+            let a_pos = this.get_physics_object(object3d)
+            a_pos.updateCollider()
+        }
         //SimUtils.render()
     }
     static get_geometry(object3d_or_name){
@@ -734,7 +744,7 @@ globalThis.SimObj = class SimObj{
         return Utils.starts_with_one_of(geo_name, this.two_d_shape_names)
     }
 
-    static set_geometry(object3d_or_name="Box", geometry){
+    static set_geometry(object3d_or_name="Box", geometry, is_new_object3d = false){
         let object3d = SimObj.get_object3d(object3d_or_name)
         if(!(geometry.endsWith("Geometry"))){
                 geometry = geometry + "Geometry"
@@ -746,6 +756,10 @@ globalThis.SimObj = class SimObj{
             object3d.material.depthWrite = false
         }
         let val = SimObj.get_geometry_short_name(object3d)
+        if(!is_new_object3d){  //we don't want to do when we are first creating object3d as it will error as there will be no physicsobj but DO what to do if we are just changing the scale
+            let a_pos = this.get_physics_object(object3d)
+            a_pos.updateCollider()
+        }
         SimBuild.populate_dialog_property(object3d, "geometry", val)
         //SimUtils.render()
     }

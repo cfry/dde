@@ -164,101 +164,121 @@ globalThis.SimBuild = class SimBuild{
         }
     }
 
-    static object_path_html(object3d=SimObj.user_origin){
-        let ancestor_names = SimObj.ancestor_names(object3d)
+    static object_path_html(object3d=SimObj.scene){
+        let ancestor_names = SimObj.ancestor_names(object3d) //includes object3d.name as the first elt of the returned array of names
         let result = ""
         for(let name of ancestor_names){
             let the_name = "path_part_" + name
-            if(name === object3d.name) {
-                result += "<b>" + object3d.name + "</b> / "
-            }
-            else {
-                result += "<input type='button' class='link_like_button' name='" + the_name + "' value='" + name + `' onclick="SimBuild.show_dialog('` + name + `')"/> / ` //html now doesn't permit "name" attribute on span tags nor clickability
-            }
+            //if(name === object3d.name) { result += "<b>" + object3d.name + "</b> / "}
+            //else {
+                result += "<input type='button' class='link_like_button' name='" + the_name + "' value='" + name +
+                    /*`' onclick="SimBuild.show_dialog('` + name + `')"*/
+                    "'/> / "  //html now doesn't permit "name" attribute on span tags nor clickability
+            //}
         }
         result += " <select name='children' onchange='SimBuild.handle_children(event)' title='Choose a child of the current object to edit.'>"
         let obj_children = SimObj.get_children(object3d)
-        result += "<option>" + obj_children.length + " children" + "</option>"
+        let spelling_of_children = ((obj_children.length === 1) ? " child" : " children")
+        result += "<option>" + obj_children.length + spelling_of_children + "</option>"
         for (let kid of obj_children){
             result += "<option>" + kid.name + "</option>"
         }
         result += "</select>"
         //needed the below code because Chrome compiler optimizer has a bug making result undefined.
-        return result
+        return "path: " + result
     }
 
     static dialog_is_showing(){
         return (globalThis.simbuild_path_id ? true : false)
     }
 
-    static show_dialog(object3d_or_name= "user_origin"){
+    static show_dialog(object3d_or_name= "scene"){
         if(!this.dialog_is_showing()) { DocCode.open_doc(globalThis.SimBuild_doc_id) }
         let object3d = SimObj.get_object3d(object3d_or_name) //must do BEFORE making the show_window so that the making of this obj won't try to populate the window
-        //warning: often null
 
         let path_html = "<div id='simbuild_path_id'>" +
-                        "path: " + this.object_path_html(object3d) +
+                        this.object_path_html(object3d) +
                         "</div><div style='height:6px;'></div>"
 
-        let parent_html = "parent: <select name='the_parent' data-oninput='true' title='Choose a new parent for the current object.'> &nbsp; "
-        for(let name of SimObj.dde_and_user_objects_names()){ //might be none
-            let sel_html = ""
-            if(name === "user_origin") {sel_html = " selected " }
-            parent_html += "<option " + sel_html + ">" + name + "</option>"
-        }
-        parent_html += "</select> &nbsp; "
+        let parent_html = "parent: "
+        let scene_and_user_objects = SimObj.scene_and_user_objects()
+        parent_html += "<select name='the_parent' data-oninput='true' title='Choose a new parent for the current object.'> &nbsp; "
+            let par_of_object3d = SimObj.get_parent(object3d) //will be null if object3d is "scene"
+            if(par_of_object3d){
+                 for (let a_object3d of scene_and_user_objects) {
+                    if(a_object3d !== object3d) { //an object can't be the parent of itself, so don't put itself on the menu
+                        let sel_html = ((a_object3d === par_of_object3d) ? " selected " : "")
+                        parent_html += "<option " + sel_html + ">" + a_object3d.name + "</option>"
+                    }
+                 }
+            }
+            else { //when par_of_object3d is null, object3d is scene, which can't have any parents,
+                   //so just make one option, "null"
+                let sel_html = " selected "
+                parent_html += "<option " + sel_html + ">" + "null" + "</option>"
+            }
+            parent_html += "</select> &nbsp; "
 
         let name_html = "name: <select name='the_name' data-oninput='true' title='Choose another object3d to edit.'>"
-        let name_options_html = "" //used for both name and parent menus
-        for(let name of SimObj.dde_and_user_objects_names()){ //might be none
-            name_options_html += "<option>" + name + "</option>"
+        for(let a_object3d of scene_and_user_objects){ //might be none
+            let sel_html = ((a_object3d === object3d) ? " selected " : "")
+            name_html += "<option " + sel_html + ">" + a_object3d.name + "</option>"
         }
-        name_html += (name_options_html + "</select><div style='height:6px;'></div>")
+        name_html += "</select><div style='height:6px;'></div>"
 
         let geometry_html = "geometry: " +
-            "<select name='geometry' data-oninput='true'>"
+            "<select title='The shape of the object.' name='geometry' data-oninput='true'>"
             for(let geo_name of this.geometry_names) {
                 geometry_html += "<option>" + geo_name + "</option>"
             }
         geometry_html += "</select><div style='height:6px;'></div>"
 
-        let scale_html = `scale: &nbsp; 
-               x: <input name="scale_x" type="number" min="0.01" step="0.01" value="0.2" data-oninput='true' style='max-width:75px;'/> &nbsp;
-               y: <input name="scale_y" type="number" min="0.01" step="0.01" value="0.2" data-oninput='true' style='max-width:75px;'/> &nbsp;
-               z: <input name="scale_z" type="number" min="0.01" step="0.01" value="0.2" data-oninput='true' style='max-width:75px;'/>
-               <div style='height:6px;'></div>`
+        let scale_html = `scale: &nbsp;
+              <label title="The radius of the width of the object in meters."> 
+                   x: <input name="scale_x" type="number" min="0.01" step="0.01" value="0.2" data-oninput='true' style='max-width:75px;'/>m</label> &nbsp;
+              <label title="The radius of the depth of the object in meters."> 
+                   y: <input name="scale_y" type="number" min="0.01" step="0.01" value="0.2" data-oninput='true' style='max-width:75px;'/>m</label> &nbsp;
+              <label title="The radius of the height of the object in meters."> 
+                   z: <input name="scale_z" type="number" min="0.01" step="0.01" value="0.2" data-oninput='true' style='max-width:75px;'/>m</label>
+              <div style='height:6px;'></div>`
 
         let position_html = `position: &nbsp; 
-               x: <input name="position_x" type="number"  step="0.01" value="0.0" data-oninput='true' style='max-width:75px;'/> &nbsp;
-               y: <input name="position_y" type="number"  step="0.01" value="0.3" data-oninput='true' style='max-width:75px;'/> &nbsp;
-               z: <input name="position_z" type="number"  step="0.01" value="0.1" data-oninput='true' style='max-width:75px;'/>
-               <div style='height:6px;'></div>`
+              <label title="The distance of the object's center from the center,\nalong the x axis, in meters.\nPositive values are left of center.">
+                   x: <input name="position_x" type="number"  step="0.01" value="0.0" data-oninput='true' style='max-width:75px;'/>m</label> &nbsp;
+              <label title="The distance of the object's center from the center,\nalong the y axis, in meters.\n Positive values are front of center.">
+                   y: <input name="position_y" type="number"  step="0.01" value="0.3" data-oninput='true' style='max-width:75px;'/>m</label> &nbsp;
+              <label title="The distance of the object's center from the center,\nalong the z axis, in meters.\nPostive value are above the table."> 
+                   z: <input name="position_z" type="number"  step="0.01" value="0.1" data-oninput='true' style='max-width:75px;'/>m</label>
+              <div style='height:6px;'></div>`
 
         let orientation_html = `orientation:  &nbsp; 
-               x: <input name="orientation_x" type="number" min="-180" max="180" step="1" value="0" data-oninput='true' style='max-width:75px;'/> &nbsp;
-               y: <input name="orientation_y" type="number" min="-180" max="180" step="1" value="0" data-oninput='true' style='max-width:75px;'/> &nbsp;
-               z: <input name="orientation_z" type="number" min="-180" max="180" step="1" value="0" data-oninput='true' style='max-width:75px;'/>
+               <label title="Looking down the x axis from left to right,\nincreasing the x orientation degrees,\nrotates the object clockwise."> 
+                   x: <input name="orientation_x" type="number" min="-180" max="180" step="1" value="0" data-oninput='true' style='max-width:75px;'/>&deg;</label> &nbsp;
+               <label title="Looking down the y axis from front to back,\nincreasing the y orientation degrees,\nrotates the object clockwise.">
+                   y: <input name="orientation_y" type="number" min="-180" max="180" step="1" value="0" data-oninput='true' style='max-width:75px;'/>&deg;</label> &nbsp;
+               <label title="Looking down the z axis from top to bottom,\nincreasing the z orientation degrees,\nrotates the object clockwise.">
+                   z: <input name="orientation_z" type="number" min="-180" max="180" step="1" value="0" data-oninput='true' style='max-width:75px;'/>&deg;</label>
                <div style='height:6px;'></div>`
 
        let color_kind_html =
-         `<label title="Select a single color for the object.\nChoose that color by clicking on the color to the right.">
+         `<label title="Select a single color for the object.\nChoose that color by clicking on\nthe colored rectangle to the right.">
               <input name="color_kind" type="radio" value="single_color" data-oninput="true"/>single_color</label>  &nbsp;
-         <input name="color" type="color" data-oninput='true' value="#ffffff" title="Click to change the new color to set."/>  &nbsp;
-         <label title="Select the multi-color material. &#13; Colors each side of the object differently.">
+         <input name="color" type="color" data-oninput='true' value="#ffffff" title="Click to set a new color for the object."/>  &nbsp;
+         <label title="Select the multi-color material for the object.\nThis colors each side differently.">
               <input name="color_kind" type="radio" value="multi_color" data-oninput="true"/>multi_color</label>  &nbsp;    
-         <label title="Select the wire frame material.">
+         <label title="Select the wire frame material for the object.\nThis shows only the edges of the object.">
               <input name="wire_frame" type="checkbox" value="wire_frame" data-oninput="true"/>wire_frame</label>   
           <div style='height:6px;'></div>`
 
        let physics_html =
-           `<label title="When checked, Object is affected by gravity.">
+           `<label title="When checked, this object is affected by gravity.\nIt also collides, rather than passes through, other objects.\nDynamic objects cannot be positioned or oriented via the dialog box.">
                <input type="checkbox" name="is_dynamic" data-oninput="true"/> is_dynamic &nbsp; 
            </label>
            <label title="Mass is directly proportional to weight.">
                mass: <input name="mass" type="number" step="0.1" value="1.0" data-oninput='true' style="width:60px;"/> grams  &nbsp; &nbsp; &nbsp;
            </label>`
 
-       let show_html = '<select name="simobj_show" data-onchange="true">'
+       let show_html = '<select name="simobj_show" data-onchange="true" title="Show or hide various objects in the scene.">'
         for(let kind of ["show_all", "hide_all", "show_this", "hide_this", "show_only_this", "hide_only_this", "show_colliders", "hide_colliders", "show_dexter", "hide_dexter"]){
             show_html += ' <option>' + kind + '</option>'
         }
@@ -304,13 +324,38 @@ globalThis.SimBuild = class SimBuild{
         if (vals.clicked_button_value === "close_button"){
             SimBuild.set_now_editing_object3d(null)
         }
-
+        else if(vals.clicked_button_value.startsWith("path_part_")){
+            SimBuild.show_dialog(vals.clicked_dom_elt.value)
+        }
         else if (vals.clicked_button_value === "the_name"){
             let new_object3d_name = vals.the_name
             let new_object3d = SimObj[new_object3d_name]
-            //SimBuild.populate_dialog_from_object(object3d)
             SimBuild.show_dialog(new_object3d)
         }
+        else if(vals.clicked_button_value === "Make object"){ //the only clause that can cope with no object3d
+            let new_name = SimObj.unique_name_for_object3d_or_null()
+            if (!new_name) { //unlikely as have to make a lot of objects with numerical suffixes, but *could* happen
+                new_name = ""
+            }
+            new_name = prompt("Enter a name for the new object3d in the Simulator pane.\nYou can't change this, so choose wisely.",
+                new_name)
+            if (!new_name) {  //user canceled so don't make a new object
+                return
+            }
+            else {
+                let new_object3d = SimObj.make_object3d({name: new_name})
+                //SimBuild.populate_dialog_from_object(new_object3d) //fails for dynamically created widgets because
+                // SW.install_submit_window_fns is not called. //not redundant with make_object3d
+                SimBuild.show_dialog(new_object3d)
+            }
+        }
+        //above here operations do not require having an object3d, but below does.
+        else if (!object3d) {
+            warning("There is no selected object.<br/>" +
+                "Please click on an object in the simulator pane or<br/>" +
+                "select one from a menu in the SimBuild dialog box.")
+        }
+
         else if (vals.clicked_button_value === "the_parent"){
             let par = SimObj.get_object3d(vals.the_parent)
             if(SimObj.is_dde_object3d(object3d)){
@@ -320,12 +365,6 @@ globalThis.SimBuild = class SimBuild{
                 warning("You can't set the parent of an object to itself.")
             }
             else {
-                if(SimObj.is_dde_object3d(par) && par !== SimObj.user_origin){
-                    par = SimObj.user_origin  //don't allow user to add objects anywhere but under user_origin
-                    //after init and  cur obj is user_origin with its PARENT of table,
-                    //the dialog will show that, but then if user clicks on make_object, we don't want to
-                    //make TABLE its parent, we want user_origin to be its parent.
-                }
                 SimObj.set_parent(object3d, par)
                 SimBuild.show_dialog(object3d) //we still show the orig object3d, but since it has a new parent, the first row of hte dialog changes so much that we must reshow the entire dialog
             }
@@ -383,17 +422,30 @@ globalThis.SimBuild = class SimBuild{
         }
         else if (vals.clicked_button_value === "is_dynamic"){
             let checkbox_val = vals.is_dynamic
+           /* if a top level dyamic object has a child that is not dynamic,
+               then in SimBuild, when I set the top level obj to not dynamic,
+               move it up, in Simbuild the child follows as it should.
+               but when I check the is_dynamic box for the top level, both
+               objects fall to the table immediately and stop on table surface.
+               so no "natural" gravity acceleration.
+           if(checkbox_val && (SimObj.get_parent(object3d) !== SimObj.scene)){
+                warning("Sorry, only objects that have a parent of Scene can become dynamic.")
+                vals.clicked_dom_elt.value = false
+                return
+            }*/
             SimObj.set_is_dynamic(object3d, checkbox_val)
             if(checkbox_val){
                 SimBuild.disable_dynamic_inputs()
-                warning("When an object is dynamic, its position and orientation<br/>" +
-                        "are controlled by the physics simulator,<br/>" +
+                warning("Now that this object is dynamic,<br/>" +
+                         "its position and orientation<br/>" +
+                         "are controlled by the physics simulator,<br/>" +
                         "not by the controls in the dialog box.")
             }
             else {
                 SimBuild.enable_inputs()
-                out("You can now re-position and re-orient the object with the dialog box controls.<br/>" +
-                    "The physics simulator is disabled for this object.", "green")
+                out("Now that the physics simulator is disabled for this object,<br/>" +
+                    "you can re-position and re-orient the object with the dialog box controls." +
+                    "", "green")
             }
         }
         else if (vals.clicked_button_value === "mass"){
@@ -401,23 +453,7 @@ globalThis.SimBuild = class SimBuild{
             SimObj.set_mass(object3d, mass)
         }
     //____________________________________________________________
-        else if(vals.clicked_button_value === "Make object"){ //the only clause that can cope with no object3d
-            let new_name = SimObj.unique_name_for_object3d_or_null()
-            if (!new_name) { //unlikely as have to make a lot of objects with numerical suffixes, but *could* happen
-                new_name = ""
-            }
-            new_name = prompt("Enter a name for the new object3d in the Simulator pane.\nYou can't change this, so choose wisely.",
-                new_name)
-            if (!new_name) {  //user canceled so don't make a new object
-                return
-            }
-            else {
-                let new_object3d = SimObj.make_object3d({name: new_name})
-                //SimBuild.populate_dialog_from_object(new_object3d) //fails for dynamically created widgets because
-                // SW.install_submit_window_fns is not called. //not redundant with make_object3d
-                SimBuild.show_dialog(new_object3d)
-            }
-        }
+
         else if(vals.clicked_button_value === "Copy object") {
             if (!object3d || !SimObj.is_user_object3d(object3d)){
                 warning("No user object to copy.&#13;Use the 'Make object' button to make a new object.")
@@ -445,11 +481,6 @@ globalThis.SimBuild = class SimBuild{
                     SimBuild.show_dialog(new_object3d)
                 }
             }
-        }
-        else if (!object3d) {
-            warning("There is no selected objecct.<br/>" +
-                "Please click on an object in the simulator pane or<br/>" +
-                "select one from a menu in the SimBuild dialog box.")
         }
         else if (vals.clicked_button_value === "Insert object"){
             let src = to_source_code({value: object3d})
@@ -458,57 +489,6 @@ globalThis.SimBuild = class SimBuild{
         else if (vals.clicked_button_value === "Insert all"){
             let src = SimObj.all_user_objects_source_code()
             Editor.insert(src + "\n")
-        }
-
-        else if(vals.clicked_button_value === "Make object"){ //the only clause that can cope with no object3d
-            let new_name = SimObj.unique_name_for_object3d_or_null()
-            if (!new_name) { //unlikely as have to make a lot of objects with numerical suffixes, but *could* happen
-                new_name = ""
-            }
-            new_name = prompt("Enter a name for the new object3d in the Simulator pane.\nYou can't change this, so choose wisely.",
-                new_name)
-            if (!new_name) {  //user canceled so don't make a new object
-                return
-            }
-            else {
-                let new_object3d = SimObj.make_object3d({name: new_name})
-                //SimBuild.populate_dialog_from_object(new_object3d) //fails for dynamically created widgets because
-                // SW.install_submit_window_fns is not called. //not redundant with make_object3d
-                SimBuild.show_dialog(new_object3d)
-            }
-        }
-        else if(vals.clicked_button_value === "Copy object") {
-            if (!object3d || !SimObj.is_user_object3d(object3d)){
-                warning("No user object to copy.&#13;Use the 'Make object' button to make a new object.")
-            }
-            else {
-                let new_name = SimObj.unique_name_for_object3d_or_null(object3d.name)
-                if (!new_name) { //unlikely as have to make a lot of objects with numerical suffixes, but *could* happen
-                    new_name = ""
-                }
-                new_name = prompt("Enter a name for the new object3d in the Simulator pane.\nYou can't change this, so choose wisely.",
-                    new_name)
-                if (!new_name) {  //user canceled so don't make a new object
-                    return
-                }
-                else {
-                    let copy_descendents_too
-                    if(SimObj.get_children(object3d).length === 0) { //doesn't include BoxHelper
-                        copy_descendents_too = false //there aren't any
-                    }
-                    else {
-                        copy_descendents_too = confirm("Copy the descendents of " + object3d.name + " too?")
-                    }
-                    let new_object3d = SimObj.make_copy_of_object3d(object3d, new_name, copy_descendents_too)
-                    //SimBuild.populate_dialog_from_object(new_object3d) //not redundant with make_copy_of_object3d
-                    SimBuild.show_dialog(new_object3d)
-                }
-            }
-        }
-        else if (!object3d) {
-            warning("There is no selected objecct.<br/>" +
-                "Please click on an object in the simulator pane or<br/>" +
-                "select one from a menu in the SimBuild dialog box.")
         }
         else if (vals.clicked_button_value === "Insert object"){
             let src = to_source_code({value: object3d})
@@ -579,7 +559,9 @@ globalThis.SimBuild = class SimBuild{
     }
 
     static refresh(){
-        this.populate_dialog_from_object_if_now_editing(this.now_editing_object3d)
+        if(Simulate.simulationRate > 0) {  //so as not to update the SimBuld dialog unnecessarily
+            this.populate_dialog_from_object_if_now_editing(this.now_editing_object3d)
+        }
     }
 
     static populate_dialog_from_object_if_now_editing(object3d){
@@ -610,7 +592,7 @@ globalThis.SimBuild = class SimBuild{
         }
         if(object3d){
             this.now_editing_object3d = object3d
-            if(object3d.material && object3d.material.color) { //if it doesn't have a color, don't try to set it. user_origin doesn't have a color
+            if(object3d.material && object3d.material.color) { //if the material doesn't have a color, don't try to set it.
                  //object3d.userData.color = SimObj.get_color(object3d)
                 //object3d.material.color = 0xffff00 //but this format fails yellow for highlighting
                 SimObj.set_color(object3d, SimObj.highlight_color) //won't set object3d.userData.color
@@ -627,31 +609,35 @@ globalThis.SimBuild = class SimBuild{
     //already be in the_name select tag.
     static show_to_make_a_new_object3d_message = true
     static populate_dialog_from_object(object3d){
-        SimBuild.set_now_editing_object3d(object3d) //do even if object3d is null
-        let dialog_dom_elt = SimBuild.dialog_dom_elt()
-        if(!dialog_dom_elt) {  return }
-        else if (!object3d || (SimObj.user_objects.length === 0)) {
+        if (!object3d || (SimObj.user_objects.length === 0)) {
             this.disable_inputs()
             if(this.show_to_make_a_new_object3d_message) {
-                out("To make a new object3d in the simulator pane,<br/>click the <b>Make Object</b> button.", "green")
+                out("To make a new object3d in the simulator pane,<br/>click the <b>Make object</b> button.", "green")
                 this.show_to_make_a_new_object3d_message = false //only show once because this gets called
                 //every frame when first open dialog and it overwhelmes the output pane.
             }
             return
         }
+        let dialog_dom_elt = SimBuild.dialog_dom_elt()
+        if(!dialog_dom_elt) {  return }
         else {
-            globalThis.simbuild_path_id.innerHTML = this.object_path_html(object3d)
-            this.enable_inputs()
+            if(object3d !== this.now_editing_object3d) { //because refreshing this every frame makes the clicks unusable, but no need to refrsh if not changing the object being edited.
+                SimBuild.set_now_editing_object3d(object3d) //do even if object3d is null
+                globalThis.simbuild_path_id.innerHTML = this.object_path_html(object3d)
+            }
+            this.enable_inputs() //enable all, then disable those that are dynamic if need be.
             if(SimObj.get_is_dynamic(object3d)){
                 this.disable_dynamic_inputs()
             }
             SimBuild.add_object3d_to_the_name_menu(object3d) //adds an option tag under the select, but only if there's not one there for object3D.name
-            SimBuild.add_object3d_to_the_parent_menu(object3d)
+            //SimBuild.add_object3d_to_the_parent_menu(object3d) //we don't want object3d to be on the parent menu becuase an object can't be a parent of itself.
             this.populate_dialog_property(object3d, "the_name", SimObj.get_name(object3d))
-            let par = SimObj.get_parent(object3d)
-            //occasionally errors here. par is null so doesn't have a name.
-            this.populate_dialog_property(object3d, "the_parent", SimObj.get_name(par))
 
+            let par = SimObj.get_parent(object3d) //will be null if object3d is scene.
+            //occasionally errors here. par is null so doesn't have a name.
+            if(par) {
+                this.populate_dialog_property(object3d, "the_parent", SimObj.get_name(par))
+            }
 
             let geo_short_name = SimObj.get_geometry_short_name(object3d)
             SimBuild.populate_dialog_property(object3d, "geometry", geo_short_name)
@@ -667,12 +653,11 @@ globalThis.SimBuild = class SimBuild{
             SimBuild.populate_dialog_property(object3d, "position_y", position_arr[1])
             SimBuild.populate_dialog_property(object3d, "position_z", position_arr[2])
 
-
             let orientation_arr = SimObj.get_orientation(object3d)
+            //orientation_arr = orientation_three_to_dde(orientation_arr)
             SimBuild.populate_dialog_property(object3d, "orientation_x", orientation_arr[0])
             SimBuild.populate_dialog_property(object3d, "orientation_y", orientation_arr[1])
             SimBuild.populate_dialog_property(object3d, "orientation_z", orientation_arr[2])
-
 
             let three_color = object3d.userData.three_color //null or arr of 0 to 1 integers
             if(three_color) {
@@ -769,13 +754,13 @@ globalThis.SimBuild = class SimBuild{
         if(dialog_dom_elt) {
             let inputs = dialog_dom_elt.querySelectorAll("input")
             for (let a_in of inputs) {
-                if (a_in.value !== "Make object"){
+                if ((a_in.value !== "Make object") && !(a_in.name.startsWith("path_part_"))){
                     a_in.setAttribute("disabled", "")
                 }
             }
             inputs = dialog_dom_elt.querySelectorAll("select")
             for (let a_in of inputs) {
-                if (a_in.name !== "simobj_show"){ //so we can show/hide dexter without another object being edited, like at the beginning of a session
+                if ( !["simobj_show", "the_parent", "the_name", "children"].includes(a_in.name)){ //so we can show/hide dexter without another object being edited, like at the beginning of a session
                     a_in.setAttribute("disabled", "")
                 }
             }

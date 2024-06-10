@@ -775,11 +775,9 @@
                             <span title="Both simulate and real will be run for Dexter's with a 'simulate' value of null.">
                             <input id="simulate_radio_both_id"  type="radio" name="simulate" value="both"  style="cursor:pointer; "title="Both simulate and real will be run for Dexters with a 'simulate' value of null.">both</input></span> &nbsp;
                         </span>
-                        <span title="If unchecked, simulation&#013;will run as fast as it can.&#013;No pauses for sleep or motion.">
-                            <select onchange="DexterSim.change_speed()" style="display:inline-block; vertical-align:bottom; cursor:pointer;" id="change_dexter_speed_id" title="Change Dexter joints AngularSpeed,&#013;for the simulator ONLY.&#013;This can also be done with Job Instructions like:&#013;Dexter.set_parameter('AngularSpeed', 60)">
-                                <option value="0">Change Speed</option><option value="7.5">slow 7.5 deg/sec</option> <option value="30">default 30 deg/sec</option><option value="120">fast 120 deg/sec</option>
-                            </select>
-                        </span>
+                        <label title="Changes the speed of the simulated running Job.&#013;A value of 1 is normal speed.&#013;0 pauses the Job.">
+                            SimSpeed: <input id="change_dexter_speed_id" type="number" min="0" step="0.1" value="1" onchange="DexterSim.change_speed()" style="width:40px;"/>
+                        </label>
                         <button id="show_queue_id"   title="Show a window&#013;that displays a simulation&#013;of Dexter's instruction queue." style="padding:2px">Show Q </button>
                         <span title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">
                             <input style="display:inline-block; vertical-align:bottom; margin-left:15px; cursor:pointer;" id="js_debugger_checkbox_id" type="checkbox" title="If checked, it will cause stepping of the underlying JavaScript code.&#013;when running a job.">JS debugger</input>
