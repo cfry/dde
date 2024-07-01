@@ -66,7 +66,7 @@ globalThis.Simulate = class Simulate {
         <div id="sim_pane_header_id">
         <div id="sim_pane_header_top_row_id" style="white-space:nowrap;"> 
         <b>Move Dur: </b><span id="sim_pane_move_dur_id"></span> s
-        <button onclick="SimBuild.show_dialog()" title="Make additional 3D objects in the Simulator pane.">SimBuild</button>
+        <button onclick="SimBuild.show_dialog()" title="Make additional 3D objects in the Simulator pane.">MakeObjects</button>
         <span title="Inspect simulator Details." 
         onclick="SimUtils.inspect_dexter_sim_instance()" 
         style="margin-left:5px;color:blue;cursor:help;font-weight:bold;"> &#9432; </span>       
@@ -255,7 +255,6 @@ globalThis.Simulate = class Simulate {
         else
         {
             console.warn("Warning: Simulation attempt was made after the simulator was initialized");
-            debugger;
         }
         
     }
@@ -484,8 +483,8 @@ globalThis.Simulate = class Simulate {
 //processing in video.js to clean it up.
     static gltfLoader;
     static createMeshGLTF(){
-        Simulate.sim.table_width = 2.0 //= 0.447675,  //width was 1
-        Simulate.sim.table_length = 2.0//0.6985,    //length was 2
+        Simulate.sim.table_width  = 3.0 //= 0.447675,  //width was 1
+        Simulate.sim.table_length = 3.0//0.6985,    //length was 2
         Simulate.sim.table_height = 0.02//0.01905    //height (thickness of Dexcell surface). Simulate is 3/4 of an inch. was:  0.1)
         Simulate.new_draw_table(Simulate.sim.table_width, Simulate.sim.table_length, Simulate.sim.table_height)
         // Simulate.sim.table.position.x = -(Simulate.sim.table_width / 4);
@@ -521,7 +520,7 @@ globalThis.Simulate = class Simulate {
     //              Simulate.sim.scene.add(gltf.scene)
         let root = gltf_object3D.scene;
         let c0 = root.children[0]
-        c0.scale.set(0.001, 0.001, 0.001);
+        c0.scale.set(0.001, 0.001, 0.001);//0.0007, 0.0007, 0.0007); //0.001, 0.001, 0.001);
         //	Remove imported lights, cameras. Just want Object3D.
         let objs = [];
         c0.children.forEach ( c => {
@@ -530,6 +529,7 @@ globalThis.Simulate = class Simulate {
                 objs.push(c); } } );
         c0.children = objs;
         //	Simulate.sim.scene.add(root)
+        Simulate.sim.J0.scale.set(1, 1, 1) //fry added
         Simulate.sim.J0.add(root) //fry added in J0 to shift dexter to back of the table.
 
         //	Set link parent-child relationships.
@@ -675,12 +675,12 @@ globalThis.Simulate = class Simulate {
     }
 
     static rads_to_arc_seconds(rads)
-    {
+    {   //(rad * ((3600 * 180)  / Math.PI))
         return rads / 0.00000484813681109536;
     }
 
     static rad_to_dexter_units(rads,joint)
-    {
+    {   //caution: joint is 0 based ie a joint of 0, is Dexter's joint 1
         let out = 0;
         if(joint < 5) // Joints 1-5
         {
@@ -690,7 +690,7 @@ globalThis.Simulate = class Simulate {
         {
             out = Simulate.rad_to_dynamixel_320(rads)+Socket.J6_OFFSET_SERVO_UNITS;
         }
-        else // Joint 7
+        else // joint is 5 or 6  for Dexter joint's 6 and 7
         {
             out = Simulate.rad_to_dynamixel_320(rads);
         }
@@ -732,7 +732,7 @@ globalThis.Simulate = class Simulate {
                 
 
                 // Update the text value in the sim header
-                globalThis["sim_pane_j" + (i+1) + "_id"].innerHTML = Math.round(Simulate.measuredAngles[i]*180/Math.PI);
+                globalThis["sim_pane_j" + (i+1) + "_id"].innerHTML = Math.round(Simulate.measuredAngles[i]*180/Math.PI); + "&deg;"
 
                 if(i==6)
                 {
@@ -884,19 +884,19 @@ globalThis.Simulate = class Simulate {
         if(x < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
         else      { str_length = 5}
         if(SimUtils.is_simulator_showing()) {
-            sim_pane_x_id.innerHTML = ("" + x).substring(0, str_length)
+            sim_pane_x_id.innerHTML = ("" + x).substring(0, str_length) + "m"
         }
         let y = xyz[1]
         if(y < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
         else      { str_length = 5}
         if(SimUtils.is_simulator_showing()) {
-            sim_pane_y_id.innerHTML = ("" + y).substring(0, str_length)
+            sim_pane_y_id.innerHTML = ("" + y).substring(0, str_length) + "m"
         }
         let z = xyz[2]
         if(z < 0) { str_length = 6} //so we get the minus sign plus 3 digits after decimal point, ie MM
         else      { str_length = 5}
         if(SimUtils.is_simulator_showing()) {
-            sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length)
+            sim_pane_z_id.innerHTML = ("" + z).substring(0, str_length) + "m"
         }
     }
 

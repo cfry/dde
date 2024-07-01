@@ -3,6 +3,8 @@ import { AmbientLight, BoxGeometry, CylinderGeometry, MeshPhongMaterial, SphereG
 
 globalThis.PhysicsObject = class PhysicsObject
 {
+    static heldPO = null
+
     static Shape = 
     {
         BOX:0,
@@ -17,7 +19,7 @@ globalThis.PhysicsObject = class PhysicsObject
     // If set to true, the bounding box around each object that is used for object pickup will be shown
     static showGripperBox = false;
     
-
+    static gripperThresholdDefault = 200
     // Create a box
     static createBox(size,pos,mass,color)
     {
@@ -45,7 +47,7 @@ globalThis.PhysicsObject = class PhysicsObject
      * @param {Number} mass The desired mass of the object. A mass of 0 will make the object static
      * @param {Number} colliderType The type of collider. If this is not specified, the collider type which best fits the object will be determined automatically. Specify using PhysicsObject.Shape
      */
-    constructor(mesh,mass=1,colliderType)
+    constructor(mesh,mass=1,colliderType, gripperThreshold=PhysicsObject.gripperThresholdDefault)
     {
         this.tempThreePosition0 = new THREE.Vector3();
         this.tempThreePosition1 = new THREE.Vector3();
@@ -105,9 +107,10 @@ globalThis.PhysicsObject = class PhysicsObject
         Simulate.sim.scene.add(this.pickupHelper);
 
         // Theshold for the claw to be closed to pickup the object
-        this.gripperThreshold = 200;
+        this.gripperThreshold = gripperThreshold;
 
         this.held = false;
+        PhysicsObject.heldPO = null
 
         this.mesh.userData.physObj = this;
     }
@@ -126,7 +129,9 @@ globalThis.PhysicsObject = class PhysicsObject
         this.colliderLines.geometry.dispose();
         this.colliderLines.material.dispose();
         this._createColliderHelper();
-
+        if(this.kinematic){
+            this.makeKinematic()
+        }
         // switch(this.colliderInfo.type)
         // {
         //     case PhysicsObject.Shape.BOX:
@@ -401,7 +406,7 @@ globalThis.PhysicsObject = class PhysicsObject
         // Compute the bounding box of the mesh geometry and scale it by the world scale of the mesh. 
         // Scaling the bounding box ensures the dimensions of the bounding box are in world coordinates
         mesh.geometry.computeBoundingBox();
-        let geoBB = mesh.geometry.boundingBox;
+        let geoBB = mesh.geometry.boundingBox.clone();
         geoBB.min.multiply(scale);
         geoBB.max.multiply(scale);
 
@@ -497,7 +502,7 @@ globalThis.PhysicsObject = class PhysicsObject
         // Compute the bounding box of the mesh geometry and scale it by the world scale of the mesh. 
         // Scaling the bounding box ensures the dimensions of the bounding box are in world coordinates
         mesh.geometry.computeBoundingBox();
-        let geoBB = mesh.geometry.boundingBox;
+        let geoBB = mesh.geometry.boundingBox.clone();
         geoBB.min.multiply(scale);
         geoBB.max.multiply(scale);
 
@@ -542,7 +547,7 @@ globalThis.PhysicsObject = class PhysicsObject
         // Compute the bounding box of the mesh geometry and scale it by the world scale of the mesh. 
         // Scaling the bounding box ensures the dimensions of the bounding box are in world coordinates
         mesh.geometry.computeBoundingBox();
-        let geoBB = mesh.geometry.boundingBox;
+        let geoBB = mesh.geometry.boundingBox.clone();
         geoBB.min.multiply(scale);
         geoBB.max.multiply(scale);
 
@@ -742,6 +747,7 @@ globalThis.PhysicsObject = class PhysicsObject
 
         // Mark the object as held
         this.held = true;
+        PhysicsObject.heldPO = this
 
         // Attach the mesh to J6 so that it moves with the arm
         Simulate.sim.J6.attach(this.mesh);
@@ -783,6 +789,13 @@ globalThis.PhysicsObject = class PhysicsObject
         this.kinematic = false;
     }
 
+    //mass is in kilograms
+    setMass(mass){
+        this.mass = mass
+        this.colShape.calculateLocalInertia( this.mass, this.localInertia );
+        this.rigid_body.setMassProps(this.mass, this.localInertia);
+    }
+
     // Release the object from the arm. (this will remove it from its parent and enable physics)
     release()
     {
@@ -797,6 +810,7 @@ globalThis.PhysicsObject = class PhysicsObject
 
         // Mark the object as not held
         this.held = false;
+        PhysicsObject.heldPO = null
 
         // Enable physics for the object again
         this.makeDynamic();

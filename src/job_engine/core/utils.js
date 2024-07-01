@@ -289,6 +289,12 @@ static is_NaN_null_or_undefined(arg) {
 }
 
 static is_string_a_integer(a_string){
+    if(a_string.startsWith("+")){
+        a_string = a_string.substring(1)
+    }
+    if(a_string.length === 0) {
+        return false
+    }
     if(typeof(a_string) == "string") {
         let pat = /^-?[0-9]+$/;
         if(a_string.match(pat)) {  return true; }
@@ -313,6 +319,58 @@ static is_string_a_number(a_string){
 //returns true for strings of the format "rgb(0, 100, 255)" ie the css color specifier
 static is_string_a_color_rgb(a_string){
     return a_string.startsWith("rgb(") && a_string.endsWith(")") && a_string.includes(",") //not perfect but quick and pretty good
+}
+
+//returns a number or false.
+//if a_string is actually a non-NaN number instead of a string, returns a_string
+//removes commas and trims string.
+//ignores ending period.
+//suffixes of KMBT makes multiples of a thousand.
+//informed by what JS eval of the string will do, but also by USA human interpretation.
+//warning: some cultures use commas in place of decimal point.
+//or maybe periods in place of US commas. The world is broken :-(
+static string_to_number_smart(a_string){
+    if(Number.isNaN(a_string)) {
+        return false
+    }
+    else if (typeof(a_string) === "number"){
+        return a_string
+    }
+    else {
+        a_string = a_string.replaceAll(",", "").trim()
+        if (a_string.length === 0) {
+            return false
+        }
+        let last_char = Utils.last(a_string)
+        if ("KMBT".includes(last_char)) {
+            a_string = a_string.substring(0, a_string.length - 1)
+        }
+        if (Utils.last(a_string) === ".") { //do after KMBT processing. Just throw out final periods.decimal points
+            a_string = a_string.substring(0, a_string.length - 1)
+        }
+        let num = parseFloat(a_string)
+        if (Number.isNaN(num)) {
+            return false
+        }
+        else if (!Utils.is_string_a_number(a_string)) { //a string might be "123abc" which parseFlaot treats as integer 123, but we don't want that
+            return false  //handles cases like "123abc" which parseFloat returns 123 for.
+        }
+        //From orig str, at least all but the last char represent a num, so
+        // we're going to return a num. But do we need to multiply num by a proper suffix char?
+        // we know we stripped that char out of a_string,
+        if ("KMBT".includes(last_char)) {
+            if (last_char === "K") {
+                num *= 1000
+            } else if (last_char === "M") {
+                num *= 1000000
+            } else if (last_char === "B") {
+                num *= 1000000000
+            } else if (last_char === "T") {
+                num *= 1000000000000
+            }
+        }
+        return num
+    }
 }
 
 //this will count reserved words (ie "break" as an identifier, which

@@ -3,8 +3,8 @@
 
 <details class="doc_details"><summary>About</summary>
     This is <a href="http://hdrobotic.com/" target="_blank">Dexter</a> Development Environment<br/>
-    version: <span id="dde_version_id">4.2.1</span><br/>
-    released: <span id="dde_release_date_id">May 2, 2024</span>
+    version: <span id="dde_version_id">4.2.2</span><br/>
+    released: <span id="dde_release_date_id">Jul 1, 2024</span>
     <p></p>
     DDE helps you create, debug, and send software to a Dexter robot.
     You can use any JavaScript augmented with DDE-specific functions to help find out about,
@@ -711,7 +711,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             Such Jobs will use the Dexter.default robot, chosen in the Misc pane header.
         </details>
         <details class="doc_details"><summary>Auto-Completion</summary>
-            Type in the beginning of a word and type Cntl-/ (hold down control and type slash).
+            For autocomplete, type in the beginning of a word and type Cntl-/ (hold down control and type slash).
             If the preceeding text begins a word that is:
             <ul>
                 <li>Part of basic JavaScript.</li>
@@ -1161,8 +1161,8 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
 
         </details>  <!-- end simulate dexter -->
 
-        <details  class="doc_details" id="SimBuild_doc_id" class="doc_details"><summary>SimBuild</summary>
-            Clicking the Misc pane's <button>SimBuild</button> button brings up a dialog box
+        <details  class="doc_details" id="MakeObjects_doc_id" class="doc_details"><summary>MakeObjects</summary>
+            Clicking the Misc pane's <button>MakeObjects</button> button brings up a dialog box
             that allows you to create, edit, save and remove geometric shaped objects in the Sim pane
             along side of Dexter.
             When the dialog is up, the edited object will be highlighted in the Simulator pane.<br/>
@@ -1174,7 +1174,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             conventional CAD software used for designing parts or more sophisticated
             simulations.
             <p></p>
-            When the SimBuild dialog is open, and there are no objects created,
+            When the MakeObjects dialog is open, and there are no objects created,
             the inputs will be disabled except for <input type="button" value="Make object"/>.
             Click it to create your first object.
             <p></p>
@@ -1241,15 +1241,15 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             <p></p>
             <b>Restoring Objects</b> (or creating them anew).
             Just evaluate JavaScript code for making an object, whether it be
-            code inserted usiing the SimBuild dialog box, or code you've written by hand.
-        </details> <!--End SimBuild -->
+            code inserted usiing the MakeObjects dialog box, or code you've written by hand.
+        </details> <!--End MakeObjects -->
 
         <details  class="doc_details" id="SimObj_doc_id" class="doc_details"><summary>SimObj</summary>
         The methods in the <code>SimObj</code> class are wrappers around methods in <code>THREE.Object3D</code> class
         and related classes. SimObj makes it easier for programmers to add and modify object3ds in
         the similator pane.<br/>
         The easiest way to discover and see example calls to SimObj methods
-        is to click the corresponding buttons in the SimBuild dialog box.
+        is to click the corresponding buttons in the MakeObjects dialog box.
          <p></p>
          Searching the web for
             <code title="not evalable">THREEjs Object3D</code> and related classes & methods
@@ -1264,7 +1264,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
             <code>SimObj.make_object3d({name: "my_object3d"})</code><br/>
             and then another same-named call, the 2nd object will overwrite the first.<br/>
             <b>geometry</b> Default: <code>"Box"</code> Can also be a THREE.Geometry instance such
-            as THREE.BoxGeometry. See the SimBuild dialog geometry menu for the supported geometries.
+            as THREE.BoxGeometry. See the MakeObjects dialog geometry menu for the supported geometries.
             Determines the shape of the object.<br/>
             <b>scale</b> Default: <code>[1, 1, 1]</code> An array of x,y,z (width, depth, height) for the size of the object in meters.<br/>
             <b>position</b> Default: <code>[0, 0, 0]</code> An array of x,y,z meters for the location of the object.
@@ -1275,11 +1275,11 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
                 THREE material names end in the suffix "Material" but you can leave that out in DDE.
                 The material determines the surface of an object.<br/>
                 Use <code>"MeshNormal"</code> for different faces of the object having different colors.
-                In the SimBuild dialog, check <i>multi-color</i> to use <code>"MeshNormal"</code>.
+                In the MakeObjects dialog, check <i>multi-color</i> to use <code>"MeshNormal"</code>.
                 If you use "MeshNormal", the color of the SimObj will be ignored.
                 This is useful in showing the three-dimentionality of the object.<br/>
                 Use <code>"MeshPhong"</code> for giving the object a particular color.
-                In the SimBuild dialog, uncheck <i>multi-color</i> to use <code>"MeshPhong"</code>.<br/>
+                In the MakeObjects dialog, uncheck <i>multi-color</i> to use <code>"MeshPhong"</code>.<br/>
              <b>color</b> Default: <code>[1, 1, 1]</code> (white)<br/>
                     The array of 3 colors uses [red, green, blue] where each is a float
                 between 0 and 1.<br/>
@@ -1317,7 +1317,7 @@ Joints 1, 4, and 5 also have two screws to adjust the position of the optical bl
              <code>SimObj.my_object3d</code>
        </details> <!-- end SimObj.make_object3d -->
      <details  class="doc_details" id="SimObj Properties" class="doc_details"><summary>SimObj Properties</summary>
-      You can get and set properties of objects interactively using the SimBuild dialog box or programmatically
+      You can get and set properties of objects interactively using the MakeObjects dialog box or programmatically
          using the below pattern.<br/>
       <i>Examples:</i><br/>
          <pre><code>SimObj.set_position(SimObj.my_object3d_1, [0.2, 0.3, 0.4])
@@ -1332,7 +1332,7 @@ SimObj.get_position(SimObj.my_object3d_1)</code> => <samp>[0.2, 0.3, 0.4]</samp>
              <li>color</li>
              <li>wireframe</li>
           </ul>
-      You can see more specific examples by clicking on the insert button for a property in the SimBuild
+      You can see more specific examples by clicking on the insert button for a property in the MakeObjects
          dialog box.
      </details> <!-- end SimObj properites-->
     <details class="doc_details" id="SimObj.is_object3d" class="doc_details"><summary>SimObj.is_object3d</summary>
@@ -1575,10 +1575,10 @@ SimObj.get_position(SimObj.my_object3d_1)</code> => <samp>[0.2, 0.3, 0.4]</samp>
     If that still fails, click on the command, and  type in its parameter
     values.
     <p/>
-    <span style="color:red;">Chrome does not recognize "right".</span><br/>
+    <span style="color:red;">Chrome sometimes does not recognize single words, especially "right".</span><br/>
     Workarounds:<br/>
-    1. Click the link "Right" instead of saying it.<br/>
-    2. "Say "right turn" instead.<br/>
+    1. Click the command link, i.e. "Right" instead of saying it.<br/>
+    2. Say "command right" instead.<br/>
     We have filed a bug report with Google (May 1, 2024).
    </details>
 

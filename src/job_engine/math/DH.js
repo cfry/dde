@@ -1,4 +1,4 @@
-let mathjs = require("mathjs")
+//let mathjs = require("mathjs")
 var DH = {}
 globalThis.DH = DH
 

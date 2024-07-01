@@ -96,14 +96,14 @@ globalThis.OpenAI = class OpenAI{
         prompt = prompt.trim()
         this.show_prompt(prompt)
         let media = DDE_DB.persistent_get("gpt_response_media")
-        if     (media === "inspect_envelope")     { this.previous_envelope = await this.make_inspect_envelope(prompt)}
-        else if(media === "text")                 { this.previous_envelope = await this.make_text(prompt)}
-        else if(media === "inspect_text_to_data") { this.previous_envelope = await this.make_inspect_text_to_data(prompt)}
-        else if(media === "code_only")            { this.previous_envelope = await this.make_code_only(prompt)}
-        else if(media === "whole_response")       { this.previous_envelope = await this.make_whole_response(prompt)}
-        else if(media === "plot_numbers")         { this.previous_envelope = await this.make_plot_numbers(prompt)}
-        else if(media === "search_google")        { this.previous_envelope = await this.make_search_google(prompt)}
-        else if(media === "image")                { this.previous_envelope = await this.make_image(prompt)} //does not take temperature
+        if     (media === "inspect_envelope")     { this.make_inspect_envelope(prompt)}
+        else if(media === "text")                 { this.make_text(prompt)}
+        else if(media === "inspect_text_to_data") { this.make_inspect_text_to_data(prompt)}
+        else if(media === "code_only")            { this.make_code_only(prompt)}
+        else if(media === "whole_response")       { this.make_whole_response(prompt)}
+        else if(media === "plot_numbers")         { this.make_plot_numbers(prompt)}
+        else if(media === "search_google")        { this.make_search_google(prompt)}
+        else if(media === "image")                { this.make_image(prompt)} //does not take temperature
         else { shouldnt("In OpenAI.request with invalid response media of: " + media)}
     }
 
@@ -195,19 +195,49 @@ globalThis.OpenAI = class OpenAI{
     }
 
     //see: https://www.makeuseof.com/chatgpt-api-complete-guide/ for 3.5 and 4 api's.
-    static async make_inspect_envelope(prompt, callback=OpenAI.make_inspect_envelope_cb){
+    static async make_inspect_envelope(prompt, callback=OpenAI.make_inspect_envelope_cb, image="use_image_from_dialog") {
+       if(!image){
+           this.make_inspect_envelope_aux(prompt, callback, null)
+       }
+       else if (image !== "use_image_from_dialog"){ //got a regular url
+           this.make_inspect_envelope_aux(prompt, callback, image)
+       }
+       //at this point, image === "use_image_from_dialog"
+       else if (!window.gpt_dialog_use_image_id || !gpt_dialog_use_image_id.files[0]){
+           //can't get a file so just go without image
+           this.make_inspect_envelope_aux(prompt, callback, null)
+       }
+       else { //dialog is up, has a chosen file, and image === "use_image_from_dialog"
+           let reader = new FileReader();
+           reader.addEventListener(
+               "load",
+               () => {
+                   let data_url  = reader.result;  //image encoded in base64 data url.
+                   this.make_inspect_envelope_aux(prompt, callback, data_url)
+               },
+               false,
+           );
+           image = gpt_dialog_use_image_id.files[0]
+           reader.readAsDataURL(image)
+       }
+    }
+
+    static async make_inspect_envelope_aux(prompt, callback, image_url=null) {
         let model       = DDE_DB.persistent_get("gpt_model")
         let max_tokens  = DDE_DB.persistent_get("gpt_completion_max_tokens")
         let temperature = DDE_DB.persistent_get("gpt_temperature")
         let envelope
+        let content_obj = this.make_content_for_inspect_envelope(prompt, image_url)
+        let args = {
+            model: model,
+            messages: [{role: "user", content: content_obj}],
+            max_tokens: max_tokens,
+            temperature: temperature
+        }
         try {
             //see https://platform.openai.com/docs/api-reference/chat/create
-                envelope = await this.openai.createChatCompletion({
-                    model: model,
-                    messages: [{role: "user", content: prompt}],
-                    max_tokens: max_tokens,
-                    temperature: temperature
-                });
+                envelope = await this.openai.createChatCompletion(args);
+                this.previous_envelope = envelope
         }
         catch(err){
             dde_error("OpenAI could not complete your prompt:<br/><code>" + prompt +
@@ -216,7 +246,26 @@ globalThis.OpenAI = class OpenAI{
             )
         }
         callback(envelope)
-        return envelope
+    }
+
+    static make_content_for_inspect_envelope(prompt, image_url=null){
+        if(!image_url){
+            return prompt
+        }
+        else { //upload image and prompt. See example at: https://platform.openai.com/docs/guides/vision
+             //image_url is a real data url or regular http url. It is NOT "use_image_from_dialog"
+             //as thta's already been processed
+            let result =  [
+                {"type": "text", "text": prompt},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": image_url //"https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg",
+                    },
+                },
+            ]
+            return result
+        }
     }
 
     static make_inspect_envelope_cb(envelope){
@@ -224,8 +273,34 @@ globalThis.OpenAI = class OpenAI{
         return envelope
     }
 
-    static async make_text(prompt, callback=OpenAI.make_text_cb) {
-        return this.make_inspect_envelope(prompt, callback)
+    //image could be a full url like:
+    //https://www.norvatools.com.au/pub/media/best_hand_tools_australia.jpg
+    //which contains tools like "hammer", "adjustable wrench"
+    static make_text(prompt, callback=OpenAI.make_text_cb, image="use_image_from_dialog") {
+       this.make_inspect_envelope(prompt, callback, image)
+    }
+
+    static show_the_use_image(){
+        let image = gpt_dialog_use_image_id.files[0]
+        if(!image){
+            warning("No image chosen.")
+        }
+        else {
+            let reader = new FileReader();
+            reader.addEventListener(
+                "load",
+                () => {
+                    let data_url  = reader.result;  //image encoded in base64 data url.
+                    show_window({
+                        title: "DDE GPT Use Image",
+                        content: "<img width='400px' height='400px' src='" + data_url + "'/>",
+                        x: 100, y: 50, width: 405, height: 430
+                    })
+                },
+                false,
+            );
+            reader.readAsDataURL(image)
+        }
     }
 
     static make_text_cb(envelope){
@@ -235,8 +310,8 @@ globalThis.OpenAI = class OpenAI{
         return envelope
     }
 
-    static async make_inspect_text_to_data(prompt, callback=OpenAI.make_inspect_text_to_data_cb){
-       return await this.make_inspect_envelope(prompt, callback)
+    static make_inspect_text_to_data(prompt, callback=OpenAI.make_inspect_text_to_data_cb, image="use_image_from_dialog"){
+       this.make_inspect_envelope(prompt, callback, image)
     }
 
     //callback for make_text
@@ -248,8 +323,8 @@ globalThis.OpenAI = class OpenAI{
     }
 
 
-    static async make_code_only(prompt, callback=OpenAI.make_code_only_cb){
-        return await this.make_inspect_envelope(prompt, callback)
+    static make_code_only(prompt, callback=OpenAI.make_code_only_cb){
+        this.make_inspect_envelope(prompt, callback)
     }
 
     //callback for make_text
@@ -270,8 +345,8 @@ globalThis.OpenAI = class OpenAI{
         return envelope
     }
 
-    static async make_whole_response(prompt, callback=OpenAI.make_whole_response_cb){
-        return await this.make_inspect_envelope(prompt, callback)
+    static make_whole_response(prompt, callback=OpenAI.make_whole_response_cb){
+        this.make_inspect_envelope(prompt, callback)
     }
 
     //callback for make_text
@@ -281,9 +356,9 @@ globalThis.OpenAI = class OpenAI{
         Editor.insert("/*" + response + "*/", "selection_end", true)
     }
 
-    static async make_plot_numbers(prompt, callback=OpenAI.make_plot_numbers_cb){
+    static make_plot_numbers(prompt, callback=OpenAI.make_plot_numbers_cb){
         this.show_prompt(prompt)
-        return await this.make_inspect_envelope(prompt, OpenAI.make_plot_numbers_cb)
+        this.make_inspect_envelope(prompt, OpenAI.make_plot_numbers_cb)
     }
 
     //callback for make_text
@@ -298,10 +373,10 @@ globalThis.OpenAI = class OpenAI{
         }
     }
 
-    static async make_search_google(prompt, callback=OpenAI.make_search_google_cb){
+    static make_search_google(prompt, callback=OpenAI.make_search_google_cb){
         out("<div class='gpt'> A Google search page will be shown in a new browser tab in a few seconds.</div>")
         callback(prompt)
-        return OpenAI.previous_envelope //google search does not make a new envelope. ok to return null if that's what OpenAI.previous_envelope is bound to
+        //return OpenAI.previous_envelope //google search does not make a new envelope. ok to return null if that's what OpenAI.previous_envelope is bound to
     }
 
     //callback for make_text
@@ -331,7 +406,7 @@ globalThis.OpenAI = class OpenAI{
             size: image_size,
         })
         callback(envelope)
-        return envelope
+        this.previous_envelope = envelope
     }
 
     static make_image_cb(envelope){
@@ -378,56 +453,59 @@ globalThis.OpenAI = class OpenAI{
         show_window({title: "GPT Configuration",
             content: "<span title='Summary:&#13;- Do not give info in prompts you do not want to share.&#13;- Responses are often inaccurate.'> " +
                      "<a style='font-weight:bold;' target='_blank' href='https://www.opengrowth.com/resources/the-dangers-of-chatgpt-how-it-can-put-you-at-risk'>The risks of GPT</a> " +
-                     "</span>" +
-                     "<fieldset style='margin-top:5px;'><legend><i>OpenAI Log In Requirements</i> </legend>" +
-                         "<input type='button' value='Help for getting keys'></input> " +
-                         "&nbsp;&nbsp;<a target='_blank' href='http://platform.openai.com/account/usage' title='How much you are spending at OpenAI.com'>usage</a><br/>" +
+                     "</span>\n" +
+                     "<fieldset style='margin-top:5px;'><legend><i>OpenAI Log In Requirements</i> </legend>\n" +
+                         "<input type='button' value='Help for getting keys'></input>\n " +
+                         "&nbsp;&nbsp;<a target='_blank' href='http://platform.openai.com/account/usage' title='How much you are spending at OpenAI.com'>usage</a><br/>\n" +
                          'Organization ID: <input id="gpt_config_org_id" type="password" style="margin:5px;width:235px;" value="' + org + '"/>' +
-                         '<input type="checkbox" name="show" data-onchange="true">Show</input><br/>' +
-                         '<span title="Sometimes called a secrete key.">API Key</span>:      <input id="gpt_config_key_id" type="password" style="margin:5px;width:380px;" value="' + key + '"/><br/>' +
-                         '<input type="button" value="Update Organization ID and API Key" style="margin:4px;"></input>' +
+                         '<input type="checkbox" name="show" data-onchange="true">Show</input><br/>\n' +
+                         '<span title="Sometimes called a secrete key.">API Key</span>:      <input id="gpt_config_key_id" type="password" style="margin:5px;width:380px;" value="' + key + '"/><br/>\n' +
+                         '<input type="button" value="Update Organization ID and API Key" style="margin:4px;"></input>\n' +
                      '</fieldset>' +
-                     "<fieldset style='margin-top:10px;'><legend><i>Model used to compute the response</i> </legend>" +
+                     "<fieldset style='margin-top:10px;'><legend><i>Model used to compute the response</i> </legend>\n" +
                          '<span title="gpt-4o that last character is a lower case letter o.&#13;The latest that DDE supports." style="margin-left:5px";> <input type="radio" name="model" value="gpt-4o" '         + gpt_4o_checked       + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>gpt-4o</span> ' +
                          '<span title="Not everyone has access to the API." style="margin-left:5px";> <input type="radio" name="model" value="gpt-4" '          + gpt_4_checked        + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>gpt-4</span> ' +
                          '<span title="Cheaper and faster.&#13;The old default.">                 <input type="radio" name="model" value="gpt-3.5-turbo" '    + gpt_3_5_checked      + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>gpt-3.5-turbo</span> ' +
-                         '&nbsp; <a target="_blank" href="https://scale.com/blog/chatgpt-vs-davinci">How to choose</a><br/>' +
+                         '&nbsp; <a target="_blank" href="https://scale.com/blog/chatgpt-vs-davinci">How to choose</a><br/>\n' +
 
-                         '<span title="max_tokens is roughly equivalent to the number of words in the response.&#13;Default: 200&#13;Click regenerate to store the new value." style="margin-left:22px;">max_tokens: <input name="max_tokens"  type="number" min="1"         step="1"   value="' + max_tokens  + '" style="width:50px;"/></span>' +
-                         '<span title="0 (the default) is most accurate&#13;whereas 2 is most creative.&#13;Click regenerate to store the new value." style="margin-left:15px;">temperature:                         <input name="temperature" type="number" min="0" max="2" step="0.1" value="' + temperature + '"/></span>' +
+                         '<span title="max_tokens is roughly equivalent to the number of words in the response.&#13;Default: 200&#13;Click regenerate to store the new value." style="margin-left:22px;">max_tokens: <input name="max_tokens"  type="number" min="1"         step="1"   value="' + max_tokens  + '" style="width:50px;"/></span>\n' +
+                         '<span title="0 (the default) is most accurate&#13;whereas 2 is most creative.&#13;Click regenerate to store the new value." style="margin-left:15px;">temperature:                         <input name="temperature" type="number" min="0" max="2" step="0.1" value="' + temperature + '"/></span>\n' +
                      '</fieldset>' +
-                     '<fieldset style="margin-top:10px;"><legend><i>How and where to display the response</i> </legend>' +
-                         '<span title="Produce text in the output pane."><input type="radio" name="response_media" value="text" '    + text_checked       + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>text</span> &nbsp;&nbsp;' +
+                     '<fieldset style="margin-top:10px;"><legend><i>How and where to display the response</i> </legend>\n' +
+                         '<label title="Produce text in the output pane."><input type="radio" name="response_media" value="text" '    + text_checked       + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>text</label> &nbsp;&nbsp;\n' +
+                         '<label title="Use this image with a text prompt for image recognition.\nIf there is no chosen file, no image will be used.\nTo unchoose a file, click the button and click Cancel.">use image: <input type="file" id="gpt_dialog_use_image_id" style="width:270px;"/></label>\n' +
+                         //'<input type="button" onclick="OpenAI.show_the_use_image()" title="Show the use_image in a pop-up dialog box." value="Ⓢ" style="padding:0px"/>' +
+                         '<span onclick="OpenAI.show_the_use_image()" title="Show the use_image in a pop-up dialog box." style="cursor: pointer;">&#128065;</span>' +
 
-                         '<br/><span style="margin-left:20px;">Inspect: </span>' +
-                         '<span title="Inspect the high level parsing of the response.&#13;Good for JavaScript-compatible data."><input type="radio" name="response_media" value="inspect_text_to_data" ' + inspect_text_to_data_checked + ' style="margin:5px 3px 5px 10px;" data-onchange="true"/>text_to_data</span>&nbsp;&nbsp;&nbsp;' +
-                         '<span title="Inspect the low level transfer data from OpenAI."><input type="radio" name="response_media" value="inspect_envelope" ' + inspect_envelope_checked + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>envelope</span><br/>' +
+                         '<br/><span style="margin-left:20px;">Inspect: </span>\n' +
+                         '<span title="Inspect the high level parsing of the response.&#13;Good for JavaScript-compatible data."><input type="radio" name="response_media" value="inspect_text_to_data" ' + inspect_text_to_data_checked + ' style="margin:5px 3px 5px 10px;" data-onchange="true"/>text_to_data</span>&nbsp;&nbsp;&nbsp;\n' +
+                         '<span title="Inspect the low level transfer data from OpenAI."><input type="radio" name="response_media" value="inspect_envelope" ' + inspect_envelope_checked + ' style="margin:5px 3px 5px 15px;" data-onchange="true"/>envelope</span><br/>\n' +
 
-                         '<span style="margin-left:20px;">Insert into editor: </span>' +
-                         '&nbsp;<span title="Insert only the code from the previous response&#13;into the Editor&#13;at the end of the selection or cursor.">' +
-                         '<input type="radio" name="response_media" value="code_only" '      + code_only_checked      + ' style="margin:5px 3px 5px 10px;" data-onchange="true"/>code_only</span>' +
-                         '&nbsp;<span title="Insert the whole previous response&#13;into the editor&#13;at the end of the selection or cursor.&#13;The response is wrapped in a comment.">' +
-                         '<input type="radio" name="response_media" value="whole_response" ' + whole_response_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>whole_response</span><br/>' +
+                         '<span style="margin-left:20px;">Insert into editor: </span>\n' +
+                         '&nbsp;<span title="Insert only the code from the previous response&#13;into the Editor&#13;at the end of the selection or cursor.">\n' +
+                         '<input type="radio" name="response_media" value="code_only" '      + code_only_checked      + ' style="margin:5px 3px 5px 10px;" data-onchange="true"/>code_only</span>\n' +
+                         '&nbsp;<span title="Insert the whole previous response&#13;into the editor&#13;at the end of the selection or cursor.&#13;The response is wrapped in a comment.">\n' +
+                         '<input type="radio" name="response_media" value="whole_response" ' + whole_response_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>whole_response</span><br/>\n' +
 
 
-                         '<span title="Show the numbers in the response, if any."><input type="radio" name="response_media" value="plot_numbers" '   + plot_numbers_checked  + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>plot_numbers  </span>' +
-                         '<span title="Use the prompt to query Google search.&#13;You may have to allow pop-ups in Chrome.&#13;Click on the leftmost icon in the right of the URL bar.">   <input type="radio" name="response_media" value="search_google" '  + search_google_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>search_google </span><br/>' +
+                         '<span title="Show the numbers in the response, if any."><input type="radio" name="response_media" value="plot_numbers" '   + plot_numbers_checked  + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>plot_numbers  </span>\n' +
+                         '<span title="Use the prompt to query Google search.&#13;You may have to allow pop-ups in Chrome.&#13;Click on the leftmost icon in the right of the URL bar.">   <input type="radio" name="response_media" value="search_google" '  + search_google_checked + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>search_google </span><br/>\n' +
 
-                         '<span title="Show an image of the response in a new tab.&#13;You may have to allow pop-ups.&#13;Click on the leftmost icon in the right of the URL bar."><input type="radio" name="response_media" value="image" '   + image_checked   + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>image</span> ' +
+                         '<span title="Show an image of the response in a new tab.&#13;You may have to allow pop-ups.&#13;Click on the leftmost icon in the right of the URL bar."><input type="radio" name="response_media" value="image" '   + image_checked   + ' style="margin:5px 3px 5px 20px;" data-onchange="true"/>make image</span>\n ' +
                          ' &nbsp;&nbsp;&nbsp;size: <select name="image_size" data-onchange="true">' +
                                          '<option value="256x256" '   + selected_256  + '>256x256</option>'   +
                                          '<option value="512x512" '   + selected_512  + '>512x512</option>'   +
                                          '<option value="1024x1024" ' + selected_1024 + '>1024x1024</option>' +
                           '</select>\n' +
                           '&nbsp;<a href="#" title="Click for help.">Image not showing?</a>' +
-                      '</fieldset>' +
+                      '</fieldset>\n' +
                       '<input type="button" name="regenerate" value="regenerate" style="margin: 7px; 7px; 0px; 7px;" ' +
                       'title="Call GPT again with the same prompt and settings.&#13;Often you will get a different response."/>'
                       ,
                       x: 700,
                       y: 0,
-                      width:  505,
-                      height: 475,
+                      width:  510,
+                      height: 485,
                       callback: "OpenAI.show_config_cb"
         }
         )
@@ -530,8 +608,17 @@ globalThis.OpenAI = class OpenAI{
         }
     }
 
-    static text_to_data(prompt_or_env = null, response){
+    static text_to_data(prompt_or_env = null, response = null){
         let prompt
+        if(!prompt_or_env && !response){
+           if(this.previous_envelope){
+               prompt_or_env = this.previous_envelope
+           }
+           else {
+               dde_error("OpenAI.prompt_or_env called with no prompt_or_env and no response<br/>" +
+                        "AND there's no OpenAI.previous_envelope, so it can't make data.")
+           }
+        }
         if(typeof(prompt_or_env) === "object"){
             prompt = OpenAI.envelope_to_prompt(prompt_or_env)
             response = OpenAI.envelope_to_response(prompt_or_env)
@@ -562,7 +649,8 @@ globalThis.OpenAI = class OpenAI{
                       numbered_bullet_points: [], //starts with "1.", "2." etc
                       bullet_points: [], // start with "- "
                       name_value_pairs: {}, // property values are always arrays as there might be > value per name in named entities.
-                      code: []
+                      code: [],
+                      json_objects: []
         }
         let words = response.split(/\s/) //spit on whitespace
         result.word_count = words.length
@@ -654,6 +742,7 @@ globalThis.OpenAI = class OpenAI{
             }
         }
         result.code = this.text_to_code(response) //returns [] if none
+        result.json_objects = this.json_code_to_json_objects(result)
         return result
     }
 
@@ -749,30 +838,28 @@ globalThis.OpenAI = class OpenAI{
     }
 
     static text_to_boolean_or_number(text) {
-        text = text.toLowerCase(text)
-        if (".!?,%".includes(Utils.last(text))) {
-            text = text.substring(0, text.length - 1)
+        //do this before lower casing text as "12.3k" is not a number but "12.3K" is
+        let num = Utils.string_to_number_smart(text) //never returns NaN, but does return false, or an actual number
+        if(typeof(num) === "number") {
+            return num //might be zero, will not be NaN
         }
-        if      (["yes", "ok", "true", "that is correct"].includes(text))   { return true }
-        else if (["no", "nope", "false"].includes(text)) { return false }
-        else if (["null", "none"].includes(text))        { return null }
-        else { //maybe its a number
-            let num_maybe = text
-            if ("$£€".includes(text[0])) {
-                num_maybe = num_maybe.substring(1)
-            } //cut off the $
-            num_maybe = num_maybe.replaceAll(",", "")
-            //note num_maybe has been lower cased so "K" has become "k".
-            if      (num_maybe.endsWith("k")) { num_maybe = num_maybe.replace("k", "000") }
-            else if (num_maybe.endsWith("k")) { num_maybe = num_maybe.replace("m", "000000") }
-            else if (num_maybe.endsWith("b")) { num_maybe = num_maybe.replace("b", "000000000") }
-            else if (num_maybe.endsWith("t")) { num_maybe = num_maybe.replace("t", "000000000000") }
-
-            let result = parseFloat(num_maybe)
-            if (!Number.isNaN(result)) {
-                return result
+        else {
+            text = text.toLowerCase(text)
+            if (".!?,%".includes(Utils.last(text))) {
+                text = text.substring(0, text.length - 1)
             }
-            else { return text }
+            if (["yes", "ok", "true", "that is correct"].includes(text)) {
+                return true
+            }
+            else if (["no", "nope", "false"].includes(text)) {
+                return false
+            }
+            else if (["null", "none"].includes(text)) {
+                return null
+            }
+            else {
+                return text
+            }
         }
     } //end of text_to_boolean_or_number
 
@@ -800,7 +887,7 @@ globalThis.OpenAI = class OpenAI{
      or the end of the text.
      */
     static text_to_code(text){
-        let result = []
+        let result = {}
         let code_demarker = "```"
         let start_pos = 0
         for (let i = 0; i < 100; i++) {
@@ -822,7 +909,11 @@ globalThis.OpenAI = class OpenAI{
                   let code = text.substring(code_lang_name_end_pos, code_end_pos).trim()
                   //probably only counts for JavaScript code, but *maybe* there's some in HTML or others???
                   code = Utils.insert_outs_after_logs(code)
-                  result.push([lang_name, code])
+                  if(!result[lang_name]) {
+                      result[lang_name] = [] //allow for more than one code block of a given lang in a given response.
+                  }
+                  let this_lang_arr = result[lang_name]
+                  this_lang_arr.push(code)
                   if(code_end_pos === text.length) { return result }
                   else {
                       start_pos =  code_end_pos + 3 //code_end_pos is the beginning of the ``` delimiting the end of the code section
@@ -832,18 +923,49 @@ globalThis.OpenAI = class OpenAI{
         }
         return result
     }
+    //return an array of json objects
+    static json_code_to_json_objects(result){
+        if(!result.code) { return [] }
+        else if(!result.code.json) {
+            return []
+        }
+        else {
+            let json_objects = []
+            for(let json_str of result.code.json){
+                try{
+                    let json_obj =JSON.parse(json_str)
+                    json_objects.push(json_obj)
+                }
+                catch(err){
+                    warning("invalid JSON string in GPT resopnse of :<br/> " + json_str)
+                }
+            }
+            return json_objects
+        }
+    }
 
     // data is the name-value pair obj retured by text_to_data
-    // OR the array that is normally in data.code
-    //Returned is a string of all its code stippets strung together
-    //with newline separators, provided they match the "lang" arg.
+    // OR the name-value pair that is the value of text_to_data.code. array that is normally in data.code
+    //Returned is a string of all its code snippets strung together
+    //with newline separators.
+    //With lang of "all", the default, all code is returned.
+    //with a specific lang, just that lang's code is returned.
+    //langs are typically: "json", "javascript", "python"  (lowercase lang names)
     static data_to_code(data, lang="all"){
         let result = ""
-        let lang_code_arrays = (Array.isArray(data) ? data : data.code)
-        for(let lang_code_array of lang_code_arrays){
-            let lang_in_data = lang_code_array[0]
-            if((lang === "all") || (lang_in_data === lang)){
-                result += lang_code_array[1] + "\n"
+        let langs_name_value_pairs = (data.code ? data.code : data)
+        if(lang === "all") {
+            for (let lang in langs_name_value_pairs) {
+                let one_lang_code_arr = langs_name_value_pairs[lang]
+                for (let code_str of one_lang_code_arr) {
+                    result += code_str + "\n"
+                }
+            }
+        }
+        else {
+            let one_lang_code_arr = langs_name_value_pairs[lang]
+            for (let code_str of one_lang_code_arr) {
+                result += code_str + "\n"
             }
         }
         return result.trim()

@@ -6,6 +6,8 @@ globalThis.SimBuild = class SimBuild{
     static now_editing_object3d_box_helper
 
     static init(){
+        Simulate.VR_but_dom_elt.style.bottom = "5px" //naturally its 20px. todo move this to simulate.js inside createRenderer()
+
         this.j7_threshold = 60 //above this number of degrees, the gripper is considered open
         this.j7_prev_angle_degrees = 0
         this.gripper_now_holding_object3d = null
@@ -171,9 +173,10 @@ globalThis.SimBuild = class SimBuild{
             let the_name = "path_part_" + name
             //if(name === object3d.name) { result += "<b>" + object3d.name + "</b> / "}
             //else {
-                result += "<input type='button' class='link_like_button' name='" + the_name + "' value='" + name +
+                result += "<input type='button' class='link_like_button' name='" + the_name + "' value='" + name + "'" +
                     /*`' onclick="SimBuild.show_dialog('` + name + `')"*/
-                    "'/> / "  //html now doesn't permit "name" attribute on span tags nor clickability
+                   " onclick = 'SW.submit_window(event)' " +
+                    "/> / "  //html now doesn't permit "name" attribute on span tags nor clickability
             //}
         }
         result += " <select name='children' onchange='SimBuild.handle_children(event)' title='Choose a child of the current object to edit.'>"
@@ -193,7 +196,7 @@ globalThis.SimBuild = class SimBuild{
     }
 
     static show_dialog(object3d_or_name= "scene"){
-        if(!this.dialog_is_showing()) { DocCode.open_doc(globalThis.SimBuild_doc_id) }
+        if(!this.dialog_is_showing()) { DocCode.open_doc(globalThis.MakeObjects_doc_id) }
         let object3d = SimObj.get_object3d(object3d_or_name) //must do BEFORE making the show_window so that the making of this obj won't try to populate the window
 
         let path_html = "<div id='simbuild_path_id'>" +
@@ -224,7 +227,9 @@ globalThis.SimBuild = class SimBuild{
             let sel_html = ((a_object3d === object3d) ? " selected " : "")
             name_html += "<option " + sel_html + ">" + a_object3d.name + "</option>"
         }
-        name_html += "</select><div style='height:6px;'></div>"
+        name_html += "</select>"
+        name_html += "<label title='Whether or not this object is held in the gripper.\nTo hold an object:\n- Check is_dynamic.\n- Move joint 7 (the gripper) open, above 200 degrees.\n- Move gripper into the object.\n- Close joint 7, below 200 degrees.\nTo drop a held object:\n- Open joint 7 above 200 degrees.'  style='margin-left:10px;'> Held? <b id='simbuild_holding_id'> No</b></label>"
+        name_html += "<div style='height:6px;'></div>"
 
         let geometry_html = "geometry: " +
             "<select title='The shape of the object.' name='geometry' data-oninput='true'>"
@@ -307,7 +312,7 @@ globalThis.SimBuild = class SimBuild{
 
        show_window({title: "Make Objects in Simulator",
                      content: content,
-                     height: 370,
+                     height: 350,
                      width:  470, //the "name" select box, with a long name, requires a wider window.
                      callback: "SimBuild.dialog_cb"
         })
@@ -356,17 +361,25 @@ globalThis.SimBuild = class SimBuild{
                 "select one from a menu in the SimBuild dialog box.")
         }
 
+        //set the parent of object3d
         else if (vals.clicked_button_value === "the_parent"){
-            let par = SimObj.get_object3d(vals.the_parent)
+            let existing_object3d_par = SimObj.get_parent(object3d)
+            let new_par = SimObj.get_object3d(vals.the_parent)
             if(SimObj.is_dde_object3d(object3d)){
-                warning("You can't set the parent of dde system object3d's such as: " + SimObj.get_name(object3d))
+                warning("You can't set the parent of dde system object3ds, such as: " + SimObj.get_name(object3d))
+                vals.clicked_dom_elt.value = SimObj.get_name(existing_object3d_par) //restore select to where it was before the selection
             }
-            else if(par === object3d){
-                warning("You can't set the parent of an object to itself.")
+            else if(existing_object3d_par === new_par){
+                warning("The current object already has: " + new_par.name + " as its parent")
+                vals.clicked_dom_elt.value = SimObj.get_name(existing_object3d_par) //restore select to where it was before the selection
+            }
+            else if (new_par === object3d){
+                warning("You can't set an object's parent to itself.")
+                vals.clicked_dom_elt.value = SimObj.get_name(existing_object3d_par) //restore select to where it was before the selection
             }
             else {
-                SimObj.set_parent(object3d, par)
-                SimBuild.show_dialog(object3d) //we still show the orig object3d, but since it has a new parent, the first row of hte dialog changes so much that we must reshow the entire dialog
+                SimObj.set_parent(object3d, new_par)
+                // already done in set_parent.  SimBuild.populate_dialog_from_object(object3d) //we still show the orig object3d, but since it has a new parent, the first row of hte dialog changes so much that we must reshow the entire dialog
             }
         }
 
@@ -428,11 +441,12 @@ globalThis.SimBuild = class SimBuild{
                but when I check the is_dynamic box for the top level, both
                objects fall to the table immediately and stop on table surface.
                so no "natural" gravity acceleration.
+               */
            if(checkbox_val && (SimObj.get_parent(object3d) !== SimObj.scene)){
                 warning("Sorry, only objects that have a parent of Scene can become dynamic.")
                 vals.clicked_dom_elt.value = false
                 return
-            }*/
+            }
             SimObj.set_is_dynamic(object3d, checkbox_val)
             if(checkbox_val){
                 SimBuild.disable_dynamic_inputs()
@@ -463,7 +477,7 @@ globalThis.SimBuild = class SimBuild{
                 if (!new_name) { //unlikely as have to make a lot of objects with numerical suffixes, but *could* happen
                     new_name = ""
                 }
-                new_name = prompt("Enter a name for the new object3d in the Simulator pane.\nYou can't change this, so choose wisely.",
+                new_name = prompt("Enter a name for the new copy object3d in the Simulator pane.\nYou can't change this, so choose wisely.",
                     new_name)
                 if (!new_name) {  //user canceled so don't make a new object
                     return
@@ -476,9 +490,9 @@ globalThis.SimBuild = class SimBuild{
                     else {
                         copy_descendents_too = confirm("Copy the descendents of " + object3d.name + " too?")
                     }
-                    let new_object3d = SimObj.make_copy_of_object3d(object3d, new_name, copy_descendents_too)
+                    let object3d_copy = SimObj.make_copy_of_object3d(object3d, new_name, copy_descendents_too)
                     //SimBuild.populate_dialog_from_object(new_object3d) //not redundant with make_copy_of_object3d
-                    SimBuild.show_dialog(new_object3d)
+                    SimBuild.populate_dialog_from_object(object3d_copy)
                 }
             }
         }
@@ -557,12 +571,33 @@ globalThis.SimBuild = class SimBuild{
             }
         }
     }
-
+   //called only from simualte animation loop.
+    //needs to be fast and not generate garbage.
     static refresh(){
-        if(Simulate.simulationRate > 0) {  //so as not to update the SimBuld dialog unnecessarily
-            this.populate_dialog_from_object_if_now_editing(this.now_editing_object3d)
+        if(this.dialog_is_showing()       &&
+            (Simulate.simulationRate > 0) &&
+            this.now_editing_object3d     //&&
+            //SimObj.get_is_dynamic(this.now_editing_object3d  //but if edited obj is non-dynamic obj that is being pushed, we want to update its coords
+        ){
+            let a_po = SimObj.get_physics_object(this.now_editing_object3d)
+            if(a_po && //a_po will be null if user removed all objects
+                a_po.held) { //a boolean. gripper is holding the now_editing_object3d
+                this.populate_position_from_object(this.now_editing_object3d)
+                this.populate_orientation_from_object(this.now_editing_object3d)
+                simbuild_holding_id.innerHTML = "<span style='color:rgb(0,175,30);'>Yes</span>" //if an obj is being held, that obj is the now_editing_object3d, so tell us
+            }
+            else if (PhysicsObject.heldPO) { //there is a held object but its not being shown in the dialog so switch dialog
+                SimBuild.set_now_editing_object3d(PhysicsObject.heldPO.mesh) //unsets prev highlobjecthighlight color
+                this.populate_dialog_from_object(PhysicsObject.heldPO.mesh) //switch dialog to editing this obj
+                simbuild_holding_id.innerHTML = "<span style='color:rgb(0,175,30);'>Yes</span>" //if an obj is being held, that obj is the now_editing_object3d, so tell us
+            }
+            else { //The normal case. keep editing now_editing_object3d, nothing is held
+                this.populate_position_from_object(this.now_editing_object3d)
+                this.populate_orientation_from_object(this.now_editing_object3d)
+                simbuild_holding_id.innerHTML = "No"
+            }
         }
-    }
+}
 
     static populate_dialog_from_object_if_now_editing(object3d){
         if(this.dialog_is_showing() && (object3d === this.now_editing_object3d)) {
@@ -598,9 +633,6 @@ globalThis.SimBuild = class SimBuild{
                 SimObj.set_color(object3d, SimObj.highlight_color) //won't set object3d.userData.color
             }
         }
-        if (old_obj || this.now_editing_object3d) {
-            // SimUtils.render()
-        }
     }
 
     //obj defaults to last SimObj made.
@@ -622,42 +654,34 @@ globalThis.SimBuild = class SimBuild{
         if(!dialog_dom_elt) {  return }
         else {
             if(object3d !== this.now_editing_object3d) { //because refreshing this every frame makes the clicks unusable, but no need to refrsh if not changing the object being edited.
+                if(this.now_editing_object3d) { //ie its not null as it is when starting out the dialog.
+                    SimBuild.add_object3d_to_the_parent_menu(this.now_editing_object3d) //we don't want object3d to be on the
+                    // parent menu because an object can't be a parent of itself.
+                    //but the prev object (now being edited) *might* not already be on the parent_menu,
+                    //so in case it isn't, call add_object3d_to_the_parent_menu.
+                }
                 SimBuild.set_now_editing_object3d(object3d) //do even if object3d is null
                 globalThis.simbuild_path_id.innerHTML = this.object_path_html(object3d)
+                SimBuild.add_object3d_to_the_name_menu(object3d) //adds an option tag under the select, but only if there's not one there for object3D.name
+                this.populate_dialog_property(object3d, "the_name", SimObj.get_name(object3d))
+
+                let par = SimObj.get_parent(object3d) //will be null if object3d is scene.
+                //occasionally errors here. par is null so doesn't have a name.
+                if(par) {
+                    this.populate_dialog_property(object3d, "the_parent", SimObj.get_name(par))
+                }
             }
             this.enable_inputs() //enable all, then disable those that are dynamic if need be.
             if(SimObj.get_is_dynamic(object3d)){
                 this.disable_dynamic_inputs()
             }
-            SimBuild.add_object3d_to_the_name_menu(object3d) //adds an option tag under the select, but only if there's not one there for object3D.name
-            //SimBuild.add_object3d_to_the_parent_menu(object3d) //we don't want object3d to be on the parent menu becuase an object can't be a parent of itself.
-            this.populate_dialog_property(object3d, "the_name", SimObj.get_name(object3d))
-
-            let par = SimObj.get_parent(object3d) //will be null if object3d is scene.
-            //occasionally errors here. par is null so doesn't have a name.
-            if(par) {
-                this.populate_dialog_property(object3d, "the_parent", SimObj.get_name(par))
-            }
 
             let geo_short_name = SimObj.get_geometry_short_name(object3d)
             SimBuild.populate_dialog_property(object3d, "geometry", geo_short_name)
 
-            let scale_arr = SimObj.get_scale(object3d)
-            SimBuild.populate_dialog_property(object3d, "scale_x", scale_arr[0])
-            SimBuild.populate_dialog_property(object3d, "scale_y", scale_arr[1])
-            SimBuild.populate_dialog_property(object3d, "scale_z", scale_arr[2])
-
-
-            let position_arr = SimObj.get_position(object3d)
-            SimBuild.populate_dialog_property(object3d, "position_x", position_arr[0])
-            SimBuild.populate_dialog_property(object3d, "position_y", position_arr[1])
-            SimBuild.populate_dialog_property(object3d, "position_z", position_arr[2])
-
-            let orientation_arr = SimObj.get_orientation(object3d)
-            //orientation_arr = orientation_three_to_dde(orientation_arr)
-            SimBuild.populate_dialog_property(object3d, "orientation_x", orientation_arr[0])
-            SimBuild.populate_dialog_property(object3d, "orientation_y", orientation_arr[1])
-            SimBuild.populate_dialog_property(object3d, "orientation_z", orientation_arr[2])
+            this.populate_scale_from_object(object3d)
+            this.populate_position_from_object(object3d)
+            this.populate_orientation_from_object(object3d)
 
             let three_color = object3d.userData.three_color //null or arr of 0 to 1 integers
             if(three_color) {
@@ -695,6 +719,7 @@ globalThis.SimBuild = class SimBuild{
         }
     }
 
+    //adds object3d.name to the parent_menu IFF its not already on the parent menu.
     static add_object3d_to_the_parent_menu(object3d) {
         let dialog_dom_elt = SimBuild.dialog_dom_elt()
         if (dialog_dom_elt) {
@@ -737,6 +762,25 @@ globalThis.SimBuild = class SimBuild{
                 }
             }
         }
+    }
+
+    static populate_scale_from_object(object3d){
+        let scale_arr = SimObj.get_scale(object3d)
+        SimBuild.populate_dialog_property(object3d, "scale_x", scale_arr[0])
+        SimBuild.populate_dialog_property(object3d, "scale_y", scale_arr[1])
+        SimBuild.populate_dialog_property(object3d, "scale_z", scale_arr[2])
+    }
+    static populate_position_from_object(object3d){
+        let position_arr = SimObj.get_position(object3d)
+        SimBuild.populate_dialog_property(object3d, "position_x", position_arr[0])
+        SimBuild.populate_dialog_property(object3d, "position_y", position_arr[1])
+        SimBuild.populate_dialog_property(object3d, "position_z", position_arr[2])
+    }
+    static populate_orientation_from_object(object3d){
+        let orientation_arr = SimObj.get_orientation(object3d)
+        SimBuild.populate_dialog_property(object3d, "orientation_x", orientation_arr[0])
+        SimBuild.populate_dialog_property(object3d, "orientation_y", orientation_arr[1])
+        SimBuild.populate_dialog_property(object3d, "orientation_z", orientation_arr[2])
     }
 
     //certain object3d attributes can't be modified when is_dynamic === true

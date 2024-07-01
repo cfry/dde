@@ -24,7 +24,6 @@ class DexterSim{
             set(obj, prop, value) {
                 if(isNaN(value))
                 {
-                    debugger;
                     return false;
                 }
                 obj[prop] = value;
@@ -36,11 +35,21 @@ class DexterSim{
         this.parameters = {} //record latest set_parameter values for simulator, esp for AngularSpeed
     }
 
+    static degrees_per_radian = 180 / Math.PI
+
     compute_measured_angles_dexter_units(){
         let out = [];
         for(let i = 0; i < 7; i++)
         {
-            out.push(Simulate.rad_to_dexter_units(Simulate.measuredAngles[i]));
+            out.push(Simulate.rad_to_dexter_units(Simulate.measuredAngles[i], i)); //logan orig code
+            //fry replacement1 below failed
+            //let orig_ang = Simulate.rad_to_dexter_units(Simulate.measuredAngles[i])
+            //let fixed_ang = orig_ang * DexterSim.degrees_per_radian
+            //out.push(fixed_ang)
+            //fry replacement2 below also fails. looks like it gets the joint 1 proper value in i (index) 1 instead of i 0, but other values not shifteted right
+            //let orig_ang = Simulate.rad_to_dexter_units(Simulate.measuredAngles[i])
+            //let fixed_ang = orig_ang * 1044 //1044 from experimentation. see dde_apps.robot_status_bug.dde
+            //out.push(fixed_ang)
         }
         return out;
     }
@@ -247,8 +256,8 @@ class DexterSim{
                 ds_instance.ack_reply_maybe(instruction_array)
                 break;
             case "P":
-                let ins_args  = instruction_array.slice(Instruction.INSTRUCTION_ARG0, Instruction.INSTRUCTION_ARG7);
-                SimUtils.render_multi(ds_instance, ins_args, robot_name, 0,"P");
+                let p_ins_args  = instruction_array.slice(Instruction.INSTRUCTION_ARG0, Instruction.INSTRUCTION_ARG7);
+                SimUtils.render_multi(ds_instance, p_ins_args, robot_name, 0,"P");
                 ds_instance.ack_reply_maybe(instruction_array)
                 break;
             case "e": //cause an error. Used for testing only
@@ -272,10 +281,6 @@ class DexterSim{
                 }
                 ds_instance.ack_reply(instruction_array)
                 break;
-            /*case "G": //deprecated. get immediate. The very first instruction sent to send should be  "G",
-                                     //so let it be the first call to process_next_instruction & start out the setTimeout chain
-                ds_instance.add_instruction_to_queue(instruction_array) //stick it on the front of the queue so it will be done next
-                break;*/
             case "h": //doesn't go on instruction queue, just immediate ack
                 ds_instance.ack_reply(instruction_array)
                 break;
@@ -403,7 +408,7 @@ class DexterSim{
                 new_instruction_array[Instruction.INSTRUCTION_TYPE] = "a" //change from "T" to "a"
                 new_instruction_array.concat(angles_dexter_units)
                 ds_instance.queue_instance.add_to_queue(instruction_array) //just like "a" for now
-
+                break;
             case "w": //write fpga register
                 const write_location = ins_args[0]
                 if (write_location < ds_instance.fpga_register.length) {

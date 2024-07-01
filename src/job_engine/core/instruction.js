@@ -301,7 +301,8 @@ class Instruction {
 
     //return an array of the instruction args
     static args(ins_array){
-        return ins_array.slice(Instruction.INSTRUCTION_ARG0)
+        let args_arr = ins_array.slice(Instruction.INSTRUCTION_ARG0)
+        return args_arr
     }
 
     static job_of_instruction_array(ins_array){

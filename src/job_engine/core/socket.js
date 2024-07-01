@@ -294,6 +294,7 @@ class Socket{
         }
         else { //net_soc_inst should be a WebSocket
             //console.log("send_low_level to WebSocket sending str of: " + str)
+            //platform is probably "browser"
             net_soc_inst.send(str) //was: str // WebSocket send cab take a JS string as its arg.
         }
     }
@@ -796,7 +797,7 @@ class Socket{
         //console.log("on_receive passed data:")
         //console.log(data)
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
-            let robot_status = data
+            let robot_status = data  //normally happens. degrees are in dexter untils but will be comverted to DDE units (degrees) in on_receive_aux
             let oplet = robot_status[Dexter.INSTRUCTION_TYPE]
             this.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance)
         }

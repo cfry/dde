@@ -1459,7 +1459,7 @@ class Job{
            if      (Instruction.is_no_op_instruction(elt))   {} //get rid of it, including empty nested arrays
            else if (Instruction.is_oplet_array(elt))         { result.push(elt) }
            else if (Instruction.is_data_array(elt))          { result.push(elt) } //do not flatten!
-           else if (Array.isArray(elt))                      { Job.flatten_do_list_array(elt, result) }
+           else if (Array.isArray(elt))                      { Job.flatten_do_list_array(elt, result) } //must be after the other array instructions
            else if (elt instanceof Instruction)              { result.push(elt) }
            else if (typeof(elt) === "string")                { result.push(elt) }
            else if (typeof(elt) === "function")              { result.push(elt) }
@@ -2513,7 +2513,7 @@ Job.prototype.transform_data_array = function(data_array){
  Stick them all (except for iterator) on the do_list and execute them.
  */
 Job.prototype.handle_function_call_or_gen_next_result = function(cur_do_item, do_items){
-    if (do_items == "dont_call_set_up_next_do"){
+    if (do_items === "dont_call_set_up_next_do"){
         //do nothing as the fn that was called is expected to have called its
         //own do_next_item, perhaps via a "I'm done callback" to the fn that
         //does the real work. such as beep({callback: function(){job_instance.set_up_next_do() } )
@@ -2528,7 +2528,7 @@ Job.prototype.handle_function_call_or_gen_next_result = function(cur_do_item, do
            this.set_up_next_do(1)
         }
         else { //must be an instructions_array
-            let flatarr = Job.flatten_do_list_array(do_items)
+            let flatarr = Job.flatten_do_list_array(do_items) //does error checking on do_list-items but otherwise not used
             this.insert_instructions(do_items)
             this.set_up_next_do(1)
         }

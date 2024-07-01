@@ -21,11 +21,11 @@ Dexter.defaults_colonless_comment_props = [
 Dexter.dexter0.defaults_url()
 */
 Dexter.prototype.defaults_url = function(){
-    return "Dexter." + this.name + ":/srv/samba/share/Defaults.make_ins"
+    return "Dexter." + this.name + ":Defaults.make_ins" //":/srv/samba/share/Defaults.make_ins"
 }
 
 Dexter.prototype.defaults_alt_url = function(){
-    return "Dexter." + this.name + ":/srv/samba/share/make_ins/Defaults.make_ins"
+    return "Dexter." + this.name + ":make_ins/Defaults.make_ins" //":/srv/samba/share/make_ins/Defaults.make_ins"
 }
 
 

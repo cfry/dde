@@ -672,7 +672,7 @@ Dexter.move_until_static = function (goal_degrees=20, joint_number = 7, degree_t
         return [first_move,
             Control.loop(function(){
                     let ma = this.robot.rs.measured_angle(joint_number)
-                    out("Joint " + joint_number + " now at " + ma + "&deg;")
+                    //out("Joint " + joint_number + " now at " + ma + "&deg;")
                     if (similar(ma, goal_degrees, degree_tolerance)) {
                         out("Measured angle: " + ma + "&deg; is within: " +  degree_tolerance + " of goal_degrees: " + goal_degrees)
                         prev_mas = []

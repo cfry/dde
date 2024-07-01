@@ -369,6 +369,12 @@ globalThis.SimObj = class SimObj{
                           is_dynamic = false,
                           mass = 1 //in grams
                          } = {}){ //[1, 1, 1] is white, corresponding to #ffffff
+        if(parent === "user_origin") {
+            warning('"user_origin" is no longer a valid object.<br/>' +
+                             "The normal top level user object now has a parent of: 'scene'<br/." +
+                             "so we're going to use that instead.")
+            parent = "scene"
+        }
         let old_obj_of_name = this.get_object3d(name)
         if(old_obj_of_name) {
             //this.remove(name) //for SimObj, a "name" is unique within the children
@@ -381,6 +387,9 @@ globalThis.SimObj = class SimObj{
         else {
             let object3d = new THREE.Mesh()
             object3d.name = name
+            if(typeof(material) === "object") {
+                material = material.clone() //because material gets modified due to color & wireframe, and we don't want those mods to be "inherited" between different objects
+            }
             this.set_geometry(object3d, geometry, true)  //true for is_new_object3d
             this.set_material(object3d, material)
             this.set_color(object3d, color) //creates and sets the material property of the Mesh
@@ -390,7 +399,7 @@ globalThis.SimObj = class SimObj{
             this.set_orientation(object3d, orientation, true) //keep as dde_coordinates
             this.make_object3d_given_object(object3d, parent, is_dynamic, mass)
             let a_pos = this.get_physics_object(object3d) //needs to be done after set_scale, but cant' be done first time we call set_scale on this object3d
-            a_pos.updateCollider()
+            //a_pos.updateCollider()
             return object3d
         }
     }
@@ -503,6 +512,7 @@ globalThis.SimObj = class SimObj{
         }
     }
 
+    /* failed to make proper copis of children.
     static make_copy_of_object3d(object3d_or_name, name = null, copy_descendents_too=false){
         let object3d = SimObj.get_object3d(object3d_or_name)
         if(!name){
@@ -519,10 +529,122 @@ globalThis.SimObj = class SimObj{
         a_copy.material = object3d.material.clone() //needed or the same material will be used as object3d meaning we can't set their colors differently
         this[name] = a_copy
         let is_dynamic = this.get_is_dynamic(object3d)
-        let mass_in_grams = his.get_mass(object3d)
+        let mass_in_grams = this.get_mass(object3d)
         //also called by make_object3d
         this.make_object3d_given_object(a_copy, object3d.parent, is_dynamic, mass_in_grams)
         return a_copy
+    }*/
+
+    /* failed to make proper copis of children.
+    static make_copy_of_object3d(object3d_or_name, name = null, copy_descendents_too=false, parent_of_copy){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        if(!name){
+            name = this.unique_name_for_object3d_or_null(SimObj.get_name(object3d))
+        }
+        if(!name) {
+            dde_error("You called SimObj with no name.<br/>" +
+                "There are already 1k object with that name followed by a number.<br>" +
+                "Please supply a unique name.")
+        }
+        if(!parent_of_copy){
+            parent_of_copy = this.get_parent(object3d)
+        }
+        let copy_of_object3d = this.make_object3d({
+            name: name,
+            parent: parent_of_copy,
+            geometry: this.get_geometry_short_name(object3d),
+            material: this.get_material_short_name(object3d),
+            scale: this.get_scale(object3d),
+            position: this.get_position(object3d),
+            orientation: this.get_orientation(object3d),
+            color: this.get_color(object3d),
+            wire_frame: this.get_wire_frame(object3d),
+            is_dynamic: this.get_is_dynamic(object3d),
+            mass: this.get_mass(object3d)
+        })
+        if(copy_descendents_too) {
+            for (let child of SimObj.get_children(object3d)) {
+                this.make_copy_of_object3d(child, undefined, copy_descendents_too, copy_of_object3d)
+            }
+        }
+        return copy_of_object3d
+    }*/
+
+    //called by SimBuild dialog box "Copy object" button
+    static make_copy_of_object3d(object3d_or_name, name = null, copy_descendents_too=false){
+        let object3d_orig = SimObj.get_object3d(object3d_or_name)
+        if(!name){
+            name = this.unique_name_for_object3d_or_null(SimObj.get_name(object3d_orig))
+        }
+        if(!name) {
+            dde_error("You called SimObj with no name.<br/>" +
+                "There are already 1k object with that name followed by a number.<br>" +
+                "Please supply a unique name.")
+        }
+        // the below 3 lines are similar to lines in make_object3d
+        let orig_po = SimObj.get_physics_object(object3d_orig)
+        let po_cache = []
+        this.remove_and_cache_physics_objects(object3d_orig, po_cache)  //todo In object3d_orig, I have to remove all the po's of all the children, removemer them, then restore them
+        let object3d_copy = object3d_orig.clone(copy_descendents_too) //false means we will NOT copy the descendents (children) just object3d itself
+        this.restore_physics_objects(object3d_orig, po_cache)  //because clone fails due to circularity of the po so remove it, then place it back
+        object3d_copy.name = name
+        this.make_copy_of_object3d_aux(object3d_orig, object3d_copy, copy_descendents_too)
+        object3d_orig.parent.add(object3d_copy)
+        //SimBuild.populate_dialog_from_object(object3d_copy)  //don't do. Simbuild callback populates dialog with object3d_copy
+        return object3d_copy
+    }
+
+    static remove_and_cache_physics_objects(object3d_orig, po_cache=[]){
+        let a_po = this.get_physics_object(object3d_orig)
+        object3d_orig.userData.physObj = po_cache.length //replace po so we can call clone on it without error
+        po_cache.push(a_po) //cache po for use by restore_physics_objects
+        for(let child of object3d_orig.children){ //recurse
+            this.remove_and_cache_physics_objects(child, po_cache)
+        }
+    }
+
+    //restore the physobj
+    static restore_physics_objects(object3d_orig, po_cache){
+        let po_index = object3d_orig.userData.physObj
+        if(!Utils.is_integer(po_index)){
+            shouldnt("SimObj.restore_pos got non intenger po_index of: " + po_index)
+        }
+        else {
+            object3d_orig.userData.physObj = po_cache[po_index] //restore
+            for(let child of object3d_orig.children){ //recurse
+                this.restore_physics_objects(child, po_cache)
+            }
+        }
+    }
+
+    //called for the top level coped object AND each of its kids.
+    //object3d has already been cloned
+    static make_copy_of_object3d_aux(object3d_orig, object3d_copy, copy_descendents_too=false){
+        //name processing
+        if(this.scene_and_user_objects_names().includes(object3d_copy.name)) { //we don't want duplicates
+            let new_name = name = this.unique_name_for_object3d_or_null(object3d_copy.name)
+            object3d_copy.name = new_name
+        }
+        this[object3d_copy.name] = object3d_copy
+        SimObj.user_objects.push(object3d_copy)
+
+        object3d_copy.material = object3d_orig.material.clone() //needed or the same material will be used as object3d meaning we can't set their colors differently
+        this.interaction_add(object3d_copy)
+        SimBuild.add_object3d_to_the_name_menu(object3d_copy)
+
+        //physics
+        let is_dynamic = this.get_is_dynamic(object3d_orig)
+        let mass_in_grams = this.get_mass(object3d_orig)
+        this.set_physics_object(object3d_copy, is_dynamic, mass_in_grams)
+
+        //recursion
+        if(copy_descendents_too) {
+            for (let i = 0; i < object3d_orig.children.length; i++) {
+                let object3d_orig_child = object3d_orig.children[i]
+                let object3d_copy_child = object3d_copy.children[i]
+                this.make_copy_of_object3d_aux(object3d_orig_child, object3d_copy_child)
+            }
+        }
     }
 
     static remove(object3d_or_name) {
@@ -587,9 +709,19 @@ globalThis.SimObj = class SimObj{
         if(object3d === new_parent){
             dde_error("In SimObj.set_parent, attempt to set the parent of: " + object3d.name + " to itself.")
         }
+        else if((object3d === SimObj.scene) && (new_parent !== null)) {
+            dde_error("You can't set the parent of scene. Attempt to set it to: " + new_parent.name)
+        }
         else if (new_parent.children.includes(object3d)) {} //nothing to do.
         else {
+            if(new_parent !== SimObj.scene) {
+                SimObj.scene.attach(object3d) //if new_parent happens to be a descendent of object3d when
+                //this method is called, we get an infinite recursion when we call
+                // new_parent.attach(object3d)  below. So circumvent that by first remove
+            }
             new_parent.attach(object3d)
+            let a_pos = this.get_physics_object(object3d) //needs to be done after set_scale, but cant' be done first time we call set_scale on this object3d
+            //if(a_pos) { a_pos.updateCollider()} //does not help clicking on an object
         }
         SimBuild.populate_dialog_from_object_if_now_editing(object3d)
         //SimUtils.render()
@@ -631,7 +763,7 @@ globalThis.SimObj = class SimObj{
         SimBuild.populate_dialog_property(object3d, "position_z", array_of_3[2])
         if(!is_new_object3d){  //we don't want to do when we are first creating object3d as it will error as there will be no physicsobj but DO what to do if we are just changing the scale
             let a_pos = this.get_physics_object(object3d)
-            a_pos.updateCollider()
+            //a_pos.updateCollider()
         }
         //SimUtils.render()
     }
@@ -671,7 +803,7 @@ globalThis.SimObj = class SimObj{
 
         if(!is_new_object3d){  //we don't want to do when we are first creating object3d as it will error as there will be no physicsobj but DO what to do if we are just changing the scale
             let a_pos = this.get_physics_object(object3d)
-            a_pos.updateCollider()
+            //a_pos.updateCollider()
         }
 
         /*the below 2 lines fail on rotation personal factory write just like the above 3 lines,
@@ -755,11 +887,11 @@ globalThis.SimObj = class SimObj{
             object3d.material.side = THREE.DoubleSide
             object3d.material.depthWrite = false
         }
-        let val = SimObj.get_geometry_short_name(object3d)
         if(!is_new_object3d){  //we don't want to do when we are first creating object3d as it will error as there will be no physicsobj but DO what to do if we are just changing the scale
             let a_pos = this.get_physics_object(object3d)
             a_pos.updateCollider()
         }
+        let val = SimObj.get_geometry_short_name(object3d)
         SimBuild.populate_dialog_property(object3d, "geometry", val)
         //SimUtils.render()
     }
@@ -975,7 +1107,7 @@ globalThis.SimObj = class SimObj{
         let object3d = SimObj.get_object3d(object3d_or_name)
         let a_po = this.get_physics_object(object3d)
         let mass_in_kg = mass_in_grams / 1000
-        a_po.mass = mass_in_kg
+        a_po.setMass(mass_in_kg)
     }
 
     static show(object3d_or_name, kind=""){

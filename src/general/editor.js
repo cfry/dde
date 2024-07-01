@@ -33,7 +33,7 @@ class Editor {
             {lineNumbers: true,
             //lineWrapping: true,
              mode: {name: "javascript", globalVars: true}, //use javascript lang, and allow automcomplete to work on global js vars.
-             chBrackets: true,
+             matchBrackets: true,
              foldGutter: true,
              //extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }}, works ony when on line that can be folded
              gutters: ["CodeMirror-linenumbers", "CodeMirror-lint-markers", "CodeMirror-foldgutter"],

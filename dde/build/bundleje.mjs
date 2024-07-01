@@ -8,15 +8,15 @@ import child_process from 'child_process';
 import { LongBits } from 'longbits';
 import * as Espree$1 from 'espree';
 import js_beautify from 'js-beautify';
-import mathjs$1, { create, all } from 'mathjs';
+import { create, all } from 'mathjs';
 import PCA from 'pca-js';
 import compareVersions from 'compare-versions';
 import require$$0 from 'domain';
 import path$1 from 'path';
 
 var name = "dde4";
-var version = "4.2.1";
-var release_date = "May 2, 2024";
+var version = "4.2.2";
+var release_date = "Jul 1, 2024";
 var description = "test rollup";
 var author = "Fry";
 var license = "GPL-3.0";
@@ -25,7 +25,7 @@ var scripts = {
 	test: "echo \"Error: no test specified\" && exit 1",
 	watch: "npm run build -- --watch",
 	buildje: "rollup --config rollupje.config.js",
-	build: "npm run copy_then_transform_rotating_calipers && rollup --config rollup.config.js",
+	build: "npm run copy_then_transform_rotating_calipers && node --max-old-space-size=4096 ./node_modules/rollup/dist/bin/rollup --config rollup.config.js",
 	build_server: "rollup --config rollup_server.config.js",
 	help: "rollup --help",
 	dde_server: "node httpd.mjs",
@@ -53,7 +53,7 @@ var dependencies = {
 	asap: "^2.0.6",
 	codemirror: "^5.63.1",
 	"compare-versions": "^4.1.1",
-	compromise: "^14.8.2",
+	compromise: "^14.13.0",
 	crypto: "^1.0.1",
 	dayjs: "^1.10.5",
 	eslint: "^7.32.0",
@@ -393,6 +393,12 @@ static is_NaN_null_or_undefined(arg) {
 }
 
 static is_string_a_integer(a_string){
+    if(a_string.startsWith("+")){
+        a_string = a_string.substring(1);
+    }
+    if(a_string.length === 0) {
+        return false
+    }
     if(typeof(a_string) == "string") {
         let pat = /^-?[0-9]+$/;
         if(a_string.match(pat)) {  return true; }
@@ -417,6 +423,58 @@ static is_string_a_number(a_string){
 //returns true for strings of the format "rgb(0, 100, 255)" ie the css color specifier
 static is_string_a_color_rgb(a_string){
     return a_string.startsWith("rgb(") && a_string.endsWith(")") && a_string.includes(",") //not perfect but quick and pretty good
+}
+
+//returns a number or false.
+//if a_string is actually a non-NaN number instead of a string, returns a_string
+//removes commas and trims string.
+//ignores ending period.
+//suffixes of KMBT makes multiples of a thousand.
+//informed by what JS eval of the string will do, but also by USA human interpretation.
+//warning: some cultures use commas in place of decimal point.
+//or maybe periods in place of US commas. The world is broken :-(
+static string_to_number_smart(a_string){
+    if(Number.isNaN(a_string)) {
+        return false
+    }
+    else if (typeof(a_string) === "number"){
+        return a_string
+    }
+    else {
+        a_string = a_string.replaceAll(",", "").trim();
+        if (a_string.length === 0) {
+            return false
+        }
+        let last_char = Utils$1.last(a_string);
+        if ("KMBT".includes(last_char)) {
+            a_string = a_string.substring(0, a_string.length - 1);
+        }
+        if (Utils$1.last(a_string) === ".") { //do after KMBT processing. Just throw out final periods.decimal points
+            a_string = a_string.substring(0, a_string.length - 1);
+        }
+        let num = parseFloat(a_string);
+        if (Number.isNaN(num)) {
+            return false
+        }
+        else if (!Utils$1.is_string_a_number(a_string)) { //a string might be "123abc" which parseFlaot treats as integer 123, but we don't want that
+            return false  //handles cases like "123abc" which parseFloat returns 123 for.
+        }
+        //From orig str, at least all but the last char represent a num, so
+        // we're going to return a num. But do we need to multiply num by a proper suffix char?
+        // we know we stripped that char out of a_string,
+        if ("KMBT".includes(last_char)) {
+            if (last_char === "K") {
+                num *= 1000;
+            } else if (last_char === "M") {
+                num *= 1000000;
+            } else if (last_char === "B") {
+                num *= 1000000000;
+            } else if (last_char === "T") {
+                num *= 1000000000000;
+            }
+        }
+        return num
+    }
 }
 
 //this will count reserved words (ie "break" as an identifier, which
@@ -740,12 +798,14 @@ static ends_with_one_of(a_string, possible_starting_strings){
 /*
 Separates a_string into 2 strings, the part before the used_separator and the
 part after the used separator.
+If separators is NOT an array, its made into a one element array.
 The used_separator is the separator in separators that occurs first in a_string.
 IF there is a tie, ie if you have separators of " comma " and " ",
 the first one in the separators list wins, in the above case, " comma ".
 If a_string contains at least one of the separators,
 an array is returned of [head, tail, used_separator]
-If none of the separators is in a_string, null is returned.
+If none of the separators is in a_string, the "head" is the whole a_string with
+empty string for the tail and separator.
 If do_trim === true, both head and tail are trimmed of whitespace on both ends
 before being returned.
 In any case, the used_separator is not included in either head or tail.
@@ -760,13 +820,28 @@ will be used to split the string.
 Note that if there is a tie such that 2 separators in the separators array
 both "start at" the same position in a_string.
 then the separator used will be the one that is first in the separators array.
+If none of the separators are present in the string,
+the whole string is the head, there's no tail, and no sep matched.
 */
 static separate_head_and_tail(a_string, separators=[" "], do_trim=false, first_in_separators_array_wins=false){
+    if(!Array.isArray(separators)){
+        separators = [separators];
+    }
     let min_sep_pos = null;
     let used_sep = null;
     for(let sep of separators){
         let pos = a_string.indexOf(sep);
-        if(pos !== -1){
+        if(pos === -1) {
+            if((sep === Utils$1.last(separators)) && (used_sep === null)){
+                //none of the separators are present in the string,
+                //so the whole string is the head, there's no tail, and no sep matched.
+                if(do_trim){
+                    a_string = a_string.trim();
+                }
+                return [a_string, "", ""]
+            }
+        }
+        else {
             if (first_in_separators_array_wins) {
                 min_sep_pos = pos;
                 used_sep = sep;
@@ -794,6 +869,23 @@ static separate_head_and_tail(a_string, separators=[" "], do_trim=false, first_i
         }
         return [head, tail, used_sep]
     }
+}
+
+//If a_string has its first word be possible_first_word, return true, else false.
+//If  possible_first_word is, instead an array of possible first words,
+//then if one of them is the first word in _string, return true, else false.
+static has_first_word(a_string, possible_first_word){
+    let parts = a_string.split(/\s/);
+    let a_string_first_word = parts[0];
+    if (Array.isArray(possible_first_word)){
+        for(let poss of possible_first_word){
+           if(poss === a_string_first_word) {
+               return true
+           }
+        }
+        return false
+    }
+    else return (a_string_first_word === possible_first_word)
 }
 
 //returns array of one of the strs in possible_matching_strings
@@ -824,6 +916,15 @@ static ends_with_one_of(a_string, possible_ending_strings){
         if (a_string.endsWith(str)) return true
     }
     return false
+}
+
+
+//from https://stackoverflow.com/questions/5002111/how-to-strip-html-tags-from-string-in-javascript
+//Utils.remove_html_from_string("foo<b>bar</b>baz") => "foobarbaz"
+//using the technique of makign a dom elt and extracting its innerText won't work in nodejs with no browser.
+static remove_html_from_string(a_string){
+    //return a_string.replace(/<\/[^>]+(>|$)/g, "") //from https://stackoverflow.com/questions/5002111/how-to-strip-html-tags-from-string-in-javascript BUT only handles strings with first char of "<"
+    return a_string.replace(/<(?:.|\s)*?>/g, "") //https://stackoverflow.com/questions/822452/strip-html-tags-from-text-using-plain-javascript more flexible
 }
 
 
@@ -943,6 +1044,29 @@ static arrays_have_same_elements(arr1, arr2){
         return true
     }
     else { return false }
+}
+
+//if value is already in an_array, do nothing and return false.
+//else push value onto end of array (an_array is now 1 longer) and return true
+static add_value_to_array(value, an_array){
+    for(let old_val of an_array){
+        if(value === old_val) { return false }
+    }
+    an_array.push(value);
+    return true
+}
+
+//if value is not in array, just return false
+//else remove it from an_array (an_array is now one shorter) and return true
+static remove_value_from_array(value, an_array){
+    for(let i = 0; i < an_array.length; i++){
+        let old_val = an_array[i];
+        if(old_val === value){
+            an_array.splice(i, i);
+            return true
+        }
+    }
+   return false
 }
 
 //_____ set operations______
@@ -1198,6 +1322,21 @@ insert_string("abc", "def")
 insert_string("abc", "def", 100)
 insert_string("abc", "def", 1)
 */
+
+static array_of_numbers_to_string(arr, length_of_number_strings = 8){
+    let result = "[";
+    let on_first = true;
+    for(let num of arr){
+        let str = num.toString();
+        str = str.substring(0, length_of_number_strings); //when num is in meters and less than 10 meters
+        //8 is enough res to show microns.
+        result += (on_first? " " : ", ") + str;
+        on_first = false;
+    }
+    result += "]";
+    return result
+}
+
     //used by OpenAI text_to_data for "code"
 static insert_outs_after_logs(base_string){
     let result = base_string;
@@ -2955,7 +3094,7 @@ class SW$1 { //stands for Show Window. These are the aux fns that the top level 
             // this.submit_window. neither works
             //inp.removeEventListener("click", SW.submit_window) //just in case there already is one, we don't want to get multiple
             //inp.addEventListener("click", SW.submit_window)  //fails for spans
-            if(!inp.name){ //something screwy is removing the "name" property. looks like electron or below bug
+            if(!inp.name){ //something screwy is removing the "name" property, in both dde3 and dde4. So restore the name property
                 let outer_html = inp.outerHTML;
                 let name_pos = outer_html.indexOf(" name=");
                 if(name_pos != -1) {
@@ -2966,6 +3105,7 @@ class SW$1 { //stands for Show Window. These are the aux fns that the top level 
                     }
                 }
             }
+            inp.onclick = this.submit_window;
         }
         ins = show_window_elt.querySelectorAll("[data-onchange='true']");
         for (var index = 0; index < ins.length; index++){ //bug in js chrome: for (var elt in elts) doesn't work here.
@@ -3074,12 +3214,17 @@ class SW$1 { //stands for Show Window. These are the aux fns that the top level 
     //beware, this method uses "this" to mean the subject it was called with, not SW
     static submit_window(event){
         // descriptions of x & y's: http://stackoverflow.com/questions/6073505/what-is-the-difference-between-screenx-y-clientx-y-and-pagex-y
-        let subject_elt = this;
-        if(this.classList.contains("modebar-btn")) { //user clicked on an icon at the top of a Plot window
+        let subject_elt = ((event instanceof Event) ? event.target : this);
+        if(!subject_elt instanceof HTMLElement){
+            shouldnt("submit_window passed non event as its first arg, or non-dom-element for its subuect.");
+        }
+        if(subject_elt.classList && subject_elt.classList.contains("modebar-btn")) { //user clicked on an icon at the top of a Plot window
             return //so don't do stopPropagation, let its normal processing happen
         }
         event.stopPropagation();
-        let result = {offsetX:event.offsetX,  offsetY:event.offsetY, //relative to the elt clocked on
+        let result = {
+            clicked_dom_elt: subject_elt,
+            offsetX:event.offsetX,  offsetY:event.offsetY, //relative to the elt clocked on
             x:event.x,              y:event.y, //relative to the parent of the elt clicked on
             clientX:event.clientX,  clientY:event.clientY, //Relative to the upper left edge of the content area (the viewport) of the browser window. This point does not move even if the user moves a scrollbar from within the browser.
             pageX:event.pageX,      pageY:event.pageY, //Relative to the top left of the fully rendered content area in the browser.
@@ -3246,6 +3391,9 @@ class SW$1 { //stands for Show Window. These are the aux fns that the top level 
             if (in_name){
                 var val = inp.value;
                 result[in_name] = val;
+                if(inp === subject_elt){
+                   result.clicked_option_dom_elt = SW$1.find_option_dom_elt_selected(inp); //could possibly be null, but usually not.
+                }
             }
         }
         var combo_boxes = window_content_elt.querySelectorAll(".combo_box");  //should be a div tag a la <div class="combo_box><option>one</option><option selected="selected">two</option></div>
@@ -3352,6 +3500,25 @@ class SW$1 { //stands for Show Window. These are the aux fns that the top level 
                 }
             }, 10);
         }
+    }
+
+    //if select_dom_elt is the one that the user selected the option in,
+    //(as this fn is used above)
+    //then this fn will return the option_elt the user chose.
+    //but it could be passed any SELECT dom elt.
+    static find_option_dom_elt_selected(select_dom_elt){
+        let val_selected = select_dom_elt.value;
+        for(let opt_elt of select_dom_elt.children){
+            if(opt_elt.value) {
+                if(opt_elt.value === val_selected) {
+                    return opt_elt
+                }
+                else if(opt_elt.innerText === val_selected){
+                    return opt_elt
+                }
+            }
+        }
+        return null
     }
 
     //called by dex.js and app_builder.js
@@ -15716,6 +15883,7 @@ this.dxf_to_instructions = function({
 
 globalThis.DXF = DXF$1;
 
+//let mathjs = require("mathjs")
 var DH$1 = {};
 globalThis.DH = DH$1;
 
@@ -16702,64 +16870,64 @@ DH$1.sub.dh_to_T = function(dh_params){
 };
 DH$1.sub.T_to_Ad = function(T){
     //convert homogenoeous matrix to SE3 adjoint
-	var R = mathjs$1.subset(T,mathjs$1.index([0,1,2],[0,1,2]));
+	var R = mathjs.subset(T,mathjs.index([0,1,2],[0,1,2]));
     var p_skew = [[0, -T[2][3], T[1][3]],
                   [T[2][3], 0, -T[0][3]],
                   [-T[1][3], T[0][3], 0]];
-    var Ad = mathjs$1.zeros(6,6);
-    Ad.subset(mathjs$1.index([0,1,2],[0,1,2]),R);
-    Ad.subset(mathjs$1.index([3,4,5],[3,4,5]),R);
-    Ad.subset(mathjs$1.index([0,1,2],[3,4,5]),mathjs$1.multiply(p_skew,R));
+    var Ad = mathjs.zeros(6,6);
+    Ad.subset(mathjs.index([0,1,2],[0,1,2]),R);
+    Ad.subset(mathjs.index([3,4,5],[3,4,5]),R);
+    Ad.subset(mathjs.index([0,1,2],[3,4,5]),mathjs.multiply(p_skew,R));
     return Ad
 };
 DH$1.sub.qd_to_twist = function(qd, Ad){
     //convert qd to the local twist for a link
 	var eta = [0,0,0,0,0,1]; // rotation around z axis only due to DH parameters
-    var twist = mathjs$1.multiply(mathjs$1.inv(Ad),mathjs$1.multiply(eta,qd));
+    var twist = mathjs.multiply(mathjs.inv(Ad),mathjs.multiply(eta,qd));
     return twist
 };
 DH$1.sub.twist_to_adj = function(twist){
    //convert 6x1 twist into se3 6x6 adj
-   var adj = mathjs$1.zeros(6,6);
+   var adj = mathjs.zeros(6,6);
    var v_skew = [[0, -twist[2], twist[1]],
                  [twist[2],0,-twist[0]],
                  [-twist[1],twist[0],0]];
    var w_skew = [[0, -twist[5], twist[4]],
                  [twist[5],0,-twist[3]],
                  [-twist[4],twist[3],0]];
-   adj.subset(mathjs$1.index([0,1,2],[0,1,2]),w_skew);
-   adj.subset(mathjs$1.index([3,4,5],[3,4,5]),w_skew);
-   adj.subset(mathjs$1.index([0,1,2],[3,4,5]),v_skew);
+   adj.subset(mathjs.index([0,1,2],[0,1,2]),w_skew);
+   adj.subset(mathjs.index([3,4,5],[3,4,5]),w_skew);
+   adj.subset(mathjs.index([0,1,2],[3,4,5]),v_skew);
    return adj
 };
 DH$1.sub.compute_Jd_body = function(Ad, Adj, J){
     // Jd_i+1 =  Ad_i^-1 * Jd_i - adj_i * Ad_i^-1 * J_i
-	var jacobian_dot_acc = (acc => (ad,i) => {acc = mathjs$1.add(mathjs$1.multiply(mathjs$1.inv(ad),acc), mathjs$1.unaryMinus(mathjs$1.multiply(Adj[i], mathjs$1.multiply(mathjs$1.inv(ad),i>=1?J[i-1]:mathjs$1.zeros(6,6))))); return acc})(mathjs$1.zeros(6,6));
+	var jacobian_dot_acc = (acc => (ad,i) => {acc = mathjs.add(mathjs.multiply(mathjs.inv(ad),acc), mathjs.unaryMinus(mathjs.multiply(Adj[i], mathjs.multiply(mathjs.inv(ad),i>=1?J[i-1]:mathjs.zeros(6,6))))); return acc})(mathjs.zeros(6,6));
     return Ad.map(jacobian_dot_acc)
 };
 DH$1.sub.compute_J_body = function(Ad){
     // J_i+1 = Ad_i^-1 * J_i + Ad_i^-1 * [0,0,0,0,0,1]
-	var jacobian_acc = (acc => (ad,i) => {acc = mathjs$1.multiply(mathjs$1.inv(ad),acc); acc.subset(mathjs$1.index([0,1,2,3,4,5],i),mathjs$1.multiply(mathjs$1.inv(ad),[0,0,0,0,0,1])); return acc})(mathjs$1.zeros(6,6));
+	var jacobian_acc = (acc => (ad,i) => {acc = mathjs.multiply(mathjs.inv(ad),acc); acc.subset(mathjs.index([0,1,2,3,4,5],i),mathjs.multiply(mathjs.inv(ad),[0,0,0,0,0,1])); return acc})(mathjs.zeros(6,6));
 	return Ad.map(jacobian_acc)
 };
     
 DH$1.sub.compute_J_wa = function(fk, J){
 	//compute body to world aligned frame conversion (no translation only rotation)
-    var ee = mathjs$1.clone(fk[5]);
-    ee.subset(mathjs$1.index([0,1,2],[3,4,5]),mathjs$1.zeros(3,3));
+    var ee = mathjs.clone(fk[5]);
+    ee.subset(mathjs.index([0,1,2],[3,4,5]),mathjs.zeros(3,3));
     //convert body jacobian to world aligned
-    return mathjs$1.multiply(ee,J[5])
+    return mathjs.multiply(ee,J[5])
 };
 
 DH$1.sub.compute_Jd_wa = function(fk, twists, J_wa, Jd){
     //compute body to world aligned frame conversion (no translation only rotation)
-    var ee = mathjs$1.clone(fk[5]);
-    ee.subset(mathjs$1.index([0,1,2],[3,4,5]),mathjs$1.zeros(3,3));
+    var ee = mathjs.clone(fk[5]);
+    ee.subset(mathjs.index([0,1,2],[3,4,5]),mathjs.zeros(3,3));
     //compute derivative of conversion from body to world aligned
-    var twists_adj = DH$1.sub.twist_to_adj(mathjs$1.multiply(ee, twists[5])._data);
-    twists_adj.subset(mathjs$1.index([0,1,2],[3,4,5]),mathjs$1.zeros(3,3));
+    var twists_adj = DH$1.sub.twist_to_adj(mathjs.multiply(ee, twists[5])._data);
+    twists_adj.subset(mathjs.index([0,1,2],[3,4,5]),mathjs.zeros(3,3));
     //convert body jacobian derivative to world aligned
-    return mathjs$1.add(mathjs$1.multiply(ee, Jd[5]), mathjs$1.multiply(twists_adj, J_wa))
+    return mathjs.add(mathjs.multiply(ee, Jd[5]), mathjs.multiply(twists_adj, J_wa))
 };
 
 DH$1.sub.compute_Jd = function(fk, twists, Ad, Adj, J, J_wa){
@@ -16773,12 +16941,12 @@ DH$1.sub.compute_link_states = function(Q_rad, dh_mat){
     //DH parameters to transformation matrices
     var robot_fixed = dh_mat.map((dh_params) => DH$1.sub.dh_to_T(dh_params));
     //Joint state to transformation matrix
-    var robot_joints = Q_rad.map((q,i) => mathjs$1.matrix([[Math.cos(q), -Math.sin(q),0,0],
+    var robot_joints = Q_rad.map((q,i) => mathjs.matrix([[Math.cos(q), -Math.sin(q),0,0],
                                                          [Math.sin(q), Math.cos(q),0,0],
                                                          [0,0,1,0],
                                                          [0,0,0,1]]));
     //Multiply joint state and dh parameters to get per link FK at robot state Q
-    var robot_state = robot_joints.map((T,i) => mathjs$1.multiply(T,robot_fixed[i]));
+    var robot_state = robot_joints.map((T,i) => mathjs.multiply(T,robot_fixed[i]));
     //Transformation matrices to SE3 spatial transform
     var robot_ad = robot_state.map((T) => DH$1.sub.T_to_Ad(T._data));
     return robot_ad
@@ -16803,10 +16971,10 @@ DH$1.J_accel_to_cart = function(Q, Q_dot, Q_dot_dot, dh_mat){
     var [twists,adj] = DH$1.sub.compute_link_twists(Q_dot_rad,Ad);
     
     //cumulatively add up adjoints to fk
-    var cumulative_ad = (acc => (ad,i) => {acc = mathjs$1.multiply(acc,ad);return acc})(mathjs$1.identity(6,6));
+    var cumulative_ad = (acc => (ad,i) => {acc = mathjs.multiply(acc,ad);return acc})(mathjs.identity(6,6));
     var fk = Ad.map(cumulative_ad);
     //compute cumulative twist to end effector
-    var cumulative_twist = (acc => (twist,i) => {acc = mathjs$1.add(mathjs$1.multiply(mathjs$1.inv(Ad[i]),acc),twist); return acc})([0,0,0,0,0,0]);
+    var cumulative_twist = (acc => (twist,i) => {acc = mathjs.add(mathjs.multiply(mathjs.inv(Ad[i]),acc),twist); return acc})([0,0,0,0,0,0]);
     var fk_twists = twists.map(cumulative_twist);
     
     //compute body jacobians
@@ -16817,7 +16985,7 @@ DH$1.J_accel_to_cart = function(Q, Q_dot, Q_dot_dot, dh_mat){
     var Jd = DH$1.sub.compute_Jd(fk, fk_twists, Ad, adj, J_body, J);
     // xdd = Jqdd + Jd qd
     
-    return [mathjs$1.multiply(J,Q_dot_rad)._data,mathjs$1.add(mathjs$1.multiply(J,Q_dot_dot_rad)._data, mathjs$1.multiply(Jd, Q_dot_rad)._data)]
+    return [mathjs.multiply(J,Q_dot_rad)._data,mathjs.add(mathjs.multiply(J,Q_dot_dot_rad)._data, mathjs.multiply(Jd, Q_dot_rad)._data)]
     //return [mathjs.multiply(J,Q_dot_rad),mathjs.add(mathjs.multiply(J,Q_dot_dot_rad), mathjs.multiply(Jd, Q_dot_rad))]
 };
 DH$1.cart_accel_to_J = function(cart_accel, cart_vel, Q, dh_mat){
@@ -16828,28 +16996,97 @@ DH$1.cart_accel_to_J = function(cart_accel, cart_vel, Q, dh_mat){
     //compute body jacobians
     var J_body = DH$1.sub.compute_J_body(Ad);
     //cumulatively add up adjoints to fk
-    var cumulative_ad = (acc => (ad,i) => {acc = mathjs$1.multiply(acc,ad);return acc})(mathjs$1.identity(6,6));
+    var cumulative_ad = (acc => (ad,i) => {acc = mathjs.multiply(acc,ad);return acc})(mathjs.identity(6,6));
     var fk = Ad.map(cumulative_ad);
     //convert body jacobian to world aligned jacobian
     var J = DH$1.sub.compute_J_wa(fk, J_body);
     //compute q dot from jacobian inverse (assumed world aligned)
-    var Q_dot_rad = mathjs$1.multiply(mathjs$1.inv(J), cart_vel);
+    var Q_dot_rad = mathjs.multiply(mathjs.inv(J), cart_vel);
     
     //compute the se3 adj
     var [twists,adj] = DH$1.sub.compute_link_twists(Q_dot_rad._data,Ad);
     
     //compute cumulative twist to end effector
-    var cumulative_twist = (acc => (twist,i) => {acc = mathjs$1.add(mathjs$1.multiply(mathjs$1.inv(Ad[i]),acc),twist); return acc})([0,0,0,0,0,0]);
+    var cumulative_twist = (acc => (twist,i) => {acc = mathjs.add(mathjs.multiply(mathjs.inv(Ad[i]),acc),twist); return acc})([0,0,0,0,0,0]);
     var fk_twists = twists.map(cumulative_twist);
     
     //compute the world aligned jacobian derivative
     var Jd = DH$1.sub.compute_Jd(fk, fk_twists, Ad, adj, J_body, J);
     // qdd = J^-1 (xdd - Jd qd)
-    Q_dot_dot_rad = mathjs$1.multiply(mathjs$1.inv(J),mathjs$1.add(cart_accel, mathjs$1.unaryMinus(mathjs$1.multiply(Jd, Q_dot_rad))));
+    Q_dot_dot_rad = mathjs.multiply(mathjs.inv(J),mathjs.add(cart_accel, mathjs.unaryMinus(mathjs.multiply(Jd, Q_dot_rad))));
     
     //map back to degrees
     return [Vector.multiply(Q_dot_rad.map((qd)=>DH$1.sub.from_radians(qd))._data,DH$1.sign_swap),Vector.multiply(Q_dot_dot_rad.map((qdd)=>DH$1.sub.from_radians(qdd))._data,DH$1.sign_swap)]
 };
+
+
+/* // Tests for Acceleration Conversion:
+//DH params from Dexter HDI-007010 (meters and degrees):
+var dh_mat = [
+    [0.250101, 91.59388888888888, -0.003545, 85.35805555555555],
+    [0.088342, 89.42305555555555, 0.339865, 180.43055555555554],
+    [0.06146, -0.018333333333333333, 0.31178, 0.8072222222222222],
+    [0.0393, 86.67277777777778, -0.000049, 89.75666666666666],
+    [0.055616, 94.56972222222223, 0, 90],
+    [0.08295, 0, 0, -90]
+]
+var range = 60
+var lower = -30
+var random = function(){ return Math.random()*range + lower }
+
+
+var error_sum = 0
+var N = 10
+var start_time = Date.now()
+for(let i = 0; i < N; i++){
+    var Q = [random(),random(),random(),random(),random(),random()]
+    range = 40
+    lower = -20
+    var Q_dot = [random(),random(),random(),random(),random(),random()]
+    var Q_dot_dot = [random(),random(),random(),random(),random(),random()]
+    var [cart_vel,cart_acc] = DH.J_accel_to_cart(Q,Q_dot,Q_dot_dot, dh_mat)
+
+    var [Q_dot_computed, Q_dot_dot_computed] = DH.cart_accel_to_J(cart_acc, cart_vel, Q, dh_mat)
+    var result = Vector.subtract(Q_dot_dot, Q_dot_dot_computed)
+    var error = Vector.max(Vector.abs(result))
+    if(error > 1e-7){
+    	out()
+        out("Error " + error_sum + ":" + error)
+        out("Result: " + JSON.stringify(result))
+        out("Q: " + JSON.stringify(Q))
+        out("Q_dot: " + JSON.stringify(Q_dot))
+        out("Q_dot_dot: " + JSON.stringify(Q_dot_dot))
+        error_sum++
+    }
+}
+var dur = (Date.now() - start_time)*_ms
+out("dur: " + dur)
+out("dur/iteration: " + dur/N)
+out("Succes Rate: " + 100*(1-error_sum/N) + "%")
+out("Goal Success: 99.939%")
+
+//out(mathjs.add(Q_dot_dot, mathjs.unaryMinus(Q_dot_dot_computed))._data)
+
+
+
+cart_acc._data = [0, 0, 0, 0, 0, 0]
+cart_vel._data = [0, 0, 0, 0, 0, 0]
+Q = [0, 0, 0, 0, 0, 0]
+
+var [Q_dot_computed, Q_dot_dot_computed] = DH.cart_accel_to_J(cart_acc, cart_vel, Q, dh_mat)
+out(Q_dot_dot_computed)
+out(mathjs.add(Q_dot_dot, mathjs.unaryMinus(Q_dot_dot_computed)))
+
+
+var [Q_dot_computed, Q_dot_dot_computed] = DH.cart_accel_to_J(cart_acc, cart_vel, Q, dh_mat)
+
+var [cart_vel,cart_acc] = DH.J_accel_to_cart(Q,Q_dot,Q_dot_dot, dh_mat)
+
+*/
+
+
+
+//******************************* End of Acceleration Conversion *********************
 
 var HiMem = {};
 globalThis.HiMem = HiMem;
@@ -18276,18 +18513,15 @@ class Job$1{
         this.set_status_code("not_started");//see Job.status_codes for the legal values
                                            //if no button yet, this call doesn't errur
         this.add_job_button_maybe(); //always calls color_job_button, even if a button isn't added
+        if(this.is_recursive_job()){
+            dde_error("Job: " + name + " has a do_list item of a Job instance or Control.start_job call<br/>" +
+                "with the same name as the Job being defined (or one of its sub-jobs does).<br/>" +
+                "Recursive Jobs are not allowed.");
+        }
     }
     } //end constructor
 
 
-
-    static generate_default_name(){
-        for(let i = 2; i < 1000000; i++){
-            let candidate = "job" + i;
-            if (!Job$1[candidate])  { return candidate }
-        }
-        dde_error("Job.generate_default_name has found a million job names in use. Seems unlikely.");
-    }
 
     static class_init(){ //inits the Job class as a whole. called by ready
         this.job_default_params =
@@ -18312,6 +18546,49 @@ class Job$1{
                 when_stopped: "stop", //also can be any do_list item
                 when_stopped_conditions: true,
                 callback_param: "start_object_callback"};
+    }
+
+    static generate_default_name(){
+        for(let i = 2; i < 1000000; i++){
+            let candidate = "job" + i;
+            if (!Job$1[candidate])  { return candidate }
+        }
+        dde_error("Job.generate_default_name has found a million job names in use. Seems unlikely.");
+    }
+
+    is_recursive_job(job_name){
+        if(!job_name){ //only hits at top level
+            job_name = this.name;
+        }
+        //look thru the subjobs recursively on down
+        for(let instr of this.orig_args.do_list){
+            if(instr instanceof Job$1) {
+                if(instr.name === job_name){
+                    return true
+                }
+                else {
+                    let result = instr.is_recursive_job(job_name);
+                    if(result) {
+                        return true
+                    }
+                }
+            }
+            else if (instr instanceof Instruction.start_job) {
+                if(instr.job_name === job_name) {
+                    return true
+                }
+                else {
+                    let sub_job = Job$1[instr.job_name];
+                    if(sub_job){
+                        let result = sub_job.is_recursive_job(job_name);
+                        if(result) {
+                            return true
+                        }
+                    }
+                }
+            }
+        }
+        return false
     }
 
     //return an array of job instances that are defined in path_name.
@@ -18388,7 +18665,7 @@ class Job$1{
             "' max='" + this.do_list.length + "'></progress>" +
             " of " +  this.do_list.length + ". " +
             cur_instr +
-            "&nbsp;&nbsp;<button onclick='inspect_out(Job." + this.name + ")'>Inspect</button>" +
+            //"&nbsp;&nbsp;<button onclick='inspect_out(Job." + this.name + ")'>Inspect</button>" + //since the job button has the cicle-i for inspected it, remove this button to reduce the clutter in the Output pane
             "<br/>";
         let has_user_data = false;
         for(let prop_name in this.user_data){
@@ -18523,7 +18800,7 @@ class Job$1{
 
     //Called by user to start the job and "reinitialize" a stopped job
     start(options={}){  //sent_from_job = null
-        out("Top of Job." + this.name + ".start()");
+        //out("Top of Job." + this.name + ".start()")
         /* commented out due to new Waiting scheme
         let the_active_job_with_robot_maybe = Job.active_job_with_robot(this.robot) //could be null.
             //must do this before setting status_code to "starting".
@@ -19474,7 +19751,7 @@ class Job$1{
            if      (Instruction.is_no_op_instruction(elt))   ; //get rid of it, including empty nested arrays
            else if (Instruction.is_oplet_array(elt))         { result.push(elt); }
            else if (Instruction.is_data_array(elt))          { result.push(elt); } //do not flatten!
-           else if (Array.isArray(elt))                      { Job$1.flatten_do_list_array(elt, result); }
+           else if (Array.isArray(elt))                      { Job$1.flatten_do_list_array(elt, result); } //must be after the other array instructions
            else if (elt instanceof Instruction)              { result.push(elt); }
            else if (typeof(elt) === "string")                { result.push(elt); }
            else if (typeof(elt) === "function")              { result.push(elt); }
@@ -19998,8 +20275,10 @@ Job$1.prototype.finish_job = function(){
           //Dexter.remove_from_busy_job_arrays(this) //remove from ALL Dexters' busy_job_arrays.
           this.color_job_button(); //possibly redundant but maybe not and just called on finishing job so leave it in
           this.show_progress_maybe();
-          out("Done with Job." + this.name + ", for reason: " + this.stop_reason +
-              " platform: " + globalThis.platform + " keep_alive: " + globalThis.keep_alive_value);
+          if(this.status_code == "errored") {
+              warning("Done with Job." + this.name + ", for reason: " + this.stop_reason +
+                  " platform: " + globalThis.platform + " keep_alive: " + globalThis.keep_alive_value);
+          }
           if(globalThis.platform === "node") { //only calls close_readline to end process, or doesn't
             if(globalThis.keep_alive_value) ; //keep the process alive
             else {
@@ -20316,6 +20595,16 @@ Job$1.prototype.do_next_item = function(){ //user calls this when they want the 
         this.show_progress_maybe();
         this.select_instruction_maybe(cur_do_item);
         if (this.program_counter >= this.added_items_count.length) { this.added_items_count.push(0);} //might be overwritten further down in this method
+        else if ((cur_do_item instanceof Instruction.wait_until) &&   //using Control.wait_until errors here
+                 (cur_do_item.fn_date_dur === "new_instruction")) {} //Complex! Because we don't
+            //want the next else_if cause to trigger which it will IF we have
+            //added an instrution below the PC (that should cause the Control.wait_until
+            //to stop waiting. BUT if the next else_if triggers, it will
+            //call remove_sub_instructions_from_do_list which will REMOVE the
+            //new instruction we (may have) just added (user programmatically calls insert_instruction)
+            //thus that remove_sub_instructions_from_do_list will delete that newly added instruction
+            //and thus the wait_until "new_instruction" won't stop waiting as it shopuld have,
+            //because that newly added instruction was deleted.
         else if (this.added_items_count[this.program_counter] > 0) { //will only happen if we go_to backwards,
            //in which case we *might* call an instruction twice that makes some items that it adds to the to_do list.
            //so we want to get rid of those items and "start over" with that instruction.
@@ -20439,9 +20728,14 @@ Job$1.prototype.do_next_item = function(){ //user calls this when they want the 
         }
         else if (cur_do_item instanceof Promise){
             let the_job = this; //for the closure
-            cur_do_item.then(function() { //called when the prmise resolves
+            cur_do_item.then(function(instr) { //called when the promise resolves
                 //is_resolved = true
-                the_job.set_up_next_do(1); //we're done waiting for the promise ot resolve so move on to the next do_list_item
+                //we're done waiting for the promise
+                if (Instruction.is_do_list_item(instr)){
+                    the_job.insert_single_instruction(instr); //insert right below the promise fn def.
+                }
+                else {} //if not an instruction, do nothing
+                the_job.set_up_next_do(1);
             });
         }
         else {
@@ -20511,7 +20805,7 @@ Job$1.prototype.transform_data_array = function(data_array){
  Stick them all (except for iterator) on the do_list and execute them.
  */
 Job$1.prototype.handle_function_call_or_gen_next_result = function(cur_do_item, do_items){
-    if (do_items == "dont_call_set_up_next_do");
+    if (do_items === "dont_call_set_up_next_do");
     else if (Instruction.is_no_op_instruction(do_items)){ //ok, just nothing to insert
         this.set_up_next_do(1);
     }
@@ -20522,7 +20816,7 @@ Job$1.prototype.handle_function_call_or_gen_next_result = function(cur_do_item, 
            this.set_up_next_do(1);
         }
         else { //must be an instructions_array
-            Job$1.flatten_do_list_array(do_items);
+            Job$1.flatten_do_list_array(do_items); //does error checking on do_list-items but otherwise not used
             this.insert_instructions(do_items);
             this.set_up_next_do(1);
         }
@@ -22226,7 +22520,7 @@ class Instruction$1 {
                 Instruction$1.is_oplet_array(item) ||
                 Utils.is_iterator(item) ||
                 (typeof(item) === "string") ||
-                (typeof(item) === "function") ||
+                ((typeof(item) === "function") && !Utils.is_class(item)) ||
                 Instruction$1.is_start_object(item) ||
                 (item instanceof Promise)
                 )
@@ -22235,9 +22529,17 @@ class Instruction$1 {
     //a valid item to put on a do_list
     //mirrors Job.do_next_item ordering
     static is_do_list_item(item){
-        return ( Array.isArray(item) ||   //accept data_arrays too. //Instruction.is_instructions_array(item)
-                 Instruction$1.is_non_instructions_array_do_list_item(item)
-               )
+        if(Array.isArray(item)){
+            for(let elt of item){
+                if(!this.is_do_list_item(elt)){
+                    return false
+                }
+            }
+            return true
+        }
+        else {
+            return Instruction$1.is_non_instructions_array_do_list_item(item)
+        }
     }
 
     static is_F_instruction_string(str){
@@ -22298,7 +22600,8 @@ class Instruction$1 {
 
     //return an array of the instruction args
     static args(ins_array){
-        return ins_array.slice(Instruction$1.INSTRUCTION_ARG0)
+        let args_arr = ins_array.slice(Instruction$1.INSTRUCTION_ARG0);
+        return args_arr
     }
 
     static job_of_instruction_array(ins_array){
@@ -22680,6 +22983,38 @@ Instruction$1.eval_python = class eval_python extends Instruction$1{
                                  '", "' + this.user_data_variable + '")'
                         }
 
+};
+
+Instruction$1.if = class If extends Instruction$1{
+    constructor (clauses) { super();
+        if((clauses.length % 2) !== 0) {
+            dde_error("The Job item: If contains " + clauses.length +
+                " clauses but it should be an even number.");
+        }
+       this.clauses = clauses; //an even lengthened array alernating fns and do_list_items.
+    }
+    do_item(job_instance){
+        for (let i = 0; i < this.clauses.length; i +=2){
+            let condition = this.clauses[i];
+            if(typeof(condition) === "function"){
+               condition = condition.call(job_instance);
+            }
+            //else  just leave condion be whatever was evaled at
+            //job definition time ie false, null, undefined, (usual JS falsey)
+            // or anything else (usual truthy)
+            if(condition){
+                let do_list_item = this.clauses[i + 1];
+                Job.insert_instruction(do_list_item,
+                    {job: job_instance,
+                     offset: "after_program_counter"});
+                job_instance.set_up_next_do(1);
+                return
+            }
+        }
+        job_instance.set_up_next_do(1);  //only if no clauses hit, will this be run, including when clauses is the empty array.
+        //in thouse cases Control.if does nothing.
+        //warning("Control.if ran no instructions.")
+    }
 };
 
 Instruction$1.break = class Break extends Instruction$1{ //class name must be upper case because lower case conflicts with js break
@@ -26578,7 +26913,7 @@ class Robot$1 {
         if(platform === "node") {
             return false //because now when in job engine, never attempt to run simulator
         }
-        else if      (simulate_val === true)   { return true   }
+        else if (simulate_val === true)   { return true   }
         else if (simulate_val === false)  { return false  }
         else if (simulate_val === "both") { return "both" }
         else if (simulate_val === null)   {
@@ -26654,6 +26989,9 @@ class Robot$1 {
     }
 
     //Control Instructions
+    static if(...clauses) {
+        return new Instruction.if(clauses)
+    }
     static break(){ //stop a Control.loop
         return new Instruction.break()
     }
@@ -27623,6 +27961,7 @@ class Dexter$1 extends Robot$1 {
         this.pid_angles = [0, 0, 0, 0, 0, 0, 0];
         //this.processing_flush = false //primarily used as a check. a_robot.send shouldn't get called while this var is true
         //this.busy_job_array = []
+        this.servos = Servo.make_servos_for_dexter();
         Robot$1.set_robot_name(this.name, this);
         Dexter$1[this.name] = this; //see comment in Robot.set_robot_name
          //ensures the last name on the list is the latest with no redundancy
@@ -30410,6 +30749,7 @@ class Control$1{
 Control$1.instruction_classes_in_control = null;
 
 //Methods that result in an instance of a Control class
+Control$1.if = Robot.if;
 Control$1.break = Robot.break;
 Control$1.continue = Robot.continue;
 Control$1.go_to = Robot.go_to;
@@ -30940,11 +31280,11 @@ Dexter.defaults_colonless_comment_props = [
 Dexter.dexter0.defaults_url()
 */
 Dexter.prototype.defaults_url = function(){
-    return "Dexter." + this.name + ":/srv/samba/share/Defaults.make_ins"
+    return "Dexter." + this.name + ":Defaults.make_ins" //":/srv/samba/share/Defaults.make_ins"
 };
 
 Dexter.prototype.defaults_alt_url = function(){
-    return "Dexter." + this.name + ":/srv/samba/share/make_ins/Defaults.make_ins"
+    return "Dexter." + this.name + ":make_ins/Defaults.make_ins" //":/srv/samba/share/make_ins/Defaults.make_ins"
 };
 
 
@@ -32870,6 +33210,840 @@ globalThis.Waiting = class Waiting {
     }
 };
 
+/*glossary
+servo_firmware_type     examples: 1 (nothing: doesn't exist), 8 (steppers, joint 1 thru 5), 320 (j6/j7), 430 (j6/j7)  //most general
+servo_model_class_name  examples: "XL320", "XL330", "XC430" "XC430_LOAD"
+
+servo_model_number      examples: 350,     1200,           1240,          1080,
+servo_model_name        examples: "XL320", "XL330-M288-T", "XC330-M288-T" "XC430-W240-T" //one to one with servo_model_number
+
+servo_id  a integer 3 = j6, 1=j7, (j1 thru 5 not in this category because are not servos, they are steppers)
+servo_status  A json object containing the status of a servo on a dexter. Used in a_job.user_data.servo_status
+
+joint_number (1 thru 7)
+
+todo:
+  DONE For class name: "Servos" or "Servo" ? Note you have effectively "Dexter.dexter0.servos"
+       so "servos" is (almost) overloaded. do rename to Servo
+       - "Dexter.dexter0.servos" is the same kind of data structure
+          as Servos.info so can we unify those names? ie: Servo.servos
+          renamne Servos.default_servos
+
+  - robot_from_class_or_job see possible fry rewrite below to: job_or_dexter_to_dexter
+	- orig has args: (dex_inst_or_class, the_job) but
+      looks like it should just have 1 arg, call it "job_or_dexter"
+      and what was the "or-class" of "dex_inst_or_class" supposed to mean?
+      looks like no supporting code.
+      but also returns Servos class but only for testing so get rid of that?
+      AWAIT email to James N sent Mar 19, 2024
+
+  DONE You have set_servo but it makes instruction: "S ServoSetX "
+     So is servo_set_X or ServoSetX a better name?
+     leave as is.
+
+
+  DONE servo_id_to_servo see possible fry rewrite below
+     DONE using fry rewrite. Same semantics.
+
+  DONE static interpret_job_get (job_or_data, reqid, reqaddr, reqlen) => rename
+    fry proposal static servo_status_to_error_object (job_or_servo_status, req_servo_id, reqaddr, reqlen)
+     - is "id" actually "servo_id"" IF so , rename reqid to req_servo_id and
+       can we return the object with the prop name of "servo_id" instead of just "id" ?
+       leave as is.
+    NO. leave as is. This is only an internal fn. DOn't doc. And James N working on a replacement anyway.
+
+
+  DONE add to glossary "servo_status"  A json object containing the status of a servo on a dexter.  yes.
+
+  - Dexter.grasp = function(new_degrees=2)  but we get overtorque of j7 at 50 or below.
+       does the fn called, move_until_static really stop it in time to not overtorgue?
+
+       Change 2 degrees to 20, change name of param and static's param to be min_degrees.
+       and switch order of degree_tolerance=0.01, joint_number in move_until_static
+       putting joint_number as the 2nd param.
+      See James N email Mar 19, 2024
+
+  - Should I wrap: new Job({ name: "test_servos" ...}) in
+    static define_test_servos_job  ? to make it easy to define it but not always defined?
+    NO, but put job def in doc as an example on how to use this class.
+
+*/
+
+console.log("Top of servo.js");
+
+globalThis.Servo = class Servo {
+
+    static models = { //https://github.com/ROBOTIS-GIT/Dynamixel2Arduino/blob/master/src/actuator.cpp
+        "XL320": {
+            "type": "320",
+            "units": (360/1024), //a full 360' rotation is 1024 positional units
+            "table": { //https://emanual.robotis.com/docs/en/dxl/x/xl320  //makes dynamixels, table properties
+                "MODEL": { "addr": 0, "len": 2, "readonly":true },
+                "MODE":   { "addr": 11, "len": 1 },
+                "MAXTEMP": { "addr": 12, "len": 1, "default":65 }, //'C
+                "SHUTDOWN": { "addr": 18, "len": 1, "default": 3 }, //bitfield
+                "TORQUE": { "addr": 24, "len": 1, "default": 0 },
+                "LED": { "addr": 25, "len": 1, "default": 0},
+                "ERROR": { "addr": 50, "len": 1, "readonly":true },
+                //"GOALCURRENT": { "addr": , "len":  }, // not supported on XL320
+                "GOAL_POSITION": { "addr": 30, "len": 2 }, // 300/1023
+                "POSITION": { "addr": 37, "len": 2, "readonly":true },
+                "LOAD": { "addr": 41, "len": 2, "readonly":true },
+                "MOVING": { "addr": 49, "len": 1, "readonly":true },
+
+            }
+        },
+        "XC430": {
+            "type": "430",
+            "units": (360/4096), //a full 360' rotation is 4096 positional units
+            "table": { //control table v2.0  //values of these props are the location of the actual data
+                "MODEL":            	{ "addr": 0,  	"len": 2, "readonly":true },
+                "MODEL_INFORMATION": 	{ "addr": 2,  	"len": 4, "readonly":true },
+                "FIRMWARE_VERSION": 	{ "addr": 6,  	"len": 2, "readonly":true },
+                "ID":               	{ "addr": 7,  	"len": 1 },
+                "BAUD_RATE":        	{ "addr": 8,  	"len": 1 },
+                "RETURN_DELAY_TIME": 	{ "addr": 9,  	"len": 1 },
+                "DRIVE_MODE":        	{ "addr": 10, 	"len": 1 },
+                "MODE":             	{ "addr": 11, 	"len": 1 },
+                "SECONDARY_ID":      	{ "addr": 12, 	"len": 1 },
+                "PROTOCOL_VERSION":  	{ "addr": 13, 	"len": 1 },
+                "HOMING_OFFSET":     	{ "addr": 20, 	"len": 4 },
+                "MOVING_THRESHOLD":   	{ "addr": 24, 	"len": 4 },
+                "MAXTEMP":          	{ "addr": 31, 	"len": 1, "default":70 }, //'C
+                "MAX_VOLTAGE_LIMIT":   	{ "addr": 32, 	"len": 2 },
+                "MIN_VOLTAGE_LIMIT":   	{ "addr": 34, 	"len": 2 },
+                "SHUTDOWN":         	{ "addr": 63, 	"len": 1, "default": 52 }, //bitfield
+                "TORQUE":           	{ "addr": 64, 	"len": 1, "default": 0 },
+                "LED":              	{ "addr": 65, 	"len": 1, "default": 0},
+                "ERROR":            	{ "addr": 70, 	"len": 1, "readonly":true },
+                "CURRENT_LIMIT":     	{ "addr": 38, 	"len": 2 }, // mA
+                "GOAL_CURRENT":     	{ "addr": 102,	"len": 2 }, // mA see addr 38
+                "PRESENT_CURRENT":  	{ "addr": 126, 	"len": 2, "readonly":true }, // mA see addr 38
+                /* XL430_W250(1060), XC430_W150(1070), XC430_W240(1080), XXL430_W250(1090), XXC430_W250(1160)
+                   do not have GOAL_CURRENT 102, PRESENT_CURRENT 126, or CURRENT_LIMIT 38 */
+                "GOAL_POSITION":    	{ "addr": 116, 	"len": 4 }, // 360/4095
+                "MOVING":           	{ "addr": 122, 	"len": 1, "readonly":true },
+                "POSITION":         	{ "addr": 132, 	"len": 4, "readonly":true },
+            }
+        },
+        "XC430_LOAD": {
+            "type": "430",
+            "units": (360/4096), //a full 360' rotation is 4096 positional units
+            "table": { //control table v2.0
+                "MODEL":         { "addr": 0, "len": 2, "readonly":true },
+                "MODE":          { "addr": 11, "len": 1 },
+                "MAXTEMP":       { "addr": 31, "len": 1, "default":70 }, //'C
+                "SHUTDOWN":      { "addr": 63, "len": 1, "default": 52 }, //bitfield
+                "TORQUE":        { "addr": 64, "len": 1, "default": 0 },
+                "LED":           { "addr": 65, "len": 1, "default": 0},
+                "ERROR":         { "addr": 70, "len": 1, "readonly":true },
+                //"CURRENT_LIMIT": { "addr": 38, "len": 2 }, // mA
+                //"GOAL_CURRENT": { "addr": 102, "len": 2 }, // mA see addr 38
+                //"PRESENT_CURRENT": { "addr": 126, "len": 2, "readonly":true }, // mA see addr 38
+                /* XL430_W250(1060), XC430_W150(1070), XC430_W240(1080), XXL430_W250(1090), XXC430_W250(1160)
+                   do not have GOAL_CURRENT 102, PRESENT_CURRENT 126, or CURRENT_LIMIT 38 */
+                "CURRENT_LOAD":  { "addr": 126, "len": 2, "readonly":true },
+                "GOAL_POSITION": { "addr": 116, "len": 4 }, // 360/4095
+                "MOVING":        { "addr": 122, "len": 1, "readonly":true },
+                "POSITION":      { "addr": 132, "len": 4, "readonly":true },
+            }
+        }
+    }
+
+    //was servo_model
+    static get_servo_model_class_name (servo_model_number) { //can be a number or a string representing a number.
+        let no = parseInt(servo_model_number);
+        switch(true) { //https://github.com/ROBOTIS-GIT/Dynamixel2Arduino/blob/master/src/actuator.h
+            case no===350:  return "XL320";
+            case no===1060: return "XC430_LOAD"; //XL430_W250
+            case no===1070: return "XC430_LOAD"; //XC430_W150
+            case no===1080: return "XC430_LOAD"; //XC430_W240
+            case no===1090: return "XC430_LOAD"; //XXL430_W250
+            case no===1160: return "XC430_LOAD"; //XXC430_W250
+            case no>=1000 && no <=1090: return "XC430";
+            case no>=1100 && no<=1180:  return "XM540";
+            case no>=1190 && no<=1240:  return "XL330";
+            case no>=1270 && no <=1280: return "XC430"; //XW430_T200 XW430_T333
+            default: return false;
+        }
+    }
+
+    static default_servos = [] //array of actual servos for testing purposes. The indexes of the
+                     //array are servo_id (s).
+
+    //do call init when dde is inited.
+    static init() { //yes, we could use classes, but the JSON syntax is compact and clear.
+        //330's and 430's have the same table,
+        console.log("top of Servo.init");
+        this.models.XL330 = JSON.parse(JSON.stringify(this.models.XC430)); //copy
+        this.models.XL330.type = "330"; //maybe should be 430  do carlos will test. bug???
+        //TODO: Wrap it in a function or make a test suite
+        if (Servo.set_servo_id_model(1, "asdfsadf")) {shouldnt("Unknown servo model accepted");}
+
+        Servo.set_servo_id_model(1, "XL320");
+        if (Servo.default_servos[1].table.TORQUE.addr !== 24
+            || Servo.default_servos[1].table.TORQUE.len  !== 1
+        ) { shouldnt("wrong torque address for XL320 servo"); }
+        if (Servo.default_servos[1].table.ERROR.addr !== 50
+            || Servo.default_servos[1].table.ERROR.len  !== 1
+        ) { shouldnt("wrong error address for XL320 servo"); }
+
+        Servo.set_servo_id_model(3, Servo.models.XL330); //temp setting to 330 for testing
+        if (Servo.default_servos[3].table.TORQUE.addr !== 64
+            || Servo.default_servos[3].table.TORQUE.len  !== 1
+        ) { shouldnt("wrong torque address for XL330/XC430 servo"); }
+        if (Servo.default_servos[3].table.ERROR.addr !== 70
+            || Servo.default_servos[3].table.ERROR.len  !== 1
+        ) { shouldnt("wrong error address for XL330/XC430 servo"); }
+        Servo.set_servo_id_model(3, Servo.models.XL320); //correct to default settings for servo id 3
+    }
+
+    //do fry verify: is there THERE A Dexter.reboot??? make sure it does the same thing.
+    static reboot(servo_id) { //just reboot it. No type, slope or offset so those values won't change.
+        if (typeof(servo_id) !== "number") error("Servo.reboot expects a numerical id");
+        return "S RebootServo " + servo_id + ";"
+    }
+
+
+    static robot_from_class_or_job(dex_inst_or_class, the_job) {
+        //Let's play find the robot!
+        let robot = Servo; //just for testing, start robot as the Servo class
+        if (dex_inst_or_class instanceof Dexter) { out("robot "+dex_inst_or_class.name);
+            robot = dex_inst_or_class;
+        }
+        else if (the_job instanceof Job) { out("job "+the_job.name+" robot "+the_job.robot.name);
+            robot = the_job.robot;
+        }
+        out("Robot is "+robot.name);
+        return robot
+    }
+
+    //fry rewrite:
+    static job_or_dexter_to_dexter(a_job_or_dexter){
+        if(a_job_or_dexter instanceof Job){
+            return a_job_or_dexter.robot
+        }
+        else if (a_job_or_dexter instanceof Dexter){
+            return a_job_or_dexter
+        }
+        else if (a_job_or_dexter === Dexter){
+            return Servo
+        }
+        else {
+            return Servo
+        }
+    }
+
+    static set_servo_id_model(servo_id, model_or_servo_model_class_name, robot=undefined) {
+        //copy generic model info into id array. Or just point to it:
+        console.log("top of Servo.set_servo_id_model");
+        let model = model_or_servo_model_class_name;
+        console.log("got model: " + model);
+        if (typeof(model) === "string") { //they gave us the model name
+            model = this.models[model]; //so get them the model object
+        }
+        console.log("now model is: " + model);
+        console.log("!model is: " + !model);
+        if(!model){
+            console.log("in model if,  no model");
+            warning("Servo model: " + model + " is unknown.");
+            return false
+        }
+        else if (!model.table) {
+            console.log("in model else if, no table");
+            warning("Servo model : " + model + " doesn't have a 'table' property.");
+            return false
+        }
+        console.log("after using model: " + model);
+        let default_servos = this.default_servos; //start with the global list
+        if (robot) {  //if we actually have a robot
+            if (!robot.servos) {robot.servos = [];} //retrofit a servos array as needed
+            default_servos = robot.servos; //but use the robots list, not the global list.
+        }
+        default_servos[servo_id] = {"state":{}, "table": model.table, "type":model.type, "id":servo_id};
+        return true
+    }
+
+    //fry rewrite:
+    static servo_id_to_servo = function(servo_id, a_dexter) {
+        let the_servos;
+        if((a_dexter instanceof Dexter) && a_dexter.servos) {
+            the_servos = a_dexter.servos;
+        }
+        else { the_servos = this.default_servos; }
+        let servo = the_servos[servo_id];
+        return servo
+    }
+
+    static servo_property(servo, property_name) {
+        if (!servo.table) { dde_error("no table found for servo"); }
+        let table_item = servo.table[property_name];
+        if (!table_item) {
+            dde_error("Servo "+servo.it+" has no property "+property_name+". Properties:"+Object.keys(servo.table));
+        }
+        return table_item
+    }
+
+
+    //make a servo_set instruction  put in Dexter.servo_set  (done later in this file?)
+    //if robot is not passed, it will default to the robot of the job that this instruction
+    //is running in. When we have do_list src code of Dexter.servo_set(1, "MAXTEMP", 123),
+    //we don't pass in a robot to Servo.servo_set and we use the job's robot as usual
+    static servo_set = function(servo_or_id=3, property_name, value, robot) {
+        let servo = servo_or_id;
+        if (typeof(servo_or_id) === "number") {
+            servo = this.servo_id_to_servo(servo_or_id);
+        }
+        let table_item = this.servo_property(servo, property_name);
+        if (table_item.readonly) {
+            dde_error("Servo " + servo.id + " property:" + property_name + " is read only");
+        }
+        let addr = table_item.addr;
+        let len = table_item.len;
+        let hex = Utils.value_to_percent_hex(value, len);
+        return make_ins("S", "ServoSetX", servo.id, addr, hex.length, hex, robot)
+        //"S ServoSetX " + servo.id + " " + addr + " " + hex.length + " " + hex //orig James N code
+    }
+
+
+    static interpret_job_get (job_or_data, reqid, reqaddr, reqlen) {
+        let data = job_or_data; //hope it's just a string
+        if (typeof(job_or_data) !== "string") {
+            data = job_or_data.user_data.servo_status;
+        }
+        if (typeof(data) !== "string")        return {"error": "INVALID RESPONSE"}
+        if (data.length == 0)                 return {"error": "NO RESPONSE"}
+        if (data.length < 11*3)               return {"error": "INCOMPLETE RESPONSE:" + data.length + " bytes"}
+        if (!data.startsWith("FF FF FD 00 ")) return {"error": "BAD HEADER:"+data}
+        let id = parseInt(data.substr(4*3,1*3));
+        let len = Utils.little_hex_to_integer(data.substr(5*3,2*3));
+        len -= 4; //back out the instruction, error, and two CRC bytes to indicate the number of data bytes sent
+        if (data.length < 9*3 + len*3)        return {"error": "INCOMPLETE RESPONSE:" + data.length + " bytes"}
+        if (data.substr(7*3,1*3) != "55 ") return {"error": "NOT A STATUS:"+data.substr(7*3,1*3)}
+        let err = Utils.little_hex_to_integer(data.substr(8*3,1*3));
+        let errmsg = "";
+        switch(err&127) { //7 bit code, high bit hardware error flag
+            case 1: errmsg += " instruction failed";break;
+            case 2: errmsg += " bad instruction";break;
+            case 3: errmsg += " CRC error";break;
+            case 4: errmsg += " outside address range";break;
+            case 5: errmsg += " wrong length";break;
+            case 6: errmsg += " exceeds limit";break;
+            case 7: errmsg += " access denied";break;
+        } //https://emanual.robotis.com/docs/en/dxl/protocol2/#error
+        if (id != reqid) errmsg+=" wrong servo id returned:" + reqid;
+        let addr = parseInt(reqaddr);
+        let val = Utils.little_hex_to_integer(data.substr(9*3,len*3));
+        //debugger
+        let servo = this.default_servos[id];
+        /* TODO: Figure out how to check the servo type against the DDE read of the servos
+            if (job.robot && job.robot.defaults && job.robot.defaults.ServoSetup[id]) {
+                servo = job.robot.defaults.ServoSetup[id]
+                }
+        */
+        let settype = servo.type;
+        //TODO: Dex doesn't exist here. Where does DDE store the defaults data?
+        if (!settype && !Dex.defaults) { settype = "XL320"; } //we've read Defaults, and there were no RebootServos, so 320 setup is default.
+        let type = servo.detected || settype; //best guess, auto-diag wouldn't continue if this hadn't been proven
+        //let msg = "ID:"+id+" address:"+addr+" value:"+val+" len:"+len+" hex:"+data.substr(9*3,len*3)
+        let res = {"id":id
+            , "address":addr
+            , "value":val
+            , "len":len
+            , "hex":data.substr(9*3,len*3)
+            , "data":data
+            , "que":[]
+        };
+        let hw_err_reg = servo.table.ERROR.addr;
+        let torque_reg = servo.table.TORQUE.addr;
+        if (err >= 128) {
+            errmsg+=" hardware fault.";
+        }
+        //out("readback servo "+id+" type "+type+" address " + addr + " for " + reqlen + " bytes")
+        switch(addr) {
+            case 0:
+                type=this.get_servo_model_class_name(val); //out("model "+val+" is type "+type)
+                //if (type=="XL330" && settype=="XC430") settype = type //430 setup works for 330's
+                //msg += " servo is type:"+type
+                res.type = type;
+                /*
+                TODO, figure out how to check this against DDE's read of Defaults.make_ins.
+                It currently doesn't know that the default is XL-320s.
+                            if (!Dex.S) S = {}
+                            if (!Dex.S.RebootServo) Dex.S.RebootServo = []
+                            if (!Dex.S.RebootServo[id]) Dex.S.RebootServo[id] = {}
+                            Dex.S.RebootServo[id].detected = type
+                            Dex.S.RebootServo[id].id = id //yes, this is stupid, but it helps with the Settings control.
+                            if (type!=settype) { console.log("setup:" + settype + " type:" + type)
+                                if (settype) {
+                                    msg += " mismatched RebootServo "+id+" "+settype+"; in read .make_ins file"
+                                }
+                                else {
+                                    msg += ". Setup unknown, r 0 Defaults.make_ins; or other setup to check"
+                                    //byID("msg").value = "r 0 Defaults.make_ins; Read default setup"
+                                }
+                            }
+                            servolist(); //update the list in the Settings control panel.
+                */
+
+                if (err) { //was an error, but maybe we just figured out the servo type so que a request here
+                    res.que.push("r 0 #Servo "+id+" "+hw_err_reg+" 1; Read "+type+" hardware error");
+                } else { //no no errors, so continue to auto-diag the servo
+                    res.que.push("r 0 #Servo "+id+" "+torque_reg+" 1; Check torque setting");
+                }
+                break;
+            case hw_err_reg:
+                if (val!=0) {errmsg += "Type:" + type + " hardware error status register:"+hw_err_reg+" value:" + val+" bits:"+val.toString(2);
+                    switch(type) {
+                        case "XL320": out("decoding 320 errors"+val+" "+(val& 1<<2));
+                            if (val & 1<<2) { //console.log("voltage")
+                                errmsg += " ERROR BIT 2: VOLTAGE! Check 13 and 14 for min max voltage";
+                            }
+                            if (val & 1<<1) { //console.log("temp?") //very confusing docs not sure.
+                                errmsg += " ERROR BIT 1: OVERTEMP! Check 12 for temp limit";
+                            }
+                            if (val & 1<<0) { //console.log("overtorque")
+                                errmsg += " ERROR BIT 0: OVERTORQUE!";
+                            }
+                            break;
+                        case "XL330":
+                        case "XC430":
+                            if (val & 1<<5) {
+                                errmsg += " ERROR BIT 5: OVERTORQUE!";
+                            }
+                            if (val & 1<<4) {
+                                errmsg += " ERROR BIT 4: UNDER-VOLTAGE!";
+                            }
+                            if (val & 1<<2) {
+                                errmsg += " ERROR BIT 2: OVERTEMP! Check temp limit field";
+                            }
+                            if (val & 1<<0) {
+                                errmsg += " ERROR BIT 0: OVER-VOLTAGE!";
+                            }
+                            break;
+                    }
+                } //else {msg += " no hardware errors"}
+                break;
+            case torque_reg:
+                if (val==0) {
+                    errmsg += " Torque disabled. Send 'S ServoSetX "+id+" "+torque_reg+" 1;' to re-enable torque";
+                    res.que.push("S ServoSetX "+id+" "+torque_reg+" 1; Re-enable torque"); // Should we do this automatically?
+                    res.ready = false;
+                } else {
+                    //msg += " torque is enabled"
+                    res.ready = true;
+                }
+                break;
+        }
+        if (errmsg) { res.error = "ERROR:"+errmsg+""; res.err = err; }
+        return res
+    }
+
+    //called by Dexter.constructor to supply the "default" value for the dexter_instance.servos prop.
+    //actually called by Dexter.make_new_robot which is called by the constructor.
+    //then after that default.makeins will "customize" the servos for
+    //that particular Dexter instance if need be
+    static make_servos_for_dexter() {
+        let result =  [
+            undefined, //servo_id 0
+            Servo.servo_id_to_servo(1), //default the default servo into the default robot
+            undefined, //servo_id 2
+            Servo.servo_id_to_servo(3) //default the default servo into the default robot
+        ];
+        result.span = result[1]; //ie the same as  servo_id 1
+        result.roll = result[3]; //ie teh same as servo_id 3
+        return result
+    }
+
+
+}; //end of class Servo
+
+//Servo.init() //moved to ready.js because too many dependencies not loaded to call it hear.
+
+/*
+Dexter.prototype.servo_set = function (servo_or_id=3, property_name, value) {
+    let dex_inst_or_class = this //'this' will be the Dexter class, or an instance of that class at define time
+    return function() {
+        let the_job = this //At run time, 'this' will be the job
+        let robot = Servo.robot_from_class_or_job(dex_inst_or_class, the_job)
+        return Servo.servo_set(servo_or_id, property_name, value)
+    }
+}
+Dexter.servo_set = Dexter.prototype.servo_set //backfill
+ */
+
+Dexter.servo_set = Servo.servo_set;
+Dexter.prototype.servo_set = function(servo_or_id, property_name, value) {
+    let dexter_instance = this;
+    return Servo.servo_set(servo_or_id, property_name, value, dexter_instance) //this must be the Dexter instance
+};
+
+
+Dexter.prototype.servo_get = function (servo_or_servo_id=3, property_name="MODEL") {
+//this part can be done at job definition time (nothing)
+    let robot = this; //'this' will be an instance of a Dexter or null, when we want the Job's robot as is the case when
+    //this method is called by Dexter.servo_get
+    return function() { //and these parts need to be done at job run time.
+        let the_job = this; //At run time, 'this' will be the job
+        if(!robot) { robot = the_job.robot; }
+        let servo = servo_or_servo_id;
+        if (typeof(servo_or_servo_id) === "number") {
+            servo = Servo.servo_id_to_servo(servo_or_servo_id,robot);
+        }
+        if (!servo && property_name === "MODEL") { //if it's just to get the model
+            servo = {id: servo_or_servo_id, table: { "MODEL": { "addr": 0, "len": 2, "readonly":true }}};
+        } //make a fake entry to get us through, 'cause model is always there
+        if (!servo) { //still no servo? Error time
+            let servo_array = robot.servos;
+            let servo_list = "";
+            for (let s in servo_array) {
+                servo_list += s.toString()+" ";
+            }
+            if (robot && robot.servos) { servo_list += " in Robot: "+robot.name; }
+            dde_error("Servo "+id+" does not exist. Know servo IDs are: "+servo_list);
+            return []
+        }
+        let id = servo.id;
+        //don't pre-set the servo table because the type of servo might change as the job runs
+        let table_item = Servo.servo_property(servo, property_name);
+        let addr = table_item.addr;
+        let len = table_item.len;
+        let file = "#Servo " + id + " " + addr + " " + len;
+        return [ function(){console.log("Reading:"+file+" for job "+the_job.name);}
+            ,function() {the_job.user_data.servo_status = "";}
+            ,robot.read_from_robot(file, "servo_status") //be sure to ask the correct robot.
+            ,function() { //after data is returned in job user_data.servo_status,
+                let s = Servo.interpret_job_get(the_job, id, addr, len); //interpret it
+                the_job.user_data.servo_status = s; //put it in the job user_data.servo_status
+                if (s.error) { warning("Servo "+id+" "+s.error); } //warn about errors
+                if (s.err) { warning("Servo "+id+" hardware error: " + s.err);}
+
+                //do fry: maybe remove the_job. ???
+                if (the_job.robot && property_name === "MODEL") { //we are in a job and got a model
+                    Servo.set_servo_id_model(id, s.type, robot); //so track it in the robot
+                    //out(the_job.robot.servos)
+                }
+            }
+        ]
+    }
+};
+
+//Dexter.servo_get = Dexter.prototype.servo_get //backfill
+
+Dexter.servo_get = function(servo_or_servo_id=3, property_name="MODEL"){
+    return Dexter.prototype.servo_get.call(null, servo_or_servo_id, property_name) //pass in null so that we''ll get the Job's robot
+};
+
+Dexter.prototype.servo_detect = function (servo_or_servo_id=3) {
+    let robot = this; //'this' will be the Dexter class, or an instance of that class at define time
+    return function() {
+        let the_job = this; //At run time, 'this' will be the job
+        if(!robot) { robot = the_job.robot; }
+        return robot.servo_get(servo_or_servo_id, "MODEL") //just get the model, servo_get does the rest.
+    }
+};
+
+//Dexter.servo_detect = Dexter.prototype.servo_detect //backfill
+Dexter.servo_detect = function(servo_or_servo_id=3){
+    return Dexter.prototype.servo_detect.call(null, servo_or_servo_id) //pass in null so that we''ll get the Job's robot
+};
+
+//do fry put servo_check on Dexter menu???  no for now.
+Dexter.prototype.servo_check = function (servo_or_servo_id=3) {
+    let robot = this; //'this' will be the Dexter class, or an instance of that class at define time
+    return function() {
+        let the_job = this; //At run time, 'this' will be the job
+        if(!robot) { robot = the_job.robot; }
+        return [ robot.servo_get(servo_or_servo_id, "MODEL")
+            ,Control.loop(10, function(){ //run up to 10 commands from the que
+                the_job.user_data.servo_status.que;
+                if (que.length > 0) {return que.pop()}
+                return Control.break() //stop when we run out of suggestions
+            })
+        ]
+    }
+};
+
+Dexter.servo_check = function(servo_or_servo_id=3){
+    return Dexter.prototype.servo_check.call(null, servo_or_servo_id) //pass in null so that we''ll get the Job's robot
+};
+
+Dexter.prototype.move_until_torque = function(goal_degrees = 90, joint_number = 7, torque_limit = 500){
+    let dexter_instance = this;
+    return Dexter.move_until_torque(goal_degrees, joint_number, torque_limit, dexter_instance)
+};
+
+//robot of null means use the_job.robot
+Dexter.move_until_torque = function (goal_degrees = 90, joint_number = 7, torque_limit = 500, robot=null){
+    if((joint_number !== 6) && (joint_number !== 7)) {
+        dde_error("Dexter.move_until_torque passed joint_number: " + joint_number +
+            "<br/>but only 6 and 7 are valid now.");
+    }
+    return function(){
+        let the_job = this;
+        if(!robot) { robot = the_job.robot; }
+        //at this point, robot is either a dexter_instance OR Dexter (the class)
+        let torque_timeout_ms = 200; //100ms is too short, 300 unnecessarily long
+        out("move_until_torque trying to reach " + goal_degrees +
+            "&deg; or torque " + torque_limit +
+            " in " + torque_timeout_ms + "ms");
+        let first_move;
+        //TODO: This XL-320 stuff should be abstracted away, see Servo.models.XL320.units
+        let deg_per_dynamixel_320_unit = 0.29;
+        let j6_offset = 512;
+        if(joint_number === 6) {
+            let du = Math.round(goal_degrees / deg_per_dynamixel_320_unit) +
+                j6_offset;
+            first_move = robot.set_parameter("EERoll", du);
+        }
+        else if(joint_number === 7) {
+            let du = Math.round(goal_degrees / deg_per_dynamixel_320_unit);
+            first_move = robot.set_parameter("EESpan", du);
+        }
+        this.user_data.torque_clock_start_ms = Date.now();
+        return [first_move,
+            Control.loop(function(){
+                    let ma;
+                    let mt;
+                    let dur_since_start_ms = Date.now() - this.user_data.torque_clock_start_ms;
+                    if(joint_number === 6){
+                        ma = robot.robot_status[Dexter.J6_MEASURED_ANGLE];
+                        mt = robot.robot_status[Dexter.J6_MEASURED_TORQUE];
+                    }
+                    else if(joint_number === 7){
+                        ma = robot.robot_status[Dexter.J7_MEASURED_ANGLE];
+                        mt = robot.robot_status[Dexter.J7_MEASURED_TORQUE];
+                    }
+                    else {
+                        shouldnt("Dexter.move_until_torque passed invalid joint_number of: " + joint_number);
+                    }
+                    if ((dur_since_start_ms > torque_timeout_ms) && (Math.abs(mt) >= torque_limit)) {
+                        out("Torque limit of: " + torque_limit + " reached at: " + mt + ", at " + ma + "&deg;");
+                        return false //stop looping, we're done
+                    }
+                    else if(similar(ma, goal_degrees, 2)) {
+                        out("Target angle of: " + goal_degrees + "&deg; reached at: " + ma + "&deg;, at torque: " + mt);
+                        return false //stop looping, we're done
+                    }
+                    else {
+                        out("Joint " + joint_number + " now at " + ma.toFixed(15) + "&deg; and torque: " + mt + " after " + dur_since_start_ms + "ms");
+                        return true
+                    }
+                },
+                function() {
+                    return robot.get_robot_status()
+                }),
+            function(){
+                //tell the robot to go where it IS, thus stopping its attempt to get to the orig goal
+                //important when we've stopped because we were within a tolerance but not dead on,
+                //or we stopped due to the torque limit
+                if(joint_number === 6) {
+                    let cur_degrees = robot.robot_status[Dexter.J6_MEASURED_ANGLE];
+                    let cur_du = Socket.degrees_to_dexter_units(cur_degrees, 6);
+                    out("Joint 6 set to where it already is: " + cur_degrees + "&deg;.");
+                    return robot.set_parameter("EERoll", cur_du)
+                }
+                else if(joint_number === 7) {
+                    let cur_degrees = this.robot.robot_status[Dexter.J7_MEASURED_ANGLE];
+                    let cur_du = Socket.degrees_to_dexter_units(cur_degrees, 7);
+                    out("Joint 7 set to where it already is: " + cur_degrees + "&deg;");
+                    return robot.set_parameter("EESpan", cur_du)
+                }
+            }
+        ]
+    }
+};
+
+Dexter.prototype.move_until_static = function(goal_degrees = 90, joint_number = 7, degree_tolerance=0.01){
+    let dexter_instance = this;
+    return Dexter.move_until_static(goal_degrees, joint_number, degree_tolerance, dexter_instance)
+};
+
+
+//doesn't need a torque, full strength of servo.   maybe more useful.
+//robot of null means use the_job.robot
+Dexter.move_until_static = function (goal_degrees=20, joint_number = 7, degree_tolerance=0.01, robot=null){
+    if((joint_number !== 6) && (joint_number !== 7)) {
+        dde_error("Dexter.move_until_static passed joint_number: " + joint_number +
+            "<br/>but only 6 and 7 are valid now.");
+    }
+    let prev_mas = [];
+    let prev_mas_full_length = 4; //2 is too short: motor doesn't move enough
+    return function(){
+        out("move_until_static trying to reach " + goal_degrees + "&deg;");
+        let the_job = this;
+        if(!robot) { robot = the_job.robot; }
+        let first_move;
+        let new_du = Socket.degrees_to_dexter_units(goal_degrees, joint_number);
+        if(joint_number === 6) {
+            first_move = robot.set_parameter("EERoll", new_du);
+        }
+        else if(joint_number === 7) {
+            first_move = robot.set_parameter("EESpan", new_du);
+        }
+        return [first_move,
+            Control.loop(function(){
+                    let ma = this.robot.rs.measured_angle(joint_number);
+                    //out("Joint " + joint_number + " now at " + ma + "&deg;")
+                    if (similar(ma, goal_degrees, degree_tolerance)) {
+                        out("Measured angle: " + ma + "&deg; is within: " +  degree_tolerance + " of goal_degrees: " + goal_degrees);
+                        prev_mas = [];
+                        return false
+                    }
+                    else if(prev_mas.length < prev_mas_full_length) {
+                        prev_mas.push(ma);
+                        return true //keep looping
+                    }
+                    else { //we know prev_mas.length == prev_mas_full_length
+                        for(let prev_ma of prev_mas){
+                            if(!similar(ma, prev_ma, degree_tolerance)){
+                                prev_mas.shift(); //take off first elt of prev_mas
+                                prev_mas.push(ma);
+                                return true //continue looping
+                            }
+                        }
+                        //prev_mas and ma are similar so no movement of joint, so we're done
+                        out("last " + (prev_mas_full_length + 1) + " measured angles stopped moving and within: " + degree_tolerance + " of: " + ma +
+                            "&deg;<br/>Prev angles: " + prev_mas.join(", "));
+                        prev_mas = []; //must do or will not be reset when clikcing on job button the 2nd time
+                        return false //done, the usual stop case.
+                    }
+                },
+                function() {
+                    return robot.get_robot_status()
+                }),
+            function(){
+                //tell the robot to go where it IS, thus stopping its attempt to get to the orig goal
+                //important when we've stopped because we were within a tolerance but not dead on,
+                //or we stopped due to the torque limit
+                let ma = this.robot.rs.measured_angle(joint_number);
+                let du = Socket.degrees_to_dexter_units(ma, joint_number);
+                out("Joint " + joint_number + " set to where it is: " + ma + "&deg;");
+                if(joint_number === 6) {
+                    return robot.set_parameter("EERoll", du)
+                }
+                else if(joint_number === 7) {
+                    return robot.set_parameter("EESpan", du)
+                }
+            }
+        ]
+    }
+};
+
+//Error: In Socket.send, attempt to send instruction: 11,-1,1617918232780,,g but still waiting for previous instruction: 9,1,1617917826237,,P,100544.02707910512,208196.21318379667,405642.68474489666,-289838.8979286934,0,693,898
+
+Dexter.prototype.twist = function(goal_degrees){
+    let dexter_instance = this;
+    return Dexter.move_until_static(goal_degrees, 6, undefined, dexter_instance)
+};
+Dexter.twist = function(goal_degrees=0){
+    return Dexter.move_until_static(goal_degrees,  6, undefined)
+};
+
+Dexter.prototype.grasp = function(min_degrees=20){
+    let dexter_instance = this;
+    return Dexter.move_until_static(min_degrees, 7, undefined, dexter_instance)
+};
+
+Dexter.grasp = function(min_degrees=20){
+    return Dexter.move_until_static(min_degrees, 7, undefined)
+};
+
+Dexter.prototype.ungrasp = function(max_degrees=270){ //theoretical limit 296 but without perfect calibration, best to set it lower
+    let dexter_instance = this;
+    return Dexter.move_until_static(max_degrees, 7, undefined, dexter_instance)
+};
+
+Dexter.ungrasp = function(max_degrees=270){ //theoretical limit 296 but without perfect calibration, best to set it lower
+    return Dexter.move_until_static(max_degrees, 7, undefined)
+};
+
+/*
+function(servo_or_id=3, property_name="MODEL") {
+    let robot = Servo //just for testing
+    if (this instanceof Job) {out("job "+this.name);robot = this.robot}
+    if (this instanceof Dexter) {out("robot "+this.name);robot = this}
+    out(robot.name)
+	return function() { //and these parts need to be done at job run time.
+		Dexter.servo_get(servo_or_id, property_name)
+        }
+    }
+*/
+
+/* example
+new Job({ //test
+    name: "test_servos", user_data: {count: 0},
+    do_list: [ IO.out("starting at "+Date())
+        //,Dexter.read_from_robot("#Servo 3 0 2", "servo_status")
+        //,function() { out("servo returned:"+this.user_data.servo_status+" good luck with that") }
+        ,Dexter.servo_get(3, "MODEL") //instead of the above, just do this
+        ,function() {
+            let servo = this.user_data.servo_status;
+            out(servo.id+" is a "+servo.type);
+            out(Servo.servo_id_to_servo(3, this) === this.robot.servos[3]) //test that we did learn it
+        }
+        //,Dexter.dexter1.servo_get(3, "MODEL")() //as expected, fails; there is no dexter1 robot. move to doc example for servo-get
+        //,Dexter.servo_get(2, "MODEL") //as expected, fails; there is no servo id 2.  ,,, move as above
+        ,Dexter.servo_detect(1) //just calls servo_get(id, "MODEL"), if found, servo is added to the robot.
+        //,"S ServoSetX 1, 116, 12, %01%00%00%00" //only if it's a 430  ,, move to doc  for servp_set
+        //,"S ServoSetX 1, 30, 6, %01%00" //only if it's a 320
+        //,"S ServoSet2X 1, 30, 1" //only if it's a 320, can't support a 430's 4 byte position
+        ,Dexter.servo_set(1, "GOAL_POSITION", 400)
+        ,Dexter.servo_set(Dexter.dexter0.servos.roll, "TORQUE", 0) //must specify robot to use named servos. sigh.
+
+        ,function() {let servo_stat = this.user_data.servo_status; out(servo_stat)}
+    ]
+})
+*/
+
+/* Now in testsuites.js
+new TestSuite("servo_interpret_job_get",
+    ['Servo.servo_set(Servo.roll, "GOAL_POSITION", 10)',
+        "[undefined, undefined, undefined, undefined, 'S', 'ServoSetX', 3, 30, 6, '%0A%00', undefined]"
+    ],
+    [`similar(make_ins("S", "ServoSetX", Dexter.dexter0.servos.roll.table.LED.addr, 1),
+        [undefined, undefined, undefined, undefined, "S", "ServoSetX", 25, 1])`,
+        "true"
+    ],
+    [`similar(Servo.interpret_job_get({"user_data": {"servo_status":""}}, 1, 0, 2)
+    	, {"error":"NO RESPONSE"})`
+        , "true"
+        , "failed to detect empty reply"
+    ]
+    ,[`similar(Servo.interpret_job_get({"user_data": {"servo_status":"FF FF FD 00"}}, 1, 0, 2)
+    	, {error: "INCOMPLETE RESPONSE:11 bytes"})`
+        , "true"
+    ]
+    ,[`similar(
+    	Servo.interpret_job_get({"user_data": {"servo_status":"FF FF FD AB                      "}}, 1, 0, 2)
+    	, {error: "BAD HEADER:FF FF FD AB                      "})`
+        , "true"
+    ]
+    ,[`similar(
+    	Servo.interpret_job_get({"user_data": {"servo_status":"FF FF FD 00                      "}}, 1, 0, 2)
+        ,{error:"NOT A STATUS:   "})`
+        , "true"
+    ]
+    ,[`similar(
+    	Servo.interpret_job_get({"user_data": {"servo_status":"FF FF FD 00 01 08 00 55 00           "}}, 1, 0, 2)
+        ,{error: "INCOMPLETE RESPONSE:37 bytes"})`
+        , "true"
+    ]
+    ,[`similar(
+    	Servo.interpret_job_get({"user_data": {"servo_status":"FF FF FD 00 01 08 00 55 80 5E 01 00 00 "}}, 1, 0, 2).type
+        ,"XL320")`
+        , "true"
+    ]
+    ,[`similar(
+    	Servo.interpret_job_get({"user_data": {"servo_status":"FF FF FD 00 01 08 00 55 80 08 04 02 00 "}}, 1, 2, 2).error
+        ,"ERROR: hardware fault.")`
+        , "true"
+    ]
+) */
+//        ,{address: 0, err: 128, error: "ERROR: hardware fault.", hex: "5E 01 00 00 ", id: 1, len: 4, type: "330", value: 350})`
+
+//TestSuite.servo_interpret_job_get.constructor.set_state_and_resume({suites: [TestSuite.servo_interpret_job_get]})
+
 /* Created by Fry on 2/4/16. */
 //https://www.hacksparrow.com/tcp-socket-programming-in-node-js.html
 //import net from "net" //dde4 only needs net pkg on server, not on the browser side.
@@ -33163,6 +34337,7 @@ class Socket$1{
         }
         else { //net_soc_inst should be a WebSocket
             //console.log("send_low_level to WebSocket sending str of: " + str)
+            //platform is probably "browser"
             net_soc_inst.send(str); //was: str // WebSocket send cab take a JS string as its arg.
         }
     }
@@ -33665,7 +34840,7 @@ class Socket$1{
         //console.log("on_receive passed data:")
         //console.log(data)
         if(Array.isArray(data)) {  //hits with returns from dextersim in both dde3 and dde4 //a status array passed in from the simulator
-            let robot_status = data;
+            let robot_status = data;  //normally happens. degrees are in dexter untils but will be comverted to DDE units (degrees) in on_receive_aux
             let oplet = robot_status[Dexter.INSTRUCTION_TYPE];
             this.on_receive_aux(data, robot_status, oplet, payload_string_maybe, dexter_instance);
         }
@@ -34037,26 +35212,55 @@ class DexterSim$1{
         this.robot_name = robot_name;
         this.robot      = Robot[robot_name]; //mostly used by predict_move_dur
         DexterSim$1.robot_name_to_dextersim_instance_map[robot_name] = this;
-        this.angles_dexter_units = [0,0,0,0,0,
+        this._angles_dexter_units = [0,0,0,0,0,
                                    Socket.degrees_to_dexter_units(0, 6), //different from the others because for the others, 0 deg is also 0 dexter units, but not for j6
-                                   50];  //50 which is the new HOME angle so that j7 doesn't overtorque.
-        this.pid_angles_dexter_units = [0,0,0,0,0,0,0];  //last 2 angles are always zero.
+                                   50];  //50 which is the new HOME angle so that j7 doesn't overtorque. Animated A move
+        
+        this.angles_dexter_units = new Proxy(this._angles_dexter_units,{
+            set(obj, prop, value) {
+                if(isNaN(value))
+                {
+                    return false;
+                }
+                obj[prop] = value;
+                return true;
+            }
+        });
+        
+        this.pid_angles_dexter_units = [0,0,0,0,0,0,0];  //last 2 angles are always zero. animated PID
         this.parameters = {}; //record latest set_parameter values for simulator, esp for AngularSpeed
     }
 
+    static degrees_per_radian = 180 / Math.PI
+
     compute_measured_angles_dexter_units(){
-        return Vector.add(this.angles_dexter_units, this.pid_angles_dexter_units)
+        let out = [];
+        for(let i = 0; i < 7; i++)
+        {
+            out.push(Simulate.rad_to_dexter_units(Simulate.measuredAngles[i], i)); //logan orig code
+            //fry replacement1 below failed
+            //let orig_ang = Simulate.rad_to_dexter_units(Simulate.measuredAngles[i])
+            //let fixed_ang = orig_ang * DexterSim.degrees_per_radian
+            //out.push(fixed_ang)
+            //fry replacement2 below also fails. looks like it gets the joint 1 proper value in i (index) 1 instead of i 0, but other values not shifteted right
+            //let orig_ang = Simulate.rad_to_dexter_units(Simulate.measuredAngles[i])
+            //let fixed_ang = orig_ang * 1044 //1044 from experimentation. see dde_apps.robot_status_bug.dde
+            //out.push(fixed_ang)
+        }
+        return out;
     }
 
     compute_measured_angles_degrees(){
-        let ma_du = this.compute_measured_angles_dexter_units();
-        return Socket.dexter_units_to_degrees_array(ma_du)
+        let out = [];
+        for(let i = 0; i < 7; i++)
+        {
+            out.push(Simulate.measuredAngles[i]*180/Math.PI);
+        }
+        return out;
     }
 
     compute_measured_angle_degrees(joint_number){ //joint is 1 thru 7
-        let ma_du = this.angles_dexter_units[joint_number - 1];
-        let ma_deg = Socket.dexter_units_to_degrees(ma_du, joint_number);
-        return ma_deg
+        return Simulate.measuredAngles[joint_number]*180/Math.PI
     }
 
     static is_simulator_running(){
@@ -34247,6 +35451,11 @@ class DexterSim$1{
                 ds_instance.queue_instance.add_to_queue(instruction_array);
                 ds_instance.ack_reply_maybe(instruction_array);
                 break;
+            case "P":
+                let p_ins_args  = instruction_array.slice(Instruction.INSTRUCTION_ARG0, Instruction.INSTRUCTION_ARG7);
+                SimUtils.render_multi(ds_instance, p_ins_args, robot_name, 0,"P");
+                ds_instance.ack_reply_maybe(instruction_array);
+                break;
             case "e": //cause an error. Used for testing only
                 //not needed as ack_reply pulls the error_code out of instruction_array for "e" oplets. let the_error_code = instruction_array[Instruction.INSTRUCTION_ARG0]
                 ds_instance.ack_reply_maybe(instruction_array);
@@ -34268,10 +35477,6 @@ class DexterSim$1{
                 }
                 ds_instance.ack_reply(instruction_array);
                 break;
-            /*case "G": //deprecated. get immediate. The very first instruction sent to send should be  "G",
-                                     //so let it be the first call to process_next_instruction & start out the setTimeout chain
-                ds_instance.add_instruction_to_queue(instruction_array) //stick it on the front of the queue so it will be done next
-                break;*/
             case "h": //doesn't go on instruction queue, just immediate ack
                 ds_instance.ack_reply(instruction_array);
                 break;
@@ -34306,34 +35511,41 @@ class DexterSim$1{
                 ds_instance.queue_instance.add_to_queue(ins_arr_a);
                 ds_instance.ack_reply_maybe(instruction_array); //return the orig "M" array
                 break;
-            case "P": //does not go on queue  //ds_instance.queue_instance.add_to_queue(instruction_array)
+            case "P_old": //does not go on queue  //ds_instance.queue_instance.add_to_queue(instruction_array)
                 //pid_move_all_joints for j6 and 7 are handled diffrently than J1 thru 5.
                 //IF we get a pid_maj for j6 and/or j7, just treat it like
-                // an maj for j6 and j7, ie just more the joints to those locations.
+                // an maj for j6 and j7, ie just move the joints to those locations.
                 //pid_move_all_joints can construct an istruction array that has less than 7 joint angles.
                 //IF a j6 or j7 is NOT present, then don't do anything with j6 and j7 ie don't set it to zero.
                 let pid_ang_du = Instruction.extract_args(instruction_array); //probably will be 5 long but could be 7
+                SimUtils.render_multi(ds_instance, pid_ang_du, robot_name); //not exactly right for p-moves, but ok for first pass with physics engine
+            /*
                 for (let i = 0; i < pid_ang_du.length; i++) {
-                    let new_ang = pid_ang_du[i];
+                    let new_ang = pid_ang_du[i]
                     if (i < 5) {
-                        ds_instance.pid_angles_dexter_units[i] = new_ang;
+                        ds_instance.pid_angles_dexter_units[i] = new_ang
                     } else {
-                        ds_instance.angles_dexter_units[i] = new_ang; //j6 & J7.
+                        ds_instance.angles_dexter_units[i] = new_ang //j6 & J7.
                     }
                 }
-                ds_instance.compute_measured_angles_degrees();
+                let ma_deg = ds_instance.compute_measured_angles_degrees()
+             */
                 //let angle_degrees_array = Socket.dexter_units_to_degrees_array(ds_instance.angles_dexter_units)
                 //let pid_angle_degrees_array = Socket.dexter_units_to_degrees_array(ds_instance.pid_angles_dexter_units)
                 //let sum_degrees_array = Vector.add(angle_degrees_array, pid_angle_degrees_array).slice(0, 5)
-                if (SimUtils.is_simulator_showing()) {
-                    SimUtils.render_j1_thru_j5(ds_instance); //todo this just jumps to the new angles, not move smoothly as it should
+                //if (SimUtils.is_simulator_showing()) {
+                   /* pre_physics engiine code.
+                     SimUtils.render_j1_thru_j5(ds_instance) //todo this just jumps to the new angles, not move smoothly as it should
                     if (pid_ang_du.length > 5) {
-                        SimUtils.render_j6(ds_instance);
+                        SimUtils.render_j6(ds_instance)
                     }
                     if (pid_ang_du.length > 6) {
-                        SimUtils.render_j7(ds_instance); //don't bother to pass xyz and robot.pose as that's only used by simBuild.
-                    }
-                }
+                        SimUtils.render_j7(ds_instance) //don't bother to pass xyz and robot.pose as that's only used by simBuild.
+                    }*/
+                    //in new pys engine, this doesn't work right.
+                    //SimUtils.render_multi(ds_instance, instruction_array, robot_name) //not exactly right for p-moves, but ok for first pass with physics engine
+                   // ds_instance.queue_instance.add_to_queue(instruction_array) //exactly what "a" moves do
+                //}
                 ds_instance.ack_reply(instruction_array);
                 break;
             case "r": //Dexter.read_file. does not go on queue
@@ -34392,7 +35604,7 @@ class DexterSim$1{
                 new_instruction_array[Instruction.INSTRUCTION_TYPE] = "a"; //change from "T" to "a"
                 new_instruction_array.concat(angles_dexter_units);
                 ds_instance.queue_instance.add_to_queue(instruction_array); //just like "a" for now
-
+                break;
             case "w": //write fpga register
                 const write_location = ins_args[0];
                 if (write_location < ds_instance.fpga_register.length) {
@@ -34727,33 +35939,38 @@ class DexterSim$1{
     static robot_name_to_dextersim_instance_map = {}
     static set_interval_id = null
 
-    static change_speed(){
-        /*if(!Job.change_dexter_speed){
-            new Job ({name: "change_dexter_speed",
-                      do_list: [function() {
+    /*static change_speed(){
+        //if(!Job.change_dexter_speed){
+         //   new Job ({name: "change_dexter_speed",
+         //             do_list: [function() {
                           let speed_str = change_dexter_speed_id.value
                           //let index = selected_label.indexOf(" ")
                           //let new_speed_str = selected_label.substring(index + 1)
-                          let new_speed = parseFloat(speed_str)
-                          out("Dexter." + Dexter.default.name + " AngularSpeed set to " + new_speed + " degrees per second.", "green")
-                          change_dexter_speed_id.value = 0 //set back to the "header" so can change to any speed next time. Note any job can change the speed during it.
-                          return Dexter.set_parameter("AngularSpeed", new_speed)
-                      }
-                      ]})
-        }
-        Job.change_dexter_speed.start()
-         */
-        let speed_str = change_dexter_speed_id.value;
+         //                 let new_speed = parseFloat(speed_str)
+         //                 out("Dexter." + Dexter.default.name + " AngularSpeed set to " + new_speed + " degrees per second.", "green")
+        //                  change_dexter_speed_id.value = 0 //set back to the "header" so can change to any speed next time. Note any job can change the speed during it.
+         //                 return Dexter.set_parameter("AngularSpeed", new_speed)
+        //              }
+        //              ]})
+        //}
+        //Job.change_dexter_speed.start()
+
+        let speed_str = change_dexter_speed_id.value
         //let index = selected_label.indexOf(" ")
         //let new_speed_str = selected_label.substring(index + 1)
-        let new_speed = parseFloat(speed_str);
-        out("Dexter." + Dexter.default.name + " AngularSpeed set to " + new_speed + " degrees per second.", "green");
-        change_dexter_speed_id.value = 0; //set back to the "header" so can change to any speed next time. Note any job can change the speed during it.
-        let new_speed_arcsecs = new_speed * 3600;
-        let robot_name = Dexter.default.name;
-        let ds_instance =  DexterSim$1.robot_name_to_dextersim_instance_map[robot_name];
-        ds_instance.parameters["AngularSpeed"] = new_speed_arcsecs;
-    }
+        let new_speed = parseFloat(speed_str)
+        out("Dexter." + Dexter.default.name + " AngularSpeed set to " + new_speed + " degrees per second.", "green")
+        change_dexter_speed_id.value = 0 //set back to the "header" so can change to any speed next time. Note any job can change the speed during it.
+        let new_speed_arcsecs = new_speed * 3600
+        let robot_name = Dexter.default.name
+        let ds_instance =  DexterSim.robot_name_to_dextersim_instance_map[robot_name]
+        ds_instance.parameters["AngularSpeed"] = new_speed_arcsecs
+    }*/
+   static change_speed() {
+       let speed_str = change_dexter_speed_id.value;
+       let speed = parseFloat(speed_str);
+       Simulate.simulationRate = speed;
+   }
     
 }
 
@@ -34891,12 +36108,12 @@ class Simqueue$1{
                 this.start_running_instruction_if_any();
             }
             let j6_du = instruction_array[Instruction.INSTRUCTION_ARG5];
-            if(j6_du !== undefined) { //if it is undefined, no change so do nothing
-                this.start_running_j6_plus_instruction(6, j6_du);
+            if(!isNaN(j6_du)) { //if it is undefined, no change so do nothing
+                Simulate.aMoveTargetAngles[5] = SimUtils.degrees_to_radians((j6_du - Socket.J6_OFFSET_SERVO_UNITS)* Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
             }
             let j7_du = instruction_array[Instruction.INSTRUCTION_ARG6];
-            if(j7_du !== undefined) {
-                this.start_running_j6_plus_instruction(7, j7_du);
+            if(!isNaN(j7_du)) {
+                Simulate.aMoveTargetAngles[6] = SimUtils.degrees_to_radians((j7_du)* Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
             }
         }
     }
@@ -35614,32 +36831,47 @@ class SimUtils$1{
         //onsole.log("Dexter.default: " + Dexter.default)
         //onsole.log("Dexter.dexter0: " + Dexter.dexter0)
         if (Dexter.default.name === robot_name){
-            let dur_to_show = Math.round(dur_in_ms / 100); //in 10ths of seconds, rounded
-            dur_to_show = "" + dur_to_show;
-            if (dur_to_show.length > 1) {
-                let dur_to_show_secs = dur_to_show.substring(0, dur_to_show.length - 1);
-                dur_to_show = dur_to_show_secs + "." + last(dur_to_show);
+            if(move_kind === "a" || move_kind == "P") {
+                //do stuff
+                Simulate.dexter_sim_instance = ds_instance;
+                for(let i = 0; i < new_angles_dexter_units.length; i++)
+                {
+                    if(!isNaN(new_angles_dexter_units[i]))
+                    {
+                        if(i < 5) // Joints 1-5
+                        {
+                            if(move_kind == "a")
+                            {
+                                Simulate.aMoveTargetAngles[i] = this.arc_seconds_to_radians(new_angles_dexter_units[i]);
+                            }
+                            else if (move_kind == "P")
+                            {
+                                Simulate.PIDGoalOffsetAngles[i] = this.arc_seconds_to_radians(new_angles_dexter_units[i]);
+                            }
+                        }
+                        else if(i == 5) // Joint 6
+                        {
+                            Simulate.aMoveTargetAngles[i] = this.degrees_to_radians((new_angles_dexter_units[i] - Socket.J6_OFFSET_SERVO_UNITS)* Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+                        }
+                        else // Joint 7
+                        {
+                            Simulate.aMoveTargetAngles[i] = this.degrees_to_radians(new_angles_dexter_units[i] *  Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+                        }
+                    }
+                }
+                if(move_kind == "a")
+                {
+                    Simulate.endIntructionOnTargetReached = true;
+                }
+                Simulate.atTarget = false;
             }
-            else { dur_to_show = "0." + dur_to_show; }
-            if(this.is_simulator_showing()) {
-                sim_pane_move_dur_id.innerHTML = dur_to_show;
+            else
+            {
+                ds_instance.queuej_instance.stop_ongoing = false;
+                ds_instance.queuej_instance.done_with_instruction();
             }
-            let total_frames = Math.ceil(dur_in_ms / SimUtils$1.ms_per_frame); //total_frames might be 0. that's ok.
-            let js_inc_per_frame = [];
-            for(let joint = 0; joint < new_angles_dexter_units.length; joint++){
-                let j_diff = new_angles_dexter_units[joint] - this.prev_joint_angles[joint];
-                js_inc_per_frame.push(j_diff / total_frames);
-            }
-            //let prev_js = this.prev_joint_angles.slice(0)
-            let rob = Dexter[robot_name];
-            let prev_js = ds_instance.angles_dexter_units.slice(); //must copy because render_multi is going to continuous update mesured_angels per frame and we want to capture the prev_js and keep it constant
-            //console.log("calling render_multi_frame first time with new_angles as: " + new_angles_dexter_units + " prev_js: " + prev_js + " js_inc_per_frame: " + js_inc_per_frame)
-            SimUtils$1.render_multi_frame(ds_instance, new_angles_dexter_units, prev_js, js_inc_per_frame, total_frames, 0, rob, move_kind); //beginning an all but last rendering
 
-            //used by render_once_but_only_if_have_prev_args\
-            this.prev_joint_angles     = new_angles_dexter_units;
-            //SimUtils.prev_robot_status = robot_status //not use by  render_multi or render_multi_frame
-            SimUtils$1.prev_robot_name   = robot_name;
+
         }
         else {
             setTimeout(function(){
@@ -35764,6 +36996,7 @@ class SimUtils$1{
         this.render_joints(angle_degrees);
         return angle_degrees
     }
+    
 
     static render_joints_process_arg_list(src){
         let split_src = src.split(",");
@@ -35837,7 +37070,7 @@ class SimUtils$1{
         //if(this.is_simulator_showing()) {
         //    Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
         //}
-        SimUtils$1.render();
+        // SimUtils.render()
     }
 
     //joint number is 1 thru 7
@@ -35849,7 +37082,7 @@ class SimUtils$1{
             let id_str = "J" + joint_number;
             if(this.is_simulator_showing()) {
                 Simulate.sim[id_str].rotation[y_or_z] = rads * -1;
-                globalThis["sim_pane_j" + joint_number + "_id"].innerHTML = j_angle_degrees_rounded;
+                globalThis["sim_pane_j" + joint_number + "_id"].innerHTML = j_angle_degrees_rounded + "&deg;";
             }
         }
         else if(joint_number === 6){
@@ -35859,7 +37092,7 @@ class SimUtils$1{
                 if (Simulate.sim.J6) {
                     Simulate.sim.J6.rotation.z = rads;
                 }
-                sim_pane_j6_id.innerHTML = j_angle_degrees_rounded;
+                sim_pane_j6_id.innerHTML = j_angle_degrees_rounded  + "&deg;";
             }
         }
         else if(joint_number === 7){
@@ -35871,7 +37104,7 @@ class SimUtils$1{
                     new_xpos *= 10;
                     Simulate.sim.J7.position.setX(new_xpos); //see https://threejs.org/docs/#api/en/math/Vector3
                 }
-                sim_pane_j7_id.innerHTML = j_angle_degrees_rounded;
+                sim_pane_j7_id.innerHTML = j_angle_degrees_rounded  + "&deg;";
             }
         }
     }
@@ -36090,9 +37323,9 @@ class SimUtils$1{
             if (Simulate.sim.J6) {
                 Simulate.sim.J6.rotation.z = rads;
                 //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
-                SimUtils$1.render();
+                // SimUtils.render()
             }
-            sim_pane_j6_id.innerHTML = j_angle_degrees_rounded;
+            sim_pane_j6_id.innerHTML = j_angle_degrees_rounded  + "&deg;";
         }
     }
 
@@ -36108,9 +37341,9 @@ class SimUtils$1{
                 //out("J7 j7_angle_degrees: " + j7_angle_degrees + " new xpos: " + new_xpos)
                 Simulate.sim.J7.position.setX(new_xpos); //see https://threejs.org/docs/#api/en/math/Vector3
                 //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
-                SimUtils$1.render();
+                // SimUtils.render()
             }
-            sim_pane_j7_id.innerHTML = j7_angle_degrees_rounded;
+            sim_pane_j7_id.innerHTML = j7_angle_degrees_rounded  + "&deg;";
             if (SimObj && SimObj.user_objects && SimObj.user_objects.length > 0) {
                 let rob        = ds_instance.robot;
                 let rob_pose   = rob.pose;
@@ -36148,20 +37381,12 @@ class SimUtils$1{
     }*/
 
     static render(){
-        this.render_used_in_loop(); //if comment this out then comment in related code at bottom of Simulate.init_simulation
+        console.log("WARNING: RENDER FUNCTION CALLED!");
+        //if comment this out then comment in related code at bottom of Simulate.init_simulation
         //but when I comment this out and leave in the use of render_used_in_loop
         //bottom of Simulate.init_simulation, the rednering of Dexter in sim pane
         //is all screwed up with missing pieces and alignment.
         //So seems rendant to have both but that's what seems to work.
-    }
-
-    static render_used_in_loop(){
-        if (this.is_simulator_showing()) {
-            if(globalThis.interactionManager) {
-                interactionManager.update();
-            }
-            Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera);
-        }
     }
 
 
@@ -36965,6 +38190,16 @@ class DDEFile$1 {
     //from https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/Synchronous_and_Asynchronous_Requests
     //scynchronous, bypasses htttpd server. Often fails due to CORS, but
     //will work when requesting pages from server that served DDE4.
+    //when looking at the url ending in index.html of runn ing dde4 in the browser,
+    //such as https://cfry.github.io/dde4/dde/index.html or
+    //http://localhost/dde/index.html#.
+    //if we pass in to get_page a url that does NOT begin with a slash,
+    // the full url of the page that will be retrieved is
+    //the part of the url sans "index.html"
+    //and appended with the passed in url.
+    //example: pass in "examples/opencv_blur.js" and get page at:
+    //  "https://cfry.github.io/dde4/dde/examples/opencv_blur.js" or
+    //  "http://localhost/dde/dde/examples/opencv_blur.js"
     static get_page(url){
         let request = new XMLHttpRequest();
         request.open('GET', url, false);  // `false` makes the request synchronous
@@ -37019,11 +38254,25 @@ class DDEFile$1 {
         }
     }
 
+    //from https://dmitripavlutin.com/timeout-fetch-request
+    static async fetchWithTimeout(resource, options = {}) {
+        const { timeout = 8000 } = options;
 
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+
+        const response = await fetch(resource, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(id);
+
+        return response;
+    }
 
     //callback is optional. If not passed, return a promise
     //if passed, the callback is called with 2 args,
-    //err (default null meaning no error, and content (ie the string of the content of the file
+    //err (default null meaning no error), and content (ie the string of the content of the file)
     //note: assumes Node_server is up and working (unlike DDE3 which has to check with get_page)
     static async read_file_async(path, callback){
         if (path === undefined) {
@@ -37036,13 +38285,23 @@ class DDEFile$1 {
         //path = this.add_default_file_prefix_maybe(path)
         //let full_url = this.protocol_and_host() +  "/edit?edit=" + path
         console.log("read_file_async fetching: " + full_url);
-        let file_info_response = await fetch(full_url); //,  {mode: 'no-cors'}) // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
-        if(file_info_response.ok) {
-            let content = await file_info_response.text();
-            return this.callback_or_return(callback, content, path)
+
+        try {
+            let file_info_response = await this.fetchWithTimeout(full_url, {timeout: 3000}); //,  {mode: 'no-cors'}) // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
+            if (file_info_response.ok) {
+                let content = await file_info_response.text();
+                return this.callback_or_return(callback, content, path)
+            } else {
+                this.callback_or_error(callback, "DDEFile.read_file_async of: " + path + " got error: " + file_info_response.status, path);
+            }
         }
-        else {
-            this.callback_or_error(callback, "DDEFile.read_file_async of: " + path + " got error: " + file_info_response.status, path);
+        catch(err){  //after 1 minute of no response, err.message often is: 'Failed to fetch'
+            //callback(err, "")
+            this.callback_or_error(callback,
+                "DDEFile.read_file_async with path: " + path + " and error of: " + err.message,
+                  path); //note
+               //here often file_info_response will be undefined so don't try to get anything out of that or that will cause' +
+               //yet anoother error'
         }
     }
 

@@ -48,6 +48,29 @@ new TestSuite("Utils.is_array_of_numbers",
     ["Utils.is_array_of_numbers([10, 20], null, 15, 30)", "false"]
 )
 
+new TestSuite("Utils.string_to_number_smart",
+    ["Utils.string_to_number_smart(123)", "123"],
+    ["Utils.string_to_number_smart(123.4)", "123.4"],
+    ['Utils.string_to_number_smart("1239")', "1239"],
+    ['Utils.string_to_number_smart("123.9")', "123.9"],
+    ['Utils.string_to_number_smart("qaz")', "false"],
+    ['Utils.string_to_number_smart("12qwe")', "false"],
+    ['Utils.string_to_number_smart("aa43")', "false"],
+    ['Utils.string_to_number_smart("43K")', "43000"],
+    ['Utils.string_to_number_smart("43M")', "43000000"],
+    ['Utils.string_to_number_smart("7B")', "7000000000"],
+    ['Utils.string_to_number_smart("7.2B")', "7200000000"],
+    ['Utils.string_to_number_smart("2T")', "2000000000000"],
+    ['Utils.string_to_number_smart("433X")', "false"],
+    ['Utils.string_to_number_smart("-432")', "-432"],
+    ['Utils.string_to_number_smart("+433")', "433"],
+    ['Utils.string_to_number_smart("$433")', "false"],
+    ['Utils.string_to_number_smart("433k")', "false"],
+    ['Utils.string_to_number_smart("433,127")', "433127"],
+    ['Utils.string_to_number_smart("432.")', "432"],
+    ['Utils.string_to_number_smart("  434 ")', "434"]
+)
+
 new TestSuite("Utils.starts_with_one_of",
     ['Utils.starts_with_one_of("green", ["blue", "gre"])', '"gre"'],
     ['Utils.starts_with_one_of("purple", ["black"])', "false"],

@@ -7164,8 +7164,10 @@ proportional–integral–derivative controller</a>.<br/>
             <b>goal_degrees</b> A number. Default: <code>90</code><br/>
             <b>joint_number</b> 6 or 7.   Default: <code>7</code><br/>
             <b>torque_limit</b> A number. Default: <code>500</code><br/>
-            <i>Example:</i>
-            <pre><code>new Job({name: "move_ee",
+            <i>Example:</i><br/>
+            <span style="color:red;">Caution: this example causes the simulator to
+                loop forever but you may use it on a real robot.</span>
+            <pre><code title="not in TestSuite">new Job({name: "move_ee",
          do_list: [Dexter.move_until_torque(45, 6, 450)]
 }) </code></pre>
         </details>
@@ -7176,7 +7178,7 @@ proportional–integral–derivative controller</a>.<br/>
             If joint 6 or 7 is blocked from moving, it will overheat if it continues to try to
             move for several seconds. This can happen when j7 gripper is closed as it can be,
             or joint 6 is trying to twist a bolt that's frozen.
-            This is often more convenient to use than move_until_torque.
+            This is often more convenient to use than move_until_torque.<br/>
             <i>Parameters:</i><br/>
             <b>goal_degrees</b>     A number. Default: <code>20</code><br/>
             <b>joint_number</b>     A number. Default: <code>7</code><br/>
@@ -11133,21 +11135,18 @@ The class <code>Math</code> has quite a few more constants and functions
 including trigonometry and exponents.<br/>
 Eval <code>Math</code> to see them.
 <p></p>
-<code>"mathjs"</code> is an npm package containing a large number of functions.
+<code>mathjs</code> is an npm package containing a large number of functions.
 It is built-in to DDE. It supports
 numbers, big numbers, complex numbers, fractions, units, strings,
 arrays, matrices, eigenvalues and symbolic math.<br/>
 <a href="#" onclick='browse_page("https://mathjs.org/")'>Overview</a>
 <a style="margin-left:20px;" href="#" onclick='browse_page("https://mathjs.org/docs/reference/functions.html")'>Function Reference</a>
 <p></p>
-<i>Examples:</i><br/>
-Initialize "math" to the class containing the mathjs functions<br/>
-<code>DDEFile.dynamic_import("mathjs", "math")</code>
+<i>Example:</i><br/>
+<code>mathjs.hypot(3, 4)</code> => <samp>5</samp>
 <p></p>
-Eval <code>math</code>  to inspect the list of constants and functions available<br/>
-<code>math.hypot(3, 4)</code> => <samp>5</samp>
-<p></p>
-There's a lot more math libraries in npm.
+Eval <code>mathjs</code>  to inspect the list of constants and functions available<br/>
+There's a lot more math libraries at <a target="_blank"  href="https://www.npmjs.com">https://www.npmjs.com/</a>
 <!--Choose File menu/Manage npm.
 Type in "math" or the name of some math function like "svd", and
 click the <button>search</button> button. This will show you a page
@@ -13811,7 +13810,7 @@ OpenAI.make_text("powers of 2 as numbers",
                redundant numbers to what you desire.
         </details> <!-- end make_text -->
         <details class="doc_details" id="OpenAI.text_to_data_doc_id"><summary>OpenAI.text_to_data</summary>
-                   GPT returns <i>prose</i>. It is intended for humans to read.
+                   GPT normally returns <i>prose</i>. It is intended for humans to read.
                    To its credit, its friendly, chatty text, similar to how a person would
                    normally speak. But that's bad for computer consumption: ambiguous,
                    verbose, not definitive data. <code>OpenAI.text_to_data</code>
@@ -13820,12 +13819,34 @@ OpenAI.make_text("powers of 2 as numbers",
                    intended for further processing by JavaScript.
                    <p/>
                    <i>Parameters:</i><br/>
-                   <b>prompt_or_env</b> A string or an envelop object. Typically the result of a request to GPT.<br/>
-                   <b>response</b> Default value: null. Typically a string, generated that is the response to
-                    a call to OpenAI. If prompt_or_env is an envelope, response is ignored.
-                   <br/>
+                   <b>prompt_or_env</b> Default: <code>null</code>. A string or an envelope object. Typically the result of a request to GPT.<br/>
+                   <b>response</b> Default value: <code>null</code>. Typically a string that is the response to
+                    a call to <code>OpenAI.make_text</code>. If prompt_or_env is an envelope, response is ignored.
+                   <p></p>
+                   If both prompt_or_env or response are null (their default values),
+                   then the previous envelope and response are used.
+                   If there is no previous envelope or response (as when you start up DDE),
+                   calling this function will error.
+                   <p></p>
                    Returns an object with lots of information
                    extracted from the text, in a format suitable for JavaScript.
+                   You can inspect the data returned to see all the fields.
+                   There are about 20 top level name-value pairs.
+                   Most of them are useful only in specific situations.
+                   Here's a few of the most useful:
+                   <ul><li><b>numbers</b> An array of all the numbers in the response.</li>
+                       <li><b>code</b> An object with the code in the response.
+                            The names in this object are the names of programming languages
+                            such as <i>javascript</i>, <i>json</i>, <i>python</i>. Usually
+                            code in a programming language has been requested in the prompt.
+                            The values of these fields are arrays of strings that represent
+                            the snippets of code requested.</li>
+                       <li><b>json_objects</b> An array of json objects parsed from the json code
+                              under the code field.
+                       </li>
+                   </ul>
+            <p></p>
+            <i>Examples:</i><br/>
 <pre><code title="not in TestSuite">OpenAI.make_text("first 10 power of 2",
    function(envelope){
      out(OpenAI.envelope_to_response(envelope))
@@ -13840,7 +13861,11 @@ OpenAI.make_text("powers of 2 as numbers",
                  to <code>Plot.show</code> for a graphical representation of the numbers array.
                  <i>Please</i> take a close look at the inspected data to understand what data <code>OpenAI.text_to_data</code> gives you
                    easy access to.
-         </details>
+            <p></p>
+            <code>OpenAI.text_to_data().json_objects[0]</code><br/>
+            Returns the first JSON object in the response, provided there
+            is any.
+         </details> <!-- end of OpenAI.text_to_data -->
 
 
      <details class="doc_details" id="OpenAI.recursive_doc_id"><summary>OpenAI.recursive</summary>

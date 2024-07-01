@@ -588,8 +588,11 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
     //beware, this method uses "this" to mean the subject it was called with, not SW
     static submit_window(event){
         // descriptions of x & y's: http://stackoverflow.com/questions/6073505/what-is-the-difference-between-screenx-y-clientx-y-and-pagex-y
-        let subject_elt = this
-        if(this.classList.contains("modebar-btn")) { //user clicked on an icon at the top of a Plot window
+        let subject_elt = ((event instanceof Event) ? event.target : this)
+        if(!subject_elt instanceof HTMLElement){
+            shouldnt("submit_window passed non event as its first arg, or non-dom-element for its subuect.")
+        }
+        if(subject_elt.classList && subject_elt.classList.contains("modebar-btn")) { //user clicked on an icon at the top of a Plot window
             return //so don't do stopPropagation, let its normal processing happen
         }
         event.stopPropagation();

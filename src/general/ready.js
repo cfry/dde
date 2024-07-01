@@ -1931,7 +1931,6 @@ window_modify_id.onclick=function(){Editor.insert(
           })
           */
 
-          //SimBuild.init()
           OpenAI.init() //set's gpt button onclick and maybe the configuration, so needs
           //to be after DDE_DB init
 

@@ -286,9 +286,9 @@ class dui2 {
         //let hidden = '<input type="hidden" name="factor_to_multiply_x_px_by" value="' + factor_to_multiply_x_px_by + '"/>' +
         //             '<input type="hidden" name="max_x" value="' + max_x + '"/>' //used to compute both x and y
         //warning: circle has no "name" property. If you pass one, it will be ignored. stupid design. So use "id", but beware, it may not be unique
-        let xy_loc_circle_html = '<circle id="xy_2d_slider" cx="0" cy="0" r="5" fill="#0F0" class="draggable" data-oninput="true" ' +
+        let xy_loc_circle_html = '<circle id="xy_2d_slider" cx="0" cy="0" r="8" fill="#0F0" class="draggable" data-oninput="true" ' +
 
-            'style="stroke:black; stroke-width:1;"><title>The draggable X,Y location of the Dexter end effector.</title></circle>'
+            'style="stroke:black; stroke-width:1;"><title>The draggable X,Y location of the Dexter end effector.\nStay within the white donut area.</title></circle>'
         let outer_circle_html = '<circle id="outer_circle" cx="0" cy="0" r="100" fill="white" ' +
             'style="stroke:black; stroke-width:1;"><title>This white donut represents the X,Y locations that the Dexter end effector can reach at the current Z location.</title></circle>'
         let inner_circle_html = '<circle id="inner_circle" cx="0" cy="0" r="100" fill="' + dui2.xy_background_color + '" ' +
@@ -373,7 +373,7 @@ class dui2 {
             }
             else if (joint_number === 7) {
                 min = 50  //from Fry experimentation
-                max = 200
+                max = 270
                 val = 50  //min val, fingers closed
             }
             // val = 0 //= RS_inst.measured_angle(joint_number) //these will be set in update_all.

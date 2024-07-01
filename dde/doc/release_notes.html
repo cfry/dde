@@ -1,6 +1,137 @@
 <summary class="doc_top_level_summary">Release Notes</summary>
  <div style='font-size:16px;'>
 
+<details class="doc_details"><summary>v 4.2.2, Jul 1, 2024</summary>
+Highlights: Simulator extended with Physics Engine.<br/>
+    Improvements to creating Objects in the Simulator.<br/>
+    GPT interface extended.<br/>
+    Safari Browser fixes for displaying DDE4.<br/>
+    <i>How to Think Like a Computer</i> article example bug fixes, etc.<br/>
+    Control.if Job instruction added.<br/>
+    Output pane header button "Run" improved (for "Jobless" instructions).<br/>
+    Talk: numerous improvements.<br/>
+    Previous versions of DDE4 now linked to from Front Page.
+<ul>
+    <li>Bugs fixed when viewing DDE4 in the Safari browser. Maybe not perfect
+        but way better than previously. We still recommend Chrome browser, but if you
+        can't use that, Safari will mostly work, at least in simulation mode
+        for Jobs. Specific fixes for Safari:<br/>
+        - Welcome dialog: checkmarks fixed.<br/>
+        - Dexter UI : fixed the vertical z axis slider.
+    </li>
+    <li><i>How to Think Like a Computer</i> Article
+        <ul>
+            <li>removed obsolete video reference at top of rticle.<l/i>
+            <li>Fixed some bugs in the example code for constructing the <code>eval0</code> function.</li>
+            <li>This article is now part of the standard test suite, joining User Guide and Ref Man,
+                so all of its code examples will be automatically tested for each release.</li>
+            </ul>
+     </li>
+
+    <li>Improved documentation for <code>Control.wait_until</code> for a first argument of "new_instruction".</li>
+    <li>Fixed a complex bug in Job.do_next_item when handling
+        <code>Control.wait_until("new_instruction")</code></li>
+    <li>New Job instruction <code>Control.if</code> to enable you to easily conditionally
+        include instructions in the do_list.
+        Documented in Ref Man/Robot/Robot Instructions/Control/if</li>
+    <li>Made a 2nd, more complete code example for <code>Control.stop_job</code> in the ref man.</li>
+    <li>Now when a promise is on the do_list and it resolves to a do_list item,
+        that item is inserted into the do_list right below the promise.</li>
+    <li>Instruction.is_do_list_item is now more accurate</li>
+
+    <li> In Ref man, the documentation for <code>show_window</code> now has a link to the Human
+     Instructions section. The doc for <code>Human instructions</code> has been slightly
+     bolstered to make its connection to the <code>show_window</code> function clearer.</li>
+    <li> DDE menu bar/insert/Machine Vision/ All 8 items now work.
+     the 7 actual examples insert into the editor, eval without error,
+     and do what they're supposed to do. (pop up interactive <code>show_window</code>
+     that do an image processing task).</li>
+     <li>In the Dexter UI Steptorial, fixed the ordering of the pop-up dialogs so that
+     clicking the home button later in the sequence when there is no selection
+     in the editor pane DOESN'T cause the source code of the Job to get modified
+     erroneously with the home position.
+    <li>Bug fix: Insert menu/Machine Vision/ items now work, i.e. choosing them inserts
+     code into the Editor that can be evaluated to show examples of using <code>OpenCV</code>
+     for image analysis and modification.</li>
+
+    <li>New loading screen to hide page being constructed during load.</li>
+    <li>Extended the Ref Man/Job/Definition Time vs Run Time/Functions on the do_list.</li>
+    <li>Now the show_window callback argument's object includes
+     the clicked_dom_elt and clicked_option_dom_elt (if any).
+     This gives the user more flexibility in handling user input.</li>
+
+    <li>Simulator
+       <ul>
+           <li>New "Orbit controls" for moving camera in the simulator pane:
+               <ul>
+                   <li><b>Rotate table</b>: mouse-down then drag.</li>
+                   <li><b>Zoom</b>: alt-down or option-down then mouse-down then
+                       drag up to make Dexter bigger, drag down to make smaller.
+                       Mouse-wheel, also zooms.</li>
+                   <li><b>Pan</b>: shift down, then mouse-down,
+                       then drag.</li>
+               </ul>
+           </li>
+           <li>Removed the Sim Pane header button "Demo" as didn't work and no longer very useful if it did.</li>
+           <li>Renamed the button "SimBuild" to <b>MakeObjects</b> and modified the documentation accordingly.</li>
+           <li>New <b>Physics Engine</b> in the simulator. Objects inserted into the Sim pane
+           now have gravity, inertia, and collision with other objects IFF they
+           are made to be "dynamic" in the MakeObjects dialog.</li>
+           <li>MakeObjects dialog "show" widget now can show "collider bounding boxes" around objects.</li>
+           <li>In Dexter UI made green dot larger for easier dragging in x and y.</li>
+           <li>Table labels with grid lines, reach radius,
+               labels for left, right, etc, New X,Y,Z axis indictor. New "meter sticks".</li>
+       </ul>
+    </li>
+    <li>The Output pane header button "Run" is now much more useful.
+        Selected source code is turned into a do_list item and run on an internal Job.</li>
+    </li>
+
+    <li>GPT Interface
+     <ul><li>Support for model: gpt-4o (that's literally gpt-4 with a lower case "o" because
+             OpenAI doesn't know what a version number is.)</li>
+         <li>GPT Dialog: you can now select an image file to upload with your prompts.</li>
+         <li><code>OpenAI.text_to_data</code> has been extended to capture multiple code snippets for a
+             given language.
+             <span style="color:red;">Warning: this is slightly incompatible with the previous version, which
+              could only handle one code snippet per language (per response).</span></li>
+         <li><code>OpenAI.text_to_data</code> has been extended to parse any JSON code snippets in the response
+             and parse them into JSON objects. The data structure returned by <code>OpenAI.text_to_data</code>
+             as a new top level field: <code>json_objects</code> whose value is an array of the
+             json objects in the response. This facilitates using GPT responses in your JavaScript code.
+             See Ref Man/GPT Interface/Programming Interface/
+             OpenAI.make_text</li>
+         </ul>
+    </li>
+     </ul>
+    <li><code>mathjs</code>, <code>DH</code> and <code>HiMem</code> are now global names.
+        You should not have to require these from now on.</li>
+    <li><b>Talk</b> improvemts: bug fixes, extensions including new "Command Line" for text I/O.</li>
+    <li> <code>DDEFile.read_file_async</code> now has 3 second time-out
+        when calling fetch to speed up non-connected robot syndrome. Uses JS: <code>AbortController</code></li>
+    <li>When retrieving Defaults.make_ins, checks TWO different places on Dexter before resorting to
+        the the generic default-defaults.</li>
+    <li>The unnecessary directory prefix: /srv/samba/share/ now not used for getting the Defaults.make_ins file.</li>
+    <li><code>Job.constructor</code> robustified.</li>
+    <li><b>Autocomplete</b> now in the Editor, Type in most of a long word and the type Cntr-/
+    (hold down Control and type slash.) to get a menu of possible completions.
+    See User Guide/User Interface/Editor Pane/Auto-Completion for details.
+    Needs testing in WinOS so someone please try it out and give me feedback.</li>
+    <li>The new servo.js has been ported from DDE3 to DDE4.</li>
+    <li>Fixed bug in <code>show_window</code> that prevented "clickable" class dom elts from
+    calling the show_window callback function when they were clicked on.</li>
+    <li> Dexter UI steptorial extended to have a new pop-up which says:
+    To get ready for running the Job we have just created, we need to click
+    the highlighted <b>home</b> button.
+    This should be done the first time you want to run a Job
+    AFTER you have used the Dexter UI to move Dexter.</li>
+    <li>Dexter UI steptorial improved to move the pop-up that describes the HELP
+    button (near the end of the steptoria) to the left of the button so that
+    you can see it and the pop-up at the same time.</li>
+    <li>Front page now has links to previous versions of DDE4.</li>
+
+</details>
+
 <details class="doc_details"><summary>v 4.2.1, May 2, 2024</summary>
      Highlights: Talk to Dexter. speak improvements, DH processing, Defaults.make_ins
     file retrieval.

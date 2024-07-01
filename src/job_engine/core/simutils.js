@@ -327,7 +327,7 @@ class SimUtils{
             let id_str = "J" + joint_number
             if(this.is_simulator_showing()) {
                 Simulate.sim[id_str].rotation[y_or_z] = rads * -1
-                globalThis["sim_pane_j" + joint_number + "_id"].innerHTML = j_angle_degrees_rounded
+                globalThis["sim_pane_j" + joint_number + "_id"].innerHTML = j_angle_degrees_rounded + "&deg;"
             }
         }
         else if(joint_number === 6){
@@ -337,7 +337,7 @@ class SimUtils{
                 if (Simulate.sim.J6) {
                     Simulate.sim.J6.rotation.z = rads
                 }
-                sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
+                sim_pane_j6_id.innerHTML = j_angle_degrees_rounded  + "&deg;"
             }
         }
         else if(joint_number === 7){
@@ -349,7 +349,7 @@ class SimUtils{
                     new_xpos *= 10
                     Simulate.sim.J7.position.setX(new_xpos) //see https://threejs.org/docs/#api/en/math/Vector3
                 }
-                sim_pane_j7_id.innerHTML = j_angle_degrees_rounded
+                sim_pane_j7_id.innerHTML = j_angle_degrees_rounded  + "&deg;"
             }
         }
     }
@@ -571,7 +571,7 @@ class SimUtils{
                 //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
                 // SimUtils.render()
             }
-            sim_pane_j6_id.innerHTML = j_angle_degrees_rounded
+            sim_pane_j6_id.innerHTML = j_angle_degrees_rounded  + "&deg;"
         }
     }
 
@@ -589,7 +589,7 @@ class SimUtils{
                 //Simulate.sim.renderer.render(Simulate.sim.scene, Simulate.sim.camera)
                 // SimUtils.render()
             }
-            sim_pane_j7_id.innerHTML = j7_angle_degrees_rounded
+            sim_pane_j7_id.innerHTML = j7_angle_degrees_rounded  + "&deg;"
             if (SimObj && SimObj.user_objects && SimObj.user_objects.length > 0) {
                 let rob        = ds_instance.robot
                 let rob_pose   = rob.pose
@@ -627,7 +627,6 @@ class SimUtils{
     }*/
 
     static render(){
-        debugger;
         console.log("WARNING: RENDER FUNCTION CALLED!")
         //if comment this out then comment in related code at bottom of Simulate.init_simulation
         //but when I comment this out and leave in the use of render_used_in_loop

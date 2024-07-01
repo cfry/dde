@@ -331,7 +331,7 @@ new TestSuite("Instruction.is_do_list_item",
     ['Instruction.is_do_list_item("abc")', "true"],
     ["Instruction.is_do_list_item(true)", "false"],
     ["Instruction.is_do_list_item({a: 1})", "false"],
-    ["Instruction.is_do_list_item([5, 6])", "true"],
+    ["Instruction.is_do_list_item([5, 6])", "false"],
     ["Instruction.is_do_list_item(null)", "true"],
     ["Instruction.is_do_list_item(undefined)", "true"],
     ["Instruction.is_do_list_item(Control.loop())", "true"],
@@ -343,8 +343,8 @@ new TestSuite("Instruction.is_do_list_item",
     ["Instruction.is_do_list_item([])", "true"],
     ["Instruction.is_do_list_item([null, null])", "true"],
     ["Instruction.is_do_list_item([null, [null, []]])", "true"],
-    ["Instruction.is_do_list_item(['a', 10, 20, 30])", "true"],
-    ["Instruction.is_do_list_item(['@', 90, 20, 30])", "true"]
+    ["Instruction.is_do_list_item(['a', 10, 20, 30])", "false"],
+    ["Instruction.is_do_list_item(['@', 90, 20, 30])", "false"]
 )
 
 new TestSuite("Instruction.is_empty_nested_array",

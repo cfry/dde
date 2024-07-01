@@ -22,6 +22,9 @@ class Dex {
     static run_button_handler(src=null){
         //DocCode.open_doc(Dex_doc_id)
         src = src.trim()
+        if (Utils.last(src) === ","){
+            src = src.substring(0, src.length - 1)
+        }
         if(Utils.last(src) === "!") { src = src.substring(0, src.length - 1)} //trim off the common
         if(src.length === 0){
             warning("No source code selected to turn into a do_list item.")

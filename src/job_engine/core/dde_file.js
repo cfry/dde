@@ -347,7 +347,21 @@ class DDEFile {
         }
     }
 
+    //from https://dmitripavlutin.com/timeout-fetch-request
+    static async fetchWithTimeout(resource, options = {}) {
+        const { timeout = 8000 } = options;
 
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+
+        const response = await fetch(resource, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(id);
+
+        return response;
+    }
 
     //callback is optional. If not passed, return a promise
     //if passed, the callback is called with 2 args,
@@ -364,13 +378,23 @@ class DDEFile {
         //path = this.add_default_file_prefix_maybe(path)
         //let full_url = this.protocol_and_host() +  "/edit?edit=" + path
         console.log("read_file_async fetching: " + full_url)
-        let file_info_response = await fetch(full_url) //,  {mode: 'no-cors'}) // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
-        if(file_info_response.ok) {
-            let content = await file_info_response.text()
-            return this.callback_or_return(callback, content, path)
+
+        try {
+            let file_info_response = await this.fetchWithTimeout(full_url, {timeout: 3000}) //,  {mode: 'no-cors'}) // unnecessary to specify the no-cors, but it doesnt' hurt, {mode: 'no-cors'})
+            if (file_info_response.ok) {
+                let content = await file_info_response.text()
+                return this.callback_or_return(callback, content, path)
+            } else {
+                this.callback_or_error(callback, "DDEFile.read_file_async of: " + path + " got error: " + file_info_response.status, path)
+            }
         }
-        else {
-            this.callback_or_error(callback, "DDEFile.read_file_async of: " + path + " got error: " + file_info_response.status, path)
+        catch(err){  //after 1 minute of no response, err.message often is: 'Failed to fetch'
+            //callback(err, "")
+            this.callback_or_error(callback,
+                "DDEFile.read_file_async with path: " + path + " and error of: " + err.message,
+                  path) //note
+               //here often file_info_response will be undefined so don't try to get anything out of that or that will cause' +
+               //yet anoother error'
         }
     }
 

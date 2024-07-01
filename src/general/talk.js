@@ -49,8 +49,7 @@ class Talk {
     static is_moving      //true or false. Automatically set to true when Dexter is moving due to user invoking a normal
                           //move command like "down". 
                           //To stop such a command as its running, set is_moving to false.
-    static current_command_for_display_in_status
-    static current_move_command //initially null, then when moving: "down", up, left, right, farther, closer, reverse, forward
+    static current_move_command //initially null, then when moving: "down", up, left, right, front, back, reverse, forward
     static last_move_command // a string
     static current_move_joint_number //only for joint moves
     static current_move_direction
@@ -78,7 +77,6 @@ class Talk {
 
         this.step_size   = 0.005
         this.is_moving       = false
-        this.current_command_for_display_in_status = "none yet"
         this.current_move_command        = null
         this.last_move_command           = null
         this.current_move_joint_number   = null //only for joint moves
@@ -99,7 +97,7 @@ class Talk {
             ]
         }).start()
         this.init_speech_reco()
-        setTimeout(Talk.display_ui, 1000) //give chance for the above init to work,
+        setTimeout(function() { Talk.display_ui() }, 1000) //give chance for the above init to work,
         //before showing UI that the user can interact with since
         //if they try speaking before the above init, it will fail.
         DocCode.open_doc(talk_doc_id)
@@ -148,7 +146,7 @@ class Talk {
             full_text = Talk.replace_reco_words(full_text)
             console.log("onresult replaced text: " + full_text)
             console.log('Confidence: ' + event.results[0][0].confidence);
-
+            Talk_command_command_id.value = full_text
             Talk.handle_command(full_text) //the main call to handle_command
         }
 
@@ -212,7 +210,9 @@ class Talk {
     }
 
     static word_replacements = {
+        //spoken  replacement_to_use
         //"poor": "pour", //as in "pour water"
+        dde:  "DDE",
         fu:   "foo",
         fubar: "foo bar",
         apostrohe:   "'", //also single-quote
@@ -244,14 +244,15 @@ class Talk {
         }
         Talk.sw_index =
         show_window({title: "<b>Talk to Dexter</b>",
-            x: 200, y:7, width: 570, height: 390,
+            x: 200, y:7, width: 570, height: 420,
             content: `<fieldset style="padding:2px;"><legend><i>Status</i></legend>
                             <div id="display_status_id"></div>
                             <div id="talk_out_id" style="background-color:white;font-size:20px;padding:5px;height:60px;"></div>
                       </fieldset>
                       <fieldset style="padding:2px;"><legend><i>Valid Commands</i></legend>
                             <ul id='valid_commands_id' style="font-size:22px;margin:0px 0px 0px 20px; padding:0px;"></ul>
-                      </fieldset>`,
+                      </fieldset>` +
+                      this.make_command_command_html(),
             callback: "Talk.sw_callback"
         })
         setTimeout(function() {
@@ -364,29 +365,29 @@ class Talk {
                 "<i>Recording:     </i><b>" + (this.is_recording   ? "<span style='color:rgb(0, 220, 0);'>on</span>" : "off") + "</b> &nbsp;" +
                 "<i>Moving:        </i><b>" + (this.is_moving      ? "<span style='color:rgb(0, 220, 0);'>on</span>" : "off") + "</b> &nbsp;" +
                 "<i>Step size: </i><b title='The default step size is: 0.005m (5 millimeters).' style='color:" + step_value_color + ";'>" + this.step_size + "m</b><br/>" +
-                "<i>Mode:          </i><b>" + this.mode + (Talk.recording_name_now_playing ? " " + Talk.recording_name_now_playing : "") + "</b> &nbsp;" +
-                "<i>Last command:  </i><b>" + this.current_command_for_display_in_status + "</b>"
+                "<i>Mode:          </i><b>" + this.mode + (Talk.recording_name_now_playing ? " " + Talk.recording_name_now_playing : "") + "</b> &nbsp;"
         }
     }
 
     static display_message(message, content_obj){ //display_message
-       if (message){} //just use it below
-        else if (content_obj) {
+        if (message){} //just use it below
+        else if (content_obj && (typeof(content_obj._param_names) === "number")) {
             let param_names = content_obj._param_names
             if (param_names.length === 1) {
                 message = "For <b>" + content_obj._cmd_norm + "</b>, tap space-bar and say the value for: " + param_names[0] +
                     "<br/>or type it in."
-            } else {
+            }
+            else {
                 message = "For <b>" + content_obj._cmd_norm + "</b>, say a param_name and its new value<br/>" +
                     "or type in a new value."
             }
         }
         else {
-           shouldnt("Talk.display_message passed no message and no content_obj.")
+            message = "Tap space-bar and say a command or click on one."
        }
-        if(globalThis.talk_out_id) { //the dialog is up.
+       if(globalThis.talk_out_id) { //the dialog is up.
             talk_out_id.innerHTML = message
-        }
+       }
     }
 
     static display_color(related_target) { // display_color related_target is like print_elt_id, aan input elt inside the dialog , or nothing
@@ -446,17 +447,18 @@ class Talk {
             let last_name = Utils.last(names)
             let [id_parent_mode, cmd, params_const, param_name] = event.target.id.split("__")
             if(param_name === last_name){ //user edited last param value and hit Enter, so just run the cmd
-                Talk.handle_command("run")
+                Talk.handle_command("run") //does its own setting of command_line
             }
-            else { //focus on next input
+            else { //there's more inputs. Focus on next input
                 let cur_index = names.indexOf(param_name)
                 let next_index = cur_index + 1
                 let next_param_name = names[next_index]
-                let next_id = parent_node + "__" + cmd_str + "__params__" + next_param_name
-                let next_dom_elt = thisGlobal[next_id]
+                let next_id = parent_mode + "__" + cmd_str + "__params__" + next_param_name + "__id"
+                let next_dom_elt = globalThis[next_id]
                 if(next_dom_elt) {
                     next_dom_elt.focus()
                 }
+                Talk.compute_and_set_command_line_in_param_mode(Talk.mode) //should be a params mode
             }
         }
     }
@@ -464,19 +466,20 @@ class Talk {
     //ok if content_obj is undefined. That just means display all the fields without
     //getting any previous values, just use defaults.
     static cmds_html_for_current_mode(content_obj) {
+        let html = ""
         if (this.mode.endsWith("__params")) {
             let [parent_mode, cmd_norm_with_underscores] = this.mode.split("__")
             let params = this.cmd_params_for_current_params_mode()
-            let html = ""
+
             let tooltip = "A parameter for the " + content_obj._cmd_norm + " command."
             for (let param of params) {
                 let [param_name, def_val] = param
-                if(typeof(def_val) === "function"){
+                if (typeof (def_val) === "function") {
                     def_val = def_val.call(Talk)
                 }
-                if(content_obj && content_obj[param_name]){
+                if (content_obj && content_obj[param_name]) {
                     let prev_val = content_obj[param_name]
-                    if(![undefined, ""].includes(prev_val)) {
+                    if (![undefined, ""].includes(prev_val)) {
                         def_val = content_obj[param_name]
                     }
                 }
@@ -484,10 +487,10 @@ class Talk {
                 html += "<li style='height:30px;' title='" + tooltip + "' >" + param_name + ": " +
                     '<input style="width:300px;" id="' + id + '" value="' + def_val + '"' + //must have singlue quote on outise,d double on inside because def_val might be "it's raining" and we need to capture that snglue quote inside the string for def_value.
                     " onkeydown='Talk.onkeydown_for_arg_input(event)' " +
-                    "' onkeyup='Talk.onkeyup_for_arg_input(event)' " +
-                    "'/></li>\n"
+                    " onkeyup='Talk.onkeyup_for_arg_input(event)' " +
+                    "/></li>\n"
             }
-
+           /*
             //html that, when clicked on will run the cmd with all the args in the param menu
             let click_source = "Talk.handle_command('run')"
             //we want to bypass the handle_command call because it would call the cmd table but it can't handle the params dialog
@@ -503,22 +506,27 @@ class Talk {
 
             //html that, when clicked on will go back to the parent mode menu
             click_source = "Talk.set_mode('" + parent_mode + "', undefined, Talk.say_or_click())"
-                  //we want to bypass the handle_command call because it would call the cmd table but it can't handle the params dialog
-                  //Talk.handle_command('" + norm_cmd + "')"
+            //we want to bypass the handle_command call because it would call the cmd table but it can't handle the params dialog
+            //Talk.handle_command('" + norm_cmd + "')"
             tooltip = "Change the menu of commands back to the main menu."
             display_prose = Talk.string_to_display_prose(parent_mode)
             li_body_html = '<span class="talk_cmd" onclick="' + click_source + '"' + //performing span onclick doesn't trigger onblur for dialog box as a whole and since these links change after dialog creation, doesn't need the fancy SW processing to call the sw callback upon click
-                            ' title="' + tooltip +
-                            '">' +
-                            display_prose + '</span>\n'
+                ' title="' + tooltip +
+                '">' +
+                "Cancel" + '</span>\n'
             li_menu_item = "<li style='height:30px;'>" + li_body_html + "</li>\n"
-            html += li_menu_item
-            return html
+            html += li_menu_item */
+            let cmds_for_mode = this.cmd_props_table["params"] //differs from below that uses this.cmd_props_table[this.mode]
+            if (cmds_for_mode) {
+                html += this.make_command_list_items(cmds_for_mode)
+                return html
+            }
         }
-        else {//regular mode
+        else {  //regular (non-params) mode
             let cmds_for_mode = this.cmd_props_table[this.mode]
             if (cmds_for_mode) {
-                return this.make_command_list_items(cmds_for_mode)
+                html += this.make_command_list_items(cmds_for_mode)
+                return html
             }
             else {
                 shouldnt("cmds_html_for_current_mode passed unknown mode: " + this.mode)
@@ -549,9 +557,6 @@ class Talk {
                 if(cmd_normalized_prose === 'stop recording') {
                     style_val += "background-color:rgb(255, 180, 180);"
                 }
-                /*li_body_html = '<a class="simple_cmd" href="#" ' + color +
-                                   //' onclick="' + click_source + '"' +
-                                   ' title="' + tooltip + '">' + display_prose + '</a>' */
                 let li_body_html = '<span class="talk_cmd" onclick="' + click_source  + '"'  + //performing span onclick doesn't trigger onblur for dialog box as a whole and since these links change after dialog creation, doesn't need the fancy SW processing to call the sw callback upon click
                                       ' style="' + style_val     + '"'  +
                                       ' title="' + tooltip       + '">' +
@@ -564,22 +569,54 @@ class Talk {
         return result //+= "<li><span onclick='alert(123)' name='myname'>cont</span></li>"
     }
 
-    //presents collecting an argument to a command for user to "fill in"
-    /*obsolete static show_command_parameter(cmd_meth_name) {
-        let callback_name = cmd_meth_name + "_from_type_in"
-        let param_name = this.cmd_param_name(cmd_meth_name)
-        let callback_callback = Talk[cmd_meth_name + "_action"]
-        this.define_command_parameter_callback(callback_name, param_name, callback_callback)
-        let default_value = this.cmd_param_default_value(param_name)
-        let doc = "Say or type in " + param_name
-        this.display_message(doc +
-            " <input id='print_text_id' " +
-            " onkeyup='Talk." + callback_name + "(event)' " +
-            " value='" + default_value + "'/>"
-        )
+    static make_command_command_html() {
+        let display_prose = "Command" //upper case first letter, spaces between words
+        let tooltip = "Type a command and hit ENTER to run it."
+        let click_source = "Talk.handle_command_command()"
+        let style_val = "font-size:20px;" //text-decoration: underline; color:#3600cc " //#7d00fa; " //purple
+        let id = "Talk_command_command_id"
+        let html = '<span class="talk_cmd" onclick="' + click_source + '"' + //performing span onclick doesn't trigger onblur for dialog box as a whole and since these links change after dialog creation, doesn't need the fancy SW processing to call the sw callback upon click
+            ' style="' + style_val + '"' +
+            ' title="' + tooltip + '">' +
+            display_prose + ':</span>\n' +
+            '<input style="width:440px;font-size:20px;" id="' + id +
+                   '" value=""' +
+                   'onkeydown="Talk.onkeydown_for_command_command_input(event)" ' +
+                   'onkeyup="Talk.onkeyup_for_command_command_input(event)" ' +
+                   'placeholder="' + tooltip +
+                   '" title="' + tooltip +
+                   '"/>'
+        return html
     }
 
-    static define_command_parameter_callback(callback_name, callback_param_name, callback_callback){
+    //needed to shadow typing space for whole dialog
+    static onkeydown_for_command_command_input(){
+        event.stopPropagation()
+    }
+    static onkeyup_for_command_command_input(event) {
+        event.stopPropagation()
+        //event.preventDefault()
+        if (event.key === "Enter") {
+            Talk.handle_command_command()
+        }
+    }
+
+    //called when user clicks the "Command:" button/link or when hits ENTER on the cmd line.
+    static handle_command_command() {
+        let full_text = Talk_command_command_id.value.trim()
+        if (full_text.length === 0) {
+            Talk.display_message("There is nothing in the <b>Command</b> text box.<br/> You must enter one or<br/>tap the space-bar and say a command.")
+        } else {
+            let [parent_mode, cmd_name_with_understores, params] = this.mode.split("__")
+            if(params){
+                this.set_mode(parent_mode) //because the full_text is relevant to the parent_mode, NOT to the parsms mode, so we must be in parent_mode for handle_cmd to handle it.
+            }
+            Talk.handle_command(full_text)
+        }
+    }
+
+
+    static define_command_parameter_callback(callback_name, callback_param_name, callback_callback) {
         Talk[callback_name] = function(event) {
             event.stopPropagation()
             if (event.key === "Enter") {
@@ -601,7 +638,41 @@ class Talk {
             }
         }
     }
-    */
+
+    //called when user says "command <do something>" but not when user clicks the Command button/link
+    //that's handled by handle_command_command() as is typing Enter on cmd line.
+    //this fn CAN'T get anything useful from the cmd line as that's replaced with "command"
+    //as soon as user says something.
+    static command(content_obj_or_full_text){
+        if(typeof(content_obj_or_full_text) === "object"){
+            content_obj_or_full_text = content_obj_or_full_text._full_text
+        }
+        if (typeof(content_obj_or_full_text) !== "string"){
+            shouldnt("Talk.command passed invalid content_obj_or_full_text of: " + content_obj_or_full_text)
+        }
+        let full_text = content_obj_or_full_text
+
+        if(full_text.toLowerCase().startsWith("command")){
+            full_text = full_text.substring(7).trim()
+        }
+
+        if(full_text.trim() === "") { //If anything was passed, it started with "command" so we've gotten rid of it
+                                     //and the typein is empty too, so nothing to do.
+            Talk.display_message("There is no content for the command.")
+            window.Talk_command_command_id.value = ""
+        }
+        /*else {
+            let [parent_mode, comd_norm_with_underscores, params] = Talk.mode.split("__")
+            if (params) {
+                Talk.set_mode(parent_mode)
+            }
+            Talk.handle_command(full_text)
+        }*/
+        else {
+            window.Talk_command_command_id.value =  full_text
+            Talk.handle_command(full_text)
+        }
+    }
 
     //static modes = ["main_menu", "move_menu", "waiting_for_job_name", "waiting_for_place_name", "playing_recording"]
 
@@ -660,6 +731,11 @@ class Talk {
        ["real",                      [],                                         [], "Causes robot commands to go to the real robot."],
        ["both",                      [],                                         [], "Causes robot commands to be simulated and&#13;go to the real robot."],
       ],
+         //needs to be above the "stop" cmd because otherwise, handle_cmd will choose "stop" when full_text is stop_recording which is bad
+     [ ["define place",             ["defined place", "dine place"],            [["job_name", ""]], "Assign Dexter's current position to a name."],
+         ["start recording",          ["started recording"],                      [], "Begin the recording of Dexter move commands into a Job.", Talk.display_start_recording],
+         ["stop recording",           [],                                         [["job_name", ""]], "Stop the recording of Dexter move commands into a Job.",  Talk.display_stop_recording],
+     ],
       [ ["straight up",              [],                                         [], "Move Dexter until its straight up and stop."],
         ["joint",                    [],                                         [["joint_number", "1"], ["direction", "clockwise"]], "Move one of Dexter's joints,&#131 thru 7,&#13clockwise or counter clockwise."],
       ],
@@ -667,12 +743,12 @@ class Talk {
         ["down",                      [],                                        [], "Move Dexter down.&#13;If Dexter is straight up (as it is initially)&#13;you must move it down&#13;before moving it in any other direction."],
 
         ["left",                      [],                                        [], "Move Dexter left."],
-        ["right",                     ["right turn", "write"],                   [], "Move Dexter right."],
+        ["right",                     ["write"],                                 [], "Move Dexter right."],
 
-        ["closer",                    [],                                        [], "Move Dexter closer to its base."],
-        ["farther",                   ["further"],                               [], "Move Dexter farther from its base."],
+        ["back",                      [],                                        [], "Move Dexter towards behind of its base."],
+        ["front",                     [],                                        [], "Move Dexter towards the front from its base."],
 
-        ["stop",                     [],                                         [], "Stop Dexter and other ongoing activities."]  //on both main and move menus
+        ["stop",                      [],                                         [], "Stop Dexter and other ongoing activities."]  //on both main and move menus
 
       ],
       [ ["faster",                    [],                                        [], "Double the speed of Dexter when it moves."],
@@ -680,10 +756,6 @@ class Talk {
 
         ["forward",                  ["foreword"],                               [], "Move Dexter forward after you have moved it back along its path."],
         ["reverse",                  [],                                         [], "Move Dexter back along the path from whence it came."],
-      ],
-      [ ["define place",             ["defined place", "dine place"],            [["job_name", ""]], "Assign Dexter's current position to a name."],
-        ["start recording",          ["started recording"],                      [], "Begin the recording of Dexter move commands into a Job.", Talk.display_start_recording],
-        ["stop recording",           [],                                         [["job_name", ""]], "Stop the recording of Dexter move commands into a Job.",  Talk.display_stop_recording],
       ],
       [ ["run job",                  ["run jobe", "ron job"],                               [["job_name", Talk.default_job_name]], "Say 'Run Job [job name] or&#13;just the Job name to&#13;start the Job."],
         ["edit job",                 [],                                         [["job_name", Talk.default_job_name]], "Say 'Edit [job name] to&#13;insert the Job definition into the editor."], //don't have alternatives
@@ -693,7 +765,8 @@ class Talk {
       ],
    ], //end move_menu
    params: [ //the constant cmds for all params valid cmds. Dynamically the "back" menu gets added by cmd_rows_for_mode and a row for each param will get added by cmds_html_for_current_mode
-      [ ["main menu",                ["main", "maine"],                          [], "Change the menu of commands back to the main menu."],
+      [ //["main menu",                ["main", "maine"],                          [], "Change the menu of commands back to the main menu."],
+        ["cancel",                   [],                                         [], "Don't run this command. Pop back to its parent menu."],
         ["run",                      [],                                         [], "Run the current command with the values for each param."]
       ]
    ]
@@ -1134,19 +1207,18 @@ class Talk {
 // others can get the content after the cmd is recognized with a type-in field, saying it,
 //or sometimes from selection in the editor.
 
-    static quit(content_obj){
-        if(content_obj._content_str === "") {
-            Talk.stop_aux() //stop speaking, turn_off_mic, etc.
-            //Talk.set_mode("main_menu")
-            setTimeout(function () {  //not sure why this is needed but clicking "Off" doesn't close the show_window without it
-                SW.close_window(Talk.sw_index)
-            }, 100)
-            if (Job.talk_internal) {
-                Job.talk_internal.when_do_list_done = "run_when_stopped"
-                //change from "wait" so that stop_for_reason will stop the job.
-                Job.talk_internal.stop_for_reason("completed", "user stopped job")
-                Job.talk_internal.undefine_job()
-            }
+    //content_obj is optional and not actually used.
+    static quit(content_obj = null){
+        Talk.stop_aux() //stop speaking, turn_off_mic, etc.
+        //Talk.set_mode("main_menu")
+        setTimeout(function () {  //not sure why this is needed but clicking "Off" doesn't close the show_window without it
+            SW.close_window(Talk.sw_index)
+        }, 100)
+        if (Job.talk_internal) {
+            Job.talk_internal.when_do_list_done = "run_when_stopped"
+            //change from "wait" so that stop_for_reason will stop the job.
+            Job.talk_internal.stop_for_reason("completed", "user stopped job")
+            Job.talk_internal.undefine_job()
         }
     }
 
@@ -1239,7 +1311,7 @@ class Talk {
                 text = arg_obj.words
             }
             let text_sans_date = text
-            text = "\n" + new Date() + "\n" + text + "\n"
+            text = "\n//" + new Date() + "\n//" + text + "\n" //put in a comment so we can use this in "code" and it will mean nothing, esp in code wehre you wnat to eval the entire buffer
             Editor.insert(text, "end")
             Talk.dialog_dom_elt.focus() //we don't want to leave focus in the editor pane.
             let text_for_message = text_sans_date.substring(0, 40)
@@ -1459,8 +1531,9 @@ class Talk {
     //called internally. Not Now top level cmd
     static stop_recording(content_obj) {
         this.is_recording = false //must go before set_mode
+        this.display_status()
         if (content_obj._content_str === "") {
-            this.stop() //does not call stop_recording, on purpose.
+            this.stop(content_obj) //does not call stop_recording, on purpose.
             //necessary because if we click on stop_recording during a move,.
             // then switch to the param screen to fill in
             //the job_name, we don't want the robot to keep moving
@@ -2019,8 +2092,8 @@ class Talk {
 
         else if (word === "right") { return [0, -1]}
         //y
-        else if(["farther", "further", ].includes(word)) { return [1, 1]}
-        else if(["closer", "nearer"].includes(word)) {
+        else if(["front"].includes(word)) { return [1, 1]}
+        else if(["back"].includes(word)) {
             return [1, -1]}
 
         //z
@@ -2037,7 +2110,7 @@ class Talk {
             return ((axis_direction === 1) ? "left"    : "right")
         }
         else if(axis_index === 1) {
-            return ((axis_direction === 1) ? "farther" : "closer")
+            return ((axis_direction === 1) ? "front" : "back")
         }
         else if(axis_index === 2){
             return ((axis_direction === 1) ? "up"      : "down")
@@ -2131,7 +2204,8 @@ class Talk {
         }
     }
 
-    /*static back(full_text="back"){
+    /* this was to go back to the previous menu. Not now used.
+    static back(full_text="back"){
         let alts = this.cmd_alternatives("back", true)
         if(alts.includes(full_text)){
             Talk.set_mode("main_menu")
@@ -2162,6 +2236,14 @@ class Talk {
             this.dialog_dom_elt.focus()
         }
     }
+    static cancel(content_obj) {
+        if (content_obj._content_str === "") {
+           let new_mode = content_obj._cmd_norm_mode.split("__")[0]
+            this.set_mode(new_mode, content_obj)
+            this.dialog_dom_elt.focus()
+        }
+    }
+
 
 //_______Move commands_________
 
@@ -2173,8 +2255,8 @@ class Talk {
                 this.display_status()
                 let instr = [
                     dex.move_all_joints(Talk.straight_up_angles()),
-                    dex.empty_instruction_queue()
-                    //function () { Talk.display_message("Dexter is straight up.")}
+                    dex.empty_instruction_queue(),
+                    function() { Talk.stop_aux("Dexter is straight up.") }
                     ]
                 this.send_instruction_to_dexter(instr) //will cause Job[recording_name] to run
                 let mess_suffix = ""
@@ -2198,13 +2280,13 @@ class Talk {
         }
     }
 
-    static farther(content_obj){
+    static front(content_obj){
         if(content_obj._content_str === "") {
             this.start_normal_move_cmd(content_obj)
         }
     }
 
-    static closer(content_obj){
+    static back(content_obj){
         if(content_obj._content_str === "") {
             this.start_normal_move_cmd(content_obj)
         }
@@ -2361,7 +2443,7 @@ class Talk {
     //don't use "this"
     static start_normal_move_cmd(content_obj){
         if(content_obj) {
-            Talk.current_move_command      = content_obj.cmd_norm //used inside of move_incrmentally only.
+            Talk.current_move_command      = content_obj._cmd_norm //used inside of move_incrmentally only.
             Talk.current_move_joint_number = content_obj.joint_number //will be null for xyz move
             Talk.current_move_direction    = content_obj.direction //will be null for xyz move
         }
@@ -2651,6 +2733,8 @@ class Talk {
                 this.run(content_obj)
             }
         }
+        //fill in Talk_command_command_id
+        out("heu")
     }
 
     static handle_command(full_text){
@@ -2659,12 +2743,11 @@ class Talk {
         //but in the case where the user clicks a menu item instead, we shoudl do it.
         //one reason is for the cmd stop_recording, but in general. makes clickng space bar and
         //clicking a menu item more similar.
-        let cur_cmd = full_text.substring(0, 20).trim()
-        if (full_text.length > 20) {
-            cur_cmd += "..."
+        full_text = full_text.trim()
+        if(full_text.toLowerCase().startsWith("command")){
+            this.command(full_text)
+            return
         }
-        Talk.current_command_for_display_in_status = cur_cmd
-        Talk.display_status()
         let cmd_rows = this.cmd_rows_for_mode(Talk.mode) //cmd_rows_for_mode special cases for "__params" modes
         if (!cmd_rows) {
             shouldnt("handle_command can't find rows since mode is invalid: " + Talk.mode)
@@ -2685,14 +2768,18 @@ class Talk {
                     if(cmd_str) { //good at least one of the alts is valid. But use the cmd_meth generated from cmd_norm NOT this cmd_str which might be an alt.
                         if((this.cmd_params(cmd_norm, Talk.mode).length === 0) && (content_str.length > 0)) {} //no match. cmd_norm might be "stop" but content_str is "recording", so loop around again until we find cmd_norm is "step recording"
                         else { //positive identification that full_text is for cmd_norm.
-                            let [parent_mode, cmd_norm_from_mode_with_underscores, params_const] = Talk.mode.split("__")
+                            //let [parent_mode, cmd_norm_from_mode_with_underscores, params_const] = Talk.mode.split("__")
                             //let cmd_norm_mode = (params_const ? parent_mode : Talk.mode)
                             let cmd_norm_with_underscores = cmd_norm.replaceAll(" ", "_")
                             let content_obj = this.content_str_to_content_obj(full_text, cmd_norm_with_underscores, content_str, cmd_norm, Talk.mode)
                             if (content_obj._unused_param_names.length > 0) {
                                 this.set_params_mode(content_obj)
-                            } else {
+                            }
+                            else {
                                 cmd_meth.call(Talk, content_obj)
+                            }
+                            if(cmd_str !== "run") { //reclude "run" because cmd_meth.call(Talk, content_obj) for "run" ends up calling handle_command with a new full_text that will set its own, better cmd line
+                                this.compute_and_set_command_line(content_obj)
                             }
                             return
                         }
@@ -2733,12 +2820,66 @@ class Talk {
         let content_obj = this.content_str_to_content_obj(full_text, cmd_norm_with_underscores, content_str, cmd_norm, cmd_norm_mode)
         if(content_obj._unused_param_names.length > 0){
             this.set_params_mode(content_obj)
+            this.compute_and_set_command_line(content_obj)
         }
         else {
             misc_meth.call(Talk, content_obj)
+            this.compute_and_set_command_line(content_obj)
         }
     }
 
+    static compute_and_set_command_line(content_obj = null){
+        let new_full_text
+        let cmd_norm = content_obj._cmd_norm
+        if(!cmd_norm){
+            new_full_text = content_obj._full_text
+        }
+        else {
+            if ((cmd_norm === "cancel") || (cmd_norm === "run")) {
+                let [parent_mode, raw_cmd, params] = content_obj._cmd_norm_mode.split("__")
+                cmd_norm = raw_cmd
+            }
+            new_full_text = cmd_norm + " "
+            let param_names = content_obj._param_names
+            for (let i = 0; i < param_names.length; i++) {
+                let param_name = param_names[i]
+                if (i !== 0) {
+                    new_full_text += ","
+                }
+                if ((content_obj[param_name] === undefined) ||
+                    ((typeof (content_obj[param_name]) === "string") &&
+                        (content_obj[param_name].trim().length === 0))) {
+                    new_full_text += " /*needs: " + param_name + "*/ "
+                } else {
+                    new_full_text += " " + content_obj[param_name]
+                }
+            }
+        }
+        new_full_text = new_full_text.trim() //trailing space maybe
+        Talk_command_command_id.value = new_full_text
+    }
+
+    //called after entering a param value in param mode
+    static compute_and_set_command_line_in_param_mode(a_param_mode = Talk.mode){
+        let [parent_mode, cmd_str_with_underscores] = a_param_mode.split("__")
+        let cmd_norm = cmd_str_with_underscores.replaceAll("_", " ")
+        let param_names = this.cmd_param_names(cmd_norm, parent_mode)
+        let new_full_text = cmd_norm
+        for (let i = 0; i < param_names.length; i++) {
+            let param_name = param_names[i]
+            let id_str = parent_mode + "__" + cmd_str_with_underscores + "__params__" + param_name + "__id"
+            let dom_elt = globalThis[id_str]
+            let val = dom_elt.value
+            if ((val === undefined) || (val.trim() === "")) {
+                val = "/*needs: " + param_name + "*/"
+            }
+            if(i !== 0){
+                new_full_text += ","
+            }
+            new_full_text += " " + val
+        }
+        Talk_command_command_id.value = new_full_text
+    }
 
 } //end of Talk
 globalThis.Talk = Talk
