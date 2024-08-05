@@ -2018,9 +2018,10 @@ Dexter.prototype.reboot_dexter = function(callback=Dexter.reboot_dexter_default_
 //Dexter.make_ins = make_ins this is below due to loading order issues
 
 Dexter.prototype.make_ins = function(instruction_type, ...args){
-    args = new Array(...args)
-    args.unshift(instruction_type)
-    args.push(this)
+    //args = new Array(...args) //if argsllength ==== 1) then new Array makes an array of that length,else it makes an array of the length of args.length. Celver but Bad for make_ins("g", 2)
+    args = [...args]  //make args into a real array.
+    args.unshift(instruction_type) //shove tue oplet onto the fromt of it.
+    args.push(this)  //stick the robot onto the back of it.
     return make_ins.apply(null, args)
 }
 

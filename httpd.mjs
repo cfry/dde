@@ -89,7 +89,8 @@ var mimeTypes = {
   "png":  "image/png",
   "ico":  "image/x-icon",
   "svg":  "image/svg+xml",
-  "txt":  "text/plain"
+  "txt":  "text/plain",
+  "wasm": "application/octet-stream"
   };
 
 //Code that runs in node_server AND job_engine for get_page

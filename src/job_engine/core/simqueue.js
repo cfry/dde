@@ -131,11 +131,21 @@ class Simqueue{
             }
             let j6_du = instruction_array[Instruction.INSTRUCTION_ARG5]
             if(!isNaN(j6_du)) { //if it is undefined, no change so do nothing
-                Simulate.aMoveTargetAngles[5] = SimUtils.degrees_to_radians((j6_du - Socket.J6_OFFSET_SERVO_UNITS)* Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+                if (Socket.dynamixel_model === 320) {
+                    Simulate.aMoveTargetAngles[5] = SimUtils.degrees_to_radians((j6_du - Socket.J6_OFFSET_SERVO_UNITS) * Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+                }
+                else {
+                    Simulate.aMoveTargetAngles[5] = SimUtils.degrees_to_radians(j6_du / 3600)
+                }
             }
             let j7_du = instruction_array[Instruction.INSTRUCTION_ARG6]
             if(!isNaN(j7_du)) {
-                Simulate.aMoveTargetAngles[6] = SimUtils.degrees_to_radians((j7_du)* Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+                if (Socket.dynamixel_model === 320) {
+                    Simulate.aMoveTargetAngles[6] = SimUtils.degrees_to_radians((j7_du) * Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+                }
+                else {
+                    Simulate.aMoveTargetAngles[6] = SimUtils.degrees_to_radians( j7_du / 3600)
+                }
             }
         }
     }

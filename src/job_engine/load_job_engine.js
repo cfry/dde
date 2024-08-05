@@ -49,7 +49,13 @@ globalThis.mathjs = create(all, config)
 import PCA from 'pca-js'
 globalThis.PCA = PCA
 
+//import Kafka from 'kafkajs'  //fast networking.  Doesn't work and can't
+//globalThis.Kafka = Kafka
+//import KafkaGoSaur from "https://deno.land/x/kafkagosaur/mod.ts"; //doesn't work either. its TS
+//globalThis.KafkaGoSaur = KafkaGoSaur
 
+import Ably from 'ably'
+globalThis.Ably = Ably
 
 //import cv from "opencv.js"
 //globalThis.cv = cv

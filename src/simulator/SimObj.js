@@ -1,3 +1,5 @@
+import {LineMaterial} from "three/examples/jsm/lines/LineMaterial.js"
+
 globalThis.SimObj = class SimObj{
     static dde_objects  = [] //scene, table, dexter
     static user_objects = []
@@ -354,12 +356,172 @@ globalThis.SimObj = class SimObj{
         return this.make_object3d({name: name, geometry: geometry, scale: scale, position: position, orientation: orientation, color: color, is_dynamic: is_dynamic, mass: mass })
     }
 
+    static is_line(object3d){
+        return object3d instanceof THREE_extra.Line2
+    }
+
+    static make_non_line_from_line_object3d(object3d, geometry){
+        let result = this.make_object3d({
+                            name: object3d.name,
+                            parent: object3d.parent,
+                            geometry: geometry,
+                            points: this.get_points(object3d), //[[0, 0, 0], this.get_position(object3d)],
+                            line_width: this.get_line_width(object3d),
+                            //material: use default
+                            scale: this.get_scale(object3d),
+                            position: this.get_position(object3d),
+                            color: this.get_color(object3d),
+                            is_dynamic: this.get_is_dynamic(object3d),
+                            mass: this.get_mass(object3d),
+                            overwrite: true
+
+        })
+        result.userData.points = object3d.userData.points
+    }
+
+    //called by set_geometry when switching geo from something else to a line
+    static make_line_from_object3d(object3d){
+        if(this.is_line(object3d)) {
+            return object3d //no change needed
+        }
+        else {
+            let line_width = this.get_line_width(object3d) //((object3d.userData.line_width) ? object3d.userData.line_width : 10)
+            let name = this.get_name(object3d)
+            let parent = this.get_parent(object3d)  //must capture as "remove' removes the parent
+            this.remove(object3d) //must do or can't make object with same name
+            let geometry = new THREE_extra.LineGeometry();
+            let material =  new THREE_extra.LineMaterial({
+                //color: three_color, // 'red',
+                linewidth: line_width, // in pixels
+                //vertexColors: true,
+                dashed: false,
+                resolution: new THREE.Vector2(window.innerWidth, window.innerHeight) //necesasry to give line a visible width
+            })
+            let points
+            if(object3d.userData.points) {
+                points = object3d.userData.points
+            }
+            else {
+                points = [[0, 0, 0.2], this.get_position(object3d)]
+            }
+            let scale = this.get_scale(object3d)
+            let position = this.get_position(object3d)
+            let orientation = this.get_orientation(object3d)
+            let color = this.get_color(object3d)
+            let result = this.make_object3d({
+                name: name,
+                parent: parent,
+                geometry: geometry,
+                points: points,
+                line_width: line_width,
+                material: material,
+                scale: scale,
+                position: position,
+                orientation: orientation,
+                color: color,
+                wireframe: false,
+                //no physics on lines
+                is_dynamic: false,
+                mass: 1.,
+                overwrite: true
+            })
+            return result
+        }
+    }
+
+    /* causes infinite recursion so don't use. call make_object instead
+    static make_line ({name="my_line",
+                          parent = "scene",
+                          //geometry="Box", //must be a string
+                          points = [[0, 0, 0], [0.5, 0, 0]], //an array of arrays. inner elements are 3 long foe x, y ,z
+                                             //effectively the "geometry" but not standard SimObj geometry
+                          line_width = 10
+                          scale= [0.2, 0.2, 0.2],
+                          position=[0, 0.3, 0.1],
+                          orientation=[0, 0, 0],
+                          //material = "MeshNormal", //must be a string. for one-color objects. use "MeshNormal" for a multi_color material that ignores the "color" passed in here
+                          color=[0, 0, 0]
+                         } = {}){
+        let geometry = new THREE_extra.LineGeometry();
+        let material =  new THREE_extra.LineMaterial({
+            //color: three_color, // 'red',
+            linewidth: line_width, // in pixels
+            //vertexColors: true,
+            //resolution:  // to be set by renderer, eventually
+            dashed: false,
+            resolution: new THREE.Vector2(window.innerWidth, window.innerHeight) //necesasry to give line a visible width
+        })
+        return this.make_object3d({
+            name: name,
+            parent: parent,
+            geometry: geometry,
+            points: points,
+            scale: scale,
+            position: position,
+            orientation: orientation,
+            material: material,
+            color: color,
+            wireframe: false,
+            //no physics on lines
+            is_dynamic: false,
+            mass: 1
+        })
+    } */
+
     //pass in an instance of a THREE.Geometry.
     //see https://threejs.org/docs/#api/en/geometries for 20 or so geometries.
+
+    static geometry_to_geometry_instance(geometry){
+        let geometry_inst
+        if ((geometry.isBufferGeometry) || (geometry instanceof THREE_extra.LineGeometry)){
+            geometry_inst = geometry
+        }
+        else if (typeof (geometry) === "string") {
+            if (!(geometry.endsWith("Geometry"))) {
+                geometry = geometry + "Geometry"
+            }
+            let geometry_class = ((geometry === "LineGeometry") ? THREE_extra.LineGeometry : THREE[geometry])
+            geometry_inst = new geometry_class()
+        }
+        else if(Utils.is_class(geometry)){
+            geometry_inst = new geometry()
+        }
+        else {
+            dde_error("In SimObj.geometry_to_geometry_instance, could not convert: " + geometry + " into a geometry instance.")
+        }
+        return geometry_inst
+    }
+
+    //Materials used in SimObj: "MeshNormalMaterial", "MeshPhongMaterial", THREE_extra.LineMaterial
+    //can be passed "Box", "BoxMaterial" THREE.BoXMaterial, and instance of BoxMatrial (in which it cloaes it)
+    static material_to_material_instance(material) {
+        let material_inst
+        if (material instanceof THREE.Material) {
+            material_inst = material.clone() //because material gets modified due to color & wireframe, and we don't want those mods to be "inherited" between different objects
+        }
+        else if (typeof (material) === "string") {
+            if (!material.endsWith("Material")) {
+                material = material + "Material"
+            }
+            let material_class
+            if (material === "LineMaterial") {
+                material_class = THREE_extra.LineMaterial
+            } else {
+                material_class = THREE[material]
+            }
+            material_inst = new material_class()
+        }
+        if(Utils.is_class(material)){
+            material_inst = new material()
+        }
+        return material_inst
+    }
 
     static make_object3d({name="my_object3d",
                           parent = "scene",
                           geometry="Box", //must be a string
+                          points =  [[0, 0, 0], [0.5, 0.5, 0]], //same as make_line, only used when geometey is "Line"
+                          line_width = 10, //same as make_line, only used when geometey is "Line"
                           scale= [0.2, 0.2, 0.2],
                           position=[0, 0.3, 0.1],
                           orientation=[0, 0, 0],
@@ -367,41 +529,56 @@ globalThis.SimObj = class SimObj{
                           color=[1, 1, 1],
                           wire_frame = false,
                           is_dynamic = false,
-                          mass = 1 //in grams
-                         } = {}){ //[1, 1, 1] is white, corresponding to #ffffff
-        if(parent === "user_origin") {
+                          mass = 1, //in grams
+                          overwrite = false //permit this new object to happen even if one alredy exists
+                         } = {}) { //[1, 1, 1] is white, corresponding to #ffffff
+        if (parent === "user_origin") {
             warning('"user_origin" is no longer a valid object.<br/>' +
-                             "The normal top level user object now has a parent of: 'scene'<br/." +
-                             "so we're going to use that instead.")
+                "The normal top level user object now has a parent of: 'scene'<br/." +
+                "so we're going to use that instead.")
             parent = "scene"
         }
         let old_obj_of_name = this.get_object3d(name)
-        if(old_obj_of_name) {
-            //this.remove(name) //for SimObj, a "name" is unique within the children
-            warning("Attempt to make_object3d with name: " + "<br/>" +
-                   "but an object of that name already exists.<br/>" +
-                   "If you want to make a new object of that name,<br/>" +
-                   'Call <code>SimObj.remove("' + name + '")</code> to remove the old one first.')
-            return
+        if (old_obj_of_name){
+            if (overwrite) {
+                this.remove(name) //for SimObj, a "name" is unique within the children
+            }
+            else {
+                warning("Attempt to make_object3d with name: " + "<br/>" +
+                    "but an object of that name already exists.<br/>" +
+                    "If you want to make a new object of that name,<br/>" +
+                    'Call <code>SimObj.remove("' + name + '")</code> to remove the old one first.')
+                return
+            }
+        }
+
+        //no object of tha passed in name exists, and new obj is not a Line.
+        let geometry_inst = this.geometry_to_geometry_instance(geometry)
+        let material_inst = this.material_to_material_instance(material)
+        let object3d
+        if(geometry_inst instanceof THREE_extra.LineGeometry){
+            object3d = new THREE_extra.Line2(geometry_inst, material_inst)
         }
         else {
-            let object3d = new THREE.Mesh()
-            object3d.name = name
-            if(typeof(material) === "object") {
-                material = material.clone() //because material gets modified due to color & wireframe, and we don't want those mods to be "inherited" between different objects
-            }
-            this.set_geometry(object3d, geometry, true)  //true for is_new_object3d
-            this.set_material(object3d, material)
-            this.set_color(object3d, color) //creates and sets the material property of the Mesh
-            this.set_wire_frame(object3d, wire_frame)
-            this.set_scale(object3d, scale, true) //true for is_new_object3d
-            this.set_position(object3d, position, true) //keep as dde_coordinates
-            this.set_orientation(object3d, orientation, true) //keep as dde_coordinates
-            this.make_object3d_given_object(object3d, parent, is_dynamic, mass)
-            let a_pos = this.get_physics_object(object3d) //needs to be done after set_scale, but cant' be done first time we call set_scale on this object3d
-            //a_pos.updateCollider()
-            return object3d
+            object3d = new THREE.Mesh(geometry_inst, material_inst)
         }
+        object3d.name = name
+       //if(typeof(material) === "object") {
+       //     material = material.clone() //because material gets modified due to color & wireframe, and we don't want those mods to be "inherited" between different objects
+       // }
+       // object3d = this.set_geometry(object3d, geometry, true)  //true for is_new_object3d // in the case that
+                   //geometry is LineGeometry and object3d is NOT a line, we create a new object.
+        this.set_points(object3d, points)
+        //this.set_material(object3d, material)
+        this.set_line_width(object3d, line_width)
+        this.set_color(object3d, color) //creates and sets the material property of the Mesh
+        this.set_wire_frame(object3d, wire_frame)
+        this.set_scale(object3d, scale, true) //true for is_new_object3d
+        this.set_position(object3d, position, true) //keep as dde_coordinates
+        this.set_orientation(object3d, orientation, true) //keep as dde_coordinates
+        this.make_object3d_given_object(object3d, parent, is_dynamic, mass)
+        let a_pos = this.get_physics_object(object3d) //needs to be done after set_scale, but cant' be done first time we call set_scale on this object3d
+        return object3d
     }
 
     //called by both make_object3d and  make_copy_of_object3d
@@ -419,7 +596,7 @@ globalThis.SimObj = class SimObj{
         this.interaction_add(object3d)
         //SimUtils.render()
        this.set_physics_object(object3d, is_dynamic, mass) //make non-dynamic
-        if(SimBuild.dialog_is_showing()) {
+       if(SimBuild.dialog_is_showing()) {
             if (adding_first_object) {
                 SimBuild.populate_dialog_from_object(object3d) //might as well maie it the edited object and enable dialog widgets
             }
@@ -721,7 +898,6 @@ globalThis.SimObj = class SimObj{
             }
             new_parent.attach(object3d)
             let a_pos = this.get_physics_object(object3d) //needs to be done after set_scale, but cant' be done first time we call set_scale on this object3d
-            //if(a_pos) { a_pos.updateCollider()} //does not help clicking on an object
         }
         SimBuild.populate_dialog_from_object_if_now_editing(object3d)
         //SimUtils.render()
@@ -763,7 +939,6 @@ globalThis.SimObj = class SimObj{
         SimBuild.populate_dialog_property(object3d, "position_z", array_of_3[2])
         if(!is_new_object3d){  //we don't want to do when we are first creating object3d as it will error as there will be no physicsobj but DO what to do if we are just changing the scale
             let a_pos = this.get_physics_object(object3d)
-            //a_pos.updateCollider()
         }
         //SimUtils.render()
     }
@@ -803,7 +978,6 @@ globalThis.SimObj = class SimObj{
 
         if(!is_new_object3d){  //we don't want to do when we are first creating object3d as it will error as there will be no physicsobj but DO what to do if we are just changing the scale
             let a_pos = this.get_physics_object(object3d)
-            //a_pos.updateCollider()
         }
 
         /*the below 2 lines fail on rotation personal factory write just like the above 3 lines,
@@ -840,8 +1014,8 @@ globalThis.SimObj = class SimObj{
         SimBuild.populate_dialog_property(object3d, "scale_x", scale[0])
         SimBuild.populate_dialog_property(object3d, "scale_y", scale[1])
         SimBuild.populate_dialog_property(object3d, "scale_z", scale[2])
-        if(!is_new_object3d){  //we don't want to do when we are first creating object3d as it will error as there will be no physicsobj but DO what to do if we are just changing the scale
-            let a_pos = this.get_physics_object(object3d)
+        let a_pos = this.get_physics_object(object3d)
+        if(a_pos){
             a_pos.updateCollider()
         }
         //SimUtils.render()
@@ -876,24 +1050,142 @@ globalThis.SimObj = class SimObj{
         return Utils.starts_with_one_of(geo_name, this.two_d_shape_names)
     }
 
-    static set_geometry(object3d_or_name="Box", geometry, is_new_object3d = false){
+    //this set_prop is the only one that returns an object3d. This is necessary since
+    //if geometry happnes to be "Line", "LineGeomotry" or an instance of LineGeometry,
+    //we must make a new object3d to create a line, we can't simply plop a LineGeometry
+    //into an existing NON-lINE geometry
+    static set_geometry(object3d_or_name, geometry="Box", is_new_object3d = false) {
         let object3d = SimObj.get_object3d(object3d_or_name)
-        if(!(geometry.endsWith("Geometry"))){
+        //let geometry_class
+        let geometry_inst = this.geometry_to_geometry_instance(geometry)
+       /* if (typeof (geometry) === "string") {
+            if (!(geometry.endsWith("Geometry"))) {
                 geometry = geometry + "Geometry"
+            }
+            geometry_class = ((geometry === "LineGeometry") ? THREE_extra.LineGeometry : THREE[geometry])
         }
-        let geometry_obj = new THREE[geometry]()
-        object3d.geometry = geometry_obj
-        if (this.is_geometry_a_2d_shape(object3d.geometry)){
-            object3d.material.side = THREE.DoubleSide
-            object3d.material.depthWrite = false
+        else if (geometry instanceof THREE_extra.LineGeometry){
+            geometry_inst = geometry
         }
-        if(!is_new_object3d){  //we don't want to do when we are first creating object3d as it will error as there will be no physicsobj but DO what to do if we are just changing the scale
+        else if (Utils.is_class(geometry)) {
+            geometry_class = geometry
+        }
+        else if (typeof(geometry) === "object"){
+            geometry_inst = geometry
+        }
+        else {
+            shouldnt("SimObj.set_geometry passed geometry: " + geometry + " that isn't valid.l")
+        }*/
+        //we've set either geometry_class or geometry_inst
+
+        if (this.is_line(object3d)) {
+            if (//(geometry_class === THREE_extra.LineGeometry) ||
+                object3d.geometry === geometry_inst) { //this is already a line and passed a LineGeometry inst that's the same as the existing one, so THIS is as is
+                SimBuild.populate_dialog_property(object3d, "geometry", "Line")
+                return object3d
+            }
+            else if(geometry_inst instanceof THREE_extra.LineGeometry){
+                //geometry_inst = geometry
+                object3d.geometry = geometry_inst
+                let a_pos = this.get_physics_object(object3d)
+                if (a_pos) {
+                    a_pos.updateCollider()
+                }
+                let short_name = SimObj.get_geometry_short_name(object3d)
+                SimBuild.populate_dialog_property(object3d, "geometry", short_name)
+                return object3d
+            }
+            else { //new geometry is not a line
+                let new_object3d = this.make_non_line_from_line_object3d(object3d, geometry_inst)
+                SimBuild.populate_dialog_property(new_object3d, "geometry", "Line")
+                return new_object3d
+            }
+        }
+        else { //this is NOT a line
+            if (//(geometry_class === THREE_extra.LineGeometry) ||
+                //(geometry_inst && (
+                    geometry_inst instanceof THREE_extra.LineGeometry) {
+                //ie we have to change to a new object3d that supports Line.
+                let new_object3d = this.make_line_from_object3d(object3d)
+                //let a_pos = this.get_physics_object(new_object3d)
+                //if (a_pos) {
+                //    a_pos.updateCollider()
+                //}
+                //let short_name = SimObj.get_geometry_short_name(new_object3d)
+                //SimBuild.populate_dialog_property(new_object3d, "geometry", short_name) //short_name is going to be "Line"
+                return new_object3d
+            }
+            /*if(!geometry_inst){
+                if(!geometry_class){
+                    shouldnt("SimObj.set_geometry passed invalid geometry: " + geometry)
+                    let a_pos = this.get_physics_object(object3d)
+                    if (a_pos) {
+                        a_pos.updateCollider()
+                    }
+                    let short_name = SimObj.get_geometry_short_name(object3d)
+                    SimBuild.populate_dialog_property(object3d, "geometry", short_name)
+                    return object3d
+                }
+                else {
+                   geometry_inst = new geometry_class()
+                }
+            }*/
+           //do the usual of resetting the geometry of object3d.
+            object3d.geometry = geometry_inst
+            if (this.is_geometry_a_2d_shape(object3d.geometry)) {
+                object3d.material.side = THREE.DoubleSide
+                object3d.material.depthWrite = false
+            }
             let a_pos = this.get_physics_object(object3d)
-            a_pos.updateCollider()
+            if (a_pos) {
+                a_pos.updateCollider()
+            }
+            let short_name = SimObj.get_geometry_short_name(object3d)
+            SimBuild.populate_dialog_property(object3d, "geometry", short_name)
+            return object3d
         }
-        let val = SimObj.get_geometry_short_name(object3d)
-        SimBuild.populate_dialog_property(object3d, "geometry", val)
-        //SimUtils.render()
+    }
+
+    static get_points(object3d_or_name){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        return object3d.userData.points
+    }
+    static set_points(object3d_or_name, points) {
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        //object3d.points = points
+        object3d.userData.points = points
+        if(this.is_line(object3d)) {
+            let points_in_three = []
+            for (let point_in_dde of points) {
+                let point_in_three = this.position_dde_to_three(point_in_dde)
+                points_in_three.push(point_in_three)
+            }
+            let flat_positions = []
+            for (let point of points_in_three) {
+                flat_positions.push(point[0])
+                flat_positions.push(point[1])
+                flat_positions.push(point[2])
+            }
+            object3d.geometry.setPositions(flat_positions) // https://jsfiddle.net/10ydqb6e/
+        }
+        SimBuild.populate_dialog_property(object3d, "points", points)
+    }
+
+    static get_line_width(object3d_or_name){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        return (object3d.userData.line_width ? object3d.userData.line_width : 10)
+    }
+    static set_line_width(object3d_or_name, line_width){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        object3d.userData.line_width = line_width
+        if(object3d.material instanceof THREE_extra.LineMaterial){
+            let old_line_width = object3d.material.linewidth
+            if(line_width !== old_line_width){
+                object3d.material.linewidth = line_width
+            }
+        }
+        //else just leave line_width in userData.
+        SimBuild.populate_dialog_property(object3d, "line_width", line_width)
     }
 
     static get_material(object3d_or_name){
@@ -938,20 +1230,24 @@ globalThis.SimObj = class SimObj{
 
     static set_material(object3d_or_name, material="MeshNormalMaterial"){ //This is the multi-color material. The "one colored material" is MeshStandardMaterial
         let object3d = SimObj.get_object3d(object3d_or_name)
-        if(!(material.endsWith("Material"))){
-                material = material + "Material"
+        let material_inst = this.material_to_material_instance(material)
+        if(object3d.material === material_inst) {
+            return
         }
-        let material_obj = new THREE[material]()
-        material_obj.wireframe = (object3d.material ? object3d.material.wireframe : false)
+        if(this.is_line(object3d)) {
+            return  //can't set the material of a line, its set when its created and can't be altered, and it MUST be LineMaterial
+        }
+
+        material_inst.wireframe = (object3d.material ? object3d.material.wireframe : false)
         if (this.is_geometry_a_2d_shape(object3d.geometry)){
-            material_obj.side = THREE.DoubleSide
-            material_obj.depthWrite = false
+            material_inst.side = THREE.DoubleSide
+            material_inst.depthWrite = false
         }
         let three_color = object3d.userData.three_color
-        if (material_obj.color && three_color){
-            material_obj.color.set(three_color)
+        if (material_inst.color && three_color){
+            material_inst.color.set(three_color)
         }
-        object3d.material = material_obj
+        object3d.material = material_inst
         let multi_color_val = this.is_multi_color(object3d)  //material instanceof THREE.MeshNormalMaterial)
         SimBuild.populate_dialog_property(object3d, "multi_color", multi_color_val, "checked")
         //SimUtils.render()
@@ -982,7 +1278,7 @@ globalThis.SimObj = class SimObj{
             let three_color = object3d.userData.three_color
             return SimObj.three_color_rgb_object_to_array_of_numbers(three_color)
         }
-        else { return null } //shouldn't happen
+        else { return [1, 1, 1] } //can happen if the obj is a multi-colored one that has no userData calor
     }
 
     //returns arr of 3 numbers, 0 to 1
@@ -1191,10 +1487,15 @@ THREE.Mesh.prototype.to_source_code =
         //value is the object3d.
         //if it is highlighted, we want to get its orig color, NOT the highlight color
         let object3d = value
-        let three_color = (object3d.userData.three_color ? object3d.userData.three_color :
-                                                SimObj.get_color(object3d))
-        let arr = SimObj.three_color_rgb_object_to_array_of_numbers(three_color)
+        //let three_color = (object3d.userData.three_color ? object3d.userData.three_color :
+                                                //SimObj.get_color(object3d))
+        let arr = SimObj.get_color(value) //SimObj.three_color_rgb_object_to_array_of_numbers(three_color)
         let color_str = "[" + arr[0] + ", " + arr[1] + ", " + arr[2] + "]"
+        let line_attrs = ""
+        if(SimObj.is_line(value)) {
+            line_attrs = ",\n    line_width: " + value.userData.line_width +
+                         ",\n    points: "     + to_source_code({value: value.userData.points})
+        }
         return "SimObj.make_object3d({" +
             'name: "'       + SimObj.get_name(object3d)                                 + '", ' +
             'parent: "'     + SimObj.get_name(object3d.parent)                          + '", ' +
@@ -1206,7 +1507,8 @@ THREE.Mesh.prototype.to_source_code =
             'color: '       + color_str                                                 + ',\n    ' +
             'wireframe: '   + SimObj.get_wire_frame(object3d)                           + ', '  +//boolean
             'is_dynamic: '  + SimObj.get_is_dynamic(object3d)                           + ', '  +//boolean
-            'mass: '        + SimObj.get_mass(object3d)                                 + //in grams
-            "})"
+            'mass: '        + SimObj.get_mass(object3d)    +  //in grams
+            line_attrs +
+            "\n})"
     }
 // to_source_code({value: SimObj.my_object3d})

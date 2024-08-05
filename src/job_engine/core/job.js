@@ -1965,7 +1965,7 @@ Job.prototype.ok_to_run_when_stopped = function(){
 Job.prototype.finish_job = function(){
       if(this.status_code == "errored")  { //todo avoid printing twice but we want to print before starting the when_stopped action
         let failed_instruction = this.do_list[this.program_counter]
-        let mess = to_source_code({value: failed_instruction})
+        let mess = "" + failed_instruction //to_source_code({value: failed_instruction})  don't use to_source code as can get into infiitnel recursion on certain instructions.
         out("Job." + this.name + " failed instruction " + this.program_counter + ": " + mess, "red")
       }
       if (!this.ok_to_run_when_stopped()||     // never run the when_stopped instruction

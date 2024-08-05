@@ -674,16 +674,6 @@ class Talk {
         }
     }
 
-    //static modes = ["main_menu", "move_menu", "waiting_for_job_name", "waiting_for_place_name", "playing_recording"]
-
-    //used in cmd_props_table
-    /*
-    static display_turn_on_mic(){
-        return (this.speech_reco_possible && !this.is_mic_on())
-    }
-    static display_turn_off_mic() {
-        return (this.speech_reco_possible && this.is_mic_on())
-    }*/
 
     static display_turn_on_speaker(){
        return !this.is_speaker_on()
@@ -837,7 +827,7 @@ class Talk {
 
     static string_to_display_prose(string){
         string = string.replaceAll("_", " ")
-        string = Utils.make_first_char_upper_case(string)
+        string = Utils.capitalize(string)
         return string
     }
 
@@ -933,7 +923,7 @@ class Talk {
 
     static cmd_display_prose(cmd, a_mode=Talk.mode){
         let result = cmd.replaceAll("_", " ")
-        result = Utils.make_first_char_upper_case(result)
+        result = Utils.capitalize(result)
         let params = this.cmd_params(cmd, a_mode)
         if(!params) { shouldnt("cmd_display_prosep passed unknown cmd: " + cmd) }
         else if (params.length === 0) {}
@@ -1829,83 +1819,7 @@ class Talk {
         }
     }
 
-    //if content_str starts with one of the params of cmd_str, then the returned content_obj
-    //wil; contain a field of that param name whose value is the content_str AFTER the
-    //param_name (spaces trimmed from both param_name and what's after it.
-    //The value of the param_name has string_to_data called on it.
-    //If content_str does NOT start with a param_name, then
-    //split content_str on comma or "," and treat each resulting ele as a value
-    //of successive param names from the array of param_names for cmd_str.
-    static content_str_to_content_obj(full_text, cmd_norm_with_underscores, content_str, cmd_norm, cmd_norm_mode=Talk.mode){
-        this.mode   //for debugging
-        let has_args = false
-        let the_param_names = []
-        let unused_param_names = []
-        let is_cmd = this.is_known_cmd(cmd_norm, cmd_norm_mode)
-        let result = {}
-        if(is_cmd) {
-            the_param_names = this.cmd_param_names(cmd_norm, cmd_norm_mode)
-            unused_param_names = the_param_names.slice()
-            let [parent_mode, cmd_str_from_mode, params_const] = Talk.mode.split("__")
-            if(params_const) {
-                //populate result with existing values from params dialog box
-                for (let param_name of the_param_names) {
-                    let id_str = parent_mode + "__" + cmd_norm_with_underscores + "__params__" + param_name + "__id"
-                    let dom_elt = globalThis[id_str]
-                    let val = dom_elt.value
-                    if ([undefined, ""].includes(val)) {}
-                    else {
-                        result[param_name] = this.string_to_data(val)
-                        Utils.remove_value_from_array(param_name, unused_param_names)
-                        has_args = (unused_param_names.length !== 0)
-                    }
-                }
-            }
-            if(the_param_names.length > 1) {
-                content_str = content_str.replaceAll(" comma ", ",") //when in parma dialog, if user hits space, they can say more than one arg and fill in the first such args tghey say, by separating them with commas.
-            }
-            let args = ((content_str === "") ? [] : content_str.split(","))
-            //sometimes Chrome reco upper cases the first letter. No param names have upper case chars.
-            let content_str_with_lower_case_first_letter = ((content_str.length === 0) ? "" : content_str[0].toLowerCase() + content_str.substring(1))
-            let [param_name_in_content_str, value_src] = Utils.starts_with_one_of_and_tail(content_str_with_lower_case_first_letter, the_param_names, true)
-            if(param_name_in_content_str){
-                let val = this.string_to_data(value_src)
-                result[param_name_in_content_str] = val
-                Utils.remove_value_from_array(param_name_in_content_str, unused_param_names)
-                if(unused_param_names.length === 0) { has_args = false }
-            }
-            else { //first word of content_str is NOT a param name so presume we
-                   //start with the first param name and go down the list of args to match.
-                for (let i = 0; i < args.length; i++) {
-                    let the_param = the_param_names[i]
-                    let arg = args[i].trim()
-                    if (!the_param) {
-                        warning("<b>" + cmd_norm + "</b> got more content than the params allow of: " + arg +
-                            "<br/>so ignoring it.")
-                    } else if (!arg || (arg === "")) {
-                    } //no arg so nothing to add to result
-                    else {
-                        result[the_param] = this.string_to_data(arg)
-                        unused_param_names.shift() //remove param name from the front of the array.
-                        has_args = true
-                    }
-                }
-            }
-        }
-        else {
-            cmd_norm_with_underscores = false //the former cmd_str is not a known cmd, so forget it.
-        }
-        //result already has param name-value pairs in it, if any
-        result._full_text = full_text
-        result._cmd_norm_with_underscores = cmd_norm_with_underscores //could be false, if the passed in cmd is not a known cmd
-        result._content_str = content_str
-        result._cmd_norm = cmd_norm
-        result._cmd_norm_mode = cmd_norm_mode
-        result._has_args = has_args
-        result._param_names = the_param_names
-        result._unused_param_names = unused_param_names
-        return result
-    }
+
 
     //string is usually the content arg to a normal top level cmd.
     //Effectively, Talk's eval

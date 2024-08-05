@@ -184,11 +184,24 @@ import "../HCA/make_ipg.js"      //defines global Make_ipg class
 import "../HCA/litegraph_patches.js"
 
 import "../blocksde/init.js" //needed for making the menu of different "views" of DDE's editor, including HCA
-import "./talk.js"       //defines global Talk
+
+//import "./talk.js"       //defines global Talk  //when both loaded, rollup screws up
 import "./talktype.js"   //defines global TalkType
+
+//new Talk
+import "../talk_system/Talk.js" //defines global Talk
+import "../talk_system/TalkType.js"   //defines global TalkType
+import "../talk_system/TalkCAT.js" //defines global TalkCAT
+import "../talk_system/TalkMode.js" //defines global TalkMode
+import "../talk_system/TalkCommand.js" //defines global TalkCommand
+import "../talk_system/TalkParameter.js" //defines global TalkCParameter //NOT the mode, used for individal params in a Command
+//individual talk modes
+import "../talk_system/TalkParams.js" //defines global TalkParams.js  //the MODE of params dialog box/menu
+import "../talk_system/TalkMain.js"  //defines global TalkMain, the MODE
+
 import "./openai.js"     //defines globalThis.OpenAI
 
-
+import "./TrackHand.js" //defines globalThis.TrackHand
 
 globalThis.js_cmds_array = []
 globalThis.js_cmds_index = -1 //-1 means no items in js_cmds_array
@@ -1579,6 +1592,7 @@ window_modify_id.onclick=function(){Editor.insert(
       }
 
       talk_id.onclick = function() { Talk.initialize() }
+      talk2_id.onclick = function() { Talk.initialize() }
 
       monitor_id.onclick           = function() { Monitor.show_dialog() }
 

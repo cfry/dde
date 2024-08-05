@@ -1931,13 +1931,13 @@ static is_first_letter_lower_case(a_string){
     return ((a_string.length > 0) && (a_string[0] == a_string[0].toLowerCase()))
 }
 
-//not used jan 2019
-static  make_first_char_upper_case(a_string){
+//aka capitalize
+static capitalize(a_string){
     if(a_string.length == 0) { return "" }
     if (this.is_first_letter_upper_case(a_string)) { return a_string }
     else {
         let first_char = a_string[0].toUpperCase()
-        return first_char + a_string.substring(1)
+        return first_char + a_string.substring(1).toLowerCase()
     }
 }
 

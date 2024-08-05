@@ -377,28 +377,48 @@ class Socket{
         return new_array
     }
 
+    static dynamixel_model = 330 //also could be 320
+
     static degrees_to_dexter_units(deg, joint_number){
-        if(joint_number == 6) {
-            return Math.round(deg / Socket.DEGREES_PER_DYNAMIXEL_320_UNIT) +
-                              Socket.J6_OFFSET_SERVO_UNITS //512
+        if(joint_number === 6) {
+            if(Socket.dynamixel_model === 320 ) {
+                return Math.round(deg / Socket.DEGREES_PER_DYNAMIXEL_320_UNIT) +
+                    Socket.J6_OFFSET_SERVO_UNITS //512
+            }
+            else {  //for anything other than the 320's
+                return  Math.round(deg * 3600) //convert to arcseconds
+            }
         }
         else if (joint_number == 7) {
-            return Math.round(deg / Socket.DEGREES_PER_DYNAMIXEL_320_UNIT)
+            if(Socket.dynamixel_model === 320 ) {
+                return Math.round(deg / Socket.DEGREES_PER_DYNAMIXEL_320_UNIT)
+            }
+            else { //for anything other than the 320's
+                return Math.round(deg * 3600)  //convert to arcseconds
+            }
         }
-        else {
-            return Math.round(deg * 3600)  //convert to arcseconds
-        }
+        else { return Math.round(deg * 3600) }  //convert to arcseconds
     }
 
     static dexter_units_to_degrees(du, joint_number){
         if(joint_number == 6) {
-            let ang_deg = (du - Socket.J6_OFFSET_SERVO_UNITS ) *
-                       Socket.DEGREES_PER_DYNAMIXEL_320_UNIT
-            return ang_deg
+            if(Socket.dynamixel_model === 320 ) {
+                let ang_deg = (du - Socket.J6_OFFSET_SERVO_UNITS) *
+                    Socket.DEGREES_PER_DYNAMIXEL_320_UNIT
+                return ang_deg
+            }
+            else { //for anything other than the 320's
+                return du / 3600
+            }
         }
         else if (joint_number == 7) {
-              let ang_deg = du * Socket.DEGREES_PER_DYNAMIXEL_320_UNIT
-              return ang_deg
+            if(Socket.dynamixel_model === 320 ) {
+                let ang_deg = du * Socket.DEGREES_PER_DYNAMIXEL_320_UNIT
+                return ang_deg
+            }
+            else  { //for anything other than the 320's
+                return du / 3600
+            }
         }
         else { return du / 3600 }
     }

@@ -855,8 +855,11 @@ export class SW { //stands for Show Window. These are the aux fns that the top l
                             '<br/>else { your existing code here } </code>')
                                     }
                                     else {
+                                        let stack_trace = err.stack.replaceAll("\n", "<br/> ")
+                                        let out_string = "<details><summary><span class='dde_error_css_class'>Error: " + err_string +
+                                              "</span></summary>" + stack_trace + "</details>"
                                         dde_error("While calling the show_window handler function of:<br/><code>" + fn_name + "</code>,<br/>" +
-                                                "passed:<br/>" + arg_string + "<br/>" + err_string)
+                                                "passed:<br/>" + arg_string + "<br/>" + err_string + out_string)
                                     }
             }
         } //end of handling callback

@@ -85,13 +85,21 @@ class SimUtils{
                                 Simulate.PIDGoalOffsetAngles[i] = this.arc_seconds_to_radians(new_angles_dexter_units[i]);
                             }
                         }
-                        else if(i == 5) // Joint 6
-                        {
-                            Simulate.aMoveTargetAngles[i] = this.degrees_to_radians((new_angles_dexter_units[i] - Socket.J6_OFFSET_SERVO_UNITS)* Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+                        else if(i == 5){ // Joint 6
+                            if (Socket.dynamixel_model === 320) {
+                                Simulate.aMoveTargetAngles[i] = this.degrees_to_radians((new_angles_dexter_units[i] - Socket.J6_OFFSET_SERVO_UNITS) * Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+                            }
+                            else {
+                                Simulate.aMoveTargetAngles[i] =this.degrees_to_radians(new_angles_dexter_units[i] / 3600)
+                            }
                         }
-                        else // Joint 7
-                        {
-                            Simulate.aMoveTargetAngles[i] = this.degrees_to_radians(new_angles_dexter_units[i] *  Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+                        else {// Joint 7
+                            if (Socket.dynamixel_model === 320) {
+                                Simulate.aMoveTargetAngles[i] = this.degrees_to_radians(new_angles_dexter_units[i] * Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+                            }
+                            else {
+                                Simulate.aMoveTargetAngles[i] =this.degrees_to_radians(new_angles_dexter_units[i] / 3600)
+                            }
                         }
                     }
                 }

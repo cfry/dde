@@ -21940,6 +21940,9 @@ globalThis.Gcode = class Gcode{
     }
 
     static line_to_do_list_item(gcode_line){
+        if(gcode_line.startsWith(";")) {
+            return null
+        }
         let line_tokens = gcode_line.split(" ");
         for(let token of line_tokens){
             if(token !== "") {

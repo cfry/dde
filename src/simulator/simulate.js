@@ -50,6 +50,20 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { VRButton } from 'three/addons/webxr/VRButton.js'; //VR  search Simulate file for "//VR" to see all Virtual Reality code
 import { e } from 'mathjs';
 
+//necessary to draw lines of diffrent thicknesses. Rediculous as LineBasicMaterial linewidht is always 1 regardless of what you set it to.
+//https://discourse.threejs.org/t/keeping-linebasicmaterial-in-the-same-width-regardless-of-camera-position/18658/7
+//build won't allow me to assign these to THREE so
+globalThis.THREE_extra = {}
+import { Line2 } from 'three/examples/jsm/lines/Line2.js';
+THREE_extra.Line2 = Line2  //same level as a "mesh".
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+THREE_extra.LineMaterial = LineMaterial
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
+THREE_extra.LineGeometry = LineGeometry
+
+
+
+
 
 globalThis.Simulate = class Simulate {
     // Creates an div containing the simulator and it's UI
@@ -669,9 +683,8 @@ globalThis.Simulate = class Simulate {
         return out;
     }
 
-    static rad_to_dynamixel_320(rads)
-    {
-        return 180*rads/(Math.PI*Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
+    static rad_to_dynamixel_320(rads){
+        return 180 * rads / (Math.PI * Socket.DEGREES_PER_DYNAMIXEL_320_UNIT);
     }
 
     static rads_to_arc_seconds(rads)
@@ -686,13 +699,21 @@ globalThis.Simulate = class Simulate {
         {
             out = Simulate.rads_to_arc_seconds(rads);
         }
-        else if(joint == 5) // Joint 6
-        {
-            out = Simulate.rad_to_dynamixel_320(rads)+Socket.J6_OFFSET_SERVO_UNITS;
+        else if(joint == 5) {// Joint 6
+            if(Socket.dynamixel_model === 320 ) {
+                out = Simulate.rad_to_dynamixel_320(rads) + Socket.J6_OFFSET_SERVO_UNITS;
+            }
+            else {
+                out = Simulate.rads_to_arc_seconds(rads);
+            }
         }
-        else // joint is 5 or 6  for Dexter joint's 6 and 7
-        {
-            out = Simulate.rad_to_dynamixel_320(rads);
+        else {// joint is 5 or 6  for Dexter joint's 6 and 7
+            if(Socket.dynamixel_model === 320 ) {
+                out = Simulate.rad_to_dynamixel_320(rads);
+            }
+            else {
+                out = Simulate.rads_to_arc_seconds(rads);
+            }
         }
         return out;
     }
@@ -795,6 +816,7 @@ globalThis.Simulate = class Simulate {
             if(Math.abs(joint_diffs[5]) < max_speed_rad_servo * (Simulate.simulationRate/Simulate.targetFramerate) * 1.01)
             {
                 j6_at_target = true;
+                console.log("In simulate line 819 about to set aMoveAnimationAngles[5] to: " + Simulate.aMoveTargetAngles[5])
                 Simulate.aMoveAnimationAngles[5] = Simulate.aMoveTargetAngles[5];
             }
 
@@ -837,6 +859,7 @@ globalThis.Simulate = class Simulate {
             let servo_step_rad = (Simulate.simulationRate/Simulate.targetFramerate) * max_speed_rad_servo;
             if(!j6_at_target)
             {
+                console.log("In simulate line 862 about to set aMoveAnimationAngles[5] to: " + Math.sign( joint_diffs[5]) * servo_step_rad)
                 Simulate.aMoveAnimationAngles[5] += Math.sign( joint_diffs[5]) * servo_step_rad ;
             }
             if(!j7_at_target)
@@ -1034,7 +1057,7 @@ globalThis.Simulate = class Simulate {
         table.name = "table";
         Simulate.sim.table = table;
 
-        let tableTex = new THREE.TextureLoader().load( "assets/DexterGrid.png" );
+        let tableTex = new THREE.TextureLoader().load( "simulator_server_files/DexterGrid.png" );
         tableTex.wrapS = THREE.RepeatWrapping;
         tableTex.wrapT = THREE.RepeatWrapping;
         tableTex.repeat.set(1,1);

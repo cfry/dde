@@ -112,6 +112,7 @@ class dui2 {
                             when_do_list_done: "wait",
                             do_list: [function() { the_dex.set_link_lengths(this, false) }, //2nd arg is call_start_aux wic needs to be false here.
                                       the_dex.get_robot_status(), //necessary to init the robot_status on the_dex so that dui2.init can work
+                                      the_dex.make_ins("g", 0), //if Dexter happens to be in a different status mode than 0, it will break this program, so insure it.
                                       dui2.init,
                                       the_dex.empty_instruction_queue() //needed because the next instruction may need to look a the measured_angles, and we want them updated to where dexter is really at.
                                       ]

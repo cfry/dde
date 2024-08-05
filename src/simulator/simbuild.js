@@ -144,6 +144,7 @@ globalThis.SimBuild = class SimBuild{
         "Extrude", //not in THREE 0.118. in 0.157. as is, just puts in a cube. not new behavior, but leave in for now.
         "Icosahedron",
         "Lathe",  //not in THREE 0.118. in 0.157. makes a small shape of 2 cones with their bases together.
+        "Line", //pretty different from others.
         "Octahedron",
         "Plane",
         //"Polyhedron", //not in THREE 0.118 in 0.157 but doesn't do anything with further args.
@@ -236,7 +237,23 @@ globalThis.SimBuild = class SimBuild{
             for(let geo_name of this.geometry_names) {
                 geometry_html += "<option>" + geo_name + "</option>"
             }
-        geometry_html += "</select><div style='height:6px;'></div>"
+        geometry_html += "</select> &nbsp; "
+
+        let line_width_display_value = (SimObj.is_line(object3d) ? "inline" : "none")
+        let line_width_html = "<label name='line_width_wrapper' style='display:" + line_width_display_value + ";'> line_width: " +
+                                       "<input name='line_width' type='number' data-oninput='true' min='0' max='500' value='" +
+                                       SimObj.get_line_width(object3d) +
+                                       "'/></label>"
+
+        let points_display_value = (SimObj.is_line(object3d) ? "block" : "none")
+        let points = SimObj.get_points(object3d)
+        let points_src = (points ? to_source_code({value: points}) : "")
+        let points_tooltip = "If you update the x, y, or z of any point,&#13;or delete or add the array of a point,&#13;you must click here to update the line."
+        let points_html = " <div name='points_wrapper' title='" + points_tooltip + "' style='display:" + points_display_value + ";'>" +
+                                     "<span style='color:blue; text-decoration:underline;' "  +
+                                           "onclick='SimBuild.update_points()'>points:</span> " +
+                                     "<textarea name='points' rows='1' cols='47'>" + points_src + "</textarea>" +
+                                 "</div>"
 
         let scale_html = `scale: &nbsp;
               <label title="The radius of the width of the object in meters."> 
@@ -304,12 +321,15 @@ globalThis.SimBuild = class SimBuild{
          <input type="button" value="Remove all"  title="Remove all user object3ds from the simulator."/>`
 
        let content =
-             path_html +
-             parent_html + name_html +
-             geometry_html + scale_html + position_html + orientation_html +
-             color_kind_html + physics_html +  show_html +
+             path_html + "\n" +
+             parent_html + name_html + "\n" +
+             geometry_html + line_width_html + "\n" +
+             "<div style='height:6px;'></div>" +
+             points_html + "\n" +
+             scale_html + position_html + orientation_html + "\n" +
+             color_kind_html + physics_html +  show_html + "\n" +
              bottom_buttons_html
-
+       console.log(geometry_html + points_html )
        show_window({title: "Make Objects in Simulator",
                      content: content,
                      height: 350,
@@ -322,6 +342,25 @@ globalThis.SimBuild = class SimBuild{
                 SimBuild.populate_dialog_from_object(object3d)
             },
             100)
+    }
+
+    static update_points(){
+        let widget_dom_elt = SimBuild.dialog_dom_elt().querySelector("[name=points]") //a textarea
+        if(widget_dom_elt) {
+            let new_points_src = widget_dom_elt.value
+            try {
+                let new_points_arr = eval(new_points_src)
+                if(Array.isArray(new_points_arr)) {
+                    SimObj.set_points(SimBuild.now_editing_object3d, new_points_arr)
+                }
+                else {
+                    dde_error("The source code: " + new_points_arr + " did not evaluate to an array.")
+                }
+            }
+            catch(err){
+                dde_error("The source code: " + new_points_arr + " did not evaluate to an array.")
+            }
+        }
     }
 
     static dialog_cb(vals){
@@ -384,7 +423,13 @@ globalThis.SimBuild = class SimBuild{
         }
 
         else if(vals.clicked_button_value === "geometry"){
-            SimObj.set_geometry(object3d, vals.geometry)
+            let maybe_new_object3d = SimObj.set_geometry(object3d, vals.geometry)
+            SimBuild.set_now_editing_object3d(maybe_new_object3d)
+        }
+
+        else if(vals.clicked_button_value === "line_width"){
+            let val = vals.line_width
+            SimObj.set_line_width(object3d, val)
         }
 
         else if (vals.clicked_button_value.startsWith("scale")) {
@@ -551,12 +596,36 @@ globalThis.SimBuild = class SimBuild{
             if(value instanceof THREE.Color) {
                 value = SimObj.three_color_to_hex(value)
             }
+            else if (Array.isArray(value)) {
+                value = to_source_code({value: value})
+            }
             let dialog_dom_elt = SimBuild.dialog_dom_elt()
             if (dialog_dom_elt) {
                 let css_sel = "[name=" + prop_name + "]"
                 let widget_dom_elt = dialog_dom_elt.querySelector(css_sel)
                 if(widget_dom_elt) {
-                    widget_dom_elt[value_prop_name] = value
+                    if(prop_name === "geometry"){ //toggles on or off the display of line_width and points, AND sets the geometry select
+                        let line_width_wrapper_display_val = ((value === "Line") ? "inline" : "none")
+                        let points_wrapper_display_val = ((value === "Line") ? "block" : "none")
+                        let line_width_wrapper_dom_elt = dialog_dom_elt.querySelector("[name=line_width_wrapper]")
+                        line_width_wrapper_dom_elt.style.display = line_width_wrapper_display_val
+                        let points_wrapper_dom_elt = dialog_dom_elt.querySelector("[name=points_wrapper]")
+                        points_wrapper_dom_elt.style.display = points_wrapper_display_val
+                        widget_dom_elt[value_prop_name] = value
+                        //let css_sel = "[name=" + "points" + "]"
+                        //let points_widget_dom_elt = dialog_dom_elt.querySelector(css_sel)
+                        //let points_src = to_source_code({value: SimObj.get_points(object3d)})
+                       // points_widget_dom_elt.innerText = points_src
+                    }
+                    //else if(prop_name === "line_width"){
+                    //    widget_dom_elt.value = value
+                    //    let css_sel_wrapper = "[name=" + "points_wrapper" + "]"
+                    //    let points_wrapper_dom_elt = dialog_dom_elt.querySelector(css_sel_wrapper)
+                    //    points_wrapper_dom_elt.style.display = "inline"
+                    //}
+                    else {
+                        widget_dom_elt[value_prop_name] = value
+                    }
                 }
                 else {
                     let css_sel = "[value=" + prop_name + "]" //good for radio buttons like "multi_value"
@@ -571,7 +640,7 @@ globalThis.SimBuild = class SimBuild{
             }
         }
     }
-   //called only from simualte animation loop.
+   //called only from simulate animation loop.
     //needs to be fast and not generate garbage.
     static refresh(){
         if(this.dialog_is_showing()       &&
@@ -655,10 +724,17 @@ globalThis.SimBuild = class SimBuild{
         else {
             if(object3d !== this.now_editing_object3d) { //because refreshing this every frame makes the clicks unusable, but no need to refrsh if not changing the object being edited.
                 if(this.now_editing_object3d) { //ie its not null as it is when starting out the dialog.
-                    SimBuild.add_object3d_to_the_parent_menu(this.now_editing_object3d) //we don't want object3d to be on the
-                    // parent menu because an object can't be a parent of itself.
-                    //but the prev object (now being edited) *might* not already be on the parent_menu,
-                    //so in case it isn't, call add_object3d_to_the_parent_menu.
+                    if(object3d.name === this.now_editing_object3d.name) { //probably one of object3d & now_editing_object3d is a line and the other isn't.
+                        //so get rid of now_editing_object3d and install object3d.
+                        SimBuild.remove_object3d_from_the_parent_menu(this.now_editing_object3d)
+                        SimBuild.add_object3d_to_the_parent_menu(object3d)
+                    }
+                    else {
+                        SimBuild.add_object3d_to_the_parent_menu(this.now_editing_object3d) //we don't want object3d to be on the
+                        // parent menu because an object can't be a parent of itself.
+                        //but the prev object (now being edited) *might* not already be on the parent_menu,
+                        //so in case it isn't, call add_object3d_to_the_parent_menu.
+                    }
                 }
                 SimBuild.set_now_editing_object3d(object3d) //do even if object3d is null
                 globalThis.simbuild_path_id.innerHTML = this.object_path_html(object3d)
@@ -691,7 +767,12 @@ globalThis.SimBuild = class SimBuild{
             //multi_color checkbox is now if true, use material "MeshNormal" otherwise use "MeshStandard"
             //let orig_multi_color_dialog_val = dialog_dom_elt.querySelector("[name=multi_color]").checked
             let new_multi_color_val = (object3d.material instanceof THREE.MeshNormalMaterial)
-            SimBuild.populate_dialog_property(object3d, "multi_color", new_multi_color_val, "checked")
+            if(new_multi_color_val) {
+                SimBuild.populate_dialog_property(object3d, "multi_color", true, "checked")
+            }
+            else {
+                SimBuild.populate_dialog_property(object3d, "single_color", true, "checked")
+            }
 
             let new_wire_frame_val = SimObj.get_wire_frame(object3d) //a boolean
             SimBuild.populate_dialog_property(object3d, "wire_frame", new_wire_frame_val, "checked")
@@ -756,9 +837,11 @@ globalThis.SimBuild = class SimBuild{
         if (dialog_dom_elt) {
             let the_select_dom_elt = dialog_dom_elt.querySelector("[name=the_parent]")
             for(let a_option_dom_elt of the_select_dom_elt.childNodes){
-                let the_name = SimObj.get_name(SimObj.get_parent(object3d))
-                if(a_option_dom_elt.innerHTML === the_name){
-                    a_option_dom_elt.remove() //let run for more iterations just in case > 1 of that name get in the select dom elt
+                if(SimObj.get_parent(object3d)) { //if object3d doesn't have a parent, the below will fail
+                    let the_name = SimObj.get_name(SimObj.get_parent(object3d))
+                    if (a_option_dom_elt.innerHTML === the_name) {
+                        a_option_dom_elt.remove() //let run for more iterations just in case > 1 of that name get in the select dom elt
+                    }
                 }
             }
         }

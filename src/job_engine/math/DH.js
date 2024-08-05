@@ -629,8 +629,21 @@ DH.move_to = function(xyz, dir, roll, dh_mat){
 	return function(){
     	if(dh_mat === undefined){
         	//total hack to make my code work:
-            var folder = "C:/Users/james/Documents/dde_apps/2021/Code/MoveWithForce/data_set_HDI_000047/"
-            var dh_mat = DH.parse_dh_mat_file(folder + "dh_mat.out")
+            //var folder = "C:/Users/james/Documents/dde_apps/2021/Code/MoveWithForce/data_set_HDI_000047/"
+            if(!Dexter.default.defaults){
+                dde_error("DH.move_to called without passing in 4th arg, dh_mat.<br/>" +
+                "However, DDE can't default dh_mat to its value in Defaults.make_ins until you run a Job using Dexter.default,<br/>" +
+                "which automatically loads Defaults.make_ins.<br/>" +
+                "Dexter.default is now bound to: " + Dexter.default.name + "<br/>" +
+                "but you can change that in DDE's Misc pane header")
+            }
+            else if (!Dexter.default.defaults.dh_mat){
+                dde_error("DH.move_to called without passing in 4th arg, dh_mat.<br/>" +
+                    "However, DDE can't default dh_mat to its value in Defaults.make_ins because no dh_mat value found in the defaults.makeins file.")
+            }
+            else {
+                dh_mat = Dexter.dexter0.defaults.dh_mat //DH.parse_dh_mat_file(folder + "dh_mat.out")
+            }
         }
 
         //var r = Vector.make_dcm
