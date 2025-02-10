@@ -36,7 +36,7 @@ globalThis.Gcode = class Gcode{
                 let val = token.substring(1)
                 val = parseFloat(val)
                 if (Number.isNaN(val)) {
-                    dde_error("In Gcode.line_to_do_list_item got non-number value of: " + val)
+                    dde_error("In Gcode.line_to_do_list_item on line "+line_tokens+" after token "+token+" got non-number value of: " + val);
                 }
                 this.state[op] = val
                 let handler_function_name = "handle_" + op
