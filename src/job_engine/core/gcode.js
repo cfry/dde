@@ -34,7 +34,7 @@ globalThis.Gcode = class Gcode{
                     dde_error("In Gcode.line_to_do_list_item got invalid non_upper case first letter of: " + op)
                 }
                 let val = token.substring(1)
-                val = parseFloat(val)
+                if (val.length > 0) val = parseFloat(val); else val = 0;
                 if (Number.isNaN(val)) {
                     dde_error("In Gcode.line_to_do_list_item on line "+line_tokens+" after token "+token+" got non-number value of: " + val);
                 }
