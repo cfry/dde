@@ -816,7 +816,7 @@ globalThis.Simulate = class Simulate {
             if(Math.abs(joint_diffs[5]) < max_speed_rad_servo * (Simulate.simulationRate/Simulate.targetFramerate) * 1.01)
             {
                 j6_at_target = true;
-                console.log("In simulate line 819 about to set aMoveAnimationAngles[5] to: " + Simulate.aMoveTargetAngles[5])
+                //console.log("In simulate line 819 about to set aMoveAnimationAngles[5] to: " + Simulate.aMoveTargetAngles[5])
                 Simulate.aMoveAnimationAngles[5] = Simulate.aMoveTargetAngles[5];
             }
 

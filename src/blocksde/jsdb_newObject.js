@@ -1493,7 +1493,7 @@ newObject({prototype: Root.jsdb,
     category:       Root.BlockCategory.Math,
     selected_identifier: "i",
     choices: ["++&nbsp;(increment before return)",
-        "--&nbsp;&nbsp;&nbsp;(decriment before return)"],
+        "--&nbsp;&nbsp;&nbsp;(decrement before return)"],
     selected_operator:   "++",
 
     constructor: function(){
@@ -1563,7 +1563,7 @@ newObject({prototype: Root.jsdb,
         "~&nbsp;&nbsp;&nbsp;(bitwise not)",
         "-&nbsp;&nbsp;&nbsp;&nbsp;(negation)",
         "++&nbsp;(increment after return)",
-        "--&nbsp;&nbsp;&nbsp;(decriment after return)"],
+        "--&nbsp;&nbsp;&nbsp;(decrement after return)"],
     selected_operator:   "!",
 
     constructor: function(){

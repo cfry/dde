@@ -130,6 +130,14 @@ import {insert_color}  from "./output.js" //todo sets lots of things in window. 
                                  //dde4: now globally defines set_css_properties
 
 import "../test_suite/test_suites.js"
+
+/*see: https://github.com/TechStark/opencv-js/blob/main/README.md
+but conflicts with TrackHand lib. see also bottom of index.html for loading the opencv file for dde third_party folder
+import cv from "@techstark/opencv-js" //interfers with TrackHand
+globalThis.cv = cv
+Object.keys(cv).filter((key) => !key.includes("dynCall"));
+ */
+
 import "./picture1.js" //had problems loading opencv.js but now opencv.js loaded at the bottom of index.html
 
 import "../test_suite/math_testsuite.js" //imports test_suite.js which globally defines class TestSuite
@@ -198,10 +206,14 @@ import "../talk_system/TalkParameter.js" //defines global TalkCParameter //NOT t
 //individual talk modes
 import "../talk_system/TalkParams.js" //defines global TalkParams.js  //the MODE of params dialog box/menu
 import "../talk_system/TalkMain.js"  //defines global TalkMain, the MODE
+import "../talk_system/TalkMove.js"
+import "../talk_system/TalkPick.js"
+import "../talk_system/TalkObject.js"
 
 import "./openai.js"     //defines globalThis.OpenAI
 
-import "./TrackHand.js" //defines globalThis.TrackHand
+import "./TrackHand.js" //defines globalThis.TrackHand  //for the orig google mediapipe hand tracker
+//import "./TrackHandF.js" //for the handtrackjs
 
 globalThis.js_cmds_array = []
 globalThis.js_cmds_index = -1 //-1 means no items in js_cmds_array
@@ -1180,13 +1192,13 @@ window_modify_id.onclick=function(){Editor.insert(
     }*/
 
     opencv_locate_object_id.onclick= async function(){
-        const code = await DDEFile.read_file_async("dde/examples/opencv_locate_object.js")
+        const code = DDEFile.get_page("examples/opencv_locate_object.js")
         Editor.insert(code)
         DocCode.open_doc("Picture.locate_object_doc_id")
     }
 
     opencv_picture_similarity_id.onclick= async function(){
-        const code = await DDEFile.read_file_async("dde/examples/opencv_picture_similarity.js")
+        const code = DDEFile.get_page("examples/opencv_picture_similarity.js")
         Editor.insert(code)
         DocCode.open_doc("Picture.mats_similarity_by_color_doc_id")
     }
@@ -1591,8 +1603,8 @@ window_modify_id.onclick=function(){Editor.insert(
           dui2.make_job()
       }
 
-      talk_id.onclick = function() { Talk.initialize() }
-      talk2_id.onclick = function() { Talk.initialize() }
+      //talk_id.onclick = function() { Talk.initialize() } //old, 1 file Talk
+      talk_id.onclick = function() { Talk.init() }
 
       monitor_id.onclick           = function() { Monitor.show_dialog() }
 

@@ -15,11 +15,11 @@ globalThis.TalkCommand = class TalkCommand {
                     //change an item's location in the menu.
                     pos_in_row,
                     tooltip="Click to run this command.",
-                    should_display=true //(was cmd_display)can be fn to eval which returns a boolean
+                    should_display=true //(was cmd_display can be fn to eval which returns a boolean
                            //or a string like "Talk.display_start_recording" & call that fn.
                 }) {
         this.name = name //may have spaces in it. old name: cmd_norm
-        this.name_with_underscores = name.replaceAll(" ", '_"')
+        this.name_with_underscores = name.replaceAll(" ", "_")
         this.alternate_names = alternate_names
         this.parameters = parameters
         this.action_function = action_function
@@ -32,7 +32,10 @@ globalThis.TalkCommand = class TalkCommand {
                 row = Utils.last(mode.commands).row
             }
         }
-        this.row = row
+        else if (row === "new"){
+            row = ((mode.commands.length === 0) ? 0 : Utils.last(mode.commands).row + 1)
+        }
+        this.row = row //always a non-neg int
         if(!pos_in_row){
             if(mode.commands.length === 0) {
                 pos_in_row = 0
@@ -48,6 +51,13 @@ globalThis.TalkCommand = class TalkCommand {
         this.tooltip = tooltip
         this.should_display = should_display
         mode.commands.push(this)
+    }
+
+    should_display_command(){
+        if(typeof(this.should_display) === "function") {
+            return this.should_display(this)
+        }
+        else { return this.should_display }
     }
 
     display_prose(){

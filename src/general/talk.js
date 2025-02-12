@@ -369,6 +369,11 @@ class Talk {
         }
     }
 
+    static display_warning(message){
+        message = "<span style='color:red;'>" + message + "</span>"
+        this.display_message(message_
+    }
+
     static display_message(message, content_obj){ //display_message
         if (message){} //just use it below
         else if (content_obj && (typeof(content_obj._param_names) === "number")) {

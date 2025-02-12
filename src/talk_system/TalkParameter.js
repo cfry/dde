@@ -3,10 +3,10 @@ globalThis.TalkParameter = class TalkParameter {
     constructor({
         name,
         type=new TalkTypeAny(),
-        default_value= ""
+        default_value_string= ""
     }){
         this.name = name
         this.type = type
-        this.default_value = default_value
+        this.default_value_string = default_value_string
     }
 }

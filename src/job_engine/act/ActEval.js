@@ -1,11 +1,19 @@
 /* Why Futures
 Automatic garbage collection wins because it frees the programmer from having to worry about
 memory management.
-Futues win becuase it frees the programmer from having to worry about serial vs parallel in
+Futures win becuase it frees the programmer from having to worry about serial vs parallel in
 optimizing the performance of their algorithm. The program just runs
 as parallel as it can, very little extra work for programmer.
 Programmer also doesn't have to deal with callback hell or even promises/async/await
 which interact poorly (to say hte least) with normal callstack return of values.
+
+glossary:
+ast: abstract syntax tree: a data structrure of parsed Javascript code.
+ast.type: examples: "ObjectExpression", "Program" & lots more.
+ast.source_type:
+ast.expression:  in fn params, often called "st".
+continuation: a function. in fn params often called "cont"
+              usually (always) has null as THIS, and args of: val, lex_env, cont, source.
  */
 /* TODO
    - DONE implement Lisp  List.make, (cons), List.first, List.rest
@@ -14,23 +22,27 @@ which interact poorly (to say hte least) with normal callstack return of values.
        This allows me to have as the cont ordinary fns like out and inspect with  no changes.
         Note that out and inspect ignore oops: both out and inspect take more than one arg.
         grr. Inspect's 2nd arg is "source" but that's not necessarily the same source. hmmm.
-        What do I do here? Problem! Look at teh cont fn's args and try to match them up?
+        What do I do here? Problem! Look at the cont fn's args and try to match them up?
           not pass later ones and let them default?
    - Change low leval evals: Literal, Identifier, then assign, binary, then Array
         use List fns to implement lex_env throughout
    - remainder of existing stuff for continuations
+   - Each comptuer has at least one ActorProcessor which essentially is a queue of events.
+     Normally a
    - Call Henry to work on Futures.
  */
 globalThis.ActEval = class ActEval{
+    //Lisp's read
     static string_to_ast(source){ //same as JS2B.string_to_ast
         if (source[0] == "{") { //esprima doesn't like so hack it
             let new_src = "var foo947 = " + source
-            let st = Espree.parse(new_src, {range: true,
-                                                    loc: true,
-                                                    ecmaVersion: 7 //Chrome 105 (sept 2022) supports ES7 and probably more
+            let ast = Espree.parse(new_src,
+                                        {range: true,
+                                                 loc: true,
+                                                 ecmaVersion: 7 //Chrome 105 (sept 2022) supports ES7 and probably more
             })
-            let new_st = st.body[0].declarations[0].init
-            return new_st
+            let new_ast = ast.body[0].declarations[0].init
+            return new_ast
         }
         else {
             return Espree.parse(source, {range: true, loc: true, ecmaVersion: 7})
@@ -60,13 +72,13 @@ globalThis.ActEval = class ActEval{
                 case "Program":          return  this[switcher].call(this, st, lex_env, cont);
                 default: shouldnt("Can't handle exprima type: " + switcher)
             }*/
-            this[switcher].call(this, ast, lex_env, cont, source)
+            this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source})
         }
         catch(err){
             dde_error("Could not convert JavaScript to ast: " + err.message)
         }
     }
-    static Program(ast, lex_env, cont, source){
+    static Program({ast: ast, lex_env: lex_env, cont: cont, source: source}){
         let switcher = ast.sourceType
         switch(switcher) {
             case "module": dde_error("unimplemented: JS2B module");
@@ -77,12 +89,12 @@ globalThis.ActEval = class ActEval{
                 }
                 return result
             }
-            default: shouldnt("Can't handle exprima switcher: " + switcher)
+            default: shouldnt("ActEval.Program Can't handle switcher: " + switcher)
         }
     }
 
-    static script(ast, lex_env, cont, source){
-        let switcher = st.type
+    static script({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let switcher = ast.type
         switch(switcher){
             case "BlockStatement":      return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
             case "ExpressionStatement": return this[switcher].call(this, {ast: ast, lex_env: lex_env, cont: cont, source: source});
@@ -176,10 +188,18 @@ globalThis.ActEval = class ActEval{
         }
         else {
             let first_ast = ast.elements[0]
-            let rest_ast  = rest(ast.elements) //close over this lex var.
+            let rest_ast_elts  = ast.elements.slice(1) // get subarray of all but first elt of ast.elementsclose over this lex var.
+            let start_pos = rest_ast_elts[0].start
+            let end_pos = Utils.last(rest_ast_elts).end
+            let ast_rest = {elements: rest_ast_elts,
+                                           type:"ArrayExpression",
+                                           start: start_pos,
+                                           end: end_pos,
+                                           range: [start_pos, end_pos],
+                                           loc: "needs work"} //warning: should create N Espree Node instance but I don't know how to do that. This might be good enough
             let new_cont = function(val, lex_env, cont, source, vals_so_far){
                 let new_vals_so_far = List.make_pair(val, vals_so_far)
-                ActEval.ArrayExpression({ast: rest_st, lex_env: lex_env, cont: cont, source:source, vals_so_far:new_vals_so_far})
+                ActEval.ArrayExpression({ast: ast_rest, lex_env: lex_env, cont: cont, source:source, vals_so_far:new_vals_so_far})
             }
             this.eval({ast: first_ast, lex_env: lex_env, cont: new_cont, source:source})
         }
@@ -200,9 +220,6 @@ globalThis.ActEval = class ActEval{
                          cont.call(null, undefined, undefined, source)
                      },
                      source: source})
-
-
-
         }
         else if(ast.left.type === "MemberExpression") {
             let object_ast = ast.left.object
@@ -230,8 +247,8 @@ globalThis.ActEval = class ActEval{
         }
     }
 
-    static BinaryExpression(st, lex_env, cont, source){
-        let operator_string = st.operator
+    static BinaryExpression({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let operator_string = ast.operator
         let left_val
         let right_val
         this.eval(st.left,  lex_env, function(val){ left_val  = val}, source)
@@ -250,7 +267,9 @@ globalThis.ActEval = class ActEval{
         }
     }
 
-    static LogicalExpression(st){ return this.BinaryExpression(st) }
+    static LogicalExpression({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        return this.BinaryExpression({ast: ast, lex_env: lex_env, cont: cont, source: source})
+    }
 
     /*static get_src(st) {
         this.last_read_source.substring(st.range[0], st.range[1])
@@ -265,14 +284,14 @@ globalThis.ActEval = class ActEval{
         not just the ones passed. BUT
        doesn't handle keyworded fns properly.
     */
-    static get_src(st, source) {
-         return source.substring(st.range[0], st.range[1])
+    static get_src(ast, source) {
+         return source.substring(ast.range[0], ast.range[1])
     }
 
     //this does not add non passed args with their default vals
     // the new def
-    static CallExpression(st, lex_env, cont, source) {
-        let callee = st.callee //could be a single Identifier or could be MemberExpression when its a path
+    static CallExpression({ast: ast, lex_env: lex_env, cont: cont, source: source}) {
+        let callee = ast.callee //could be a single Identifier or could be MemberExpression when its a path
         let callee_type = callee.type //callee_type not bound due to a bug in Chrome
         //let meth_block   = this[callee_type].call(this, callee) //might be a path, or a single "Literal" identifier
         let meth_name = callee.name
@@ -314,16 +333,16 @@ globalThis.ActEval = class ActEval{
         cont.call(null, result)
         //inspect(meth_def_ast)
     }
-    static ForStatement(st){
-        let init   = JS2B[st.init.type].call(undefined, st.init);
-        let test   = JS2B[st.test.type].call(undefined, st.test);
-        let update = JS2B[st.update.type].call(undefined, st.update);
-        let body   = JS2B[st.body.type].call(undefined, st.body);
+    static ForStatement({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let init   = JS2B[ast.init.type].call(undefined, ast.init);
+        let test   = JS2B[ast.test.type].call(undefined, ast.test);
+        let update = JS2B[ast.update.type].call(undefined, ast.update);
+        let body   = JS2B[ast.body.type].call(undefined, ast.body);
         return Root.jsdb.for.for_iter.make_dom_elt(undefined, undefined, init, test, update, body)
     }
 
-    static ForOfStatement(st){
-        let left   = JS2B[st.left.type].call(undefined, st.left);
+    static ForOfStatement({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let left   = JS2B[ast.left.type].call(undefined, ast.left);
         //but have to remove the init val and equal sign of the declaration
         if (dom_elt_block_type(left).isA(Root.jsdb.assignment)) {
             Root.jsdb.assignment.remove_init_val(left)
@@ -333,19 +352,19 @@ globalThis.ActEval = class ActEval{
             value: "of",
             eval_each_choice: false,
         })
-        let right  = JS2B[st.right.type].call(undefined, st.right);
-        let body   = JS2B[st.body.type].call(undefined, st.body);
+        let right  = JS2B[st.right.type].call(undefined, ast.right);
+        let body   = JS2B[st.body.type].call(undefined, ast.body);
         return Root.jsdb.for.for_of.make_dom_elt(undefined, undefined, left, of_elt, right, body)
     }
 
-    static WhileStatement(st){
-        let test_elt   = JS2B[st.test.type].call(undefined, st.test);
-        let body_elt   = JS2B[st.body.type].call(undefined, st.body);
+    static WhileStatement({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let test_elt   = JS2B[st.test.type].call(undefined, ast.test);
+        let body_elt   = JS2B[st.body.type].call(undefined, ast.body);
         return Root.jsdb.rword_expr_code_body.while.make_dom_elt(undefined, undefined, test_elt, body_elt)
     }
 
-    static FunctionDeclaration(st, lex_env, cont, source){
-        let src = this.get_src(st, source)
+    static FunctionDeclaration({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let src = this.get_src(ast, source)
         let result = globalThis.eval(src)
         cont.call(null, result)
     }
@@ -386,8 +405,8 @@ globalThis.ActEval = class ActEval{
     return Root.jsdb.function.make_dom_elt(undefined, undefined, fn_name, params_block_elt, body_block_elt, is_generator)
 }*/
 
-    static FunctionExpression(st, operation="if"){
-        return JS2B.FunctionDeclaration.call(undefined, st)
+    static FunctionExpression({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        return JS2B.FunctionDeclaration.call(undefined, ast)
     }
 
     /*let fn_name = "" //used in annoymous fn defs
@@ -437,10 +456,10 @@ globalThis.ActEval = class ActEval{
     }
 
     //always returns an array of block elts
-    static IfStatement(st, lex_env, cont, source){
-        let test_st = st.test
-        let action_st = st.consequent
-        let alternatve_st = st.alternate
+    static IfStatement({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let test_st = ast.test
+        let action_st = ast.consequent
+        let alternatve_st = ast.alternate
         let test_result
         this.eval(test_st, lex_env, function(val) { test_result = val })
         if(test_result) {
@@ -455,14 +474,14 @@ globalThis.ActEval = class ActEval{
     }
 
     //called for paths
-    static MemberExpression(st, lex_env, cont, source){
-        let obj_st = st.object
+    static MemberExpression({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let obj_st = ast.object
         let obj_val
         this.eval(obj_st,
                   lex_env,
                   function(val) { obj_val = val},
                   source)
-        let prop_st = st.property
+        let prop_st = ast.property
         if(prop_st.type === "Identifier"){
             let result = obj_val[prop_st.name]
             cont.call(null, result)
@@ -472,9 +491,9 @@ globalThis.ActEval = class ActEval{
         }
     }
 
-    static NewExpression(st) {
-        let jsclassname = st.callee.name // a string like "Job"
-        let args = st.arguments //an array
+    static NewExpression({ast: ast, lex_env: lex_env, cont: cont, source: source}) {
+        let jsclassname = ast.callee.name // a string like "Job"
+        let args = ast.arguments //an array
         let arg_blocks = []
         for (let arg of args) {
             let switcher = arg.type
@@ -492,9 +511,9 @@ globalThis.ActEval = class ActEval{
         return result_block
     }
 
-    static ObjectExpression(st){
+    static ObjectExpression({ast: ast, lex_env: lex_env, cont: cont, source: source}){
         let name_val_block_elt_lit_obj = {} //names of strings, vals of actual block elts
-        for(let prop of st.properties){
+        for(let prop of ast.properties){
             let key = prop.key //typically (at least) identifier
             let name
             if (key.type == "Identifier") { name = key.name }
@@ -515,8 +534,8 @@ globalThis.ActEval = class ActEval{
         return lit_obj_block
     }
 
-    static TryStatement(st){
-        let block_st = st.block
+    static TryStatement({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let block_st = ast.block
         let block_elt = JS2B[block_st.type].call(undefined, block_st)
         let try_elt = Root.jsdb.rword_code_body.try.make_dom_elt(undefined, undefined, block_elt)
         let result = [try_elt]
@@ -532,9 +551,9 @@ globalThis.ActEval = class ActEval{
         return result
     }
 
-    static CatchClause(st){
-        let param_elt = JS2B[st.param.type].call(undefined, st.param)
-        let body_elt  = JS2B[st.body.type].call(undefined, st.body)
+    static CatchClause({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let param_elt = JS2B[ast.param.type].call(undefined, ast.param)
+        let body_elt  = JS2B[ast.body.type].call(undefined, ast.body)
         let catch_elt = Root.jsdb.rword_expr_code_body.catch.make_dom_elt(undefined, undefined, "catch", param_elt, body_elt)
         return catch_elt
     }
@@ -562,28 +581,28 @@ globalThis.ActEval = class ActEval{
        else { return one_clause }
    }*/
 
-    static ReturnStatement(st, lex_env, cont, source){
-        let arg = st.argument
+    static ReturnStatement({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let arg = ast.argument
         this.eval(arg, lex_env, cont, source)
     }
 
-    static ThisExpression(st){
+    static ThisExpression({ast: ast, lex_env: lex_env, cont: cont, source: source}){
         return Root.jsdb.identifier.identifiers.make_dom_elt(undefined, undefined, "this")
     }
 
-    static TemplateLiteral(st){
-        let part = st.quasis[0].value.raw
+    static TemplateLiteral({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let part = ast.quasis[0].value.raw
         let quote_char = "`"
         return Root.jsdb.literal.string.make_dom_elt(undefined, undefined, part, quote_char)
     }
 
     // ie:  -23  is a Unary Expression, delete is a unary expression.
-    static UnaryExpression(st){
-        let op = st.operator
+    static UnaryExpression({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let op = ast.operator
         switch(op){
             case "delete":
-                let arg_type = st.argument.type
-                let expr_block  = JS2B[arg_type].call(undefined, st.argument)
+                let arg_type = ast.argument.type
+                let expr_block  = JS2B[arg_type].call(undefined, ast.argument)
                 return Root.jsdb.rword_expr.delete.make_dom_elt(undefined, undefined, "delete", expr_block, null)
             case "-":
                 let arg = st.argument
@@ -591,17 +610,17 @@ globalThis.ActEval = class ActEval{
                     return Root.jsdb.literal.number.make_dom_elt(undefined, undefined, - arg.value)
                 }
                 else {
-                    return JS2B.UpdateExpression(st)
+                    return JS2B.UpdateExpression(ast)
                 }
             default:
-                return JS2B.UpdateExpression(st) //works for -23  but neg lit numbs treated above
+                return JS2B.UpdateExpression(ast) //works for -23  but neg lit numbs treated above
         }
     }
 
-    static UpdateExpression(st){
-        let operator_string = st.operator
-        let arg = JS2B[st.argument.type].call(undefined, st.argument)
-        let is_prefix = st.prefix  // true if we have ++i,  false if we have i++
+    static UpdateExpression({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let operator_string = ast.operator
+        let arg = JS2B[st.argument.type].call(undefined, ast.argument)
+        let is_prefix = ast.prefix  // true if we have ++i,  false if we have i++
         if(is_prefix) {
             return Root.jsdb.identifiers_prefix.make_dom_elt(undefined, undefined, arg, operator_string)
         }
@@ -610,9 +629,9 @@ globalThis.ActEval = class ActEval{
         }
     }
 
-    static VariableDeclaration(st, lex_env, cont, source){
-        let array_of_VariableDeclarator = st.declarations
-        let kind = st.kind //"var" or "let". see AssignmentExpression for kind == ""
+    static VariableDeclaration({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let array_of_VariableDeclarator = ast.declarations
+        let kind = ast.kind //"var" or "let". see AssignmentExpression for kind == ""
         for(let vdr of array_of_VariableDeclarator){
             let var_name = vdr.id.name
             let val_st =  vdr.init
@@ -625,21 +644,21 @@ globalThis.ActEval = class ActEval{
         //dont call cont
     }
 
-    static VariableDeclarator(st, kind="var"){ //kind can also be "let"
-        let name_string = st.id.name
-        let initial_value_st = st.init
+    static VariableDeclarator({ast: ast, lex_env: lex_env, cont: cont, source: source}){ //kind can also be "let"
+        let name_string = ast.id.name
+        let initial_value_st = ast.init
         let initial_value_block
         if (initial_value_st === null) {
             // inititial_value_st = undefined  //not used
             initial_value_block = Root.jsdb.one_of.null_undefined.make_dom_elt(undefined, undefined, "undefined")
         }
         else { initial_value_block = JS2B[initial_value_st.type].call(undefined, initial_value_st) }
-        return Root.jsdb.assignment.make_dom_elt(undefined, undefined, kind, name_string, initial_value_block)
+        return Root.jsdb.assignment.make_dom_elt(undefined, undefined, kind, name_string, initial_value_block) //todo get "kind" out of ast???
     }
 
-    static YieldExpression(st){
-        let arg = st.argument
-        let operation = (st.delegate ? "yield*" : "yield")
+    static YieldExpression({ast: ast, lex_env: lex_env, cont: cont, source: source}){
+        let arg = ast.argument
+        let operation = (ast.delegate ? "yield*" : "yield")
         let arg_block = JS2B[arg.type].call(undefined, arg)
         return Root.jsdb.rword_expr.make_dom_elt(undefined, undefined, operation, arg_block)
     }

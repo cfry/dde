@@ -174,7 +174,7 @@ dui_tour.addSteps([
         text: `You can specify Dexter's movements more accurately by
           using the numerical controls.
           Change joint 5 by using the highlighted control.
-          Use its up and down arrows to increment or decriment
+          Use its up and down arrows to increment or decrement
           joint 5's degrees without typing.
           Dexter will barely move in response.`,
         popperOptions: {modifiers: [{ name: 'offset', options: { offset: [0, 5] } }]}

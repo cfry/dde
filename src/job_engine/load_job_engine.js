@@ -131,8 +131,11 @@ import "../job_engine/core/py.js"      //defines class Py
 import {init_units} from "../job_engine/core/units.js"
 export {init_units}
 
+import "../job_engine/core/LowPassFilter.js" //defines class LowPassFilter
+
 import "../job_engine/act/ActEval.js"  //defines class ActEval
 import "../job_engine/act/List.js"     //defines class List
+import "../job_engine/act/Actor.js"    //defines class' Actor Serializer
 
 
 //import "../job_engine/core/messaging.js"//defined global: Messaging todo dde4, this needs to be moved to the server.

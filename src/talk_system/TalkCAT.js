@@ -11,84 +11,96 @@
 globalThis.TalkCAT = class TalkCAT {
     constructor({full_text, cmd, content_str}) {
         this._full_text = full_text
-        this._cmd = cmd
-        this._content_str = content_str
-        let parameters = cmd.parameters
-        let parameter_names = cmd.parameter_names()
-        this._unused_param_names = parameter_names.slice() //make a copy
-
         this._has_args = false
-        if(cmd.mode === TalkMode.params) { //populate result with existing values from params dialog box
-            for (let parameter of parameters) {
-                let oarameter_name = parameter.name
-                let id_str = TalkCat.make_id_for_parameter_html(cmd, param_name)
-                let dom_elt = globalThis[id_str]
-                let parameter_src = dom_elt.value
-                let parameter_type = parameter.type
-                let parameter_value = parameter.source_to_value(parameter_src)
-                if(parameter_value === Number.NaN) { //parameter_soruce is of wrong type.
-                    this[param_name] = "Not " + parameter_type.name + ": " + parameter_src
-                    //don't remove it from unused_param_names
-                }
-                else {
-                    this[param_name] = parameter_value
-                    Utils.remove_value_from_array(param_name, unused_param_names)
-                    this._has_args = true
-                }
-            }
-        }
-        if(parameters.length > 1) {
-            this.content_str = this.content_str.replaceAll(" comma ", ",") //when in parma dialog, if user hits space, they can say more than one arg and fill in the first such args tghey say, by separating them with commas.
-        }
-        //sometimes Chrome reco upper cases the first letter. No param names have upper case chars.
-        let content_str_with_lower_case_first_letter = ((content_str.length === 0) ? "" : content_str[0].toLowerCase() + content_str.substring(1))
-        let [parameter_name_in_content_str, value_src] = Utils.starts_with_one_of_and_tail(content_str_with_lower_case_first_letter, parameter_names, true)
-        if(parameter_name_in_content_str){
-            let the_parameter_for_parameter_name = cmd.parameter_name_to_parameter(parameter_name)
-            let parameter_type = the_parameter_for_parameter_name.type
+        this._error = null //or a string of the error message
+        //if there's no cmd, then we just have the full_text meaning we qre using this aCAT to call
+        //the mode's misc method which only uses _full_text
+        if(cmd) {
+            this._cmd = cmd
+            this._content_str = content_str
+            let parameters = cmd.parameters
+            let parameter_names = cmd.parameter_names()
+            this._unused_param_names = parameter_names.slice() //make a copy
 
-            let parameter_value = parameter_type.source_to_value(value_src)
-            if(parameter_value === Number.NaN){
-                this[param_name_in_content_str] = "Not " + parameter_type.name + ": " + parameter_src
-            }
-            else {
-                this[param_name_in_content_str] = val
-                Utils.remove_value_from_array(param_name_in_content_str, unused_param_names)
-                if (unused_param_names.length === 0) {
-                    this._has_args = false
+            if (cmd.mode === TalkMode.params) { //populate result with existing values from params dialog box
+                for (let parameter of parameters) {
+                    let id_str = TalkCat.make_id_for_parameter_html(cmd, parameter.name)
+                    let dom_elt = globalThis[id_str]
+                    let the_parameter_source = dom_elt.value.trim()
+                    let the_parameter_value = parameter.source_to_value(the_parameter_source)
+                    if (Number.isNaN(the_parameter_value)) { //parameter_soruce is of wrong type.
+                        let class_name = Utils.get_class_name(Utils.get_class_of_instance(parameter.type))
+                        this._error = "Error: <span style='color:black;'>" + the_parameter_source + "</span> is not a valid " + class_name + "."
+                        //don't remove it from unused_param_names
+                    }
+                    else {
+                        this[parameter.name] = the_parameter_value
+                        Utils.remove_value_from_array(parameter.name, this._unused_param_names)
+                        this._has_args = true
+                    }
                 }
             }
-        }
-        else {//go through content_str looking for by_position parameter_source that matches  the type.
-            //first word of content_str is NOT a param name so presume we
-            //start with the first param name and go down the list of args to match.
-            let parameter_sources = ((content_str === "") ? [] : content_str.split(","))
-            for (let i = 0; i < parameter_sources.length; i++) {
-                let the_parameter = parameters[i]
-                let the_parameter_name = parameter_names[i]
-                let the_parameter_source = parameter_sources[i]
-                if (!the_parameter) {
-                    warning("<b>" + cmd.name + "</b> got more content than the parameters allow for of: " + the_parameter_source +
-                        "<br/>so ignoring it.")
+            if (parameters.length > 1) {
+                this._content_str = this._content_str.replaceAll(" comma ", ",") //when in parma dialog, if user hits space, they can say more than one arg and fill in the first such args tghey say, by separating them with commas.
+            }
+            //sometimes Chrome reco upper cases the first letter. No param names have upper case chars.
+            let content_str_with_lower_case_first_letter = ((this._content_str.length === 0) ? "" : this._content_str[0].toLowerCase() + this._content_str.substring(1))
+            let [the_parameter_name, the_parameter_source] = Utils.starts_with_one_of_and_tail(content_str_with_lower_case_first_letter, parameter_names, true)
+            if (the_parameter_name) {
+                the_parameter_name = the_parameter_name.trim()
+                let parameter = cmd.parameter_name_to_parameter(the_parameter_name)
+                let the_parameter_value = parameter.type.source_to_value(the_parameter_source)
+                if (Number.isNaN(the_parameter_value)) {
+                    let class_name = Utils.get_class_name(Utils.get_class_of_instance(parameter.type))
+                    this._error = "Error: <span style='color:black;'>" + the_parameter_source + "</span> is not a valid " + class_name + "."
                 }
                 else {
-                    let parameter_value = the_parameter.type.source_to_value(the_parameter_source)
-                    if(parameter_value === Number.NaN){
-                        this[the_parameter_name] = "Not " + parameter_type.name + ": " + parameter_src
+                    this[the_parameter_name] = the_parameter_value
+                    Utils.remove_value_from_array(the_parameter_name, this._unused_param_names)
+                    if (this._unused_param_names.length === 0) {
+                        this._has_args = false
                     }
-                    this[the_parameter_name] = parameter_value
-                    this._unused_param_names.shift() //remove param name from the front of the array.
-                    this._has_args = true
+                }
+            }
+            else {//go through content_str looking for by_position parameter_source that matches  the type.
+                //first word of content_str is NOT a param name so presume we
+                //start with the first param name and go down the list of args to match.
+                let parameter_sources = ((this._content_str === "") ? [] : this._content_str.split(","))
+                for (let i = 0; i < parameter_sources.length; i++) {
+                    let parameter = parameters[i]
+                    let the_parameter_source = parameter_sources[i].trim()
+                    if (!parameter) {
+                        warning("<b>" + cmd.name + "</b> got more content than the parameters allow for of: " + the_parameter_source +
+                            "<br/>so ignoring it.")
+                    } else {
+                        let the_parameter_value = parameter.type.source_to_value(the_parameter_source)
+                        if (Number.isNaN(the_parameter_value)) {  //source_to_value could not convert parameter_source to the correct type
+                            let class_name = Utils.get_class_name(Utils.get_class_of_instance(parameter.type))
+                            this._error = "Error: <span style='color:black;'>" + the_parameter_source + "</span> is not a valid " + class_name + "."
+                            this[parameter.name] = the_parameter_source
+                        }
+                        else {
+                            this[parameter.name] = the_parameter_value
+                        }
+                        this._unused_param_names.shift() //remove param name from the front of the array.
+                        this._has_args = true
+                    }
                 }
             }
         }
     } //end of constructor
 
     static make_id_for_parameter_html(cmd, param_name) {
-        let cmd_norm_with_underscores = cmd.name.replaceAll(" ", "_")
-        let id_str = cmd.mode + //the "parent mode"
-            "__" + cmd_norm_with_underscores + "__params__" + param_name + "__id"
+        let id_str = cmd.mode.name + //the "parent mode"
+            "__" + cmd.name_with_underscores + "__params__" + param_name + "__id"
         return id_str
+    }
+
+    remove_unsed_parameter_name(parameter_name){
+        let index = this._unused_param_names.indexOf(parameter_name)
+        if(index >= 0){
+            this._unused_param_names.splice(index, 1)
+        }
     }
 
 }

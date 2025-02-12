@@ -101,7 +101,7 @@ class Job{
     //start_if_robot_busy=false,  //if false and robot.is_busy() is true, Job.start is halted early
     //program_counter is the counter of the next instruction that should be executed.
     //so since we're currently "executing" 1 instruction, and after its done,
-    //we'll be incrementing the pc, then internally we decriment the
+    //we'll be incrementing the pc, then internally we decrement the
     //passed in program_counter. If its negative, it means
     //compute it from the end, ie -1 means when set_next_do is called,
     //it will set the pc to the length of the do_list, hence we'll be done
@@ -1068,7 +1068,7 @@ class Job{
         switch(this.status_code){
             case "not_started":
                 bg_color = "rgb(204, 204, 204)";
-                tooltip  = "This Job has not been started since it was defined.\nClick to start this Job."
+                tooltip  = "This Job has not been started since it was defined.\nClick to start this Job, to initiate the execution of\nthe instructions on the do_list, one by one."
                 break; //defined but never started.
             case "starting":
                 bg_color = "rgb(210, 255, 190)";

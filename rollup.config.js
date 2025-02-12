@@ -6,6 +6,16 @@ import styles          from "rollup-plugin-styles";
 //import sourcemaps from 'rollup-plugin-sourcemaps'; // https://github.com/maxdavidson/rollup-plugin-sourcemaps
 import copy from 'rollup-plugin-copy'
 
+//from https://www.npmjs.com/package/rollup-plugin-node-polyfills
+//import nodePolyfills from 'rollup-plugin-node-polyfills'; errors during build
+
+//https://github.com/FredKSchott/rollup-plugin-polyfill-node
+
+//import nodePolyfills from 'rollup-plugin-polyfill-node'; //error during build
+//same problem as above: FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
+// from https://stackoverflow.com/questions/65124312/how-to-solve-fatal-error-ineffective-mark-compacts-near-heap-limit-allocation-f
+// I increased the heap size to 8K but got the same problem.
+
 
 export default {
     inlineDynamicImports: true, //needed to support dynamic imports in my code
@@ -20,16 +30,21 @@ export default {
             //there is a bug in rollup importing npm 'ws' which causes it to think
             //ws needs 'bufferutil' and  'utf-8-validate' but it doesn't
             //this below fix of ignore is described in https://github.com/websockets/ws/issues/659
-            ignore: ['bufferutil', 'utf-8-validate'], // Ignore optional peer dependencies of ws
+            ignore: ['bufferutil', 'utf-8-validate', // Ignore optional peer dependencies of ws
+                     "fs", "path", "crypto" //from https://github.com/TechStark/opencv-js-examples/blob/develop/opencv-js-rollup-example/rollup.config.js  for my opencv broser-capable opencv import
+                      //from email to me sept 2, 2024 from notifications@github.com Wilson Tian ttt43ttt (I guess github name, from China.
+                    ],
         }),
         json(),
         styles(),
         //sourcemaps()
-        copy({
-            targets: [
-                { src: 'node_modules/opencv.js/opencv.js', dest: 'dde/third_party' }
-            ]
-        })
+        //copy({
+        //    targets: [
+        //        { src: 'node_modules/opencv.js/opencv.js', dest: 'dde/third_party' }
+        //    ]
+        //}),
+        //nodePolyfills() //errors during build
+        //nodePolyfills( /* options */ ) //errors during build
     ],
     //see https://rollupjs.org/guide/en/#avoiding-eval and search for onwarn
     onwarn (warning, warn) {

@@ -20,7 +20,6 @@ into the url format used by this demo.
 var faceClassifier = undefined
 
 function init_face_classifier(){
-    debugger;
     if(!faceClassifier) { //calling the below code twice in a dde session will error
         let face_file_path = "host://dde/vision/lbpcascade_frontalface.xml"
         DDEFile.read_file_async(face_file_path,
@@ -55,7 +54,6 @@ function handle_webcam_video(vals){ //vals contains name-value pairs for each
         }
     }
     else if (vals.clicked_button_value == "Snap Photo"){
-        debugger;
         let context = canvas_id.getContext('2d')
         context.drawImage(video_id, 0, 0, 320, 240)
         let mat          = cv.imread(canvas_id)

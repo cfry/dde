@@ -592,7 +592,7 @@ globalThis.SimBuild = class SimBuild{
 
     static populate_dialog_property(object3d, prop_name, value,
                                     value_prop_name="value"){ //but should be "checked" for checkboxes
-        if(object3d === SimBuild.now_editing_object3d) {
+        if(this.dialog_is_showing() && (object3d === SimBuild.now_editing_object3d)) {
             if(value instanceof THREE.Color) {
                 value = SimObj.three_color_to_hex(value)
             }
@@ -643,7 +643,8 @@ globalThis.SimBuild = class SimBuild{
    //called only from simulate animation loop.
     //needs to be fast and not generate garbage.
     static refresh(){
-        if(this.dialog_is_showing()       &&
+        if(this.dialog_is_showing() &&
+            this.dialog_is_showing()       &&
             (Simulate.simulationRate > 0) &&
             this.now_editing_object3d     //&&
             //SimObj.get_is_dynamic(this.now_editing_object3d  //but if edited obj is non-dynamic obj that is being pushed, we want to update its coords
@@ -687,19 +688,22 @@ globalThis.SimBuild = class SimBuild{
         }
     }*/
 
-    static set_now_editing_object3d(object3d=null){
+    static set_now_editing_object3d(object3d_or_name=null){
         //if(object3d === this.now_editing_object3d) { return } //nothing to do
+        let object3d = SimObj.get_object3d(object3d_or_name)
         let old_obj = this.now_editing_object3d
         if(old_obj && old_obj.userData.three_color) {
             //old_obj.material.color = old_obj.userData.color //restore old obj back to orig color
-            SimObj.set_color(old_obj, old_obj.userData.three_color)
+            SimObj.set_color(old_obj, old_obj.userData.three_color) //restore orig color if any to old_obj (ie non-hightlight it)
         }
         if(object3d){
+            let object3d_orig_color = SimObj.get_color(object3d)
+            object3d.userData.three_color = object3d_orig_color //store orig color of object3d
             this.now_editing_object3d = object3d
             if(object3d.material && object3d.material.color) { //if the material doesn't have a color, don't try to set it.
                  //object3d.userData.color = SimObj.get_color(object3d)
                 //object3d.material.color = 0xffff00 //but this format fails yellow for highlighting
-                SimObj.set_color(object3d, SimObj.highlight_color) //won't set object3d.userData.color
+                SimObj.set_color(object3d, SimObj.highlight_color) //highlight object3d, won't set object3d.userData.color so we can restore it when unhighlighted
             }
         }
     }
@@ -709,7 +713,8 @@ globalThis.SimBuild = class SimBuild{
     //This method expects the <option> tag for the name of object3d to
     //already be in the_name select tag.
     static show_to_make_a_new_object3d_message = true
-    static populate_dialog_from_object(object3d){
+    //even_if_aready_editing_object3d=true called by TalkObject rename
+    static populate_dialog_from_object(object3d, even_if_aready_editing_object3d=false){
         if (!object3d || (SimObj.user_objects.length === 0)) {
             this.disable_inputs()
             if(this.show_to_make_a_new_object3d_message) {
@@ -722,7 +727,7 @@ globalThis.SimBuild = class SimBuild{
         let dialog_dom_elt = SimBuild.dialog_dom_elt()
         if(!dialog_dom_elt) {  return }
         else {
-            if(object3d !== this.now_editing_object3d) { //because refreshing this every frame makes the clicks unusable, but no need to refrsh if not changing the object being edited.
+            if((object3d !== this.now_editing_object3d) || even_if_aready_editing_object3d) { //because refreshing this every frame makes the clicks unusable, but no need to refrsh if not changing the object being edited.
                 if(this.now_editing_object3d) { //ie its not null as it is when starting out the dialog.
                     if(object3d.name === this.now_editing_object3d.name) { //probably one of object3d & now_editing_object3d is a line and the other isn't.
                         //so get rid of now_editing_object3d and install object3d.

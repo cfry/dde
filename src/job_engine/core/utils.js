@@ -321,6 +321,10 @@ static is_string_a_color_rgb(a_string){
     return a_string.startsWith("rgb(") && a_string.endsWith(")") && a_string.includes(",") //not perfect but quick and pretty good
 }
 
+static capitalize_string(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
 //returns a number or false.
 //if a_string is actually a non-NaN number instead of a string, returns a_string
 //removes commas and trims string.
@@ -537,7 +541,9 @@ static little_hex_to_integer(hex) { //converts little endian hex string to int
         return sum
     }
 
-
+static clamp (val, min=0, max= Infinity) {
+    return Math.min(Math.max(val, min), max)
+}
 
 //______color_______
 static rgb(r, g, b){return "rgb("+r+", "+g+", "+b+")"} //global this string used in css
@@ -1931,7 +1937,6 @@ static is_first_letter_lower_case(a_string){
     return ((a_string.length > 0) && (a_string[0] == a_string[0].toLowerCase()))
 }
 
-//aka capitalize
 static capitalize(a_string){
     if(a_string.length == 0) { return "" }
     if (this.is_first_letter_upper_case(a_string)) { return a_string }

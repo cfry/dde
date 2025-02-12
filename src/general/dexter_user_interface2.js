@@ -492,7 +492,7 @@ class dui2 {
     // the sign as either 1 or -1 (a factor in a multiply)
     static convert_key_and_sign(key){
         let shift_joint_keys = ")!@#$%^&*("
-        let keyint = shift_joint_keys.indexOf(key)  //if keyint is not -1, then we have a SHIFT_integer keystroke, ie a decriment of a joint angle
+        let keyint = shift_joint_keys.indexOf(key)  //if keyint is not -1, then we have a SHIFT_integer keystroke, ie a decrement of a joint angle
         if(Utils.is_digit(key))      { return [parseInt(key), 1] } //positive joint angle
         else if(keyint !== -1) { return [keyint, -1] } //the shift of an int, ie a negative joint angle
         else if (key === "r")  { return [key, 1]    }

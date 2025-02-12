@@ -480,7 +480,15 @@ globalThis.SimObj = class SimObj{
             if (!(geometry.endsWith("Geometry"))) {
                 geometry = geometry + "Geometry"
             }
+            geometry = Utils.capitalize_string(geometry)
             let geometry_class = ((geometry === "LineGeometry") ? THREE_extra.LineGeometry : THREE[geometry])
+            if(!geometry_class){
+                let mess = "SimObj.geometry_to_geometry_instance passed: " + geometry +
+                    " which is not one of the valid geometries of:<br/>" +
+                    SimBuild.geometry_names.join(", ")
+                Talk.display_warning(mess)
+                dde_error(mess)
+            }
             geometry_inst = new geometry_class()
         }
         else if(Utils.is_class(geometry)){
@@ -875,6 +883,19 @@ globalThis.SimObj = class SimObj{
         else { return object3d.name }
     }
 
+    //see SimObj.remove for what needs to be done
+    //called by TalkObject.js
+    static set_name(object3d_or_name, new_name){
+        let object3d = SimObj.get_object3d(object3d_or_name)
+        let old_name = object3d.name
+        delete this[old_name]
+        SimBuild.remove_object3d_from_the_name_menu(object3d)
+        this[new_name] = object3d
+        object3d.name = new_name
+        SimBuild.add_object3d_to_the_name_menu(object3d) //now has its new name
+        SimBuild.populate_dialog_from_object_if_now_editing(object3d)
+    }
+
     static get_parent(object3d_or_name) {
         let object3d = SimObj.get_object3d(object3d_or_name)
         return object3d.parent
@@ -1263,11 +1284,12 @@ globalThis.SimObj = class SimObj{
     static set_wire_frame(object3d_or_name, wire_frame=true){
         let object3d = SimObj.get_object3d(object3d_or_name)
         object3d.material.wireframe = wire_frame
+        //object3d.material.wireframeLinewidth = 1 //regardless of the value you set, this is 1. limitation of Chrome and WebGL.
         SimBuild.populate_dialog_property(object3d, "wire_frame", wire_frame, "checked")
         //SimUtils.render()
     }
 
-    //returns an array of 3 floats, 0 to 1 for r, g, b.
+    //returns an array of 3 floats, 0 to 1 for r, g, b. This is what I call "three_color"
     static get_color(object3d_or_name){
         let object3d = SimObj.get_object3d(object3d_or_name)
         if(!object3d.material) { return null }
@@ -1305,15 +1327,26 @@ globalThis.SimObj = class SimObj{
     //or any THREE js color
     //If object3d doesn't have a material, this doesn't error, just doesn't attempt to set the color
 
-    //color can be HTML color names like "blue" or 0x0000ff or [0, 0, 1] ie rgb with each a float, 0 to 1
+    //color can be:
+    // - HTML color names like
+    // - "blue" (a string) //the 140 HTML standard colors,
+    // - "0x0000ff"  (a string of hex)
+    // - an instance of THREE.Color (basicaly a json like obj with r, g, b as floats from 0 to 1)
+    // - [0, 0, 1] ie an array rgb with each a float, 0 to 1
+    // - "rgb(255, 0, 0)" a string ie the CSS format for RGB
     //if its some bad data, makes a valid "white" color
     static set_color(object3d_or_name, color = null) {
         let object3d = SimObj.get_object3d(object3d_or_name)
+        if(color instanceof THREE.Color) { //threejs json object of r, g anf b as 0 to 1 floats
+            object3d.material.color.set(color)
+            return
+        }
         if (color === "random") {
             color = [Math.random(), Math.random(), Math.random]
         }
         let three_color = (Array.isArray(color) ? new THREE.Color(color[0], color[1], color[2]) :
-                                                  new THREE.Color(color) )
+                                                         new THREE.Color(color)  //handles strings like blue or "#ffff00"
+                                 )
         if (three_color) {
             if(object3d.material && object3d.material.color) { //does not hit on MeshNormalMaterial since that has no color
                 object3d.material.color.set(three_color)
@@ -1505,7 +1538,7 @@ THREE.Mesh.prototype.to_source_code =
             'orientation: ' + to_source_code({value: SimObj.get_orientation(object3d)}) + ',\n    ' +
             'material: "'   + SimObj.get_material_short_name(object3d)                  + '", ' +
             'color: '       + color_str                                                 + ',\n    ' +
-            'wireframe: '   + SimObj.get_wire_frame(object3d)                           + ', '  +//boolean
+            'wireframe: '   + SimObj.get_wire_frame(object3d)                           + ', '  +//boolean if true, object responds to gravity
             'is_dynamic: '  + SimObj.get_is_dynamic(object3d)                           + ', '  +//boolean
             'mass: '        + SimObj.get_mass(object3d)    +  //in grams
             line_attrs +

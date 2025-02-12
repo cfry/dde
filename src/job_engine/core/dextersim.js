@@ -384,6 +384,7 @@ class DexterSim{
                     else if(param_name === "EESpan") { //joint 7
                         //ds_instance.measured_angles_dexter_units[6] = param_val
                         ds_instance.queue_instance.start_running_j6_plus_instruction(7, param_val)
+                        //ds_instance.queue_instance.add_to_queue(instruction_array) //fry added sept 28, 2024, like "a" moves.
                     }
                     //else if(param_name === "RebootServo"){
                        //we don't need special processing for RebootServo. After it will be

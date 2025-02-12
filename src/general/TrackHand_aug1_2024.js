@@ -23,7 +23,6 @@ globalThis.TrackHand = class TrackHand {
     }
 
     static async init(){ //was getVisionStuff()
-        debugger;
         this.make_show_window()
         // MediaPipe
         const filesetResolver = await FilesetResolver.forVisionTasks(

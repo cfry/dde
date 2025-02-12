@@ -77,6 +77,36 @@ globalThis.TalkType = class TalkType {
         }
     }
 
+    typical_string_values(){
+        if(Array.isArray(this.typical)) { return this.typical}
+        else if(typeof(this.typical === "function")) {
+            return this.typical.call(this)
+        }
+        else {
+            let clz = Utils.get_class_of_instance(this)
+            let clz_name = Utils.get_class_name(clz)
+            dde_error("The 'typical' property for an instance of: " +  clz_name +  "<br/>" +
+                       " is: " + this.typical + " but should be <br/>" +
+                       "an array of strings or a function that returns an array of strings.")
+        }
+    }
+    //returns string for an error message or null, meaning str is of the correct type
+    is_type_for_string_error_message(str){
+        if(this.is_type_for_string(str)){ return null }
+        else {
+            let clz = Utils.get_class_of_instance(this)
+            let clz_name = Utils.get_class_name(clz)
+            let desc = this.prose_type_description()
+            return str + " is not a valid type for: " + clz_name + " which requires:<br/>" + desc
+        }
+    }
+    prose_type_description() {
+        if(this.typical_is_exclusive){
+            return "one of: " + this.typical.join(", ") + "."
+        }
+        else { return "" } //no new info to add, by default
+    }
+
     //only converts "zero" thru "nine" to 0 thru 9 or returns false
     static string_to_small_integer(a_string){
         let integer = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"].indexOf(a_string)
@@ -89,11 +119,12 @@ globalThis.TalkType = class TalkType {
     }
 }
 
-globalThis.TalkTypeAny = class TalkTypeAny {
-    constructor({default_value_string= "0", typical= ["0", "true", "one, two"], typical_is_exclusive = false}) {
-        this.default_value_string = default_value_string
+globalThis.TalkTypeAny = class TalkTypeAny extends TalkType{
+    constructor({typical= ["0", "true", "one, two"], //can be either an array of strings or a function that returns an array of strings
+                    typical_is_exclusive = false}={}) {
+        super()
         this.typical = ["true", "0", "one, two"]
-        this.typical_is_exclusive = typical_is_exclusive
+        this.typical_is_exclusive = typical_is_exclusive //means that, if true, ALL the valid values are in the typical array
     }
     is_type_for_string(str) {
         return true
@@ -108,15 +139,15 @@ globalThis.TalkTypeAny = class TalkTypeAny {
 }
 
 
-globalThis.TalkTypeBoolean = class TalkTypeBoolean {
-    constructor({default_value_string="false"}) {
-        this.default_value_string = default_value_string
+globalThis.TalkTypeBoolean = class TalkTypeBoolean extends TalkType {
+    constructor({}={}) {
+        super()
         this.typical = ["true", "false"]
         this.typical_is_exclusive = true
     }
 
     is_type_for_string(str){
-        return ["true", "false"].includes(str)
+        return this.typical.includes(str)
     }
 
     source_to_value(source){
@@ -137,14 +168,14 @@ globalThis.TalkTypeBoolean = class TalkTypeBoolean {
     }
 }
 
-globalThis.TalkTypeInteger = class TalkTypeInteger {
-    constructor({default_value_string="0",
+globalThis.TalkTypeInteger = class TalkTypeInteger extends TalkType {
+    constructor({
                     typical = [-1, 0, 1, 2],
                     typical_is_exclusive = false,
                     min = -Infinity,
                     max = Infinity
-                }) {
-        this.default_value_string = default_value_string
+                }={}) {
+        super()
         this.typical = typical
         this.typical_is_exclusive = typical_is_exclusive
         this.min = min
@@ -167,7 +198,7 @@ globalThis.TalkTypeInteger = class TalkTypeInteger {
     }
 
     source_to_value(source) {
-        if(TalkTypeInteger.is_type_for_string(source)){
+        if(this.is_type_for_string(source)){
             return parseInt(source)
         }
         else {
@@ -176,14 +207,14 @@ globalThis.TalkTypeInteger = class TalkTypeInteger {
     }
 }
 
-globalThis.TalkTypeNumber = class TalkTypeNumber {
-    constructor({ default_value_string = "0",
+globalThis.TalkTypeNumber = class TalkTypeNumber extends TalkType {
+    constructor({
                     typical = [-1, 0, 1, 2],
                     typical_is_exclusive = false,
                     min = -Infinity,
                     max = Infinity
-                }) {
-        this.default_value_string = default_value_string
+                }={}) {
+        super()
         this.typical_is_exclusive = typical_is_exclusive
         this.min = min
         this.max = max
@@ -204,7 +235,7 @@ globalThis.TalkTypeNumber = class TalkTypeNumber {
         }
     }
     source_to_value(source) {
-        if(TalkTypeInteger.is_type_for_string(source)){
+        if(this.is_type_for_string(source)){
             return parseFloat(source)
         }
         else {
@@ -213,9 +244,9 @@ globalThis.TalkTypeNumber = class TalkTypeNumber {
     }
 }
 
-globalThis.TalkTypeNullOrUndefined = class TalkTypeNullOrUndefined {
-    constructor(default_value_string = "null") {
-        this.default_value_string = default_value_string
+globalThis.TalkTypeNullOrUndefined = class TalkTypeNullOrUndefined extends TalkType {
+    constructor({}={}) {
+        super()
         this.typical = ["null", "undefined", ""]
         this.typical_is_exclusive = true
     }
@@ -238,26 +269,77 @@ globalThis.TalkTypeNullOrUndefined = class TalkTypeNullOrUndefined {
     }
 }
 
-globalThis.TalkTypeString = class TalkTypeString {
-    constructor({default_value_string = "hello world", typical = ["hello world", "what does GPT mean?"], typical_is_exclusive=false}) {
-        this.default_value_string = default_value_string
+globalThis.TalkTypeString = class TalkTypeString  extends TalkType{
+    constructor({ typical = ["hello world", "what does GPT mean?"],
+                    typical_is_exclusive=false}={}) {
+        super()
         this.typical = typical
         this.typical_is_exclusive = typical_is_exclusive
     }
 
     is_type_for_string(str) {
-        return true
-        //todo needs work. I guess if str matches any other TYPE, then this should return false,
-        // but not sure here.((str === "null") || (str === "undefined") || (str === ""))
+        if(this.typical_is_exclusive){
+            return this.typical.includes(str)
+        }
+        else { return true }
     }
     source_to_value(source) {
-        return source
+        return source.trim()
     }
 }
 
-globalThis.TalkTypeOneof = class TalkTypeOneof {
-    constructor({default_value_string, typical, typical_is_exclusive = true,  elt_type_inst}) {
-        this.default_value_string = default_value_string
+globalThis.TalkTypeJobName = class TalkTypeString  extends TalkType{
+    constructor({typical = ["my_job", "job1"],
+                    typical_is_exclusive=false}={}) {
+        super()
+        this.typical = this.typical_value_strings()
+        this.typical_is_exclusive = typical_is_exclusive
+    }
+
+    typical_value_strings(){
+       return Job.all_names
+    }
+
+    is_type_for_string(str) {
+        return Talk.is_existing_job_name(str)
+    }
+    source_to_value(source) {
+        return Talk.string_to_job_name(source)
+    }
+}
+
+TalkType.JobNameOrNewJobName = class JobNameOrNewJobName  extends TalkType{
+    constructor({ typical = function(){return Job.all_names},
+                  typical_is_exclusive=false}={}) {
+        super()
+        this.typical = typical
+        this.typical_is_exclusive = typical_is_exclusive
+    }
+
+    is_type_for_string(str) {
+        let job_name_maybe = Talk.string_to_job_name(source)
+        if(Job[job_name_maybe]) {
+            return true
+        }
+        else { return false }
+    }
+
+    source_to_value(source) {
+        let meth_name = Talk.string_to_method_name(source)
+        if(!Utils.is_string_an_identifier(meth_name)) {
+            return Number.NaN
+        }
+        else {
+            return Talk.string_to_job_name(source) //if source can be coered into an existing job name, it is, else just make string a valid job name, ie replace spaces with underscores.
+        }
+    }
+}
+
+globalThis.TalkTypeOneof = class TalkTypeOneof  extends TalkType{
+    constructor({ typical,
+                    typical_is_exclusive = true,
+                    elt_type_inst}={}) {
+        super()
         this.elt_type_inst = type_inst
         this.typical = typical
         this.typical_is_exclusive = typical_is_exclusive
@@ -284,14 +366,14 @@ globalThis.TalkTypeOneof = class TalkTypeOneof {
     }
 }
 
-globalThis.TalkTypeArray = class TalkTypeArray {
-    constructor({default_value_string="",
+globalThis.TalkTypeArray = class TalkTypeArray  extends TalkType{
+    constructor({
                     typical,
                     typical_is_exclusive,
                     elt_type_inst=TalkTypeNumber,
                     min_length = 0,
-                    max_length = Infinity}) {
-        this.default_value_string = default_value_string
+                    max_length = Infinity}={}) {
+        super()
         this.typical = typical
         this.typical = ["true", "0", "one, two"]
         this.typical_is_exclusive = typical_is_exclusive

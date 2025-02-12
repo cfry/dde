@@ -7,6 +7,13 @@ But looks like cv.imshow can only show to a canvas tag.
 import RotatingCalipers from "../third_party/rotating-calipers.js";
 globalThis.RotatingCalipers = RotatingCalipers;
 
+/* when using this instead of the script tag at the botton of index.html,
+I get the error when launching DDE4 of:
+Uncaught TypeError: Failed to resolve module specifier "fs". Relative references must start with either "/", "./", or "../".
+import cv from "../third_party/opencv4_10_0.js"
+globalThis.cv = cv
+ */
+
 // import * as cv from "../../node_modules/opencv.js/opencv.js"
 
 

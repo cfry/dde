@@ -292,7 +292,7 @@ class Series {
             var int = parseInt(int_str)
             int += index_increment
             var str = "" + int
-            for (; str.length < digits_in_int_str;) { //we've decrimented and lost a leading zero
+            for (; str.length < digits_in_int_str;) { //we've decremented and lost a leading zero
                 str = "0" + str
             }
             var new_text = str.slice(0, str.length - places_of_decimal) + "." + str.slice(str.length - places_of_decimal)
@@ -328,12 +328,12 @@ class Series {
                     minute_string = "59"
                     if (hour_string == "00") {hour_string = "23" } //wrap
                     else {
-                        var hour_int = parseInt(hour_string) + index_increment //decriment hour
+                        var hour_int = parseInt(hour_string) + index_increment //decrement hour
                         hour_string = ((hour_int < 10)? "0" : "") + hour_int
                     }
                 }
                 else{ //normal case, hour doesn't change
-                    var minute_int = parseInt(minute_string) + index_increment //decriment minute
+                    var minute_int = parseInt(minute_string) + index_increment //decrement minute
                     minute_string = ((minute_int < 10)? "0" : "") + minute_int
                 }
             }
@@ -350,7 +350,7 @@ class Series {
                     if (hour_string == "23") {hour_string = "00"} //wrap
                     else {
                         var hour_int = parseInt(hour_string)
-                        hour_int = hour_int + index_increment //decriment hour
+                        hour_int = hour_int + index_increment //decrement hour
                         hour_string = ((hour_int < 10)? "0" : "") + hour_int
                     }
                 }
@@ -375,12 +375,12 @@ class Series {
                 minute_string = "59"
                 if (hour_string == "00") {hour_string = "23" } //wrap
                 else {
-                    var hour_int = parseInt(hour_string) + index_increment //decriment hour
+                    var hour_int = parseInt(hour_string) + index_increment //decrement hour
                     hour_string = ((hour_int < 10)? "0" : "") + hour_int
                 }
             }
             else{ //normal case, hour doesn't change
-                var minute_int = parseInt(minute_string) + index_increment //decriment minute
+                var minute_int = parseInt(minute_string) + index_increment //decrement minute
                 minute_string = ((minute_int < 10)? "0" : "") + minute_int
             }
         }
@@ -390,7 +390,7 @@ class Series {
                 if (hour_string == "23") {hour_string = "00"} //wrap
                 else {
                     var hour_int = parseInt(hour_string)
-                    hour_int = hour_int + index_increment //decriment hour
+                    hour_int = hour_int + index_increment //decrement hour
                     hour_string = ((hour_int < 10)? "0" : "") + hour_int
                 }
             }

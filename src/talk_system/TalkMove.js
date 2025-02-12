@@ -1,4 +1,930 @@
-static cmd_props_table = {
+new TalkMode({name: "move",
+    mode_misc_method: "move_mode_misc_action_function"})
+
+TalkMode.move.is_recording
+TalkMode.move.instructions_being_recorded
+TalkMode.move.recording_name_now_playing
+TalkMode.move.step_size //float in meters
+
+TalkMode.move.current_move_command
+TalkMode.move.current_move_direction //initially null, then when moving: "down", up, left, right, front, back, reverse, forward
+TalkMode.move.last_move_command
+TalkMode.move.current_move_joint_number
+
+TalkMode.move.init = function(){
+    TalkMode.move.is_recording = false
+    TalkMode.move.instructions_being_recorded = []
+    TalkMode.move.recording_name_now_playing = null
+    TalkMode.move.step_size = 0.005
+
+    TalkMode.move.current_move_command   = null
+    TalkMode.move.current_move_direction = null
+    TalkMode.move.last_move_command      = null
+    TalkMode.move.current_move_joint_number = null //only for joint moves
+
+    TalkMode.move.last_reverse_forward_index = null
+    TalkMode.move.forward_limit_index        = null
+}
+
+//mode_misc
+function move_mode_misc_action_function(aCAT) {
+    let job_name = Talk.job_name_prose_to_existing_job_name(aCAT._full_text)
+    if(job_name) { //we don't want to get the warning message from run_job about a non-existend job name so catch this here
+        Job[job_name].start()
+    }
+    else {
+        globalThis.talk_gpt_action_function(aCAT)
+    }
+}
+
+new TalkCommand({
+    name: "mode misc", //keep this as "mode misc for the "mode misc cmd" of every mode
+                       //Talk.handle_command depends on it.
+    action_function: move_mode_misc_action_function,
+    tooltip: "Run the named Job, or the GPT command."})
+
+//simulate
+function talk_simulate_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        let sim = Robot.get_simulate_actual(Dexter.default.simulate)
+        if (globalThis.simulate_radio_true_id.checked) {
+            Talk.display_warning("Dexter is already in <b>simulate</b> mode.<br/>" +
+                "See the radio buttons in the Misc pane header.")
+        } else {
+            globalThis.simulate_radio_true_id.checked = true
+            DDE_DB.persistent_set("default_dexter_simulate", true)
+            let mess = "Dexter is now in <b>simulate</b> mode.<br/>" +
+                "The real robot won't move when you run these commands."
+            Talk.display_message(mess)
+        }
+    }
+}
+
+new TalkCommand({
+    name: "simulate",
+    action_function: talk_simulate_action_function,
+    tooltip: "Causes robot commands to be simulated."})
+
+//real
+function talk_real_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        let sim = Robot.get_simulate_actual(Dexter.default.simulate)
+        if (globalThis.simulate_radio_false_id.checked) {
+            Talk.display_warning("Dexter is already in <b>real</b> mode.<br/>" +
+                "See the radio buttons in the Misc pane header.")
+        } else {
+            globalThis.simulate_radio_false_id.checked = true
+            DDE_DB.persistent_set("default_dexter_simulate", false)
+            let mess = "Dexter is now in <b>real</b> mode.<br/>" +
+                "The real robot will move when you run these commands."
+            Talk.display_message(mess)
+        }
+    }
+}
+
+new TalkCommand({
+    name: "real",
+    action_function: talk_real_action_function,
+    tooltip: "Causes robot commands to be run on the real robot."})
+
+function talk_both_action_function(content_obj){
+    if(content_obj._content_str === "") {
+        let sim = Robot.get_simulate_actual(Dexter.default.simulate)
+        if (globalThis.simulate_radio_both_id.checked) {
+            Talk.display_warning("Dexter is already in <b>both</b> (simulate & real) mode.<br/>" +
+                "See the radio buttons in the Misc pane header.")
+        } else {
+            globalThis.simulate_radio_both_id.checked = true
+            DDE_DB.persistent_set("default_dexter_simulate", "both")
+            let mess = "Dexter is now in <b>both</b> mode.<br/>" +
+                "The simulated and real robot will move when you run these commands."
+            Talk.display_message(mess)
+        }
+    }
+}
+
+new TalkCommand({
+    name: "both",
+    action_function: talk_both_action_function,
+    tooltip: "Causes robot commands to be simulated and&#13;run on the real robot."})
+
+//_____define place_______
+//expects full_text of "define postion", "define place foo"
+function talk_define_place_action_function(aCAT){
+    if(aCAT._content_str === ""){
+        this.set_params_mode(aCAT)
+    }
+    else {
+        let rob = Talk.job_for_normal_moves.robot
+        if (!rob.rs) {
+            talk_send_instruction_to_dexter(Dexter.get_robot_status())
+            setTimeout(function(){
+                                    define_place_with_name(aCAT)
+                         },
+                        1000)
+            //Talk.display_warning("To name a Dexter place, you have to move Dexter first.")
+        }
+        else {
+            return define_place_with_name(aCAT)
+        }
+    }
+}
+
+function define_place_with_name(aCAT, already_sent_get_robot_status = false){
+    if((aCAT.job_name === "") || (!aCAT.job_name)){
+        Talk.set_params_mode(aCAT, "Enter a job_name.")
+    }
+    else if (!Talk.job_for_normal_moves.robot.rs)  {
+        if(already_sent_get_robot_status){
+            Talk.display_warning("define place can't get robot status to get the robot place. Sorry.")
+        }
+        else {
+            talk_send_instruction_to_dexter(Dexter.get_robot_status())
+            setTimeout(function () {
+                define_place_with_name(aCAT, true)
+            }, 200)
+        }
+    }
+    else { //we've got a valid job name and robot status so good to go
+        let angles = Dexter.default.rs.measured_angles()
+        let instrs = [Dexter.default.move_all_joints(angles),
+                             Dexter.default.empty_instruction_queue()
+        ]
+        new Job({name: aCAT.job_name, do_list: instrs})
+        Talk.dialog_dom_elt.focus()
+        Talk.display_message("Job." + aCAT.job_name + " has been defined.")
+    }
+}
+
+new TalkCommand({
+    name: "define place",
+    alernate_names: ["defined place", "dine place"],
+    parameters: [new TalkParameter({
+                    name: "job_name",
+                    type: new TalkType.JobNameOrNewJobName()})
+                 ],
+    action_function: talk_define_place_action_function,
+    row: "new",
+    tooltip: "Assign Dexter's current position to a name."})
+
+//start_recording
+function display_start_recording() {
+    return !TalkMode.move.is_recording
+}
+
+function talk_start_recording_action_function(aCAT){
+    if(aCAT._content_str === ""){
+        TalkMode.move.is_recording = true
+        TalkMode.move.instructions_being_recorded = [] //clear out the previous recording
+        Talk.display_all(aCAT, "To record a command, click it or<br/>tap the space-bar briefly and say it.") //needed to change "start_recording" to "stop_recording
+    }
+}
+
+new TalkCommand({
+    name: "start recording",
+    action_function: talk_start_recording_action_function,
+    should_display: display_start_recording,
+    tooltip: "Begin the recording of Dexter move commands into a Job."})
+
+//stop_recording
+function display_stop_recording(){
+    return TalkMode.move.is_recording
+}
+function talk_stop_recording_action_function(aCAT) {
+    TalkMode.move.is_recording = false //must go before set_mode
+    Talk.display_status()
+    if (aCAT._content_str === "") {
+        Talk.stop_aux() //does not call stop_recording, on purpose.
+        //necessary because if we click on stop_recording during a move,.
+        // then switch to the param screen to fill in
+        //the job_name, we don't want the robot to keep moving
+        //as it will just run out of bounds.
+        //Also a user seeing "Stop ...." will probably expect the
+        //robot to stop, EVEN THOUGH stopping a tape recroder doesn't
+        //stop reality!
+        let mess = ((TalkMode.move.instructions_being_recorded.length === 0) ?
+                           "No commands have been recorded so you might as well cancel this recording." :
+                           "Enter a new Job name if you like and click <b<run</b>.")
+        Talk.set_params_mode(aCAT, mess)
+    }
+    else {
+        return talk_define_recording(aCAT)
+    }
+}
+
+function talk_define_recording(aCAT){
+    if (TalkMode.move.instructions_being_recorded.length === 0) {
+        TalkMode.move.instructions_being_recorded = []
+        let mess = "No commands have been recorded."
+        Talk.set_mode(TalkMode.move,  aCAT, mess) //changes the "stop recording" button to "start recording"
+    }
+    else {
+        //let arg_obj = this.string_to_data(content_obj._content_str)
+        //let recording_name = arg_obj.job_name
+        if (!aCAT.job_name) {
+            Talk.display_warning("Stop recording didn't get a job_name for the recording.")
+        }
+        else {
+            //finally, good to make the recording.
+                let mess
+                if (Talk.is_existing_job_name(aCAT.job_name)) {
+                    mess = '"' + aCAT.job_name + '" has been over-written with your new recording.'
+                } else {
+                    mess = 'Say or click the Job button for: "' + aCAT.job_name + '" to start it.'
+                }
+                new Job({name: aCAT.job_name, do_list: TalkMode.move.instructions_being_recorded})
+                TalkMode.move.instructions_being_recorded = []
+                Talk.set_mode(TalkMode.move, aCAT, mess)
+                //setTimeout(function () {Talk.dialog_dom_elt.focus()}, 100)
+        }
+    }
+}
+
+new TalkCommand({
+    name: "stop recording",
+    action_function: talk_stop_recording_action_function,
+    should_display: display_stop_recording,
+    parameters: [new TalkParameter({
+        name: "job_name",
+        default_value_string: "my_job",
+        type: new TalkType.JobNameOrNewJobName()})
+    ],
+    tooltip: "Stop the recording of Dexter move commands into a Job"})
+
+//____________move utils_____________
+//move utilties
+function talk_send_instruction_to_dexter(instruction) {
+    Talk.job_for_normal_moves.insert_single_instruction(instruction, false)
+}
+globalThis.talk_send_instruction_to_dexter = talk_send_instruction_to_dexter
+
+
+function talk_is_in_reach(xyz, J5_direction = [0, 0, -1], config = [1, 1, 1], dexter_inst_or_workspace_pose){
+    let angles
+    try{
+        angles = Kin.xyz_to_J_angles(xyz, J5_direction, config, dexter_inst_or_workspace_pose) //and fast!
+        //James W says this is the best way to do it. Kin.is_in_reach is very approximate so
+        //misses a bunch of details and is hard to fix.
+    }
+    catch(err) { //happens when xyz is out of range
+        //out("out of reach angles: " + xyz)
+        return false
+    }
+    //out("in reach angles: " + angles)
+    return true
+}
+function talk_straight_up_angles(){
+    let angles = [0,0,0,0,0, 0, 50]
+    angles = talk_fix_home_angles_maybe(angles)
+    angles = Kin.point_down(angles)
+    return angles
+}
+
+//Not called Apr 14, 2024
+function talk_initial_angles(){
+    let dex = Talk.job_for_normal_moves.robot
+    if(dex.rs){
+        return dex.rs.measured_angles()
+    }
+    else {
+        return talk_straight_up_angles() }
+}
+
+function talk_current_or_straight_up_angles(){
+    let dex = Talk.job_for_normal_moves.robot
+    if(dex.rs){
+        let ma = dex.rs.measured_angles()
+        if(talk_is_home_angles(ma)){
+            return talk_straight_up_angles() //fixes them if need be.
+        }
+        else { return ma }
+    }
+    else {
+        return talk_straight_up_angles() }
+}
+
+
+function talk_is_home_angles(angle_array){
+    for(let i = 0; i < 5; i++){
+        if(angle_array[i] !== 0) { return false }
+    }
+    return true
+}
+
+function talk_fix_home_angles_maybe(angle_array){
+    let new_angle_array = []
+    if(talk_is_home_angles(angle_array)) {
+        for(let i = 0; i < angle_array.length; i++) {
+            if((i === 1) || (i === 2)) {
+                new_angle_array.push(0.000000000001) //Number.EPSILON doesn't work, too small. From James W.)
+            }
+            else { new_angle_array.push(angle_array[i]) }
+        }
+    }
+    else {
+        new_angle_array = angle_array
+    }
+    return new_angle_array
+}
+
+//Copied from dexter_user_interface2 and modified
+// xyz is an array of 3 floats.
+// if angle_array is an array whose first 5 elts are 0, return a new array
+//whose first 5 elts are 0 except the 2nd elt is Number.EPSILON
+//and any additional elts are the same as their corresponding ones in angle_array
+//Returned is an array of arrays.
+function talk_fix_xyz(xyz){
+    let angle_array = Kin.xyz_to_J_angles(xyz) //will get out_of_range error with initial angles
+    //beware, might error with "out of range".
+    let new_angle_array = this.fix_home_angles_maybe(angle_array)
+    let new_xyz_extra = Kin.J_angles_to_xyz(new_angle_array)
+    return new_xyz_extra //arr of array of numbers
+}
+
+function talk_word_to_axis_index_and_direction(word){
+    //x
+    if      (word === "left")  { return [0, 1]}
+
+    else if (word === "right") { return [0, -1]}
+    //y
+    else if(["front"].includes(word)) { return [1, 1]}
+    else if(["back"].includes(word)) {
+        return [1, -1]}
+
+    //z
+    else if(word === "up")       { return [2, 1]}
+    else if(word === "down")     { return [2, -1]}
+    else if(word === "pitch up") { return [3, 1] }
+
+    else { return false} //not a valid word
+}
+
+//Not called Apr 14, 2024
+function talk_axis_index_and_direction_to_word(axis_index, axis_direction){
+    if     (axis_index === 0){
+        return ((axis_direction === 1) ? "left"    : "right")
+    }
+    else if(axis_index === 1) {
+        return ((axis_direction === 1) ? "front" : "back")
+    }
+    else if(axis_index === 2){
+        return ((axis_direction === 1) ? "up"      : "down")
+    }
+    else { return null }
+}
+
+function talk_set_step_size(dist){
+    TalkMode.move.step_size = dist
+    Talk.display_status()
+}
+
+//don't use "this"
+function talk_start_normal_move_cmd(aCAT){
+    if(aCAT) {
+        TalkMode.move.current_move_command = aCAT._cmd //used inside of move_incrmentally only.
+        TalkMode.move.current_move_joint_number = aCAT.joint_number //will be null for xyz move
+        TalkMode.move.current_move_direction    = aCAT.direction //will be null for xyz move
+    }
+    //else this is the setTimeout call from below with no arg passed so
+    //don't change the TalkMode.move.current_move_direction
+    Talk.is_moving = true
+    Talk.display_status()
+    let dex = Talk.job_for_normal_moves.robot
+    if(!Talk.job_for_normal_moves.user_data.talk_started_init){ //just hits the first time start_normal_move_cmd is called per init of the job.
+        Talk.job_for_normal_moves.user_data.talk_started_init = true //just done once until redefine the job
+        Talk.display_message("Initializing Dexter to straight up.")
+        let job_initial_instructions = [
+            dex.move_all_joints(talk_straight_up_angles()),
+            dex.empty_instruction_queue(),
+            function () {
+                Talk.display_message("Dexter is straight up.")
+            }
+        ]
+        talk_send_instruction_to_dexter(job_initial_instructions)
+    }
+
+    if (!dex.rs) {
+        setTimeout(talk_start_normal_move_cmd, //loop around again waiting for rs to be set
+            100)
+    }
+    else {
+        talk_send_instruction_to_dexter([talk_start_moving_aux, //sets Talk.is_moving = true and redisplay
+                talk_move_incrementally //loop_inst
+            ]
+        )
+    }
+}
+
+//called as a fn on do_list of talk_internal just before Control.loop for move_incrementally
+//don't return a value
+function talk_start_moving_aux(){
+    Talk.is_moving = true
+    Talk.display_status()
+    Talk.display_color()
+}
+
+//called in body of Control.loop running in Job.
+//this is bound to the Job.talk_internal
+function talk_move_incrementally() {
+    if(!Talk.ensure_talk_internal_is_defined_and_running()){
+        setTimeout(talk_move_incrementally, 200)
+    }
+    if (!Talk.is_moving) {
+        Talk.display_status()
+        return //Control.break()
+    }
+    let cmd_name = TalkMode.move.current_move_command.name
+    if (TalkMode.move.current_move_command !== TalkMode.move.last_move_command){
+        let mess_suffix = "..."
+        if(cmd_name === "joint"){
+            mess_suffix = " " + TalkMode.move.current_move_joint_number + " " + TalkMode.move.current_move_direction + "."
+        }
+        Talk.display_message("Moving Dexter " + cmd_name + mess_suffix +
+            '<br/>Click "Stop" to stop.')
+    }
+    let dexter_instance = this.robot //"this" is the running job
+
+    if((cmd_name === "forward") || (cmd_name === "reverse")) {
+        let inst
+        if (cmd_name === "reverse") {
+            inst = talk_compute_reverse_instruction()
+        }
+        else { inst = talk_compute_forward_instruction() }
+
+        if(inst === null) {
+            Talk.stop_aux()
+            TalkMode.move.last_move_command = TalkMode.move.current_move_command
+            return //Control.break()
+        }
+        if(typeof(inst) === "string") {
+            Talk.stop_aux(inst)
+            TalkMode.move.last_move_command = TalkMode.move.current_move_command
+            return //Control.break()
+        }
+        else {
+            return [inst,
+                dexter_instance.empty_instruction_queue(),
+                talk_move_incrementally] //"recursive" call on the do list.]
+        }
+    }
+    else if (cmd_name === "joint"){
+        let dir_sign = (["clockwise", "up", "wider"].includes(TalkMode.move.current_move_direction) ? 1 : -1)
+        let degrees_incr =  TalkMode.move.step_size //default 0.005
+            * (1 / 0.005)  //so that with default step_size, the degrees_inc will be 1 degrees.
+            //and doubling TalkMode.move.step_size will double the degrees_inc
+            * dir_sign
+        let ma = talk_current_or_straight_up_angles()
+        let new_angles = ma.slice()
+        let old_ang = ma[TalkMode.move.current_move_joint_number - 1]
+        let new_ang = old_ang + degrees_incr
+        new_angles[TalkMode.move.current_move_joint_number - 1] = new_ang
+        let false_or_error_mess = Dexter.joints_out_of_range(new_angles) //TODO: doesn't now check j6 and j7. Also doesn't check dexter specific so don't pass in the dexter intance so thagt it will at least check the default values of min and max for joints.
+        if(false_or_error_mess){
+            let mess = "Stopped move joint " + TalkMode.move.current_move_joint_number + " because:<br/>" + false_or_error_mess
+            Talk.stop_aux(mess)
+            TalkMode.move.last_move_command = TalkMode.move.current_move_command
+            //Talk.display_warning(mess)
+            return
+        }
+        else {
+            return [dexter_instance.move_all_joints(new_angles),
+                    dexter_instance.empty_instruction_queue(),
+                    talk_move_incrementally //"recursive" call on the do list.
+            ]
+        }
+    }
+    else { //regular xyz move like left, down, etc.
+        let [axis_index, axis_direction] = talk_word_to_axis_index_and_direction(cmd_name)
+        let ma = talk_current_or_straight_up_angles()
+        let orig_xyz = Kin.J_angles_to_xyz(ma)[0]
+
+        let [new_x, new_y, new_z] = orig_xyz
+        let new_xyz = [new_x, new_y, new_z]
+        if (axis_index === 0) {  //x
+            new_x = orig_xyz[axis_index] + (axis_direction * TalkMode.move.step_size)
+            new_xyz[0] = new_x
+        }
+        else if (axis_index === 1) {  //y
+            new_y = orig_xyz[axis_index] + (axis_direction * TalkMode.move.step_size)
+            new_xyz[1] = new_y
+            if (new_y < 0) {
+                let mess ="This installation of Dexter prevents Dexter from going behind itself: " + to_source_code(new_xyz)
+                Talk.stop_aux(mess)
+                TalkMode.move.last_move_command = TalkMode.move.current_move_command
+                return //Control.break()
+            }
+        }
+        else if (axis_index === 2) {  //z
+            new_z = orig_xyz[axis_index] + (axis_direction * TalkMode.move.step_size)
+            new_xyz[2] = new_z
+            if (new_z < 0) {
+                let mess = "This installation of Dexter prevents Dexter from going below it base: " + to_source_code(new_xyz)
+                Talk.stop_aux(mess)
+                TalkMode.move.last_move_command = TalkMode.move.current_move_command
+                return //Control.break()
+            }
+        }
+        else if (axis_index === 5) {  //pitch up j6 clockwise/counterclockwide
+            //TODO
+            if (new_z < 0) {
+                let mess ="This installation of Dexter prevents Dexter from going below it base: " + to_source_code(new_xyz)
+                Talk.stop_aux(mess)
+                TalkMode.move.last_move_command = TalkMode.move.current_move_command
+                return //Control.break()
+            }
+        }
+
+        //let orig_angles2 = Kin.xyz_to_J_angles(orig_xyz)
+        if (talk_is_in_reach(new_xyz, undefined, undefined, dexter_instance)) { //bug in Kin.is_in_reach so use my special one.
+            if(TalkMode.move.is_recording) {
+                let instr = dexter_instance.move_to(new_xyz)
+                TalkMode.move.instructions_being_recorded.push(instr)
+            }
+            //out("move_incrementally, in reach: " + new_xyz)
+            //move_incrementally is a fn that's pushed onto the do_list, so
+            //the fn is called when the job is run and whatever it returns is put on the do_list.
+            return [dexter_instance.move_to(new_xyz),
+                dexter_instance.empty_instruction_queue(),
+                talk_move_incrementally //"recursive" call on the do list.
+            ]
+        }
+        else {
+            //out("bottom of talk_move_incrementally, out of reach: " + new_xyz)
+            let num_arr_str = Utils.array_of_numbers_to_string(new_xyz, 8) //shows micron rez
+            let mess = "Moving to xyz: " + num_arr_str + "<br/>is out of Dexter's reach."
+            Talk.stop_aux(mess)
+            TalkMode.move.last_move_command = TalkMode.move.current_move_command
+            //Talk.display_warning(mess)
+            return //Control.break()
+        }
+    }
+}
+
+globalThis.talk_move_incrementally = talk_move_incrementally //this fn put direclty on do_list so must be globally defined
+
+
+
+//____________move commands
+function talk_straight_up_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        Talk.display_color()
+        let dex = Talk.job_for_normal_moves.robot
+        Talk.is_moving = true
+        Talk.display_status()
+        let instr = [
+            dex.move_all_joints(talk_straight_up_angles()),
+            dex.empty_instruction_queue(),
+            function() { Talk.stop_aux("Dexter is straight up.") }
+        ]
+        talk_send_instruction_to_dexter(instr) //will cause Job[recording_name] to run
+        let mess_suffix = ""
+        if(TalkMode.move.is_recording) {
+            TalkMode.move.instructions_being_recorded.push(instr)
+            mess_suffix = "<br/>Wait until Dexter stops moving<br/>before running the next command to record."
+        }
+        this.display_message("Dexter is moving straight up..." + mess_suffix)
+    }
+}
+
+new TalkCommand({
+    name: "straight up",
+    action_function: talk_straight_up_action_function,
+    row: "new",
+    tooltip: "Move Dexter until its straight up and stop"})
+
+function talk_joint_action_function(aCAT){
+    talk_start_normal_move_cmd(aCAT)
+}
+new TalkCommand({
+    name: "joint",
+    action_function: talk_joint_action_function,
+    parameters: [new TalkParameter({
+                    name: "joint_number",
+                    default_value_string: "1",
+                    type: new TalkTypeInteger({
+                         min: 1,
+                         max: 7,
+                         typical: [1, 2, 3, 4, 5, 6, 7],
+                         typical_is_exclusive: true
+                         })}),
+                new TalkParameter({
+                    name: "direction",
+                    default_value_string: "clockwise",
+                    type: new TalkTypeString({
+                        min: 1,
+                        max: 7,
+                        typical: ["clockwise", "counter clockwise"],
+                        typical_is_exclusive: true
+                    })
+                })
+        ],
+    tooltip: "Move Dexter until its straight up and stop"})
+
+function talk_up_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        talk_start_normal_move_cmd(aCAT)
+    }
+}
+new TalkCommand({
+    name: "up",
+    action_function: talk_up_action_function, //globally defined in TalkMain.js
+    row: "new",
+    tooltip: "Move Dexter up.&#13;If Dexter is straight up (as it is initially)&#13;you must move it down&#13;before moving it in any other direction."})
+
+function talk_down_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        talk_start_normal_move_cmd(aCAT)
+    }
+}
+new TalkCommand({
+    name: "down",
+    action_function: talk_down_action_function, //globally defined in TalkMain.js
+    tooltip: "Move Dexter down.&#13;If Dexter is straight up (as it is initially)&#13;you must move it down&#13;before moving it in any other direction."})
+
+function talk_left_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        talk_start_normal_move_cmd(aCAT)
+    }
+}
+new TalkCommand({
+    name: "left",
+    action_function: talk_left_action_function, //globally defined in TalkMain.js
+    tooltip: "Move Dexter left."})
+
+function talk_right_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        talk_start_normal_move_cmd(aCAT)
+    }
+}
+new TalkCommand({
+    name: "right",
+    alternative_names: ["write"],
+    action_function: talk_right_action_function, //globally defined in TalkMain.js
+    tooltip: "Move Dexter right."})
+
+function talk_back_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        talk_start_normal_move_cmd(aCAT)
+    }
+}
+new TalkCommand({
+    name: "back",
+    action_function: talk_back_action_function, //globally defined in TalkMain.js
+    tooltip: "Move Dexter towards behind of its base."})
+
+function talk_front_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        talk_start_normal_move_cmd(aCAT)
+    }
+}
+new TalkCommand({
+    name: "front",
+    action_function: talk_front_action_function, //globally defined in TalkMain.js
+    tooltip: "Move Dexter towards the front from its base."})
+
+
+//stop  (same functionality as Main menu stop
+new TalkCommand({
+    name: "stop",
+    alternative_names: ["stop it", "halt", "off", "kill", "shit", "oh shit"],
+    action_function: talk_stop_action_function, //globally defined in TalkMain.js
+    tooltip: "Stop Dexter and other ongoing activities."})
+
+function talk_faster_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        talk_set_step_size(TalkMode.move.step_size * 2)
+        Talk.display_message("Step distance has been increased to: " + TalkMode.move.step_size + " meters.")
+        return true
+    }
+}
+new TalkCommand({
+    name: "faster",
+    action_function: talk_faster_action_function, //globally defined in TalkMain.js
+    row: "new",
+    tooltip: "Double the speed of Dexter when it moves."})
+
+function talk_slower_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        talk_set_step_size(TalkMode.move.step_size / 2)
+        Talk.display_message("Step distance has been decreased to: " + TalkMode.move.step_size + " meters.")
+        return true
+    }
+}
+new TalkCommand({
+    name: "slower",
+    action_function: talk_slower_action_function, //globally defined in TalkMain.js
+    tooltip: "Half the speed of Dexter when it moves."})
+
+//forward
+//returns an instruction or a string to display indicating its done.
+function talk_compute_forward_instruction(the_job=Talk.job_for_normal_moves){
+    let dex = the_job.robot
+    let hist_arr   = the_job.rs_history
+    if(TalkMode.move.last_reverse_forward_index === null) {
+        TalkMode.move.last_reverse_forward_index = hist_arr.length - 1
+        TalkMode.move.forward_limit_index = hist_arr.length - 1
+    }  //skip past the latest one
+
+    if(TalkMode.move.last_reverse_forward_index >= TalkMode.move.forward_limit_index){
+        return "There are no more commands to go forward to." //get out of loop
+    }
+    else {
+        let RS_inst = new RobotStatus({})
+        for (let i = TalkMode.move.last_reverse_forward_index + 1; i <= TalkMode.move.forward_limit_index; i++) {
+            TalkMode.move.last_reverse_forward_index = i //so that if we switch to forward, that will start in the right place, as will subsequence calls to  compute_reverse_instruction
+            let single_rs = hist_arr[i]
+            let oplet = single_rs[Dexter.INSTRUCTION_TYPE]
+            if (oplet === "F") { //this is the one to go back to.
+                RS_inst.robot_status = single_rs
+                let angles = RS_inst.measured_angles()
+                let instr = dex.move_all_joints(angles)
+                return instr
+            }
+        }
+        return "There are no more commands to reverse to."
+    }
+}
+function talk_forward_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        talk_start_normal_move_cmd(aCAT)
+    }
+}
+new TalkCommand({
+    name: "forward",
+    alternative_names: ["foreword"],
+    action_function: talk_forward_action_function, //globally defined in TalkMain.js
+    tooltip: "Move Dexter forward after you have reversed it back along its path."})
+
+
+//reverse
+//returns an instruction or a string to display indicating its done.
+function talk_compute_reverse_instruction(the_job=Talk.job_for_normal_moves){
+    let dex = the_job.robot
+    let hist_arr   = the_job.rs_history
+    if(TalkMode.move.last_reverse_forward_index === null) {
+        TalkMode.move.last_reverse_forward_index = hist_arr.length - 1
+        TalkMode.move.forward_limit_index = hist_arr.length - 1
+    }  //skip past the latest one
+
+    if(TalkMode.move.last_reverse_forward_index === 0){
+        return "There are no more commands to reverse to." //get out of loop
+    }
+    else {
+        let RS_inst = new RobotStatus({})
+        for (let i = TalkMode.move.last_reverse_forward_index - 1; i >= 0; i--) {
+            TalkMode.move.last_reverse_forward_index = i //so that if we switch to forward, that will start in the right place, as will subsequence calls to  compute_reverse_instruction
+            let single_rs = hist_arr[i]
+            let oplet = single_rs[Dexter.INSTRUCTION_TYPE]
+            if (oplet === "F") { //this is the one to go back to.
+                RS_inst.robot_status = single_rs
+                let angles = RS_inst.measured_angles()
+                let instr = dex.move_all_joints(angles)
+                return instr
+            }
+        }
+        return "There are no more commands to reverse to."
+    }
+}
+function talk_reverse_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        talk_start_normal_move_cmd(aCAT)
+    }
+}
+new TalkCommand({
+    name: "reverse",
+    alternative_names: [],
+    action_function: talk_reverse_action_function, //globally defined in TalkMain.js
+    tooltip: "Move Dexter back along the path from where it came."})
+
+//run_job
+//Called by a regular cmd and by mode_misc methods which prepend "run job " to full_text first.
+function talk_run_job_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        this.set_params_mode(aCAT)
+        return
+    }
+    else {
+        // let arg_obj = this.string_to_data(content_obj._content_str)
+        // let recording_name = arg_obj.job_name //will return undefined if arg_obj is a string
+        let recording_name = aCAT.job_name
+        if(!recording_name) {
+            recording_name = aCAT._content_str
+        }
+        recording_name = Talk.string_to_job_name(recording_name)
+        if(Talk.is_existing_job_name(recording_name)){
+            let instr = Control.start_job(recording_name, undefined, undefined, true) //run this embedded job until it completes, THEN move to the next instruction in Talk.job_for_normal_moves
+            talk_send_instruction_to_dexter(instr) //will cause Job[recording_name] to run
+            if(TalkMode.move.is_recording) {
+                TalkMode.move.instructions_being_recorded.push(instr)
+                this.display_message('Wait until job: <b>' + recording_name + '</b> has completed<br/>' +
+                    "before running the next command to record.")
+            }
+            return
+        }
+        else {
+            Talk.display_warning('The <b>run job</b> command was passed: "' + recording_name + '",<br/>which does not name a defined Job.')
+            return
+        }
+    }
+}
+
+new TalkCommand({
+    name: "run job",
+    alternative_names:  ["run jobe", "ron job"],
+    action_function: talk_run_job_action_function, //globally defined in TalkMain.js
+    parameters: [new TalkParameter({
+        name: "job_name",
+        default_value_string: Talk.default_job_name,
+        type: new TalkType.JobNameOrNewJobName()})
+    ],
+    row: "new",
+    tooltip: "Say 'Run Job [job name] or&#13;just the Job name to&#13;start the Job."})
+
+//edit job
+function talk_edit_job_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        his.set_params_mode(aCAT)
+    }
+    else {
+        if (this.default_job_name() === "") {
+            Talk.display_warning("There are no defined Jobs to edit.")
+        }
+        else {
+            talk_edit_job_aux(aCAT)
+        }
+    }
+}
+
+function talk_edit_job_aux(aCAT){
+    let recording_name = aCAT.job_name
+    if(!recording_name) {
+        recording_name = aCAT._content_str
+    }
+    recording_name = Talk.string_to_job_name(recording_name)
+    if (!Talk.is_existing_job_name(recording_name)){
+        Talk.display_warning('"' + recording_name + '" is not the name of a defined Job.')
+        return true
+    }
+    else {
+        let the_job = Job[recording_name]
+        the_job.program_counter = 0
+        let job_src = to_source_code({value: the_job, job_orig_args: true})
+        Editor.insert("\n" + job_src, "end")
+        setTimeout(function() {
+            Talk.dialog_dom_elt.focus()
+            Talk.display_message('The definition for "' + recording_name + '" has been appended to the editor buffer.')
+        }, 200)
+        return true
+    }
+}
+
+new TalkCommand({
+    name: "edit job",
+    alternative_names:  ["run jobe", "ron job"],
+    action_function: talk_edit_job_action_function, //globally defined in TalkMain.js
+    parameters: [new TalkParameter({
+        name: "job_name",
+        default_value_string: Talk.default_job_name,
+        type: new TalkType.JobNameOrNewJobName()})
+    ],
+    tooltip: "Say 'Edit [job name] to&#13;insert the Job definition into the editor."})
+
+//main_menu
+//same as former "back"
+function talk_main_menu_action_function(aCAT){
+    if(aCAT._content_str === ""){
+        Talk.set_mode(TalkMode.main, undefined, Talk.say_or_click())
+    }
+}
+globalThis.talk_main_menu_action_function = talk_main_menu_action_function
+
+new TalkCommand({
+    name: "main menu",
+    alternate_names: ["main", "maine menu", "maine"],
+    action_function: globalThis.talk_main_menu_action_function,
+    row: "new",
+    tooltip: "Change the menu of commands back to the main menu."})
+
+function talk_object_menu_action_function(aCAT){
+    if(aCAT._content_str === "") {
+        Talk.set_mode(TalkMode.object, aCAT, "Make 3D objects in the simulator.")
+        Talk.dialog_dom_elt.focus()
+    }
+}
+new TalkCommand({
+    name: "object menu",
+    alternate_names: ["object"],
+    action_function: talk_object_menu_action_function,
+    tooltip: "Change this dialog box to make 3D objects in the simulator"} )
+
+new TalkCommand({
+    name: "pick menu",
+    alternate_names: ["pick"],
+    action_function: globalThis.talk_pick_menu_action_function,
+    tooltip: "Change this dialog box to pick and place objects."} )
+
+
+/*static cmd_props_table = {
     move_menu: [
         [["simulate",                  ["simulator"],                              [], "Causes robot commands to be simulated."],
             ["real",                      [],                                         [], "Causes robot commands to go to the real robot."],
@@ -54,9 +980,12 @@ static array_of_recording_names(){
     return rec_names
 }
 
-static is_existing_job_name(cmd_str){
-    //return this.array_of_recording_names().includes(cmd)
-    return (Job[cmd_str] && (Job[cmd_str] instanceof Job) && (cmd_str !== "talk_internal"))
+static display_start_recording() {
+    return !this.is_recording
+}
+
+static display_stop_recording(){
+    return this.is_recording
 }
 
 static start_recording(content_obj){
@@ -102,12 +1031,12 @@ static define_recording(content_obj){
         }
         else {
             recording_name = this.string_to_job_name(recording_name)
-            if (this.is_known_cmd(recording_name)) { //we want to exclude known recording names
+            if (TalkMode.move.is_known_cmd_name(recording_name)) { //we want to exclude known recording names
                 this.display_message('"' + recording_name + '" is a command, so it can&apos;t be used to name a recording.')
             }
             else { //finally, good to make the recording.
                 let mess
-                if (this.is_existing_job_name(recording_name)) {
+                if (Talk.is_existing_job_name(recording_name)) {
                     mess = '"' + recording_name + '" has been over-written with your new recording.'
                 } else {
                     mess = 'Say or click the Job button for: "' + recording_name + '" to start it.'
@@ -171,19 +1100,9 @@ static run_job(content_obj){
             recording_name = content_obj._content_str
         }
         recording_name = this.string_to_job_name(recording_name)
-        if(this.is_existing_job_name(recording_name)){
-            /*if(this.is_recording) {
-                let instr = Control.start_job(recording_name, undefined, undefined, true) //run this embedded job until it completes, THEN move to the next instruction in Talk.job_for_normal_moves
-                this.instructions_being_recorded.push(instr)
-                this.send_instruction_to_dexter(instr) //will cause Job[recording_name] to run
-                this.display_message('Wait until job: <b>' + recording_name + '</b> has completed<br/>' +
-                                     "before running the next command to record.")
-            }
-            else {
-                Job[recording_name].start()
-            }*/
+        if(Talk.is_existing_job_name(recording_name)){
             let instr = Control.start_job(recording_name, undefined, undefined, true) //run this embedded job until it completes, THEN move to the next instruction in Talk.job_for_normal_moves
-            this.send_instruction_to_dexter(instr) //will cause Job[recording_name] to run
+            talk_send_instruction_to_dexter(instr) //will cause Job[recording_name] to run
             if(this.is_recording) {
                 this.instructions_being_recorded.push(instr)
                 this.display_message('Wait until job: <b>' + recording_name + '</b> has completed<br/>' +
@@ -395,39 +1314,8 @@ static set_step_size(dist){
 }
 
 
-
-// not used as a top level cmd.
-/*
-static stop_except_speaking(full_text="stop except speaking"){
-    if(full_text === "stop except speaking"){
-        try {
-            Talk.stop_except_speaking_aux()
-        }
-        catch(err) {} //we don't want any errors during stop, lke if the Talk dialog box is down and we try to write to it
-        return true
-    }
-}*/
-
-
 //called from both stop and as a job instruction, where we DON'T want it to return
 //anything, including "valid" as that will be interpreted by a job as an instruction
-/*
-static stop_except_speaking_aux(){
-    this.is_moving = false
-    Talk.display_status()
-    this.recognition.abort()
-    //globalThis.stop_speaking() //bad idea if speaking a define name as it will cut it off prematurely
-    //this.enable_speaker = false //don't change this
-    this.turn_off_mic_aux() //calls display_status
-    for(let job_inst of Job.active_jobs()){
-        if((job_inst.name !== "talk_internal") &&
-            !is_speaking()){ //because define_name uses a job and we don't
-            //want to cut off a job if its speaking
-            job_inst.stop_for_reason("interrupted", "user said stop")
-        }
-    }
-    Talk.display_message(this.say_or_click())
-}*/
 
 //same as former "back"
 static main_menu(content_obj){
@@ -436,16 +1324,6 @@ static main_menu(content_obj){
         return true
     }
 }
-
-/* this was to go back to the previous menu. Not now used.
-static back(full_text="back"){
-    let alts = this.cmd_alternatives("back", true)
-    if(alts.includes(full_text)){
-        Talk.set_mode("main_menu")
-        Talk.display_message(this.say_or_click())
-        return true
-    }
-}*/
 
 //_______Move commands_________
 
@@ -460,7 +1338,7 @@ static straight_up(content_obj){
             dex.empty_instruction_queue(),
             function() { Talk.stop_aux("Dexter is straight up.") }
         ]
-        this.send_instruction_to_dexter(instr) //will cause Job[recording_name] to run
+        talk_send_instruction_to_dexter(instr) //will cause Job[recording_name] to run
         let mess_suffix = ""
         if(this.is_recording) {
             this.instructions_being_recorded.push(instr)
@@ -595,34 +1473,6 @@ static slower(content_obj){
     }
 }
 //_________Joint cmd______________
-/* static joint(content_obj){
-     if(content_obj._content_str === "") {
-                 this.set_params_mode(content_obj)
-     }
-     else {
-         this.joint_handle_content(content_obj)
-     }
- }
-
- static joint_handle_content(content_obj){
-     let content = content_obj._content_str
-     if(content.startsWith("object ")) {
-         out("joint_handle_content passed content: " + content)
-         let arg_obj = this.string_to_data(content)
-         let joint_number = arg_obj.joint_number
-         let direction = arg_obj.direction
-         if (!content_obj.joint_number) {
-             this.display_warning("Joint didn't get a joint_number. It should be between 1 and 7 inclusive.")
-         } else if (!content_obj.direction) {
-             this.display_warning("Joint didn't get a direction.")
-         } else {
-             this.start_normal_move_cmd("joint", content_obj.joint_number, content_obj.direction)
-         }
-     }
-     else {
-         this.run(content_obj) //put arg values into content_obj.
-     }
- } */
 
 static joint(content_obj){
     this.start_normal_move_cmd(content_obj)
@@ -635,12 +1485,6 @@ static joint(content_obj){
 //and you click on "left" for a bit, then the stop, the job
 //keeps togging between running the last 2 instructions. Bad. The
 //below version with the timeout fixes this.
-/*static start_normal_move_cmd() {
-    this.is_moving = false //if dexter has an ongoing normal move cmd, stop it
-    setTimeout(this.start_normal_move_cmd_aux,
-        200 //Talk.job_for_normal_moves.inter_do_item_dur * 3
-    ) //give ongoing move a chance to stop after setting is_moving to false
-}*/
 
 //don't use "this"
 static start_normal_move_cmd(content_obj){
@@ -664,7 +1508,7 @@ static start_normal_move_cmd(content_obj){
                 Talk.display_message("Dexter is straight up.")
             }
         ]
-        Talk.send_instruction_to_dexter(job_initial_instructions)
+        talk_send_instruction_to_dexter(job_initial_instructions)
     }
 
     if (!dex.rs) {
@@ -672,13 +1516,7 @@ static start_normal_move_cmd(content_obj){
             100)
     }
     else {
-        /*let loop_inst = //todo this pointless, and if we ever extecut this, its at least not good.
-                Control.loop(function () {
-                    return Talk.is_moving //keep looping (and calling move_incrementally) as long as Talk.is_moving  is true
-                },
-                Talk.move_incrementally) now done by recursion which is better than loop
-        */
-        Talk.send_instruction_to_dexter([Talk.start_moving_aux, //sets Talk.is_moving = true and redisplay
+        talk_send_instruction_to_dexter([Talk.start_moving_aux, //sets Talk.is_moving = true and redisplay
                 Talk.move_incrementally //loop_inst
             ]
         )
@@ -699,13 +1537,6 @@ static send_instruction_to_dexter(instruction) {
 
 static is_in_reach(xyz, J5_direction = [0, 0, -1], config = [1, 1, 1], dexter_inst_or_workspace_pose){
     let angles
-    /*out("calling Kin.xyz_to_J_angles(" +
-        to_source_code(xyz) + ", " +
-        to_source_code(J5_direction) + ", " +
-        to_source_code(config) + ", " +
-        "Dexter." + dexter_inst_or_workspace_pose.name +
-        ")"
-    )*/
     try{
         angles = Kin.xyz_to_J_angles(xyz, J5_direction, config, dexter_inst_or_workspace_pose) //and fast!
         //James W says this is the best way to do it. Kin.is_in_reach is very approximate so
@@ -890,3 +1721,4 @@ static move_menu_mode_misc(content_obj) {
         }
     }
 }
+*/

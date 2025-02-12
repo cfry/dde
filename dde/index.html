@@ -316,8 +316,8 @@
                                                         <li id="series_global_js_id"   title="Insert a JS global function.">Global fns</li>
                                                         <li>Number
                                                             <ul>
-                                                                <li id="series_integer_id"    title="Insert an integer to increment or decriment.">integer</li>
-                                                                <li id="series_float_id"      title="Insert a floating point number to increment or decriment.">float</li>
+                                                                <li id="series_integer_id"    title="Insert an integer to increment or decrement.">integer</li>
+                                                                <li id="series_float_id"      title="Insert a floating point number to increment or decrement.">float</li>
                                                                 <li id="series_arithmetic_id" title="Insert an arithmetic operator.">arithmetic</li>
                                                                 <li id="series_comparison_id" title="Insert a comparison operator.">comparison</li>
                                                                 <li id="series_math_id"       title="Insert a Math function.">math</li>
@@ -548,7 +548,7 @@
                                         <li id="calibrate_id"        title="Calibrate one or more Dexters.&#13;Needed each time you power on a Dexter.">Calibrate Dexter...</li>
                                         <li id="dui2_id"             title="Show a dialog box to directly operate Dexter."><b>Dexter UI...</b></li>
                                         <li id="talk_id"             title="Show a dialog box to command Dexter via speech and clicking."><b>Talk to Dexter...</b></li>
-                                        <li id="talk2_id"            title="Show a dialog box to command Dexter via speech and clicking.">Talk2 to Dexter...</li>
+                                        <!--<li id="talk2_id"            title="Show a dialog box to command Dexter via speech and clicking.">Talk2 to Dexter...</li> -->
 
                                         <li id="monitor_id"          title="Monitor a Dexter's state.">Monitor Dexter...</li>
                                         <!-- ping can't work in a browser <li id="ping_dexter_id"      title="Find out if a Dexter&#13;or other ip_address&#13;is connected to this computer.">Ping Dexter...</li> -->
@@ -609,8 +609,8 @@
                 <div style="background-color:#dddddd;">
                     <div class='pane_header_wrapper' style="white-space:nowrap;height:75px;min-height:75px;max-height:85px;">
                         <span id="output_pane_help_id" class='pane_header' title="Click for help."><u style="cursor:help;">Output</u></span>
-                        <button id="eval_id" style="vertical-align:middle;" title="Evaluate (run) the selected JS in any pane&#013;or, if none, all the JavaScript in the Editor pane.&#013;HTML is rendered in the Output pane.&#013;JSON is inspected.&#013;Can also be invoked by typing &#8984;e">Eval</button>
-                        <button id="step_button_id" style="vertical-align:middle;" title="Step through the evaluation of the selected code.">Step</button>
+                        <button id="eval_id" style="vertical-align:middle;" title="Evaluate the selected JS in any pane&#013;or, if none, all the JavaScript in the Editor pane.&#013;The result is shown in the Output pane.&#013;HTML is rendered. Other complex data is inspected.&#013Eval can also be invoked by typing &#8984;e">Eval</button>
+                        <button id="step_button_id" style="vertical-align:middle;" title="Step through the evaluation of the selected code.&#013;First you must bring up Chrome Developer tools&#013;by clicking right and selecting 'Inspect'.">Step</button>
                         <button id="run_button_id" style="vertical-align:middle;" title="The selected source code is:&#13;1. turned into a do_list_item&#13;2. placed on an internal Job's do_list&#13;3. run.">Run</button>
                         <button id="gpt_id"        style="margin-right:0px; vertical-align:middle;" title="Use the selection as a prompt to ChatGPT.&#013;Results will be printed in the Output pane.">GPT</button><button id="gpt_config_id" title="Show the GPT configuration dialog box." style="vertical-align:middle; margin-left:0px;padding-left:2px; padding-right:2px;">&#9660;</button>
 
@@ -794,7 +794,14 @@
 <!-- used by compute_string_size utility -->
 <div id="compute_string_size_id"
      style="position:absolute;visibility: hidden;height: auto;width: auto;white-space: nowrap;"></div>
-     <script               src="./third_party/opencv.js"></script>
+   <script src="./third_party/opencv.js"></script>
+  <!--  errors on launching dde4
+     see tutorial https://www.youtube.com/watch?v=PjyedaKgWEM  ooencv in a browser
+        and dowlload the code by browsing: docs.opencv.org/4.10.0/opencv.js  and click right to save
+        see also see: https://github.com/TechStark/opencv-js/blob/main/README.md and top of ready.js
+        Now without the "copy" clause in rollup.config. the below will load ok by "cv" is not defined.
+      <script src="./third_party/opencv4_10_0.js" type="text/javascript"></script> -->
+
      <script               src="./third_party/ammo.wasm.js"></script>
 <script type="module" src="build/bundle.mjs" defer></script>
 <!-- <script type="module" src="./build/bundleje.mjs" defer></script> --> <!--don't need this since bundle.mjs includes all that bundleje.js has -->

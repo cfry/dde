@@ -43,22 +43,10 @@ class Talk {
     static speak_volume
 
     static listening
-    static is_recording  //true or false
-    static recording_name_now_playing //string
 
-    static step_size  //float in meters
     static is_moving      //true or false. Automatically set to true when Dexter is moving due to user invoking a normal
                           //move command like "down". 
                           //To stop such a command as its running, set is_moving to false.
-    static current_move_command //initially null, then when moving: "down", up, left, right, front, back, reverse, forward
-    static last_move_command // a string
-    static current_move_joint_number //only for joint moves
-    static current_move_direction
-
-    static instructions_being_recorded //null or an array of xyz arrays when is_recording is true.
-
-    static last_reverse_forward_index  //int
-    static forward_limit_index //int
 
     static job_for_normal_moves //normally set to the job named "talk_internal". Use "_internal" so users
        //will know its not for them to manipulate.
@@ -66,7 +54,26 @@ class Talk {
 
     //we can call this more than once, and it brings down prev dialog, etc.
     //and re-initializes
-    static initialize(speech_reco_possible=true){
+
+    static ensure_talk_internal_is_defined_and_running(){
+        if(!Job.talk_internal) {
+            this.job_for_normal_moves = new Job({
+                name: "talk_internal",
+                robot: Dexter.dexter_default,
+                when_do_list_done: "wait",
+                do_list: []
+            })
+        }
+        if (!this.job_for_normal_moves.is_active()) {
+            this.job_for_normal_moves.start()
+            return false //Job needs time to start up
+        }
+        else {
+            return true //job already started.
+        }
+    }
+
+    static init(speech_reco_possible=true){
         this.speech_reco_possible = speech_reco_possible
         this.sw_index       = null
         this.mode           = TalkMode.initial_mode
@@ -74,37 +81,21 @@ class Talk {
         this.enable_speaker = false
         this.speak_volume   = 0.5
         this.listening      = false //can't find a way to determine this from Speechly
-        this.is_recording   = false
-        this.recording_name_now_playing = null
-
-        this.step_size   = 0.005
         this.is_moving       = false
-        this.current_move_command        = null
-        this.last_move_command           = null
-        this.current_move_joint_number   = null //only for joint moves
-        this.current_move_direction      = null   //only for joint moves
 
-        this.instructions_being_recorded = null
-
-        this.last_reverse_forward_index  = null
-        this.forward_limit_index         = null
         if((Job.talk_internal) && Job.talk_internal.is_active()){
             Job.talk_internal.stop_for_reason("interrupted",
                                                "re-initialization of Job.talk_internal")
         }
-        this.job_for_normal_moves = new Job ({name: "talk_internal",
-            robot: Dexter.dexter_default,
-            when_do_list_done: "wait",
-            do_list: [
-            ]
-        }).start()
+        this.ensure_talk_internal_is_defined_and_running()
         this.init_speech_reco()
+        DocCode.open_doc(talk_doc_id)
         //setTimeout(function() {
             this.display_ui()  //at least during init, "this" is Talk1 but Talk is Talk2 (some rollup bug)
         //}, 1000) //give chance for the above init to work,
         //before showing UI that the user can interact with since
         //if they try speaking before the above init, it will fail.
-        DocCode.open_doc(talk_doc_id)
+        TalkMode.move.init()
     }
 
     static parent_mode(){
@@ -154,7 +145,9 @@ class Talk {
             full_text = Talk.replace_reco_words(full_text)
             console.log("onresult replaced text: " + full_text)
             console.log('Confidence: ' + event.results[0][0].confidence);
-            Talk_command_command_id.value = full_text
+            if(full_text !== "command") {
+                Talk_command_command_id.value = full_text
+            }
             Talk.handle_command(full_text) //the main call to handle_command
         }
 
@@ -193,6 +186,16 @@ class Talk {
             if(event.error === "no-speech") {
                 Talk.display_warning("Talk did not hear you say anything.<br/>After tapping the space-bar briefly you must say a command.")
             }
+            else if(event.error === "network") {
+                Talk.display_warning("You must be connected to the Internet to speak commands.<br/>You can still click the below commands.")
+            }
+            //sometimes event.error === "aborted" when everything works so consider "aborted" as meaning "ok"
+            else if(event.error === "aborted") { //at least some times, this isn't significant
+                //Talk.display_warning("You must be connected to the Internet to speak commands.<br/>You can still click the below commands.")
+            }
+            else {
+                Talk.display_warning("Error in speech recognition of: " + event.error)
+            }
             Talk.listening = false
             Talk.display_status()
         }
@@ -221,6 +224,7 @@ class Talk {
         //spoken  replacement_to_use
         //"poor": "pour", //as in "pour water"
         dde:  "DDE",
+        Dudek: "dodecahedron",
         fu:   "foo",
         fubar: "foo bar",
         apostrohe:   "'", //also single-quote
@@ -239,9 +243,11 @@ class Talk {
         //"quote":       "quote" //use double quote instead. Todo multi-word term replacements
         semicolon:   ";",
         slash:       "/",
+        Taurus:      "torus",
         tilde:       "~",
         Tilda:       "~",
-        underscore:  "_"
+        underscore:  "_",
+        Weider:      "wider"
     }
 
     static display_ui(){
@@ -252,13 +258,14 @@ class Talk {
         }
         Talk.sw_index =
         show_window({title: "<b>Talk to Dexter</b>",
-            x: 200, y:7, width: 570, height: 420,
+            x: 200, y:7, width: 570, height: 440,
             content: `<fieldset style="padding:2px;"><legend><i>Status</i></legend>
                             <div id="display_status_id"></div>
-                            <div id="talk_out_id" style="background-color:white;font-size:20px;padding:5px;height:60px;"></div>
+                            <div id="talk_out_id" style="background-color:white;font-size:20px;padding:5px;height:70px; overflow:auto;"></div>
                       </fieldset>
                       <fieldset style="padding:2px;"><legend><i>Valid Commands</i></legend>
-                            <ul id='valid_commands_id' style="font-size:22px;margin:0px 0px 0px 20px; padding:0px;"></ul>
+                            <div id='valid_commands_id' style="font-size:22px;margin:0px 0px 0px 0px; padding:0px;"></div>
+                            <i>OR </i> say a Job name or gpt prompt.
                       </fieldset>` +
                       TalkMode.make_command_command_html(),
             callback: "Talk.sw_callback"
@@ -334,7 +341,7 @@ class Talk {
         //out(vals)
         let but_val = vals.clicked_button_value
         if(but_val === "close_button") {
-            Talk.quit()
+            talk_quit_action_function() //doesn't need aCAT arg.
         }
         else {
             shouldnt("Talk.sw_callback got invalid button_value of: " + but_val)
@@ -346,8 +353,11 @@ class Talk {
        // let cmd_meth_name = this.string_to_method_name(cmd_norm)
        // let the_new_mode = content_obj._cmd_norm_mode + "__" + cmd_meth_name + "__params"
        // this.set_mode(the_new_mode, content_obj)
+        this.params_mode_aCAT = aCAT
         this.set_mode(TalkMode.params, aCAT, message)
     }
+
+    static params_mode_aCAT = null //non null when in params mode with params dialog box up
 
     static set_mode(mode, aCAT, message){
         if(Utils.last(Talk.previous_modes) !== Talk.mode) { //don't have adjacent items in pervious_modes array be the same, its just "noise")
@@ -359,39 +369,40 @@ class Talk {
 
     //shows status including valid cmds
     //not passing in a message displays the default message.
-    static display_all(content_obj, message, related_target=document.activeElement){ //display_all
+    static display_all(aCAT, message, related_target=document.activeElement){ //display_all
         //out("top of display_all")
         this.display_status()
         this.display_color(related_target)
-        this.display_commands(content_obj)
-        this.display_message(message, content_obj)
+        this.display_commands(aCAT)
+        this.display_message(message, aCAT)
     }
 
     static display_status(){
         if (globalThis.display_status_id) { //show_window is shown
             let step_value_color = "black"
-            if      (this.step_size < 0.005) { step_value_color = "blue"}
-            else if (this.step_size > 0.005) { step_value_color = "red"}
+            if      (TalkMode.move.step_size < 0.005) { step_value_color = "blue"}
+            else if (TalkMode.move.step_size > 0.005) { step_value_color = "red"}
             display_status_id.innerHTML =
                 "<i>Mic:           </i><b>" + (this.is_mic_on()    ? "<span style='color:rgb(0, 220, 0);'>on</span>" : "off") + "</b> &nbsp;" +
                 "<i>Speaker:       </i><b>" + (this.enable_speaker ? "<span style='color:rgb(0, 220, 0);'>on</span>" : "off") + "</b> &nbsp;" +
-                "<i>Recording:     </i><b>" + (this.is_recording   ? "<span style='color:rgb(0, 220, 0);'>on</span>" : "off") + "</b> &nbsp;" +
+                "<i>Recording:     </i><b>" + (TalkMode.move.is_recording   ? "<span style='color:rgb(0, 220, 0);'>on</span>" : "off") + "</b> &nbsp;" +
                 "<i>Moving:        </i><b>" + (this.is_moving      ? "<span style='color:rgb(0, 220, 0);'>on</span>" : "off") + "</b> &nbsp;" +
-                "<i>Step size: </i><b title='The default step size is: 0.005m (5 millimeters).' style='color:" + step_value_color + ";'>" + this.step_size + "m</b><br/>" +
-                "<i>Mode:          </i><b>" + this.mode.name + (Talk.recording_name_now_playing ? " " + Talk.recording_name_now_playing : "") + "</b> &nbsp;"
+                "<i>Step size: </i><b title='The default step size is: 0.005m (5 millimeters).' style='color:" + step_value_color + ";'>" + TalkMode.move.step_size + "m</b><br/>" +
+                "<i>Mode:          </i><b>" + this.mode.name + (TalkMode.move.recording_name_now_playing ? " " + TalkMode.move.recording_name_now_playing : "") + "</b> &nbsp;"
         }
     }
 
-    static display_message(message, content_obj){ //display_message
-        if (message){} //just use it below
-        else if (content_obj) {
-            let parameters = content_obj._cmd.parameters
+    static display_message(message, aCAT){ //display_message
+        if (message === "no_change") { return }
+        else if (message){} //just use it below
+        else if (aCAT) {
+            let parameters = aCAT._cmd.parameters
             if (parameters.length === 1) {
-                message = "For <b>" + content_obj._cmd.name + "</b>, tap space-bar and say the value for: <b>" + parameters[0].name +
+                message = "For <b>" + aCAT._cmd.name + "</b>, tap space-bar and say the value for: <b>" + parameters[0].name +
                     "</b><br/>or type it in."
             }
             else {
-                message = "For <b>" + content_obj._cmd.name + "</b>, say a param_name and its new value<br/>" +
+                message = "For <b>" + aCAT._cmd.name + "</b>, say a param_name and its new value<br/>" +
                     "or type in a new value."
             }
         }
@@ -440,8 +451,8 @@ class Talk {
         console.log("_________end of display_color")
     }
 
-    static display_commands(content_obj){
-        valid_commands_id.innerHTML = Talk.mode.cmds_html(content_obj)
+    static display_commands(aCAT){
+        valid_commands_id.innerHTML = Talk.mode.cmds_html(aCAT)
     }
 
  //_______command Utilities_______
@@ -488,23 +499,25 @@ class Talk {
         event.stopPropagation()
         //event.preventDefault()
         if(event.key === "Enter") {
-            let [parent_mode, cmd_str] = Talk.mode.split("__")
-            let names = Talk.cmd_param_names_for_current_params_mode()
-            let last_name = Utils.last(names)
-            let [id_parent_mode, cmd, params_const, param_name] = event.target.id.split("__")
-            if(param_name === last_name){ //user edited last param value and hit Enter, so just run the cmd
+            let input_dom_elt = event.target
+            let [parent_mode_name, cmd_name_with_underscores, params_const, param_name] = event.target.id.split("__")
+            let parent_mode = TalkMode.mode_name_to_mode(parent_mode_name)
+            let cmd = parent_mode.get_command(cmd_name_with_underscores)
+            let parameter_names = cmd.parameter_names()
+            let last_param_name = Utils.last(parameter_names)
+            if(param_name === last_param_name){ //user edited last param value and hit Enter, so just run the cmd
                 Talk.handle_command("run") //does its own setting of command_line
             }
             else { //there's more inputs. Focus on next input
-                let cur_index = names.indexOf(param_name)
+                let cur_index = parameter_names.indexOf(param_name)
                 let next_index = cur_index + 1
-                let next_param_name = names[next_index]
+                let next_param_name = parameter_names[next_index]
                 let next_id = parent_mode + "__" + cmd_str + "__params__" + next_param_name + "__id"
                 let next_dom_elt = globalThis[next_id]
                 if(next_dom_elt) {
                     next_dom_elt.focus()
                 }
-                Talk.compute_and_set_command_line_in_param_mode(Talk.mode) //should be a params mode
+                Talk.compute_and_set_command_line_in_param_mode(cmd) //should be a params mode
             }
         }
     }
@@ -569,14 +582,14 @@ class Talk {
     //that's handled by handle_command_command() as is typing Enter on cmd line.
     //this fn CAN'T get anything useful from the cmd line as that's replaced with "command"
     //as soon as user says something.
-    static command(content_obj_or_full_text){
-        if(typeof(content_obj_or_full_text) === "object"){
-            content_obj_or_full_text = content_obj_or_full_text._full_text
+    static command(aCAT_or_full_text){
+        if(typeof(aCAT_or_full_text) === "object"){
+            aCAT_or_full_text = aCAT_or_full_text._full_text
         }
-        if (typeof(content_obj_or_full_text) !== "string"){
-            shouldnt("Talk.command passed invalid content_obj_or_full_text of: " + content_obj_or_full_text)
+        if (typeof(aCAT_or_full_text) !== "string"){
+            shouldnt("Talk.command passed invalid content_obj_or_full_text of: " + aCAT_or_full_text)
         }
-        let full_text = content_obj_or_full_text
+        let full_text = aCAT_or_full_text
 
         if(full_text.toLowerCase().startsWith("command")){
             full_text = full_text.substring(7).trim()
@@ -584,24 +597,23 @@ class Talk {
 
         if(full_text.trim() === "") { //If anything was passed, it started with "command" so we've gotten rid of it
                                      //and the typein is empty too, so nothing to do.
-            Talk.display_message("There is no content for the command.")
-            window.Talk_command_command_id.value = ""
-        }
-        /*else {
-            let [parent_mode, comd_norm_with_underscores, params] = Talk.mode.split("__")
-            if (params) {
-                Talk.set_mode(parent_mode)
+            let cmd_text = Talk_command_command_id.value
+            if (cmd_text === "command") { //the word "command" could have been inserted when the user said it, which could cause infinite recursion so ...
+                cmd_text = ""
             }
-            Talk.handle_command(full_text)
-        }*/
+            if((typeof(cmd_text) === "string") && (cmd_text.length > 0)){
+                Talk.handle_command(cmd_text)
+            }
+            else {
+                Talk.display_message("There is no content for the command.")
+                window.Talk_command_command_id.value = ""
+            }
+        }
         else {
-            window.Talk_command_command_id.value =  full_text
+            window.Talk_command_command_id.value = full_text
             Talk.handle_command(full_text)
         }
     }
-
-
-
 
     //not called Apr 22 whuich is good because excludes params mode if any.
     static is_mode(a_string){
@@ -629,14 +641,21 @@ class Talk {
 
     //does not check if method actually exists for the returned string.
     static string_to_method_name(string) { //also returns proper spelling for recording_name
-        string = this.string_to_cmd_normalized_prose(string)
-        string = string.replaceAll(" ", "_")
-        string = string.replaceAll("'", "") // "don't" => "dont"
+        //string = this.string_to_cmd_normalized_prose(string)
+        string = string.replaceAll(" ", "_") // "foo bar" => "foo_bar"
+        string = string.replaceAll("'", "")  // "don't"   => "dont"
         return string
     }
 
+    static is_existing_job_name(cmd_str){
+        //return this.array_of_recording_names().includes(cmd)
+        return (Job[cmd_str] && (Job[cmd_str] instanceof Job) && (cmd_str !== "talk_internal"))
+    }
+
+
     //returns null or an actual define job name.
     static job_name_prose_to_existing_job_name(job_name_prose){
+        job_name_prose = job_name_prose.trim()
         job_name_prose = job_name_prose.replaceAll(" ", "_").toLowerCase()
         job_name_prose = job_name_prose.replaceAll("'", "")
         job_name_prose = job_name_prose.toLowerCase()
@@ -662,7 +681,8 @@ class Talk {
             job_name = existing_job_name
         }
         else {
-            job_name = this.string_to_method_name(content) //lower_cases, repalce apce with underscore
+            job_name = this.string_to_method_name(content) //lower_cases, replace apce with underscore
+            job_name = job_name.toLowerCase()
         }
         return job_name
     }
@@ -823,36 +843,10 @@ class Talk {
     static cmd_param_names_for_current_params_mode(){
         let params = this.cmd_params_for_current_params_mode()
         let param_names = []
-        for(let param of params){ //name-default_value pairs
+        for(let param of params){
             param_names.push(param[0])
         }
         return param_names
-    }
-
-    static is_param(cmd, param_name, a_mode=Talk.mode){
-        let params = this.cmd_param_names(cmd, a_mode)
-        if(params.length === 0) { shouldnt("In Talk.cmd_param_default_value, passed unknown cmd: " + cmd)}
-        for(let a_param of params) {
-            if(a_param === param_name) {
-                return true
-            }
-        }
-        return false
-    }
-
-    static cmd_param_default_value(cmd, param_name, a_mode=Talk.mode){
-        let params = this.cmd_params(cmd, a_mode)
-        if(!params) { shouldnt("In Talk.cmd_param_default_value, passed unknown cmd: " + cmd)}
-        for(let a_param of params) {
-           if(a_param === param_name) {
-               let default_value = a_param[1]
-               if(typeof(default_value) === "function") {
-                   default_value = result.call(Talk)
-               }
-               return default_value
-           }
-       }
-       shouldnt("In Talk.cmd_param_default_value, passed unknown param: " + param_name + " for cmd: " + cmd)
     }
 
     //always returns an array.
@@ -1071,15 +1065,6 @@ class Talk {
         return this.enable_speaker
     }
 
-
-
-
-
-
-
-
-
-
     //if content_str starts with one of the params of cmd_str, then the returned content_obj
     //wil; contain a field of that param name whose value is the content_str AFTER the
     //param_name (spaces trimmed from both param_name and what's after it.
@@ -1092,7 +1077,7 @@ class Talk {
         let has_args = false
         let the_param_names = []
         let unused_param_names = []
-        let is_cmd =  cmd_norm_mode.is_known_cmd(cmd_norm)
+        let is_cmd =  cmd_norm_mode.is_known_cmd_name(cmd_norm)
         let result = {}
         if(is_cmd) {
             the_param_names = this.cmd_param_names(cmd_norm, cmd_norm_mode)
@@ -1158,14 +1143,6 @@ class Talk {
         return result
     }
 
-
-
-
-
-
-
-
-
     static handle_command(full_text){
         console.log("handle_command passed: " + full_text)
         this.stop_aux() // this is called by space-bar down. So it *might* be redundant,
@@ -1177,10 +1154,9 @@ class Talk {
             this.command(full_text)
             return
         }
-
         //mode is valid
         for (let cmd of Talk.mode.commands) {
-            if (!cmd.should_display) {
+            if (!cmd.should_display_command()) {
             } //loop around as this cmd can't be acceptable for the mode node
             else {
                 let alts = [cmd.name].concat(cmd.alternate_names) //alts needs to include orig cmd
@@ -1194,87 +1170,88 @@ class Talk {
                         //let cmd_norm_mode = (params_const ? parent_mode : Talk.mode)
                         //let cmd_norm_with_underscores = cmd_norm.replaceAll(" ", "_")
                         let aCAT = new TalkCAT({full_text: full_text, cmd: cmd, content_str: content_str}) //this.content_str_to_content_obj(full_text, cmd_norm_with_underscores, content_str, cmd_norm, Talk.mode)
-                        if (aCAT._unused_param_names.length > 0) {
+                        if(aCAT._error){
                             this.set_params_mode(aCAT)
-                        } else {
+                            this.display_warning(aCAT._error, aCAT)
+                        }
+                        else if((aCAT._cmd.name === "stop recording") &&
+                            (TalkMode.move.instructions_being_recorded.length === 0)) {
+                            TalkMode.move.is_recording = false
+                            let mess = "No commands have been recorded,<br/>so no point in defining an empty Job."
+                            Talk.set_mode(TalkMode.move, aCAT, mess)
+                        }
+                        else if (aCAT._unused_param_names.length > 0) {
+                            this.set_params_mode(aCAT)
+                        }
+                        else {
                             //cmd.action_function.call(Talk, aCAT)
                             cmd.call_action_function(aCAT)
                         }
-                        if (cmd_str !== "run") { //reclude "run" because cmd_meth.call(Talk, aCAT) for "run" ends up calling handle_command with a new full_text that will set its own, better cmd line
+                        if (cmd_str !== "run") { //exclude "run" because cmd_meth.call(Talk, aCAT) for "run" ends up calling handle_command with a new full_text that will set its own, better cmd line
                             this.compute_and_set_command_line(aCAT)
                         }
                         return
                     }
                 }
-            }
+            } ///else no match for full_text with the alts, as is usual, so loop around again
         }
-                    ///else no match for full_text with the alts, as is usual, so loop around again
         //no success with normal cmds so call the misc method for the mode, including, perhaps "params_mode_misc"
-
-        let use_mode_for_making_mode_misc
-        let cmd_norm
-        let cmd_norm_with_underscores
-        let content_str
-        let cmd_norm_mode
-        //let [parent_mode, cmd_norm_from_mode_with_underscores, params_const] = Talk.mode.split("__")
-        if(Talk.mode === Talk.params){ //got a params dialog up.
-            use_mode_for_making_mode_misc = "params"
-            cmd_norm = cmd_norm_from_mode_with_underscores.replaceAll("_", " ")
-            cmd_norm_with_underscores = cmd_norm_from_mode_with_underscores
-            content_str  = full_text //"" //full_text.substring(cmd_norm.length).trim()
-            cmd_norm_mode = Talk.parent_mode() //parent_mode
-        }
-        else { //not a params mode
-            use_mode_for_making_mode_misc = Talk.mode
-            cmd_norm = false
-            //cmd_norm_with_underscores = false //no known cmd in the mode so cmd_str is false.
-            content_str = ""
-            cmd_norm_mode = Talk.mode
-        }
-        let misc_mode_name = use_mode_for_making_mode_misc + "_mode_misc" // ie "main_menu_mode_misc", "move_menu_mode_misc", "params_mode_misc"
-        let misc_meth = Talk[misc_mode_name]
-        if (!misc_meth) {
-            this.display_warning('Mode: <b>' + Talk.mode + `</b> doesn't have a matching command for:<br/>"` + full_text + '" (no misc method).')
-            return
-        }
-
-        let aCAT = new TalkCAT({full_text: full_text, cmd: cmd, content_str: content_str})
-            //this.content_str_to_content_obj(full_text, cmd_norm_with_underscores, content_str, cmd_norm, cmd_norm_mode)
-        if(aCAT._unused_param_names.length > 0){
-            this.set_params_mode(aCAT)
-            this.compute_and_set_command_line(aCAT)
-        }
-        else {
-            misc_meth.call(Talk, aCAT)
-            this.compute_and_set_command_line(aCAT)
-        }
+        let cmd = Talk.mode.get_command("mode_misc")
+        let aCAT = new TalkCAT({full_text: full_text, cmd: cmd, content_str: full_text}) //this.content_str_to_content_obj(full_text, cmd_norm_with_underscores, content_str, cmd_norm, Talk.mode)
+        cmd.call_action_function(aCAT)
+        this.compute_and_set_command_line(aCAT)
     }
 
     static compute_and_set_command_line(aCAT = null){
         let new_full_text
-        let cmd_norm = aCAT._cmd_norm
-        if(!cmd_norm){
+        let cmd = aCAT._cmd
+        let cmd_name = cmd.name
+        if(!cmd) {
             new_full_text = aCAT._full_text
         }
         else {
-            if ((cmd_norm === "cancel") || (cmd_norm === "run")) {
-                let [parent_mode, raw_cmd, params] = aCAT._cmd_norm_mode.split("__")
-                cmd_norm = raw_cmd
+            if ((cmd_name === "cancel") || (cmd_name === "run")) {
+                aCAT = Talk.params_mode_aCAT //ie the REAL cmd line "insert" for the param dialog box is up to edit the params of.
+                cmd = aCAT._cmd  //the NEW aCAT
             }
-            new_full_text = cmd_norm + " "
-            let param_names = aCAT._param_names
-            for (let i = 0; i < param_names.length; i++) {
-                let param_name = param_names[i]
-                if (i !== 0) {
-                    new_full_text += ","
+
+            if (!cmd_name) {
+                new_full_text = aCAT._full_text
+            }
+            else if(cmd_name === "mode misc"){
+                new_full_text = aCAT._content_str
+            }
+            //else if (aCAT._full_text.length > cmd_name.length)
+            //    new_full_text = aCAT._full_text
+            else {
+                new_full_text = cmd_name //+ ((cmd.parameters.length > 0) ? (" " + aCAT._content_str) : "")
+                for (let i = 0; i < cmd.parameters.length; i++){
+                    let param_name = cmd.parameters[i].name
+                    if (i === 0) {
+                        new_full_text += " "
+                    } else {
+                        (new_full_text += ", ")
+                    }
+                    if ((aCAT[param_name] !== undefined)) {
+                        new_full_text += aCAT[param_name]
+                    } else {
+                        new_full_text += "needs: " + param_name
+                    }
                 }
-                if ((aCAT[param_name] === undefined) ||
-                    ((typeof (aCAT[param_name]) === "string") &&
-                        (aCAT[param_name].trim().length === 0))) {
-                    new_full_text += " /*needs: " + param_name + "*/ "
-                } else {
-                    new_full_text += " " + aCAT[param_name]
-                }
+                /*let param_names = aCAT._unused_param_names
+                for (let i = 0; i < param_names.length; i++) {
+                    let param_name = param_names[i]
+                    if (i === 0) {
+                        new_full_text += " needs:"
+                    }
+                    if ((aCAT[param_name] === undefined) ||
+                        ((typeof (aCAT[param_name]) === "string") &&
+                            (aCAT[param_name].trim().length === 0))) {
+                        new_full_text += " " + param_name
+                    } else {
+                        new_full_text += " " + aCAT[param_name]
+                    }
+                }*/
             }
         }
         new_full_text = new_full_text.trim() //trailing space maybe
@@ -1282,11 +1259,11 @@ class Talk {
     }
 
     //called after entering a param value in param mode
-    static compute_and_set_command_line_in_param_mode(a_param_mode = Talk.mode){
+    static compute_and_set_command_line_in_param_mode(cmd){
         let [parent_mode, cmd_str_with_underscores] = a_param_mode.split("__")
-        let cmd_norm = cmd_str_with_underscores.replaceAll("_", " ")
-        let param_names = this.cmd_param_names(cmd_norm, parent_mode)
-        let new_full_text = cmd_norm
+        let cmd_name = cmd.name
+        let param_names = this.cmd_param_names(cmd_name, parent_mode)
+        let new_full_text = cmd_name
         for (let i = 0; i < param_names.length; i++) {
             let param_name = param_names[i]
             let id_str = parent_mode + "__" + cmd_str_with_underscores + "__params__" + param_name + "__id"

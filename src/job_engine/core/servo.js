@@ -660,7 +660,8 @@ Dexter.move_until_static = function (goal_degrees=20, joint_number = 7, degree_t
     return function(){
         out("move_until_static trying to reach " + goal_degrees + "&deg;")
         let the_job = this
-        if(!robot) { robot = the_job.robot }
+        //if(!robot) { robot = the_job.robot } //fry sep 22, 2024
+        let robot = the_job.robot //fry sep 22, 2024
         let first_move
         let new_du = Socket.degrees_to_dexter_units(goal_degrees, joint_number)
         if(joint_number === 6) {
@@ -669,59 +670,60 @@ Dexter.move_until_static = function (goal_degrees=20, joint_number = 7, degree_t
         else if(joint_number === 7) {
             first_move = robot.set_parameter("EESpan", new_du)
         }
-        return [first_move,
-            Control.loop(function(){
+        return [first_move, //start the joint moving toward the goal_degrees
+                Control.loop(function(){ //Control.loop conditional fn
+                                let ma = this.robot.rs.measured_angle(joint_number)
+                                out("Joint " + joint_number + " goal_degrees of: " + goal_degrees + " now at " + ma + "&deg;")
+                                if (similar(ma, goal_degrees, degree_tolerance)) {
+                                    out("Measured angle: " + ma + "&deg; is within: " +  degree_tolerance + " of goal_degrees: " + goal_degrees)
+                                    prev_mas = []
+                                    return false
+                                }
+                                else if(prev_mas.length < prev_mas_full_length) {
+                                    prev_mas.push(ma)
+                                    return true //keep looping
+                                }
+                                else { //we know prev_mas.length == prev_mas_full_length
+                                    for(let prev_ma of prev_mas){
+                                        if(!similar(ma, prev_ma, degree_tolerance)){
+                                            prev_mas.shift() //take off first elt of prev_mas
+                                            prev_mas.push(ma)
+                                            return true //continue looping
+                                        }
+                                    }
+                                    //prev_mas and ma are similar so no movement of joint, so we're done
+                                    out("last " + (prev_mas_full_length + 1) + " measured angles stopped moving and within: " + degree_tolerance + " of: " + ma +
+                                        "&deg;<br/>Prev angles: " + prev_mas.join(", "))
+                                    prev_mas = [] //must do or will not be reset when clikcing on job button the 2nd time
+                                    return false //done, the usual loop stop case.
+                                }
+                            }, //end of Control.loop condional fn
+                            function() { //Control.loop action fn
+                                return robot.get_robot_status()// fry sept 22. 2024
+                            } //end of Control.loop action fn
+                            ), //end of Control.loop
+                function(){ //set dexter's commanded angle to where it now is to stop motor overtorquing
+                    //tell the robot to go where it IS, thus stopping its attempt to get to the orig goal
+                    //important when we've stopped because we were within a tolerance but not dead on,
+                    //or we stopped due to the torque limit
                     let ma = this.robot.rs.measured_angle(joint_number)
-                    //out("Joint " + joint_number + " now at " + ma + "&deg;")
-                    if (similar(ma, goal_degrees, degree_tolerance)) {
-                        out("Measured angle: " + ma + "&deg; is within: " +  degree_tolerance + " of goal_degrees: " + goal_degrees)
-                        prev_mas = []
-                        return false
+                    let du = Socket.degrees_to_dexter_units(ma, joint_number)
+                    out("Joint " + joint_number + " set to where it is: " + ma + "&deg;")
+                    if(joint_number === 6) {
+                        return robot.set_parameter("EERoll", du)
                     }
-                    else if(prev_mas.length < prev_mas_full_length) {
-                        prev_mas.push(ma)
-                        return true //keep looping
+                    else if(joint_number === 7) {
+                        return robot.set_parameter("EESpan", du)
                     }
-                    else { //we know prev_mas.length == prev_mas_full_length
-                        for(let prev_ma of prev_mas){
-                            if(!similar(ma, prev_ma, degree_tolerance)){
-                                prev_mas.shift() //take off first elt of prev_mas
-                                prev_mas.push(ma)
-                                return true //continue looping
-                            }
-                        }
-                        //prev_mas and ma are similar so no movement of joint, so we're done
-                        out("last " + (prev_mas_full_length + 1) + " measured angles stopped moving and within: " + degree_tolerance + " of: " + ma +
-                            "&deg;<br/>Prev angles: " + prev_mas.join(", "))
-                        prev_mas = [] //must do or will not be reset when clikcing on job button the 2nd time
-                        return false //done, the usual stop case.
-                    }
-                },
-                function() {
-                    return robot.get_robot_status()
-                }),
-            function(){
-                //tell the robot to go where it IS, thus stopping its attempt to get to the orig goal
-                //important when we've stopped because we were within a tolerance but not dead on,
-                //or we stopped due to the torque limit
-                let ma = this.robot.rs.measured_angle(joint_number)
-                let du = Socket.degrees_to_dexter_units(ma, joint_number)
-                out("Joint " + joint_number + " set to where it is: " + ma + "&deg;")
-                if(joint_number === 6) {
-                    return robot.set_parameter("EERoll", du)
                 }
-                else if(joint_number === 7) {
-                    return robot.set_parameter("EESpan", du)
-                }
-            }
-        ]
+            ] //end of instruction array returned
     }
 }
 
 //Error: In Socket.send, attempt to send instruction: 11,-1,1617918232780,,g but still waiting for previous instruction: 9,1,1617917826237,,P,100544.02707910512,208196.21318379667,405642.68474489666,-289838.8979286934,0,693,898
 
 Dexter.prototype.twist = function(goal_degrees){
-    let dexter_instance = this
+    let dexter_instance = this.robot //fry seo 16, 2024
     return Dexter.move_until_static(goal_degrees, 6, undefined, dexter_instance)
 }
 Dexter.twist = function(goal_degrees=0){
@@ -729,7 +731,7 @@ Dexter.twist = function(goal_degrees=0){
 }
 
 Dexter.prototype.grasp = function(min_degrees=20){
-    let dexter_instance = this
+    let dexter_instance = this.robot //fry seo 16, 2024
     return Dexter.move_until_static(min_degrees, 7, undefined, dexter_instance)
 }
 
@@ -738,7 +740,7 @@ Dexter.grasp = function(min_degrees=20){
 }
 
 Dexter.prototype.ungrasp = function(max_degrees=270){ //theoretical limit 296 but without perfect calibration, best to set it lower
-    let dexter_instance = this
+    let dexter_instance = this.robot  //fry fix sep 16, 2024
     return Dexter.move_until_static(max_degrees, 7, undefined, dexter_instance)
 }
 

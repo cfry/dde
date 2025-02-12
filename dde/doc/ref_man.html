@@ -2441,7 +2441,7 @@ They all take 2 mats as inputs and return a floating point number between
     gets the average value of that mat to return a number
     between 0 and 1. The result is adjusted such that
     0 means the pictures are very different, and 1 means they are very similar.
-    The two input mats can both be "rgba" or both be "gray".
+    The two input mats can both be "rgba" or both be "gray".<br/>
     <i>Parameters:</i><br/>
     <b>mat_in1</b> Required. mat of type "rgba" or "gray".<br/>
     <b>mat_in2</b> Required. mat of type "rgba" or "gray". Must be the same type as mat_in1.
@@ -12350,7 +12350,7 @@ Here we point out just a few that are especially easy and useful for teaching.
            use additional functionality and the examples in pyodide.
        </details>
 
-       <details id="Py.eval_doc_id" class="doc_details"><summary>Py.eval</summary>
+       <details id="Py.eval_doc_id" class="doc_details"><summary>Calling Python from JavaScript: Py.eval</summary>
        The <code>Py</code> class holds utilities for evaluating Python code embedded in JavaScript code.
        The most important function is <code>Py.eval</code>.<br/>
        Unlike Python's broken-by-design "eval" function,
@@ -12445,6 +12445,24 @@ new Job({
       For a simpler way to call Python from within a Job, see
       <a href="#" onclick="DocCode.open_doc('Brain.eval_python_doc_id')">Brain.eval_python</a>
        </details>
+       <details class="doc_details"><summary>Evaling Python</summary>
+           Below are some samples of Python code you can eval.
+           This code can be in the editor buffer when the file has an extension of .py.
+           or in the command line when the language selection is <b>Python</b>,<br/>
+           or as a string argument to <code>py.eval</code><br/>
+           <pre><code title="not in Testsuite" style="background-color:#F8FFF8;"># js and sys are automatically loaded:
+
+js  #bound to what "window" is when in the JavaScript enviroment.
+sys.version
+sys.platform
+len([4,5,6,7,8])
+import numpy
+numpy.array([1, 2, 3])
+def test():
+	print("hello world") # prints to Deve tools console.
+	return len([4,5])
+test()</code></pre>
+       </details>
        <details class="doc_details"><summary>Calling JavaScript from Python</summary>
            There are a variety of ways to call JavaScript from your DDE Python code.
            You can call any JavaScript function, including add instructions to
@@ -12454,24 +12472,8 @@ new Job({
            you can copy and paste them into an editor file whose name ends in .py
            or into the Output pane's command line (after selected "Python" in its language menu).
            Then you can select any Python expression and click the <button>Eval</button> button.
-           <pre><code title="not in Testsuite" style="background-color:#F8FFF8;"># js and sys are automatically loaded:  import js #now js is bound to what "window" is when in JS
-
-js
-sys.version
-sys.platform
-
-len([4,5,6,7,8])
-
-import numpy
-
-numpy.array([1, 2, 3])
-
-def test():
-	print("hello world") # prints to Deve tools console.
-	return len([4,5])
-
-test()
-
+           <pre><code title="not in Testsuite" style="background-color:#F8FFF8;">
+#The below code must be evaled in a Python context and must include the surrounding quotes.
 "eval_in_js [3, 4].length"
 
 "eval_in_js Dex.m_joint([5, 10, 15])"
@@ -12482,8 +12484,13 @@ test()
  Dex.m_joint(5, 10, 15)
  Dex.m_joint(0, 0, 0)
 '''
+#The below must be evaled in a Python context and doesn't need quotes around the
+#whole call but does need quotes around the argument.
+foo = js.eval("[3, 4].length") # evals to 2 in JS and return2 2
+foo  # evals to 2 in Python
+js.eval("Dex.m_joint([5, 10, 15]); Dex.m_joint([0, 0, 0]);")
 
-
+#Other code examples to eval in a Python context
 div = js.document.createElement("div") #make a dom elt. select "div" and click the eval button
 div.innerHTML = "<div>This element was created from Python</div>" #extend our new div dom element
 js.document.body.prepend(div) #causes "This element..." to appear at top of DDE IDE window
