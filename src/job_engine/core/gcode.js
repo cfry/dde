@@ -1,5 +1,8 @@
 globalThis.Gcode = class Gcode{
     static print_gcode_line_when_run = true
+    static scale = .001 //units are mm, convert to meters
+    static offset = [0,100,80] //xyz offset in mm
+
     static state = {
         Y_offset: 0.1,
         X: 0,
@@ -64,8 +67,11 @@ globalThis.Gcode = class Gcode{
         let y_pos = this.state.Y
         y_pos += this.state.Y_offset
         if(y_pos === 0) { y_pos = 1e-10 }//to avoid singularity
-        let xyz = [this.state.X, y_pos, this.state.Z]
-
+        let xyz = [ 
+            ( this.state.X + this.offset[0] ) * this.scale,
+        	( y_pos + this.offset[1] ) * this.scale,
+            ( this.state.Z + this.offset[2] ) * this.scale
+            ]
         return [ function() { Gcode.extrude()},
                  Dexter.move_to(xyz)
                ]
